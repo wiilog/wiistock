@@ -179,9 +179,9 @@ function initNewArrivageEditor(modal) {
 
 function onArrivalTypeChange($select) {
     const $modal = $select.closest('.modal');
-    const $freeFieldContainer = $modal.find('.free-fields-container');
-    toggleRequiredChampsLibres($select, 'create', $freeFieldContainer);
-    typeChoice($select, '-new', $freeFieldContainer)
+    const $freeFieldsContainer = $modal.find('.free-fields-container');
+    toggleRequiredChampsLibres($select, 'create', $freeFieldsContainer);
+    typeChoice($select, '-new', $freeFieldsContainer)
 
     // TODO
     // const type = parseInt($select.val());

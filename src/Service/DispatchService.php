@@ -15,6 +15,7 @@ use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -258,7 +259,10 @@ class DispatchService
 
             $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
             $title = $status->getTreated()
-                ? ($this->translator->trans('acheminement.acheminement') . ' traité(e) : '.$dispatch->getNumber() . ', le ' . $dispatch->getValidationDate()->format('d/m/Y à H:i:s'))
+                ? $this->translator->trans('acheminement.Acheminement {numéro} traité le {date}', [
+                    "{numéro}" => $dispatch->getNumber(),
+                    "{date}" => $dispatch->getValidationDate()->format('d/m/Y à H:i:s')
+                ])
                 : (!$isUpdate
                     ? ('Une ' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
                     : ('Changement de statut d\'une ' . $translatedCategory . ' de type ' . $type . ' vous concernant :'));
@@ -285,7 +289,7 @@ class DispatchService
                     $this->templating->render('mails/contents/mailDispatch.html.twig', [
                         'dispatch' => $dispatch,
                         'title' => $title,
-                        'urlSuffix' => $translatedCategory,
+                        'urlSuffix' => $this->router->generate("dispatch_show", ["id" => $dispatch->getId()]),
                         'hideNumber' => $isTreatedStatus,
                         'hideValidationDate' => $isTreatedStatus
                     ]),

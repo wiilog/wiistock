@@ -194,7 +194,7 @@ class LitigeService
                 $this->templating->render('mails/contents/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig', [
                     'litiges' => [$litige],
                     'title' => $title,
-                    'urlSuffix' => ($isArrival ? 'arrivage' : 'reception')
+                    'urlSuffix' => ($isArrival ? '/arrivage' : '/reception')
                 ]),
                 $recipients
             );

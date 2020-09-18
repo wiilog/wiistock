@@ -64,6 +64,13 @@ class ParametrageGlobal
     const DASHBOARD_PACKAGING_DESTINATION_GT = 'DASHBOARD_PACKAGING_DESTINATION_GT';
     const DASHBOARD_PACKAGING_ORIGINE_GT = 'DASHBOARD_PACKAGING_ORIGINE_GT';
 
+    // dispatches
+    const DISPATCH_WAYBILL_CARRIER = 'DISPATCH_WAYBILL_CARRIER';
+    const DISPATCH_WAYBILL_CONSIGNER = 'DISPATCH_WAYBILL_CONSIGNER';
+    const DISPATCH_WAYBILL_RECEIVER = 'DISPATCH_WAYBILL_RECEIVER';
+    const DISPATCH_WAYBILL_LOCATION_TO = 'DISPATCH_WAYBILL_LOCATION_TO';
+    const DISPATCH_WAYBILL_LOCATION_FROM = 'DISPATCH_WAYBILL_LOCATION_FROM';
+
 
     // étiquettes
     const INCLUDE_BL_IN_LABEL = 'INCLURE BL SUR ETIQUETTE';
@@ -113,7 +120,7 @@ class ParametrageGlobal
     private $label;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      */
     private $value;
 

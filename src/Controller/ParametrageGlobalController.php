@@ -116,7 +116,12 @@ class ParametrageGlobalController extends AbstractController
                     'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES))
                 ],
                 'paramDispatches' => [
-                    'urgences' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES))
+                    'urgences' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
+                    'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
+                    'consigner' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONSIGNER),
+                    'receiver' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_RECEIVER),
+                    'locationFrom' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_FROM),
+                    'locationTo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_TO)
                 ],
                 'mailerServer' => $mailerServerRepository->findOneMailerServer(),
                 'wantsBL' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
@@ -845,34 +850,6 @@ class ParametrageGlobalController extends AbstractController
         return new JsonResponse(true);
     }
 
-    /**
-     * @Route("/modifier-urgences-acheminements",
-     *     name="set_dispatch_urgences",
-     *     options={"expose"=true},
-     *     methods="POST",
-     *     condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function editDispatchUrgences(Request $request,
-                                     ParametrageGlobalRepository $parametrageGlobalRepository): Response
-    {
-        $value = $request->request->get('value');
-
-        $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES);
-        $em = $this->getDoctrine()->getManager();
-        if (!$parametrage) {
-            $parametrage = new ParametrageGlobal();
-            $parametrage->setLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES);
-            $em->persist($parametrage);
-        }
-        $parametrage->setValue(json_encode($value));
-
-        $em->flush();
-        return new JsonResponse(true);
-    }
 
     /**
      * @Route("/modifier-destination-demande-livraison",

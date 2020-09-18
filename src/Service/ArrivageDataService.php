@@ -369,6 +369,7 @@ class ArrivageDataService
         $driver = $arrivage->getChauffeur();
         $numeroCommandeList = $arrivage->getNumeroCommandeList();
         $status = $arrivage->getStatut();
+        $type = $arrivage->getType();
         $destinataire = $arrivage->getDestinataire();
         $buyers = $arrivage->getAcheteurs();
         $comment = $arrivage->getCommentaire();
@@ -382,7 +383,14 @@ class ArrivageDataService
         );
 
         $config = [
-            [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
+            [
+                'label' => 'Type',
+                'value' => $type ? $this->stringService->mbUcfirst($type->getLabel()) : ''
+            ],
+            [
+                'label' => 'Statut',
+                'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : ''
+            ],
             [
                 'label' => 'Fournisseur',
                 'value' => $provider ? $provider->getNom() : ''

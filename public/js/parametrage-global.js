@@ -422,3 +422,21 @@ function deleteWorkFreeDay(id, date) {
         }
     });
 }
+
+function saveDispatchesParam() {
+    Promise.all([
+        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_CARRIER', val: $('[name="waybillCarrier"]').val()})),
+        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_CONSIGNER', val: $('[name="waybillConsigner"]').val()})),
+        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_RECEIVER', val: $('[name="waybillReceiver"]').val()})),
+        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_LOCATION_FROM', val: $('[name="waybillLocationFrom"]').val()})),
+        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_LOCATION_TO', val: $('[name="waybillLocationTo"]').val()}))
+    ])
+        .then((res) => {
+            console.log(res);
+            if (res.every((success) => success)) {
+                alertSuccessMsg("Les paramétrages d'acheminements ont bien été mis à jour.");
+            } else {
+                alertErrorMsg("Une erreur est survenue lors de la mise à jour des paramétrages d'acheminements.");
+            }
+        });
+}

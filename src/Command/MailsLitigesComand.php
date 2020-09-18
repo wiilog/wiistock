@@ -82,7 +82,7 @@ class MailsLitigesComand extends Command
                 $this->templating->render('mails/contents/mailLitigesArrivage.html.twig', [
                     'litiges' => $litiges,
                     'title' => 'Récapitulatif de vos litiges',
-                    'urlSuffix' => 'arrivage'
+                    'urlSuffix' => '/arrivage'
                 ]),
                 $email
             );

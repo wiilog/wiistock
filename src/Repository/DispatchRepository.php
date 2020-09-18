@@ -233,25 +233,60 @@ class DispatchRepository extends EntityRepository
             ->getResult();
     }
 
-    public function getLastDeliveryNumber(DateTime $from)
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return Dispatch[]
+     */
+    public function getByDates(DateTime $dateMin,
+                               DateTime $dateMax)
     {
-        $year = $from->format('y');
-        $month = $from->format('m');
-        $day = $from->format('d');
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
 
-        $queryBuilder = $this->createQueryBuilder('dispatch');
-        $queryBuilder
-            ->select('dispatch.deliveryNoteNumber AS deliveryNoteNumber')
-            ->where('dispatch.deliveryNoteNumber = :dispatchDeliveryNoteNumberBegin')
-            ->orderBy('dispatch.deliveryNoteNumber', 'DESC')
-            ->setParameter('dispatchDeliveryNoteNumberBegin', "${year}${month}${day}");
+        $queryBuilder = $this->createQueryBuilder('dispatch')
+            ->select('dispatch.id')
+            ->addSelect('dispatch.number AS number')
+            ->addSelect('dispatch.creationDate AS creationDate')
+            ->addSelect('dispatch.validationDate AS validationDate')
+            ->addSelect('join_type.label AS type')
+            ->addSelect('join_requester.username AS requester')
+            ->addSelect('join_receiver.username AS receiver')
+            ->addSelect('join_locationFrom.label AS locationFrom')
+            ->addSelect('join_locationTo.label AS locationTo')
+            ->addSelect('join_dispatchPack_pack.code AS packCode')
+            ->addSelect('join_dispatchPack_nature.label AS packNatureLabel')
+            ->addSelect('join_dispatchPack_pack.quantity AS packQuantity')
+            ->addSelect('join_dispatchPack_lastTracking.datetime AS lastMovement')
+            ->addSelect('join_dispatchPack_lastTracking_location.label AS lastLocation')
+            ->addSelect('join_dispatchPack_lastTracking_operator.username AS operator')
+            ->addSelect('join_status.nom AS status')
+            ->addSelect('dispatch.urgent AS urgent')
+            ->addSelect('dispatch.freeFields')
 
-        $res = $queryBuilder
+            ->leftJoin('dispatch.dispatchPacks', 'join_dispatchPack')
+            ->leftJoin('join_dispatchPack.pack', 'join_dispatchPack_pack')
+            ->leftJoin('join_dispatchPack_pack.nature', 'join_dispatchPack_nature')
+            ->leftJoin('join_dispatchPack_pack.lastTracking', 'join_dispatchPack_lastTracking')
+            ->leftJoin('join_dispatchPack_lastTracking.emplacement', 'join_dispatchPack_lastTracking_location')
+            ->leftJoin('join_dispatchPack_lastTracking.operateur', 'join_dispatchPack_lastTracking_operator')
+
+            ->leftJoin('dispatch.type', 'join_type')
+            ->leftJoin('dispatch.requester', 'join_requester')
+            ->leftJoin('dispatch.receiver', 'join_receiver')
+            ->leftJoin('dispatch.locationFrom', 'join_locationFrom')
+            ->leftJoin('dispatch.locationTo', 'join_locationTo')
+            ->leftJoin('dispatch.statut', 'join_status')
+
+            ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
+
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        return $queryBuilder
             ->getQuery()
             ->getResult();
-
-        return !empty($res)
-            ? $res[0]['deliveryNoteNumber']
-            : null;
     }
 }
