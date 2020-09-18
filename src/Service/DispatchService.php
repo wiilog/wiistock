@@ -125,8 +125,8 @@ class DispatchService {
     public function createHeaderDetailsConfig(Dispatch $dispatch): array {
         $status = $dispatch->getStatut();
         $type = $dispatch->getType();
-        $transporter = $dispatch->getTransporter();
-        $transporterTrackingNumber = $dispatch->getTransporterTrackingNumber();
+        $carrier = $dispatch->getCarrier();
+        $carrierTrackingNumber = $dispatch->getCarrierTrackingNumber();
         $commandNumber = $dispatch->getCommandNumber();
         $requester = $dispatch->getRequester();
         $receiver = $dispatch->getReceiver();
@@ -138,8 +138,8 @@ class DispatchService {
         $endDate = $dispatch->getEndDate();
         $startDateStr = $startDate ? $startDate->format('d/m/Y') : '-';
         $endDateStr = $endDate ? $endDate->format('d/m/Y') : '-';
-        $project = $dispatch->getProject();
-        $comment = $dispatch->getCommentaire();
+        $projectNumber = $dispatch->getProjectNumber();
+        $comment = $dispatch->getCommentaire() ?? '';
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
@@ -148,27 +148,33 @@ class DispatchService {
             CategoryType::DEMANDE_DISPATCH
         );
 
-        $destinataire = [
+        $receiverDetails = [
             "label" => "Destinataire",
             "value" => $receiver ? $receiver->getUsername() : "",
         ];
 
         if ($receiver && $receiver->getAddress()) {
-            $destinataire["value"] .= '<span class="pl-2" data-toggle="popover" data-trigger="click hover" title="Adresse du destinataire" data-content="' . $receiver->getAddress() . '"><i class="fas fa-search"></i></span>';
-            $destinataire["isRaw"] = true;
+            $receiverDetails["value"] .= '
+                <span class="pl-2"
+                      data-toggle="popover"
+                      data-trigger="click hover"
+                      title="Adresse du destinataire"
+                      data-content="' . htmlspecialchars($receiver->getAddress()) . '">
+                    <i class="fas fa-search"></i>
+                </span>';
+            $receiverDetails["isRaw"] = true;
         }
-
-        dump($destinataire);
 
         return array_merge(
             [
                 ['label' => 'Statut', 'value' => $status ? $status->getNom() : ''],
                 ['label' => 'Type', 'value' => $type ? $type->getLabel() : ''],
-                ['label' => 'Transporteur', 'value' => $transporter ? $transporter->getLabel() : ''],
-                ['label' => 'Numéro de tracking transporteur', 'value' => $transporterTrackingNumber],
+                ['label' => 'Transporteur', 'value' => $carrier ? $carrier->getLabel() : ''],
+                ['label' => 'Numéro de tracking transporteur', 'value' => $carrierTrackingNumber],
                 ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
-                $destinataire,
-                ['label' => 'Numéro de projet', 'value' => $project],
+                ["label" => "Destinataire", "value" => $receiver ? $receiver->getUsername() : ''],
+                $receiverDetails,
+                ['label' => 'Numéro de projet', 'value' => $projectNumber],
                 ['label' => 'Business unit', 'value' => 'TO DO'],
                 ['label' => 'Numéro de commande', 'value' => $commandNumber],
                 ['label' => $this->translator->trans('acheminement.Emplacement prise'), 'value' => $locationFrom ? $locationFrom->getLabel() : ''],

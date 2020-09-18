@@ -38,7 +38,7 @@ $(function() {
         ]
     });
 
-    const $modalEditPack = $('#modalPack');
+    const $modalEditPack = $('#modalEditPack');
     const $submitEditPack = $('#submitEditPack');
     const urlEditPack = Routing.generate('pack_edit', true);
     InitModal($modalEditPack, $submitEditPack, urlEditPack, {tables: [packsTable]});

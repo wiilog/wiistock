@@ -79,37 +79,14 @@ class Dispatch extends FreeFieldEntity
     private $creationDate;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="receivedDispatches")
-     * @ORM\JoinColumn(nullable=true)
-     */
-    private $receiver;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="requestedDispatches")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $requester;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="dispatches")
-     * @ORM\JoinColumn(nullable=true)
-     */
-    private $transporter;
-
-    /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $transporterTrackingNumber;
+    private $carrierTrackingNumber;
 
     /**
-     * @ORM\Column(type="text", nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $commandNumber;
-
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
-    private $project;
 
     /**
      * @ORM\Column(type="text", nullable=true)
@@ -136,9 +113,15 @@ class Dispatch extends FreeFieldEntity
 
     /**
      * @var string|null
-     * @ORM\Column(type="string", nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $projectNumber;
+
+    /**
+     * @var string|null
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $businessUnit;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="dispatches")
@@ -198,6 +181,24 @@ class Dispatch extends FreeFieldEntity
      */
     private $deliveryNoteData;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="receivedDispatches")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $receiver;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="requestedDispatches")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $requester;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="dispatches")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $carrier;
+
     public function __construct()
     {
         $this->dispatchPacks = new ArrayCollection();
@@ -248,23 +249,23 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
-    public function getTransporter(): ?Transporteur
+    public function getCarrier(): ?Transporteur
     {
-        return $this->transporter;
+        return $this->carrier;
     }
 
-    public function setTransporter(?Transporteur $transporter): self
+    public function setCarrier(?Transporteur $carrier): self
     {
-        $this->transporter = $transporter;
+        $this->carrier = $carrier;
         return $this;
     }
 
-    public function getTransporterTrackingNumber(): ?string {
-        return $this->transporterTrackingNumber;
+    public function getCarrierTrackingNumber(): ?string {
+        return $this->carrierTrackingNumber;
     }
 
-    public function setTransporterTrackingNumber(?string $transporterTrackingNumber): self {
-        $this->transporterTrackingNumber = $transporterTrackingNumber;
+    public function setCarrierTrackingNumber(?string $carrierTrackingNumber): self {
+        $this->carrierTrackingNumber = $carrierTrackingNumber;
         return $this;
     }
 
@@ -288,18 +289,6 @@ class Dispatch extends FreeFieldEntity
     public function setCommandNumber(?string $commandNumber): self
     {
         $this->commandNumber = $commandNumber;
-
-        return $this;
-    }
-
-    public function getProject(): ?string
-    {
-        return $this->project;
-    }
-
-    public function setProject(?string $project): self
-    {
-        $this->project = $project;
 
         return $this;
     }
@@ -523,6 +512,22 @@ class Dispatch extends FreeFieldEntity
      */
     public function setProjectNumber(?string $projectNumber): self {
         $this->projectNumber = $projectNumber;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getBusinessUnit(): ?string {
+        return $this->businessUnit;
+    }
+
+    /**
+     * @param string|null $businessUnit
+     * @return self
+     */
+    public function setBusinessUnit(?string $businessUnit): self {
+        $this->businessUnit = $businessUnit;
         return $this;
     }
 

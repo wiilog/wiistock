@@ -189,7 +189,7 @@ class Transporteur
     {
         if (!$this->dispatches->contains($dispatch)) {
             $this->dispatches[] = $dispatch;
-            $dispatch->setTransporter($this);
+            $dispatch->setCarrier($this);
         }
 
         return $this;
@@ -200,8 +200,8 @@ class Transporteur
         if ($this->dispatches->contains($dispatch)) {
             $this->dispatches->removeElement($dispatch);
             // set the owning side to null (unless already changed)
-            if ($dispatch->getTransporter() === $this) {
-                $dispatch->setTransporter(null);
+            if ($dispatch->getCarrier() === $this) {
+                $dispatch->setCarrier(null);
             }
         }
 

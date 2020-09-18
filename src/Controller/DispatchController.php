@@ -170,8 +170,8 @@ class DispatchController extends AbstractController {
             $comment = $post->get('commentaire');
             $startDateRaw = $post->get('startDate');
             $endDateRaw = $post->get('endDate');
-            $transporter = $post->get('transporter');
-            $transporterTrackingNumber = $post->get('transporterTrackingNumber');
+            $carrier = $post->get('carrier');
+            $carrierTrackingNumber = $post->get('carrierTrackingNumber');
             $commandNumber = $post->get('commandNumber');
             $receiver = $post->get('receiver');
             $emergency = $post->get('emergency');
@@ -209,12 +209,12 @@ class DispatchController extends AbstractController {
                 $dispatch->setEndDate($endDate);
             }
 
-            if (!empty($transporter)) {
-                $dispatch->setTransporter($transporterRepository->find($transporter) ?? null);
+            if (!empty($carrier)) {
+                $dispatch->setCarrier($transporterRepository->find($carrier) ?? null);
             }
 
-            if (!empty($transporterTrackingNumber)) {
-                $dispatch->setTransporterTrackingNumber($transporterTrackingNumber);
+            if (!empty($carrierTrackingNumber)) {
+                $dispatch->setCarrierTrackingNumber($carrierTrackingNumber);
             }
 
             if (!empty($commandNumber)) {
@@ -230,7 +230,7 @@ class DispatchController extends AbstractController {
             }
 
             if (!empty($project)) {
-                $dispatch->setCommandNumber($project);
+                $dispatch->setProjectNumber($project);
             }
 
             $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
@@ -394,27 +394,27 @@ class DispatchController extends AbstractController {
 
         $receiverData = $post->get('receiver');
         $requesterData = $post->get('requester');
-        $transporterData = $post->get('requester');
+        $carrierData = $post->get('carrier');
         $receiver = $receiverData ? $utilisateurRepository->find($receiverData) : null;
         $requester = $requesterData ? $utilisateurRepository->find($requesterData) : null;
-        $transporter = $transporterData ? $transporterRepository->find($transporterData) : null;
+        $carrier = $carrierData ? $transporterRepository->find($carrierData) : null;
 
         $transporterTrackingNumber = $post->get('transporterTrackingNumber');
         $commandNumber = $post->get('commandNumber');
-        $project = $post->get('project');
+        $projectNumber = $post->get('projectNumber');
 
         $dispatch
             ->setStartDate($startDate)
             ->setEndDate($endDate)
-            ->setTransporter($transporter)
-            ->setTransporterTrackingNumber($transporterTrackingNumber)
+            ->setCarrier($carrier)
+            ->setCarrierTrackingNumber($transporterTrackingNumber)
             ->setCommandNumber($commandNumber)
             ->setRequester($requester)
             ->setReceiver($receiver)
             ->setUrgent($post->getBoolean('urgent'))
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
-            ->setProject($project)
+            ->setProjectNumber($projectNumber)
             ->setCommentaire($post->get('commentaire') ?: '');
 
         $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);

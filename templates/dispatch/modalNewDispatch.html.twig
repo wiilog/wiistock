@@ -41,23 +41,26 @@
                     </div>
                 </div>
 
-                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TRANSPORTER_DISPATCH') %}
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
                 {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
                     {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                     <div class="form-group">
-                        <label for="transporter">Transporteur{{ required ? '*' }}</label>
+                        <label>Transporteur{{ required ? '*' }}</label>
                         <select class="form-control data ajax-autocomplete-transporteur w-100 {{ required ? 'needed' }}"
-                                id="transporter" name="transporter">
+                                title="Transporteur"
+                                name="carrier">
                         </select>
                     </div>
                 {% endif %}
 
-                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TRANSPORTER_TRACKING_NUMBER_DISPATCH') %}
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH') %}
                 {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
                     {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                     <div class="form-group">
                         <label for="transporter-tracking-number">Numéro de tracking transporteur{{ required ? '*' }}</label>
-                        <input class="form-control data {{ required ? 'needed' }}" id="transporter-tracking-number" name="transporterTrackingNumber">
+                        <input class="form-control data {{ required ? 'needed' }}"
+                               title="Numéro de tracking transporteur"
+                               name="carrierTrackingNumber">
                     </div>
                 {% endif %}
 
