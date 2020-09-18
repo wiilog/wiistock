@@ -75,48 +75,50 @@ function onDispatchTypeChange($select) {
 }
 
 function initPage() {
-    let tableDispatchesConfig = {
-        serverSide: true,
-        processing: true,
-        order: [[1, "desc"]],
-        ajax: {
-            "url": Routing.generate('dispatch_api', true),
-            "type": "POST",
-        },
-        rowConfig: {
-            needsRowClickAction: true,
-            needsColor: true,
-            color: 'danger',
-            dataToCheck: 'urgent'
-        },
-        drawConfig: {
-            needsSearchOverride: true,
-        },
-        columns: [
-            { "data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false },
-            { "data": 'number', 'name': 'number', 'title': 'Numéro demande' },
-            { "data": 'creationDate', 'name': 'date', 'title': 'Date de création' },
-            { "data": 'validationDate', 'name': 'validationDate', 'title': 'Date de validation' },
-            { "data": 'type', 'name': 'type', 'title': 'Type' },
-            { "data": 'requester', 'name': 'requester', 'title': 'Demandeur' },
-            { "data": 'receiver', 'name': 'receiver', 'title': 'Destinataire' },
-            { "data": 'locationFrom', 'name': 'locationFrom', 'title': 'acheminement.emplacement prise', translated: true },
-            { "data": 'locationTo', 'name': 'locationTo', 'title': 'acheminement.emplacement dépose', translated: true },
-            { "data": 'nbPacks', 'name': 'nbPacks', 'title': 'acheminement.Nb colis', orderable: false, translated: true },
-            { "data": 'status', 'name': 'status', 'title': 'Statut' },
-            { "data": 'urgent', 'name': 'urgent', 'title': 'Urgence' }
-        ],
-    };
+    return $
+        .post(Routing.generate('dispatch_api_columns'))
+        .then((columns) => {
+            console.log(columns);
+            let tableDispatchesConfig = {
+                serverSide: true,
+                processing: true,
+                order: [[1, "desc"]],
+                ajax: {
+                    "url": Routing.generate('dispatch_api', true),
+                    "type": "POST",
+                },
+                rowConfig: {
+                    needsRowClickAction: true,
+                    needsColor: true,
+                    color: 'danger',
+                    dataToCheck: 'urgent'
+                },
+                drawConfig: {
+                    needsSearchOverride: true,
+                },
+                columns: columns.map(function (column) {
+                    return {
+                        ...column,
+                        class: column.title === 'Actions' ? 'noVis' : undefined,
+                        title: column.title === 'Actions' ? '' : column.title
+                    }
+                }),
+                hideColumnConfig: {
+                    columns,
+                    tableFilter: 'tableDispatches'
+                },
+            };
 
-    tableDispatches = initDataTable('tableDispatches', tableDispatchesConfig);
+            tableDispatches = initDataTable('tableDispatches', tableDispatchesConfig);
 
-    let $modalNewDispatch = $("#modalNewDispatch");
-    let $submitNewDispatch = $("#submitNewDispatch");
-    let urlDispatchNew = Routing.generate('dispatch_new', true);
-    InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew, {tables: [tableDispatches]});
+            let $modalNewDispatch = $("#modalNewDispatch");
+            let $submitNewDispatch = $("#submitNewDispatch");
+            let urlDispatchNew = Routing.generate('dispatch_new', true);
+            InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew, {tables: [tableDispatches]});
 
-    let modalColumnVisible = $('#modalColumnVisibleDispatch');
-    let submitColumnVisible = $('#submitColumnVisibleDispatch');
-    let urlColumnVisible = Routing.generate('save_column_visible_for_dispatch', true);
-    InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+            let modalColumnVisible = $('#modalColumnVisibleDispatch');
+            let submitColumnVisible = $('#submitColumnVisibleDispatch');
+            let urlColumnVisible = Routing.generate('save_column_visible_for_dispatch', true);
+            InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+        });
 }

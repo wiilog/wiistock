@@ -19,12 +19,12 @@ use Doctrine\ORM\NoResultException;
  */
 class DispatchRepository extends EntityRepository
 {
-    public function findByParamAndFilters($params, $filters) {
-        $qb = $this->createQueryBuilder('a');
+    public function findByParamAndFilters($params, $filters, $freeFieldLabelsToIds) {
+        $qb = $this->createQueryBuilder('d');
         $exprBuilder = $qb->expr();
 
         $countTotal = $qb
-            ->select('COUNT(a.id)')
+            ->select('COUNT(d.id)')
             ->getQuery()
             ->getSingleScalarResult();
 
@@ -34,37 +34,37 @@ class DispatchRepository extends EntityRepository
                 case 'statut':
                     $value = explode(',', $filter['value']);
 					$qb
-						->join('a.statut', 's')
+						->join('d.statut', 's')
 						->andWhere('s.id in (:statut)')
 						->setParameter('statut', $value);
 					break;
                 case FiltreSup::FIELD_MULTIPLE_TYPES:
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('a.type', 't')
+                        ->join('d.type', 't')
                         ->andWhere('t.id in (:type)')
                         ->setParameter('type', $value);
                     break;
                 case FiltreSup::FIELD_REQUESTERS:
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('a.requester', 'filter_requester')
+                        ->join('d.requester', 'filter_requester')
                         ->andWhere('filter_requester.id in (:filter_requester_values)')
                         ->setParameter('filter_requester_values', $value);
                     break;
                 case FiltreSup::FIELD_RECEIVERS:
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('a.receiver', 'filter_receiver')
+                        ->join('d.receiver', 'filter_receiver')
                         ->andWhere('filter_receiver.id in (:filter_receiver_values)')
                         ->setParameter('filter_receiver_values', $value);
                     break;
                 case 'dateMin':
-                    $qb->andWhere('a.creationDate >= :dateMin')
+                    $qb->andWhere('d.creationDate >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . ' 00.00.00');
                     break;
                 case 'dateMax':
-                    $qb->andWhere('a.creationDate <= :dateMax')
+                    $qb->andWhere('d.creationDate <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
                     break;
             }
@@ -75,17 +75,17 @@ class DispatchRepository extends EntityRepository
                 if (!empty($search)) {
                     $qb
                         ->andWhere('(' . $exprBuilder->orX(
-                            'a.creationDate LIKE :value',
-                            'a.number LIKE :value',
+                            'd.creationDate LIKE :value',
+                            'd.number LIKE :value',
                             'search_locationFrom.label LIKE :value',
                             'search_locationTo.label LIKE :value',
                             'search_statut.nom LIKE :value',
-                            'a.creationDate LIKE :value'
+                            'd.creationDate LIKE :value'
                         ) . ')')
-                        ->leftJoin('a.locationFrom', 'search_locationFrom')
-                        ->leftJoin('a.locationTo', 'search_locationTo')
-                        ->leftJoin('a.statut', 'search_statut')
-                        ->leftJoin('a.type', 'search_type')
+                        ->leftJoin('d.locationFrom', 'search_locationFrom')
+                        ->leftJoin('d.locationTo', 'search_locationTo')
+                        ->leftJoin('d.statut', 'search_statut')
+                        ->leftJoin('d.type', 'search_type')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -97,32 +97,38 @@ class DispatchRepository extends EntityRepository
                     $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
                     if ($column === 'status') {
                         $qb
-                            ->leftJoin('a.statut', 'sort_status')
+                            ->leftJoin('d.statut', 'sort_status')
                             ->orderBy('sort_status.nom', $order);
                     } else if ($column === 'requester') {
                         $qb
-                            ->leftJoin('a.requester', 'sort_requester')
+                            ->leftJoin('d.requester', 'sort_requester')
                             ->orderBy('sort_requester.username', $order);
                     } else if ($column === 'receiver') {
                         $qb
-                            ->leftJoin('a.receiver', 'sort_receiver')
+                            ->leftJoin('d.receiver', 'sort_receiver')
                             ->orderBy('sort_receiver.username', $order);
                     } else if ($column === 'type') {
                         $qb
-                            ->leftJoin('a.type', 'sort_type')
+                            ->leftJoin('d.type', 'sort_type')
                             ->orderBy('sort_type.label', $order);
                     } else if ($column === 'locationFrom') {
                         $qb
-                            ->leftJoin('a.locationFrom', 'sort_locationFrom')
+                            ->leftJoin('d.locationFrom', 'sort_locationFrom')
                             ->orderBy('sort_locationFrom.label', $order);
                     } else if ($column === 'locationTo') {
                         $qb
-                            ->leftJoin('a.locationTo', 'sort_locationTo')
+                            ->leftJoin('d.locationTo', 'sort_locationTo')
                             ->orderBy('sort_locationTo.label', $order);
-                    }
-                    else {
-                        $qb
-                            ->orderBy('a.' . $column, $order);
+                    } else {
+                        if (property_exists(Dispatch::class, $column)) {
+                            $qb->orderBy('d.' . $column, $order);
+                        } else {
+                            $clId = $freeFieldLabelsToIds[trim(mb_strtolower($column))] ?? null;
+                            if ($clId) {
+                                $jsonOrderQuery = "CAST(JSON_EXTRACT(d.freeFields, '$.\"${clId}\"') AS CHAR)";
+                                $qb->orderBy($jsonOrderQuery, $order);
+                            }
+                        }
                     }
                 }
             }
@@ -133,8 +139,7 @@ class DispatchRepository extends EntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        $qb
-            ->select('a');
+        $qb->select('d');
 
         if ($params) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

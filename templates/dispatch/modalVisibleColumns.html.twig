@@ -12,32 +12,39 @@
                 <table class="table" style="width:100%">
                     <thead>
                     <tr>
-                        <th>Champs</th>
+                        <th>Fields</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
                     <tbody>
 
-                    {% set i = 0 %}
                     {% for field in fields %}
+                        {% if (field.alwaysVisible is not defined or not field.alwaysVisible) %}
+                            <tr class="pointer" onclick="toggleInputRadioOnRow(this)">
+                                {% set label = ((field.translated is defined and field.translated)
+                                    ? field.title|trans
+                                    : field.title) %}
+                                {% set tooltip = (field.translated is defined and field.translated) ? ('title="' ~ field.title ~ '"') %}
+                                <td>
+                                    <span {{ tooltip }}>{{ label | capitalize }}</span>
+                                </td>
+                                <td>
+                                    <div class="checkbox d-inline-block pointer no-data" onclick="toggleInputRadioOnRow(this)">
+                                        {% set name = field.name %}
+                                        {% set checked = (name in visibleColumns ? 'checked' : '') %}
+                                        <input class="visible-column-dispatch-input form-check-input {{ checked == 'checked' ? 'data' : '' }}"
+                                               name="{{ name }}"
+                                               onclick="showOrHideColumn($(this), tableDispatches, $('#tableDispatches_id_wrapper'))"
+                                               type="checkbox"
+                                               id="column_visible_dispatch_input_{{ loop.index }}"
+                                            {{ checked }}
+                                               data-column="{{ loop.index0 }}" data-name="{{ field.name }}">
+                                        <label for="column_visible_dispatch_input_{{ loop.index }}" class="pointer"></label>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
 
-                        <tr class="pointer" onclick="toggleInputRadioOnRow(this)">
-                            <td>{{ field.label | capitalize }}</td>
-                            <td>
-                                <div class="checkbox d-inline-block pointer no-data" onclick="toggleInputRadioOnRow(this)">
-                                    <input class="visible-column-dispatch-input form-check-input {% if field.key in visibleColumns %}data{% endif %}"
-                                           name="{{ field.key }}"
-                                           onclick="showOrHideColumn($(this), tableDispatches, $('#tableDispatches_id_wrapper'))"
-                                           type="checkbox"
-                                           id="column_visible_dispatch_input_{{ field.key }}"
-                                           {% if field.key in visibleColumns %}checked{% endif %}
-                                           data-column="{{ i }}" data-name="{{ field.key }}">
-                                    <label for="column_visible_dispatch_input_{{ field.key }}" class="pointer"></label>
-                                </div>
-                            </td>
-                        </tr>
-
-                        {% set i = i + 1 %}
                     {% endfor %}
                     </tbody>
                 </table>

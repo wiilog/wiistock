@@ -3,6 +3,7 @@
 
 namespace App\Service;
 
+use App\Entity\ChampLibre;
 use App\Entity\Dispatch;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -74,9 +75,21 @@ class DispatchService
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
+        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->user);
-        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, $categorieCL);
+
+        $queryResult = $dispatchRepository->findByParamAndFilters(
+            $params,
+            $filters,
+            array_reduce($freeFields, function (array $accumulator, array $freeField) {
+                $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
+                return $accumulator;
+            }, [])
+        );
 
         $dispatchesArray = $queryResult['data'];
 
@@ -103,7 +116,23 @@ class DispatchService
     {
         $url = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
 
-        return [
+        $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
+        $freeFieldsRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
+
+        $category = CategoryType::DEMANDE_DISPATCH;
+        $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
+
+        $rowCL = [];
+        /** @var ChampLibre $freeField */
+        foreach ($freeFields as $freeField) {
+            $rowCL[$freeField['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
+                'valeur' => $dispatch->getFreeFieldValue($freeField['id']),
+                "typage" => $freeField['typage'],
+            ]);
+        }
+
+        $row = [
             'id' => $dispatch->getId() ?? 'Non défini',
             'number' => $dispatch->getNumber() ?? '',
             'creationDate' => $dispatch->getCreationDate() ? $dispatch->getCreationDate()->format('d/m/Y H:i:s') : '',
@@ -121,6 +150,9 @@ class DispatchService
                 'url' => $url
             ]),
         ];
+
+        $rows = array_merge($rowCL, $row);
+        return $rows;
     }
 
     public function createHeaderDetailsConfig(Dispatch $dispatch): array
@@ -316,4 +348,52 @@ class DispatchService
 
         $this->sendEmailsAccordingToStatus($dispatch, true);
     }
+
+    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+
+        $columnsVisible = $currentUser->getColumnsVisibleForDispatch();
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, $categorieCL);
+
+        $columns = [
+            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true],
+            ['title' => 'Numéro demande', 'name' => 'number'],
+            ['title' => 'Date de création',  'name' => 'creationDate'],
+            ['title' => 'Date de validation', 'name' => 'validationDate'],
+            //TODO: décommenter après avoir merge 2716
+            //['title' => 'Date de traitement', 'name' => 'treatmentDate'],
+            ['title' => 'Type', 'name' => 'type'],
+            ['title' => 'Demandeur', 'name' => 'requester'],
+            ['title' => 'Destinataire', 'name' => 'receiver'],
+            ['title' => 'acheminement.emplacement prise', 'name' => 'locationFrom', 'translated' => true],
+            ['title' => 'acheminement.emplacement dépose', 'name' => 'locationTo', 'translated' => true],
+            ['title' => 'acheminement.Nb colis', 'name' => 'nbPacks', 'orderable' => false, 'translated' => true],
+            ['title' => 'Statut', 'name' => 'status'],
+            ['title' => 'Urgence', 'name' => 'urgent'],
+        ];
+
+        return array_merge(
+            array_map(function (array $column) use ($columnsVisible) {
+                return [
+                    'title' => $column['title'],
+                    'alwaysVisible' => $column['alwaysVisible'] ?? false,
+                    'data' => $column['name'],
+                    'name' => $column['name'],
+                    'translated' => $column['translated'] ?? false,
+                    'class' => $column['class'] ?? (in_array($column['name'], $columnsVisible) ? 'display' : 'hide')
+                ];
+            }, $columns),
+            array_map(function (array $freeField) use ($columnsVisible) {
+                return [
+                    'title' => ucfirst(mb_strtolower($freeField['label'])),
+                    'data' => $freeField['label'],
+                    'name' => $freeField['label'],
+                    'class' => (in_array($freeField['label'], $columnsVisible) ? 'display' : 'hide'),
+                ];
+            }, $freeFields)
+        );
+    }
+
 }

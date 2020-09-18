@@ -262,7 +262,9 @@ class ArrivageRepository extends EntityRepository
                 ->setParameter('userId', $userId);
         }
 
-        $countTotal = count($qb->getQuery()->getResult());
+        $countTotal = $qb->select("COUNT(a)")
+            ->getQuery()
+            ->getSingleScalarResult();
 
         // filtres sup
         $statut = null;
@@ -460,7 +462,11 @@ class ArrivageRepository extends EntityRepository
             $qb->andWhere('a.date <= :dateMax')
                 ->setParameter('dateMax', $nowToString . " 23:59:59");
         }
-        $arrivages = $qb->getQuery()->getResult();
+
+        $arrivages = $qb->select('a')
+            ->getQuery()
+            ->getResult();
+
         if ($statut) {
             $arrivages = array_filter($arrivages, function (Arrivage $arrivage) use ($statut) {
                 return ($arrivage->getStatus() === $statut);

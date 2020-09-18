@@ -76,6 +76,7 @@ $(function () {
 
 function initTableArrival() {
     let pathArrivage = Routing.generate('arrivage_api', true);
+
     return $
         .post(Routing.generate('arrival_api_columns'))
         .then((columns) => {

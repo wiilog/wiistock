@@ -20,6 +20,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\FreeFieldService;
 use App\Service\PackService;
@@ -68,9 +69,11 @@ class DispatchController extends AbstractController {
      * @Route("/", name="dispatch_index")
      * @param EntityManagerInterface $entityManager
      * @param TranslatorInterface $translator
+     * @param DispatchService $service
      * @return RedirectResponse|Response
      */
-    public function index(EntityManagerInterface $entityManager, TranslatorInterface $translator) {
+    public function index(EntityManagerInterface $entityManager,
+                          TranslatorInterface $translator, DispatchService $service) {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -80,20 +83,7 @@ class DispatchController extends AbstractController {
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
-        $fields = [
-            ["key" => 'number', 'label' => 'Numéro demande'],
-            ["key" => 'creationDate', 'label' => 'Date de création'],
-            ["key" => 'validationDate', 'label' => 'Date de validation'],
-            ["key" => 'treatmentDate', 'label' => 'Date de traitement'],
-            ["key" => 'type', 'label' => 'Type'],
-            ["key" => 'requester', 'label' => 'Requester'],
-            ["key" => 'receiver', 'label' => 'Destinataire'],
-            ["key" => 'locationFrom', 'label' => $translator->trans('acheminement.emplacement prise')],
-            ["key" => 'locationTo', 'label' => $translator->trans('acheminement.emplacement dépose')],
-            ["key" => 'nbPacks', 'label' => $translator->trans('acheminement.Nb colis')],
-            ["key" => 'status', 'label' => 'Statut'],
-            ["key" => 'urgent', 'label' => 'Urgence'],
-        ];
+        $fields = $service->getVisibleColumnsConfig($entityManager, $this->getUser());
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
@@ -117,6 +107,27 @@ class DispatchController extends AbstractController {
                 'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
             ]
         ]);
+    }
+
+    /**
+     * @Route("/api-columns", name="dispatch_api_columns", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param DispatchService $service
+     * @return Response
+     */
+    public function apiColumns(Request $request, EntityManagerInterface $entityManager, DispatchService $service): Response {
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $columns = $service->getVisibleColumnsConfig($entityManager, $this->getUser());
+
+            return $this->json($columns);
+        }
+
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -155,12 +166,12 @@ class DispatchController extends AbstractController {
     public function api(Request $request,
                         DispatchService $dispatchService): Response {
         if ($request->isXmlHttpRequest()) {
-
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $data = $dispatchService->getDataForDatatable($request->request);
 
+            $data = $dispatchService->getDataForDatatable($request->request);
+dump($data);
             return new JsonResponse($data);
         } else {
             throw new NotFoundHttpException('404');
