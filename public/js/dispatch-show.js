@@ -129,13 +129,13 @@ function openNewPackModal() {
 function openShowPackModal({code, nature, quantity, packQuantity, lastMovementDate, lastLocation, operator}) {
     const $modal = $('#modalShowPack');
 
-    $modal.find('#pack-number').html(code);
-    $modal.find('#pack-nature').html(nature);
-    $modal.find('#pack-dispatch-quantity').html(quantity);
-    $modal.find('#pack-quantity').html(packQuantity);
-    $modal.find('#pack-last-movement').html(lastMovementDate);
-    $modal.find('#pack-last-location').html(lastLocation);
-    $modal.find('#pack-operator').html(operator);
+    $modal.find('[name="pack-number"]').val(code);
+    $modal.find('[name="pack-nature"]').val(nature);
+    $modal.find('[name="pack-dispatch-quantity"]').val(quantity);
+    $modal.find('[name="pack-quantity"]').val(packQuantity);
+    $modal.find('[name="pack-last-movement"]').val(lastMovementDate);
+    $modal.find('[name="pack-last-location"]').val(lastLocation);
+    $modal.find('[name="pack-operator"]').val(operator);
 
     $modal.modal('show');
 }

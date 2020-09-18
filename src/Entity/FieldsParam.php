@@ -74,6 +74,7 @@ class FieldsParam
     const FIELD_CODE_EMERGENCY_DISPATCH = 'emergency';
     const FIELD_CODE_COMMAND_NUMBER_DISPATCH = 'commandNumber';
     const FIELD_CODE_PROJECT_DISPATCH = 'projectNumber';
+    const FIELD_CODE_BUSINESS_UNIT_DISPATCH = 'businessUnit';
     const FIELD_CODE_COMMENT_DISPATCH = 'comment';
     const FIELD_CODE_ATTACHMENTS_DISPATCH = 'attachments';
 
@@ -86,6 +87,7 @@ class FieldsParam
     const FIELD_LABEL_PROJECT_DISPATCH = 'numéro de projet';
     const FIELD_LABEL_COMMENT_DISPATCH = 'commentaire';
     const FIELD_LABEL_ATTACHMENTS_DISPATCH = 'pièces jointes';
+    const FIELD_LABEL_BUSINESS_UNIT_DISPATCH = 'business unit';
 
 	/**
      * @ORM\Id()

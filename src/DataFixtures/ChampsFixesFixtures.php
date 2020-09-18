@@ -55,6 +55,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface
                 ['code' => FieldsParam::FIELD_CODE_PROJECT_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_PROJECT_DISPATCH, 'displayed' => true],
                 ['code' => FieldsParam::FIELD_CODE_COMMENT_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_COMMENT_DISPATCH, 'displayed' => true],
                 ['code' => FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_ATTACHMENTS_DISPATCH, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_BUSINESS_UNIT_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_BUSINESS_UNIT_DISPATCH, 'displayed' => true],
             ]
         ];
 

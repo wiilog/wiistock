@@ -148,8 +148,24 @@
                 {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
                     {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                     <div class="form-group">
-                        <label for="project">Project{{ required ? '*' }}</label>
-                        <input class="project form-control data {{ required ? 'needed' }}" id="project" name="project">
+                        <label for="project">Numéro de projet{{ required ? '*' }}</label>
+                        <input class="project form-control data {{ required ? 'needed' }}" name="projectNumber">
+                    </div>
+                {% endif %}
+
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT_DISPATCH') %}
+                {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                    <div class="form-group">
+                        <label for="project">Business Unit{{ required ? '*' }}</label>
+                        <select name="businessUnit"
+                                class="form-control data {{ required ? 'needed' }}"
+                                title="Business Unit">
+                            <option value=""></option>
+                            {% for businessUnit in dispatchBusinessUnits %}
+                                <option value="{{ businessUnit }}">{{ businessUnit }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 {% endif %}
 

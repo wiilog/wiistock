@@ -11,50 +11,64 @@
                 </button>
             </div>
             <div class="modal-body">
-              <div class="row">
-                  <div class="col-12 mt-3">
-                      <div class="row">
-                          <div class="col-12 text-wii-grey">{{ 'mouvement de traçabilité.Colis' | trans }}</div>
-                          <div class="col-12 text-wii-black" id="pack-number"></div>
-                      </div>
-                  </div>
-                  <div class="col-12 mt-3">
-                      <div class="row">
-                          <div class="col-12 text-wii-grey">{{ 'natures.Nature de colis' | trans }}</div>
-                          <div class="col-12 text-wii-black" id="pack-nature"></div>
-                      </div>
-                  </div>
-                  <div class="col-12 mt-3">
-                      <div class="row">
-                          <div class="col-12 text-wii-grey">{{ 'acheminement.Quantité à acheminer' | trans }}</div>
-                          <div class="col-12 text-wii-black" id="pack-dispatch-quantity"></div>
-                      </div>
-                  </div>
-                  <div class="col-12 mt-3">
-                      <div class="row">
-                          <div class="col-12 text-wii-grey">{{ 'acheminement.Quantité colis' | trans }}</div>
-                          <div class="col-12 text-wii-black" id="pack-quantity"></div>
-                      </div>
-                  </div>
-                  <div class="col-12 mt-3">
-                      <div class="row">
-                          <div class="col-12 text-wii-grey">Date dernier mouvement</div>
-                          <div class="col-12 text-wii-black" id="pack-last-movement"></div>
-                      </div>
-                  </div>
-                  <div class="col-12 mt-3">
-                      <div class="row">
-                          <div class="col-12 text-wii-grey">Dernier emplacement</div>
-                          <div class="col-12 text-wii-black" id="pack-last-location"></div>
-                      </div>
-                  </div>
-                  <div class="col-12 mt-3">
-                      <div class="row">
-                          <div class="col-12 text-wii-grey">Opérateur</div>
-                          <div class="col-12 text-wii-black" id="pack-operator"></div>
-                      </div>
-                  </div>
-              </div>
+                <div class="row">
+                    <div class="col-12 mt-3">
+                        <div class="row">
+                            <label class="col-12 text-wii-grey" title="Colis">{{ 'mouvement de traçabilité.Colis' | trans }}</label>
+                            <div class="col-12">
+                                <input class="form-control" name="pack-number" disabled/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <div class="row">
+                            <label class="col-12 text-wii-grey" title="Nature de colis">{{ 'natures.Nature de colis' | trans }}</label>
+                            <div class="col-12">
+                                <input class="form-control" name="pack-nature"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <div class="row">
+                            <label class="col-12 text-wii-grey" title="Quantité à acheminer">{{ 'acheminement.Quantité à acheminer' | trans }}</label>
+                            <div class="col-12">
+                                <input class="form-control" name="pack-dispatch-quantity" disabled/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <div class="row">
+                            <div class="col-12 text-wii-grey" title="Quantité colis">{{ 'acheminement.Quantité colis' | trans }}</div>
+                            <div class="col-12">
+                                <input class="form-control" name="pack-quantity" disabled/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <div class="row">
+                            <label class="col-12 text-wii-grey">Date dernier mouvement</label>
+                            <div class="col-12">
+                                <input class="form-control" name="pack-last-movement" disabled/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <div class="row">
+                            <label class="col-12 text-wii-grey">Dernier emplacement</label>
+                            <div class="col-12">
+                                <input class="form-control" name="pack-last-location" disabled/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <div class="row">
+                            <label class="col-12 text-wii-grey">Opérateur</label>
+                            <div class="col-12">
+                                <input class="form-control" name="pack-operator" disabled/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="modal-footer">

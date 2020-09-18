@@ -10,10 +10,10 @@
                      nature: '{{ pack.nature is not null ? pack.nature.label : 'null' }}',
                      quantity: {{ packDispatch.quantity is not empty ? packDispatch.quantity : 0 }},
                      packQuantity: {{ pack.quantity is not empty ? pack.quantity : 0 }},
-                     lastMovementDate: '{{ pack.lastTracking ? pack.lastTracking.dateTime | date('d/m/Y H:i') : '' }}',
-                     lastLocation: '{{ pack.lastTracking ? pack.emplacement.label : '' }}',
-                     operator: '{{ pack.lastTracking ? pack.lastTracking.operateur.username : '' }}',
-                     })">
+                     lastMovementDate: '{{ pack.lastTracking and pack.lastTracking.dateTime ? pack.lastTracking.dateTime | date('d/m/Y H:i') : '' }}',
+                     lastLocation: '{{ pack.lastTracking and pack.lastTracking.emplacement ? pack.lastTracking.emplacement.label : '' }}',
+                     operator: '{{ pack.lastTracking and pack.lastTracking.operateur ? pack.lastTracking.operateur.username : '' }}',
+                 })">
                 <i class='fas fa-pencil-alt'></i>
             </div>
         </div>

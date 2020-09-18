@@ -73,6 +73,7 @@ class DispatchController extends AbstractController {
      * @Route("/", name="dispatch_index")
      * @param EntityManagerInterface $entityManager
      * @return RedirectResponse|Response
+     * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager) {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
@@ -83,14 +84,18 @@ class DispatchController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
+
+        $dispatchBusinessUnits = json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES));
 
         return $this->render('dispatch/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true),
             'types' => $types,
             'modalNewConfig' => [
+                'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
                 'fieldsParam' => $fieldsParam,
                 'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
                 'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
@@ -175,7 +180,8 @@ class DispatchController extends AbstractController {
             $commandNumber = $post->get('commandNumber');
             $receiver = $post->get('receiver');
             $emergency = $post->get('emergency');
-            $project = $post->get('project');
+            $projectNumber = $post->get('projectNumber');
+            $businessUnit = $post->get('businessUnit');
 
             $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
             $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
@@ -195,6 +201,7 @@ class DispatchController extends AbstractController {
                 ->setRequester($utilisateurRepository->find($post->get('requester')))
                 ->setLocationFrom($locationTake)
                 ->setLocationTo($locationDrop)
+                ->setBusinessUnit($businessUnit)
                 ->setNumber($number);
 
             if (!empty($comment)) {
@@ -229,8 +236,8 @@ class DispatchController extends AbstractController {
                 $dispatch->setUrgent($post->getBoolean('urgent'));
             }
 
-            if (!empty($project)) {
-                $dispatch->setProjectNumber($project);
+            if (!empty($projectNumber)) {
+                $dispatch->setProjectNumber($projectNumber);
             }
 
             $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
@@ -402,10 +409,12 @@ class DispatchController extends AbstractController {
         $transporterTrackingNumber = $post->get('transporterTrackingNumber');
         $commandNumber = $post->get('commandNumber');
         $projectNumber = $post->get('projectNumber');
+        $businessUnit = $post->get('businessUnit');
 
         $dispatch
             ->setStartDate($startDate)
             ->setEndDate($endDate)
+            ->setBusinessUnit($businessUnit)
             ->setCarrier($carrier)
             ->setCarrierTrackingNumber($transporterTrackingNumber)
             ->setCommandNumber($commandNumber)
@@ -460,6 +469,7 @@ class DispatchController extends AbstractController {
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
+     * @throws NonUniqueResultException
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response {
@@ -469,6 +479,7 @@ class DispatchController extends AbstractController {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
@@ -479,7 +490,10 @@ class DispatchController extends AbstractController {
                 return $this->redirectToRoute('access_denied');
             }
 
+            $dispatchBusinessUnits = json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES));
+
             $json = $this->renderView('dispatch/modalEditContentDispatch.html.twig', [
+                'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
                 'dispatch' => $dispatch,
                 'fieldsParam' => $fieldsParam,
                 'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),

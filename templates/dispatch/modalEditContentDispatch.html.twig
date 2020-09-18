@@ -167,6 +167,25 @@
     </div>
 {% endif %}
 
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT_DISPATCH') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    <div class="form-group">
+        <label for="project">Business Unit{{ required ? '*' }}</label>
+        <select name="businessUnit"
+                class="form-control data {{ required ? 'needed' }}"
+                title="Business Unit">
+            <option value=""></option>
+            {% if dispatch.businessUnit and dispatch.businessUnit not in dispatchBusinessUnits %}
+                <option value="{{ dispatch.businessUnit }}" selected>{{ dispatch.businessUnit }}</option>
+            {% endif %}
+            {% for businessUnit in dispatchBusinessUnits %}
+                <option value="{{ businessUnit }}" {{ businessUnit == dispatch.businessUnit ? 'selected' }}>{{ businessUnit }}</option>
+            {% endfor %}
+        </select>
+    </div>
+{% endif %}
+
 <!-- CHAMPS LIBRES -->
 {% if dispatch.type is not null and dispatch.type.champsLibres.count > 0 %}
     <div class="form-group col-12 blocVisible d-block">
