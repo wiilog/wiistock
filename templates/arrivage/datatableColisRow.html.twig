@@ -6,6 +6,7 @@
                href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: arrivageId, colis: colisId}) }}">
                 <i class='fas fa-print mr-2'></i>Imprimer
             </a>
+            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_PACK')) %}
             <div class="dropdown-item"
                data-toggle='modal'
                data-target='#modalEditPack'
@@ -13,6 +14,8 @@
                onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), true)">
                 <i class='fas fa-edit mr-2'></i>Modifier
             </div>
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE_PACK')) %}
             <div class="dropdown-item"
                  data-target="#modalDeletePack"
                  data-toggle="modal"
@@ -20,6 +23,7 @@
                  onclick="deleteRow($(this), $('#modalDeletePack'), $('#submitDeletePack'))">
                 <i class="fas fa-trash mr-2"></i>Supprimer
             </div>
+            {% endif %}
         </div>
     </div>
 </div>

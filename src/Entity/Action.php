@@ -30,6 +30,11 @@ class Action
 	const DISPLAY_PACK = 'afficher colis';
 	const DISPLAY_URGE = 'afficher urgences';
 	const LIST_ALL = 'lister tous les arrivages';
+	const ADD_PACK = 'ajouter colis';
+	const EDIT_PACK = 'modifier colis';
+	const DELETE_PACK = 'supprimer colis';
+	const EDIT_ARRI = 'modifier arrivage';
+	const DELETE_ARRI = 'supprimer arrivage';
 
 	// menu qualité
 	const DISPLAY_LITI = 'afficher litiges';
