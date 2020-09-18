@@ -49,6 +49,22 @@ class Dispatch extends FreeFieldEntity
         'date' => false,
         'notes' => true
     ];
+    /**
+     * @var [string => bool] Associate field name to bool, if TRUE we saved it in user entity
+     */
+    const WAYBILL_DATA = [
+        'carrier' => false,
+        'dispatchDate' => false,
+        'consigner' => false,
+        'receiver' => false,
+        'consignerUsername' => false,
+        'consignerEmail' => false,
+        'receiverUsername' => false,
+        'receiverEmail' => false,
+        'locationFrom' => true,
+        'locationTo' => true,
+        'notes' => true
+    ];
 
     /**
      * @ORM\Id()
@@ -149,10 +165,24 @@ class Dispatch extends FreeFieldEntity
      */
     private $validationDate;
 
+    /**
+     * @var array|null
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $waybillData;
+
+    /**
+     * @var array|null
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $deliveryNoteData;
+
     public function __construct()
     {
         $this->dispatchPacks = new ArrayCollection();
         $this->attachements = new ArrayCollection();
+        $this->waybillData = [];
+        $this->deliveryNoteData = [];
         $this->urgent = false;
     }
 
@@ -428,6 +458,38 @@ class Dispatch extends FreeFieldEntity
      */
     public function setProjectNumber(?string $projectNumber): self {
         $this->projectNumber = $projectNumber;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getWaybillData(): array {
+        return $this->waybillData ?? [];
+    }
+
+    /**
+     * @param array $waybillData
+     * @return self
+     */
+    public function setWaybillData(array $waybillData): self {
+        $this->waybillData = $waybillData;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getDeliveryNoteData(): array {
+        return $this->deliveryNoteData;
+    }
+
+    /**
+     * @param array $deliveryNoteData
+     * @return self
+     */
+    public function setDeliveryNoteData(array $deliveryNoteData): self {
+        $this->deliveryNoteData = $deliveryNoteData;
         return $this;
     }
 

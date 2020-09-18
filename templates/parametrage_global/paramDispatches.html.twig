@@ -1,0 +1,77 @@
+<a data-toggle="collapse" href="#paramDispatches" role="button" aria-expanded="false"
+   aria-controls="paramDispatches" class="col-12 mb-4">
+    <h1 class="btn btn-primary m-0 w-100 border-radius-light">
+        Paramétrage acheminements
+        <i class="fas fa-arrow-alt-circle-down ml-2"></i>
+    </h1>
+</a>
+<div class="collapse col-12" id="paramDispatches">
+    <div class="float-right btn btn-col-action btn-check-reverse" onclick="saveDispatchesParam()">
+        <i class='fas fa-check'></i>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-6 col-12">
+            <div class="row form-group">
+                <label class="col-12">Lettre de voiture : Transporteur par défaut</label>
+                <div class="col-12">
+                    <textarea title="Lettre de voiture : transporteur par défaut"
+                              name="waybillCarrier"
+                              style="resize: none"
+                              oninput="limitTextareaLength($(this), 7, 50)"
+                              rows="7"
+                              class="form-control data">{{ carrier }}</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-12">
+            <div class="row form-group">
+                <label class="col-12">Lettre de voiture : Expéditeur par défaut</label>
+                <div class="col-12">
+                    <textarea title="Lettre de voiture : Expéditeur"
+                              name="waybillConsigner"
+                              style="resize: none"
+                              oninput="limitTextareaLength($(this), 7, 50)"
+                              rows="7"
+                              class="form-control data">{{ consigner }}</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-12">
+            <div class="row form-group">
+                <label class="col-12">Lettre de voiture : Destinataire par défaut</label>
+                <div class="col-12">
+                    <textarea title="Lettre de voiture : transporteur par défaut"
+                              name="waybillReceiver"
+                              style="resize: none"
+                              oninput="limitTextareaLength($(this), 7, 50)"
+                              rows="7"
+                              class="form-control data">{{ receiver }}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-6 col-12">
+            <div class="row form-group">
+                <label class="col-12">Lettre de voiture : Lieu de chargement</label>
+                <div class="col-12">
+                    <input title="Lettre de voiture : Lieu de chargement"
+                           name="waybillLocationFrom"
+                           class="form-control data"
+                           value="{{ locationFrom }}">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-12">
+            <div class="row form-group">
+                <label class="col-12">Lettre de voiture : Lieu de déchargement</label>
+                <div class="col-12">
+                    <input title="Lettre de voiture : Lieu de déchargement"
+                           name="waybillLocationTo"
+                           class="form-control data"
+                           value="{{ locationTo }}">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

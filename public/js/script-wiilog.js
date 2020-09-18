@@ -1322,3 +1322,30 @@ function registerNumberInputProtection($inputs) {
         }
     });
 }
+
+function limitTextareaLength($textarea, lineNumber, lineLength) {
+    const textareaVal = ($textarea.val() || '');
+    const linesSplit = textareaVal
+        .replace(/\r\n/g,'\n')
+        .split('\n');
+
+    let newValueSplit = linesSplit;
+
+    // set max line number
+    if (linesSplit.length > lineNumber) {
+        newValueSplit = newValueSplit.slice(0, lineNumber);
+    }
+
+    // set max line length
+    newValueSplit = newValueSplit.map((line) => line.substr(0, lineLength));
+
+    const newVal = newValueSplit.join('\n');
+    const oldVal = $textarea.val();
+
+    if (newVal !== oldVal) {
+        const cursorPosition = $textarea[0].selectionStart
+        $textarea.val(newVal).trigger('change');
+        $textarea[0].selectionStart = cursorPosition;
+        $textarea[0].selectionEnd = cursorPosition;
+    }
+}
