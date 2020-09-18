@@ -25,6 +25,8 @@ class Dispatch extends FreeFieldEntity
         'deliveryAddress' => false,
         'deliveryNumber' => false,
         'deliveryDate' => false,
+        'dispatchEmergency' => false,
+        'packs' => false,
         'salesOrderNumber' => false,
         'wayBill' => false,
         'customerPONumber' => false,
@@ -47,7 +49,7 @@ class Dispatch extends FreeFieldEntity
         'deliverTo' => false,
         'consigner2' => true,
         'date' => false,
-        'notes' => true
+        'notes' => true,
     ];
     /**
      * @var [string => bool] Associate field name to bool, if TRUE we saved it in user entity
@@ -478,7 +480,7 @@ class Dispatch extends FreeFieldEntity
     /**
      * @return array
      */
-    public function getDeliveryNoteData(): array {
+    public function getDeliveryNoteData(): ?array {
         return $this->deliveryNoteData;
     }
 

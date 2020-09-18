@@ -318,7 +318,7 @@ function editBusinessUnit() {
 }
 
 function editDispatchUrgences() {
-    $.post(Routing.generate('set_dispatch_urgences'), {value: $(this).val()}, (resp) => {
+    $.post(Routing.generate('set_dispatch_emergencies'), {value: $(this).val()}, (resp) => {
         if (resp) {
             alertSuccessMsg("La liste urgences d'acheminements a bien été mise à jour.");
         } else {

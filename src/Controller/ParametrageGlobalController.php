@@ -844,7 +844,46 @@ class ParametrageGlobalController extends AbstractController
             $parametrage->setLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES);
             $em->persist($parametrage);
         }
-        $parametrage->setValue(json_encode($value));
+
+        if($value) {
+            $parametrage->setValue(json_encode($value));
+        } else {
+            $parametrage->setValue(null);
+        }
+
+        $em->flush();
+        return new JsonResponse(true);
+    }
+
+    /**
+     * @Route("/modifier-urgences-acheminements",
+     *     name="set_dispatch_emergencies",
+     *     options={"expose"=true},
+     *     methods="POST",
+     *     condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function editDispatchEmergencies(Request $request,
+                                     ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        $value = $request->request->get('value');
+
+        $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES);
+        $em = $this->getDoctrine()->getManager();
+        if (!$parametrage) {
+            $parametrage = new ParametrageGlobal();
+            $parametrage->setLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES);
+            $em->persist($parametrage);
+        }
+
+        if($value) {
+            $parametrage->setValue(json_encode($value));
+        } else {
+            $parametrage->setValue(null);
+        }
 
         $em->flush();
         return new JsonResponse(true);

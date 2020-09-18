@@ -154,6 +154,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::DASHBOARD_PACKAGING_DSQR => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT => [],
+            ParametrageGlobal::DISPATCH_EMERGENCY_VALUES => ["default" => json_encode(["Oui"])],
         ];
 
 		foreach ($globalParameterLabels as $globalParameterLabel => $values) {
