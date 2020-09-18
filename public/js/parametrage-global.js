@@ -421,7 +421,6 @@ function saveDispatchesParam() {
         $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_LOCATION_TO', val: $('[name="waybillLocationTo"]').val()}))
     ])
         .then((res) => {
-            console.log(res);
             if (res.every((success) => success)) {
                 alertSuccessMsg("Les paramétrages d'acheminements ont bien été mis à jour.");
             } else {

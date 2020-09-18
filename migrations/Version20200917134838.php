@@ -20,8 +20,9 @@ final class Version20200917134838 extends AbstractMigration
 
     public function up(Schema $schema) : void
     {
-        $this->addSql('ALTER TABLE arrivage ADD type_id INTEGER DEFAULT NULL');
         // this up() migration is auto-generated, please modify it to your needs
+        $this->addSql("ALTER TABLE arrivage ADD type_id INTEGER");
+
         $handlingTypeCategory = CategoryType::ARRIVAGE;
         $typeArrivalSelect = "
             SELECT type.id AS id
