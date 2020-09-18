@@ -32,6 +32,7 @@ InitModal(modalEditDays, submitEditDays, urlEditDays, {tables: [tableDays]});
 $(function () {
     initSelect2($('#locationArrivageDest'));
     initFreeSelect2($('select[name="businessUnit"]'));
+    initFreeSelect2($('select[name="dispatchUrgences"]'));
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));
     ajaxAutoCompleteTransporteurInit($('.ajax-autocomplete-transporteur'));
     initDisplaySelect2('#receptionLocation', '#receptionLocationValue');
@@ -43,6 +44,7 @@ $(function () {
     initSelect2ValuesForDashboard();
     $('#locationArrivageDest').on('change', editArrivageDestination);
     $('select[name="businessUnit"]').on('change', editBusinessUnit);
+    $('select[name="dispatchUrgences"]').on('change', editDispatchUrgences);
     $('#locationDemandeLivraison').on('change', function() {
         editDemandeLivraisonDestination($(this));
     });
@@ -306,12 +308,21 @@ function editArrivageDestination() {
 }
 
 function editBusinessUnit() {
-    console.log($(this).val());
     $.post(Routing.generate('set_business_unit'), {value: $(this).val()}, (resp) => {
         if (resp) {
             alertSuccessMsg("La liste business unit a bien été mise à jour.");
         } else {
             alertErrorMsg("Une erreur est survenue lors de la mise à jour de la liste business unit.");
+        }
+    });
+}
+
+function editDispatchUrgences() {
+    $.post(Routing.generate('set_dispatch_urgences'), {value: $(this).val()}, (resp) => {
+        if (resp) {
+            alertSuccessMsg("La liste urgences d'acheminements a bien été mise à jour.");
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la liste urgences d'acheminements.");
         }
     });
 }

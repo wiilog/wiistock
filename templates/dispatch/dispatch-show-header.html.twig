@@ -60,8 +60,8 @@
 {% endblock %}
 
 {% block showUrgence %}
-    {% if dispatch.urgent is defined and dispatch.urgent == true %}
+    {% if dispatch.emergency %}
         <i class="fa fa-exclamation-triangle mr-2"></i>
-        <span title="Cet acheminement est urgent">{{ 'acheminement.Cet acheminement est urgent'|trans }}.</span>
+        <span title="Cet acheminement est urgent">{{ 'acheminement.Cet acheminement est urgent'|trans }} ({{ dispatch.emergency }})</span>
     {% endif %}
 {% endblock %}

@@ -78,7 +78,6 @@ function initPage() {
     return $
         .post(Routing.generate('dispatch_api_columns'))
         .then((columns) => {
-            console.log(columns);
             let tableDispatchesConfig = {
                 serverSide: true,
                 processing: true,
@@ -91,7 +90,7 @@ function initPage() {
                     needsRowClickAction: true,
                     needsColor: true,
                     color: 'danger',
-                    dataToCheck: 'urgent'
+                    dataToCheck: 'emergency'
                 },
                 drawConfig: {
                     needsSearchOverride: true,

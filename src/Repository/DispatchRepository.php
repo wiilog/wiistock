@@ -212,7 +212,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('dispatch.number AS number')
             ->addSelect('dispatch.startDate AS startDate')
             ->addSelect('dispatch.endDate AS endDate')
-            ->addSelect('dispatch.urgent AS urgent')
+            ->addSelect('(dispatch.emergency IS NOT NULL) AS urgent')
             ->addSelect('locationFrom.label AS locationFromLabel')
             ->addSelect('locationTo.label AS locationToLabel')
             ->addSelect('type.label AS typeLabel')

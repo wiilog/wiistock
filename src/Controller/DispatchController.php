@@ -15,6 +15,7 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\DispatchPack;
+use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -82,6 +83,7 @@ class DispatchController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $fields = $service->getVisibleColumnsConfig($entityManager, $this->getUser());
 
@@ -95,6 +97,7 @@ class DispatchController extends AbstractController {
             'visibleColumns' => $this->getUser()->getColumnsVisibleForDispatch(),
             'modalNewConfig' => [
                 'fieldsParam' => $fieldsParam,
+                'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
                 'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
                 'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
                     $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
@@ -171,7 +174,7 @@ class DispatchController extends AbstractController {
             }
 
             $data = $dispatchService->getDataForDatatable($request->request);
-dump($data);
+
             return new JsonResponse($data);
         } else {
             throw new NotFoundHttpException('404');
@@ -252,7 +255,7 @@ dump($data);
             }
 
             if (!empty($emergency)) {
-                $dispatch->setUrgent($post->getBoolean('urgent'));
+                $dispatch->setEmergency($post->get('emergency'));
             }
 
             $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
@@ -419,7 +422,7 @@ dump($data);
             ->setEndDate($endDate)
             ->setRequester($requester)
             ->setReceiver($receiver)
-            ->setUrgent($post->getBoolean('urgent'))
+            ->setEmergency($post->get('emergency') ?? null)
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
             ->setCommentaire($post->get('commentaire') ?: '');
@@ -476,6 +479,7 @@ dump($data);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
@@ -483,6 +487,7 @@ dump($data);
             $json = $this->renderView('dispatch/modalEditContentDispatch.html.twig', [
                 'dispatch' => $dispatch,
                 'fieldsParam' => $fieldsParam,
+                'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
                 'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                 'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
                 'attachments' => $pieceJointeRepository->findBy(['dispatch' => $dispatch])

@@ -80,10 +80,9 @@ class Dispatch extends FreeFieldEntity
     private $commentaire;
 
     /**
-     * @var bool
-     * @ORM\Column(type="boolean", nullable=false, options={"default": false})
+     * @ORM\Column(type="string", nullable=true)
      */
-    private $urgent;
+    private $emergency;
 
     /**
      * @var DateTime|null
@@ -153,7 +152,6 @@ class Dispatch extends FreeFieldEntity
     {
         $this->dispatchPacks = new ArrayCollection();
         $this->attachements = new ArrayCollection();
-        $this->urgent = false;
     }
 
     public function getId(): ?int
@@ -331,12 +329,12 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
-    public function isUrgent(): bool {
-        return $this->urgent;
+    public function getEmergency(): ?string {
+        return $this->emergency;
     }
 
-    public function setUrgent(bool $urgent): self {
-        $this->urgent = $urgent;
+    public function setEmergency(?string $emergency): self {
+        $this->emergency = $emergency;
         return $this;
     }
 

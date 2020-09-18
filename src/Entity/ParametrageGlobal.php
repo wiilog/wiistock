@@ -97,6 +97,8 @@ class ParametrageGlobal
 
     const BUSINESS_UNIT_VALUES = 'BUSINESS UNIT';
 
+    const DISPATCH_EMERGENCY_VALUES = 'DISPATCH EMERGENCIES';
+
 
 	/**
      * @ORM\Id()

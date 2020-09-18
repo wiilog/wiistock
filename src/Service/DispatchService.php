@@ -144,7 +144,7 @@ class DispatchService
             'nbPacks' => $dispatch->getDispatchPacks()->count(),
             'type' => $dispatch->getType() ? $dispatch->getType()->getLabel() : '',
             'status' => $dispatch->getStatut() ? $dispatch->getStatut()->getNom() : '',
-            'urgent' => $dispatch->isUrgent() ? 'oui' : 'non',
+            'emergency' => $dispatch->getEmergency() ?? "Non",
             'actions' => $this->templating->render('dispatch/datatableDispatchRow.html.twig', [
                 'dispatch' => $dispatch,
                 'url' => $url
@@ -371,7 +371,7 @@ class DispatchService
             ['title' => 'acheminement.emplacement dépose', 'name' => 'locationTo', 'translated' => true],
             ['title' => 'acheminement.Nb colis', 'name' => 'nbPacks', 'orderable' => false, 'translated' => true],
             ['title' => 'Statut', 'name' => 'status'],
-            ['title' => 'Urgence', 'name' => 'urgent'],
+            ['title' => 'Urgence', 'name' => 'emergency'],
         ];
 
         return array_merge(

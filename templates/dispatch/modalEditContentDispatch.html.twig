@@ -10,7 +10,7 @@
 <div class="form-group">
     <label>Statut*</label>
     <select name="statut"
-            {{ dispatch.statut is not null and dispatch.statut.treated ? 'disabled' }}
+        {{ dispatch.statut is not null and dispatch.statut.treated ? 'disabled' }}
             class="form-control data d-block needed"
             title="Statut">
         {% if dispatch.statut is not null %}
@@ -86,22 +86,25 @@
         </div>
     </div>
 {% endif %}
+
 {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_DISPATCH') %}
 {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
-    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToEdit') %}
     <div class="form-group">
         <label>Urgence{{ required ? '*' }}</label>
         <div class="w-100">
-            <label class="switch mt-2">
-                <input class="checkbox {{ required ? 'needed' }}"
-                       name="urgent"
-                       {{ dispatch.urgent ? 'checked' }}
-                       type="checkbox"/>
-                <span class="slider round"></span>
-            </label>
+            <select
+                class="form-control input-sm data {{ required ? 'needed' : '' }}"
+                name="emergency">
+                <option value="">Non urgent</option>
+                {% for emergency in emergencies %}
+                    <option value="{{ emergency }}" {% if dispatch.emergency == emergency %}selected{% endif %}>{{ emergency }}</option>
+                {% endfor %}
+            </select>
         </div>
     </div>
 {% endif %}
+
 <div class="form-group w-100">
     <label for="prise" title="Emplacement de prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
     <select name="prise" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-prise" id="prise">

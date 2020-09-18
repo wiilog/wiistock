@@ -115,6 +115,9 @@ class ParametrageGlobalController extends AbstractController
                     'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
                     'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES))
                 ],
+                'paramDispatches' => [
+                    'urgences' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES))
+                ],
                 'mailerServer' => $mailerServerRepository->findOneMailerServer(),
                 'wantsBL' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
                 'wantsQTT' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL),
@@ -842,6 +845,34 @@ class ParametrageGlobalController extends AbstractController
         return new JsonResponse(true);
     }
 
+    /**
+     * @Route("/modifier-urgences-acheminements",
+     *     name="set_dispatch_urgences",
+     *     options={"expose"=true},
+     *     methods="POST",
+     *     condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function editDispatchUrgences(Request $request,
+                                     ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        $value = $request->request->get('value');
+
+        $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES);
+        $em = $this->getDoctrine()->getManager();
+        if (!$parametrage) {
+            $parametrage = new ParametrageGlobal();
+            $parametrage->setLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES);
+            $em->persist($parametrage);
+        }
+        $parametrage->setValue(json_encode($value));
+
+        $em->flush();
+        return new JsonResponse(true);
+    }
 
     /**
      * @Route("/modifier-destination-demande-livraison",

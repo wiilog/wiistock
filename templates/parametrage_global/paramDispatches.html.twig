@@ -1,0 +1,19 @@
+<a data-toggle="collapse" href="#paramDispatches" role="button" aria-expanded="false"
+   aria-controls="paramArrivage" class="col-12 mb-4">
+    <h1 class="btn btn-primary m-0 w-100 border-radius-light">
+        Paramétrage acheminements
+        <i class="fas fa-arrow-alt-circle-down ml-2"></i>
+    </h1>
+</a>
+<div class="collapse col-12" id="paramDispatches">
+    <div class="row mt-2">
+        <div class="form-group col-4">
+            <label class="d-block">Valeurs du champ urgence</label>
+            <select class="form-control data select2-free w-100" multiple="multiple" name="dispatchUrgences">
+                {% for urgence in urgences %}
+                    <option value="{{ urgence }}" selected>{{ urgence }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
