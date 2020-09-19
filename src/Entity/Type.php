@@ -69,7 +69,6 @@ class Type
      */
     private $articles;
 
-
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategoryType", inversedBy="types")
      */
@@ -121,6 +120,11 @@ class Type
     private $dispatches;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="type")
+     */
+    private $arrivals;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Statut", mappedBy="type")
      */
     private $statuts;
@@ -143,6 +147,7 @@ class Type
         $this->dispatchUsers = new ArrayCollection();
         $this->handlingUsers = new ArrayCollection();
         $this->dispatches = new ArrayCollection();
+        $this->arrivals = new ArrayCollection();
         $this->statuts = new ArrayCollection();
         $this->handlings = new ArrayCollection();
     }
@@ -571,6 +576,37 @@ class Type
             // set the owning side to null (unless already changed)
             if ($dispatch->getType() === $this) {
                 $dispatch->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Arrivage[]
+     */
+    public function getArrivals(): Collection
+    {
+        return $this->arrivals;
+    }
+
+    public function addArrival(Arrivage $arrival): self
+    {
+        if (!$this->arrivals->contains($arrival)) {
+            $this->arrivals[] = $arrival;
+            $arrival->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArrival(Arrivage $arrival): self
+    {
+        if ($this->arrivals->contains($arrival)) {
+            $this->arrivals->removeElement($arrival);
+            // set the owning side to null (unless already changed)
+            if ($arrival->getType() === $this) {
+                $arrival->setType(null);
             }
         }
 

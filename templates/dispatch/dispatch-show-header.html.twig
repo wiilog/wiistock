@@ -4,7 +4,7 @@
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
 {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
-{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_ACHE')) %}
 
 {% block showActions %}
     <div class="btn-group">
@@ -26,8 +26,7 @@
                 Traiter la demande
             </button>
         {% endif %}
-    {% endif %}
-    {% if hasRightEdit or hasRightDelete or hasRightExport %}
+
         <button type="button"
                 class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
                 data-toggle="dropdown"
@@ -36,6 +35,20 @@
             <span class="fa fa-angle-down"></span>
         </button>
         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+            <a type="button"
+               data-dispatch-id='{{ dispatch.id }}'
+               onclick="openDeliveryNoteModal($(this))"
+               class="dropdown-item">
+                <i class="fa fa-print mr-2"></i>
+                Générer un bon de livraison
+            </a>
+            <a type="button"
+               data-dispatch-id='{{ dispatch.id }}'
+               onclick="openWaybillModal($(this))"
+               class="dropdown-item">
+                <i class="fa fa-print mr-2"></i>
+                Générer une lettre de voiture
+            </a>
             {% if hasRightEdit %}
                 <a href="#"
                    data-id='{{ dispatch.id }}'
@@ -59,8 +72,7 @@
                 </a>
             {% endif %}
         </div>
-        </div>
-    {% endif %}
+    </div>
 {% endblock %}
 
 {% block showUrgence %}

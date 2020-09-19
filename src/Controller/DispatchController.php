@@ -15,19 +15,23 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\DispatchPack;
+use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Service\AttachmentService;
+use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
+use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\DispatchService;
 
 use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -795,6 +799,370 @@ Class DispatchController extends AbstractController
         return new JsonResponse([
             'success' => true,
             'packsCounter' => $dispatch->getDispatchPacks()->count()
+        ]);
+    }
+
+    /**
+     * @Route("/csv", name="get_dispatches_csv", options={"expose"=true}, methods={"GET"})
+     * @param Request $request
+     * @param CSVExportService $CSVExportService
+     * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $translator
+     * @return Response
+     */
+    public function getDispatchesCSV(Request $request,
+                                     CSVExportService $CSVExportService,
+                                     EntityManagerInterface $entityManager,
+                                     TranslatorInterface $translator): Response
+    {
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (\Throwable $throwable) {
+        }
+
+        if (isset($dateTimeMin) && isset($dateTimeMax)) {
+            $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+            $freeFields = $freeFieldsRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_DISPATCH]);
+
+            $freeFieldIds = array_map(
+                function (ChampLibre $cl) {
+                    return $cl->getId();
+                },
+                $freeFields
+            );
+            $freeFieldsHeader = array_map(
+                function (ChampLibre $cl) {
+                    return $cl->getLabel();
+                },
+                $freeFields
+            );
+            $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+
+            $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax);
+
+            $csvHeader = array_merge(
+                [
+                    'Numéro demande',
+                    'Date de création',
+                    'Date de traitement',
+                    'Type',
+                    'Demandeur',
+                    'Destinataire',
+                    $translator->trans('acheminement.emplacement prise'),
+                    $translator->trans('acheminement.emplacement dépose'),
+                    'Nb ' . $translator->trans('colis.colis'),
+                    'Statut',
+                    'Urgence',
+                    $translator->trans('natures.nature'),
+                    'Code',
+                    $translator->trans('acheminement.Quantité à acheminer'),
+                    'Date dernier mouvement',
+                    'Dernier emplacement',
+                    'Opérateur'
+                ],
+                $freeFieldsHeader
+            );
+
+            return $CSVExportService->createBinaryResponseFromData(
+                'export_acheminements.csv',
+                $dispatches,
+                $csvHeader,
+                function ($dispatch) use ($freeFieldIds) {
+                    $row = [];
+                    $row[] = $dispatch['number'] ?? '';
+                    $row[] = $dispatch['creationDate'] ? $dispatch['creationDate']->format('d/m/Y H:i:s') : '';
+                    $row[] = $dispatch['validationDate'] ? $dispatch['validationDate']->format('d/m/Y H:i:s') : '';
+                    $row[] = $dispatch['type'] ?? '';
+                    $row[] = $dispatch['requester'] ?? '';
+                    $row[] = $dispatch['receiver'] ?? '';
+                    $row[] = $dispatch['locationFrom'] ?? '';
+                    $row[] = $dispatch['locationTo'] ?? '';
+                    $row[] = $dispatch['nbPacks'] ?? '';
+                    $row[] = $dispatch['status'] ?? '';
+                    $row[] = $dispatch['urgent'] ? 'oui' : 'non';
+                    $row[] = $dispatch['packNatureLabel'] ?? '';
+                    $row[] = $dispatch['packCode'] ?? '';
+                    $row[] = $dispatch['packQuantity'] ?? '';
+                    $row[] = $dispatch['lastMovement'] ? $dispatch['lastMovement']->format('Y/m/d H:i') : '';
+                    $row[] = $dispatch['lastLocation'] ?? '';
+                    $row[] = $dispatch['operator'] ?? '';
+
+                    foreach ($freeFieldIds as $freeFieldId) {
+                        $row[] = $dispatch['freeFields'][$freeFieldId] ?? "";
+                    }
+                    return [$row];
+                }
+            );
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/api-delivery-note",
+     *     name="api_delivery_note_dispatch",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @param Request $request
+     * @param TranslatorInterface $translator
+     * @param Dispatch $dispatch
+     * @return JsonResponse
+     */
+    public function apiDeliveryNote(Request $request,
+                                    TranslatorInterface $translator,
+                                    Dispatch $dispatch): JsonResponse {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+        $maxNumberOfPacks = 7;
+
+        if ($dispatch->getDispatchPacks()->count() === 0) {
+            $errorMessage = $translator->trans('acheminement.Des colis sont nécessaires pour générer un bon de livraison') . '.';
+            return new JsonResponse('
+                <div class="text-danger">' . $errorMessage . '</div>
+            ');
+        }
+
+        $userSavedData = $loggedUser->getSavedDispatchDeliveryNoteData();
+        $dispatchSavedData = $dispatch->getDeliveryNoteData();
+        $defaultData = [
+            'deliveryNumber' => $dispatch->getNumber(),
+            'projectNumber' => $dispatch->getProjectNumber(),
+            'username' => $loggedUser->getUsername(),
+            'userPhone' => $loggedUser->getPhone(),
+            'packs' => array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks),
+
+            // TODO get real values
+            'dispatchEmergency' => '24h'
+        ];
+
+        $deliveryNoteData = array_reduce(
+            array_keys(Dispatch::DELIVERY_NOTE_DATA),
+            function(array $carry, string $dataKey) use ($request, $userSavedData, $dispatchSavedData, $defaultData) {
+                $carry[$dataKey] = (
+                    $dispatchSavedData[$dataKey]
+                    ?? ($userSavedData[$dataKey]
+                        ?? ($defaultData[$dataKey]
+                            ?? null))
+                );
+
+                return $carry;
+            },
+            []
+        );
+
+
+        $json = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
+            // TODO get database values
+            'dispatchEmergencyValues' => ['24h', '48h', '72h']
+        ]));
+
+        return new JsonResponse($json);
+
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/delivery-note",
+     *     name="delivery_note_dispatch",
+     *     options={"expose"=true},
+     *     methods="POST",
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @param EntityManagerInterface $entityManager
+     * @param Dispatch $dispatch
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function postDeliveryNote(EntityManagerInterface $entityManager,
+                                     Dispatch $dispatch,
+                                     Request $request): JsonResponse {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        $data = json_decode($request->getContent(), true);
+
+        $userDataToSave = [];
+        $dispatchDataToSave = [];
+
+        // force dispatch number
+        $data['deliveryNumber'] = $dispatch->getNumber();
+
+        foreach (array_keys(Dispatch::DELIVERY_NOTE_DATA) as $deliveryNoteKey) {
+            if (isset(Dispatch::DELIVERY_NOTE_DATA[$deliveryNoteKey])) {
+                $value = $data[$deliveryNoteKey] ?? null;
+                $dispatchDataToSave[$deliveryNoteKey] = $value;
+                if (Dispatch::DELIVERY_NOTE_DATA[$deliveryNoteKey]) {
+                    $userDataToSave[$deliveryNoteKey] = $value;
+                }
+            }
+        }
+
+        $loggedUser->setSavedDispatchDeliveryNoteData($userDataToSave);
+        $dispatch->setDeliveryNoteData($dispatchDataToSave);
+
+        $entityManager->flush();
+
+        $message = 'Le téléchargement de votre bon de livraison va commencer...';
+        $success = true;
+
+        return new JsonResponse([
+            'success' => $success,
+            'msg' => $message
+        ]);
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/delivery-note",
+     *     name="print_delivery_note_dispatch",
+     *     options={"expose"=true},
+     *     methods="GET"
+     * )
+     * @param EntityManagerInterface $entityManager
+     * @param Dispatch $dispatch
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function printDeliveryNote(EntityManagerInterface $entityManager,
+                                      Dispatch $dispatch,
+                                      Request $request): JsonResponse {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        // TODO mettre le champ json dans le dispatch
+
+        $entityManager->flush();
+
+        return new JsonResponse(['success' => true]);
+
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/api-waybill",
+     *     name="api_dispatch_waybill",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param SpecificService $specificService
+     * @param Dispatch $dispatch
+     * @return JsonResponse
+     * @throws NonUniqueResultException
+     */
+    public function apiWaybill(Request $request,
+                               EntityManagerInterface $entityManager,
+                               SpecificService $specificService,
+                               Dispatch $dispatch): JsonResponse {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+
+        $userSavedData = $loggedUser->getSavedDispatchWaybillData();
+        $dispatchSavedData = $dispatch->getWaybillData();
+
+        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
+        $isEmerson = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_EMERSON);
+
+        $defaultData = [
+            'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
+            'dispatchDate' => $now->format('Y-m-d'),
+            'consigner' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONSIGNER),
+            'receiver' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_RECEIVER),
+            'locationFrom' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_FROM),
+            'locationTo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_TO),
+
+            'consignerUsername' => $isEmerson ? $loggedUser->getUsername() : null,
+            'consignerEmail' => $isEmerson ? $loggedUser->getEmail() : null,
+            'receiverUsername' => $isEmerson ? $loggedUser->getUsername() : null,
+            'receiverEmail' => $isEmerson ? $loggedUser->getEmail() : null
+        ];
+
+        $wayBillData = array_reduce(
+            array_keys(Dispatch::WAYBILL_DATA),
+            function(array $carry, string $dataKey) use ($request, $userSavedData, $dispatchSavedData, $defaultData) {
+                $carry[$dataKey] = (
+                    $dispatchSavedData[$dataKey]
+                        ?? ($userSavedData[$dataKey]
+                            ?? ($defaultData[$dataKey]
+                                ?? null))
+                );
+
+                return $carry;
+            },
+            []
+        );
+
+        $json = $this->renderView('dispatch/modalPrintWayBillContent.html.twig', array_merge($wayBillData, [
+            'packsCounter' => $dispatch->getDispatchPacks()->count()
+        ]));
+
+        return new JsonResponse($json);
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/waybill",
+     *     name="post_dispatch_waybill",
+     *     options={"expose"=true},
+     *     condition="request.isXmlHttpRequest()",
+     *     methods="POST"
+     * )
+     * @param EntityManagerInterface $entityManager
+     * @param Dispatch $dispatch
+     * @param TranslatorInterface $translator
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function postDispatchWaybill(EntityManagerInterface $entityManager,
+                                        Dispatch $dispatch,
+                                        TranslatorInterface $translator,
+                                        Request $request): JsonResponse {
+
+        if ($dispatch->getDispatchPacks()->count() > 10) {
+            $message = 'Attention : ' . $translator->trans("acheminement.L''acheminement contient plus 10 colis") . ', cette lettre de voiture ne peut contenir plus de 10 lignes.';
+            $success = false;
+        }
+        else {
+            /** @var Utilisateur $loggedUser */
+            $loggedUser = $this->getUser();
+
+            $data = json_decode($request->getContent(), true);
+
+            $userDataToSave = [];
+            $dispatchDataToSave = [];
+            foreach (array_keys(Dispatch::WAYBILL_DATA) as $wayBillKey) {
+                if (isset(Dispatch::WAYBILL_DATA[$wayBillKey])) {
+                    $value = $data[$wayBillKey] ?? null;
+                    $dispatchDataToSave[$wayBillKey] = $value;
+                    if (Dispatch::WAYBILL_DATA[$wayBillKey]) {
+                        $userDataToSave[$wayBillKey] = $value;
+                    }
+                }
+            }
+            $loggedUser->setSavedDispatchWaybillData($userDataToSave);
+            $dispatch->setWaybillData($dispatchDataToSave);
+
+            $entityManager->flush();
+
+            $message = 'Le téléchargement de votre lettre de voiture va commencer...';
+            $success = true;
+        }
+
+        return new JsonResponse([
+            'success' => $success,
+            'msg' => $message
         ]);
     }
 }

@@ -54,8 +54,8 @@ function initDatatableLitiges() {
             {"data": 'actions', 'name': 'actions', 'title': '', 'orderable': false, className: 'noVis'},
             {"data": 'type', 'name': 'type', 'title': 'Type'},
             {"data": 'disputeNumber', 'name': 'disputeNumber', 'title': 'Numéro du litige'},
-            {"data": "arrivalNumber", 'name': "arrivalNumber", 'title': $('#transNoArrivage').val()},
-            {"data": 'receptionNumber', 'name': "receptionNumber", 'title': $('#transNoReception').val()},
+            {"data": "arrivalNumber", 'name': "arrivalNumber", 'title': 'arrivage.n° d\'arrivage', translated: true},
+            {"data": 'receptionNumber', 'name': "receptionNumber", 'title': 'réception.n° de réception', translated: true},
             {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteur'},
             {"data": 'declarant', 'name': 'declarant', 'title': 'Déclarant'},
             {"data": 'numCommandeBl', 'name': 'numCommandeBl', 'title': 'N° commande / BL'},
@@ -68,10 +68,6 @@ function initDatatableLitiges() {
             {"data": 'status', 'name': 'status', 'title': 'Statut'},
             {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', 'visible': false, 'class': 'noVis'},
         ],
-        headerCallback: function (thead) {
-            $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
-            $(thead).find('th').eq(3).attr('title', "n° de réception");
-        },
         domConfig: {
             needsFullDomOverride: true
         },

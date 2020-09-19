@@ -44,7 +44,7 @@ function initTableArticle() {
             rowConfig: {
                 needsRowClickAction: true
             },
-            isArticleOrRefSpecifConfig: {
+            hideColumnConfig: {
                 columns,
                 tableFilter: 'tableArticle_id_filter'
             }

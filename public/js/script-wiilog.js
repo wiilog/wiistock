@@ -85,7 +85,6 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     clearFormErrors(modal);
     let id = button.data('id');
     let ref = button.data('ref');
-        console.log('hello')
     let json = {id: id, isADemand: 0};
     if (ref !== false) {
         json.ref = ref;
@@ -110,9 +109,13 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         }
         registerNumberInputProtection($modalBody.find('input[type="number"]'));
 
-        if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
+        if (setMaxQuantity) {
+            setMaxQuantityEdit($('#referenceEdit'));
+        }
 
-        if (editorToInit) initEditor(editor);
+        if (editorToInit) {
+            initEditor(editor);
+        }
 
         afterLoadingEditModal(modal);
     }, 'json');
@@ -202,19 +205,6 @@ function initEditor(div) {
         });
     }
     return null;
-}
-
-//passe de l'éditeur à l'input pour envoi au back
-function setCommentaire(div, quill = null) {
-    // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
-    if ($(div).length && quill === null) {
-        let container = div;
-        let quill = new Quill(container);
-        let com = quill.container.firstChild.innerHTML;
-        $(div).closest('.modal').find('#commentaire').val(com);
-    } else if (quill) {
-        $(div).closest('.modal').find('#commentaire').val(quill.container.firstChild.innerHTML);
-    }
 }
 
 //FONCTION REFARTICLE
@@ -485,13 +475,33 @@ function ajaxAutoDemandesInit(select) {
     initSelect2(select, 'Numéros de demande', 3, {route: 'get_demandes'});
 }
 
-let toggleRequiredChampsLibres = function (select, require) {
-    let bloc = require == 'create' ? $('#typeContentNew') : $('#typeContentEdit'); //TODO pas top
+let toggleRequiredChampsLibres = function (select, require, $freeFieldContainer = null) {
+    let bloc = ( //TODO pas top
+        $freeFieldContainer ? $freeFieldContainer :
+        require == 'create' ? $('#typeContentNew') :
+            $('#typeContentEdit')
+    );
+    const typeId = select.val();
     let params = {};
-    if (select.val()) {
-        bloc.find('.data').removeClass('needed');
+    if (typeId) {
+        bloc
+            .find('.data')
+            .removeClass('needed');
+
+        if (require === 'create') { // we don't save free field which are hidden
+            bloc
+                .find('.data')
+                .addClass('free-field-data')
+                .removeClass('data')
+
+            bloc
+                .find(`#${typeId}-new .free-field-data`)
+                .removeClass('free-field-data')
+                .addClass('data');
+        }
+
         bloc.find('span.is-required-label').remove();
-        params[require] = select.val();
+        params[require] = typeId;
         let path = Routing.generate('display_required_champs_libres', true);
 
         $.post(path, JSON.stringify(params), function (data) {
@@ -626,7 +636,6 @@ function alertSuccessMsg(data, remove = true) {
         $alertSuccess.delay(2000).fadeOut(2000);
     }
     $alertSuccess.find('.confirm-msg').html(data);
-    $('html,body').animate({scrollTop: 0});
 }
 
 function saveFilters(page, tableSelector, callback) {
@@ -1302,6 +1311,7 @@ function fillDemandeurField($modal) {
 function registerNumberInputProtection($inputs) {
     const forbiddenChars = [
         "e",
+        "E",
         "+",
         "-"
     ];
@@ -1311,4 +1321,31 @@ function registerNumberInputProtection($inputs) {
             e.preventDefault();
         }
     });
+}
+
+function limitTextareaLength($textarea, lineNumber, lineLength) {
+    const textareaVal = ($textarea.val() || '');
+    const linesSplit = textareaVal
+        .replace(/\r\n/g,'\n')
+        .split('\n');
+
+    let newValueSplit = linesSplit;
+
+    // set max line number
+    if (linesSplit.length > lineNumber) {
+        newValueSplit = newValueSplit.slice(0, lineNumber);
+    }
+
+    // set max line length
+    newValueSplit = newValueSplit.map((line) => line.substr(0, lineLength));
+
+    const newVal = newValueSplit.join('\n');
+    const oldVal = $textarea.val();
+
+    if (newVal !== oldVal) {
+        const cursorPosition = $textarea[0].selectionStart
+        $textarea.val(newVal).trigger('change');
+        $textarea[0].selectionStart = cursorPosition;
+        $textarea[0].selectionEnd = cursorPosition;
+    }
 }

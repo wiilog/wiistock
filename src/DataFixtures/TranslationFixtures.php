@@ -64,6 +64,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'acheminement' => 'acheminement',
                 'emplacement prise' => 'emplacement prise',
                 'emplacement dépose' => 'emplacement dépose',
+                'Nb colis' => 'Nb colis',
                 'demande d\'acheminement' => 'demande d\'acheminement',
                 'Le colis existe déjà dans cet acheminement' => 'Le colis existe déjà dans cet acheminement',
                 'Valider un acheminement' => 'Valider un acheminement',
@@ -78,7 +79,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "L'acheminement a bien été traité" => "L'acheminement a bien été traité",
                 "L'acheminement a bien été modifié" => "L'acheminement a bien été modifié",
                 "L'acheminement a bien été supprimé" => "L'acheminement a bien été supprimé",
-                "La fiche d'état n'existe pas pour cet acheminement" => "La fiche d'état n'existe pas pour cet acheminement"
+                "La fiche d'état n'existe pas pour cet acheminement" => "La fiche d'état n'existe pas pour cet acheminement",
+                "Des colis sont nécessaires pour générer un bon de livraison" => "Des colis sont nécessaires pour générer un bon de livraison",
+                "Acheminement {numéro} traité le {date}" => "Acheminement {numéro} traité le {date}",
+                "L'acheminement contient plus 10 colis" => "L'acheminement contient plus 10 colis"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',
@@ -106,6 +110,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'date de début' => 'date de début',
                 'date de fin' => 'date de fin',
                 'numéro de commande' => 'numéro de commande',
+                'Date arrivage' => 'Date arrivage'
             ],
             'mouvement de traçabilité' => [
                 'Colis' => 'Colis'
@@ -127,6 +132,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Liste des colis" => "Liste des colis",
                 'Votre colis a bien été modifié' => 'Votre colis a bien été modifié',
                 "Voulez-vous réellement supprimer ce colis ?" => "Voulez-vous réellement supprimer ce colis ?",
+                "Supprimer le colis" => "Supprimer le colis",
                 "Le colis a bien été supprimé" => "Le colis a bien été supprimé",
                 "Le colis a bien été modifié" => "Le colis a bien été modifié",
                 'Le colis n\'existe pas' => 'Le colis n\'existe pas',

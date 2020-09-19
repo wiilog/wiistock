@@ -1,4 +1,6 @@
 {% set disabled = (((disabled is defined) and (disabled == true)) ? 'disabled' : '') %}
+{% set hidden_submit = (((hidden_submit is defined) and (hidden_submit == true)) ? 'hidden' : '') %}
+
 <div class="filterService m-4">
     <div class="filters filters-container row pt-2">
         <div class="col">
@@ -8,13 +10,14 @@
             </div>
         </div>
         <div class="col-auto">
-            <button class="btn btn-primary btn-ripple minw-105px"
+            <button class="btn btn-primary btn-ripple minw-105px submit-button"
+                    {{ hidden_submit }}
                     tabindex="0"
                     onclick="saveFilters(
-                    {{ page }},
-                    {{ tableSelector is defined ? ("'" ~ tableSelector ~ "'") : 'undefined' }},
-                    {{ callback is defined ? callback }}
-                        )">
+                        {{ page }},
+                        {{ tableSelector is defined ? ("'" ~ tableSelector ~ "'") : 'undefined' }},
+                        {{ callback is defined ? callback }}
+                    )">
                 Filtrer
                 <i class="fas fa-filter ml-1"></i>
             </button>

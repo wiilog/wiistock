@@ -834,7 +834,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     $handling->setStatus($newStatus);
                 }
 
-                $commentaire = $request->request->get('commentaire');
+                $commentaire = $request->request->get('comment');
                 if (!empty($commentaire)) {
                     $handling->setComment($handling->getComment() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
                 }

@@ -75,6 +75,7 @@ class HandlingRepository extends EntityRepository
         return array_map(
             function (array $handling): array {
                 $handling['desiredDate'] = $handling['desiredDate'] ? $handling['desiredDate']->format('d/m/Y H:i:s') : null;
+                $handling['comment'] = $handling['comment'] ? strip_tags($handling['comment']) : null;
                 return $handling;
             },
             $queryBuilder->getQuery()->getResult()

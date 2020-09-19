@@ -229,6 +229,24 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $pageLengthForArrivage = 100;
 
     /**
+     * @var array|null
+     * @ORM\Column(type="json")
+     */
+    private $savedDispatchDeliveryNoteData;
+
+    /**
+     * @var array|null
+     * @ORM\Column(type="json")
+     */
+    private $savedDispatchWaybillData;
+
+    /**
+     * @var string|null
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $phone;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="utilisateurs")
      */
     private $dropzone;
@@ -286,6 +304,8 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->referencesEmergenciesTriggered = new ArrayCollection();
         $this->litigesDeclarant = new ArrayCollection();
         $this->secondaryEmails = [];
+        $this->savedDispatchDeliveryNoteData = [];
+        $this->savedDispatchWaybillData = [];
     }
 
     public function getId()
@@ -1381,6 +1401,54 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     public function setMobileLoginKey(string $mobileLoginKey): self {
         $this->mobileLoginKey = $mobileLoginKey;
+        return $this;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getSavedDispatchDeliveryNoteData(): array {
+        return $this->savedDispatchDeliveryNoteData ?? [];
+    }
+
+    /**
+     * @param array|null $savedDispatchDeliveryNoteData
+     * @return self
+     */
+    public function setSavedDispatchDeliveryNoteData(array $savedDispatchDeliveryNoteData): self {
+        $this->savedDispatchDeliveryNoteData = $savedDispatchDeliveryNoteData;
+        return $this;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getSavedDispatchWaybillData(): array {
+        return $this->savedDispatchWaybillData ?? [];
+    }
+
+    /**
+     * @param array $savedDispatchWaybillData
+     * @return self
+     */
+    public function setSavedDispatchWaybillData(array $savedDispatchWaybillData): self {
+        $this->savedDispatchWaybillData = $savedDispatchWaybillData;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPhone(): ?string {
+        return $this->phone;
+    }
+
+    /**
+     * @param string|null $phone
+     * @return self
+     */
+    public function setPhone(?string $phone): self {
+        $this->phone = $phone;
         return $this;
     }
 

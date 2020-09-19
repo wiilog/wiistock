@@ -12,8 +12,8 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group">
                     <label for="type">Type*</label>
-                    <select name="type" class="form-control data d-block type needed"
-                            onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
+                    <select name="type"
+                            class="form-control data d-block type needed"
                             onchange="onDispatchTypeChange($(this))">
                         <option value="">Type à choisir...</option>
                         {% for type in typeChampsLibres %}
@@ -150,10 +150,10 @@
                 {% endif %}
             </div>
 
-            <div class="error-msg p-4"></div>
+            <div class="error-msg"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitNewDispatch" type="button" class="btn btn-success" onclick="setCommentaire('#editor-container-new')">Enregistrer</button>
+                <button id="submitNewDispatch" type="button" class="btn btn-success">Enregistrer</button>
             </div>
         </div>
     </div>

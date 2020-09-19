@@ -105,7 +105,6 @@ class EmplacementController extends AbstractController
         $active = $filterStatus ? $filterStatus->getValue() : false;
 
 		return $this->render('emplacement/index.html.twig', [
-            'allowedNaturePackTranslation' => $translator->trans('natures.Natures de colis autorisées'),
 			'active' => $active,
             'natures' => $allNatures
 		]);

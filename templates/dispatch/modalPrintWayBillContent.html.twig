@@ -1,0 +1,169 @@
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Transporteur / Carrier</label>
+            <div class="col-12">
+                <textarea title="Transporteur / Carrier"
+                          name="carrier"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 7, 50)"
+                          rows="7"
+                          class="form-control data needed">{{ carrier }}</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Date d'acheminement / Dispatch date</label>
+            <div class="col-12">
+                <input type="date"
+                       class="form-control data"
+                       name="dispatchDate"
+                       title="Date d'acheminement / Dispatch date"
+                       value="{{ dispatchDate }}"/>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Expéditeur / Consigner</label>
+            <div class="col-12">
+                <textarea title="Expéditeur / Consigner"
+                          name="consigner"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 7, 50)"
+                          rows="7"
+                          class="form-control data needed">{{ consigner }}</textarea>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary btn-sm mt-2"
+                        type="button"
+                        onclick="reverseFields($(this), 'consigner', 'receiver')">Inverser expéditeur / destinataire</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Destinataire / Receiver</label>
+            <div class="col-12">
+                <textarea title="Destinataire / Receiver"
+                          name="receiver"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 7, 50)"
+                          rows="7"
+                          class="form-control data needed">{{ receiver }}</textarea>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="row">
+            <label class="col-12">Contact expéditeur / Consigner contact</label>
+        </div>
+        <div class="form-group row">
+            <label class="col-12">Nom / Name</label>
+            <div class="col-12">
+                <input title="Expéditeur nom"
+                       name="consignerUsername"
+                       class="form-control data needed"
+                       value="{{ consignerUsername }}"/>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-12">Téléphone - Email / Phone number - Mail</label>
+            <div class="col-12">
+                <input title="Expéditeur téléphone / email"
+                       name="consignerEmail"
+                       class="form-control data needed"
+                       value="{{ consignerEmail }}"/>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="row">
+            <label class="col-12">Contact destinataire / Receiver contact</label>
+        </div>
+        <div class="form-group row">
+            <label class="col-12">Nom / Name</label>
+            <div class="col-12">
+                <input title="Destinataire nom"
+                       name="receiverUsername"
+                       class="form-control data needed"
+                       value="{{ receiverUsername }}"/>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-12">Téléphone - Email / Phone number - Mail</label>
+            <div class="col-12">
+                <input title="Destinataire téléphone / email"
+                       name="receiverEmail"
+                       class="form-control data needed"
+                       value="{{ receiverEmail }}"/>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="mb-4"/>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Lieu de chargement / Loading zone</label>
+            <div class="col-12">
+                <input title="Lieu de chargement"
+                       name="locationFrom"
+                       class="form-control data needed"
+                       value="{{ locationFrom }}"/>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary btn-sm mt-2"
+                        type="button"
+                        onclick="reverseFields($(this), 'locationFrom', 'locationTo')">Inverser chargement / déchargement</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Lieu de déchargement / Unloading zone</label>
+            <div class="col-12">
+                <input title="Lieu de déchargement"
+                       name="locationTo"
+                       class="form-control data needed"
+                       value="{{ locationTo }}"/>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="mb-4"/>
+
+<div class="row">
+    <div class="col-12">
+        <div class="form-group row">
+            <label class="col-12">Note de bas de page / Footnote</label>
+            <div class="col-12">
+                <textarea class="form-control data"
+                          name="notes"
+                          title="Note de bas de page"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 2, 100)"
+                          rows="2">{{ notes }}</textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <em class="col-12">
+        Information : Le contenu des colis doit être modifié sur les colis
+    </em>
+    <em class="col-12">
+        Information : The content of the packages must be changed on the packages
+    </em>
+    {% if packsCounter > 10 %}
+        <div class="col-12 error-msg">
+            Attention : {{ "acheminement.L''acheminement contient plus 10 colis"|trans }}, cette lettre de voiture ne peut contenir plus de 10 lignes.
+        </div>
+    {% endif %}
+</div>

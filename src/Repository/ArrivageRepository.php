@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Arrivage;
 use App\Entity\Statut;
+use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -21,21 +22,24 @@ use Exception;
 class ArrivageRepository extends EntityRepository
 {
     private const DtToDbLabels = [
-        'Date' => 'date',
-        'NumeroArrivage' => 'numeroArrivage',
-        'Transporteur' => 'transporteur',
-        'Chauffeur' => 'chauffeur',
-        'NoTracking' => 'noTracking',
-        'NumeroCommandeList' => 'numeroCommandeList',
-        'Fournisseur' => 'fournisseur',
-        'Destinataire' => 'destinataire',
-        'Acheteurs' => 'acheteurs',
-        'NbUM' => 'nbUM',
-        'Statut' => 'statut',
-        'Utilisateur' => 'utilisateur',
-        'Duty' => 'duty',
-        'Frozen' => 'frozen',
-        'Urgent' => 'isUrgent'
+        'date' => 'date',
+        'arrivalNumber' => 'arrivalNumber',
+        'carrier' => 'carrier',
+        'driver' => 'driver',
+        'trackingCarrierNumber' => 'trackingCarrierNumber',
+        'orderNumber' => 'orderNumber',
+        'provider' => 'provider',
+        'receiver' => 'receiver',
+        'buyers' => 'buyers',
+        'nbUm' => 'nbUm',
+        'status' => 'status',
+        'user' => 'user',
+        'type' => 'type',
+        'custom' => 'custom',
+        'frozen' => 'frozen',
+        'emergency' => 'emergency',
+        'projectNumber' => 'projectNumber',
+        'businessUnit' => 'businessUnit'
     ];
 
     /**
@@ -97,6 +101,7 @@ class ArrivageRepository extends EntityRepository
             ->addSelect('transporteur.label AS transporteurLabel')
             ->addSelect('chauffeur.nom AS chauffeurSurname')
             ->addSelect('chauffeur.prenom AS chauffeurFirstname')
+            ->addSelect('arrivalType.label AS type')
             ->addSelect('arrivage.noTracking')
             ->addSelect('arrivage.numeroCommandeList')
             ->addSelect('arrivage.duty')
@@ -104,12 +109,15 @@ class ArrivageRepository extends EntityRepository
             ->addSelect('status.nom AS statusName')
             ->addSelect('arrivage.commentaire')
             ->addSelect('arrivage.date')
+            ->addSelect('arrivage.projectNumber AS projectNumber')
+            ->addSelect('arrivage.businessUnit AS businessUnit')
             ->leftJoin('arrivage.destinataire', 'recipient')
             ->leftJoin('arrivage.fournisseur', 'fournisseur')
             ->leftJoin('arrivage.transporteur', 'transporteur')
             ->leftJoin('arrivage.chauffeur', 'chauffeur')
             ->leftJoin('arrivage.statut', 'status')
             ->leftJoin('arrivage.utilisateur', 'user')
+            ->leftJoin('arrivage.type', 'arrivalType')
             ->getQuery()
             ->execute();
     }
@@ -240,7 +248,7 @@ class ArrivageRepository extends EntityRepository
      * @return array
      * @throws Exception
      */
-    public function findByParamsAndFilters($params, $filters, $userId)
+    public function findByParamsAndFilters($params, $filters, $userId, $freeFieldLabelsToIds)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -349,16 +357,21 @@ class ArrivageRepository extends EntityRepository
                         ->leftJoin('a.destinataire', 'd3')
                         ->leftJoin('a.acheteurs', 'ach3')
                         ->leftJoin('a.utilisateur', 'u3')
+                        ->leftJoin('a.type', 'search_type')
                         ->andWhere('(
-						a.numeroArrivage LIKE :value
-						OR t3.label LIKE :value
-						OR ch3.nom LIKE :value
-						OR a.noTracking LIKE :value
-						OR a.numeroCommandeList LIKE :value
-						OR f3.nom LIKE :value
-						OR d3.username LIKE :value
-						OR ach3.username LIKE :value
-						OR u3.username LIKE :value)')
+                            a.numeroArrivage LIKE :value
+                            OR t3.label LIKE :value
+                            OR ch3.nom LIKE :value
+                            OR a.noTracking LIKE :value
+                            OR a.numeroCommandeList LIKE :value
+                            OR f3.nom LIKE :value
+                            OR d3.username LIKE :value
+                            OR ach3.username LIKE :value
+                            OR u3.username LIKE :value
+                            OR search_type.label LIKE :value
+                            OR a.businessUnit LIKE :value
+                            OR a.projectNumber LIKE :value
+                        )')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -366,33 +379,59 @@ class ArrivageRepository extends EntityRepository
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    $orderData = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = self::DtToDbLabels[$orderData] ?? $orderData;
 
-                    if ($column === 'transporteur') {
+                    if ($column === 'carrier') {
                         $qb
                             ->leftJoin('a.transporteur', 't2')
                             ->orderBy('t2.label', $order);
-                    } else if ($column === 'chauffeur') {
+                    } else if ($column === 'driver') {
                         $qb
                             ->leftJoin('a.chauffeur', 'c2')
                             ->orderBy('c2.nom', $order);
-                    } else if ($column === 'fournisseur') {
+                    } else if ($column === 'arrivalNumber') {
                         $qb
-                            ->leftJoin('a.fournisseur', 'f2')
-                            ->orderBy('f2.nom', $order);
-                    } else if ($column === 'destinataire') {
+                            ->orderBy('a.numeroArrivage', $order);
+                    } else if ($column === 'trackingCarrierNumber') {
+                        $qb
+                            ->orderBy('a.noTracking', $order);
+                    } else if ($column === 'orderNumber') {
+                        $qb
+                            ->orderBy('a.numeroCommandeList', $order);
+                    } else if ($column === 'type') {
+                        $qb
+                            ->leftJoin('a.type', 'order_type')
+                            ->orderBy('order_type.label', $order);
+                    } else if ($column === 'provider') {
+                        $qb
+                            ->leftJoin('a.fournisseur', 'order_fournisseur')
+                            ->orderBy('order_fournisseur.nom', $order);
+                    } else if ($column === 'receiver') {
                         $qb
                             ->leftJoin('a.destinataire', 'a2')
                             ->orderBy('a2.username', $order);
-                    } else if ($column === 'acheteurs') {
+                    } else if ($column === 'buyers') {
                         $qb
                             ->leftJoin('a.acheteurs', 'ach2')
                             ->orderBy('ach2.username', $order);
-                    } else if ($column === 'utilisateur') {
+                    } else if ($column === 'user') {
                         $qb
                             ->leftJoin('a.utilisateur', 'u2')
                             ->orderBy('u2.username', $order);
-                    } else if ($column === 'nbUM') {
+                    } else if ($column === 'custom') {
+                        $qb
+                            ->orderBy('a.duty', $order);
+                    } else if ($column === 'frozen') {
+                        $qb
+                            ->orderBy('a.frozen', $order);
+                    } else if ($column === 'projectNumber') {
+                        $qb
+                            ->orderBy('a.projectNumber', $order);
+                    } else if ($column === 'businessUnit') {
+                        $qb
+                            ->orderBy('a.businessUnit', $order);
+                    } else if ($column === 'nbUm') {
                         $qb
                             ->addSelect('count(col2.id) as hidden nbum')
                             ->leftJoin('a.packs', 'col2')
@@ -401,8 +440,17 @@ class ArrivageRepository extends EntityRepository
                     } else if ($column === 'statut') {
                         $orderStatut = $order;
                     } else {
-                        $qb
-                            ->orderBy('a.' . $column, $order);
+                        if (property_exists(Arrivage::class, $column)) {
+                            $qb
+                                ->orderBy('a.' . $column, $order);
+                        } else {
+                            $clId = $freeFieldLabelsToIds[trim(mb_strtolower($column))] ?? null;
+                            if ($clId) {
+                                $jsonOrderQuery = "CAST(JSON_EXTRACT(a.freeFields, '$.\"${clId}\"') AS CHAR)";
+                                $qb
+                                    ->orderBy($jsonOrderQuery, $order);
+                            }
+                        }
                     }
                 }
             }
@@ -425,10 +473,8 @@ class ArrivageRepository extends EntityRepository
         if ($orderStatut) {
             usort($arrivages, function (Arrivage $arrivage1, Arrivage $arrivage2) use ($orderStatut) {
                 return $orderStatut === 'asc'
-                    ?
-                    strcmp($arrivage1->getStatus(), $arrivage2->getStatus())
-                    :
-                    strcmp($arrivage2->getStatus(), $arrivage1->getStatus());
+                    ? strcmp($arrivage1->getStatus(), $arrivage2->getStatus())
+                    : strcmp($arrivage2->getStatus(), $arrivage1->getStatus());
             });
         }
 
@@ -438,7 +484,6 @@ class ArrivageRepository extends EntityRepository
                 $arrivages = array_slice($arrivages, intval($params->get('start')), intval($params->get('length')));
             }
         }
-
 
         return [
             'data' => $arrivages ?? null,
