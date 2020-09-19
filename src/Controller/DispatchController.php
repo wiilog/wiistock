@@ -98,7 +98,7 @@ Class DispatchController extends AbstractController
                         'champsLibres' => $champsLibres,
                     ];
                 }, $types),
-			    'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
+			    'notTreatedStatus' => $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::NOT_TREATED, Statut::DRAFT]),
             ]
         ]);
     }
@@ -266,14 +266,11 @@ Class DispatchController extends AbstractController
             'newPackConfig' => [
                 'natures' => $natureRepository->findAll()
             ],
-            'dispatchInvalidate' => [
-                'draftStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), Statut::DRAFT)
-            ],
             'dispatchValidate' => [
-                'untreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), Statut::NOT_TREATED)
+                'untreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])
             ],
             'dispatchTreat' => [
-                'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), Statut::TREATED)
+                'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED])
             ]
         ]);
     }
@@ -354,7 +351,7 @@ Class DispatchController extends AbstractController
         $locationDrop = $emplacementRepository->find($post->get('depose'));
 
         $oldStatus = $dispatch->getStatut();
-        if (!$oldStatus || !$oldStatus->getTreated()) {
+        if (!$oldStatus || !$oldStatus->isTreated()) {
             $newStatus = $statutRepository->find($post->get('statut'));
             $dispatch->setStatut($newStatus);
         }
@@ -441,14 +438,11 @@ Class DispatchController extends AbstractController
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
             $dispatch = $dispatchRepository->find($data['id']);
+            $dispatchStatus = $dispatch->getStatut();
 
-            if($dispatch->getStatut()->isDraft()) {
-                $statuses = $statutRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), Statut::DRAFT);
-            } else if(!$dispatch->getStatut()->isTreated()) {
-                $statuses = $statutRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), Statut::NOT_TREATED);
-            } else {
-                $statuses = null;
-            }
+            $statuses = (!$dispatchStatus || !$dispatchStatus->isTreated())
+                ? $statutRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::DRAFT, Statut::NOT_TREATED])
+                : [];
 
             $json = $this->renderView('dispatch/modalEditContentDispatch.html.twig', [
                 'dispatch' => $dispatch,
@@ -698,7 +692,6 @@ Class DispatchController extends AbstractController
      * @Route("/{id}/validate", name="dispatch_validate_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param DispatchService $dispatchService
      * @param TranslatorInterface $translator
      * @param Dispatch $dispatch
      * @return Response
@@ -719,8 +712,8 @@ Class DispatchController extends AbstractController
             $untreatedStatus = $statusRepository->find($statusId);
 
             if ($untreatedStatus
-                && !$untreatedStatus->isDraft() && !$untreatedStatus->isTreated()
-                && $untreatedStatus->getType() === $dispatch->getType()) {
+                && $untreatedStatus->isNotTreated()
+                && ($untreatedStatus->getType() === $dispatch->getType())) {
 
                 $dispatch
                     ->setStatut($untreatedStatus)
@@ -744,55 +737,6 @@ Class DispatchController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/invalidate", name="dispatch_invalidate_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param DispatchService $dispatchService
-     * @param TranslatorInterface $translator
-     * @param Dispatch $dispatch
-     * @return Response
-     * @throws Exception
-     */
-    public function invalidateDispatchRequest(Request $request,
-                                            EntityManagerInterface $entityManager,
-                                            TranslatorInterface $translator,
-                                            Dispatch $dispatch): Response
-    {
-        $status = $dispatch->getStatut();
-
-        if(!$status || !$status->isDraft() && !$status->isTreated()) {
-            $data = json_decode($request->getContent(), true);
-            $statusRepository = $entityManager->getRepository(Statut::class);
-
-            $statusId = $data['status'];
-            $draftStatus = $statusRepository->find($statusId);
-
-            if ($draftStatus
-                && $draftStatus->isDraft()
-                && $draftStatus->getType() === $dispatch->getType()) {
-
-                $dispatch
-                    ->setStatut($draftStatus)
-                    ->setValidationDate(null);
-
-                $entityManager->flush();
-            }
-            else {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => "Le statut sélectionné doit être de type brouillon et correspondre au type de la demande."
-                ]);
-            }
-        }
-
-        return new JsonResponse([
-            'success' => true,
-            'msg' => $translator->trans('acheminement.L\'acheminement a bien été passé en brouillon'),
-            'redirect' => $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()])
-        ]);
-    }
-
-    /**
      * @Route("/{id}/treat", name="dispatch_treat_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -810,7 +754,7 @@ Class DispatchController extends AbstractController
     {
         $status = $dispatch->getStatut();
 
-        if(!$status || !$status->getTreated()) {
+        if(!$status || $status->isNotTreated()) {
             $data = json_decode($request->getContent(), true);
             $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -818,7 +762,7 @@ Class DispatchController extends AbstractController
             $treatedStatus = $statusRepository->find($statusId);
 
             if ($treatedStatus
-                && $treatedStatus->getTreated()
+                && $treatedStatus->isTreated()
                 && $treatedStatus->getType() === $dispatch->getType()) {
 
                 /** @var Utilisateur $loggedUser */

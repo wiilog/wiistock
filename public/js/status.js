@@ -19,8 +19,8 @@ $(function () {
             {"data": 'category', "name": 'category', 'title': 'Entité'},
             {"data": 'label', "name": 'label', 'title': 'Libellé'},
             {"data": 'comment', "name": 'comment', 'title': 'Commentaire'},
+            {"data": 'state', "name": 'state', 'title': 'État'},
             {"data": 'defaultStatus', "name": 'defaultStatus', 'title': 'Statut par défaut'},
-            {"data": 'treatedStatus', "name": 'treatedStatus', 'title': 'Statut traité'},
             {"data": 'notifToDeclarant', "name": 'notifToDeclarant', 'title': 'Envoi de mails au déclarant'},
             {"data": 'order', "name": 'order', 'title': 'Ordre'},
         ],
@@ -62,14 +62,15 @@ function hideOptionOnChange($modal, forceClear = true) {
     $modal.find('.field-needed').removeClass('needed');
 
     if (forceClear) {
-        $dispatchFields.find('select').find('option:selected').prop("selected", false);
-        $dispatchFields.find('select').val('');
-
-        $handlingFields.find('select').find('option:selected').prop("selected", false);
-        $handlingFields.find('select').val('');
-
-        $disputeFields.find('select').find('option:selected').prop("selected", false);
-        $disputeFields.find('select').val('');
+        for(const $field of [$dispatchFields, $dispatchFields, $disputeFields]) {
+            const $select = $field.is('option')
+                ? $field.closest('select')
+                : $field.find('select');
+            if ($select.length > 0) {
+                $select.find('option:selected').prop("selected", false);
+                $select.val('');
+            }
+        }
     }
 
     const category = Number($select.val());

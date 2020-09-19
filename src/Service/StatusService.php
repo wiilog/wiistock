@@ -6,14 +6,15 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\ExpressionLanguage\SyntaxError;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class StatusService {
 
@@ -55,6 +56,9 @@ class StatusService {
     /**
      * @param null $params
      * @return array
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -80,6 +84,8 @@ class StatusService {
     /**
      * @param Statut $status
      * @return array
+     * @throws LoaderError
+     * @throws RuntimeError
      * @throws SyntaxError
      */
     public function dataRowStatus($status) {
@@ -90,7 +96,7 @@ class StatusService {
             'category' => $status->getCategorie() ? $status->getCategorie()->getNom() : '',
             'label' => $status->getNom() ? $status->getNom() : '',
             'comment' => $status->getComment() ? $status->getComment() : '',
-            'treatedStatus' => $status->getTreated() ? 'oui' : 'non',
+            'state' => $this->getStatusStateLabel($status->getState()),
             'defaultStatus' => $status->isDefaultForCategory() ? 'oui' : 'non',
             'notifToDeclarant' => $status->getSendNotifToDeclarant() ? 'oui' : 'non',
             'order' => $status->getDisplayOrder() ?? '',
@@ -99,6 +105,35 @@ class StatusService {
                 'statusId' => $status->getId(),
             ]),
         ];
+    }
+
+    public function getStatusStatesValues(): array {
+        return [
+            [
+                'label' => 'Brouillon',
+                'id' => Statut::DRAFT
+            ],
+            [
+                'label' => 'À traité',
+                'id' => Statut::NOT_TREATED
+            ],
+            [
+                'label' => 'Traité',
+                'id' => Statut::TREATED
+            ]
+        ];
+    }
+
+    public function getStatusStateLabel(int $stateId): ?string {
+        $states = $this->getStatusStatesValues();
+        $label = null;
+        foreach ($states as $state) {
+            if ($state['id'] === $stateId) {
+                $label = $state['label'];
+                break;
+            }
+        }
+        return $label;
     }
 
 }

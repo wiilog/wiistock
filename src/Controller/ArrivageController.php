@@ -1223,7 +1223,7 @@ class ArrivageController extends AbstractController
             $this->templating = $templating;
             $newStatus = $statutRepository->find($statutAfter);
             $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_LITIGE);
-            if ($hasRightToTreatLitige || !$newStatus->getTreated()) {
+            if ($hasRightToTreatLitige || !$newStatus->isTreated()) {
                 $litige->setStatus($newStatus);
             }
 

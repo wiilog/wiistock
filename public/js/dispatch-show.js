@@ -34,11 +34,6 @@ $(function () {
     const urlValidateDispatch = Routing.generate('dispatch_validate_request', {id: dispatchId}, true);
     InitModal($modalValidateDispatch, $submitValidatedDispatch, urlValidateDispatch, {tables: [packTable]});
 
-    const $modalInvalidateDispatch = $('#modalInvalidateDispatch');
-    const $submitInvalidatedDispatch = $modalInvalidateDispatch.find('.submit-button');
-    const urlInvalidateDispatch = Routing.generate('dispatch_invalidate_request', {id: dispatchId}, true);
-    InitModal($modalInvalidateDispatch, $submitInvalidatedDispatch, urlInvalidateDispatch, {tables: [packTable]});
-
     const $modalTreatDispatch = $('#modalTreatDispatch');
     const $submitTreatedDispatch = $modalTreatDispatch.find('.submit-button');
     const urlTreatDispatch = Routing.generate('dispatch_treat_request', {id: dispatchId}, true);
@@ -166,15 +161,6 @@ function openEditPackModal({packDispatchId, code, quantity, natureId, packQuanti
 
 function openValidateDispatchModal() {
     const modalSelector = '#modalValidateDispatch'
-    const $modal = $(modalSelector);
-
-    clearModal(modalSelector);
-
-    $modal.modal('show');
-}
-
-function openInvalidateDispatchModal() {
-    const modalSelector = '#modalInvalidateDispatch'
     const $modal = $(modalSelector);
 
     clearModal(modalSelector);

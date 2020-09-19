@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\CategorieStatut;
 use App\Entity\Statut;
+use App\Entity\Type;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -22,7 +23,7 @@ class StatutRepository extends EntityRepository {
         'label' => 'nom',
         'comment' => 'comment',
         'defaultStatus' => 'defaultForCategory',
-        'treatedStatus' => 'treated',
+        'state' => 'state',
         'notifToDeclarant' => 'sendNotifToDeclarant',
         'order' => 'displayOrder'
     ];
@@ -32,9 +33,10 @@ class StatutRepository extends EntityRepository {
             ->select("COUNT(s)")
             ->where("s.categorie = :category")
             ->andWhere("s.type = :type")
-            ->andWhere("s.draft = 1")
+            ->andWhere("s.state = :draftId")
             ->setParameter("category", $category)
-            ->setParameter("type", $type);
+            ->setParameter("type", $type)
+            ->setParameter('draftId', Statut::DRAFT);
 
         if ($current) {
             $qb->andWhere("s.id != :current")
@@ -64,29 +66,13 @@ class StatutRepository extends EntityRepository {
     /**
      * @param string $categorieName
      * @param bool $ordered
-     * @param bool $onlyNotTreated
-     * @param null $type
      * @return Statut[]
      */
     public function findByCategorieName($categorieName,
-                                        $ordered = false,
-                                        $onlyNotTreated = false,
-                                        $type = null) {
+                                        $ordered = false) {
         $queryBuilder = $this->createQueryBuilder('status')
             ->join('status.categorie', 'categorie')
             ->andWhere('categorie.nom = :categorieName');
-
-        if ($onlyNotTreated) {
-            $queryBuilder
-                //TODO: est-ce qu'il faut mettre status.draft = false ici aussi du coup?
-                ->andWhere('status.treated = false');
-        }
-
-        if (!empty($type)) {
-            $queryBuilder
-                ->andWhere('status.type = :type')
-                ->setParameter('type', $type);
-        }
 
         if ($ordered) {
             $queryBuilder->orderBy('status.displayOrder', 'ASC');
@@ -407,30 +393,24 @@ class StatutRepository extends EntityRepository {
         ];
     }
 
-    public function findStatusByType($categoryLabel, $type, $status) {
+    public function findStatusByType(string $categoryLabel,
+                                     Type $type = null,
+                                     array $stateFilters = []) {
         $qb = $this->createQueryBuilder('status')
             ->join('status.categorie', 'category')
             ->where('category.nom = :categoryLabel')
+            ->addOrderBy('status.displayOrder', 'ASC')
             ->setParameter('categoryLabel', $categoryLabel);
+
+        if (!empty($stateFilters)) {
+            $qb
+                ->andWhere('status.state IN (:stateIds)')
+                ->setParameter(':stateIds', $stateFilters);
+        }
 
         if ($type) {
             $qb->andWhere("status.type = :type")
                 ->setParameter("type", $type);
-        }
-
-        switch ($status) {
-            case Statut::DRAFT:
-                $qb->andWhere("status.draft = true")
-                    ->andWhere("status.treated = false");
-                break;
-            case Statut::NOT_TREATED:
-                $qb->andWhere("status.draft = false")
-                    ->andWhere("status.treated = false");
-                break;
-            case Statut::TREATED:
-                $qb->andWhere("status.draft = false")
-                    ->andWhere("status.treated = true");
-                break;
         }
 
         return $qb->getQuery()->getResult();
@@ -477,10 +457,10 @@ class StatutRepository extends EntityRepository {
             $this->createQueryBuilder('status')
                 ->select('status.id')
                 ->leftJoin('status.categorie', 'category')
-                ->where('status.draft = false')
-                ->andWhere('status.treated = false')
+                ->where('status.state = :notTreatId')
                 ->andWhere('category.nom LIKE :categoryLabel')
                 ->setParameter('categoryLabel', $categoryLabel)
+                ->setParameter('notTreatId', Statut::NOT_TREATED)
                 ->getQuery()
                 ->getResult()
         );

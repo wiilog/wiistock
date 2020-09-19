@@ -17,14 +17,7 @@
                 <i class="fa fa-check mr-2 button-icon"></i>
                 Valider la demande
             </button>
-        {% elseif not dispatch.statut.treated %}
-            <button type="button"
-                    data-id='{{ dispatch.id }}'
-                    onclick="openInvalidateDispatchModal()"
-                    class="btn btn-primary btn-ripple split-button">
-                <i class="fa fa-times mr-2 button-icon"></i>
-                Invalider la demande
-            </button>
+        {% elseif dispatch.statut.notTreated %}
             <button type="button"
                     data-id='{{ dispatch.id }}'
                     onclick="openTreatDispatchModal()"

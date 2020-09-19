@@ -8,14 +8,14 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body modal-input container-fluid">
+            <div class="modal-body modal-input">
                 {% if treatedStatus is not empty %}
-                    <div class="form-group">
-                        <label>Statut*</label>
-                        <select class="form-control data needed needs-default"
+                    <div class="form-group row">
+                        <label class="col-12">Statut*</label>
+                        <select class="form-control data needed col-12"
                                 name="status"
-                                title="Statut"
-                                data-init="0">
+                                title="Statut">
+                            <option value=""></option>
                             {% for status in treatedStatus %}
                                 <option value="{{ status.id }}">{{ status.nom }}</option>
                             {% endfor %}

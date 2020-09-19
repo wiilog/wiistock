@@ -44,14 +44,9 @@ class Statut
     private $displayOrder;
 
     /**
-     * @ORM\Column(type="boolean", nullable=true)
+     * @ORM\Column(type="integer", nullable=true)
      */
-    private $treated;
-
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
-    private $draft;
+    private $state;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategorieStatut", inversedBy="statuts")
@@ -179,21 +174,15 @@ class Statut
     }
 
     public function isTreated(): ?bool {
-        return $this->treated;
-    }
-
-    public function setTreated(bool $treated): self {
-        $this->treated = $treated;
-        return $this;
+        return $this->state === self::TREATED;
     }
 
     public function isDraft(): ?bool {
-        return $this->draft;
+        return $this->state === self::DRAFT;
     }
 
-    public function setDraft(bool $draft): self {
-        $this->draft = $draft;
-        return $this;
+    public function isNotTreated(): ?bool {
+        return $this->state === self::NOT_TREATED;
     }
 
     public function getCategorie(): ? CategorieStatut
@@ -516,11 +505,6 @@ class Statut
         return $this;
     }
 
-    public function getTreated(): ?bool
-    {
-        return $this->treated;
-    }
-
     /**
      * @return Collection|Dispatch[]
      */
@@ -668,6 +652,22 @@ class Statut
      */
     public function setDefaultForCategory(bool $defaultForCategory): self {
         $this->defaultForCategory = $defaultForCategory;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getState(): int {
+        return $this->state;
+    }
+
+    /**
+     * @param mixed $state
+     * @return self
+     */
+    public function setState(int $state): self {
+        $this->state = $state;
         return $this;
     }
 

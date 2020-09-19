@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -200,9 +201,11 @@ class ArrivageRepository extends EntityRepository
 			FROM App\Entity\Litige l
 			JOIN l.packs c
 			JOIN l.status s
-			WHERE s.treated = 0
+			WHERE s.state = :stateNotTreated
 			AND c.arrivage = :arrivage"
-        )->setParameter('arrivage', $arrivage);
+        )
+            ->setParameter('stateNotTreated', Statut::NOT_TREATED)
+            ->setParameter('arrivage', $arrivage);
 
         return $query->getSingleScalarResult();
     }

@@ -9,17 +9,18 @@
 </div>
 <div class="form-group">
     <label>Statut*</label>
+    {% set isTreatedStatus = dispatch.statut is not null and dispatch.statut.state == constant('App\\Entity\\Statut::TREATED') %}
     <select name="statut"
-        {{ dispatch.statut is not null and dispatch.statut.treated ? 'disabled' }}
+            {{ isTreatedStatus ? 'disabled' }}
             class="form-control data d-block needed"
             title="Statut">
+        {# outside the for if status is treated #}
+        <option value="{{ dispatch.statut.id }}" selected>{{ dispatch.statut.nom }}</option>
 
         {% for status in statuses %}
-            <option data-type-id="{{ status.type.id }}"
-                    value="{{ status.id }}"
-                {% if dispatch.statut == status %}selected{% endif %}>
-                {{ status.nom }}
-            </option>
+            {% if not dispatch.statut or dispatch.statut.id != status.id %}
+                <option value="{{ status.id }}">{{ status.nom }}</option>
+            {% endif %}
         {% endfor %}
     </select>
 </div>

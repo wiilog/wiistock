@@ -25,6 +25,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 /**
  * @Route("/statuts")
@@ -50,13 +53,15 @@ class StatusController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @return RedirectResponse|Response
      */
-    public function index(EntityManagerInterface $entityManager) {
+    public function index(EntityManagerInterface $entityManager,
+                          StatusService $statusService) {
         if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_STATU_LITI)) {
             return $this->redirectToRoute('access_denied');
         }
 
         $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+
         $categories = $categoryStatusRepository->findByLabelLike([
             CategorieStatut::DISPATCH,
             CategorieStatut::HANDLING,
@@ -80,7 +85,8 @@ class StatusController extends AbstractController {
             'categoryStatusDispatchId' => array_values($categoryStatusDispatchIds)[0]['id'] ?? 0,
             'categoryStatusHandlingId' => array_values($categoryStatusHandlingIds)[0]['id'] ?? 0,
             'categories' => $categories,
-            'types' => $types
+            'types' => $types,
+            'statusStates' => $statusService->getStatusStatesValues()
         ]);
     }
 
@@ -88,6 +94,9 @@ class StatusController extends AbstractController {
      * @Route("/api", name="status_param_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @return Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function api(Request $request): Response {
         if ($request->isXmlHttpRequest()) {
@@ -106,8 +115,6 @@ class StatusController extends AbstractController {
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function new(Request $request, EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -131,7 +138,7 @@ class StatusController extends AbstractController {
             } else if ($data['defaultForCategory'] && $defaults > 0) {
                 $success = false;
                 $message = 'Vous ne pouvez pas créer un statut par défaut pour cette entité et ce type, il en existe déjà un.';
-            } else if ($data['draft'] && $drafts > 0) {
+            } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
                 $success = false;
                 $message = 'Vous ne pouvez pas créer un statut brouillon pour cette entité et ce type, il en existe déjà un.';
             } else {
@@ -140,8 +147,7 @@ class StatusController extends AbstractController {
                 $status
                     ->setNom($data['label'])
                     ->setComment($data['description'])
-                    ->setDraft((bool)$data['draft'])
-                    ->setTreated((bool)$data['treated'])
+                    ->setState($data['state'])
                     ->setDefaultForCategory((bool)$data['defaultForCategory'])
                     ->setSendNotifToBuyer((bool)$data['sendMails'])
                     ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
@@ -169,10 +175,13 @@ class StatusController extends AbstractController {
     /**
      * @Route("/api-modifier", name="status_api_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param StatusService $statusService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function apiEdit(Request $request, EntityManagerInterface $entityManager): Response {
+    public function apiEdit(Request $request,
+                            StatusService $statusService,
+                            EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
@@ -185,7 +194,7 @@ class StatusController extends AbstractController {
 
             $statusCategory = $status->getCategorie();
             $categoryTypeToGet = (
-            ($statusCategory->getNom() === CategorieStatut::HANDLING) ? CategoryType::DEMANDE_HANDLING :
+                ($statusCategory->getNom() === CategorieStatut::HANDLING) ? CategoryType::DEMANDE_HANDLING :
                 (($statusCategory->getNom() === CategorieStatut::DISPATCH) ? CategoryType::DEMANDE_DISPATCH :
                     null)
             );
@@ -195,6 +204,7 @@ class StatusController extends AbstractController {
                 : [];
 
             $json = $this->renderView('status/modalEditStatusContent.html.twig', [
+                'states' => $statusService->getStatusStatesValues(),
                 'status' => $status,
                 'types' => $types
             ]);
@@ -207,12 +217,10 @@ class StatusController extends AbstractController {
     /**
      * @Route("/modifier", name="status_edit",  options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
-     * @param StatusService $statusService
      * @param Request $request
      * @return Response
      */
     public function edit(EntityManagerInterface $entityManager,
-                         StatusService $statusService,
                          Request $request): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
@@ -222,12 +230,14 @@ class StatusController extends AbstractController {
             $statusRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
 
+            /** @var Statut $status */
             $status = $statusRepository->find($data['status']);
             $statusLabel = $status->getNom();
 
             // on vérifie que le label n'est pas déjà utilisé
             $category = $status->getCategorie();
-            $type = $status->getType();
+
+            $type = $typeRepository->find($data['type']);
 
             $defaults = $statusRepository->countDefaults($category, $type, $status);
             $drafts = $statusRepository->countDrafts($category, $type, $status);
@@ -238,15 +248,14 @@ class StatusController extends AbstractController {
             } else if ($data['defaultForCategory'] && $defaults > 0) {
                 $success = false;
                 $message = 'Vous ne pouvez pas créer un statut par défaut pour cette entité et ce type, il en existe déjà un.';
-            } else if ($data['draft'] && $drafts > 0) {
+            } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
                 $success = false;
-                $message = 'Vous ne pouvez pas créer un statut brouillon pour cette entité et ce type, il en existe déjà un.';
+                $message = 'Vous ne pouvez pas ajouter un statut brouillon pour cette entité et ce type, il en existe déjà un.';
             } else {
                 $type = $typeRepository->find($data['type']);
                 $status
                     ->setNom($data['label'])
-                    ->setDraft((bool)$data['draft'])
-                    ->setTreated((bool)$data['treated'])
+                    ->setState($data['state'])
                     ->setDefaultForCategory((bool)$data['defaultForCategory'])
                     ->setSendNotifToBuyer((bool)$data['sendMails'])
                     ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])

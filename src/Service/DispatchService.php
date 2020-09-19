@@ -225,12 +225,12 @@ class DispatchService
             $requesterEmails = $dispatch->getRequester() ? $dispatch->getRequester()->getMainAndSecondaryEmails() : [];
 
             $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
-            $title = $status->getTreated()
+            $title = $status->isTreated()
                 ? ($this->translator->trans('acheminement.acheminement') . ' traité(e) : '.$dispatch->getNumber() . ', le ' . $dispatch->getValidationDate()->format('d/m/Y à H:i:s'))
                 : (!$isUpdate
                     ? ('Une ' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
                     : ('Changement de statut d\'une ' . $translatedCategory . ' de type ' . $type . ' vous concernant :'));
-            $subject = $status->getTreated() ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translator->trans('acheminement.demande d\'acheminement') . '.')
+            $subject = $status->isTreated() ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translator->trans('acheminement.demande d\'acheminement') . '.')
                 : (!$isUpdate
                 ? ('FOLLOW GT // Création d\'une ' . $translatedCategory)
                 : 'FOLLOW GT // Changement de statut d\'une ' . $translatedCategory . '.');
@@ -245,7 +245,7 @@ class DispatchService
                 array_push($emails, ...$requesterEmails);
             }
 
-            $isTreatedStatus = $dispatch->getStatut() && $dispatch->getStatut()->getTreated();
+            $isTreatedStatus = $dispatch->getStatut() && $dispatch->getStatut()->isTreated();
 
             if (!empty($emails)) {
                 $this->mailerService->sendMail(
