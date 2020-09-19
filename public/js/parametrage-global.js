@@ -112,9 +112,9 @@ function updateToggledParam(switchButton) {
     };
     $.post(Routing.generate('toggle_params', true), JSON.stringify(params), function (resp) {
         if (resp) {
-            alertSuccessMsg('La modification du paramétrage a bien été prise en compte.');
+            ShowBSAlert('La modification du paramétrage a bien été prise en compte.', 'success');
         } else {
-            alertErrorMsg('Une erreur est survenue lors de la modification du paramétrage.');
+            ShowBSAlert('Une erreur est survenue lors de la modification du paramétrage.', 'danger');
         }
     }, 'json');
 }
@@ -123,7 +123,7 @@ function ajaxMailerServer() {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-            alertSuccessMsg('La configuration du serveur mail a bien été mise à jour.');
+            ShowBSAlert('La configuration du serveur mail a bien été mise à jour.', 'success');
         }
     }
     let data = $('#mailerServerForm').find('.data');
@@ -160,7 +160,7 @@ function ajaxDims() {
         cache: false,
         dataType: 'json',
         success: (response) => {
-            alertSuccessMsg('La configuration des étiquettes a bien été mise à jour.');
+            ShowBSAlert('La configuration des étiquettes a bien été mise à jour.', 'success');
             $('.blChosen').text("\"" + response['param-cl-etiquette'] + "\"");
         }
     });
@@ -180,7 +180,7 @@ function updatePrefixDemand() {
     } else {
         $.post(path, params, () => {
             $('#typeDemandePrefixageDemande').removeClass('is-invalid');
-            alertSuccessMsg('Le préfixage des noms de demandes a bien été mis à jour.');
+            ShowBSAlert('Le préfixage des noms de demandes a bien été mis à jour.', 'success');
         });
     }
     $('.error-msg').html(msg);
@@ -208,7 +208,7 @@ function saveTranslations() {
 
     let path = Routing.generate('save_translations');
     const $spinner = $('#spinnerSaveTranslations');
-    alertSuccessMsg('Mise à jour de votre personnalisation des libellés : merci de patienter.', false);
+    ShowBSAlert('Mise à jour de votre personnalisation des libellés : merci de patienter.', 'success', false);
     loadSpinner($spinner);
     $.post(path, JSON.stringify(data), (resp) => {
         $('html,body').animate({scrollTop: 0});
@@ -216,14 +216,14 @@ function saveTranslations() {
             location.reload();
         } else {
             hideSpinner($spinner);
-            alertErrorMsg('Une erreur est survenue lors de la personnalisation des libellés.');
+            ShowBSAlert('Une erreur est survenue lors de la personnalisation des libellés.', 'danger');
         }
     });
 }
 
 function ajaxEncodage() {
     $.post(Routing.generate('save_encodage'), JSON.stringify($('select[name="param-type-encodage"]').val()), function () {
-        alertSuccessMsg('Mise à jour de vos préférences d\'encodage réussie.');
+        ShowBSAlert('Mise à jour de vos préférences d\'encodage réussie.', 'success');
     });
 }
 
@@ -236,9 +236,9 @@ function editDefaultLocationValue() {
 
     $.post(path, param, (resp) => {
         if (resp) {
-            alertSuccessMsg("L'emplacement de réception a bien été mis à jour.");
+            ShowBSAlert("L'emplacement de réception a bien été mis à jour.", 'success');
         } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour de l'emplacement de réception.");
+            ShowBSAlert("Une erreur est survenue lors de la mise à jour de l'emplacement de réception.", 'danger');
         }
     });
 }
@@ -256,9 +256,9 @@ function editDashboardParams() {
 
     $.post(path, param, (resp) => {
         if (resp) {
-            alertSuccessMsg("La configuration des tableaux de bord a bien été mise à jour.");
+            ShowBSAlert("La configuration des tableaux de bord a bien été mise à jour.", 'success');
         } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la configuration des tableaux de bord.");
+            ShowBSAlert("Une erreur est survenue lors de la mise à jour de la configuration des tableaux de bord.", 'danger');
         }
     });
 }
@@ -271,9 +271,9 @@ function editStatusArrivage($select) {
 
     $.post(path, param, (resp) => {
         if (resp) {
-            alertSuccessMsg("Le statut de l'arrivage par défaut a bien été mis à jour.");
+            ShowBSAlert("Le statut de l'arrivage par défaut a bien été mis à jour.", 'success');
         } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour du statut par défaut de l'arrivage.");
+            ShowBSAlert("Une erreur est survenue lors de la mise à jour du statut par défaut de l'arrivage.", 'danger');
         }
     });
 }
@@ -285,12 +285,12 @@ function editFont() {
     };
 
 
-    alertSuccessMsg("Mise à jour de la police en cours. Veuillez patienter.");
+    ShowBSAlert("Mise à jour de la police en cours. Veuillez patienter.", 'success', false);
     $.post(path, param, (resp) => {
         if (resp) {
             location.reload();
         } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour du choix de la police.");
+            ShowBSAlert("Une erreur est survenue lors de la mise à jour du choix de la police.", 'danger');
         }
     });
 }
@@ -298,9 +298,9 @@ function editFont() {
 function editArrivageDestination() {
     $.post(Routing.generate('set_arrivage_default_dest'), $(this).val(), (resp) => {
         if (resp) {
-            alertSuccessMsg("la destination des arrivages a bien été mise à jour.");
+            ShowBSAlert("la destination des arrivages a bien été mise à jour.", 'success');
         } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la destination des arrivages.");
+            ShowBSAlert("Une erreur est survenue lors de la mise à jour de la destination des arrivages.", 'danger');
         }
     });
 }
@@ -309,9 +309,9 @@ function editBusinessUnit() {
     console.log($(this).val());
     $.post(Routing.generate('set_business_unit'), {value: $(this).val()}, (resp) => {
         if (resp) {
-            alertSuccessMsg("La liste business unit a bien été mise à jour.");
+            ShowBSAlert("La liste business unit a bien été mise à jour.", 'success');
         } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la liste business unit.");
+            ShowBSAlert('Une erreur est survenue lors de la mise à jour de la liste business unit.', 'danger');
         }
     });
 }
@@ -319,9 +319,9 @@ function editBusinessUnit() {
 function editDemandeLivraisonDestination($select) {
     $.post(Routing.generate('edit_demande_livraison_default_dest'), $select.val(), (resp) => {
         if (resp) {
-            alertSuccessMsg("La destination des demandes de livraison a bien été mise à jour.");
+            ShowBSAlert("La destination des demandes de livraison a bien été mise à jour.", 'success');
         } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la destination des demandes de livraison.");
+            ShowBSAlert("Une erreur est survenue lors de la mise à jour de la destination des demandes de livraison.", 'danger');
         }
     });
 }
@@ -339,9 +339,9 @@ function editReceptionStatus() {
 
     $.post(path, param, (resp) => {
         if (resp) {
-            alertSuccessMsg("Les statuts de réception ont bien été mis à jour.");
+            ShowBSAlert("Les statuts de réception ont bien été mis à jour.", 'success');
         } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour des statuts de réception.");
+            ShowBSAlert("Une erreur est survenue lors de la mise à jour des statuts de réception.", 'danger');
         }
     });
 }
@@ -361,7 +361,7 @@ function fileToImagePreview($fileInput) {
             };
             reader.readAsDataURL($fileInput[0].files[0]);
         } else {
-            alertErrorMsg('Veuillez choisir une image valide (png, jpeg, jpg).', true)
+            ShowBSAlert('Veuillez choisir une image valide (png, jpeg, jpg).', 'danger')
         }
     }
 }
@@ -379,13 +379,13 @@ function addWorkFreeDay($button) {
                 $input.val('');
 
                 workFreeDaysTable.ajax.reload();
-                alertSuccessMsg(resp.text);
+                ShowBSAlert(resp.text, 'success');
             } else {
-                alertErrorMsg(resp.text);
+                ShowBSAlert(resp.text, 'danger');
             }
         });
     } else {
-        alertErrorMsg('Veuillez sélectionner une date valide.');
+        ShowBSAlert('Veuillez sélectionner une date valide.', 'danger');
     }
 }
 
@@ -404,9 +404,9 @@ function deleteWorkFreeDay(id, date) {
                     $input.data('DateTimePicker').disabledDates(disabledDates);
                 }
                 workFreeDaysTable.ajax.reload();
-                alertSuccessMsg(resp.message);
+                ShowBSAlert(resp.message, 'success');
             } else {
-                alertErrorMsg(resp.message);
+                ShowBSAlert(resp.message, 'danger');
             }
         }
     });
@@ -422,9 +422,9 @@ function saveDispatchesParam() {
     ])
         .then((res) => {
             if (res.every((success) => success)) {
-                alertSuccessMsg("Les paramétrages d'acheminements ont bien été mis à jour.");
+                ShowBSAlert("Les paramétrages d'acheminements ont bien été mis à jour.", 'success');
             } else {
-                alertErrorMsg("Une erreur est survenue lors de la mise à jour des paramétrages d'acheminements.");
+                ShowBSAlert("Une erreur est survenue lors de la mise à jour des paramétrages d'acheminements.", 'danger');
             }
         });
 }

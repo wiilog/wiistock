@@ -56,7 +56,7 @@ function importFile() {
             dataType: "json",
             success: function (data) {
                 if (data.success === true) {
-                    alertSuccessMsg("Les catégories ont bien été modifiées.");
+                    ShowBSAlert('Les catégories ont bien été modifiées.', 'success');
                 } else if (data.success === false) {
                     let exportedFilenmae = 'log-error.txt';
                     let pathFile = '../uploads/log/';
@@ -68,7 +68,7 @@ function importFile() {
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    alertErrorMsg("Le fichier ne s'est pas importé correctement. Veuillez ouvrir le fichier ('log-error.txt') qui vient de se télécharger.");
+                    ShowBSAlert("Le fichier ne s'est pas importé correctement. Veuillez ouvrir le fichier ('log-error.txt') qui vient de se télécharger.", 'danger');
                 }
             }
         });

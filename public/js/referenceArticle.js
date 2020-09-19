@@ -236,7 +236,7 @@ function removeFilter($button, filterId) {
                     }
                 }
             } else if (data.msg) {
-                alertErrorMsg(data.msg);
+                ShowBSAlert(data.msg, 'danger');
             }
 
         }
@@ -490,7 +490,7 @@ function printReferenceArticleBarCode($button, event) {
                 true
             );
         } else {
-            alertErrorMsg('Les filtres et/ou la recherche n\'ont donnés aucun résultats, il est donc impossible de les imprimer.', true);
+            ShowBSAlert('Les filtres et/ou la recherche n\'ont donnés aucun résultats, il est donc impossible de les imprimer.', 'danger');
         }
     } else {
         event.stopPropagation();
@@ -573,9 +573,9 @@ function updateQuantity(referenceArticleId) {
         success: (response) => {
             if (response.success) {
                 pageTables[0].ajax.reload();
-                alertSuccessMsg('Les quantités de la réference article ont bien été recalculées.');
+                ShowBSAlert('Les quantités de la réference article ont bien été recalculées.', 'success');
             } else {
-                alertErrorMsg('Une erreur lors du calcul des quantités est survenue');
+                ShowBSAlert('Une erreur lors du calcul des quantités est survenue', 'danger');
             }
         }
     });

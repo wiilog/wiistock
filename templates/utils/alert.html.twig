@@ -1,0 +1,17 @@
+{% set content = content is defined ? content %}
+{% set id = id is defined ? id : 'alert-template' %}
+{% set color = color is defined ? ('alert-' ~ color) %}
+{% set show = show is not defined or show ? 'd-flex' : 'd-none'  %}
+
+<div id="{{ id }}"
+     class="alert pointer justify-content-center align-items-center {{ color }} {{ show }}"
+     data-dismiss="alert"
+     aria-label="Close">
+    <button type="button"
+            class="close mr-2 float-none"
+            data-dismiss="alert"
+            aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <span class="content">{{ content|raw }}</span>
+</div>

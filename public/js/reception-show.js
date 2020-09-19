@@ -429,7 +429,7 @@ function finishReception(receptionId, confirmed, $button) {
             } else if (data === 0) {
                 $('#finishReception').click();
             } else {
-                alertErrorMsg(data);
+                ShowBSAlert(data, 'danger');
             }
         }, 'json')
     ), true);
@@ -685,10 +685,10 @@ function createHandlerAddLigneArticleResponse($modal) {
     return (data) => {
         if (!data.success) {
             if (data.msg) {
-                alertErrorMsg(data.msg, true);
+                ShowBSAlert(data.msg, 'danger');
             }
         } else {
-            alertSuccessMsg('La référence a été ajoutée à la réception', true);
+            ShowBSAlert('La référence a été ajoutée à la réception', 'success');
             $modal.find('.close').click();
             clearModal($modal);
         }

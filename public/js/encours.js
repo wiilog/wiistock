@@ -4,7 +4,7 @@ $(function () {
 
     $.post(Routing.generate('check_time_worked_is_defined', true), (data) => {
         if (data === false) {
-            alertErrorMsg('Veuillez définir les horaires travaillés dans Paramétrage/Paramétrage global.', true);
+            ShowBSAlert('Veuillez définir les horaires travaillés dans Paramétrage/Paramétrage global.', 'danger');
         }
 
         // filtres enregistrés en base pour chaque utilisateur
