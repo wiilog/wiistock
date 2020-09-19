@@ -134,6 +134,7 @@ class DispatchService
         $locationTo = $dispatch->getLocationTo();
         $creationDate = $dispatch->getCreationDate();
         $validationDate = $dispatch->getValidationDate() ? $dispatch->getValidationDate() : '';
+        $treatmentDate = $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate() : '';
         $startDate = $dispatch->getStartDate();
         $endDate = $dispatch->getEndDate();
         $startDateStr = $startDate ? $startDate->format('d/m/Y') : '-';
@@ -157,6 +158,7 @@ class DispatchService
                 ['label' => $this->translator->trans('acheminement.emplacement dépose'), 'value' => $locationTo ? $locationTo->getLabel() : ''],
                 ['label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''],
                 ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i:s') : ''],
+                ['label' => 'Date de traitement', 'value' => $treatmentDate ? $treatmentDate->format('d/m/Y H:i:s') : ''],
                 ['label' => 'Dates d\'échéance', 'value' => ($startDate || $endDate) ? ('Du ' . $startDateStr . ' au ' . $endDateStr) : '']
             ],
             $freeFieldArray,
@@ -286,7 +288,7 @@ class DispatchService
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $dispatch
             ->setStatut($treatedStatus)
-            ->setValidationDate($date);
+            ->setTreatmentDate($date);
 
         foreach ($dispatchPacks as $dispatchPack) {
             $pack = $dispatchPack->getPack();

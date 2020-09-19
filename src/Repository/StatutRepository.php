@@ -423,11 +423,12 @@ class StatutRepository extends EntityRepository {
                 ->addSelect('status.nom AS label')
                 ->addSelect('status_category.nom AS category')
                 ->addSelect('type.id AS typeId')
-                ->addSelect('status.treated AS treated')
+                ->addSelect('(CASE WHEN status.state = :treatedState THEN 1 ELSE 0 END) AS treated')
                 ->addSelect('status.displayOrder AS displayOrder')
                 ->join('status.categorie', 'status_category')
                 ->leftJoin('status.type', 'type')
-                ->orderBy('status.displayOrder', 'ASC');
+                ->orderBy('status.displayOrder', 'ASC')
+                ->setParameter('treatedState', Statut::TREATED);
 
             if ($dispatchStatus) {
                 $queryBuilder

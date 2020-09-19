@@ -12,14 +12,16 @@
                 {% if untreatedStatus is not empty %}
                     <div class="form-group row">
                         <label class="col-12">Statut*</label>
-                        <select class="form-control data needed col-12"
-                                name="status"
-                                title="Statut">
-                            <option value=""></option>
-                            {% for status in untreatedStatus %}
-                                <option value="{{ status.id }}">{{ status.nom }}</option>
-                            {% endfor %}
-                        </select>
+                        <div class="col-12">
+                            <select class="form-control data needed "
+                                    name="status"
+                                    title="Statut">
+                                <option value=""></option>
+                                {% for status in untreatedStatus %}
+                                    <option value="{{ status.id }}">{{ status.nom }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
                 {% else %}
                     {% include 'parametrage_global/warningSelectEmpty.html.twig' with {

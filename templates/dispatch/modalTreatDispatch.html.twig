@@ -12,14 +12,16 @@
                 {% if treatedStatus is not empty %}
                     <div class="form-group row">
                         <label class="col-12">Statut*</label>
-                        <select class="form-control data needed col-12"
-                                name="status"
-                                title="Statut">
-                            <option value=""></option>
-                            {% for status in treatedStatus %}
-                                <option value="{{ status.id }}">{{ status.nom }}</option>
-                            {% endfor %}
-                        </select>
+                        <div class="col-12">
+                            <select class="form-control data needed"
+                                    name="status"
+                                    title="Statut">
+                                <option value=""></option>
+                                {% for status in treatedStatus %}
+                                    <option value="{{ status.id }}">{{ status.nom }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
                 {% else %}
                     {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
@@ -31,7 +33,7 @@
                 {% endif %}
             </div>
 
-            <div class="error-msg p-4"></div>
+            <div class="error-msg"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button type="button" class="btn btn-success submit-button">Enregistrer</button>

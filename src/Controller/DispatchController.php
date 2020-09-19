@@ -296,7 +296,7 @@ Class DispatchController extends AbstractController
                                             TranslatorInterface $translator): ?Response
     {
         if ($dispatch->getDispatchPacks()->isEmpty()) {
-            throw new NotFoundHttpException($translator->trans("acheminement.La fiche d\'état n\'existe pas pour cet acheminement"));
+            throw new NotFoundHttpException($translator->trans('acheminement.Le bon d\'acheminement n\'existe pas pour cet acheminement'));
         }
 
         $packsConfig = $dispatch->getDispatchPacks()
@@ -773,7 +773,6 @@ Class DispatchController extends AbstractController
                 $loggedUser = $this->getUser();
 
                 $dispatchService->validateDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser);
-                $entityManager->flush();
             }
             else {
                 return new JsonResponse([

@@ -79,10 +79,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "L'acheminement a bien été traité" => "L'acheminement a bien été traité",
                 "L'acheminement a bien été modifié" => "L'acheminement a bien été modifié",
                 "L'acheminement a bien été supprimé" => "L'acheminement a bien été supprimé",
-                "La fiche d'état n'existe pas pour cet acheminement" => "La fiche d'état n'existe pas pour cet acheminement",
+                'Le bon d\'acheminement n\'existe pas pour cet acheminement' => 'Le bon d\'acheminement n\'existe pas pour cet acheminement',
                 "Des colis sont nécessaires pour générer un bon de livraison" => "Des colis sont nécessaires pour générer un bon de livraison",
                 "Acheminement {numéro} traité le {date}" => "Acheminement {numéro} traité le {date}",
-                "L'acheminement contient plus 10 colis" => "L'acheminement contient plus 10 colis"
+                "L'acheminement contient plus 10 colis" => "L'acheminement contient plus 10 colis",
+                'Générer un bon d\'acheminement' => 'Générer un bon d\'acheminement'
             ],
             'réception' => [
                 'réceptions' => 'réceptions',

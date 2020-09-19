@@ -25,7 +25,8 @@
                     <div class="row mb-2">
                         <h5 class="col-auto h5" title="Liste des colis">{{ 'colis.Liste des colis'|trans }}</h5>
                     </div>
-                    {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+                    {% if modifiable
+                          and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
                         <div class="row wii-page-card-header">
                             <div class="col-auto ml-auto">
                                 <button onclick="openNewPackModal()"
