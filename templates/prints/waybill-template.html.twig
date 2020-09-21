@@ -78,12 +78,16 @@
             bottom: 0;
             width: 100%;
         }
+        .image-title {
+            max-height: 100px;
+            max-width: 100px;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="split">
-        <img src="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ asset('img/gtlogistics.jpg') }}" alt="GT Logistics"/>
+        <img class="image-title" src="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ asset('uploads/attachements/logo_for_waybill.jpg') }}" alt="GT Logistics"/>
         <div>
             <div class="header">
                 Lettre de voiture N°{{ dispatch.number }}<br>
