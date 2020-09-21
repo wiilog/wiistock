@@ -1164,13 +1164,16 @@ class DispatchController extends AbstractController {
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function printDeliveryNote(EntityManagerInterface $entityManager,
-                                      Dispatch $dispatch,
-                                      PDFGeneratorService $PDFGeneratorService,
-                                      Request $request): PdfResponse {
+    public function printDeliveryNote(TranslatorInterface $trans, PDFGeneratorService $pdf, Dispatch $dispatch): Response {
+        if (!$dispatch->getDeliveryNoteData()) {
+            throw new NotFoundHttpException($trans->trans('acheminement.Le bon de livraison n\'existe pas pour cet acheminement'));
+        }
 
-        $deliveryNoteData = $dispatch->getDeliveryNoteData();
-        return new PdfResponse($PDFGeneratorService->generateDispatchDeliveryNote($deliveryNoteData), 'BL.pdf');
+        $logo = $this->getDoctrine()
+            ->getRepository(ParametrageGlobal::class)
+            ->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
+
+        return $pdf->generatePDFDeliveryNote("bl_{$dispatch->getId()}.pdf", $logo, $dispatch);
     }
 
     /**
@@ -1315,6 +1318,10 @@ class DispatchController extends AbstractController {
             throw new NotFoundHttpException($trans->trans('acheminement.La lettre de voiture n\'existe pas pour cet acheminement'));
         }
 
-        return $pdf->generatePDFWaybill("lettre_voiture_{$dispatch->getId()}.pdf", $dispatch);
+        $logo = $this->getDoctrine()
+            ->getRepository(ParametrageGlobal::class)
+            ->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
+
+        return $pdf->generatePDFWaybill("lettre_voiture_{$dispatch->getId()}.pdf", $logo, $dispatch);
     }
 }

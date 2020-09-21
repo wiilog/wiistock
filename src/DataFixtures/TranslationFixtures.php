@@ -84,7 +84,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Acheminement {numéro} traité le {date}" => "Acheminement {numéro} traité le {date}",
                 "L'acheminement contient plus de {nombre} colis" => "L'acheminement contient plus de {nombre} colis",
                 'Générer un bon d\'acheminement' => 'Générer un bon d\'acheminement',
-                "La lettre de voiture n'existe pas pour cet acheminement" => "La lettre de voiture n'existe pas pour cet acheminement"
+                "La lettre de voiture n'existe pas pour cet acheminement" => "La lettre de voiture n'existe pas pour cet acheminement",
+                "Le bon de livraison n'existe pas pour cet acheminement" => "Le bon de livraison n'existe pas pour cet acheminement"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',

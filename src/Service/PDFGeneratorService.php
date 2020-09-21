@@ -106,22 +106,6 @@ Class PDFGeneratorService
     }
 
     /**
-     * @param array $deliveryNoteData
-     * @return string
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function generateDispatchDeliveryNote(array $deliveryNoteData): string {
-        return $this->PDFGenerator->getOutputFromHtml(
-            $this->templating->render('prints/delivery-note-dispatch.html.twig', [
-                'data' => $deliveryNoteData,
-                'title' => 'Delivery Note - Original'
-            ])
-        );
-    }
-
-    /**
      * @param string $title
      * @param array $sheetConfigs Array of ['title' => string, 'code' => string, 'content' => assoc_array]
      * @return string
@@ -153,20 +137,45 @@ Class PDFGeneratorService
         );
     }
 
-
     /**
      * @param string $title
+     * @param string $logo
      * @param Dispatch $dispatch
      * @return Response The PDF response
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function generatePDFWaybill(string $title, Dispatch $dispatch): Response {
+    public function generatePDFWaybill(string $title, ?string $logo, Dispatch $dispatch): Response {
         $html = $this->PDFGenerator->getOutputFromHtml(
             $this->templating->render('prints/waybill-template.html.twig', [
                 'title' => $title,
                 'dispatch' => $dispatch,
+                'logo' => $logo
+            ]), [
+                'page-size' => "A4",
+                'encoding' => 'UTF-8'
+            ]
+        );
+
+        return new PdfResponse($html, $title);
+    }
+
+    /**
+     * @param string $title
+     * @param string $logo
+     * @param Dispatch $dispatch
+     * @return Response The PDF response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function generatePDFDeliveryNote(string $title, ?string $logo, Dispatch $dispatch): Response {
+        $html = $this->PDFGenerator->getOutputFromHtml(
+            $this->templating->render('prints/delivery-note-template.html.twig', [
+                'title' => $title,
+                'dispatch' => $dispatch,
+                'logo' => $logo
             ]), [
                 'page-size' => "A4",
                 'encoding' => 'UTF-8'

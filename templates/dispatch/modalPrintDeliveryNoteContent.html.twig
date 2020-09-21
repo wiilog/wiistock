@@ -383,7 +383,7 @@
                     <input class="form-control data needed"
                            name="code"
                            title="Numéro"
-                           value="{{ dispatchPack.code }}"
+                           value="{{ dispatchPack.pack.code }}"
                            disabled/>
                 </div>
                 <div class="col-3">
@@ -402,7 +402,7 @@
                               name="comment"
                               title="Commentaire / Comment"
                               rows="1"
-                              oninput="limitTextareaLength($(this), 7, 100)">{{ dispatchPack.comment|striptags }}</textarea>
+                              oninput="limitTextareaLength($(this), 7, 100)">{{ dispatchPack.pack.comment|striptags }}</textarea>
                 </div>
             </div>
         {% endfor %}
