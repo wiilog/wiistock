@@ -78,6 +78,12 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $lastLogin;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $address;
+
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="utilisateur")
      */
@@ -402,6 +408,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         }
         return true;
     }
+
     public function getLastLogin(): ?\DateTimeInterface
     {
         return $this->lastLogin;
@@ -411,6 +418,17 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->lastLogin = $lastLogin;
         return $this;
     }
+
+    public function getAddress(): ?string
+    {
+        return $this->address;
+    }
+    public function setAddress(?string $address): self
+    {
+        $this->address = $address;
+        return $this;
+    }
+
     /**
      * @return Collection|Reception[]
      */

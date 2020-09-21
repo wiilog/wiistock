@@ -18,6 +18,7 @@ use App\Entity\DispatchPack;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 use App\Entity\Statut;
+use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
@@ -75,6 +76,7 @@ class DispatchController extends AbstractController {
      * @param TranslatorInterface $translator
      * @param DispatchService $service
      * @return RedirectResponse|Response
+     * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager, DispatchService $service) {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
@@ -92,12 +94,15 @@ class DispatchController extends AbstractController {
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
+        $dispatchBusinessUnits = json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES));
+
         return $this->render('dispatch/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true),
             'types' => $types,
             'fields' => $fields,
             'visibleColumns' => $this->getUser()->getColumnsVisibleForDispatch(),
             'modalNewConfig' => [
+                'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
                 'fieldsParam' => $fieldsParam,
                 'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
                 'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
@@ -201,11 +206,17 @@ class DispatchController extends AbstractController {
                         EntityManagerInterface $entityManager,
                         TranslatorInterface $translator): Response {
         if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
+                !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $post = $request->request;
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $transporterRepository = $entityManager->getRepository(Transporteur::class);
 
             $dispatch = new Dispatch();
             $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
@@ -217,8 +228,13 @@ class DispatchController extends AbstractController {
             $comment = $post->get('commentaire');
             $startDateRaw = $post->get('startDate');
             $endDateRaw = $post->get('endDate');
+            $carrier = $post->get('carrier');
+            $carrierTrackingNumber = $post->get('carrierTrackingNumber');
+            $commandNumber = $post->get('commandNumber');
             $receiver = $post->get('receiver');
             $emergency = $post->get('emergency');
+            $projectNumber = $post->get('projectNumber');
+            $businessUnit = $post->get('businessUnit');
 
             $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
             $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
@@ -238,6 +254,7 @@ class DispatchController extends AbstractController {
                 ->setRequester($utilisateurRepository->find($post->get('requester')))
                 ->setLocationFrom($locationTake)
                 ->setLocationTo($locationDrop)
+                ->setBusinessUnit($businessUnit)
                 ->setNumber($number);
 
             if (!empty($comment)) {
@@ -252,12 +269,28 @@ class DispatchController extends AbstractController {
                 $dispatch->setEndDate($endDate);
             }
 
+            if (!empty($carrier)) {
+                $dispatch->setCarrier($transporterRepository->find($carrier) ?? null);
+            }
+
+            if (!empty($carrierTrackingNumber)) {
+                $dispatch->setCarrierTrackingNumber($carrierTrackingNumber);
+            }
+
+            if (!empty($commandNumber)) {
+                $dispatch->setCommandNumber($commandNumber);
+            }
+
             if (!empty($receiver)) {
                 $dispatch->setReceiver($utilisateurRepository->find($receiver) ?? null);
             }
 
             if (!empty($emergency)) {
                 $dispatch->setEmergency($post->get('emergency'));
+            }
+
+            if (!empty($projectNumber)) {
+                $dispatch->setProjectNumber($projectNumber);
             }
 
             $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
@@ -287,7 +320,7 @@ class DispatchController extends AbstractController {
             return new JsonResponse([
                 'success' => true,
                 'redirect' => $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()]),
-                'msg' => $translator->trans("acheminement.L''acheminement a bien été créé") . '.'
+                'msg' => $translator->trans('acheminement.L\'acheminement a bien été créé') . '.'
             ]);
         }
         throw new NotFoundHttpException('404 not found');
@@ -302,7 +335,7 @@ class DispatchController extends AbstractController {
      */
     public function show(Dispatch $dispatch,
                          EntityManagerInterface $entityManager,
-                         DispatchService $dispatchService) {
+                         DispatchService $dispatchService, TranslatorInterface $translator) {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -354,8 +387,8 @@ class DispatchController extends AbstractController {
                         'Date de validation' => $dispatch->getValidationDate() ? $dispatch->getValidationDate()->format('d/m/Y H:i:s') : '',
                         'Demandeur' => $dispatch->getRequester() ? $dispatch->getRequester()->getUsername() : '',
                         'Destinataire' => $dispatch->getReceiver() ? $dispatch->getReceiver()->getUsername() : '',
-                        $translator->trans('acheminement.emplacement dépose') => $dispatch->getLocationTo() ? $dispatch->getLocationTo()->getLabel() : '',
-                        $translator->trans('acheminement.emplacement prise') => $dispatch->getLocationFrom() ? $dispatch->getLocationFrom()->getLabel() : ''
+                        $translator->trans('acheminement.Emplacement dépose') => $dispatch->getLocationTo() ? $dispatch->getLocationTo()->getLabel() : '',
+                        $translator->trans('acheminement.Emplacement prise') => $dispatch->getLocationFrom() ? $dispatch->getLocationFrom()->getLabel() : ''
                     ]
                 ];
             })
@@ -382,14 +415,19 @@ class DispatchController extends AbstractController {
                          FreeFieldService $freeFieldService,
                          EntityManagerInterface $entityManager,
                          TranslatorInterface $translator): Response {
-
         $statutRepository = $entityManager->getRepository(Statut::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $transporterRepository = $entityManager->getRepository(Transporteur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         $post = $request->request;
         $dispatch = $dispatchRepository->find($post->get('id'));
+
+        if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT) ||
+            !$dispatch->getStatut()->isTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_UNPROCESSED_DISPATCH)) {
+            return $this->redirectToRoute('access_denied');
+        }
 
         $startDateRaw = $post->get('startDate');
         $endDateRaw = $post->get('endDate');
@@ -403,8 +441,7 @@ class DispatchController extends AbstractController {
         if (!$oldStatus || !$oldStatus->getTreated()) {
             $newStatus = $statutRepository->find($post->get('statut'));
             $dispatch->setStatut($newStatus);
-        }
-        else {
+        } else {
             $newStatus = null;
         }
 
@@ -417,17 +454,29 @@ class DispatchController extends AbstractController {
 
         $receiverData = $post->get('receiver');
         $requesterData = $post->get('requester');
+        $carrierData = $post->get('carrier');
         $receiver = $receiverData ? $utilisateurRepository->find($receiverData) : null;
         $requester = $requesterData ? $utilisateurRepository->find($requesterData) : null;
+        $carrier = $carrierData ? $transporterRepository->find($carrierData) : null;
+
+        $transporterTrackingNumber = $post->get('transporterTrackingNumber');
+        $commandNumber = $post->get('commandNumber');
+        $projectNumber = $post->get('projectNumber');
+        $businessUnit = $post->get('businessUnit');
 
         $dispatch
             ->setStartDate($startDate)
             ->setEndDate($endDate)
+            ->setBusinessUnit($businessUnit)
+            ->setCarrier($carrier)
+            ->setCarrierTrackingNumber($transporterTrackingNumber)
+            ->setCommandNumber($commandNumber)
             ->setRequester($requester)
             ->setReceiver($receiver)
             ->setEmergency($post->get('emergency') ?? null)
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
+            ->setProjectNumber($projectNumber)
             ->setCommentaire($post->get('commentaire') ?: '');
 
         $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
@@ -464,7 +513,7 @@ class DispatchController extends AbstractController {
                 'showDetails' => $dispatchService->createHeaderDetailsConfig($dispatch)
             ]),
             'success' => true,
-            'msg' => $translator->trans("acheminement.L''acheminement a bien été modifié") . '.'
+            'msg' => $translator->trans('acheminement.L\'acheminement a bien été modifié') . '.'
         ]);
     }
 
@@ -473,6 +522,7 @@ class DispatchController extends AbstractController {
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
+     * @throws NonUniqueResultException
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response {
@@ -487,7 +537,16 @@ class DispatchController extends AbstractController {
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
             $dispatch = $dispatchRepository->find($data['id']);
+
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT) ||
+                !$dispatch->getStatut()->isTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_UNPROCESSED_DISPATCH)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $dispatchBusinessUnits = json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES));
+
             $json = $this->renderView('dispatch/modalEditContentDispatch.html.twig', [
+                'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
                 'dispatch' => $dispatch,
                 'fieldsParam' => $fieldsParam,
                 'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
@@ -517,7 +576,13 @@ class DispatchController extends AbstractController {
 
             $dispatch = $dispatchRepository->find($data['dispatch']);
 
-            if($dispatch) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::DELETE) ||
+                !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_ACHE) ||
+                !$dispatch->getStatut()->isTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_UNPROCESSED_DISPATCH)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            if ($dispatch) {
                 $attachments = $attachmentRepository->findBy(['dispatch' => $dispatch]);
                 foreach ($attachments as $attachment) {
                     $entityManager->remove($attachment);
@@ -617,8 +682,7 @@ class DispatchController extends AbstractController {
         if ($alreadyCreated) {
             $success = false;
             $message = $translator->trans('acheminement.Le colis existe déjà dans cet acheminement');
-        }
-        else {
+        } else {
             $natureRepository = $entityManager->getRepository(Nature::class);
             $packRepository = $entityManager->getRepository(Pack::class);
 
@@ -745,7 +809,7 @@ class DispatchController extends AbstractController {
                                             Dispatch $dispatch): Response {
         $status = $dispatch->getStatut();
 
-        if(!$status || !$status->getTreated()) {
+        if (!$status || !$status->getTreated()) {
             $data = json_decode($request->getContent(), true);
             $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -760,8 +824,7 @@ class DispatchController extends AbstractController {
                 $loggedUser = $this->getUser();
 
                 $dispatchService->validateDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser);
-            }
-            else {
+            } else {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => "Le statut sélectionné doit être de type traité et correspondre au type de la demande."
@@ -771,7 +834,7 @@ class DispatchController extends AbstractController {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => 'La ' . $translator->trans('acheminement.acheminement') . 'a bien été traité(e).',
+            'msg' => $translator->trans('acheminement.L\'acheminement a bien été traité'),
             'redirect' => $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()])
         ]);
     }

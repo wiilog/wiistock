@@ -24,8 +24,7 @@ use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
 use Twig\Environment as Twig_Environment;
 
-class DispatchService
-{
+class DispatchService {
     /**
      * @var Twig_Environment
      */
@@ -106,15 +105,14 @@ class DispatchService
         ];
     }
 
-	/**
-	 * @param Dispatch $dispatch
-	 * @return array
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
-	 */
-    public function dataRowDispatch(Dispatch $dispatch)
-    {
+    /**
+     * @param Dispatch $dispatch
+     * @return array
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     */
+    public function dataRowDispatch(Dispatch $dispatch) {
         $url = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
 
         $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
@@ -156,10 +154,12 @@ class DispatchService
         return $rows;
     }
 
-    public function createHeaderDetailsConfig(Dispatch $dispatch): array
-    {
+    public function createHeaderDetailsConfig(Dispatch $dispatch): array {
         $status = $dispatch->getStatut();
         $type = $dispatch->getType();
+        $carrier = $dispatch->getCarrier();
+        $carrierTrackingNumber = $dispatch->getCarrierTrackingNumber();
+        $commandNumber = $dispatch->getCommandNumber();
         $requester = $dispatch->getRequester();
         $receiver = $dispatch->getReceiver();
         $locationFrom = $dispatch->getLocationFrom();
@@ -170,7 +170,8 @@ class DispatchService
         $endDate = $dispatch->getEndDate();
         $startDateStr = $startDate ? $startDate->format('d/m/Y') : '-';
         $endDateStr = $endDate ? $endDate->format('d/m/Y') : '-';
-        $comment = $dispatch->getCommentaire();
+        $projectNumber = $dispatch->getProjectNumber();
+        $comment = $dispatch->getCommentaire() ?? '';
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
@@ -179,14 +180,37 @@ class DispatchService
             CategoryType::DEMANDE_DISPATCH
         );
 
+        $receiverDetails = [
+            "label" => "Destinataire",
+            "value" => $receiver ? $receiver->getUsername() : "",
+        ];
+
+        if ($receiver && $receiver->getAddress()) {
+            $receiverDetails["value"] .= '
+                <span class="pl-2"
+                      data-toggle="popover"
+                      data-trigger="click hover"
+                      title="Adresse du destinataire"
+                      data-content="' . htmlspecialchars($receiver->getAddress()) . '">
+                    <i class="fas fa-search"></i>
+                </span>';
+            $receiverDetails["isRaw"] = true;
+        }
+
         return array_merge(
             [
                 ['label' => 'Statut', 'value' => $status ? $status->getNom() : ''],
                 ['label' => 'Type', 'value' => $type ? $type->getLabel() : ''],
+                ['label' => 'Transporteur', 'value' => $carrier ? $carrier->getLabel() : ''],
+                ['label' => 'Numéro de tracking transporteur', 'value' => $carrierTrackingNumber],
                 ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
-                ['label' => 'Destinataire', 'value' => $receiver ? $receiver->getUsername() : ''],
-                ['label' => $this->translator->trans('acheminement.emplacement prise'), 'value' => $locationFrom ? $locationFrom->getLabel() : ''],
-                ['label' => $this->translator->trans('acheminement.emplacement dépose'), 'value' => $locationTo ? $locationTo->getLabel() : ''],
+                ["label" => "Destinataire", "value" => $receiver ? $receiver->getUsername() : ''],
+                $receiverDetails,
+                ['label' => 'Numéro de projet', 'value' => $projectNumber],
+                ['label' => 'Business Unit', 'value' => $dispatch->getBusinessUnit() ?? ''],
+                ['label' => 'Numéro de commande', 'value' => $commandNumber],
+                ['label' => $this->translator->trans('acheminement.Emplacement prise'), 'value' => $locationFrom ? $locationFrom->getLabel() : ''],
+                ['label' => $this->translator->trans('acheminement.Emplacement dépose'), 'value' => $locationTo ? $locationTo->getLabel() : ''],
                 ['label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''],
                 ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i:s') : ''],
                 ['label' => 'Dates d\'échéance', 'value' => ($startDate || $endDate) ? ('Du ' . $startDateStr . ' au ' . $endDateStr) : '']
@@ -220,10 +244,9 @@ class DispatchService
         $lastDispatchNumber = $dispatchRepository->getLastDispatchNumberByPrefix(Dispatch::PREFIX_NUMBER . $dateStr);
 
         if ($lastDispatchNumber) {
-            $lastCounter = (int) substr($lastDispatchNumber, -4, 4);
+            $lastCounter = (int)substr($lastDispatchNumber, -4, 4);
             $currentCounter = ($lastCounter + 1);
-        }
-        else {
+        } else {
             $currentCounter = 1;
         }
 
@@ -258,6 +281,7 @@ class DispatchService
             $requesterEmails = $dispatch->getRequester() ? $dispatch->getRequester()->getMainAndSecondaryEmails() : [];
 
             $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
+
             $title = $status->getTreated()
                 ? $this->translator->trans('acheminement.Acheminement {numéro} traité le {date}', [
                     "{numéro}" => $dispatch->getNumber(),
@@ -266,10 +290,12 @@ class DispatchService
                 : (!$isUpdate
                     ? ('Une ' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
                     : ('Changement de statut d\'une ' . $translatedCategory . ' de type ' . $type . ' vous concernant :'));
+
+
             $subject = $status->getTreated() ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translator->trans('acheminement.demande d\'acheminement') . '.')
                 : (!$isUpdate
-                ? ('FOLLOW GT // Création d\'une ' . $translatedCategory)
-                : 'FOLLOW GT // Changement de statut d\'une ' . $translatedCategory . '.');
+                    ? ('FOLLOW GT // Création d\'une ' . $translatedCategory)
+                    : 'FOLLOW GT // Changement de statut d\'une ' . $translatedCategory . '.');
 
             $emails = [];
 
