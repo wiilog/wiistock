@@ -44,7 +44,7 @@ class Transporteur
     private $reception;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="transporter")
+     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="carrier")
      */
     private $dispatches;
 
