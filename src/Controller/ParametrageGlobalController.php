@@ -146,7 +146,9 @@ class ParametrageGlobalController extends AbstractController
                     'valueCarriers' => $globalParamService->getDashboardCarrierDock(),
                 ],
                 'wantsRecipient' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL),
-                'wantsDZLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL)
+                'wantsDZLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL),
+                'wantsCommandAndProjectNumber' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL),
+                'wantsPackCount' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL),
             ]);
     }
 
@@ -212,6 +214,27 @@ class ParametrageGlobalController extends AbstractController
 
         $parametrageGlobalDZLocation
             ->setValue((int) ($data['param-dz-location-etiquette'] === 'true'));
+
+        $parametrageGlobalCommandAndProjectNumbers = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
+
+        if (empty($parametrageGlobalCommandAndProjectNumbers)) {
+            $parametrageGlobalCommandAndProjectNumbers = new ParametrageGlobal();
+            $parametrageGlobalCommandAndProjectNumbers->setLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
+            $entityManager->persist($parametrageGlobalCommandAndProjectNumbers);
+        }
+
+        $parametrageGlobalCommandAndProjectNumbers
+            ->setValue((int) ($data['param-command-project-numbers-etiquette'] === 'true'));
+
+        $parametrageGlobalPackCount = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL);
+
+        if (empty($parametrageGlobalPackCount)) {
+            $parametrageGlobalPackCount = new ParametrageGlobal();
+            $parametrageGlobalPackCount->setLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL);
+            $entityManager->persist($parametrageGlobalPackCount);
+        }
+
+        $parametrageGlobalPackCount->setValue((int) ($data['param-pack-count'] === 'true'));
 
         $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
 
