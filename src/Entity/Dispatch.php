@@ -580,7 +580,7 @@ class Dispatch extends FreeFieldEntity
     /**
      * @return array
      */
-    public function getDeliveryNoteData(): ?array {
+    public function getDeliveryNoteData(): array {
         return $this->deliveryNoteData ?? [];
     }
 

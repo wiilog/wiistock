@@ -1172,21 +1172,23 @@ class DispatchController extends AbstractController {
      * )
      * @param EntityManagerInterface $entityManager
      * @param Dispatch $dispatch
+     * @param PDFGeneratorService $PDFGeneratorService
      * @param Request $request
-     * @return JsonResponse
+     * @return PdfResponse
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function printDeliveryNote(EntityManagerInterface $entityManager,
-                                      Dispatch $dispatch,
-                                      Request $request): JsonResponse {
-        /** @var Utilisateur $loggedUser */
-        $loggedUser = $this->getUser();
+    public function printDeliveryNote(TranslatorInterface $trans, PDFGeneratorService $pdf, Dispatch $dispatch): Response {
+        if (!$dispatch->getDeliveryNoteData()) {
+            throw new NotFoundHttpException($trans->trans('acheminement.Le bon de livraison n\'existe pas pour cet acheminement'));
+        }
 
-        // TODO mettre le champ json dans le dispatch
+        $logo = $this->getDoctrine()
+            ->getRepository(ParametrageGlobal::class)
+            ->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
 
-        $entityManager->flush();
-
-        return new JsonResponse(['success' => true]);
-
+        return $pdf->generatePDFDeliveryNote("bl_{$dispatch->getId()}.pdf", $logo, $dispatch);
     }
 
     /**
@@ -1331,6 +1333,10 @@ class DispatchController extends AbstractController {
             throw new NotFoundHttpException($trans->trans('acheminement.La lettre de voiture n\'existe pas pour cet acheminement'));
         }
 
-        return $pdf->generatePDFWaybill("lettre_voiture_{$dispatch->getId()}.pdf", $dispatch);
+        $logo = $this->getDoctrine()
+            ->getRepository(ParametrageGlobal::class)
+            ->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
+
+        return $pdf->generatePDFWaybill("lettre_voiture_{$dispatch->getId()}.pdf", $logo, $dispatch);
     }
 }

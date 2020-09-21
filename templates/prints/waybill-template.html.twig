@@ -87,7 +87,13 @@
 <body>
 <div class="container">
     <div class="split">
-        <img class="image-title" src="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ asset('uploads/attachements/logo_for_waybill.jpg') }}" alt="GT Logistics"/>
+        <div>
+            {% if logo %}
+                <img class="image-title"
+                     src="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ logo }}"
+                     alt="GT Logistics"/>
+            {% endif %}
+        </div>
         <div>
             <div class="header">
                 Lettre de voiture N°{{ dispatch.number }}<br>
