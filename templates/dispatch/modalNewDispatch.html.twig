@@ -80,7 +80,7 @@
                             <div class="form-group">
                                 <label>Urgence{{ required ? '*' }}</label>
                                 <div class="w-100">
-                                    <select class="form-control input-sm data {{ required ? 'needed' : '' }}"
+                                    <select class="form-control input-sm data"
                                             name="emergency">
                                         <option value="">Non urgent</option>
                                         {% for emergency in emergencies %}
@@ -151,25 +151,31 @@
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_DISPATCH') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                            {% set projectNumberValue = arrival ? arrival.projectNumber %}
                             <div class="form-group">
                                 <label for="project">Numéro de projet{{ required ? '*' }}</label>
-                                <input class="project form-control data {{ required ? 'needed' }}" name="projectNumber">
+                                <input title="Numéro de projet"
+                                       class="project form-control data {{ required ? 'needed' }} needs-default"
+                                       name="projectNumber"
+                                       value="{{ projectNumberValue }}"
+                                       data-init="{{ projectNumberValue }}">
                             </div>
                         {% endif %}
                     </div>
                     <div class="col-4">
-
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT_DISPATCH') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                            {% set businessUnitValue = arrival ? arrival.businessUnit %}
                             <div class="form-group">
-                                <label for="project">Business Unit{{ required ? '*' }}</label>
+                                <label>Business Unit{{ required ? '*' }}</label>
                                 <select name="businessUnit"
-                                        class="form-control data {{ required ? 'needed' }}"
-                                        title="Business Unit">
+                                        class="form-control data {{ required ? 'needed' }} needs-default"
+                                        title="Business Unit"
+                                        data-init="{{ businessUnitValue }}">
                                     <option value=""></option>
                                     {% for businessUnit in dispatchBusinessUnits %}
-                                        <option value="{{ businessUnit }}">{{ businessUnit }}</option>
+                                        <option value="{{ businessUnit }}" {{ (businessUnit == businessUnitValue) ? 'selected' }}>{{ businessUnit }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -219,12 +225,15 @@
                 {% if packs is defined %}
                     <div class="row">
                         <div class="col-12">
-                            {% for pack in packs %}
-                                {% include 'dispatch/dispatchPackList.html.twig' with {
-                                    'pack': pack,
-                                    'index': loop.index0
-                                } %}
-                            {% endfor %}
+                            <label>Colis à acheminer</label>
+                            <div class="card p-3">
+                                {% for pack in packs %}
+                                    {% include 'dispatch/dispatchPackList.html.twig' with {
+                                        'pack': pack,
+                                        'index': loop.index0
+                                    } %}
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                 {% endif %}

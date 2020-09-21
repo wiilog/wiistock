@@ -977,7 +977,7 @@ class ArrivageController extends AbstractController
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
-            'modalNewConfig' => $dispatchService->getNewDispatchConfig($parametrageGlobalRepository, $statutRepository, $champLibreRepository, $fieldsParamRepository, $types, $arrivage)
+            'modalNewDispatchConfig' => $dispatchService->getNewDispatchConfig($parametrageGlobalRepository, $statutRepository, $champLibreRepository, $fieldsParamRepository, $types, $arrivage)
         ]);
     }
 

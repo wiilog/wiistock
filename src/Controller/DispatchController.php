@@ -196,13 +196,12 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/creer/{printBL}", name="dispatch_new", options={"expose"=true}, methods={"GET", "POST"}, defaults={"printBL"=0})
+     * @Route("/creer", name="dispatch_new", options={"expose"=true}, methods={"POST"})
      * @param Request $request
      * @param FreeFieldService $freeFieldService
      * @param DispatchService $dispatchService
      * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
-     * @param bool $printBL
      * @param TranslatorInterface $translator
      * @return Response
      * @throws Exception
@@ -212,7 +211,6 @@ class DispatchController extends AbstractController {
                         DispatchService $dispatchService,
                         AttachmentService $attachmentService,
                         EntityManagerInterface $entityManager,
-                        bool $printBL,
                         TranslatorInterface $translator): Response {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
@@ -227,6 +225,8 @@ class DispatchController extends AbstractController {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $transporterRepository = $entityManager->getRepository(Transporteur::class);
             $packRepository = $entityManager->getRepository(Pack::class);
+
+            $printDeliveryNote = $request->query->get('printDeliveryNote');
 
             $dispatch = new Dispatch();
             $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
@@ -348,8 +348,8 @@ class DispatchController extends AbstractController {
 
             $showArguments = ['id' => $dispatch->getId()];
 
-            if ($printBL) {
-                $showArguments['printBL'] = "1";
+            if ($printDeliveryNote) {
+                $showArguments['print-delivery-note'] = "1";
             }
 
             return new JsonResponse([

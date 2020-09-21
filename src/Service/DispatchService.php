@@ -171,6 +171,8 @@ class DispatchService {
                                          array $types,
                                          ?Arrivage $arrival = null) {
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
+
+        $dispatchBusinessUnits = json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES));
         return [
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,
@@ -186,7 +188,8 @@ class DispatchService {
             }, $types),
             'notTreatedStatus' => $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::NOT_TREATED, Statut::DRAFT]),
             'packs' => $arrival ? $arrival->getPacks() : [],
-            'fromArrival' => $arrival !== null
+            'fromArrival' => $arrival !== null,
+            'arrival' => $arrival
         ];
     }
 

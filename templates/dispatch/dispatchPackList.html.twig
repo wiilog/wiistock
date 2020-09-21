@@ -1,4 +1,4 @@
-<div class="row" id="{{ pack.id }}"
+<div class="row"
      data-multiple-key="packs"
      data-multiple-object-index="{{ index }}">
     <input type="hidden" class="data" name="packId" value="{{ pack.id }}">
@@ -20,7 +20,7 @@
                    name="packQuantity">
         </div>
     </div>
-    <div class="col-4">
+    <div class="col">
         <div class="form-group">
             <label for="transporter-tracking-number">Commentaire</label>
             <input class="form-control data no-clear"
@@ -29,7 +29,7 @@
                    name="packComment">
         </div>
     </div>
-    <div class="col-2 align-self-center">
-        <a class="pointer"><i class="fa fa-trash mr-2" onclick="$('#{{ pack.id }}').remove();"></i></a>
+    <div class="col-auto align-self-center">
+        <a class="pointer"><i class="fa fa-trash mr-2" onclick="removePackInDispatchModal()"></i></a>
     </div>
 </div>

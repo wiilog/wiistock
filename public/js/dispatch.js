@@ -1,5 +1,4 @@
 let tableDispatches = null;
-let editorNewDispatchAlreadyDone = false;
 
 $(function() {
     initPage();
@@ -22,62 +21,6 @@ $(function() {
         displayFiltersSup(data);
     }, 'json');
 });
-
-function initNewDispatchEditor(modal) {
-    if (!editorNewDispatchAlreadyDone) {
-        initEditorInModal(modal);
-        editorNewDispatchAlreadyDone = true;
-    }
-    clearModal(modal);
-    ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
-    ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
-
-    const $operatorSelect = $(modal).find('.ajax-autocomplete-user').first();
-    const $loggedUserInput = $(modal).find('input[hidden][name="logged-user"]');
-    let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
-    $operatorSelect
-        .val(null)
-        .trigger('change')
-        .append(option)
-        .trigger('change');
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement[name!=""]'));
-}
-
-function addInputColisClone(button)
-{
-    let $modal = button.closest('.modal-body');
-    let $toClone = $modal.find('.inputColisClone').first();
-    let $parent = $toClone.parent();
-    $toClone.clone().appendTo($parent);
-    $parent.children().last().find('.data-array').val('');
-}
-
-function onDispatchTypeChange($select) {
-    toggleRequiredChampsLibres($select, 'create');
-    typeChoice($select, '-new', $('#typeContentNew'))
-
-    const type = parseInt($select.val());
-    let $modalNewDispatch = $("#modalNewDispatch");
-    const $selectStatus = $modalNewDispatch.find('select[name="statut"]');
-
-    $selectStatus.removeAttr('disabled');
-    $selectStatus.find('option[data-type-id="' + type + '"]').removeClass('d-none');
-    $selectStatus.find('option[data-type-id!="' + type + '"]').addClass('d-none');
-    $selectStatus.val(null).trigger('change');
-
-    if($selectStatus.find('option:not(.d-none)').length === 0) {
-        $selectStatus.siblings('.error-empty-status').removeClass('d-none');
-        $selectStatus.addClass('d-none');
-    } else {
-        $selectStatus.siblings('.error-empty-status').addClass('d-none');
-        $selectStatus.removeClass('d-none');
-
-        const dispatchDefaultStatus = JSON.parse($selectStatus.siblings('input[name="dispatchDefaultStatus"]').val() || '{}');
-        if (dispatchDefaultStatus[type]) {
-            $selectStatus.val(dispatchDefaultStatus[type]);
-        }
-    }
-}
 
 function initPage() {
     return $
@@ -117,11 +60,8 @@ function initPage() {
 
             let $modalNewDispatch = $("#modalNewDispatch");
             let $submitNewDispatch = $("#submitNewDispatch");
-            let $submitNewDispatchWithBL = $("#submitNewDispatchWithBL");
-            let urlDispatchNew = Routing.generate('dispatch_new', {printBL: false}, true);
-            let urlDispatchNewWithBL = Routing.generate('dispatch_new', {printBL: 1}, true);
+            let urlDispatchNew = Routing.generate('dispatch_new', {printDeliveryNote: false}, true);
             InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew, {tables: [tableDispatches]});
-            InitModal($modalNewDispatch, $submitNewDispatchWithBL, urlDispatchNewWithBL, {tables: [tableDispatches]});
 
             let modalColumnVisible = $('#modalColumnVisibleDispatch');
             let submitColumnVisible = $('#submitColumnVisibleDispatch');

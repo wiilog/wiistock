@@ -67,9 +67,13 @@ $(function () {
     let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: $('#dispatchId').val()}, true);
     InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill);
 
-    const printBL = $('#printBL').val();
-    if (printBL) {
-        $('#generateBLButton').click();
+
+    const queryParams = GetRequestQuery();
+    const {'print-delivery-note': printDeliveryNote} = queryParams;
+    if (Number(printDeliveryNote)) {
+        delete queryParams['print-delivery-note'];
+        SetRequestQuery(queryParams);
+        $('#generateDeliveryNoteButton').click();
     }
 });
 
