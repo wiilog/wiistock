@@ -28,7 +28,7 @@
                     {% if modifiable
                           and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))
                           and (
-                              not (dispatch.status and dispatch.status.isNotTreated)
+                              not (dispatch.statut and dispatch.statut.isNotTreated)
                               or hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_UNPROCESSED_DISPATCH'))
                           )
                         %}
