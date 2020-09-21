@@ -827,7 +827,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $handling = $handlingRepository->find($id);
             $oldStatus = $handling->getStatus();
 
-            if (!$oldStatus || !$oldStatus->getTreated()) {
+            if (!$oldStatus || !$oldStatus->isTreated()) {
                 $statusId = $request->request->get('statusId');
                 $newStatus = $statusRepository->find($statusId);
                 if (!empty($newStatus)) {
@@ -857,7 +857,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                 if (!$handling->getValidationDate()
                     && $newStatus
-                    && $newStatus->getTreated()) {
+                    && $newStatus->isTreated()) {
                     $handling
                         ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
                 }
@@ -1844,9 +1844,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 /** @var Dispatch $dispatch */
                 $dispatch = $dispatchRepository->find($dispatchArray['id']);
                 $dispatchStatus = $dispatch->getStatut();
-                if (!$dispatchStatus || !$dispatchStatus->getTreated()) {
+                if (!$dispatchStatus || !$dispatchStatus->isTreated()) {
                     $treatedStatus = $statusRepository->find($dispatchArray['treatedStatusId']);
-                    if ($treatedStatus && $treatedStatus->getTreated()) {
+                    if ($treatedStatus && $treatedStatus->isTreated()) {
                         // we treat pack edits
                         if (!empty($dispatchPacksByDispatch[$dispatch->getId()])) {
                             foreach ($dispatchPacksByDispatch[$dispatch->getId()] as $packArray) {
@@ -1867,6 +1867,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 }
                             }
                         }
+
                         $dispatchService->validateDispatchRequest($entityManager, $dispatch, $treatedStatus, $nomadUser, true);
                     }
                 }

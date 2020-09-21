@@ -6,17 +6,17 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\ExpressionLanguage\SyntaxError;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
-class StatusService
-{
+class StatusService {
 
     private $specificService;
     private $entityManager;
@@ -46,7 +46,7 @@ class StatusService
     public function findAllStatusArrivage() {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)) {
-            $status =  $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::ARRIVAGE, [Arrivage::STATUS_CONFORME, Arrivage::STATUS_RESERVE]);
+            $status = $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::ARRIVAGE, [Arrivage::STATUS_CONFORME, Arrivage::STATUS_RESERVE]);
         } else {
             $status = $statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
         }
@@ -56,9 +56,11 @@ class StatusService
     /**
      * @param null $params
      * @return array
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function getDataForDatatable($params = null)
-    {
+    public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $statusRepository = $this->entityManager->getRepository(Statut::class);
 
@@ -82,10 +84,11 @@ class StatusService
     /**
      * @param Statut $status
      * @return array
+     * @throws LoaderError
+     * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function dataRowStatus($status)
-    {
+    public function dataRowStatus($status) {
 
         $url['edit'] = $this->router->generate('status_api_edit', ['id' => $status->getId()]);
         return [
@@ -93,7 +96,7 @@ class StatusService
             'category' => $status->getCategorie() ? $status->getCategorie()->getNom() : '',
             'label' => $status->getNom() ? $status->getNom() : '',
             'comment' => $status->getComment() ? $status->getComment() : '',
-            'treatedStatus' => $status->getTreated() ? 'oui' : 'non',
+            'state' => $this->getStatusStateLabel($status->getState()),
             'defaultStatus' => $status->isDefaultForCategory() ? 'oui' : 'non',
             'notifToDeclarant' => $status->getSendNotifToDeclarant() ? 'oui' : 'non',
             'order' => $status->getDisplayOrder() ?? '',
@@ -104,31 +107,33 @@ class StatusService
         ];
     }
 
-    public function canStatusBeDefault(EntityManagerInterface $entityManager,
-                                       string $categoryStatusLabel,
-                                       ?Type $type = null,
-                                       Statut $status = null): bool {
-        $statutRepository = $entityManager->getRepository(Statut::class);
-        $typeId = $type ? $type->getId() : null;
-        $definedDefaultStatus = array_values(array_filter(
-            $statutRepository->findByCategorieNames([$categoryStatusLabel]),
-            function (Statut $savedStatus) use ($typeId) {
-                $savedTypeId = $savedStatus->getType() ? $savedStatus->getType()->getId() : null;
-                return (
-                    $savedTypeId === $typeId
-                    && $savedStatus->isDefaultForCategory()
-                );
-            }
-        ));
-        $definedDefaultStatusCounter = count($definedDefaultStatus);
-
-        return (
-            $definedDefaultStatusCounter === 0
-            || (
-                !empty($status)
-                && $definedDefaultStatusCounter === 1
-                && $status->getId() === $definedDefaultStatus[0]->getId()
-            )
-        );
+    public function getStatusStatesValues(): array {
+        return [
+            [
+                'label' => 'Brouillon',
+                'id' => Statut::DRAFT
+            ],
+            [
+                'label' => 'À traité',
+                'id' => Statut::NOT_TREATED
+            ],
+            [
+                'label' => 'Traité',
+                'id' => Statut::TREATED
+            ]
+        ];
     }
+
+    public function getStatusStateLabel(int $stateId): ?string {
+        $states = $this->getStatusStatesValues();
+        $label = null;
+        foreach ($states as $state) {
+            if ($state['id'] === $stateId) {
+                $label = $state['label'];
+                break;
+            }
+        }
+        return $label;
+    }
+
 }

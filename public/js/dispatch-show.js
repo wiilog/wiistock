@@ -30,9 +30,14 @@ $(function () {
     InitModal($modalEditDispatch, $submitEditDispatch, urlDispatchEdit);
 
     const $modalValidateDispatch = $('#modalValidateDispatch');
-    const $submitTreatedDispatch = $modalValidateDispatch.find('.submit-button');
+    const $submitValidatedDispatch = $modalValidateDispatch.find('.submit-button');
     const urlValidateDispatch = Routing.generate('dispatch_validate_request', {id: dispatchId}, true);
-    InitModal($modalValidateDispatch, $submitTreatedDispatch, urlValidateDispatch, {tables: [packTable]});
+    InitModal($modalValidateDispatch, $submitValidatedDispatch, urlValidateDispatch);
+
+    const $modalTreatDispatch = $('#modalTreatDispatch');
+    const $submitTreatedDispatch = $modalTreatDispatch.find('.submit-button');
+    const urlTreatDispatch = Routing.generate('dispatch_treat_request', {id: dispatchId}, true);
+    InitModal($modalTreatDispatch, $submitTreatedDispatch, urlTreatDispatch);
 
     const $modalDeleteDispatch = $('#modalDeleteDispatch');
     const $submitDeleteDispatch = $('#submitDeleteDispatch');
@@ -180,6 +185,15 @@ function openEditPackModal({packDispatchId, code, quantity, natureId, packQuanti
 
 function openValidateDispatchModal() {
     const modalSelector = '#modalValidateDispatch'
+    const $modal = $(modalSelector);
+
+    clearModal(modalSelector);
+
+    $modal.modal('show');
+}
+
+function openTreatDispatchModal() {
+    const modalSelector = '#modalTreatDispatch'
     const $modal = $(modalSelector);
 
     clearModal(modalSelector);

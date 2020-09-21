@@ -170,6 +170,11 @@ class Dispatch extends FreeFieldEntity
     private $validationDate;
 
     /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $treatmentDate;
+
+    /**
      * @var array|null
      * @ORM\Column(type="json", nullable=true)
      */
@@ -456,15 +461,21 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
-    public function getValidationDate(): ?\DateTimeInterface
-    {
+    public function getValidationDate(): ?\DateTimeInterface {
         return $this->validationDate;
     }
 
-    public function setValidationDate(?\DateTimeInterface $validationDate): self
-    {
+    public function setValidationDate(?\DateTimeInterface $validationDate): self {
         $this->validationDate = $validationDate;
+        return $this;
+    }
 
+    public function getTreatmentDate(): ?\DateTimeInterface {
+        return $this->treatmentDate;
+    }
+
+    public function setTreatmentDate(?\DateTimeInterface $treatmentDate): self {
+        $this->treatmentDate = $treatmentDate;
         return $this;
     }
 

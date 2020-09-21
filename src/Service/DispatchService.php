@@ -134,6 +134,7 @@ class DispatchService {
         $locationTo = $dispatch->getLocationTo();
         $creationDate = $dispatch->getCreationDate();
         $validationDate = $dispatch->getValidationDate() ? $dispatch->getValidationDate() : '';
+        $treatmentDate = $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate() : '';
         $startDate = $dispatch->getStartDate();
         $endDate = $dispatch->getEndDate();
         $startDateStr = $startDate ? $startDate->format('d/m/Y') : '-';
@@ -181,6 +182,7 @@ class DispatchService {
                 ['label' => $this->translator->trans('acheminement.Emplacement dépose'), 'value' => $locationTo ? $locationTo->getLabel() : ''],
                 ['label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''],
                 ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i:s') : ''],
+                ['label' => 'Date de traitement', 'value' => $treatmentDate ? $treatmentDate->format('d/m/Y H:i:s') : ''],
                 ['label' => 'Dates d\'échéance', 'value' => ($startDate || $endDate) ? ('Du ' . $startDateStr . ' au ' . $endDateStr) : '']
             ],
             $freeFieldArray,
@@ -212,7 +214,7 @@ class DispatchService {
         $lastDispatchNumber = $dispatchRepository->getLastDispatchNumberByPrefix(Dispatch::PREFIX_NUMBER . $dateStr);
 
         if ($lastDispatchNumber) {
-            $lastCounter = (int)substr($lastDispatchNumber, -4, 4);
+            $lastCounter = (int) substr($lastDispatchNumber, -4, 4);
             $currentCounter = ($lastCounter + 1);
         } else {
             $currentCounter = 1;
@@ -249,8 +251,7 @@ class DispatchService {
             $requesterEmails = $dispatch->getRequester() ? $dispatch->getRequester()->getMainAndSecondaryEmails() : [];
 
             $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
-
-            $title = $status->getTreated()
+            $title = $status->isTreated()
                 ? $this->translator->trans('acheminement.Acheminement {numéro} traité le {date}', [
                     "{numéro}" => $dispatch->getNumber(),
                     "{date}" => $dispatch->getValidationDate()->format('d/m/Y à H:i:s')
@@ -258,9 +259,7 @@ class DispatchService {
                 : (!$isUpdate
                     ? ('Une ' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
                     : ('Changement de statut d\'une ' . $translatedCategory . ' de type ' . $type . ' vous concernant :'));
-
-
-            $subject = $status->getTreated() ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translator->trans('acheminement.demande d\'acheminement') . '.')
+            $subject = $status->isTreated() ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translator->trans('acheminement.demande d\'acheminement') . '.')
                 : (!$isUpdate
                     ? ('FOLLOW GT // Création d\'une ' . $translatedCategory)
                     : 'FOLLOW GT // Changement de statut d\'une ' . $translatedCategory . '.');
@@ -275,7 +274,7 @@ class DispatchService {
                 array_push($emails, ...$requesterEmails);
             }
 
-            $isTreatedStatus = $dispatch->getStatut() && $dispatch->getStatut()->getTreated();
+            $isTreatedStatus = $dispatch->getStatut() && $dispatch->getStatut()->isTreated();
 
             if (!empty($emails)) {
                 $this->mailerService->sendMail(
@@ -312,7 +311,7 @@ class DispatchService {
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $dispatch
             ->setStatut($treatedStatus)
-            ->setValidationDate($date);
+            ->setTreatmentDate($date);
 
         foreach ($dispatchPacks as $dispatchPack) {
             $pack = $dispatchPack->getPack();
