@@ -174,6 +174,7 @@ class DispatchService {
         $endDateStr = $endDate ? $endDate->format('d/m/Y') : '-';
         $projectNumber = $dispatch->getProjectNumber();
         $comment = $dispatch->getCommentaire() ?? '';
+        $treatedBy = $dispatch->getTreatedBy()->getUsername() ?? '';
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
@@ -215,8 +216,9 @@ class DispatchService {
                 ['label' => $this->translator->trans('acheminement.Emplacement dépose'), 'value' => $locationTo ? $locationTo->getLabel() : ''],
                 ['label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''],
                 ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i:s') : ''],
-                ['label' => 'Date de traitement', 'value' => $treatmentDate ? $treatmentDate->format('d/m/Y H:i:s') : ''],
-                ['label' => 'Dates d\'échéance', 'value' => ($startDate || $endDate) ? ('Du ' . $startDateStr . ' au ' . $endDateStr) : '']
+                ['label' => 'Dates d\'échéance', 'value' => ($startDate || $endDate) ? ('Du ' . $startDateStr . ' au ' . $endDateStr) : ''],
+                ['label' => 'Traité par', 'value' => $treatedBy],
+                ['label' => 'Date de traitement', 'value' => $treatmentDate ? $treatmentDate->format('d/m/Y H:i:s') : '']
             ],
             $freeFieldArray,
             [
@@ -308,6 +310,14 @@ class DispatchService {
             }
 
             $isTreatedStatus = $dispatch->getStatut() && $dispatch->getStatut()->isTreated();
+            $isTreatedByOperator = $dispatch->getTreatedBy() && $dispatch->getTreatedBy()->getUsername();
+
+            $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
+                $this->entityManager,
+                $dispatch,
+                CategorieCL::DEMANDE_DISPATCH,
+                CategoryType::DEMANDE_DISPATCH
+            );
 
             if (!empty($emails)) {
                 $this->mailerService->sendMail(
@@ -317,7 +327,9 @@ class DispatchService {
                         'title' => $title,
                         'urlSuffix' => $this->router->generate("dispatch_show", ["id" => $dispatch->getId()]),
                         'hideNumber' => $isTreatedStatus,
-                        'hideValidationDate' => $isTreatedStatus
+                        'hideValidationDate' => $isTreatedStatus,
+                        'hideTreatedBy' => $isTreatedByOperator,
+                        'totalCost' => $freeFieldArray
                     ]),
                     $emails
                 );
@@ -374,6 +386,7 @@ class DispatchService {
             $entityManager->persist($trackingTaking);
             $entityManager->persist($trackingDrop);
         }
+        $dispatch->setTreatedBy($loggedUser);
         $entityManager->flush();
 
         $this->sendEmailsAccordingToStatus($dispatch, true);
