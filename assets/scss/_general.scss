@@ -4,6 +4,14 @@
     padding: 0;
 }
 
+#alerts-container {
+    position: absolute;
+    z-index: 10000;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
 html {
     height: 100%;
     overflow: auto;
@@ -24,7 +32,6 @@ html {
             flex-direction: column;
         }
     }
-;
 }
 
 h1, h2 {

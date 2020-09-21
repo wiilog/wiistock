@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Handling;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -36,7 +37,8 @@ class HandlingRepository extends EntityRepository
 
         $qb->select('COUNT(handling)')
             ->join('handling.status', 'status')
-            ->where('status.treated = false');
+            ->where('status.state = :notTreatedId')
+            ->setParameter('notTreatedId', Statut::NOT_TREATED);
 
         return $qb
             ->getQuery()
@@ -64,10 +66,11 @@ class HandlingRepository extends EntityRepository
             ->leftJoin('handling.requester', 'handling_requester')
             ->leftJoin('handling.status', 'status')
             ->leftJoin('handling.type', 'handling_type')
-            ->where('status.treated = false')
             ->andWhere('status.needsMobileSync = true')
+            ->andWhere('status.state != :treatedId')
             ->andWhere('handling_type.id IN (:userTypes)')
-            ->setParameter('userTypes', $typeIds);
+            ->setParameter('userTypes', $typeIds)
+            ->setParameter('treatedId', Statut::TREATED);
 
         return array_map(
             function (array $handling): array {

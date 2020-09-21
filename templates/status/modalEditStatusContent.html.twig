@@ -40,6 +40,20 @@
                 {% endfor %}
             </select>
         </div>
+
+        <div class="mb-3 form-group col-12">
+            <label for="state">État du statut*</label>
+            <select name="state" class="data form-control needed">
+                {% for state in states %}
+                    <option value="{{ state.id }}"
+                            class="{{ state.id == constant('App\\Entity\\Statut::DRAFT') ? 'dispatch-fields' }}"
+                            {{ state.id == status.state ? 'selected' }}>
+                        {{ state.label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
         {% set hideDisputeComment = (
             status.categorie.nom == constant('App\\Entity\\CategorieStatut::DISPATCH')
             or status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING')
@@ -53,14 +67,6 @@
             <label>Statut par défaut pour cette entité ?</label>
             <label class="switch">
                 <input class="checkbox" type="checkbox" name="defaultForCategory" {{ status.defaultForCategory ? 'checked' }}/>
-                <span class="slider round"></span>
-            </label>
-        </div>
-
-        <div class="col-12 form-group">
-            <label>Statut de type 'traité' ?</label>
-            <label class="switch">
-                <input class="checkbox" type="checkbox" name="treated" {{ status.treated ? 'checked' }}/>
                 <span class="slider round"></span>
             </label>
         </div>

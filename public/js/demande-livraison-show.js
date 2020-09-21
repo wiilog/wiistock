@@ -27,7 +27,7 @@ function getCompareStock(submit) {
                 $('#boutonCollecteSup, #boutonCollecteInf').addClass('d-none');
                 tableArticle.ajax.reload();
             } else {
-                alertErrorMsg(response.message);
+                showBSAlert(response.message, 'danger');
             }
         });
 }

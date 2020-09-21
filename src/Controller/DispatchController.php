@@ -117,7 +117,7 @@ class DispatchController extends AbstractController {
                         'champsLibres' => $champsLibres,
                     ];
                 }, $types),
-                'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
+			    'notTreatedStatus' => $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::NOT_TREATED, Statut::DRAFT]),
             ]
         ]);
     }
@@ -372,12 +372,15 @@ class DispatchController extends AbstractController {
         return $this->render('dispatch/show.html.twig', [
             'dispatch' => $dispatch,
             'detailsConfig' => $dispatchService->createHeaderDetailsConfig($dispatch),
-            'modifiable' => !$dispatchStatus || !$dispatchStatus->getTreated(),
+            'modifiable' => !$dispatchStatus || $dispatchStatus->isDraft(),
             'newPackConfig' => [
                 'natures' => $natureRepository->findAll()
             ],
             'dispatchValidate' => [
-                'treatedStatus' => $statusRepository->findTreatedStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), true)
+                'untreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])
+            ],
+            'dispatchTreat' => [
+                'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED])
             ]
         ]);
     }
@@ -398,7 +401,7 @@ class DispatchController extends AbstractController {
                                             PDFGeneratorService $PDFGenerator,
                                             TranslatorInterface $translator): ?Response {
         if ($dispatch->getDispatchPacks()->isEmpty()) {
-            throw new NotFoundHttpException($translator->trans("acheminement.La fiche d\'état n\'existe pas pour cet acheminement"));
+            throw new NotFoundHttpException($translator->trans('acheminement.Le bon d\'acheminement n\'existe pas pour cet acheminement'));
         }
 
         $packsConfig = $dispatch->getDispatchPacks()
@@ -462,7 +465,7 @@ class DispatchController extends AbstractController {
         $locationDrop = $emplacementRepository->find($post->get('depose'));
 
         $oldStatus = $dispatch->getStatut();
-        if (!$oldStatus || !$oldStatus->getTreated()) {
+        if (!$oldStatus || !$oldStatus->isTreated()) {
             $newStatus = $statutRepository->find($post->get('statut'));
             $dispatch->setStatut($newStatus);
         } else {
@@ -533,7 +536,7 @@ class DispatchController extends AbstractController {
         return new JsonResponse([
             'entete' => $this->renderView('dispatch/dispatch-show-header.html.twig', [
                 'dispatch' => $dispatch,
-                'modifiable' => !$dispatchStatus || !$dispatchStatus->getTreated(),
+                'modifiable' => !$dispatchStatus || $dispatchStatus->isDraft(),
                 'showDetails' => $dispatchService->createHeaderDetailsConfig($dispatch)
             ]),
             'success' => true,
@@ -561,11 +564,20 @@ class DispatchController extends AbstractController {
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
             $dispatch = $dispatchRepository->find($data['id']);
+            $dispatchStatus = $dispatch->getStatut();
 
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT) ||
-                !$dispatch->getStatut()->isTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_UNPROCESSED_DISPATCH)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)
+                || (
+                    $dispatchStatus
+                    && $dispatchStatus->isNotTreated()
+                    && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_UNPROCESSED_DISPATCH)
+                )) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $statuses = (!$dispatchStatus || !$dispatchStatus->isTreated())
+                ? $statutRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::DRAFT, Statut::NOT_TREATED])
+                : [];
 
             $dispatchBusinessUnits = json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES));
 
@@ -575,7 +587,7 @@ class DispatchController extends AbstractController {
                 'fieldsParam' => $fieldsParam,
                 'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
                 'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
-                'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
+                'statuses' => $statuses,
                 'attachments' => $pieceJointeRepository->findBy(['dispatch' => $dispatch])
             ]);
 
@@ -667,7 +679,7 @@ class DispatchController extends AbstractController {
                         'actions' => $this->renderView('dispatch/datatablePackRow.html.twig', [
                             'pack' => $pack,
                             'packDispatch' => $dispatchPack,
-                            'modifiable' => !$dispatchPack->getDispatch()->getStatut()->getTreated()
+                            'modifiable' => !$dispatchPack->getDispatch()->getStatut()->isDraft()
                         ])
                     ];
                 })
@@ -820,7 +832,6 @@ class DispatchController extends AbstractController {
      * @Route("/{id}/validate", name="dispatch_validate_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param DispatchService $dispatchService
      * @param TranslatorInterface $translator
      * @param Dispatch $dispatch
      * @return Response
@@ -828,12 +839,61 @@ class DispatchController extends AbstractController {
      */
     public function validateDispatchRequest(Request $request,
                                             EntityManagerInterface $entityManager,
+                                            TranslatorInterface $translator,
+                                            Dispatch $dispatch): Response
+    {
+        $status = $dispatch->getStatut();
+
+        if(!$status || $status->isDraft()) {
+            $data = json_decode($request->getContent(), true);
+            $statusRepository = $entityManager->getRepository(Statut::class);
+
+            $statusId = $data['status'];
+            $untreatedStatus = $statusRepository->find($statusId);
+
+            if ($untreatedStatus
+                && $untreatedStatus->isNotTreated()
+                && ($untreatedStatus->getType() === $dispatch->getType())) {
+
+                $dispatch
+                    ->setStatut($untreatedStatus)
+                    ->setValidationDate(new DateTime('now', new \DateTimeZone('Europe/Paris')));
+
+                $entityManager->flush();
+            }
+            else {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => "Le statut sélectionné doit être de type à traiter et correspondre au type de la demande."
+                ]);
+            }
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => $translator->trans('acheminement.L\'acheminement a bien été passé en à traiter'),
+            'redirect' => $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()])
+        ]);
+    }
+
+    /**
+     * @Route("/{id}/treat", name="dispatch_treat_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param DispatchService $dispatchService
+     * @param TranslatorInterface $translator
+     * @param Dispatch $dispatch
+     * @return Response
+     * @throws Exception
+     */
+    public function treatDispatchRequest(Request $request,
+                                            EntityManagerInterface $entityManager,
                                             DispatchService $dispatchService,
                                             TranslatorInterface $translator,
                                             Dispatch $dispatch): Response {
         $status = $dispatch->getStatut();
 
-        if (!$status || !$status->getTreated()) {
+        if (!$status || $status->isNotTreated()) {
             $data = json_decode($request->getContent(), true);
             $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -841,7 +901,7 @@ class DispatchController extends AbstractController {
             $treatedStatus = $statusRepository->find($statusId);
 
             if ($treatedStatus
-                && $treatedStatus->getTreated()
+                && $treatedStatus->isTreated()
                 && $treatedStatus->getType() === $dispatch->getType()) {
 
                 /** @var Utilisateur $loggedUser */

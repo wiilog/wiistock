@@ -614,33 +614,39 @@ function clearCheckboxes($modal) {
     });
 }
 
-function alertErrorMsg(data, remove = false) {
-    if (data !== true) {
-        let $alertDanger = $('#alerts').find('.alert-danger');
-        $alertDanger.removeClass('d-none');
-        $alertDanger
-            .css('display', 'block')
-            .css('opacity', '1');
+/**
+ *
+ * @param {string} message
+ * @param {'danger'|'success'} color
+ * @param {boolean = true} remove
+ */
+function showBSAlert(message, color, remove = true) {
+    if ((typeof message === 'string') && message) {
+        const $alertContainer = $('#alerts-container');
+        const $alert = $('#alert-template')
+            .clone()
+            .removeAttr('id')
+            .addClass(`alert-${color}`)
+            .removeClass('d-none')
+            .addClass('d-flex');
+
+        $alert
+            .find('.content')
+            .html(message);
+
+        $alertContainer.html($alert);
 
         if (remove) {
-            $alertDanger.delay(2000).fadeOut(2000);
+            $alert
+                .delay(3000)
+                .fadeOut(2000);
+            setTimeout(() => {
+                if ($alert.parent().length) {
+                    $alert.remove();
+                }
+            }, 5000);
         }
-        $alertDanger.find('.error-msg').html(data);
-        $('html,body').animate({scrollTop: 0});
     }
-}
-
-function alertSuccessMsg(data, remove = true) {
-    let $alertSuccess = $('#alerts').find('.alert-success');
-    $alertSuccess.removeClass('d-none');
-    $alertSuccess
-        .css('display', 'block')
-        .css('opacity', '1');
-
-    if (remove) {
-        $alertSuccess.delay(2000).fadeOut(2000);
-    }
-    $alertSuccess.find('.confirm-msg').html(data);
 }
 
 function saveFilters(page, tableSelector, callback) {
@@ -701,7 +707,7 @@ function saveFilters(page, tableSelector, callback) {
                 }
             }
         } else {
-            alertErrorMsg('Veuillez saisir des filtres corrects (pas de virgule ni de deux-points).', true);
+            showBSAlert('Veuillez saisir des filtres corrects (pas de virgule ni de deux-points).', 'danger');
         }
     }, 'json');
 }
@@ -1000,7 +1006,7 @@ let dlFile = function (csv, filename) {
 };
 
 function warningEmptyDatesForCsv() {
-    alertErrorMsg('Veuillez saisir des dates dans le filtre en haut de page.', true);
+    showBSAlert('Veuillez saisir des dates dans le filtre en haut de page.', 'danger');
     $('#dateMin, #dateMax').addClass('is-invalid');
     $('.is-invalid').on('click', function () {
         $(this).parent().find('.is-invalid').removeClass('is-invalid');
@@ -1288,7 +1294,7 @@ function wrapLoadingOnActionButton($button, action = null, endLoading = true) {
             });
         }
     } else {
-        alertSuccessMsg('L\'opération est en cours de traitement');
+        showBSAlert('L\'opération est en cours de traitement', 'success');
     }
 }
 

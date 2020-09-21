@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -244,8 +245,9 @@ class DispatchRepository extends EntityRepository
             ->join('dispatch.type', 'type')
             ->join('dispatch.statut', 'status')
             ->where('status.needsMobileSync = 1')
-            ->andWhere('status.treated = 0')
+            ->andWhere('status.state IN (:untreatedStates)')
             ->andWhere('type.id IN (:dispatchTypeIds)')
+            ->setParameter('untreatedStates', [Statut::DRAFT, Statut::NOT_TREATED])
             ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds());
 
         return $queryBuilder

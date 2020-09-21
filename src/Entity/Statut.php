@@ -11,6 +11,11 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Statut
 {
+
+    const DRAFT = 0;
+    const NOT_TREATED = 1;
+    const TREATED = 2;
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -39,9 +44,9 @@ class Statut
     private $displayOrder;
 
     /**
-     * @ORM\Column(type="boolean", nullable=true)
+     * @ORM\Column(type="integer", nullable=true)
      */
-    private $treated;
+    private $state;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategorieStatut", inversedBy="statuts")
@@ -169,12 +174,15 @@ class Statut
     }
 
     public function isTreated(): ?bool {
-        return $this->treated;
+        return $this->state === self::TREATED;
     }
 
-    public function setTreated(bool $treated): self {
-        $this->treated = $treated;
-        return $this;
+    public function isDraft(): ?bool {
+        return $this->state === self::DRAFT;
+    }
+
+    public function isNotTreated(): ?bool {
+        return $this->state === self::NOT_TREATED;
     }
 
     public function getCategorie(): ? CategorieStatut
@@ -497,11 +505,6 @@ class Statut
         return $this;
     }
 
-    public function getTreated(): ?bool
-    {
-        return $this->treated;
-    }
-
     /**
      * @return Collection|Dispatch[]
      */
@@ -649,6 +652,22 @@ class Statut
      */
     public function setDefaultForCategory(bool $defaultForCategory): self {
         $this->defaultForCategory = $defaultForCategory;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getState(): int {
+        return $this->state;
+    }
+
+    /**
+     * @param mixed $state
+     * @return self
+     */
+    public function setState(int $state): self {
+        $this->state = $state;
         return $this;
     }
 
