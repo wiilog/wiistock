@@ -144,6 +144,7 @@ class DispatchService {
             'type' => $dispatch->getType() ? $dispatch->getType()->getLabel() : '',
             'status' => $dispatch->getStatut() ? $dispatch->getStatut()->getNom() : '',
             'emergency' => $dispatch->getEmergency() ?? '',
+            'treatedBy' => $dispatch->getTreatedBy() ? $dispatch->getTreatedBy()->getUsername() : '',
             'treatmentDate' => $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate()->format('d/m/Y H:i:s') : '',
             'actions' => $this->templating->render('dispatch/datatableDispatchRow.html.twig', [
                 'dispatch' => $dispatch,
@@ -174,7 +175,7 @@ class DispatchService {
         $endDateStr = $endDate ? $endDate->format('d/m/Y') : '-';
         $projectNumber = $dispatch->getProjectNumber();
         $comment = $dispatch->getCommentaire() ?? '';
-        $treatedBy = $dispatch->getTreatedBy()->getUsername() ?? '';
+        $treatedBy = $dispatch->getTreatedBy() ? $dispatch->getTreatedBy()->getUsername() : '';
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
@@ -289,15 +290,15 @@ class DispatchService {
             $title = $status->isTreated()
                 ? $this->translator->trans('acheminement.Acheminement {numéro} traité le {date}', [
                     "{numéro}" => $dispatch->getNumber(),
-                    "{date}" => $dispatch->getValidationDate()->format('d/m/Y à H:i:s')
+                    "{date}" => $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate()->format('d/m/Y à H:i:s') : ''
                 ])
                 : (!$isUpdate
-                    ? ('Une ' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
-                    : ('Changement de statut d\'une ' . $translatedCategory . ' de type ' . $type . ' vous concernant :'));
+                    ? ('Un(e) ' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
+                    : ('Changement de statut d\'un(e) ' . $translatedCategory . ' de type ' . $type . ' vous concernant :'));
             $subject = $status->isTreated() ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translator->trans('acheminement.demande d\'acheminement') . '.')
                 : (!$isUpdate
-                    ? ('FOLLOW GT // Création d\'une ' . $translatedCategory)
-                    : 'FOLLOW GT // Changement de statut d\'une ' . $translatedCategory . '.');
+                    ? ('FOLLOW GT // Création d\'un(e) ' . $translatedCategory)
+                    : 'FOLLOW GT // Changement de statut d\'un(e) ' . $translatedCategory . '.');
 
             $emails = [];
 
@@ -327,7 +328,7 @@ class DispatchService {
                         'title' => $title,
                         'urlSuffix' => $this->router->generate("dispatch_show", ["id" => $dispatch->getId()]),
                         'hideNumber' => $isTreatedStatus,
-                        'hideValidationDate' => $isTreatedStatus,
+                        'hideTreatmentDate' => $isTreatedStatus,
                         'hideTreatedBy' => $isTreatedByOperator,
                         'totalCost' => $freeFieldArray
                     ]),
@@ -345,7 +346,7 @@ class DispatchService {
      * @param bool $fromNomade
      * @throws Exception
      */
-    public function validateDispatchRequest(EntityManagerInterface $entityManager,
+    public function treatDispatchRequest(EntityManagerInterface $entityManager,
                                             Dispatch $dispatch,
                                             Statut $treatedStatus,
                                             Utilisateur $loggedUser,
@@ -414,6 +415,7 @@ class DispatchService {
             ['title' => 'acheminement.Nb colis', 'name' => 'nbPacks', 'orderable' => false, 'translated' => true],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Urgence', 'name' => 'emergency'],
+            ['title' => 'Traité par', 'name' => 'treatedBy']
         ];
 
         return array_merge(

@@ -22,7 +22,6 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
-use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
@@ -359,7 +358,7 @@ class DispatchController extends AbstractController {
      */
     public function show(Dispatch $dispatch,
                          EntityManagerInterface $entityManager,
-                         DispatchService $dispatchService, TranslatorInterface $translator) {
+                         DispatchService $dispatchService) {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -412,6 +411,7 @@ class DispatchController extends AbstractController {
                     'content' => [
                         'Date de création' => $dispatch->getCreationDate() ? $dispatch->getCreationDate()->format('d/m/Y H:i:s') : '',
                         'Date de validation' => $dispatch->getValidationDate() ? $dispatch->getValidationDate()->format('d/m/Y H:i:s') : '',
+                        'Date de traitement' => $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate()->format('d/m/Y H:i:s') : '',
                         'Demandeur' => $dispatch->getRequester() ? $dispatch->getRequester()->getUsername() : '',
                         'Destinataire' => $dispatch->getReceiver() ? $dispatch->getReceiver()->getUsername() : '',
                         $translator->trans('acheminement.Emplacement dépose') => $dispatch->getLocationTo() ? $dispatch->getLocationTo()->getLabel() : '',
@@ -679,7 +679,7 @@ class DispatchController extends AbstractController {
                         'actions' => $this->renderView('dispatch/datatablePackRow.html.twig', [
                             'pack' => $pack,
                             'packDispatch' => $dispatchPack,
-                            'modifiable' => !$dispatchPack->getDispatch()->getStatut()->isDraft()
+                            'modifiable' => $dispatchPack->getDispatch()->getStatut()->isDraft()
                         ])
                     ];
                 })
@@ -834,13 +834,15 @@ class DispatchController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @param TranslatorInterface $translator
      * @param Dispatch $dispatch
+     * @param DispatchService $dispatchService
      * @return Response
      * @throws Exception
      */
     public function validateDispatchRequest(Request $request,
                                             EntityManagerInterface $entityManager,
                                             TranslatorInterface $translator,
-                                            Dispatch $dispatch): Response
+                                            Dispatch $dispatch,
+                                            DispatchService $dispatchService): Response
     {
         $status = $dispatch->getStatut();
 
@@ -860,6 +862,7 @@ class DispatchController extends AbstractController {
                     ->setValidationDate(new DateTime('now', new \DateTimeZone('Europe/Paris')));
 
                 $entityManager->flush();
+                $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
             }
             else {
                 return new JsonResponse([
@@ -907,7 +910,7 @@ class DispatchController extends AbstractController {
                 /** @var Utilisateur $loggedUser */
                 $loggedUser = $this->getUser();
 
-                $dispatchService->validateDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser);
+                $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser);
             } else {
                 return new JsonResponse([
                     'success' => false,
@@ -1049,6 +1052,7 @@ class DispatchController extends AbstractController {
      * @param TranslatorInterface $translator
      * @param Dispatch $dispatch
      * @return JsonResponse
+     * @throws NonUniqueResultException
      */
     public function apiDeliveryNote(Request $request,
                                     TranslatorInterface $translator,
@@ -1188,6 +1192,7 @@ class DispatchController extends AbstractController {
      * @param Dispatch $dispatch
      * @return JsonResponse
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function apiWaybill(Request $request,
                                EntityManagerInterface $entityManager,
