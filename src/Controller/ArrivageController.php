@@ -545,7 +545,7 @@ class ArrivageController extends AbstractController
                 ->setFrozen($post->get('frozen') == 'true')
                 ->setDestinataire($newDestinataire)
                 ->setBusinessUnit($post->get('businessUnit') ?? null)
-                ->setProjectNumber($post->get('businessUnit') ?? null)
+                ->setProjectNumber($post->get('noProject') ?? null)
                 ->setType($typeRepository->find($type));
 
             $acheteurs = $post->get('acheteurs');
@@ -1449,6 +1449,7 @@ class ArrivageController extends AbstractController
         $usernameParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL);
         $dropzoneParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL);
         $packCountParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL);
+        $commandAndProjectNumberIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
 
         if (!isset($colis)) {
             $printColis = $request->query->getBoolean('printColis');
@@ -1459,7 +1460,9 @@ class ArrivageController extends AbstractController
                     $arrivage,
                     $usernameParamIsDefined,
                     $dropzoneParamIsDefined,
-                    $packCountParamIsDefined);
+                    $packCountParamIsDefined,
+                    $commandAndProjectNumberIsDefined
+                );
             }
 
             if ($printArrivage) {
@@ -1472,11 +1475,18 @@ class ArrivageController extends AbstractController
                 throw new NotFoundHttpException("404");
             }
 
+            $total = $arrivage->getPacks()->count();
+            $position = $arrivage->getPacks()->indexOf($colis) + 1;
+
             $barcodeConfigs[] = $this->getBarcodeColisConfig(
                 $colis,
                 $arrivage->getDestinataire(),
                 $usernameParamIsDefined,
-                $dropzoneParamIsDefined);
+                $dropzoneParamIsDefined,
+                "$position/$total",
+                $packCountParamIsDefined,
+                $commandAndProjectNumberIsDefined
+            );
         }
 
         if (empty($barcodeConfigs)) {
@@ -1517,23 +1527,22 @@ class ArrivageController extends AbstractController
     }
 
     private function getBarcodeConfigPrintAllColis(Arrivage $arrivage, ?bool $usernameParamIsDefined,
-                                                   ?bool $dropzoneParamIsDefined, bool $packCountParamIsDefined) {
+                                                   ?bool $dropzoneParamIsDefined, bool $packCountParamIsDefined, bool $commandAndProjectNumberIsDefined) {
         //1
         $total = $arrivage->getPacks()->count();
-        $position = 1;
         $packs = [];
 
-        foreach($arrivage->getPacks() as $pack) {
+        foreach($arrivage->getPacks() as $index => $pack) {
+            $position = $index+1;
             $packs[] = $this->getBarcodeColisConfig(
                 $pack,
                 $arrivage->getDestinataire(),
-                "$position/$total",
                 $usernameParamIsDefined,
                 $dropzoneParamIsDefined,
-                $packCountParamIsDefined
+                "$position/$total",
+                $packCountParamIsDefined,
+                $commandAndProjectNumberIsDefined
             );
-
-            $position++;
         }
 
         return $packs;
@@ -1541,11 +1550,14 @@ class ArrivageController extends AbstractController
 
     private function getBarcodeColisConfig(Pack $colis,
                                            ?Utilisateur $destinataire,
-                                           string $pack,
                                            ?bool $usernameParamIsDefined,
                                            ?bool $dropzoneParamIsDefined,
-                                           ?bool $packCountParamIsDefined)
+                                           ?string $packIndex = '',
+                                           ?bool $packCountParamIsDefined = false,
+                                           ?bool $commandAndProjectNumberIsDefined = false)
     {
+
+        $arrival = $colis->getArrivage();
 
         $recipientUsername = ($usernameParamIsDefined && $destinataire)
             ? $destinataire->getUsername()
@@ -1557,16 +1569,36 @@ class ArrivageController extends AbstractController
                 : '')
             : '';
 
-        $packLabel = ($packCountParamIsDefined ? $pack : '');
+        $arrivalCommand = $arrival
+            ? implode(" ", $arrival->getNumeroCommandeList())
+            : '';
+        $arrivalProjectNumber = $arrival
+            ? ($arrival->getProjectNumber() ?? '')
+            : '';
+
+        $packLabel = ($packCountParamIsDefined ? $packIndex : '');
 
         $usernameSeparator = ($recipientUsername && $dropZoneLabel) ? ' / ' : '';
-        $dropzoneSeparator = ($dropZoneLabel && $packLabel) ? ' / ' : '';
+
+        $labels = [
+            $recipientUsername . $usernameSeparator . $dropZoneLabel
+        ];
+
+        if ($commandAndProjectNumberIsDefined) {
+            if ($arrivalCommand !== '' && $arrivalProjectNumber !== '') {
+                $labels[] = $arrivalCommand . '/' . $arrivalProjectNumber;
+            } else if ($arrivalCommand !== '') {
+                $labels[] = $arrivalCommand;
+            } else if ($arrivalProjectNumber !== '') {
+                $labels[] = $arrivalProjectNumber;
+            }
+        } if ($packLabel) {
+            $labels[] = $packLabel;
+    }
 
         return [
             'code' => $colis->getCode(),
-            'labels' => [
-                $recipientUsername . $usernameSeparator . $dropZoneLabel . $dropzoneSeparator . $packLabel
-            ]
+            'labels' => $labels
         ];
     }
 
