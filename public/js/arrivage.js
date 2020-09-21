@@ -1,15 +1,20 @@
 $('.select2').select2();
 
+let modalColumnVisible = $('#modalColumnVisibleArrivage');
+let submitColumnVisible = $('#submitColumnVisibleArrivage');
+let urlColumnVisible = Routing.generate('save_column_visible_for_arrivage', true);
 let onFlyFormOpened = {};
 let clicked = false;
 let pageLength;
 let arrivalsTable;
 
 $(function () {
+    const $filtersContainer = $('.filters-container');
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
     initSelect2($('#statut'), 'Statuts');
-    initSelect2($('#carriers'), 'Transporteurs');
+    initSelect2($filtersContainer.find('[name="carriers"]'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));
+
     initTableArrival().then((returnedArrivalsTable) => {
         arrivalsTable = returnedArrivalsTable;
         let $modalColumnVisible = $('#modalColumnVisibleArrivage');
@@ -51,6 +56,7 @@ $(function () {
         onArrivalTypeChange($modalNewArrivage.find('[name="type"]'));
 
     });
+
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ARRIVAGE);
     $.post(path, params, function (data) {
@@ -71,6 +77,7 @@ $(function () {
 
 function initTableArrival() {
     let pathArrivage = Routing.generate('arrivage_api', true);
+
     return $
         .post(Routing.generate('arrival_api_columns'))
         .then((columns) => {

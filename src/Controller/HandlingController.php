@@ -119,7 +119,7 @@ class HandlingController extends AbstractController
                         'freeFields' => $freeFields,
                     ];
                 }, $types),
-                'handlingStatus' => $statutRepository->findByCategorieName(CategorieStatut::HANDLING, true, false),
+                'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
             ]
 		]);
     }
@@ -178,7 +178,7 @@ class HandlingController extends AbstractController
 				->setComment($post->get('comment'))
                 ->setEmergency($post->getBoolean('emergency'));
 
-            if ($status && $status->getTreated()) {
+            if ($status && $status->isTreated()) {
                 $handling->setValidationDate($date);
             }
 
@@ -232,11 +232,11 @@ class HandlingController extends AbstractController
 
             $handling = $handlingRepository->find($data['id']);
             $status = $handling->getStatus();
-            $statusTreated = $status && $status->getTreated();
+            $statusTreated = $status && $status->isTreated();
             $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
                 'handling' => $handling,
                 'handlingStatus' => !$statusTreated
-                    ? $statutRepository->findByCategorieName(CategorieStatut::HANDLING, true, false, $handling->getType())
+                    ? $statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType())
                     : [],
                 'attachments' => $attachmentsRepository->findBy(['handling' => $handling]),
             ]);
@@ -280,7 +280,7 @@ class HandlingController extends AbstractController
 
         $oldStatus = $handling->getStatus();
 
-        if (!$oldStatus || !$oldStatus->getTreated()) {
+        if (!$oldStatus || !$oldStatus->isTreated()) {
             $newStatus = $statutRepository->find($post->get('status'));
             $handling->setStatus($newStatus);
         }
@@ -296,7 +296,7 @@ class HandlingController extends AbstractController
             ->setComment($post->get('comment') ?: '')
             ->setEmergency($post->getBoolean('emergency'));
 
-        if (!$handling->getValidationDate() && $newStatus->getTreated()) {
+        if (!$handling->getValidationDate() && $newStatus->isTreated()) {
             $handling->setValidationDate($date);
         }
 

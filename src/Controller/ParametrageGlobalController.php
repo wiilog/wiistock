@@ -146,7 +146,9 @@ class ParametrageGlobalController extends AbstractController
                     'valueCarriers' => $globalParamService->getDashboardCarrierDock(),
                 ],
                 'wantsRecipient' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL),
-                'wantsDZLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL)
+                'wantsDZLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL),
+                'wantsCommandAndProjectNumber' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL),
+                'wantsPackCount' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL),
             ]);
     }
 
@@ -212,6 +214,27 @@ class ParametrageGlobalController extends AbstractController
 
         $parametrageGlobalDZLocation
             ->setValue((int) ($data['param-dz-location-etiquette'] === 'true'));
+
+        $parametrageGlobalCommandAndProjectNumbers = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
+
+        if (empty($parametrageGlobalCommandAndProjectNumbers)) {
+            $parametrageGlobalCommandAndProjectNumbers = new ParametrageGlobal();
+            $parametrageGlobalCommandAndProjectNumbers->setLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
+            $entityManager->persist($parametrageGlobalCommandAndProjectNumbers);
+        }
+
+        $parametrageGlobalCommandAndProjectNumbers
+            ->setValue((int) ($data['param-command-project-numbers-etiquette'] === 'true'));
+
+        $parametrageGlobalPackCount = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL);
+
+        if (empty($parametrageGlobalPackCount)) {
+            $parametrageGlobalPackCount = new ParametrageGlobal();
+            $parametrageGlobalPackCount->setLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL);
+            $entityManager->persist($parametrageGlobalPackCount);
+        }
+
+        $parametrageGlobalPackCount->setValue((int) ($data['param-pack-count'] === 'true'));
 
         $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
 
@@ -490,16 +513,17 @@ class ParametrageGlobalController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
             $ifExist = $parametrageGlobalRepository->findOneByLabel($data['param']);
+            $em = $this->getDoctrine()->getManager();
             if ($ifExist) {
                 $ifExist->setValue($data['val']);
-                $entityManager->flush();
+                $em->flush();
             } else {
                 $parametrage = new ParametrageGlobal();
                 $parametrage
                     ->setLabel($data['param'])
                     ->setValue($data['val']);
-                $entityManager->persist($parametrage);
-                $entityManager->flush();
+                $em->persist($parametrage);
+                $em->flush();
             }
             return new JsonResponse(true);
         }
@@ -817,6 +841,75 @@ class ParametrageGlobalController extends AbstractController
         $em->flush();
         return new JsonResponse(true);
     }
+
+    /**
+     * @Route("/modifier-business-unit",
+     *     name="set_business_unit",
+     *     options={"expose"=true},
+     *     methods="POST",
+     *     condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function editBusinessUnit(Request $request,
+                                     ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        $value = $request->request->get('value');
+
+        $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES);
+        $em = $this->getDoctrine()->getManager();
+        if (!$parametrage) {
+            $parametrage = new ParametrageGlobal();
+            $parametrage->setLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES);
+            $em->persist($parametrage);
+        }
+
+        if($value) {
+            $parametrage->setValue(json_encode($value));
+        } else {
+            $parametrage->setValue(null);
+        }
+
+        $em->flush();
+        return new JsonResponse(true);
+    }
+
+    /**
+     * @Route("/modifier-urgences-acheminements",
+     *     name="set_dispatch_emergencies",
+     *     options={"expose"=true},
+     *     methods="POST",
+     *     condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function editDispatchEmergencies(Request $request,
+                                     ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        $value = $request->request->get('value');
+
+        $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES);
+        $em = $this->getDoctrine()->getManager();
+        if (!$parametrage) {
+            $parametrage = new ParametrageGlobal();
+            $parametrage->setLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES);
+            $em->persist($parametrage);
+        }
+
+        if($value) {
+            $parametrage->setValue(json_encode($value));
+        } else {
+            $parametrage->setValue(null);
+        }
+
+        $em->flush();
+        return new JsonResponse(true);
+    }
+
 
     /**
      * @Route("/modifier-destination-demande-livraison",

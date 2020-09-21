@@ -2,11 +2,14 @@
 
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
+    {% include 'filters/filter_item/filterDispatch.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' %}
     {% include 'filters/filter_item/filterTypeMultiple.html.twig' %}
     {% include 'filters/filter_item/filterUser.html.twig' with {
         name: 'requesters'
     }%}
+    {% include 'filters/filter_item/filterCarrier.html.twig' %}
+    {% include 'filters/filter_item/filterEmergencyMultiple.html.twig' %}
     {% include 'filters/filter_item/filterUser.html.twig' with {
         name: 'receivers'
     }%}

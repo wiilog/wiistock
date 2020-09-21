@@ -24,16 +24,11 @@ class TransporteurRepository extends ServiceEntityRepository
         parent::__construct($registry, Transporteur::class);
     }
 
-    public function findAllSorted()
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT t FROM App\Entity\Transporteur t
-            ORDER BY t.label
-            "
-        );
-
-        return $query->execute();
+    public function findAllSorted() {
+        return $this->createQueryBuilder("t")
+            ->orderBy("t.label")
+            ->getQuery()
+            ->getResult();
     }
 
     public function getIdAndLibelleBySearch($search)

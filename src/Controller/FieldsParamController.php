@@ -37,6 +37,7 @@ class FieldsParamController extends AbstractController
 
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         return $this->render('fields_param/index.html.twig', [
+            'urgences' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
             'dispatchBusinessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES)),
             'arrivalBusinessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::ARRIVAL_BUSINESS_UNIT_VALUES))
         ]);

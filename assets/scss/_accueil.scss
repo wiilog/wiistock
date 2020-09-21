@@ -6,19 +6,6 @@
     background-size: cover;
 }
 
-#alerts {
-    position: absolute;
-    z-index: 10000;
-    top: 0;
-    left: 0;
-    right: 0;
-}
-
-.alert-danger {
-    padding: 10px;
-    text-align: center;
-}
-
 .dashboard-item {
     min-width: 50%;
     min-height: 40%;

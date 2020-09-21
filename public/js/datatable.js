@@ -158,7 +158,7 @@ function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needs
 function getAppropriateRowCallback({needsColor, color, dataToCheck, needsRowClickAction, callback}) {
     return function (row, data) {
         if (needsColor
-            && (data[dataToCheck] === true || data[dataToCheck] === 'oui')) {
+            && (data[dataToCheck] === true || data[dataToCheck] && data[dataToCheck].toLowerCase() !== 'non')) {
             $(row).addClass('table-' + color);
         }
         if (needsRowClickAction) {
