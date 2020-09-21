@@ -94,19 +94,30 @@ class DispatchRepository extends EntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
+                    $d = DateTime::createFromFormat('d/m/Y', $search);
+                    if ($d) {
+                        $search = DateTime::createFromFormat('d/m/Y',$search)->format('Y-m-d');
+                    }
                     $qb
                         ->andWhere('(' . $exprBuilder->orX(
-                            'd.creationDate LIKE :value',
-                            'd.number LIKE :value',
-                            'search_locationFrom.label LIKE :value',
-                            'search_locationTo.label LIKE :value',
-                            'search_statut.nom LIKE :value',
-                            'd.creationDate LIKE :value'
+                                'd.creationDate LIKE :value',
+                                'd.validationDate LIKE :value',
+                                'search_type.label LIKE :value',
+                                'search_requester.username LIKE :value',
+                                'search_receiver.username LIKE :value',
+                                'd.number LIKE :value',
+                                'search_locationFrom.label LIKE :value',
+                                'search_locationTo.label LIKE :value',
+                                'search_statut.nom LIKE :value',
+                                'd.freeFields LIKE :value'
+
                         ) . ')')
                         ->leftJoin('d.locationFrom', 'search_locationFrom')
                         ->leftJoin('d.locationTo', 'search_locationTo')
                         ->leftJoin('d.statut', 'search_statut')
                         ->leftJoin('d.type', 'search_type')
+                        ->leftJoin('d.requester','search_requester')
+                        ->leftJoin('d.receiver', 'search_receiver')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
