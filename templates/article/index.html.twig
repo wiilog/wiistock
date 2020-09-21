@@ -7,14 +7,6 @@
     {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
-            <div class="col-auto ml-auto">
-                <div id="alerts">
-                    <div class="alert alert-danger text-center d-none">
-                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-                        <span class="error-msg"></span>
-                    </div>
-                </div>
-            </div>
             <div class="col-auto">
                 <div class="btn-group">
                     {% if hasRightToCreate %}
@@ -105,7 +97,7 @@
     {% include "article/modalNewArticle.html.twig" %}
     {% include "article/modalDeleteArticle.html.twig" %}
     {% include "article/modalRapidSearch.html.twig" %}
-    {% include "article/modalColumnVisible.html.twig" %}
+    {% include "article/modalVisibleColumns.html.twig" %}
     <div class="d-none" id="barcodes"></div>
     <input type="hidden" id="listArticleIdToPrint">
 {% endblock %}

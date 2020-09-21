@@ -27,7 +27,7 @@ let tableArticleConfig = {
         'dataSrc': function (json) {
             json.data.some((data) => {
                 if (data.EmptyLocation) {
-                    alertErrorMsg('Il manque un ou plusieurs emplacements : ils n\'apparaîtront pas sur le nomade.');
+                    showBSAlert('Il manque un ou plusieurs emplacements : ils n\'apparaîtront pas sur le nomade.', 'danger');
                 }
             });
             return json.data;
@@ -63,7 +63,7 @@ let tableRefArticleConfig = {
         'dataSrc': function (json) {
             json.data.some((data) => {
                 if (data.EmptyLocation) {
-                    alertErrorMsg('Il manque un ou plusieurs emplacements : ils n\'apparaîtront pas sur le nomade.');
+                    showBSAlert('Il manque un ou plusieurs emplacements : ils n\'apparaîtront pas sur le nomade.', 'danger');
                 }
             });
             return json.data;

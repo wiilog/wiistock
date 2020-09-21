@@ -3,6 +3,7 @@
 
 namespace App\Service;
 
+use App\Entity\ChampLibre;
 use App\Entity\Dispatch;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -74,9 +75,21 @@ class DispatchService {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
+        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->user);
-        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, $categorieCL);
+
+        $queryResult = $dispatchRepository->findByParamAndFilters(
+            $params,
+            $filters,
+            array_reduce($freeFields, function (array $accumulator, array $freeField) {
+                $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
+                return $accumulator;
+            }, [])
+        );
 
         $dispatchesArray = $queryResult['data'];
 
@@ -102,7 +115,23 @@ class DispatchService {
     public function dataRowDispatch(Dispatch $dispatch) {
         $url = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
 
-        return [
+        $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
+        $freeFieldsRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
+
+        $category = CategoryType::DEMANDE_DISPATCH;
+        $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
+
+        $rowCL = [];
+        /** @var ChampLibre $freeField */
+        foreach ($freeFields as $freeField) {
+            $rowCL[$freeField['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
+                'valeur' => $dispatch->getFreeFieldValue($freeField['id']),
+                "typage" => $freeField['typage'],
+            ]);
+        }
+
+        $row = [
             'id' => $dispatch->getId() ?? 'Non défini',
             'number' => $dispatch->getNumber() ?? '',
             'creationDate' => $dispatch->getCreationDate() ? $dispatch->getCreationDate()->format('d/m/Y H:i:s') : '',
@@ -114,12 +143,16 @@ class DispatchService {
             'nbPacks' => $dispatch->getDispatchPacks()->count(),
             'type' => $dispatch->getType() ? $dispatch->getType()->getLabel() : '',
             'status' => $dispatch->getStatut() ? $dispatch->getStatut()->getNom() : '',
-            'urgent' => $dispatch->isUrgent() ? 'oui' : 'non',
+            'emergency' => $dispatch->getEmergency() ?? '',
+            'treatmentDate' => $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate()->format('d/m/Y H:i:s') : '',
             'actions' => $this->templating->render('dispatch/datatableDispatchRow.html.twig', [
                 'dispatch' => $dispatch,
                 'url' => $url
             ]),
         ];
+
+        $rows = array_merge($rowCL, $row);
+        return $rows;
     }
 
     public function createHeaderDetailsConfig(Dispatch $dispatch): array {
@@ -134,6 +167,7 @@ class DispatchService {
         $locationTo = $dispatch->getLocationTo();
         $creationDate = $dispatch->getCreationDate();
         $validationDate = $dispatch->getValidationDate() ? $dispatch->getValidationDate() : '';
+        $treatmentDate = $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate() : '';
         $startDate = $dispatch->getStartDate();
         $endDate = $dispatch->getEndDate();
         $startDateStr = $startDate ? $startDate->format('d/m/Y') : '-';
@@ -182,6 +216,7 @@ class DispatchService {
                 ['label' => $this->translator->trans('acheminement.Emplacement dépose'), 'value' => $locationTo ? $locationTo->getLabel() : ''],
                 ['label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''],
                 ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i:s') : ''],
+                ['label' => 'Date de traitement', 'value' => $treatmentDate ? $treatmentDate->format('d/m/Y H:i:s') : ''],
                 ['label' => 'Dates d\'échéance', 'value' => ($startDate || $endDate) ? ('Du ' . $startDateStr . ' au ' . $endDateStr) : ''],
                 ['label' => 'Traité par', 'value' => $treatedBy]
             ],
@@ -214,7 +249,7 @@ class DispatchService {
         $lastDispatchNumber = $dispatchRepository->getLastDispatchNumberByPrefix(Dispatch::PREFIX_NUMBER . $dateStr);
 
         if ($lastDispatchNumber) {
-            $lastCounter = (int)substr($lastDispatchNumber, -4, 4);
+            $lastCounter = (int) substr($lastDispatchNumber, -4, 4);
             $currentCounter = ($lastCounter + 1);
         } else {
             $currentCounter = 1;
@@ -251,8 +286,7 @@ class DispatchService {
             $requesterEmails = $dispatch->getRequester() ? $dispatch->getRequester()->getMainAndSecondaryEmails() : [];
 
             $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
-
-            $title = $status->getTreated()
+            $title = $status->isTreated()
                 ? $this->translator->trans('acheminement.Acheminement {numéro} traité le {date}', [
                     "{numéro}" => $dispatch->getNumber(),
                     "{date}" => $dispatch->getValidationDate()->format('d/m/Y à H:i:s')
@@ -260,9 +294,7 @@ class DispatchService {
                 : (!$isUpdate
                     ? ('Une ' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
                     : ('Changement de statut d\'une ' . $translatedCategory . ' de type ' . $type . ' vous concernant :'));
-
-
-            $subject = $status->getTreated() ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translator->trans('acheminement.demande d\'acheminement') . '.')
+            $subject = $status->isTreated() ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translator->trans('acheminement.demande d\'acheminement') . '.')
                 : (!$isUpdate
                     ? ('FOLLOW GT // Création d\'une ' . $translatedCategory)
                     : 'FOLLOW GT // Changement de statut d\'une ' . $translatedCategory . '.');
@@ -277,7 +309,7 @@ class DispatchService {
                 array_push($emails, ...$requesterEmails);
             }
 
-            $isTreatedStatus = $dispatch->getStatut() && $dispatch->getStatut()->getTreated();
+            $isTreatedStatus = $dispatch->getStatut() && $dispatch->getStatut()->isTreated();
             $isTreatedByOperator = $dispatch->getTreatedBy() && $dispatch->getTreatedBy()->getUsername();
 
             $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
@@ -324,7 +356,7 @@ class DispatchService {
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $dispatch
             ->setStatut($treatedStatus)
-            ->setValidationDate($date);
+            ->setTreatmentDate($date);
 
         foreach ($dispatchPacks as $dispatchPack) {
             $pack = $dispatchPack->getPack();
@@ -359,4 +391,51 @@ class DispatchService {
 
         $this->sendEmailsAccordingToStatus($dispatch, true);
     }
+
+    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+
+        $columnsVisible = $currentUser->getColumnsVisibleForDispatch();
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, $categorieCL);
+
+        $columns = [
+            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true],
+            ['title' => 'Numéro demande', 'name' => 'number'],
+            ['title' => 'Date de création',  'name' => 'creationDate'],
+            ['title' => 'Date de validation', 'name' => 'validationDate'],
+            ['title' => 'Date de traitement', 'name' => 'treatmentDate'],
+            ['title' => 'Type', 'name' => 'type'],
+            ['title' => 'Demandeur', 'name' => 'requester'],
+            ['title' => 'Destinataire', 'name' => 'receiver'],
+            ['title' => 'acheminement.Emplacement prise', 'name' => 'locationFrom', 'translated' => true],
+            ['title' => 'acheminement.Emplacement dépose', 'name' => 'locationTo', 'translated' => true],
+            ['title' => 'acheminement.Nb colis', 'name' => 'nbPacks', 'orderable' => false, 'translated' => true],
+            ['title' => 'Statut', 'name' => 'status'],
+            ['title' => 'Urgence', 'name' => 'emergency'],
+        ];
+
+        return array_merge(
+            array_map(function (array $column) use ($columnsVisible) {
+                return [
+                    'title' => $column['title'],
+                    'alwaysVisible' => $column['alwaysVisible'] ?? false,
+                    'data' => $column['name'],
+                    'name' => $column['name'],
+                    'translated' => $column['translated'] ?? false,
+                    'class' => $column['class'] ?? (in_array($column['name'], $columnsVisible) ? 'display' : 'hide')
+                ];
+            }, $columns),
+            array_map(function (array $freeField) use ($columnsVisible) {
+                return [
+                    'title' => ucfirst(mb_strtolower($freeField['label'])),
+                    'data' => $freeField['label'],
+                    'name' => $freeField['label'],
+                    'class' => (in_array($freeField['label'], $columnsVisible) ? 'display' : 'hide'),
+                ];
+            }, $freeFields)
+        );
+    }
+
 }

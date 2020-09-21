@@ -30,14 +30,6 @@
     {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
-            <div class="col-auto ml-auto" title="référence">
-                <div id="alerts">
-                    <div class="alert alert-danger text-center d-none">
-                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-                        <span class="error-msg"></span>
-                    </div>
-                </div>
-            </div>
             <div class="col-auto">
                 <div class="btn-group">
                     {% if hasRightToCreate %}
@@ -118,7 +110,7 @@
     {% include "reference_article/modalShowRefArticle.html.twig" %}
     {% include "reference_article/modalNewFilter.html.twig" %}
 
-    {% include "reference_article/modalColumnVisible.html.twig" %}
+    {% include "reference_article/modalVisibleColumns.html.twig" %}
     {% include "reference_article/modalRapidSearch.html.twig" %}
     {% include "reference_article/modalPlusDemande.html.twig" %}
     {% include "reference_article/modalConfirmDeleteBox.html.twig" %}

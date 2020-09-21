@@ -1,18 +1,6 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div id="alerts">
-        <div class="alert alert-danger text-center d-none" onclick="this.style.display='none';">
-            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-            <span class="error-msg"></span>
-        </div>
-
-        <div class="alert alert-success text-center d-none" onclick="this.style.display='none';">
-            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-            <span class="confirm-msg"></span>
-        </div>
-    </div>
-
     <div class="wrapper {% block wrapperClass '' %}">
         <div class="header-container">
             {% include 'header.html.twig' with {
@@ -27,8 +15,11 @@
 
             {% block page_content %}{% endblock %}
 
-            {% include 'alert/modal-alert.html.twig' %}
+            {% include 'utils/modal-alert/modal-alert.html.twig' %}
         </div>
     </div>
+
+    <div id="alerts-container"></div>
+    {% include 'utils/alert.html.twig' with {show: false} %}
 
 {% endblock %}

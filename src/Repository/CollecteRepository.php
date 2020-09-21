@@ -198,7 +198,6 @@ class CollecteRepository extends EntityRepository
 		];
 	}
 
-
 	public function getIdAndLibelleBySearch($search)
 	{
 		$em = $this->getEntityManager();

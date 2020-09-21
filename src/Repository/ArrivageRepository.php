@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
+use App\Entity\Statut;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use DateTime;
@@ -208,9 +209,11 @@ class ArrivageRepository extends EntityRepository
 			FROM App\Entity\Litige l
 			JOIN l.packs c
 			JOIN l.status s
-			WHERE s.treated = 0
+			WHERE s.state = :stateNotTreated
 			AND c.arrivage = :arrivage"
-        )->setParameter('arrivage', $arrivage);
+        )
+            ->setParameter('stateNotTreated', Statut::NOT_TREATED)
+            ->setParameter('arrivage', $arrivage);
 
         return $query->getSingleScalarResult();
     }
@@ -262,7 +265,9 @@ class ArrivageRepository extends EntityRepository
                 ->setParameter('userId', $userId);
         }
 
-        $countTotal = count($qb->getQuery()->getResult());
+        $countTotal = $qb->select("COUNT(a)")
+            ->getQuery()
+            ->getSingleScalarResult();
 
         // filtres sup
         $statut = null;
@@ -460,7 +465,11 @@ class ArrivageRepository extends EntityRepository
             $qb->andWhere('a.date <= :dateMax')
                 ->setParameter('dateMax', $nowToString . " 23:59:59");
         }
-        $arrivages = $qb->getQuery()->getResult();
+
+        $arrivages = $qb->select('a')
+            ->getQuery()
+            ->getResult();
+
         if ($statut) {
             $arrivages = array_filter($arrivages, function (Arrivage $arrivage) use ($statut) {
                 return ($arrivage->getStatus() === $statut);

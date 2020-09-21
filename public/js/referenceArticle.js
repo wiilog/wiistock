@@ -236,7 +236,7 @@ function removeFilter($button, filterId) {
                     }
                 }
             } else if (data.msg) {
-                alertErrorMsg(data.msg);
+                showBSAlert(data.msg, 'danger');
             }
 
         }
@@ -420,7 +420,6 @@ function passArgsToModal(button) {
 function setMaxQuantityByArtRef(input) {
     let val = 0;
     val = $('#quantite').val();
-    console.log(input);
     input.attr('max', val);
 }
 
@@ -490,7 +489,7 @@ function printReferenceArticleBarCode($button, event) {
                 true
             );
         } else {
-            alertErrorMsg('Les filtres et/ou la recherche n\'ont donnés aucun résultats, il est donc impossible de les imprimer.', true);
+            showBSAlert('Les filtres et/ou la recherche n\'ont donnés aucun résultats, il est donc impossible de les imprimer.', 'danger');
         }
     } else {
         event.stopPropagation();
@@ -573,9 +572,9 @@ function updateQuantity(referenceArticleId) {
         success: (response) => {
             if (response.success) {
                 pageTables[0].ajax.reload();
-                alertSuccessMsg('Les quantités de la réference article ont bien été recalculées.');
+                showBSAlert('Les quantités de la réference article ont bien été recalculées.', 'success');
             } else {
-                alertErrorMsg('Une erreur lors du calcul des quantités est survenue');
+                showBSAlert('Une erreur lors du calcul des quantités est survenue', 'danger');
             }
         }
     });

@@ -123,7 +123,7 @@ class HandlingService
         if (!empty($emails)) {
             $status = $handling->getStatus();
             if ($status && $status->getSendNotifToDeclarant()) {
-                $statusTreated = $status->getTreated();
+                $statusTreated = $status->isTreated();
                 $subject = $statusTreated
                     ? $this->translator->trans('services.Demande de service effectuée')
                     : $this->translator->trans('services.Changement de statut d\'une demande de service');

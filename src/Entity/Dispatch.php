@@ -25,6 +25,8 @@ class Dispatch extends FreeFieldEntity
         'deliveryAddress' => false,
         'deliveryNumber' => false,
         'deliveryDate' => false,
+        'dispatchEmergency' => false,
+        'packs' => false,
         'salesOrderNumber' => false,
         'wayBill' => false,
         'customerPONumber' => false,
@@ -47,7 +49,7 @@ class Dispatch extends FreeFieldEntity
         'deliverTo' => false,
         'consigner2' => true,
         'date' => false,
-        'notes' => true
+        'notes' => true,
     ];
     /**
      * @var [string => bool] Associate field name to bool, if TRUE we saved it in user entity
@@ -94,10 +96,9 @@ class Dispatch extends FreeFieldEntity
     private $commentaire;
 
     /**
-     * @var bool
-     * @ORM\Column(type="boolean", nullable=false, options={"default": false})
+     * @ORM\Column(type="string", nullable=true)
      */
-    private $urgent;
+    private $emergency;
 
     /**
      * @var DateTime|null
@@ -176,6 +177,11 @@ class Dispatch extends FreeFieldEntity
     private $validationDate;
 
     /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $treatmentDate;
+
+    /**
      * @var array|null
      * @ORM\Column(type="json", nullable=true)
      */
@@ -211,7 +217,6 @@ class Dispatch extends FreeFieldEntity
         $this->attachements = new ArrayCollection();
         $this->waybillData = [];
         $this->deliveryNoteData = [];
-        $this->urgent = false;
     }
 
     public function getId(): ?int
@@ -434,12 +439,12 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
-    public function isUrgent(): bool {
-        return $this->urgent;
+    public function getEmergency(): ?string {
+        return $this->emergency;
     }
 
-    public function setUrgent(bool $urgent): self {
-        $this->urgent = $urgent;
+    public function setEmergency(?string $emergency): self {
+        $this->emergency = $emergency;
         return $this;
     }
 
@@ -475,15 +480,21 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
-    public function getValidationDate(): ?\DateTimeInterface
-    {
+    public function getValidationDate(): ?\DateTimeInterface {
         return $this->validationDate;
     }
 
-    public function setValidationDate(?\DateTimeInterface $validationDate): self
-    {
+    public function setValidationDate(?\DateTimeInterface $validationDate): self {
         $this->validationDate = $validationDate;
+        return $this;
+    }
 
+    public function getTreatmentDate(): ?\DateTimeInterface {
+        return $this->treatmentDate;
+    }
+
+    public function setTreatmentDate(?\DateTimeInterface $treatmentDate): self {
+        $this->treatmentDate = $treatmentDate;
         return $this;
     }
 
@@ -569,7 +580,7 @@ class Dispatch extends FreeFieldEntity
     /**
      * @return array
      */
-    public function getDeliveryNoteData(): array {
+    public function getDeliveryNoteData(): ?array {
         return $this->deliveryNoteData;
     }
 

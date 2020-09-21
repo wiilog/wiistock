@@ -14,14 +14,24 @@
 
 {% block showActions %}
     <div class="btn-group">
-        {% if modifiable and hasRightEdit %}
-            <button type="button"
-                    data-id='{{ dispatch.id }}'
-                    onclick="openValidateDispatchModal()"
-                    class="btn btn-primary btn-ripple split-button">
-                <i class="fa fa-check mr-2 button-icon"></i>
-                Valider la demande
-            </button>
+        {% if hasRightEdit %}
+            {% if dispatch.statut.draft %}
+                <button type="button"
+                        data-id='{{ dispatch.id }}'
+                        onclick="openValidateDispatchModal()"
+                        class="btn btn-primary btn-ripple split-button">
+                    <i class="fa fa-check mr-2 button-icon"></i>
+                    Valider la demande
+                </button>
+            {% elseif dispatch.statut.notTreated %}
+                <button type="button"
+                        data-id='{{ dispatch.id }}'
+                        onclick="openTreatDispatchModal()"
+                        class="btn btn-primary btn-ripple split-button">
+                    <i class="fa fa-check mr-2 button-icon"></i>
+                    Terminer la demande
+                </button>
+            {% endif %}
         {% endif %}
 
         <button type="button"
@@ -36,16 +46,23 @@
                data-dispatch-id='{{ dispatch.id }}'
                onclick="openDeliveryNoteModal($(this))"
                class="dropdown-item">
-                <i class="fa fa-print mr-2"></i>
+                <i class="fa fa-print"></i>
                 Générer un bon de livraison
             </a>
             <a type="button"
                data-dispatch-id='{{ dispatch.id }}'
                onclick="openWaybillModal($(this))"
                class="dropdown-item">
-                <i class="fa fa-print mr-2"></i>
+                <i class="fa fa-print"></i>
                 Générer une lettre de voiture
             </a>
+            {% if hasRightExport %}
+                <a class="dropdown-item"
+                   onclick="runDispatchPrint()">
+                    <i class="fas fa-print"></i>
+                    {{ 'acheminement.Générer un bon d\'acheminement'|trans }}
+                </a>
+            {% endif %}
             {% if hasRightEdit %}
                 <a href="#"
                    data-id='{{ dispatch.id }}'
@@ -53,19 +70,15 @@
                    data-toggle='modal'
                    onclick="editRow($(this), Routing.generate('dispatch_edit_api', true), $('#modalEditDispatch'), $('#submitEditDispatch'), true, '#modalEditDispatch .editor-container-edit')"
                    class="dropdown-item">
-                    <i class="fa fa-pen mr-2"></i>Modifier
+                    <i class="fa fa-pen"></i>
+                    Modifier
                 </a>
             {% endif %}
             {% if hasRightDelete %}
                 <a href="" data-id='{{ dispatch.id }}' data-target='#modalDeleteDispatch' data-toggle='modal'
                    class="dropdown-item">
-                    <i class="fa fa-trash mr-2"></i>Supprimer
-                </a>
-            {% endif %}
-            {% if hasRightExport %}
-                <a class="dropdown-item"
-                   onclick="runDispatchPrint()">
-                    <i class='fas fa-print mr-2'></i>Imprimer
+                    <i class="fa fa-trash"></i>
+                    Supprimer
                 </a>
             {% endif %}
         </div>
@@ -73,8 +86,8 @@
 {% endblock %}
 
 {% block showUrgence %}
-    {% if dispatch.urgent is defined and dispatch.urgent == true %}
+    {% if dispatch.emergency %}
         <i class="fa fa-exclamation-triangle mr-2"></i>
-        <span title="Cet acheminement est urgent">{{ 'acheminement.Cet acheminement est urgent'|trans }}.</span>
+        <span title="Cet acheminement est urgent">{{ 'acheminement.Cet acheminement est urgent'|trans }} ({{ dispatch.emergency }})</span>
     {% endif %}
 {% endblock %}

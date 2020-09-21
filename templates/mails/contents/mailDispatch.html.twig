@@ -7,7 +7,7 @@
     {% set endDate = dispatch.endDate %}
     {% set startDateStr = startDate ? startDate.format('d/m/Y') : '-' %}
     {% set endDateStr = endDate ? startDate.format('d/m/Y') : '-' %}
-    {% set emergency = dispatch.urgent ? 'Oui' : 'Non' %}
+    {% set emergency = dispatch.emergency ?? 'Non' %}
     {% set receiver = dispatch.receiver ? dispatch.receiver.username %}
     {% set comment = dispatch.commentaire ? dispatch.commentaire|raw %}
     {% set hideNumberParam = hideNumber is defined and hideNumber %}
