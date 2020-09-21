@@ -60,7 +60,7 @@ function initPage() {
 
             let $modalNewDispatch = $("#modalNewDispatch");
             let $submitNewDispatch = $("#submitNewDispatch");
-            let urlDispatchNew = Routing.generate('dispatch_new', {printDeliveryNote: false}, true);
+            let urlDispatchNew = Routing.generate('dispatch_new', true);
             InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew, {tables: [tableDispatches]});
 
             let modalColumnVisible = $('#modalColumnVisibleDispatch');

@@ -92,7 +92,6 @@
                         {% endif %}
                     </div>
                     <div class="col-4">
-
                         <div class="form-group">
                             <label for="demandeur">Demandeur*</label>
                             <select class="demandeur form-control data needed ajax-autocomplete-user w-100" name="requester"></select>
@@ -222,7 +221,7 @@
                         {% endif %}
                     </div>
                 </div>
-                {% if packs is defined %}
+                {% if packs is defined and packs is not empty %}
                     <div class="row">
                         <div class="col-12">
                             <label>Colis à acheminer</label>
