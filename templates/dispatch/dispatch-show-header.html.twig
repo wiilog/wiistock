@@ -1,10 +1,16 @@
 {% extends 'utils/show-header.html.twig' %}
 
-{% block showTitle ('acheminement.acheminement'|trans ~ ' n°' ~ dispatch.number) %}
+{% block showTitle ('acheminement.Acheminement'|trans ~ ' n°' ~ dispatch.number) %}
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
 {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
 {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_ACHE')) %}
+
+{# droit de modification/suppression pour les acheminements non traités #}
+{% if not dispatch.statut.treated %}
+    {% set hasRightEdit = hasRightEdit and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_UNPROCESSED_DISPATCH')) %}
+    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_UNPROCESSED_DISPATCH')) %}
+{% endif %}
 
 {% block showActions %}
     <div class="btn-group">

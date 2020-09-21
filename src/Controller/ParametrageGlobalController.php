@@ -112,8 +112,7 @@ class ParametrageGlobalController extends AbstractController
                     'listStatusArrivage' => $statusService->findAllStatusArrivage(),
                     'location' => $globalParamService->getMvtDeposeArrival(),
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
-                    'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
-                    'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES))
+                    'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL)
                 ],
                 'paramDispatches' => [
                     'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
@@ -829,36 +828,6 @@ class ParametrageGlobalController extends AbstractController
         $em->flush();
         return new JsonResponse(true);
     }
-
-    /**
-     * @Route("/modifier-business-unit",
-     *     name="set_business_unit",
-     *     options={"expose"=true},
-     *     methods="POST",
-     *     condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function editBusinessUnit(Request $request,
-                                     ParametrageGlobalRepository $parametrageGlobalRepository): Response
-    {
-        $value = $request->request->get('value');
-
-        $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES);
-        $em = $this->getDoctrine()->getManager();
-        if (!$parametrage) {
-            $parametrage = new ParametrageGlobal();
-            $parametrage->setLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES);
-            $em->persist($parametrage);
-        }
-        $parametrage->setValue(json_encode($value));
-
-        $em->flush();
-        return new JsonResponse(true);
-    }
-
 
     /**
      * @Route("/modifier-destination-demande-livraison",

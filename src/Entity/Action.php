@@ -42,6 +42,8 @@ class Action
     const DISPLAY_ACHE = 'afficher acheminements';
     const CREATE_ACHE = 'créer acheminements';
     const DELETE_ACHE = 'supprimer acheminements';
+    const EDIT_UNPROCESSED_DISPATCH = 'modifier des acheminements à traiter';
+    const DELETE_UNPROCESSED_DISPATCH = 'supprimer acheminements à traiter';
 
 	// menu ordre
 	const DISPLAY_ORDRE_COLL = 'afficher collectes';

@@ -38,9 +38,8 @@
                                     {{ isRaw ? datum.value|raw : datum.value }}
                                 </div>
                             {% else %}
-                                {% set valueToPrint = (isRaw ? datum.value|raw : datum.value) %}
-                                {% if valueToPrint is not empty %}
-                                    {{ valueToPrint }}
+                                {% if datum.value is not empty %}
+                                    {{ isRaw ? datum.value | raw : datum.value }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}

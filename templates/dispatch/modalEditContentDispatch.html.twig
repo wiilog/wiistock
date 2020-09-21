@@ -10,7 +10,7 @@
 <div class="form-group">
     <label>Statut*</label>
     <select name="statut"
-            {{ dispatch.statut is not null and dispatch.statut.treated ? 'disabled' }}
+        {{ dispatch.statut is not null and dispatch.statut.treated ? 'disabled' }}
             class="form-control data d-block needed"
             title="Statut">
         {% if dispatch.statut is not null %}
@@ -32,18 +32,53 @@
         {% endif %}
     </select>
 </div>
+
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    <div class="form-group">
+        <label>Transporteur{{ required ? '*' }}</label>
+            <select class="form-control data ajax-autocomplete-transporteur-edit w-100 {{ required ? 'needed' }}"
+                    title="Transporteur"
+                    name="carrier">
+                {% if dispatch.carrier is defined and dispatch.carrier is not null %}
+                    <option selected value="{{ dispatch.carrier.id }}">{{ dispatch.carrier.label }}</option>
+                {% endif %}
+            </select>
+    </div>
+{% endif %}
+
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    <div class="form-group">
+        <label>Numéro de tracking transporteur{{ required ? '*' }}</label>
+        <input class="form-control data {{ required ? 'needed' }}"
+               title="Numéro de tracking transporteur"
+               name="transporterTrackingNumber"
+               value="{{ dispatch.carrierTrackingNumber }}"/>
+    </div>
+{% endif %}
+
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    <div class="form-group">
+        <label>Numéro de commande{{ required ? '*' }}</label>
+        <input class="form-control data {{ required ? 'needed' }}"
+               title="Numéro de commande"
+               name="commandNumber"
+               value="{{ dispatch.commandNumber }}"/>
+    </div>
+{% endif %}
+
 <div class="form-group">
     <label for="demandeur">Demandeur*</label>
     <select class="demandeur form-control data needed ajax-autocomplete-user-edit w-100" name="requester">
-        <option selected value="{{ dispatch.requester.id }}">{{ dispatch.requester.username }}</option>
-        {% for utilisateur in utilisateurs %}
-            <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
-        {% endfor %}
+        {% if dispatch.requester is defined and dispatch.requester is not null %}
+            <option selected value="{{ dispatch.requester.id }}">{{ dispatch.requester.username }}</option>
+        {% endif %}
     </select>
-    <input hidden
-           name="logged-user"
-           data-username="{{ app.user.username }}"
-           data-id="{{ app.user.id }}"/>
 </div>
 {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DISPATCH') %}
 {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
@@ -59,6 +94,7 @@
         </select>
     </div>
 {% endif %}
+
 {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEADLINE_DISPATCH') %}
 {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
     {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
@@ -95,7 +131,7 @@
             <label class="switch mt-2">
                 <input class="checkbox {{ required ? 'needed' }}"
                        name="urgent"
-                       {{ dispatch.urgent ? 'checked' }}
+                    {{ dispatch.urgent ? 'checked' }}
                        type="checkbox"/>
                 <span class="slider round"></span>
             </label>
@@ -103,7 +139,7 @@
     </div>
 {% endif %}
 <div class="form-group w-100">
-    <label for="prise" title="Emplacement de prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
+    <label for="prise" title="Emplacement de prise">{{ 'acheminement.Emplacement prise'|trans }}*</label>
     <select name="prise" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-prise" id="prise">
         {% if dispatch.locationFrom %}
             <option value="{{ dispatch.locationFrom.id }}">{{ dispatch.locationFrom.label }}</option>
@@ -111,13 +147,44 @@
     </select>
 </div>
 <div class="form-group w-100">
-    <label for="depose" title="Emplacement de dépose">{{ 'acheminement.emplacement dépose'|trans }}*</label>
+    <label for="depose" title="Emplacement de dépose">{{ 'acheminement.Emplacement dépose'|trans }}*</label>
     <select name="depose" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-depose" id="depose">
         {% if dispatch.locationTo %}
             <option value="{{ dispatch.locationTo.id }}">{{ dispatch.locationTo.label }}</option>
         {% endif %}
     </select>
 </div>
+
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_DISPATCH') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    <div class="form-group">
+        <label for="project">Numéro de projet{{ required ? '*' }}</label>
+        <input class="form-control data {{ required ? 'needed' }}"
+               title="Numéro de projet"
+               name="projectNumber"
+               value="{{ dispatch.projectNumber }}"/>
+    </div>
+{% endif %}
+
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT_DISPATCH') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    <div class="form-group">
+        <label for="project">Business Unit{{ required ? '*' }}</label>
+        <select name="businessUnit"
+                class="form-control data {{ required ? 'needed' }}"
+                title="Business Unit">
+            <option value=""></option>
+            {% if dispatch.businessUnit and dispatch.businessUnit not in dispatchBusinessUnits %}
+                <option value="{{ dispatch.businessUnit }}" selected>{{ dispatch.businessUnit }}</option>
+            {% endif %}
+            {% for businessUnit in dispatchBusinessUnits %}
+                <option value="{{ businessUnit }}" {{ businessUnit == dispatch.businessUnit ? 'selected' }}>{{ businessUnit }}</option>
+            {% endfor %}
+        </select>
+    </div>
+{% endif %}
 
 <!-- CHAMPS LIBRES -->
 {% if dispatch.type is not null and dispatch.type.champsLibres.count > 0 %}

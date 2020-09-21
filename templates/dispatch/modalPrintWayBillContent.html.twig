@@ -61,10 +61,10 @@
 <div class="row">
     <div class="col-12 col-md-6">
         <div class="row">
-            <label class="col-12">Contact expéditeur</label>
+            <label class="col-12">Contact expéditeur / Consigner contact</label>
         </div>
         <div class="form-group row">
-            <label class="col-12">Nom</label>
+            <label class="col-12">Nom / Name</label>
             <div class="col-12">
                 <input title="Expéditeur nom"
                        name="consignerUsername"
@@ -73,7 +73,7 @@
             </div>
         </div>
         <div class="form-group row">
-            <label class="col-12">Téléphone / email</label>
+            <label class="col-12">Téléphone - Email / Phone number - Mail</label>
             <div class="col-12">
                 <input title="Expéditeur téléphone / email"
                        name="consignerEmail"
@@ -84,10 +84,10 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="row">
-            <label class="col-12">Contact destinataire</label>
+            <label class="col-12">Contact destinataire / Receiver contact</label>
         </div>
         <div class="form-group row">
-            <label class="col-12">Nom</label>
+            <label class="col-12">Nom / Name</label>
             <div class="col-12">
                 <input title="Destinataire nom"
                        name="receiverUsername"
@@ -96,7 +96,7 @@
             </div>
         </div>
         <div class="form-group row">
-            <label class="col-12">Téléphone / email</label>
+            <label class="col-12">Téléphone - Email / Phone number - Mail</label>
             <div class="col-12">
                 <input title="Destinataire téléphone / email"
                        name="receiverEmail"
@@ -110,7 +110,7 @@
 <div class="row">
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Lieu de chargement</label>
+            <label class="col-12">Lieu de chargement / Loading zone</label>
             <div class="col-12">
                 <input title="Lieu de chargement"
                        name="locationFrom"
@@ -126,7 +126,7 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Lieu de déchargement</label>
+            <label class="col-12">Lieu de déchargement / Unloading zone</label>
             <div class="col-12">
                 <input title="Lieu de déchargement"
                        name="locationTo"
@@ -141,7 +141,7 @@
 <div class="row">
     <div class="col-12">
         <div class="form-group row">
-            <label class="col-12">Note de bas de page</label>
+            <label class="col-12">Note de bas de page / Footnote</label>
             <div class="col-12">
                 <textarea class="form-control data"
                           name="notes"
@@ -157,6 +157,9 @@
 <div class="row">
     <em class="col-12">
         Information : Le contenu des colis doit être modifié sur les colis
+    </em>
+    <em class="col-12">
+        Information : The content of the packages must be changed on the packages
     </em>
     {% if packsCounter > 10 %}
         <div class="col-12 error-msg">
