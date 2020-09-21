@@ -1362,3 +1362,26 @@ function limitTextareaLength($textarea, lineNumber, lineLength) {
         $textarea[0].selectionEnd = cursorPosition;
     }
 }
+
+function GetRequestQuery() {
+    const searchSplit = (location.search.substring(1, location.search.length) || '').split('&');
+    const res = {};
+    for (let i = 0; i < searchSplit.length; i += 1) {
+        const [name, value] = searchSplit[i].split('=');
+        if (name) {
+            res[decodeURIComponent(name).toLowerCase()] = decodeURIComponent(value);
+        }
+    }
+    return res;
+}
+
+function SetRequestQuery(queryParams = {}) {
+    const queryParamStr = Object
+        .keys(queryParams)
+        .map((key) => `${encodeURIComponent(key)}=${queryParams[key] ? encodeURIComponent(queryParams[key]) : ''}`)
+        .join('&')
+
+    const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}${queryParamStr ? ('?' + queryParamStr) : ''}`
+
+    window.history.pushState({path: newUrl}, document.title, newUrl);
+}

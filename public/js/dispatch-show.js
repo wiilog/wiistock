@@ -70,6 +70,14 @@ $(function () {
             window.location.href = Routing.generate('print_waybill_dispatch', {dispatch: $('#dispatchId').val()})
         }
     });
+
+    const queryParams = GetRequestQuery();
+    const {'print-delivery-note': printDeliveryNote} = queryParams;
+    if (Number(printDeliveryNote)) {
+        delete queryParams['print-delivery-note'];
+        SetRequestQuery(queryParams);
+        $('#generateDeliveryNoteButton').click();
+    }
 });
 
 function togglePackDetails(emptyDetails = false) {

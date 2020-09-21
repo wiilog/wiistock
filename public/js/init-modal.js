@@ -87,7 +87,6 @@ function SubmitAction($modal,
         });
 
         $submit.prepend($spinner);
-
         // launch ajax request
         return $
             .ajax({
@@ -249,6 +248,7 @@ function processInputsForm($modal) {
 
     const saveData = ($input, name, val) => {
         const $parent = $input.closest('[data-multiple-key]');
+
         if ($parent && $parent.length > 0) {
             const multipleKey = $parent.data('multiple-key');
             const objectIndex = $parent.data('multiple-object-index');
@@ -560,7 +560,11 @@ function createFormData(object) {
     Object
         .keys(object)
         .forEach((key) => {
-            formData.append(key, object[key]);
+            formData.append(key,
+                (object[key] && typeof object[key] === 'object' && !Array.isArray(object[key]))
+                    ? JSON.stringify(object[key])
+                    : object[key]
+            );
         });
     return formData;
 }
