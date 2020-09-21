@@ -67,17 +67,27 @@ class FieldsParam
 
     const ENTITY_CODE_DISPATCH = 'acheminements';
 
+    const FIELD_CODE_CARRIER_DISPATCH = 'carrier';
+    const FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH = 'carrierTrackingNumber';
     const FIELD_CODE_RECEIVER_DISPATCH = 'receiver';
     const FIELD_CODE_DEADLINE_DISPATCH = 'deadline';
     const FIELD_CODE_EMERGENCY_DISPATCH = 'emergency';
+    const FIELD_CODE_COMMAND_NUMBER_DISPATCH = 'commandNumber';
+    const FIELD_CODE_PROJECT_DISPATCH = 'projectNumber';
+    const FIELD_CODE_BUSINESS_UNIT_DISPATCH = 'businessUnit';
     const FIELD_CODE_COMMENT_DISPATCH = 'comment';
     const FIELD_CODE_ATTACHMENTS_DISPATCH = 'attachments';
 
+    const FIELD_LABEL_CARRIER_DISPATCH = 'transporteur';
+    const FIELD_LABEL_CARRIER_TRACKING_NUMBER_DISPATCH = 'numéro de tracking transporteur';
     const FIELD_LABEL_RECEIVER_DISPATCH = 'destinataire';
     const FIELD_LABEL_DEADLINE_DISPATCH = 'dates d\'échéances';
     const FIELD_LABEL_EMERGENCY_DISPATCH = 'urgence';
+    const FIELD_LABEL_COMMAND_NUMBER_DISPATCH = 'numéro de commande';
+    const FIELD_LABEL_PROJECT_DISPATCH = 'numéro de projet';
     const FIELD_LABEL_COMMENT_DISPATCH = 'commentaire';
     const FIELD_LABEL_ATTACHMENTS_DISPATCH = 'pièces jointes';
+    const FIELD_LABEL_BUSINESS_UNIT_DISPATCH = 'business unit';
 
 	/**
      * @ORM\Id()

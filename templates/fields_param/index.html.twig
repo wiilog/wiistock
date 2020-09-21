@@ -7,23 +7,79 @@
 
         <div class="row">
             <div class="col-12">
-                {% for table in tables %}
-                    <div class="row pt-3">
-                        <a data-toggle="collapse"
-                           href="#{{ table }}"
-                           role="button"
-                           aria-expanded="false"
-                           aria-controls="{{ table }}"
-                           class="col-12 mb-4">
-                            <h1 class="btn btn-primary m-0 w-100 border-radius-light">Catégorie {{ table }}<i
-                                    class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
-                        </a>
-                        <div class="collapse col-12" id="{{ table }}">
-                            <table id="table{{ table }}" class="table w-100">
-                            </table>
+                {% set section = constant('App\\Entity\\FieldsParam::ENTITY_CODE_ARRIVAGE') %}
+                <div class="row pt-3">
+                    <a data-toggle="collapse"
+                       href="#{{ section }}"
+                       role="button"
+                       aria-expanded="false"
+                       aria-controls="{{ section }}"
+                       class="col-12 mb-4">
+                        <h1 class="btn btn-primary m-0 w-100 border-radius-light">Catégorie {{ section }}<i
+                                class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+                    </a>
+                    <div class="collapse col-12" id="{{ section }}">
+                        <div class="row mt-2">
+                            <div class="form-group col-4">
+                                <label for="businessUnit" class="d-block">Valeurs du champ Business Unit</label>
+                                <select class="form-control data select2-free w-100"
+                                        multiple="multiple"
+                                        onchange="editBusinessUnit($(this), 'ARRIVAL_BUSINESS_UNIT_VALUES')">
+                                    {% for businessUnit in arrivalBusinessUnits %}
+                                        <option value="{{ businessUnit }}" selected>{{ businessUnit }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
+                        <table id="table{{ section }}" class="table w-100">
+                        </table>
                     </div>
-                {% endfor %}
+                </div>
+
+                {% set section = constant('App\\Entity\\FieldsParam::ENTITY_CODE_RECEPTION') %}
+                <div class="row pt-3">
+                    <a data-toggle="collapse"
+                       href="#{{ section }}"
+                       role="button"
+                       aria-expanded="false"
+                       aria-controls="{{ section }}"
+                       class="col-12 mb-4">
+                        <h1 class="btn btn-primary m-0 w-100 border-radius-light">Catégorie {{ section }}<i
+                                class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+                    </a>
+                    <div class="collapse col-12" id="{{ section }}">
+                        <table id="table{{ section }}" class="table w-100">
+                        </table>
+                    </div>
+                </div>
+
+                {% set section = constant('App\\Entity\\FieldsParam::ENTITY_CODE_DISPATCH') %}
+                <div class="row pt-3">
+                    <a data-toggle="collapse"
+                       href="#{{ section }}"
+                       role="button"
+                       aria-expanded="false"
+                       aria-controls="{{ section }}"
+                       class="col-12 mb-4">
+                        <h1 class="btn btn-primary m-0 w-100 border-radius-light">Catégorie {{ section }}<i class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+                    </a>
+                    <div class="collapse col-12" id="{{ section }}">
+                        <div class="row mt-2">
+                            <div class="form-group col-4">
+                                <label for="businessUnit" class="d-block">Valeurs du champ Business Unit</label>
+                                <select class="form-control data select2-free w-100"
+                                        multiple="multiple"
+                                        onchange="editBusinessUnit($(this), 'DISPATCH_BUSINESS_UNIT_VALUES')">
+                                    {% for businessUnit in dispatchBusinessUnits %}
+                                        <option value="{{ businessUnit }}" selected>{{ businessUnit }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <table id="table{{ section }}" class="table w-100">
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -32,7 +88,7 @@
 
 {% endblock %}
 
-    {% block javascripts %}
-        {{ parent() }}
-        <script src="{{ asset('js/fields_param.js') }}?{{ date().timestamp }}"></script>
-    {% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/fields_param.js') }}?{{ date().timestamp }}"></script>
+{% endblock %}

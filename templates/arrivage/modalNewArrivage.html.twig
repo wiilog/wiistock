@@ -320,6 +320,7 @@
                             <label for="chauffeur">Business Unit{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}</label>
                             <select class="needs-default form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}"
                                     name="businessUnit">
+                                <option value=""></option>
                                 {% for business in businessUnits %}
                                     <option value="{{ business }}">{{ business }}</option>
                                 {% endfor %}

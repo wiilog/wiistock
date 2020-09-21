@@ -126,6 +126,20 @@ function openNewPackModal() {
     $modal.modal('show');
 }
 
+function openShowPackModal({code, nature, quantity, packQuantity, lastMovementDate, lastLocation, operator}) {
+    const $modal = $('#modalShowPack');
+
+    $modal.find('[name="pack-number"]').val(code);
+    $modal.find('[name="pack-nature"]').val(nature);
+    $modal.find('[name="pack-dispatch-quantity"]').val(quantity);
+    $modal.find('[name="pack-quantity"]').val(packQuantity);
+    $modal.find('[name="pack-last-movement"]').val(lastMovementDate);
+    $modal.find('[name="pack-last-location"]').val(lastLocation);
+    $modal.find('[name="pack-operator"]').val(operator);
+
+    $modal.modal('show');
+}
+
 function openEditPackModal({packDispatchId, code, quantity, natureId, packQuantity}) {
     const modalSelector = '#modalPack'
     const $modal = $(modalSelector);

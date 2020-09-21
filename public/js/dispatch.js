@@ -26,6 +26,8 @@ function initNewDispatchEditor(modal) {
     }
     clearModal(modal);
     ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
+    ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
+
     const $operatorSelect = $(modal).find('.ajax-autocomplete-user').first();
     const $loggedUserInput = $(modal).find('input[hidden][name="logged-user"]');
     let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
