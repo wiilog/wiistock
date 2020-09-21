@@ -26,7 +26,12 @@
                         <h5 class="col-auto h5" title="Liste des colis">{{ 'colis.Liste des colis'|trans }}</h5>
                     </div>
                     {% if modifiable
-                          and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+                          and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))
+                          and (
+                              not (dispatch.status and dispatch.status.isNotTreated)
+                              or hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_UNPROCESSED_DISPATCH'))
+                          )
+                        %}
                         <div class="row wii-page-card-header">
                             <div class="col-auto ml-auto">
                                 <button onclick="openNewPackModal()"

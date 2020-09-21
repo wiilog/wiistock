@@ -69,8 +69,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Nb colis' => 'Nb colis',
                 'demande d\'acheminement' => 'demande d\'acheminement',
                 'Le colis existe déjà dans cet acheminement' => 'Le colis existe déjà dans cet acheminement',
-                'Valider un acheminement' => 'Valider un acheminement',
-                'Traiter un acheminement' => 'Traiter un acheminement',
                 'type d\'acheminement' => 'type d\'acheminement',
                 "Quantité à acheminer" => "Quantité à acheminer",
                 "Quantité colis" => "Quantité colis",
