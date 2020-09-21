@@ -1170,12 +1170,12 @@ class DispatchController extends AbstractController {
      *     options={"expose"=true},
      *     methods="GET"
      * )
-     * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $trans
+     * @param PDFGeneratorService $pdf
      * @param Dispatch $dispatch
-     * @param PDFGeneratorService $PDFGeneratorService
-     * @param Request $request
      * @return PdfResponse
      * @throws LoaderError
+     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */

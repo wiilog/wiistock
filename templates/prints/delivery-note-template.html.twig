@@ -81,6 +81,10 @@
             bottom: 0;
             width: 100%;
         }
+        .image-title {
+            max-height: 100px;
+            max-width: 100px;
+        }
     </style>
 </head>
 <body>
@@ -89,7 +93,8 @@
         <div>
             {% if logo %}
                 <img src="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ logo }}"
-                     alt="GT Logistics" height="50" style="width:auto"/>
+                     alt="GT Logistics"
+                     class="image-title"/>
             {% endif %}
 
             <div style="float:right;margin-right:1cm">{{ dn.consignor | nl2br }}</div>
