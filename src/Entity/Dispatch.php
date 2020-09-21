@@ -22,8 +22,6 @@ class Dispatch extends FreeFieldEntity
      */
     const DELIVERY_NOTE_DATA = [
         'consigner' => true,
-        'dispatchEmergency' => false,
-        'packs' => false,
         'deliveryAddress' => false,
         'deliveryNumber' => false,
         'deliveryDate' => false,
