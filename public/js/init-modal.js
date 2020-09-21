@@ -561,7 +561,10 @@ function createFormData(object) {
     Object
         .keys(object)
         .forEach((key) => {
-            formData.append(key, (object[key] && typeof object[key] === 'object') ? JSON.stringify(object[key]) : object[key]);
+            formData.append(key, (object[key] && typeof object[key] === 'object' && !Array.isArray(object[key]))
+                ? JSON.stringify(object[key])
+                : object[key]
+            );
         });
     return formData;
 }
