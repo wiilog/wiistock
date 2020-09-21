@@ -274,7 +274,7 @@ function finishPrepa($button) {
     });
 
     if (allRowsEmpty) {
-        ShowBSAlert('Veuillez sélectionner au moins une ligne.', 'danger');
+        showBSAlert('Veuillez sélectionner au moins une ligne.', 'danger');
     } else if (!$button.hasClass('loading')) {
         clearValidatePreparationModal();
         $modalSubmitPreparation.modal('show');
@@ -299,7 +299,7 @@ function finishPrepa($button) {
                                 if (success) {
                                     window.location.href = redirect;
                                 } else {
-                                    ShowBSAlert(message, 'danger');
+                                    showBSAlert(message, 'danger');
                                 }
 
                                 return success;
@@ -307,11 +307,11 @@ function finishPrepa($button) {
                     ),
                     false);
             } else {
-                ShowBSAlert('Veuillez sélectionner un emplacement.', 'danger');
+                showBSAlert('Veuillez sélectionner un emplacement.', 'danger');
             }
         });
     } else {
-        ShowBSAlert('La préparation est en cours de traitement.', 'success');
+        showBSAlert('La préparation est en cours de traitement.', 'success');
     }
 }
 
@@ -327,6 +327,6 @@ function printPrepaBarCodes() {
             true
         );
     } else {
-        ShowBSAlert("Il n'y a aucun article à imprimer.", 'danger');
+        showBSAlert("Il n'y a aucun article à imprimer.", 'danger');
     }
 }

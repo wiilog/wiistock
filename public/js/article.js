@@ -214,7 +214,7 @@ function printArticlesBarCodes($button, event) {
                 true
             );
         } else {
-            ShowBSAlert("Il n'y a aucun article à imprimer", 'danger');
+            showBSAlert("Il n'y a aucun article à imprimer", 'danger');
         }
     }
     else if (event) {

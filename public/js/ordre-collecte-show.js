@@ -48,7 +48,7 @@ function toggleCheck($elem) {
 function checkIfRowSelected(success) {
     let $activeChecks = $('#tableArticle').find('.active');
     if ($activeChecks.length === 0) {
-        ShowBSAlert('Veuillez sélectionner au moins une ligne.', 'danger');
+        showBSAlert('Veuillez sélectionner au moins une ligne.', 'danger');
     } else {
         success();
     }
@@ -116,7 +116,7 @@ function finishCollecte($button, withoutLocation = false) {
     });
 
     if (invalidForm) {
-        ShowBSAlert('Veuillez sélectionner tous les emplacements de dépose.', 'danger');
+        showBSAlert('Veuillez sélectionner tous les emplacements de dépose.', 'danger');
     }
     else if (withoutLocation || (rowsData && rowsData.length > 0)) {
         let params = {
@@ -136,7 +136,7 @@ function finishCollecte($button, withoutLocation = false) {
                     $('#modalFinishCollecte').modal('hide');
                 }
                 else {
-                    ShowBSAlert(data.msg, 'danger');
+                    showBSAlert(data.msg, 'danger');
                 }
             })
         ));
@@ -157,7 +157,7 @@ function printCollecteBarCodes() {
                  true
              );
          } else {
-             ShowBSAlert("Il n'y a aucun article à imprimer.", 'danger');
+             showBSAlert("Il n'y a aucun article à imprimer.", 'danger');
      }
 
 }
