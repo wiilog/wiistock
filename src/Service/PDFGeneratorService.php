@@ -103,6 +103,22 @@ Class PDFGeneratorService
     }
 
     /**
+     * @param array $deliveryNoteData
+     * @return string
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function generateDispatchDeliveryNote(array $deliveryNoteData): string {
+        return $this->PDFGenerator->getOutputFromHtml(
+            $this->templating->render('prints/delivery-note-dispatch.html.twig', [
+                'data' => $deliveryNoteData,
+                'title' => 'Delivery Note - Original'
+            ])
+        );
+    }
+
+    /**
      * @param string $title
      * @param array $sheetConfigs Array of ['title' => string, 'code' => string, 'content' => assoc_array]
      * @return string

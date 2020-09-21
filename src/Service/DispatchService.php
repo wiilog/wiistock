@@ -174,7 +174,7 @@ class DispatchService {
         $endDateStr = $endDate ? $endDate->format('d/m/Y') : '-';
         $projectNumber = $dispatch->getProjectNumber();
         $comment = $dispatch->getCommentaire() ?? '';
-        $treatedBy = $dispatch->getTreatedBy()->getUsername() ?? '';
+        $treatedBy = $dispatch->getTreatedBy() ? $dispatch->getTreatedBy()->getUsername() : '';
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
@@ -437,5 +437,7 @@ class DispatchService {
             }, $freeFields)
         );
     }
+
+
 
 }

@@ -1157,21 +1157,20 @@ class DispatchController extends AbstractController {
      * )
      * @param EntityManagerInterface $entityManager
      * @param Dispatch $dispatch
+     * @param PDFGeneratorService $PDFGeneratorService
      * @param Request $request
-     * @return JsonResponse
+     * @return PdfResponse
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function printDeliveryNote(EntityManagerInterface $entityManager,
                                       Dispatch $dispatch,
-                                      Request $request): JsonResponse {
-        /** @var Utilisateur $loggedUser */
-        $loggedUser = $this->getUser();
+                                      PDFGeneratorService $PDFGeneratorService,
+                                      Request $request): PdfResponse {
 
-        // TODO mettre le champ json dans le dispatch
-
-        $entityManager->flush();
-
-        return new JsonResponse(['success' => true]);
-
+        $deliveryNoteData = $dispatch->getDeliveryNoteData();
+        return new PdfResponse($PDFGeneratorService->generateDispatchDeliveryNote($deliveryNoteData), 'BL.pdf');
     }
 
     /**
