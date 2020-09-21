@@ -1,0 +1,30 @@
+<a data-toggle="collapse" href="#documentsForm" role="button" aria-expanded="false"
+   aria-controls="dimsForm" class="col-12 mb-4">
+    <h1 class="btn btn-primary m-0 w-100 border-radius-light">Configuration des documents<i
+            class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+</a>
+<div class="collapse col-12" id="documentsForm">
+    <div class="float-right btn btn-col-action btn-check-reverse" onclick="ajaxDocuments()">
+        <i class='fas fa-check'></i>
+    </div>
+    <div class="form-group d-flex">
+        <img
+            src="{{ deliveryNoteLogo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ deliveryNoteLogo : '' }}"
+            id="preview-delivery-note-logo" alt="Logo du bon de livraison choisi" height="50px" class="{{ deliveryNoteLogo ? '' : 'd-none' }}"/>
+
+        <button class="btn btn-primary"
+                onclick="$('#upload-delivery-note-logo').click()">Choisir un logo de bon de livraison</button>
+
+        <input type="file" id="upload-delivery-note-logo" name="logo-delivery-note" accept="image/png, image/jpeg, image/jpg" hidden>
+    </div>
+
+    <div class="form-group d-flex">
+        <img src="{{ waybillLogo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ waybillLogo : '' }}"
+             id="preview-waybill-logo" alt="Logo du bon de livraison choisi" height="50px" class="{{ waybillLogo ? '' : 'd-none' }}"/>
+
+        <button class="btn btn-primary"
+                onclick="$('#upload-waybill-logo').click()">Choisir un logo de lettre de voiture</button>
+
+        <input type="file" id="upload-waybill-logo" name="logo-waybill" accept="image/png, image/jpeg, image/jpg" hidden>
+    </div>
+</div>

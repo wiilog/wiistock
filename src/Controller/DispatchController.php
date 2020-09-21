@@ -1208,13 +1208,13 @@ class DispatchController extends AbstractController {
         $defaultData = [
             'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
             'dispatchDate' => $now->format('Y-m-d'),
-            'consigner' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONSIGNER),
+            'consignor' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONSIGNER),
             'receiver' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_RECEIVER),
             'locationFrom' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_FROM),
             'locationTo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_TO),
 
-            'consignerUsername' => $isEmerson ? $loggedUser->getUsername() : null,
-            'consignerEmail' => $isEmerson ? $loggedUser->getEmail() : null,
+            'consignorUsername' => $isEmerson ? $loggedUser->getUsername() : null,
+            'consignorEmail' => $isEmerson ? $loggedUser->getEmail() : null,
             'receiverUsername' => $isEmerson ? $loggedUser->getUsername() : null,
             'receiverEmail' => $isEmerson ? $loggedUser->getEmail() : null
         ];
@@ -1260,8 +1260,8 @@ class DispatchController extends AbstractController {
                                         TranslatorInterface $translator,
                                         Request $request): JsonResponse {
 
-        if ($dispatch->getDispatchPacks()->count() > 10) {
-            $message = 'Attention : ' . $translator->trans("acheminement.L''acheminement contient plus 10 colis") . ', cette lettre de voiture ne peut contenir plus de 10 lignes.';
+        if ($dispatch->getDispatchPacks()->count() > DispatchService::WAYBILL_MAX_PACK) {
+            $message = 'Attention : ' . $translator->trans("acheminement.L''acheminement contient plus de {nombre} colis", ["{nombre}" => DispatchService::WAYBILL_MAX_PACK]) . ', cette lettre de voiture ne peut contenir plus de ' . DispatchService::WAYBILL_MAX_PACK . ' lignes.';
             $success = false;
         }
         else {
@@ -1294,5 +1294,28 @@ class DispatchController extends AbstractController {
             'success' => $success,
             'msg' => $message
         ]);
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/waybill",
+     *     name="print_waybill_dispatch",
+     *     options={"expose"=true},
+     *     methods="GET"
+     * )
+     * @param TranslatorInterface $trans
+     * @param PDFGeneratorService $pdf
+     * @param Dispatch $dispatch
+     * @return JsonResponse
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function printWaybillNote(TranslatorInterface $trans, PDFGeneratorService $pdf, Dispatch $dispatch): Response {
+        if (!$dispatch->getWaybillData()) {
+            throw new NotFoundHttpException($trans->trans('acheminement.La lettre de voiture n\'existe pas pour cet acheminement'));
+        }
+
+        return $pdf->generatePDFWaybill("lettre_voiture_{$dispatch->getId()}.pdf", $dispatch);
     }
 }

@@ -21,7 +21,7 @@ class Dispatch extends FreeFieldEntity
      * @var [string => bool] Associate field name to bool, if TRUE we saved it in user entity
      */
     const DELIVERY_NOTE_DATA = [
-        'consigner' => true,
+        'consignor' => true,
         'deliveryAddress' => false,
         'deliveryNumber' => false,
         'deliveryDate' => false,
@@ -47,7 +47,7 @@ class Dispatch extends FreeFieldEntity
         'deliverNo' => false,
         'endUser' => false,
         'deliverTo' => false,
-        'consigner2' => true,
+        'consignor2' => true,
         'date' => false,
         'notes' => true,
     ];
@@ -57,10 +57,10 @@ class Dispatch extends FreeFieldEntity
     const WAYBILL_DATA = [
         'carrier' => false,
         'dispatchDate' => false,
-        'consigner' => false,
+        'consignor' => false,
         'receiver' => false,
-        'consignerUsername' => false,
-        'consignerEmail' => false,
+        'consignorUsername' => false,
+        'consignorEmail' => false,
         'receiverUsername' => false,
         'receiverEmail' => false,
         'locationFrom' => true,
@@ -581,7 +581,7 @@ class Dispatch extends FreeFieldEntity
      * @return array
      */
     public function getDeliveryNoteData(): ?array {
-        return $this->deliveryNoteData;
+        return $this->deliveryNoteData ?? [];
     }
 
     /**
