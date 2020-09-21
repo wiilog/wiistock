@@ -202,7 +202,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('ra.libelle LIKE :value OR ra.reference LIKE :value')
+                        ->andWhere('ra.libelle LIKE :value OR ra.reference LIKE :value OR ra.barCode LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
                 $countQuery = count($qb->getQuery()->getResult());
