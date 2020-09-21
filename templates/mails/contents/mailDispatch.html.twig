@@ -99,15 +99,15 @@
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.pack.lastTracking.datetime|date('d/m/Y H:i:s') }}
+                        {{ dispatchPack.pack.lastTracking ? dispatchPack.pack.lastTracking.datetime|date('d/m/Y H:i:s') : '' }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.pack.lastTracking.emplacement.label }}
+                        {{ dispatchPack.pack.lastTracking ? dispatchPack.pack.lastTracking.emplacement.label : '' }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.pack.lastTracking.operateur.username }}
+                        {{ dispatchPack.pack.lastTracking ? dispatchPack.pack.lastTracking.operateur.username : '' }}
                     </td>
                 </tr>
             {% endfor %}

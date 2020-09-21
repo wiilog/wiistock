@@ -72,13 +72,11 @@
         </select>
     </div>
     <div class="form-group d-flex">
-        <img id="chosenLogo"
-             src="{{ logo ? (app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ logo) : '' }}"
-             alt="Logo choisi" height="50px" class="{{ logo ? '' : 'd-none' }}"/>
+            <img src="{{ logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ logo : '' }}"
+                 id="preview-label-logo" alt="Logo choisi" height="50px" class="{{ logo ? '' : 'd-none' }}"/>
 
-        <button class="btn btn-primary" onclick="$('#logo')[0].click();">{{ logo ? "<i class='fas fa-pencil-alt'></i> ": 'Choisir un logo'}}</button>
+        <button class="btn btn-primary" onclick="$('#upload-label-logo').click();">{{ logo ? "<i class='fas fa-pencil-alt'></i> ": 'Choisir un logo'}}</button>
 
-        <input type="file" id="logo" name="logo" accept="image/png, image/jpeg, image/jpg" hidden>
-
+        <input type="file" id="upload-label-logo" name="logo" accept="image/png, image/jpeg, image/jpg" hidden>
     </div>
 </div>

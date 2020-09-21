@@ -65,7 +65,11 @@ $(function () {
     let $modalPrintWaybill = $('#modalPrintWaybill');
     let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
     let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: $('#dispatchId').val()}, true);
-    InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill);
+    InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill, {
+        success: () => {
+            window.location.href = Routing.generate('print_waybill_dispatch', {dispatch: $('#dispatchId').val()})
+        }
+    });
 });
 
 function togglePackDetails(emptyDetails = false) {
