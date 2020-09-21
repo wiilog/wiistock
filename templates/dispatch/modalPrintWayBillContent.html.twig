@@ -30,16 +30,16 @@
             <label class="col-12">Expéditeur / Consigner</label>
             <div class="col-12">
                 <textarea title="Expéditeur / Consigner"
-                          name="consigner"
+                          name="consignor"
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
                           rows="7"
-                          class="form-control data needed">{{ consigner }}</textarea>
+                          class="form-control data needed">{{ consignor }}</textarea>
             </div>
             <div class="col-12">
                 <button class="btn btn-primary btn-sm mt-2"
                         type="button"
-                        onclick="reverseFields($(this), 'consigner', 'receiver')">Inverser expéditeur / destinataire</button>
+                        onclick="reverseFields($(this), 'consignor', 'receiver')">Inverser expéditeur / destinataire</button>
             </div>
         </div>
     </div>
@@ -67,18 +67,18 @@
             <label class="col-12">Nom / Name</label>
             <div class="col-12">
                 <input title="Expéditeur nom"
-                       name="consignerUsername"
+                       name="consignorUsername"
                        class="form-control data needed"
-                       value="{{ consignerUsername }}"/>
+                       value="{{ consignorUsername }}"/>
             </div>
         </div>
         <div class="form-group row">
             <label class="col-12">Téléphone - Email / Phone number - Mail</label>
             <div class="col-12">
                 <input title="Expéditeur téléphone / email"
-                       name="consignerEmail"
+                       name="consignorEmail"
                        class="form-control data needed"
-                       value="{{ consignerEmail }}"/>
+                       value="{{ consignorEmail }}"/>
             </div>
         </div>
     </div>
@@ -161,9 +161,9 @@
     <em class="col-12">
         Information : The content of the packages must be changed on the packages
     </em>
-    {% if packsCounter > 10 %}
+    {% if packsCounter > constant('App\\Service\\DispatchService::WAYBILL_MAX_PACK') %}
         <div class="col-12 error-msg">
-            Attention : {{ "acheminement.L''acheminement contient plus 10 colis"|trans }}, cette lettre de voiture ne peut contenir plus de 10 lignes.
+            Attention : {{ "acheminement.L''acheminement contient plus de {nombre} colis" | trans({'{nombre}': constant('App\\Service\\DispatchService::WAYBILL_MAX_PACK')}) }}, cette lettre de voiture ne peut contenir plus de 20 lignes.
         </div>
     {% endif %}
 </div>

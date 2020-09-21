@@ -3,8 +3,11 @@
 
 namespace App\Service;
 
+use App\Entity\Dispatch;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Twig\Environment as Twig_Environment;
 use Knp\Snappy\PDF as PDFGenerator;
 use Twig\Error\LoaderError;
@@ -150,6 +153,28 @@ Class PDFGeneratorService
         );
     }
 
+
+    /**
+     * @param string $title
+     * @param Dispatch $dispatch
+     * @return Response The PDF response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function generatePDFWaybill(string $title, Dispatch $dispatch): Response {
+        $html = $this->PDFGenerator->getOutputFromHtml(
+            $this->templating->render('prints/waybill-template.html.twig', [
+                'title' => $title,
+                'dispatch' => $dispatch,
+            ]), [
+                'page-size' => "A4",
+                'encoding' => 'UTF-8'
+            ]
+        );
+
+        return new PdfResponse($html, $title);
+    }
 
     /**
      * @param array $barcodeConfigs ['code' => string][]

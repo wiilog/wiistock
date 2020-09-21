@@ -16,7 +16,9 @@ use Symfony\Component\HttpKernel\KernelInterface;
 
 class AttachmentService
 {
-    const LOGO_FOR_LABEL = 'logo_for_label';
+    const LABEL_LOGO = 'logo_for_label';
+    const DELIVERY_NOTE_LOGO = 'logo_for_delivery_note';
+    const WAYBILL_LOGO = 'logo_for_waybill';
 
     private $attachmentDirectory;
 	private $em;

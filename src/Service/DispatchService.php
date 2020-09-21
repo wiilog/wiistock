@@ -25,6 +25,9 @@ use Twig\Error\SyntaxError as Twig_Error_Syntax;
 use Twig\Environment as Twig_Environment;
 
 class DispatchService {
+
+    const WAYBILL_MAX_PACK = 20;
+
     /**
      * @var Twig_Environment
      */

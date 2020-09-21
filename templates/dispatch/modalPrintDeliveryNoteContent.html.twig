@@ -4,11 +4,11 @@
             <label class="col-12">Expéditeur / Consigner</label>
             <div class="col-12">
                 <textarea title="Expéditeur / Consigner"
-                          name="consigner"
+                          name="consignor"
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
                           rows="7"
-                          class="form-control data needed">{{ consigner }}</textarea>
+                          class="form-control data needed">{{ consignor }}</textarea>
             </div>
         </div>
     </div>
@@ -415,8 +415,8 @@
             <label class="col-12">Expéditeur / Consigner</label>
             <div class="col-12">
                 <input class="form-control data needed"
-                       name="consigner2"
-                       value="{{ consigner }}"
+                       name="consignor2"
+                       value="{{ consignor }}"
                        title="Expéditeur / Consigner"/>
             </div>
         </div>
