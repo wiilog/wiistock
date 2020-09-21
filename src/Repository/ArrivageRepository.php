@@ -364,6 +364,7 @@ class ArrivageRepository extends EntityRepository
                             a.numeroArrivage LIKE :value
                             OR t3.label LIKE :value
                             OR ch3.nom LIKE :value
+                            OR ch3.prenom LIKE :value
                             OR a.noTracking LIKE :value
                             OR a.numeroCommandeList LIKE :value
                             OR f3.nom LIKE :value

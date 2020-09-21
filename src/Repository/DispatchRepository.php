@@ -109,7 +109,8 @@ class DispatchRepository extends EntityRepository
                                 'search_locationFrom.label LIKE :value',
                                 'search_locationTo.label LIKE :value',
                                 'search_statut.nom LIKE :value',
-                                'd.freeFields LIKE :value'
+                                'd.freeFields LIKE :value',
+                                'd.treatmentDate LIKE :value'
 
                         ) . ')')
                         ->leftJoin('d.locationFrom', 'search_locationFrom')
