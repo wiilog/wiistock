@@ -27,6 +27,7 @@ use App\Entity\Utilisateur;
 use App\Repository\TransporteurRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
+use App\Service\DispatchService;
 use App\Service\MouvementTracaService;
 use App\Service\PackService;
 use App\Service\CSVExportService;
@@ -924,6 +925,7 @@ class ArrivageController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param ArrivageDataService $arrivageDataService
      * @param Arrivage $arrivage
+     * @param DispatchService $dispatchService
      * @param bool $printColis
      * @param bool $printArrivage
      *
@@ -935,6 +937,7 @@ class ArrivageController extends AbstractController
     public function show(EntityManagerInterface $entityManager,
                          ArrivageDataService $arrivageDataService,
                          Arrivage $arrivage,
+                         DispatchService  $dispatchService,
                          bool $printColis = false,
                          bool $printArrivage = false): Response
     {
@@ -949,16 +952,17 @@ class ArrivageController extends AbstractController
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $usersRepository = $entityManager->getRepository(Utilisateur::class);
-
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();
         }
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::LITIGE_ARR);
-
         return $this->render("arrivage/show.html.twig", [
             'arrivage' => $arrivage,
             'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
@@ -972,7 +976,8 @@ class ArrivageController extends AbstractController
             'canBeDeleted' => $arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
-            'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null
+            'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
+            'modalNewConfig' => $dispatchService->getNewDispatchConfig($parametrageGlobalRepository, $statutRepository, $champLibreRepository, $fieldsParamRepository, $types, $arrivage)
         ]);
     }
 

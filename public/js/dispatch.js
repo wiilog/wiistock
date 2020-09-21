@@ -117,8 +117,11 @@ function initPage() {
 
             let $modalNewDispatch = $("#modalNewDispatch");
             let $submitNewDispatch = $("#submitNewDispatch");
-            let urlDispatchNew = Routing.generate('dispatch_new', true);
+            let $submitNewDispatchWithBL = $("#submitNewDispatchWithBL");
+            let urlDispatchNew = Routing.generate('dispatch_new', {printBL: false}, true);
+            let urlDispatchNewWithBL = Routing.generate('dispatch_new', {printBL: 1}, true);
             InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew, {tables: [tableDispatches]});
+            InitModal($modalNewDispatch, $submitNewDispatchWithBL, urlDispatchNewWithBL, {tables: [tableDispatches]});
 
             let modalColumnVisible = $('#modalColumnVisibleDispatch');
             let submitColumnVisible = $('#submitColumnVisibleDispatch');

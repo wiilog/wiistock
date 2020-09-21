@@ -3,14 +3,23 @@
 
 namespace App\Service;
 
+use App\Entity\Arrivage;
+use App\Entity\CategorieStatut;
 use App\Entity\ChampLibre;
 use App\Entity\Dispatch;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\MouvementTraca;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Repository\ChampLibreRepository;
+use App\Repository\FieldsParamRepository;
+use App\Repository\ParametrageGlobalRepository;
+use App\Repository\StatutRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -153,6 +162,32 @@ class DispatchService {
 
         $rows = array_merge($rowCL, $row);
         return $rows;
+    }
+
+    public function getNewDispatchConfig(ParametrageGlobalRepository $parametrageGlobalRepository,
+                                         StatutRepository $statutRepository,
+                                         ChampLibreRepository $champLibreRepository,
+                                         FieldsParamRepository $fieldsParamRepository,
+                                         array $types,
+                                         ?Arrivage $arrival = null) {
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
+        return [
+            'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
+            'fieldsParam' => $fieldsParam,
+            'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
+            'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
+            'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
+                $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
+                return [
+                    'typeLabel' => $type->getLabel(),
+                    'typeId' => $type->getId(),
+                    'champsLibres' => $champsLibres,
+                ];
+            }, $types),
+            'notTreatedStatus' => $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::NOT_TREATED, Statut::DRAFT]),
+            'packs' => $arrival ? $arrival->getPacks() : [],
+            'fromArrival' => $arrival !== null
+        ];
     }
 
     public function createHeaderDetailsConfig(Dispatch $dispatch): array {

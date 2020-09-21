@@ -1,0 +1,35 @@
+<div class="row" id="{{ pack.id }}"
+     data-multiple-key="packs"
+     data-multiple-object-index="{{ index }}">
+    <input type="hidden" class="data" name="packId" value="{{ pack.id }}">
+    <div class="col-3">
+        <div class="form-group">
+            <label for="transporter-tracking-number">Numéro</label>
+            <input class="form-control data no-clear"
+                   title="Numéro de tracking transporteur"
+                   value="{{ pack.code }}"
+                   name="packNumber" disabled>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="form-group">
+            <label for="transporter-tracking-number">Quantité dans le colis</label>
+            <input class="form-control data no-clear"
+                   title="Numéro de tracking transporteur"
+                   value="{{ pack.quantity }}"
+                   name="packQuantity">
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="form-group">
+            <label for="transporter-tracking-number">Commentaire</label>
+            <input class="form-control data no-clear"
+                   title="Numéro de tracking transporteur"
+                   value="{{ pack.comment }}"
+                   name="packComment">
+        </div>
+    </div>
+    <div class="col-2 align-self-center">
+        <a class="pointer"><i class="fa fa-trash mr-2" onclick="$('#{{ pack.id }}').remove();"></i></a>
+    </div>
+</div>

@@ -66,6 +66,11 @@ $(function () {
     let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
     let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: $('#dispatchId').val()}, true);
     InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill);
+
+    const printBL = $('#printBL').val();
+    if (printBL) {
+        $('#generateBLButton').click();
+    }
 });
 
 function togglePackDetails(emptyDetails = false) {
