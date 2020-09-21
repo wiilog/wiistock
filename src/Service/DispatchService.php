@@ -391,8 +391,7 @@ class DispatchService {
             ['title' => 'Numéro demande', 'name' => 'number'],
             ['title' => 'Date de création',  'name' => 'creationDate'],
             ['title' => 'Date de validation', 'name' => 'validationDate'],
-            //TODO: décommenter après avoir merge 2716
-            //['title' => 'Date de traitement', 'name' => 'treatmentDate'],
+            ['title' => 'Date de traitement', 'name' => 'treatmentDate'],
             ['title' => 'Type', 'name' => 'type'],
             ['title' => 'Demandeur', 'name' => 'requester'],
             ['title' => 'Destinataire', 'name' => 'receiver'],
