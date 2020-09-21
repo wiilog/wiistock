@@ -364,7 +364,6 @@ function initSelect2($select,
         if ($select2Selection.length > 0) {
             $select2Selection.off('focus');
         }
-
         $self.select2({
             ...select2AjaxOptions,
             language: {
@@ -463,6 +462,10 @@ function ajaxAutoChauffeurInit(select) {
 
 function ajaxAutoUserInit(select, placeholder = '') {
     initSelect2(select, placeholder, 1, {route: 'get_user'});
+}
+
+function ajaxAutoDispatchInit(select, placeholder = '') {
+    initSelect2(select, placeholder, 1, {route: 'get_dispatch_numbers'});
 }
 
 function ajaxAutoDisputeNumberInit(select, placeholder = '') {
@@ -658,8 +661,8 @@ function saveFilters(page, tableSelector, callback) {
     const valFunction = {
         'filter-input': ($input) => ($input.val() || '').trim(),
         'filter-select2': ($input) => ($input.select2('data') || [])
-            .filter(({id, text}) => (id.trim() && text.trim()))
-            .map(({id, text}) => ({id, text})),
+                .filter(({id, text}) => (id.trim() && text.trim()))
+                .map(({id, text}) => ({id, text})),
         'filter-checkbox': ($input) => $input.is(':checked')
     };
 
@@ -1020,6 +1023,8 @@ function displayFiltersSup(data) {
             case 'multipleTypes':
             case 'receivers':
             case 'requesters':
+            case 'dispatchNumber':
+            case 'emergencyMultiple':
                 let valuesElement = element.value.split(',');
                 let $select = $(`.filter-select2[name="${element.field}"]`);
                 $select.find('option').prop('selected', false);

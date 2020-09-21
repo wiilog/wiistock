@@ -87,6 +87,7 @@ class DispatchController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $fields = $service->getVisibleColumnsConfig($entityManager, $this->getUser());
@@ -98,6 +99,8 @@ class DispatchController extends AbstractController {
 
         return $this->render('dispatch/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true),
+            'carriers' => $carrierRepository->findAllSorted(),
+            'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
             'types' => $types,
             'fields' => $fields,
             'visibleColumns' => $this->getUser()->getColumnsVisibleForDispatch(),
@@ -162,6 +165,27 @@ class DispatchController extends AbstractController {
             "success" => true,
             "msg" => "Vos préférences de colonnes ont bien été sauvegardées"
         ]);
+    }
+
+    /**
+     * @Route("/autocomplete", name="get_dispatch_numbers", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function getDispatchAutoComplete(Request $request,
+                                        EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $search = $request->query->get('term');
+
+            $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+            $results = $dispatchRepository->getDispatchNumbers($search);
+
+            return $this->json(['results' => $results]);
+        }
+
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -901,8 +925,8 @@ class DispatchController extends AbstractController {
                     'Type',
                     'Demandeur',
                     'Destinataire',
-                    $translator->trans('acheminement.emplacement prise'),
-                    $translator->trans('acheminement.emplacement dépose'),
+                    $translator->trans('acheminement.Emplacement prise'),
+                    $translator->trans('acheminement.Emplacement dépose'),
                     'Nb ' . $translator->trans('colis.colis'),
                     'Statut',
                     'Urgence',

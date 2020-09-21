@@ -4,12 +4,15 @@ let editorNewDispatchAlreadyDone = false;
 $(function() {
     initPage();
 
-    initSelect2($('#statut'), 'Statuts');
     const filtersContainer = $('.filters-container');
 
+    initSelect2($('#statut'), 'Statuts');
+    initSelect2(filtersContainer.find('.filter-select2[name="carriers"]'), 'Transporteurs');
+    initSelect2(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
+    ajaxAutoDispatchInit(filtersContainer.find('.filter-select2[name="dispatchNumber"]'), 'Numéro de demande');
     ajaxAutoUserInit(filtersContainer.find('.ajax-autocomplete-user[name=receivers]'), 'Destinataires');
     ajaxAutoUserInit(filtersContainer.find('.ajax-autocomplete-user[name=requesters]'), 'Demandeurs');
-    initSelect2($('.filter-select2[name="multipleTypes"]'), 'Types');
+    initSelect2(filtersContainer.find('.filter-select2[name="multipleTypes"]'), 'Types');
     initDateTimePicker();
 
     // filtres enregistrés en base pour chaque utilisateur

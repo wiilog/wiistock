@@ -420,7 +420,6 @@ function passArgsToModal(button) {
 function setMaxQuantityByArtRef(input) {
     let val = 0;
     val = $('#quantite').val();
-    console.log(input);
     input.attr('max', val);
 }
 

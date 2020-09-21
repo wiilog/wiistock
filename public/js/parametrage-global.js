@@ -32,7 +32,7 @@ InitModal(modalEditDays, submitEditDays, urlEditDays, {tables: [tableDays]});
 $(function () {
     initSelect2($('#locationArrivageDest'));
     initFreeSelect2($('select[name="businessUnit"]'));
-    initFreeSelect2($('select[name="dispatchUrgences"]'));
+    initFreeSelect2($('select[name="dispatchEmergencies"]'));
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));
     ajaxAutoCompleteTransporteurInit($('.ajax-autocomplete-transporteur'));
     initDisplaySelect2('#receptionLocation', '#receptionLocationValue');
@@ -44,7 +44,7 @@ $(function () {
     initSelect2ValuesForDashboard();
     $('#locationArrivageDest').on('change', editArrivageDestination);
     $('select[name="businessUnit"]').on('change', editBusinessUnit);
-    $('select[name="dispatchUrgences"]').on('change', editDispatchUrgences);
+    $('select[name="dispatchEmergencies"]').on('change', editDispatchEmergencies);
     $('#locationDemandeLivraison').on('change', function() {
         editDemandeLivraisonDestination($(this));
     });
@@ -317,7 +317,7 @@ function editBusinessUnit() {
     });
 }
 
-function editDispatchUrgences() {
+function editDispatchEmergencies() {
     $.post(Routing.generate('set_dispatch_emergencies'), {value: $(this).val()}, (resp) => {
         if (resp) {
             alertSuccessMsg("La liste urgences d'acheminements a bien été mise à jour.");

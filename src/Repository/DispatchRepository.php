@@ -59,6 +59,26 @@ class DispatchRepository extends EntityRepository
                         ->andWhere('filter_receiver.id in (:filter_receiver_values)')
                         ->setParameter('filter_receiver_values', $value);
                     break;
+                case FiltreSup::FIELD_CARRIERS:
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('d.carrier', 't')
+                        ->andWhere('t.id in (:type)')
+                        ->setParameter('type', $value);
+                    break;
+                case FiltreSup::FIELD_DISPATCH_NUMBER:
+                    $value = explode(',', $filter['value']);
+                    $qb->andWhere("d.id = :dispatchnumber")
+                        ->setParameter("dispatchnumber", $value);
+                    break;
+                case FiltreSup::FIELD_EMERGENCY_MULTIPLE:
+                    $value = array_map(function($value) {
+                        return explode(":", $value)[0];
+                    }, explode(',', $filter['value']));
+
+                    $qb->andWhere("d.emergency IN (:emergencies)")
+                        ->setParameter("emergencies", $value);
+                    break;
                 case 'dateMin':
                     $qb->andWhere('d.creationDate >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . ' 00.00.00');
@@ -289,4 +309,14 @@ class DispatchRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function getDispatchNumbers($search) {
+        return $this->createQueryBuilder("d")
+            ->select("d.id, d.number AS text")
+            ->where("d.number LIKE :search")
+            ->setParameter("search", "%$search%")
+            ->getQuery()
+            ->getResult();
+    }
+
 }
