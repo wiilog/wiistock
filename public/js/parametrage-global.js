@@ -110,9 +110,9 @@ function updateToggledParam(switchButton) {
     };
     $.post(Routing.generate('toggle_params', true), JSON.stringify(params), function (resp) {
         if (resp) {
-            ShowBSAlert('La modification du paramétrage a bien été prise en compte.', 'success');
+            showBSAlert('La modification du paramétrage a bien été prise en compte.', 'success');
         } else {
-            ShowBSAlert('Une erreur est survenue lors de la modification du paramétrage.', 'danger');
+            showBSAlert('Une erreur est survenue lors de la modification du paramétrage.', 'danger');
         }
     }, 'json');
 }
@@ -121,7 +121,7 @@ function ajaxMailerServer() {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-            ShowBSAlert('La configuration du serveur mail a bien été mise à jour.', 'success');
+            showBSAlert('La configuration du serveur mail a bien été mise à jour.', 'success');
         }
     }
     let data = $('#mailerServerForm').find('.data');
@@ -158,7 +158,7 @@ function ajaxDims() {
         cache: false,
         dataType: 'json',
         success: (response) => {
-            ShowBSAlert('La configuration des étiquettes a bien été mise à jour.', 'success');
+            showBSAlert('La configuration des étiquettes a bien été mise à jour.', 'success');
             $('.blChosen').text("\"" + response['param-cl-etiquette'] + "\"");
         }
     });
@@ -178,7 +178,7 @@ function updatePrefixDemand() {
     } else {
         $.post(path, params, () => {
             $('#typeDemandePrefixageDemande').removeClass('is-invalid');
-            ShowBSAlert('Le préfixage des noms de demandes a bien été mis à jour.', 'success');
+            showBSAlert('Le préfixage des noms de demandes a bien été mis à jour.', 'success');
         });
     }
     $('.error-msg').html(msg);
@@ -206,7 +206,7 @@ function saveTranslations() {
 
     let path = Routing.generate('save_translations');
     const $spinner = $('#spinnerSaveTranslations');
-    ShowBSAlert('Mise à jour de votre personnalisation des libellés : merci de patienter.', 'success', false);
+    showBSAlert('Mise à jour de votre personnalisation des libellés : merci de patienter.', 'success', false);
     loadSpinner($spinner);
     $.post(path, JSON.stringify(data), (resp) => {
         $('html,body').animate({scrollTop: 0});
@@ -214,14 +214,14 @@ function saveTranslations() {
             location.reload();
         } else {
             hideSpinner($spinner);
-            ShowBSAlert('Une erreur est survenue lors de la personnalisation des libellés.', 'danger');
+            showBSAlert('Une erreur est survenue lors de la personnalisation des libellés.', 'danger');
         }
     });
 }
 
 function ajaxEncodage() {
     $.post(Routing.generate('save_encodage'), JSON.stringify($('select[name="param-type-encodage"]').val()), function () {
-        ShowBSAlert('Mise à jour de vos préférences d\'encodage réussie.', 'success');
+        showBSAlert('Mise à jour de vos préférences d\'encodage réussie.', 'success');
     });
 }
 
@@ -234,9 +234,9 @@ function editDefaultLocationValue() {
 
     $.post(path, param, (resp) => {
         if (resp) {
-            ShowBSAlert("L'emplacement de réception a bien été mis à jour.", 'success');
+            showBSAlert("L'emplacement de réception a bien été mis à jour.", 'success');
         } else {
-            ShowBSAlert("Une erreur est survenue lors de la mise à jour de l'emplacement de réception.", 'danger');
+            showBSAlert("Une erreur est survenue lors de la mise à jour de l'emplacement de réception.", 'danger');
         }
     });
 }
@@ -254,9 +254,9 @@ function editDashboardParams() {
 
     $.post(path, param, (resp) => {
         if (resp) {
-            ShowBSAlert("La configuration des tableaux de bord a bien été mise à jour.", 'success');
+            showBSAlert("La configuration des tableaux de bord a bien été mise à jour.", 'success');
         } else {
-            ShowBSAlert("Une erreur est survenue lors de la mise à jour de la configuration des tableaux de bord.", 'danger');
+            showBSAlert("Une erreur est survenue lors de la mise à jour de la configuration des tableaux de bord.", 'danger');
         }
     });
 }
@@ -269,9 +269,9 @@ function editStatusArrivage($select) {
 
     $.post(path, param, (resp) => {
         if (resp) {
-            ShowBSAlert("Le statut de l'arrivage par défaut a bien été mis à jour.", 'success');
+            showBSAlert("Le statut de l'arrivage par défaut a bien été mis à jour.", 'success');
         } else {
-            ShowBSAlert("Une erreur est survenue lors de la mise à jour du statut par défaut de l'arrivage.", 'danger');
+            showBSAlert("Une erreur est survenue lors de la mise à jour du statut par défaut de l'arrivage.", 'danger');
         }
     });
 }
@@ -283,12 +283,12 @@ function editFont() {
     };
 
 
-    ShowBSAlert("Mise à jour de la police en cours. Veuillez patienter.", 'success', false);
+    showBSAlert("Mise à jour de la police en cours. Veuillez patienter.", 'success', false);
     $.post(path, param, (resp) => {
         if (resp) {
             location.reload();
         } else {
-            ShowBSAlert("Une erreur est survenue lors de la mise à jour du choix de la police.", 'danger');
+            showBSAlert("Une erreur est survenue lors de la mise à jour du choix de la police.", 'danger');
         }
     });
 }
@@ -296,9 +296,9 @@ function editFont() {
 function editArrivageDestination() {
     $.post(Routing.generate('set_arrivage_default_dest'), $(this).val(), (resp) => {
         if (resp) {
-            ShowBSAlert("la destination des arrivages a bien été mise à jour.", 'success');
+            showBSAlert("la destination des arrivages a bien été mise à jour.", 'success');
         } else {
-            ShowBSAlert("Une erreur est survenue lors de la mise à jour de la destination des arrivages.", 'danger');
+            showBSAlert("Une erreur est survenue lors de la mise à jour de la destination des arrivages.", 'danger');
         }
     });
 }
@@ -306,9 +306,9 @@ function editArrivageDestination() {
 function editDemandeLivraisonDestination($select) {
     $.post(Routing.generate('edit_demande_livraison_default_dest'), $select.val(), (resp) => {
         if (resp) {
-            ShowBSAlert("La destination des demandes de livraison a bien été mise à jour.", 'success');
+            showBSAlert("La destination des demandes de livraison a bien été mise à jour.", 'success');
         } else {
-            ShowBSAlert("Une erreur est survenue lors de la mise à jour de la destination des demandes de livraison.", 'danger');
+            showBSAlert("Une erreur est survenue lors de la mise à jour de la destination des demandes de livraison.", 'danger');
         }
     });
 }
@@ -326,9 +326,9 @@ function editReceptionStatus() {
 
     $.post(path, param, (resp) => {
         if (resp) {
-            ShowBSAlert("Les statuts de réception ont bien été mis à jour.", 'success');
+            showBSAlert("Les statuts de réception ont bien été mis à jour.", 'success');
         } else {
-            ShowBSAlert("Une erreur est survenue lors de la mise à jour des statuts de réception.", 'danger');
+            showBSAlert("Une erreur est survenue lors de la mise à jour des statuts de réception.", 'danger');
         }
     });
 }
@@ -348,7 +348,7 @@ function fileToImagePreview($fileInput) {
             };
             reader.readAsDataURL($fileInput[0].files[0]);
         } else {
-            ShowBSAlert('Veuillez choisir une image valide (png, jpeg, jpg).', 'danger')
+            showBSAlert('Veuillez choisir une image valide (png, jpeg, jpg).', 'danger')
         }
     }
 }
@@ -366,13 +366,13 @@ function addWorkFreeDay($button) {
                 $input.val('');
 
                 workFreeDaysTable.ajax.reload();
-                ShowBSAlert(resp.text, 'success');
+                showBSAlert(resp.text, 'success');
             } else {
-                ShowBSAlert(resp.text, 'danger');
+                showBSAlert(resp.text, 'danger');
             }
         });
     } else {
-        ShowBSAlert('Veuillez sélectionner une date valide.', 'danger');
+        showBSAlert('Veuillez sélectionner une date valide.', 'danger');
     }
 }
 
@@ -391,9 +391,9 @@ function deleteWorkFreeDay(id, date) {
                     $input.data('DateTimePicker').disabledDates(disabledDates);
                 }
                 workFreeDaysTable.ajax.reload();
-                ShowBSAlert(resp.message, 'success');
+                showBSAlert(resp.message, 'success');
             } else {
-                ShowBSAlert(resp.message, 'danger');
+                showBSAlert(resp.message, 'danger');
             }
         }
     });
@@ -409,9 +409,9 @@ function saveDispatchesParam() {
     ])
         .then((res) => {
             if (res.every((success) => success)) {
-                ShowBSAlert("Les paramétrages d'acheminements ont bien été mis à jour.", 'success');
+                showBSAlert("Les paramétrages d'acheminements ont bien été mis à jour.", 'success');
             } else {
-                ShowBSAlert("Une erreur est survenue lors de la mise à jour des paramétrages d'acheminements.", 'danger');
+                showBSAlert("Une erreur est survenue lors de la mise à jour des paramétrages d'acheminements.", 'danger');
             }
         });
 }

@@ -208,7 +208,7 @@ function runDispatchPrint() {
     })
         .then(function ({packsCounter}) {
             if (!packsCounter) {
-                ShowBSAlert('Vous ne pouvez pas imprimer un acheminement sans colis', 'danger');
+                showBSAlert('Vous ne pouvez pas imprimer un acheminement sans colis', 'danger');
             } else {
                 window.location.href = Routing.generate('print_dispatch_state_sheet', {dispatch: dispatchId});
             }

@@ -32,7 +32,7 @@ function InitModal($modal, $submit, path, options = {}) {
     $submit
         .click(function () {
             if ($submit.find('.spinner-border').length > 0) {
-                ShowBSAlert('L\'opération est en cours de traitement', 'success');
+                showBSAlert('L\'opération est en cours de traitement', 'success');
             }
             else {
                 SubmitAction(
@@ -182,7 +182,7 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
     }
 
     if (data.msg) {
-        ShowBSAlert(data.msg, 'success');
+        showBSAlert(data.msg, 'success');
     }
 
     return true;
@@ -596,7 +596,7 @@ function displayFormErrors($modal, {$isInvalidElements, errorMessages} = {}) {
             $innerModalMessageError.addClass("p-4");
             $innerModalMessageError.html($message);
         } else {
-            ShowBSAlert($message, 'danger');
+            showBSAlert($message, 'danger');
         }
     }
 }

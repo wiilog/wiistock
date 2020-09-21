@@ -101,7 +101,7 @@ function callbackEditFormLoading($modal, buyerId, buyerName) {
 
 function callbackUrgenceAction({success, message}, $modal = undefined, resetDate = false) {
     if (success) {
-        ShowBSAlert(message, 'success');
+        showBSAlert(message, 'success');
         if ($modal) {
             clearModal($modal);
             if (resetDate) {
@@ -112,6 +112,6 @@ function callbackUrgenceAction({success, message}, $modal = undefined, resetDate
         }
     }
     else {
-        ShowBSAlert(message, 'danger');
+        showBSAlert(message, 'danger');
     }
 }

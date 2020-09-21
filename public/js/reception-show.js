@@ -429,7 +429,7 @@ function finishReception(receptionId, confirmed, $button) {
             } else if (data === 0) {
                 $('#finishReception').click();
             } else {
-                ShowBSAlert(data, 'danger');
+                showBSAlert(data, 'danger');
             }
         }, 'json')
     ), true);
@@ -685,10 +685,10 @@ function createHandlerAddLigneArticleResponse($modal) {
     return (data) => {
         if (!data.success) {
             if (data.msg) {
-                ShowBSAlert(data.msg, 'danger');
+                showBSAlert(data.msg, 'danger');
             }
         } else {
-            ShowBSAlert('La référence a été ajoutée à la réception', 'success');
+            showBSAlert('La référence a été ajoutée à la réception', 'success');
             $modal.find('.close').click();
             clearModal($modal);
         }

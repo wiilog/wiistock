@@ -38,7 +38,7 @@ function endLivraison($button) {
                         window.location.href = redirect;
                     }
                     else {
-                        ShowBSAlert(message, 'danger');
+                        showBSAlert(message, 'danger');
                     }
 
                     return success;
@@ -75,7 +75,7 @@ function askForDeleteDelivery() {
                                 window.location.href = redirect;
                             }
                             else {
-                                ShowBSAlert(message, 'danger');
+                                showBSAlert(message, 'danger');
                             }
 
                             return success;
@@ -85,7 +85,7 @@ function askForDeleteDelivery() {
             );
         }
         else {
-            ShowBSAlert('Veuillez sélectionner un emplacement.', 'danger');
+            showBSAlert('Veuillez sélectionner un emplacement.', 'danger');
         }
     })
 }

@@ -617,7 +617,7 @@ function clearCheckboxes($modal) {
  * @param {'danger'|'success'} color
  * @param {boolean = true} remove
  */
-function ShowBSAlert(message, color, remove = true) {
+function showBSAlert(message, color, remove = true) {
     if ((typeof message === 'string') && message) {
         const $alertContainer = $('#alerts-container');
         const $alert = $('#alert-template')
@@ -704,7 +704,7 @@ function saveFilters(page, tableSelector, callback) {
                 }
             }
         } else {
-            ShowBSAlert('Veuillez saisir des filtres corrects (pas de virgule ni de deux-points).', 'danger');
+            showBSAlert('Veuillez saisir des filtres corrects (pas de virgule ni de deux-points).', 'danger');
         }
     }, 'json');
 }
@@ -1003,7 +1003,7 @@ let dlFile = function (csv, filename) {
 };
 
 function warningEmptyDatesForCsv() {
-    ShowBSAlert('Veuillez saisir des dates dans le filtre en haut de page.', 'danger');
+    showBSAlert('Veuillez saisir des dates dans le filtre en haut de page.', 'danger');
     $('#dateMin, #dateMax').addClass('is-invalid');
     $('.is-invalid').on('click', function () {
         $(this).parent().find('.is-invalid').removeClass('is-invalid');
@@ -1289,7 +1289,7 @@ function wrapLoadingOnActionButton($button, action = null, endLoading = true) {
             });
         }
     } else {
-        ShowBSAlert('L\'opération est en cours de traitement', 'success');
+        showBSAlert('L\'opération est en cours de traitement', 'success');
     }
 }
 

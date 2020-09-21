@@ -56,9 +56,9 @@ function editBusinessUnit($select, paramName) {
     const valStr = JSON.stringify(val);
     $.post(Routing.generate('toggle_params'), JSON.stringify({param: paramName, val: valStr})).then((resp) => {
         if (resp) {
-            alertSuccessMsg("La liste business unit a bien été mise à jour.");
+            showBSAlert("La liste business unit a bien été mise à jour.");
         } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la liste business unit.");
+            showBSAlert("Une erreur est survenue lors de la mise à jour de la liste business unit.");
         }
     })
 }
