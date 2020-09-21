@@ -126,7 +126,7 @@ class UtilisateurController extends AbstractController
             // unicité de l'email
             $emailAlreadyUsed = $utilisateurRepository->count(['email' => $data['email']]);
 
-            if ($emailAlreadyUsed > 0 ) {
+            if ($emailAlreadyUsed > 0) {
 				return new JsonResponse([
 					'success' => false,
 					'msg' => 'Cette adresse email est déjà utilisée.',
@@ -156,6 +156,7 @@ class UtilisateurController extends AbstractController
 				->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
                 ->setStatus(true)
                 ->setRoles(['USER'])// évite bug -> champ roles ne doit pas être vide
+                ->setAddress($data['address'])
                 ->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT)
 				->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT)
                 ->setColumnsVisibleForArrivage(Utilisateur::COL_VISIBLE_ARR_DEFAULT)
@@ -301,6 +302,7 @@ class UtilisateurController extends AbstractController
                 ->setSecondaryEmails(json_decode($data['secondaryEmails']))
                 ->setStatus($data['status'] === 'active')
                 ->setUsername($data['username'])
+                ->setAddress($data['address'])
                 ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
                 ->setEmail($data['email'])
                 ->setPhone($data['phoneNumber'] ?? '');

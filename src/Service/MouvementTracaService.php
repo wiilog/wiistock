@@ -99,7 +99,7 @@ class MouvementTracaService
             $originFrom = $mouvement->getReception()->getNumeroReception();
         } else if ($mouvement->getDispatch()) {
             $fromPath = 'dispatch_show';
-            $fromLabel = 'acheminement.acheminement';
+            $fromLabel = 'acheminement.Acheminement';
             $fromEntityId = $mouvement->getDispatch()->getId();
             $originFrom = $mouvement->getDispatch()->getNumber();
         } else {

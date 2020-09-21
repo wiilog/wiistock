@@ -31,7 +31,6 @@ InitModal(modalEditDays, submitEditDays, urlEditDays, {tables: [tableDays]});
 
 $(function () {
     initSelect2($('#locationArrivageDest'));
-    initFreeSelect2($('select[name="businessUnit"]'));
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));
     ajaxAutoCompleteTransporteurInit($('.ajax-autocomplete-transporteur'));
     initDisplaySelect2('#receptionLocation', '#receptionLocationValue');
@@ -42,7 +41,6 @@ $(function () {
     // config tableau de bord : emplacements
     initSelect2ValuesForDashboard();
     $('#locationArrivageDest').on('change', editArrivageDestination);
-    $('select[name="businessUnit"]').on('change', editBusinessUnit);
     $('#locationDemandeLivraison').on('change', function() {
         editDemandeLivraisonDestination($(this));
     });
@@ -305,17 +303,6 @@ function editArrivageDestination() {
     });
 }
 
-function editBusinessUnit() {
-    console.log($(this).val());
-    $.post(Routing.generate('set_business_unit'), {value: $(this).val()}, (resp) => {
-        if (resp) {
-            alertSuccessMsg("La liste business unit a bien été mise à jour.");
-        } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la liste business unit.");
-        }
-    });
-}
-
 function editDemandeLivraisonDestination($select) {
     $.post(Routing.generate('edit_demande_livraison_default_dest'), $select.val(), (resp) => {
         if (resp) {
@@ -421,7 +408,6 @@ function saveDispatchesParam() {
         $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_LOCATION_TO', val: $('[name="waybillLocationTo"]').val()}))
     ])
         .then((res) => {
-            console.log(res);
             if (res.every((success) => success)) {
                 alertSuccessMsg("Les paramétrages d'acheminements ont bien été mis à jour.");
             } else {

@@ -70,6 +70,10 @@ class ParametrageGlobal
     const DISPATCH_WAYBILL_RECEIVER = 'DISPATCH_WAYBILL_RECEIVER';
     const DISPATCH_WAYBILL_LOCATION_TO = 'DISPATCH_WAYBILL_LOCATION_TO';
     const DISPATCH_WAYBILL_LOCATION_FROM = 'DISPATCH_WAYBILL_LOCATION_FROM';
+    const DISPATCH_BUSINESS_UNIT_VALUES = 'DISPATCH_BUSINESS_UNIT_VALUES';
+
+    // arrival
+    const ARRIVAL_BUSINESS_UNIT_VALUES = 'ARRIVAL_BUSINESS_UNIT_VALUES';
 
 
     // étiquettes
@@ -102,7 +106,6 @@ class ParametrageGlobal
         'label'=> '1252 Europe de l\'ouest Windows'
     ];
 
-    const BUSINESS_UNIT_VALUES = 'BUSINESS UNIT';
 
 
 	/**

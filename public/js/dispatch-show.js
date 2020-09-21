@@ -30,9 +30,14 @@ $(function () {
     InitModal($modalEditDispatch, $submitEditDispatch, urlDispatchEdit);
 
     const $modalValidateDispatch = $('#modalValidateDispatch');
-    const $submitTreatedDispatch = $modalValidateDispatch.find('.submit-button');
+    const $submitValidatedDispatch = $modalValidateDispatch.find('.submit-button');
     const urlValidateDispatch = Routing.generate('dispatch_validate_request', {id: dispatchId}, true);
-    InitModal($modalValidateDispatch, $submitTreatedDispatch, urlValidateDispatch, {tables: [packTable]});
+    InitModal($modalValidateDispatch, $submitValidatedDispatch, urlValidateDispatch);
+
+    const $modalTreatDispatch = $('#modalTreatDispatch');
+    const $submitTreatedDispatch = $modalTreatDispatch.find('.submit-button');
+    const urlTreatDispatch = Routing.generate('dispatch_treat_request', {id: dispatchId}, true);
+    InitModal($modalTreatDispatch, $submitTreatedDispatch, urlTreatDispatch);
 
     const $modalDeleteDispatch = $('#modalDeleteDispatch');
     const $submitDeleteDispatch = $('#submitDeleteDispatch');
@@ -126,6 +131,20 @@ function openNewPackModal() {
     $modal.modal('show');
 }
 
+function openShowPackModal({code, nature, quantity, packQuantity, lastMovementDate, lastLocation, operator}) {
+    const $modal = $('#modalShowPack');
+
+    $modal.find('[name="pack-number"]').val(code);
+    $modal.find('[name="pack-nature"]').val(nature);
+    $modal.find('[name="pack-dispatch-quantity"]').val(quantity);
+    $modal.find('[name="pack-quantity"]').val(packQuantity);
+    $modal.find('[name="pack-last-movement"]').val(lastMovementDate);
+    $modal.find('[name="pack-last-location"]').val(lastLocation);
+    $modal.find('[name="pack-operator"]').val(operator);
+
+    $modal.modal('show');
+}
+
 function openEditPackModal({packDispatchId, code, quantity, natureId, packQuantity}) {
     const modalSelector = '#modalPack'
     const $modal = $(modalSelector);
@@ -166,6 +185,15 @@ function openEditPackModal({packDispatchId, code, quantity, natureId, packQuanti
 
 function openValidateDispatchModal() {
     const modalSelector = '#modalValidateDispatch'
+    const $modal = $(modalSelector);
+
+    clearModal(modalSelector);
+
+    $modal.modal('show');
+}
+
+function openTreatDispatchModal() {
+    const modalSelector = '#modalTreatDispatch'
     const $modal = $(modalSelector);
 
     clearModal(modalSelector);

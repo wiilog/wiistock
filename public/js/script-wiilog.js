@@ -36,6 +36,8 @@ $(function () {
     $(document).on('hide.bs.modal', function () {
         $('.select2-container.select2-container--open').remove();
     });
+
+    $('[data-toggle="popover"]').popover();
 });
 
 //DELETE
@@ -563,7 +565,7 @@ function clearModal(modal) {
     // on vide tous les select2
     let selects = $modal
         .find('.modal-body')
-        .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-free');
+        .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocomplete-transporteur, .select2, .select2-free');
     selects.each(function () {
         if (!$(this).hasClass('no-clear')) {
             if ($(this).hasClass('needs-default')) {

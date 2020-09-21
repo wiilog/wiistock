@@ -1,21 +1,37 @@
 {% extends 'utils/show-header.html.twig' %}
 
-{% block showTitle ('acheminement.acheminement'|trans ~ ' n°' ~ dispatch.number) %}
+{% block showTitle ('acheminement.Acheminement'|trans ~ ' n°' ~ dispatch.number) %}
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
 {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
 {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_ACHE')) %}
 
+{# droit de modification/suppression pour les acheminements non traités #}
+{% if not dispatch.statut.treated %}
+    {% set hasRightEdit = hasRightEdit and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_UNPROCESSED_DISPATCH')) %}
+    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_UNPROCESSED_DISPATCH')) %}
+{% endif %}
+
 {% block showActions %}
     <div class="btn-group">
-        {% if modifiable and hasRightEdit %}
-            <button type="button"
-                    data-id='{{ dispatch.id }}'
-                    onclick="openValidateDispatchModal()"
-                    class="btn btn-primary btn-ripple split-button">
-                <i class="fa fa-check mr-2 button-icon"></i>
-                Valider la demande
-            </button>
+        {% if hasRightEdit %}
+            {% if dispatch.statut.draft %}
+                <button type="button"
+                        data-id='{{ dispatch.id }}'
+                        onclick="openValidateDispatchModal()"
+                        class="btn btn-primary btn-ripple split-button">
+                    <i class="fa fa-check mr-2 button-icon"></i>
+                    Valider la demande
+                </button>
+            {% elseif dispatch.statut.notTreated %}
+                <button type="button"
+                        data-id='{{ dispatch.id }}'
+                        onclick="openTreatDispatchModal()"
+                        class="btn btn-primary btn-ripple split-button">
+                    <i class="fa fa-check mr-2 button-icon"></i>
+                    Terminer la demande
+                </button>
+            {% endif %}
         {% endif %}
 
         <button type="button"
@@ -30,16 +46,23 @@
                data-dispatch-id='{{ dispatch.id }}'
                onclick="openDeliveryNoteModal($(this))"
                class="dropdown-item">
-                <i class="fa fa-print mr-2"></i>
+                <i class="fa fa-print"></i>
                 Générer un bon de livraison
             </a>
             <a type="button"
                data-dispatch-id='{{ dispatch.id }}'
                onclick="openWaybillModal($(this))"
                class="dropdown-item">
-                <i class="fa fa-print mr-2"></i>
+                <i class="fa fa-print"></i>
                 Générer une lettre de voiture
             </a>
+            {% if hasRightExport %}
+                <a class="dropdown-item"
+                   onclick="runDispatchPrint()">
+                    <i class="fas fa-print"></i>
+                    {{ 'acheminement.Générer un bon d\'acheminement'|trans }}
+                </a>
+            {% endif %}
             {% if hasRightEdit %}
                 <a href="#"
                    data-id='{{ dispatch.id }}'
@@ -47,19 +70,15 @@
                    data-toggle='modal'
                    onclick="editRow($(this), Routing.generate('dispatch_edit_api', true), $('#modalEditDispatch'), $('#submitEditDispatch'), true, '#modalEditDispatch .editor-container-edit')"
                    class="dropdown-item">
-                    <i class="fa fa-pen mr-2"></i>Modifier
+                    <i class="fa fa-pen"></i>
+                    Modifier
                 </a>
             {% endif %}
             {% if hasRightDelete %}
                 <a href="" data-id='{{ dispatch.id }}' data-target='#modalDeleteDispatch' data-toggle='modal'
                    class="dropdown-item">
-                    <i class="fa fa-trash mr-2"></i>Supprimer
-                </a>
-            {% endif %}
-            {% if hasRightExport %}
-                <a class="dropdown-item"
-                   onclick="runDispatchPrint()">
-                    <i class='fas fa-print mr-2'></i>Imprimer
+                    <i class="fa fa-trash"></i>
+                    Supprimer
                 </a>
             {% endif %}
         </div>

@@ -45,6 +45,19 @@
                         </select>
                     </div>
 
+                    <div class="mb-3 form-group col-12">
+                        <label for="state">État du statut*</label>
+                        <select name="state" class="data form-control needed">
+                            <option value=""></option>
+                            {% for state in statusStates %}
+                                <option value="{{ state.id }}"
+                                        class="{{ state.id == constant('App\\Entity\\Statut::DRAFT') ? 'dispatch-fields' }}">
+                                    {{ state.label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
                     <div class="form-group col-12 dispute-fields">
                         <label for="label">Commentaire litige</label>
                         <input type="text" class="data form-control" name="description">
@@ -57,15 +70,6 @@
                             <span class="slider round"></span>
                         </label>
                     </div>
-
-                    <div class="col-12 form-group">
-                        <label>Statut de type 'traité' ?</label>
-                        <label class="switch">
-                            <input class="checkbox" type="checkbox" name="treated">
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-
                     <div class="col-12 form-group dispute-fields">
                         <label>Envoi de mails aux acheteurs ?</label>
                         <label class="switch">

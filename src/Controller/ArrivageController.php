@@ -181,7 +181,7 @@ class ArrivageController extends AbstractController
             'defaultStatutArrivageId' => $paramGlobalDefaultStatusArrivageId,
             'champs' => $champs,
             'columnsVisibles' => $user->getColumnsVisibleForArrivage(),
-            'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES))
+            'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::ARRIVAL_BUSINESS_UNIT_VALUES))
         ]);
     }
 
@@ -416,7 +416,7 @@ class ArrivageController extends AbstractController
                     'chauffeurs' => $chauffeurRepository->findAllSorted(),
                     'statuts' => $status,
                     'fieldsParam' => $fieldsParam,
-                    'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES))
+                    'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::ARRIVAL_BUSINESS_UNIT_VALUES))
                 ]);
             } else {
                 $html = '';
@@ -1250,7 +1250,7 @@ class ArrivageController extends AbstractController
             $this->templating = $templating;
             $newStatus = $statutRepository->find($statutAfter);
             $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_LITIGE);
-            if ($hasRightToTreatLitige || !$newStatus->getTreated()) {
+            if ($hasRightToTreatLitige || !$newStatus->isTreated()) {
                 $litige->setStatus($newStatus);
             }
 

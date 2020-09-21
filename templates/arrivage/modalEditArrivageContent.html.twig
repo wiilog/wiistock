@@ -131,8 +131,12 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
         <div class="form-group col-4">
             <label for="chauffeur">Business Unit{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
-            <select class="needs-default form-control input-sm data needed {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }}"
+            <select class="needs-default form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }}"
                     name="businessUnit">
+                <option value=""></option>
+                {% if arrivage.businessUnit and arrivage.businessUnit not in businessUnits %}
+                    <option value="{{ arrivage.businessUnit }}" selected>{{ arrivage.businessUnit }}</option>
+                {% endif %}
                 {% for businessUnit in businessUnits %}
                     {% set selected = (businessUnit is not empty and businessUnit == arrivage.businessUnit ? 'selected' : '') %}
                     <option value="{{ businessUnit }}" {{ selected }}>{{ businessUnit }}</option>

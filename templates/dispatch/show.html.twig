@@ -25,7 +25,13 @@
                     <div class="row mb-2">
                         <h5 class="col-auto h5" title="Liste des colis">{{ 'colis.Liste des colis'|trans }}</h5>
                     </div>
-                    {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+                    {% if modifiable
+                          and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))
+                          and (
+                              not (dispatch.status and dispatch.status.isNotTreated)
+                              or hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_UNPROCESSED_DISPATCH'))
+                          )
+                        %}
                         <div class="row wii-page-card-header">
                             <div class="col-auto ml-auto">
                                 <button onclick="openNewPackModal()"
@@ -49,8 +55,10 @@
 
     {% include "dispatch/modalDeleteDispatch.html.twig" with {dispatch: dispatch} %}
     {% include "dispatch/modalEditDispatch.html.twig" %}
+    {% include "dispatch/modalShowPack.html.twig" with newPackConfig %}
     {% include "dispatch/modalPack.html.twig" with newPackConfig %}
     {% include "dispatch/modalValidateDispatch.html.twig" with dispatchValidate %}
+    {% include "dispatch/modalTreatDispatch.html.twig" with dispatchTreat %}
     {% include "dispatch/modalDeletePack.html.twig" %}
     {% include "dispatch/modalPrintDeliveryNote.html.twig" %}
     {% include "dispatch/modalPrintWayBill.html.twig" %}

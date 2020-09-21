@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\FieldsParam;
 use App\Entity\Menu;
+use App\Entity\ParametrageGlobal;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,18 +28,17 @@ class FieldsParamController extends AbstractController
 	 * @param UserService $userService
 	 * @return RedirectResponse|Response
 	 */
-    public function index(UserService $userService)
+    public function index(UserService $userService,
+                          EntityManagerInterface $entityManager)
     {
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_CF)) {
             return $this->redirectToRoute('access_denied');
         }
 
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         return $this->render('fields_param/index.html.twig', [
-            'tables' => [
-                FieldsParam::ENTITY_CODE_ARRIVAGE,
-                FieldsParam::ENTITY_CODE_RECEPTION,
-                FieldsParam::ENTITY_CODE_DISPATCH
-            ]
+            'dispatchBusinessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES)),
+            'arrivalBusinessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::ARRIVAL_BUSINESS_UNIT_VALUES))
         ]);
     }
 

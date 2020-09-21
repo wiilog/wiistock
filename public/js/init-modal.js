@@ -25,6 +25,10 @@ function InitModal($modal, $submit, path, options = {}) {
         });
     }
 
+    $modal.on('show.bs.modal', function () {
+        $('[data-toggle="popover"]').popover("hide");
+    });
+
     $submit
         .click(function () {
             if ($submit.find('.spinner-border').length > 0) {
@@ -155,7 +159,8 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
 
     // pour mise à jour des données d'en-tête après modification
     if (data.entete) {
-        $('.zone-entete').html(data.entete)
+        $('.zone-entete').html(data.entete);
+        $('.zone-entete [data-toggle="popover"]').popover();
     }
 
     if (data.nextModal) {
