@@ -847,8 +847,8 @@ class DispatchController extends AbstractController {
                     'Type',
                     'Demandeur',
                     'Destinataire',
-                    $translator->trans('acheminement.emplacement prise'),
-                    $translator->trans('acheminement.emplacement dépose'),
+                    $translator->trans('acheminement.Emplacement prise'),
+                    $translator->trans('acheminement.Emplacement dépose'),
                     'Nb ' . $translator->trans('colis.colis'),
                     'Statut',
                     'Urgence',
@@ -857,7 +857,8 @@ class DispatchController extends AbstractController {
                     $translator->trans('acheminement.Quantité à acheminer'),
                     'Date dernier mouvement',
                     'Dernier emplacement',
-                    'Opérateur'
+                    'Opérateur',
+                    'Traité par'
                 ],
                 $freeFieldsHeader
             );
@@ -885,6 +886,7 @@ class DispatchController extends AbstractController {
                     $row[] = $dispatch['lastMovement'] ? $dispatch['lastMovement']->format('Y/m/d H:i') : '';
                     $row[] = $dispatch['lastLocation'] ?? '';
                     $row[] = $dispatch['operator'] ?? '';
+                    $row[] = $dispatch['treatedBy'] ?? '';
 
                     foreach ($freeFieldIds as $freeFieldId) {
                         $row[] = $dispatch['freeFields'][$freeFieldId] ?? "";

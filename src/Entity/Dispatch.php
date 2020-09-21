@@ -124,6 +124,12 @@ class Dispatch extends FreeFieldEntity
     private $businessUnit;
 
     /**
+     * @var Utilisateur|null
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="treatedDispatches")
+     */
+    private $treatedBy;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="dispatches")
      * @ORM\JoinColumn(nullable=false)
      */
@@ -248,6 +254,19 @@ class Dispatch extends FreeFieldEntity
 
         return $this;
     }
+
+    public function getTreatedBy(): ?Utilisateur
+    {
+        return $this->treatedBy;
+    }
+
+    public function setTreatedBy(?Utilisateur $treatedBy): self
+    {
+        $this->treatedBy = $treatedBy;
+
+        return $this;
+    }
+
 
     public function getCarrier(): ?Transporteur
     {
