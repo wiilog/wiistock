@@ -25,12 +25,14 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 /**
  * @Route("/statuts")
  */
-class StatusController extends AbstractController
-{
+class StatusController extends AbstractController {
     /**
      * @var UserService
      */
@@ -51,22 +53,23 @@ class StatusController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return RedirectResponse|Response
      */
-    public function index(EntityManagerInterface $entityManager)
-    {
+    public function index(EntityManagerInterface $entityManager,
+                          StatusService $statusService) {
         if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_STATU_LITI)) {
             return $this->redirectToRoute('access_denied');
         }
 
         $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+
         $categories = $categoryStatusRepository->findByLabelLike([
             CategorieStatut::DISPATCH,
             CategorieStatut::HANDLING,
             CategorieStatut::LITIGE_ARR,
             CategorieStatut::LITIGE_RECEPT
         ]);
-		$types = $typeRepository->findByCategoryLabels([
-		    CategoryType::DEMANDE_DISPATCH,
+        $types = $typeRepository->findByCategoryLabels([
+            CategoryType::DEMANDE_DISPATCH,
             CategoryType::DEMANDE_HANDLING
         ]);
 
@@ -82,7 +85,8 @@ class StatusController extends AbstractController
             'categoryStatusDispatchId' => array_values($categoryStatusDispatchIds)[0]['id'] ?? 0,
             'categoryStatusHandlingId' => array_values($categoryStatusHandlingIds)[0]['id'] ?? 0,
             'categories' => $categories,
-            'types' => $types
+            'types' => $types,
+            'statusStates' => $statusService->getStatusStatesValues()
         ]);
     }
 
@@ -90,9 +94,11 @@ class StatusController extends AbstractController
      * @Route("/api", name="status_param_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @return Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function api(Request $request): Response
-    {
+    public function api(Request $request): Response {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_STATU_LITI)) {
                 return $this->redirectToRoute('access_denied');
@@ -107,66 +113,57 @@ class StatusController extends AbstractController
     /**
      * @Route("/creer", name="status_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param StatusService $statusService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
-    public function new(Request $request,
-                        StatusService $statusService,
-                        EntityManagerInterface $entityManager): Response
-    {
+    public function new(Request $request, EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $statutRepository = $entityManager->getRepository(Statut::class);
+            $statusRepository = $entityManager->getRepository(Statut::class);
             $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
 
-            // on vérifie que le label n'est pas déjà utilisé
-            $labelExist = $statutRepository->countByLabelAndCategory($data['label'], $data['category']);
+            $category = $categoryStatusRepository->find($data['category']);
+            $type = $typeRepository->find($data['type']);
 
-            if (!$labelExist) {
-                $category = $categoryStatusRepository->find($data['category']);
-                $type = $typeRepository->find($data['type']);
-                $defaultForCategory = $data['defaultForCategory'] ?? false;
-                $statusCanBeCreated = (
-                    !$defaultForCategory
-                    || $statusService->canStatusBeDefault($entityManager, $category->getNom(), $type)
-                );
-                if (!$statusCanBeCreated) {
-                    $success = false;
-                    $message = 'Vous ne pouvez pas créer un statut par défaut pour cette entité et ce type, il en existe déjà un.';
-                }
-                else {
-                    $type = $typeRepository->find($data['type']);
-                    $status = new Statut();
-                    $status
-                        ->setNom($data['label'])
-                        ->setComment($data['description'])
-                        ->setTreated($data['treated'] ?? false)
-                        ->setDefaultForCategory($defaultForCategory)
-                        ->setSendNotifToBuyer((bool)$data['sendMails'])
-                        ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
-                        ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
-                        ->setNeedsMobileSync((bool)$data['needsMobileSync'])
-                        ->setDisplayOrder((int)$data['displayOrder'])
-                        ->setCategorie($category)
-                        ->setType($type ?? null);
+            $defaults = $statusRepository->countDefaults($category, $type);
+            $drafts = $statusRepository->countDrafts($category, $type);
 
-                    $entityManager->persist($status);
-                    $entityManager->flush();
-
-                    $success = true;
-                    $message = 'Le statut "' . $data['label'] . '" a bien été créé.';
-                }
-            } else {
+            if ($statusRepository->countSimilarLabels($category, $data['label'])) {
                 $success = false;
                 $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
+            } else if ($data['defaultForCategory'] && $defaults > 0) {
+                $success = false;
+                $message = 'Vous ne pouvez pas créer un statut par défaut pour cette entité et ce type, il en existe déjà un.';
+            } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
+                $success = false;
+                $message = 'Vous ne pouvez pas créer un statut brouillon pour cette entité et ce type, il en existe déjà un.';
+            } else {
+                $type = $typeRepository->find($data['type']);
+                $status = new Statut();
+                $status
+                    ->setNom($data['label'])
+                    ->setComment($data['description'])
+                    ->setState($data['state'])
+                    ->setDefaultForCategory((bool)$data['defaultForCategory'])
+                    ->setSendNotifToBuyer((bool)$data['sendMails'])
+                    ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
+                    ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
+                    ->setNeedsMobileSync((bool)$data['needsMobileSync'])
+                    ->setDisplayOrder((int)$data['displayOrder'])
+                    ->setCategorie($category)
+                    ->setType($type ?? null);
+
+                $entityManager->persist($status);
+                $entityManager->flush();
+
+                $success = true;
+                $message = 'Le statut "' . $data['label'] . '" a bien été créé.';
             }
+
             return new JsonResponse([
                 'success' => $success,
                 'msg' => $message
@@ -178,12 +175,13 @@ class StatusController extends AbstractController
     /**
      * @Route("/api-modifier", name="status_api_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param StatusService $statusService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function apiEdit(Request $request,
-                            EntityManagerInterface $entityManager): Response
-    {
+                            StatusService $statusService,
+                            EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
@@ -198,7 +196,7 @@ class StatusController extends AbstractController
             $categoryTypeToGet = (
                 ($statusCategory->getNom() === CategorieStatut::HANDLING) ? CategoryType::DEMANDE_HANDLING :
                 (($statusCategory->getNom() === CategorieStatut::DISPATCH) ? CategoryType::DEMANDE_DISPATCH :
-                null)
+                    null)
             );
 
             $types = isset($categoryTypeToGet)
@@ -206,6 +204,7 @@ class StatusController extends AbstractController
                 : [];
 
             $json = $this->renderView('status/modalEditStatusContent.html.twig', [
+                'states' => $statusService->getStatusStatesValues(),
                 'status' => $status,
                 'types' => $types
             ]);
@@ -218,63 +217,61 @@ class StatusController extends AbstractController
     /**
      * @Route("/modifier", name="status_edit",  options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
-     * @param StatusService $statusService
      * @param Request $request
      * @return Response
      */
     public function edit(EntityManagerInterface $entityManager,
-                         StatusService $statusService,
-                         Request $request): Response
-    {
+                         Request $request): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $statutRepository = $entityManager->getRepository(Statut::class);
+            $statusRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
 
-			$status = $statutRepository->find($data['status']);
+            /** @var Statut $status */
+            $status = $statusRepository->find($data['status']);
             $statusLabel = $status->getNom();
 
             // on vérifie que le label n'est pas déjà utilisé
-            $categoryName = $status->getCategorie() ? $status->getCategorie()->getNom() : '';
-            $labelExist = $statutRepository->countByLabelDiff($data['label'], $statusLabel, $categoryName);
+            $category = $status->getCategorie();
 
-            if (!$labelExist) {
-                $defaultForCategory = $data['defaultForCategory'] ?? false;
-                $statusCanBeCreated = (
-                    !$defaultForCategory
-                    || $statusService->canStatusBeDefault($entityManager, $categoryName, $status->getType(), $status)
-                );
-                if (!$statusCanBeCreated) {
-                    $success = false;
-                    $message = 'Vous ne pouvez pas ajouter de statut par défaut pour cette entité et ce type, il en existe déjà un.';
-                }
-                else {
-                    $type = $typeRepository->find($data['type']);
-                    $status
-                        ->setNom($data['label'])
-                        ->setTreated($data['treated'] ?? false)
-                        ->setDefaultForCategory($defaultForCategory)
-                        ->setSendNotifToBuyer((bool)$data['sendMails'])
-                        ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
-                        ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
-                        ->setNeedsMobileSync((bool)$data['needsMobileSync'])
-                        ->setDisplayOrder((int)$data['displayOrder'])
-                        ->setComment($data['comment'])
-                        ->setType($type ?? null);
+            $type = $typeRepository->find($data['type']);
 
-                    $entityManager->persist($status);
-                    $entityManager->flush();
+            $defaults = $statusRepository->countDefaults($category, $type, $status);
+            $drafts = $statusRepository->countDrafts($category, $type, $status);
 
-                    $success = true;
-                    $message = 'Le statut "' . $statusLabel . '" a bien été modifié.';
-                }
-            } else {
+            if ($statusRepository->countSimilarLabels($category, $data['label'], $status)) {
                 $success = false;
                 $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
+            } else if ($data['defaultForCategory'] && $defaults > 0) {
+                $success = false;
+                $message = 'Vous ne pouvez pas créer un statut par défaut pour cette entité et ce type, il en existe déjà un.';
+            } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
+                $success = false;
+                $message = 'Vous ne pouvez pas ajouter un statut brouillon pour cette entité et ce type, il en existe déjà un.';
+            } else {
+                $type = $typeRepository->find($data['type']);
+                $status
+                    ->setNom($data['label'])
+                    ->setState($data['state'])
+                    ->setDefaultForCategory((bool)$data['defaultForCategory'])
+                    ->setSendNotifToBuyer((bool)$data['sendMails'])
+                    ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
+                    ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
+                    ->setNeedsMobileSync((bool)$data['needsMobileSync'])
+                    ->setDisplayOrder((int)$data['displayOrder'])
+                    ->setComment($data['comment'])
+                    ->setType($type ?? null);
+
+                $entityManager->persist($status);
+                $entityManager->flush();
+
+                $success = true;
+                $message = 'Le statut "' . $statusLabel . '" a bien été modifié.';
             }
+
             return new JsonResponse([
                 'success' => $success,
                 'msg' => $message
@@ -291,9 +288,7 @@ class StatusController extends AbstractController
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function checkStatusCanBeDeleted(Request $request,
-                                            EntityManagerInterface $entityManager): Response
-    {
+    public function checkStatusCanBeDeleted(Request $request, EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $statusId = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
@@ -313,6 +308,7 @@ class StatusController extends AbstractController
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
+
         throw new NotFoundHttpException('404');
     }
 
@@ -324,9 +320,7 @@ class StatusController extends AbstractController
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function delete(EntityManagerInterface $entityManager,
-                           Request $request): Response
-    {
+    public function delete(EntityManagerInterface $entityManager, Request $request): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
@@ -347,6 +341,8 @@ class StatusController extends AbstractController
             $entityManager->flush();
             return new JsonResponse();
         }
+
         throw new NotFoundHttpException('404');
     }
+
 }

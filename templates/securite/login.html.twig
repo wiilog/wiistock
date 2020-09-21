@@ -7,28 +7,32 @@
 
     <div class="container-fluid">
         {% if error %}
-            <div class="alert alert-danger text-center">
-                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-                <strong>Erreur!</strong> {{ error }}
-            </div>
+            {% include 'utils/alert.html.twig' with {
+                id: 'alert-error',
+                content: ('<strong>Erreur !</strong>&nbsp;' ~ error),
+                color: 'danger'
+            } %}
         {% endif %}
         {% if info %}
-            <div class="alert alert-success text-center">
-                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-                {{ info }}
-            </div>
+            {% include 'utils/alert.html.twig' with {
+                id: 'alert-info',
+                content: info,
+                color: 'success'
+            } %}
         {% endif %}
+        {% for flashMessage in app.session.flashbag.get('success') %}
+            {% if flashMessage is defined %}
+                {% include 'utils/alert.html.twig' with {
+                    id: ('alert-success-' ~ loop.index),
+                    content: flashMessage,
+                    color: 'success'
+                } %}
+            {% endif %}
+        {% endfor %}
 
         <div class="main-form-wrapper mt-3">
             <div class="row">
                 <div class="box-login wii-page-card">
-                    {% for flashMessage in app.session.flashbag.get('success') %}
-                        {% if flashMessage is defined %}
-                            <div class="alert alert-success">
-                                {{ flashMessage }}
-                            </div>
-                        {% endif %}
-                    {% endfor %}
                     <div class="col-md-12 login-header">
                         Connexion
                     </div>

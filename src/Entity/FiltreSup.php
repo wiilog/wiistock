@@ -23,6 +23,7 @@ class FiltreSup
 	const FIELD_DEM_COLLECTE = 'demCollecte';
 	const FIELD_DEMANDE = 'demande';
 	const FIELD_EMERGENCY = 'emergency';
+	const FIELD_EMERGENCY_MULTIPLE = 'emergencyMultiple';
 	const FIELD_ANOMALY = 'anomaly';
 	const FIELD_ARRIVAGE_STRING = 'arrivage_string';
 	const FIELD_RECEPTION_STRING = 'reception_string';
@@ -37,6 +38,7 @@ class FiltreSup
 	const FIELD_MULTIPLE_TYPES = 'multipleTypes';
 	const FIELD_RECEIVERS = 'receivers';
 	const FIELD_REQUESTERS = 'requesters';
+	const FIELD_DISPATCH_NUMBER = 'dispatchNumber';
 
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';

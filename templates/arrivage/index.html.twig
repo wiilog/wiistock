@@ -15,6 +15,7 @@
 {% block page_content %}
     {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
+
     <input type="hidden" id="dateMinFilter">
     <input type="hidden" id="dateMaxFilter">
     <input type="hidden" id="statutFilter">
@@ -88,7 +89,7 @@
     {% include "arrivage/modalNewArrivage.html.twig" %}
     {% include "arrivage/modalDeleteArrivage.html.twig" %}
     {% include "arrivage/modalListColis.html.twig" %}
-    {% include "arrivage/modalColumnVisible.html.twig" with { champs: champs }%}
+    {% include "arrivage/modalVisibleColumns.html.twig" with { champs: champs }%}
 {% endblock %}
 
 {% block javascripts %}

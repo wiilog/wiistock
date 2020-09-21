@@ -1,0 +1,11 @@
+<div class="col-auto mb-2 select-filter pr-0">
+    <div class="select2-overflow">
+        <div class="input-group w-100 cursor-default">
+            <select class="form-control data filter-select2" id="emergencyMultiple" name="emergencyMultiple" multiple="multiple">
+                {% for emergency in emergencies %}
+                    <option class="d-none" value="{{ emergency }}">{{ emergency }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>

@@ -113,7 +113,7 @@
                                    class="form-control data {{ required ? 'needed' }}"
                                    name="endDate"
                                    title="Date d'échéance max"
-                                   placeholder="jj/mm/aaaa" />
+                                   placeholder="jj/mm/aaaa"/>
                         </div>
                     </div>
                 {% endif %}
@@ -124,22 +124,24 @@
                     <div class="form-group">
                         <label>Urgence{{ required ? '*' }}</label>
                         <div class="w-100">
-                            <label class="switch mt-2">
-                                <input class="checkbox {{ required ? 'needed' }}"
-                                       name="urgent"
-                                       type="checkbox"/>
-                                <span class="slider round"></span>
-                            </label>
+                            <select class="form-control input-sm data {{ required ? 'needed' : '' }}"
+                                    name="emergency">
+                                <option value="">Non urgent</option>
+                                {% for emergency in emergencies %}
+                                    <option value="{{ emergency }}">{{ emergency }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
                 {% endif %}
+
                 <div class="form-group w-100">
-                    <label for="prise" title="emplacement prise">{{ 'acheminement.Emplacement prise'|trans }}*</label>
+                    <label for="prise" title="Emplacement prise">{{ 'acheminement.Emplacement prise'|trans }}*</label>
                     <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block needed location-prise" id="prise">
                     </select>
                 </div>
                 <div class="form-group w-100">
-                    <label for="depose" title="emplacement dépose">{{ 'acheminement.Emplacement dépose'|trans }}*</label>
+                    <label for="depose" title="Emplacement dépose">{{ 'acheminement.Emplacement dépose'|trans }}*</label>
                     <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block needed location-depose" id="depose">
                     </select>
                 </div>

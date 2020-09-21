@@ -179,16 +179,12 @@ function launchImport(importId, force = false) {
                 $modalNewImport.modal('hide');
             }
 
-            if (resp.success) {
-                alertSuccessMsg(resp.message);
-            } else {
-                alertErrorMsg(resp.message);
-            }
+            showBSAlert(resp.message, (resp.success ? 'success' : 'danger'));
 
             tableImport.ajax.reload();
         });
     } else {
-        alertErrorMsg('Une erreur est survenue lors du lancement de votre import. Veuillez recharger la page et réessayer.');
+        showBSAlert('Une erreur est survenue lors du lancement de votre import. Veuillez recharger la page et réessayer.', 'danger');
     }
 }
 

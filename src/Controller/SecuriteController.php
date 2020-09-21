@@ -140,6 +140,7 @@ class SecuriteController extends AbstractController
                 ->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT)
                 ->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT)
                 ->setColumnsVisibleForArrivage(Utilisateur::COL_VISIBLE_ARR_DEFAULT)
+                ->setColumnsVisibleForDispatch(Utilisateur::COL_VISIBLE_DISPATCH_DEFAULT)
                 ->setColumnsVisibleForLitige(Utilisateur::COL_VISIBLE_LIT_DEFAULT)
                 ->setRechercheForArticle(Utilisateur::SEARCH_DEFAULT)
                 ->setRecherche(Utilisateur::SEARCH_DEFAULT)
@@ -205,6 +206,11 @@ class SecuriteController extends AbstractController
         if (empty($user->getColumnsVisibleForArrivage())) {
             $user->setColumnsVisibleForArrivage(Utilisateur::COL_VISIBLE_ARR_DEFAULT);
         }
+
+        if (empty($user->getColumnsVisibleForDispatch())) {
+            $user->setColumnsVisibleForDispatch(Utilisateur::COL_VISIBLE_DISPATCH_DEFAULT);
+        }
+
         // remplit champ columnVisibles si vide
         if (empty($user->getColumnsVisibleForLitige())) {
             $user->setColumnsVisibleForLitige(Utilisateur::COL_VISIBLE_LIT_DEFAULT);
