@@ -21,8 +21,8 @@
                                 data-toggle="modal"
                                 data-target="#modalNewDispatch"
                                 class="btn btn-primary split-button btn-ripple"
-                                onclick='initNewDispatchEditor("#modalNewDispatch")'>
-                            <span class="fa fa-plus mr-2"></span><span title="nouvelle demande">{{ 'acheminement.nouvelle demande'|trans }}</span>
+                                onclick="initNewDispatchEditor('#modalNewDispatch')">
+                            <span class="fa fa-plus mr-2"></span><span title="Nouvelle demande">{{ 'acheminement.Nouvelle demande'|trans }}</span>
                         </button>
                     {% endif %}
                     {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
@@ -50,6 +50,10 @@
             </div>
         </div>
     </div>
+
+    <input type="hidden" id="dispatchLocationTo" value="{{ 'acheminement.Emplacement dépose'|trans }}">
+    <input type="hidden" id="dispatchLocationFrom" value="{{ 'acheminement.Emplacement prise'|trans }}">
+    <input type="hidden" id="dispatchPack" value="{{ 'colis.colis'|trans }}">
 
     {% include "dispatch/modalNewDispatch.html.twig" with modalNewConfig %}
 {% endblock %}

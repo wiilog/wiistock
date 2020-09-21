@@ -79,16 +79,14 @@ class Dispatch extends FreeFieldEntity
     private $creationDate;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="receivedDispatches")
-     * @ORM\JoinColumn(nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      */
-    private $receiver;
+    private $carrierTrackingNumber;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="requestedDispatches")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $requester;
+    private $commandNumber;
 
     /**
      * @ORM\Column(type="text", nullable=true)
@@ -115,9 +113,15 @@ class Dispatch extends FreeFieldEntity
 
     /**
      * @var string|null
-     * @ORM\Column(type="string", nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $projectNumber;
+
+    /**
+     * @var string|null
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $businessUnit;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="dispatches")
@@ -166,6 +170,11 @@ class Dispatch extends FreeFieldEntity
     private $validationDate;
 
     /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $treatmentDate;
+
+    /**
      * @var array|null
      * @ORM\Column(type="json", nullable=true)
      */
@@ -176,6 +185,24 @@ class Dispatch extends FreeFieldEntity
      * @ORM\Column(type="json", nullable=true)
      */
     private $deliveryNoteData;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="receivedDispatches")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $receiver;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="requestedDispatches")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $requester;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="dispatches")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $carrier;
 
     public function __construct()
     {
@@ -227,6 +254,26 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
+    public function getCarrier(): ?Transporteur
+    {
+        return $this->carrier;
+    }
+
+    public function setCarrier(?Transporteur $carrier): self
+    {
+        $this->carrier = $carrier;
+        return $this;
+    }
+
+    public function getCarrierTrackingNumber(): ?string {
+        return $this->carrierTrackingNumber;
+    }
+
+    public function setCarrierTrackingNumber(?string $carrierTrackingNumber): self {
+        $this->carrierTrackingNumber = $carrierTrackingNumber;
+        return $this;
+    }
+
     public function getStatut(): ?Statut
     {
         return $this->statut;
@@ -235,6 +282,18 @@ class Dispatch extends FreeFieldEntity
     public function setStatut(?Statut $statut): self
     {
         $this->statut = $statut;
+
+        return $this;
+    }
+
+    public function getCommandNumber(): ?string
+    {
+        return $this->commandNumber;
+    }
+
+    public function setCommandNumber(?string $commandNumber): self
+    {
+        $this->commandNumber = $commandNumber;
 
         return $this;
     }
@@ -402,15 +461,21 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
-    public function getValidationDate(): ?\DateTimeInterface
-    {
+    public function getValidationDate(): ?\DateTimeInterface {
         return $this->validationDate;
     }
 
-    public function setValidationDate(?\DateTimeInterface $validationDate): self
-    {
+    public function setValidationDate(?\DateTimeInterface $validationDate): self {
         $this->validationDate = $validationDate;
+        return $this;
+    }
 
+    public function getTreatmentDate(): ?\DateTimeInterface {
+        return $this->treatmentDate;
+    }
+
+    public function setTreatmentDate(?\DateTimeInterface $treatmentDate): self {
+        $this->treatmentDate = $treatmentDate;
         return $this;
     }
 
@@ -458,6 +523,22 @@ class Dispatch extends FreeFieldEntity
      */
     public function setProjectNumber(?string $projectNumber): self {
         $this->projectNumber = $projectNumber;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getBusinessUnit(): ?string {
+        return $this->businessUnit;
+    }
+
+    /**
+     * @param string|null $businessUnit
+     * @return self
+     */
+    public function setBusinessUnit(?string $businessUnit): self {
+        $this->businessUnit = $businessUnit;
         return $this;
     }
 

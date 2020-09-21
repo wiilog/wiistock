@@ -46,11 +46,16 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface
             ],
 
             FieldsParam::ENTITY_CODE_DISPATCH => [
+                ['code' => FieldsParam::FIELD_CODE_CARRIER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_CARRIER_DISPATCH, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_CARRIER_TRACKING_NUMBER_DISPATCH, 'displayed' => true],
                 ['code' => FieldsParam::FIELD_CODE_RECEIVER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_RECEIVER_DISPATCH, 'displayed' => true],
                 ['code' => FieldsParam::FIELD_CODE_DEADLINE_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_DEADLINE_DISPATCH, 'displayed' => true],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_DISPATCH, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_COMMAND_NUMBER_DISPATCH, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_PROJECT_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_PROJECT_DISPATCH, 'displayed' => true],
                 ['code' => FieldsParam::FIELD_CODE_COMMENT_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_COMMENT_DISPATCH, 'displayed' => true],
                 ['code' => FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_ATTACHMENTS_DISPATCH, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_BUSINESS_UNIT_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_BUSINESS_UNIT_DISPATCH, 'displayed' => true],
             ]
         ];
 
