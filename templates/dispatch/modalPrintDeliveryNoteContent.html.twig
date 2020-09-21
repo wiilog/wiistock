@@ -132,6 +132,7 @@
                 <select title="Urgence / Urgent"
                         name="emergency"
                         class="form-control data needed">
+                    <option value=""></option>
                     {% for emergencyValue in dispatchEmergencyValues %}
                         <option value="{{ emergencyValue }}"
                                 {{ dispatchEmergency == emergencyValue ? 'selected' }}>

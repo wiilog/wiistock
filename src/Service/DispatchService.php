@@ -143,7 +143,8 @@ class DispatchService {
             'nbPacks' => $dispatch->getDispatchPacks()->count(),
             'type' => $dispatch->getType() ? $dispatch->getType()->getLabel() : '',
             'status' => $dispatch->getStatut() ? $dispatch->getStatut()->getNom() : '',
-            'emergency' => $dispatch->getEmergency() ?? "Non",
+            'emergency' => $dispatch->getEmergency() ?? '',
+            'treatmentDate' => $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate()->format('d/m/Y H:i:s') : '',
             'actions' => $this->templating->render('dispatch/datatableDispatchRow.html.twig', [
                 'dispatch' => $dispatch,
                 'url' => $url

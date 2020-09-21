@@ -1,7 +1,7 @@
 $(function () {
 
     initFreeSelect2($('select.select2-free'));
-
+    $('select[name="dispatchEmergencies"]').on('change', editDispatchEmergencies);
     $('.table').each(function () {
         const $table = $(this);
         initDataTable($table.attr('id'), {
@@ -49,6 +49,16 @@ function switchDisplayByMust(checkbox) {
     if (checkbox.is(':checked')) {
         $('.checkbox[name="displayed"]').prop('checked', true);
     }
+}
+
+function editDispatchEmergencies() {
+    $.post(Routing.generate('set_dispatch_emergencies'), {value: $(this).val()}, (resp) => {
+        if (resp) {
+            alertSuccessMsg("La liste urgences d'acheminements a bien été mise à jour.");
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la liste urgences d'acheminements.");
+        }
+    });
 }
 
 function editBusinessUnit($select, paramName) {
