@@ -1481,9 +1481,9 @@ class ArrivageController extends AbstractController
             $barcodeConfigs[] = $this->getBarcodeColisConfig(
                 $colis,
                 $arrivage->getDestinataire(),
+                "$position/$total",
                 $usernameParamIsDefined,
                 $dropzoneParamIsDefined,
-                "$position/$total",
                 $packCountParamIsDefined,
                 $commandAndProjectNumberIsDefined
             );
@@ -1537,9 +1537,9 @@ class ArrivageController extends AbstractController
             $packs[] = $this->getBarcodeColisConfig(
                 $pack,
                 $arrivage->getDestinataire(),
+                "$position/$total",
                 $usernameParamIsDefined,
                 $dropzoneParamIsDefined,
-                "$position/$total",
                 $packCountParamIsDefined,
                 $commandAndProjectNumberIsDefined
             );
@@ -1550,9 +1550,9 @@ class ArrivageController extends AbstractController
 
     private function getBarcodeColisConfig(Pack $colis,
                                            ?Utilisateur $destinataire,
-                                           ?bool $usernameParamIsDefined,
-                                           ?bool $dropzoneParamIsDefined,
                                            ?string $packIndex = '',
+                                           ?bool $usernameParamIsDefined = false,
+                                           ?bool $dropzoneParamIsDefined = false,
                                            ?bool $packCountParamIsDefined = false,
                                            ?bool $commandAndProjectNumberIsDefined = false)
     {
@@ -1585,16 +1585,18 @@ class ArrivageController extends AbstractController
         ];
 
         if ($commandAndProjectNumberIsDefined) {
-            if ($arrivalCommand !== '' && $arrivalProjectNumber !== '') {
-                $labels[] = $arrivalCommand . '/' . $arrivalProjectNumber;
-            } else if ($arrivalCommand !== '') {
+            if ($arrivalCommand && $arrivalProjectNumber) {
+                $labels[] = $arrivalCommand . ' / ' . $arrivalProjectNumber;
+            } else if ($arrivalCommand) {
                 $labels[] = $arrivalCommand;
-            } else if ($arrivalProjectNumber !== '') {
+            } else if ($arrivalProjectNumber) {
                 $labels[] = $arrivalProjectNumber;
             }
-        } if ($packLabel) {
+        }
+
+        if ($packLabel) {
             $labels[] = $packLabel;
-    }
+        }
 
         return [
             'code' => $colis->getCode(),
