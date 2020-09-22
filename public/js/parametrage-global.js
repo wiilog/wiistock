@@ -144,7 +144,7 @@ function ajaxMailerServer() {
 }
 
 function ajaxDims() {
-    let $fileInput = $('#logo');
+    let $fileInput = $('#upload-label-logo');
     let data = new FormData();
     let dataInputs = $('#dimsForm').find('.data');
     dataInputs.each(function () {
