@@ -94,24 +94,19 @@ class DispatchRepository extends EntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
-                    $d = DateTime::createFromFormat('d/m/Y', $search);
-                    if ($d) {
-                        $search = DateTime::createFromFormat('d/m/Y',$search)->format('Y-m-d');
-                    }
                     $qb
                         ->andWhere('(' . $exprBuilder->orX(
-                                'd.creationDate LIKE :value',
-                                'd.validationDate LIKE :value',
-                                'search_type.label LIKE :value',
-                                'search_requester.username LIKE :value',
-                                'search_receiver.username LIKE :value',
-                                'd.number LIKE :value',
-                                'search_locationFrom.label LIKE :value',
-                                'search_locationTo.label LIKE :value',
-                                'search_statut.nom LIKE :value',
-                                'd.freeFields LIKE :value',
-                                'd.treatmentDate LIKE :value'
-
+                            "DATE_FORMAT(d.creationDate, '%e/%m/%Y') LIKE :value",
+                            "DATE_FORMAT(d.validationDate, '%e/%m/%Y') LIKE :value",
+                            "DATE_FORMAT(d.treatmentDate, '%e/%m/%Y') LIKE :value",
+                            'search_type.label LIKE :value',
+                            'search_requester.username LIKE :value',
+                            'search_receiver.username LIKE :value',
+                            'd.number LIKE :value',
+                            'search_locationFrom.label LIKE :value',
+                            'search_locationTo.label LIKE :value',
+                            'search_statut.nom LIKE :value',
+                            'd.freeFields LIKE :value'
                         ) . ')')
                         ->leftJoin('d.locationFrom', 'search_locationFrom')
                         ->leftJoin('d.locationTo', 'search_locationTo')

@@ -352,10 +352,6 @@ class ArrivageRepository extends EntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
-                    $d = DateTime::createFromFormat('d/m/Y', $search);
-                    if ($d) {
-                        $search = DateTime::createFromFormat('d/m/Y',$search)->format('Y-m-d');
-                    }
                     $qb
                         ->leftJoin('a.transporteur', 't3')
                         ->leftJoin('a.chauffeur', 'ch3')
@@ -364,8 +360,7 @@ class ArrivageRepository extends EntityRepository
                         ->leftJoin('a.acheteurs', 'ach3')
                         ->leftJoin('a.utilisateur', 'u3')
                         ->leftJoin('a.type', 'search_type')
-                        ->leftJoin('a.acheteurs', 'ach')
-                        ->andWhere('(
+                        ->andWhere("(
                             a.numeroArrivage LIKE :value
                             OR t3.label LIKE :value
                             OR ch3.nom LIKE :value
@@ -379,9 +374,8 @@ class ArrivageRepository extends EntityRepository
                             OR search_type.label LIKE :value
                             OR a.businessUnit LIKE :value
                             OR a.projectNumber LIKE :value
-                            OR ach.username like :value
-                            OR a.date like :value
-                        )')
+                            OR DATE_FORMAT(a.date, '%e/%m/%Y') LIKE :value
+                        )")
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
