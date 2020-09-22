@@ -3,14 +3,23 @@
 
 namespace App\Service;
 
+use App\Entity\Arrivage;
+use App\Entity\CategorieStatut;
 use App\Entity\ChampLibre;
 use App\Entity\Dispatch;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\MouvementTraca;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Repository\ChampLibreRepository;
+use App\Repository\FieldsParamRepository;
+use App\Repository\ParametrageGlobalRepository;
+use App\Repository\StatutRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,6 +34,9 @@ use Twig\Error\SyntaxError as Twig_Error_Syntax;
 use Twig\Environment as Twig_Environment;
 
 class DispatchService {
+
+    const WAYBILL_MAX_PACK = 20;
+
     /**
      * @var Twig_Environment
      */
@@ -156,6 +168,35 @@ class DispatchService {
         return $rows;
     }
 
+    public function getNewDispatchConfig(ParametrageGlobalRepository $parametrageGlobalRepository,
+                                         StatutRepository $statutRepository,
+                                         ChampLibreRepository $champLibreRepository,
+                                         FieldsParamRepository $fieldsParamRepository,
+                                         array $types,
+                                         ?Arrivage $arrival = null) {
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
+
+        $dispatchBusinessUnits = json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES));
+        return [
+            'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
+            'fieldsParam' => $fieldsParam,
+            'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
+            'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
+            'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
+                $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
+                return [
+                    'typeLabel' => $type->getLabel(),
+                    'typeId' => $type->getId(),
+                    'champsLibres' => $champsLibres,
+                ];
+            }, $types),
+            'notTreatedStatus' => $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::NOT_TREATED, Statut::DRAFT]),
+            'packs' => $arrival ? $arrival->getPacks() : [],
+            'fromArrival' => $arrival !== null,
+            'arrival' => $arrival
+        ];
+    }
+
     public function createHeaderDetailsConfig(Dispatch $dispatch): array {
         $status = $dispatch->getStatut();
         $type = $dispatch->getType();
@@ -217,9 +258,9 @@ class DispatchService {
                 ['label' => $this->translator->trans('acheminement.Emplacement dépose'), 'value' => $locationTo ? $locationTo->getLabel() : ''],
                 ['label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''],
                 ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i:s') : ''],
-                ['label' => 'Date de traitement', 'value' => $treatmentDate ? $treatmentDate->format('d/m/Y H:i:s') : ''],
                 ['label' => 'Dates d\'échéance', 'value' => ($startDate || $endDate) ? ('Du ' . $startDateStr . ' au ' . $endDateStr) : ''],
-                ['label' => 'Traité par', 'value' => $treatedBy]
+                ['label' => 'Traité par', 'value' => $treatedBy],
+                ['label' => 'Date de traitement', 'value' => $treatmentDate ? $treatmentDate->format('d/m/Y H:i:s') : '']
             ],
             $freeFieldArray,
             [
@@ -439,5 +480,7 @@ class DispatchService {
             }, $freeFields)
         );
     }
+
+
 
 }

@@ -46,7 +46,7 @@
     </div>
     <div class="row">
         <div class="form-group col-6">
-            <label for="param-bl-etiquette">Afficher la quantité sur étiquette d'article</label>
+            <label for="param-bl-etiquette">Afficher la quantité sur l'étiquette d'article</label>
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3 data"
                        name="param-qtt-etiquette" {{ wantsQTT ? 'checked' : '' }}>
@@ -62,6 +62,24 @@
             </label>
         </div>
     </div>
+    <div class="row">
+        <div class="form-group col-6">
+            <label for="param-bl-etiquette">Afficher le numéro du colis dans l'arrivage</label>
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3 data"
+                       name="param-pack-count" {{ wantsPackCount ? 'checked' : '' }}>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="form-group col-6">
+            <label for="param-bl-etiquette">Afficher les numéros de commande et le numéro de projet sur l'étiquette colis d'arrivage</label>
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3 data"
+                       name="param-command-project-numbers-etiquette" {{ wantsCommandAndProjectNumber ? 'checked' : '' }}>
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
 
     <div class="form-group w-fit-content">
         <label for="param-type-etiquette">Type d'étiquette</label>
@@ -72,13 +90,11 @@
         </select>
     </div>
     <div class="form-group d-flex">
-        <img id="chosenLogo"
-             src="{{ logo ? (app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ logo) : '' }}"
-             alt="Logo choisi" height="50px" class="{{ logo ? '' : 'd-none' }}"/>
+            <img src="{{ logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ logo : '' }}"
+                 id="preview-label-logo" alt="Logo choisi" height="50px" class="{{ logo ? '' : 'd-none' }}"/>
 
-        <button class="btn btn-primary" onclick="$('#logo')[0].click();">{{ logo ? "<i class='fas fa-pencil-alt'></i> ": 'Choisir un logo'}}</button>
+        <button class="btn btn-primary" onclick="$('#upload-label-logo').click();">{{ logo ? "<i class='fas fa-pencil-alt'></i> ": 'Choisir un logo'}}</button>
 
-        <input type="file" id="logo" name="logo" accept="image/png, image/jpeg, image/jpg" hidden>
-
+        <input type="file" id="upload-label-logo" name="logo" accept="image/png, image/jpeg, image/jpg" hidden>
     </div>
 </div>

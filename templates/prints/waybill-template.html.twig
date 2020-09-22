@@ -1,0 +1,198 @@
+<html lang="fr">
+<head>
+    <title>{{ title }}</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        * {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: block;
+            width: 24cm;
+        }
+
+        .full-width {
+            width: 100%;
+        }
+
+        .split > * {
+            display: inline-block;
+            width: 11.9cm;
+            vertical-align: top;
+            margin-top: 0.5cm;
+            border: 1px solid rgba(0, 0, 0, 0); /* alignment is fucked up without it for some reason???????????????? */
+        }
+
+        .split:first-child {
+            float: left;
+        }
+
+        .split:last-child {
+            float: right;
+        }
+
+        .header {
+            font-size: 1.3em;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        table {
+            margin-top: 1cm;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: black;
+            border: 1px solid black;
+            color: white;
+        }
+
+        td {
+            padding: 1mm 3mm;
+            border: 1px solid black;
+        }
+
+        th.left {
+            padding-left: 2mm;
+            text-align: left;
+        }
+
+        table.invisible td, td.invisible {
+            border: none;
+        }
+
+        .no-padding {
+            padding-left: 0;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+        .image-title {
+            max-height: 100px;
+            max-width: 100px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="split">
+        <div>
+            {% if logo %}
+                <img class="image-title"
+                     src="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ logo }}"
+                     alt="GT Logistics"/>
+            {% endif %}
+        </div>
+        <div>
+            <div class="header">
+                Lettre de voiture N°{{ dispatch.number }}<br>
+            </div>
+
+            Date d'acheminement {{ dispatch.waybillData.dispatchDate }}
+        </div>
+    </div>
+
+
+    <div class="split">
+        <div>
+            <label>Transporteur</label><br>
+            {{ dispatch.waybillData.carrier | nl2br }}
+        </div>
+        <div></div>
+    </div>
+
+    <div class="split">
+        <div>
+            <label>Expéditeur</label><br>
+            {{ dispatch.waybillData.consignor | nl2br }}
+        </div>
+        <div>
+            <label>Destinataire</label><br>
+            {{ dispatch.waybillData.receiver | nl2br }}
+        </div>
+    </div>
+
+    <div class="split">
+        <div>
+            <label>Contact expéditeur</label><br>
+            Nom : {{ dispatch.waybillData.consignorUsername }}<br>
+            Téléphone / mail : {{ dispatch.waybillData.consignorEmail }}
+        </div>
+        <div>
+            <label>Contact destinataire</label><br>
+            Nom : {{ dispatch.waybillData.receiverUsername }}<br>
+            Téléphone / mail : {{ dispatch.waybillData.receiverEmail }}
+        </div>
+    </div>
+
+    <table class="invisible">
+        <tr>
+            <td class="no-padding"><label>Lieu de chargement :</label></td>
+            <td>{{ dispatch.waybillData.locationFrom }}</td>
+        </tr>
+        <tr>
+            <td class="no-padding"><label>Lieu de déchargement :</label></td>
+            <td>{{ dispatch.waybillData.locationTo }}</td>
+        </tr>
+    </table>
+
+    <table class="full-width">
+        <tr>
+            <td class="invisible">Marchandise :</td>
+        </tr>
+        <tr>
+            <th>Unité de tracking</th>
+            <th>Nature</th>
+            <th>Quantité</th>
+            <th>Poids</th>
+            <th>Volume</th>
+            <th>Autre information</th>
+        </tr>
+
+        {% set total_quantity = 0 %}
+        {% set total_weight = 0 %}
+        {% set total_volume = 0 %}
+
+        {% for dp in dispatch.dispatchPacks %}
+            {% set total_quantity = total_quantity + dp.quantity %}
+            {% set total_weight = total_weight + dp.pack.weight %}
+            {% set total_volume = total_volume + dp.pack.volume %}
+
+            <tr>
+                <td>{{ dp.pack.code }}</td>
+                <td>{{ dp.pack.nature ? dp.pack.nature.label : '' }}</td>
+                <td>{{ dp.quantity }}</td>
+                <td>{% if dp.pack.weight %}{{ dp.pack.weight }} kg{% endif %}</td>
+                <td>{% if dp.pack.volume %}{{ dp.pack.volume }} m3{% endif %}</td>
+                <td>{{ dp.pack.comment | raw }}</td>
+            </tr>
+        {% endfor %}
+
+        <tr>
+            <td class="invisible"></td>
+            <th>Total</th>
+            <th class="left">{{ total_quantity }}</th>
+            <th class="left">{{ total_weight }} kg</th>
+            <th class="left">{{ total_volume }} m3</th>
+            <td class="invisible"></td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        <label>Note</label><br>
+        {{ dispatch.waybillData.notes | nl2br }}
+    </div>
+</div>
+</body>
+</html>

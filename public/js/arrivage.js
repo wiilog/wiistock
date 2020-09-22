@@ -9,9 +9,10 @@ let pageLength;
 let arrivalsTable;
 
 $(function () {
+    const $filtersContainer = $('.filters-container');
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
     initSelect2($('#statut'), 'Statuts');
-    initSelect2($('#carriers'), 'Transporteurs');
+    initSelect2($filtersContainer.find('[name="carriers"]'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));
 
     initTableArrival().then((returnedArrivalsTable) => {

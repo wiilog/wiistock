@@ -37,9 +37,12 @@ $(function () {
     ajaxAutoCompleteTransporteurInit($('.ajax-autocomplete-transporteur'));
     initDisplaySelect2('#receptionLocation', '#receptionLocationValue');
     $('#receptionLocation').on('change', editDefaultLocationValue);
-    $('#logo').change(function() {
-        fileToImagePreview($(this));
-    });
+
+    updateImagePreview('#preview-label-logo', '#upload-label-logo');
+    updateImagePreview('#preview-delivery-note-logo', '#upload-delivery-note-logo');
+    updateImagePreview('#preview-waybill-logo', '#upload-waybill-logo');
+
+    $('.image-upload').change(() => fileToImagePreview($(this)));
     // config tableau de bord : emplacements
     initSelect2ValuesForDashboard();
     $('#locationArrivageDest').on('change', editArrivageDestination);
@@ -163,6 +166,34 @@ function ajaxDims() {
         success: (response) => {
             showBSAlert('La configuration des étiquettes a bien été mise à jour.', 'success');
             $('.blChosen').text("\"" + response['param-cl-etiquette'] + "\"");
+        }
+    });
+}
+
+function ajaxDocuments() {
+    let $deliveryNote = $('[name="logo-delivery-note"]');
+    let $waybill = $('[name="logo-waybill"]');
+
+    let data = new FormData();
+
+    if ($deliveryNote[0].files && $deliveryNote[0].files[0]) {
+        data.append('logo-delivery-note', $deliveryNote[0].files[0]);
+    }
+
+    if ($waybill[0].files && $waybill[0].files[0]) {
+        data.append('logo-waybill', $waybill[0].files[0]);
+    }
+
+    $.ajax({
+        url: Routing.generate('ajax_documents', true),
+        data: data,
+        type: 'post',
+        contentType: false,
+        processData: false,
+        cache: false,
+        dataType: 'json',
+        success: () => {
+            showBSAlert('La configuration des étiquettes a bien été mise à jour.', 'success');
         }
     });
 }
@@ -347,23 +378,28 @@ function editReceptionStatus() {
 }
 
 
-function fileToImagePreview($fileInput) {
-    if ($fileInput[0].files && $fileInput[0].files[0]) {
-        let fileNameWithExtension = $fileInput[0].files[0].name.split('.');
-        let extension = fileNameWithExtension[fileNameWithExtension.length - 1];
+function updateImagePreview(preview, upload) {
+    let $upload = $(upload)[0];
 
-        if (allowedLogoExtensions.indexOf(extension) !== -1) {
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                let $chosenLogo = $('#chosenLogo');
-                $chosenLogo.attr('src', e.target.result);
-                $chosenLogo.removeClass('d-none');
-            };
-            reader.readAsDataURL($fileInput[0].files[0]);
-        } else {
-            showBSAlert('Veuillez choisir une image valide (png, jpeg, jpg).', 'danger')
+    $(upload).change(() => {
+        if ($upload.files && $upload.files[0]) {
+            let fileNameWithExtension = $upload.files[0].name.split('.');
+            let extension = fileNameWithExtension[fileNameWithExtension.length - 1];
+
+            if (allowedLogoExtensions.indexOf(extension) !== -1) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    $(preview)
+                        .attr('src', e.target.result)
+                        .removeClass('d-none');
+                };
+
+                reader.readAsDataURL($upload.files[0]);
+            } else {
+                showBSAlert('Veuillez choisir une image valide (png, jpeg, jpg).', 'danger')
+            }
         }
-    }
+    })
 }
 
 function addWorkFreeDay($button) {

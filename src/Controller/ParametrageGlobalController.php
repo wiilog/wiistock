@@ -79,10 +79,13 @@ class ParametrageGlobalController extends AbstractController
         $translationRepository = $entityManager->getRepository(Translation::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
 
+        $labelLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
+        $deliveryNoteLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
+        $waybillLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
+
         $clsForLabels = $champsLibreRepository->findBy([
             'categorieCL' => $categoryCLRepository->findOneByLabel(CategorieCL::ARTICLE)
         ]);
-        $paramLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FILE_FOR_LOGO);
         $workFreeDays = array_map(
             function (WorkFreeDay $workFreeDay) {
                 return $workFreeDay->getDay()->format('Y-m-d');
@@ -92,8 +95,12 @@ class ParametrageGlobalController extends AbstractController
 
         return $this->render('parametrage_global/index.html.twig',
             [
-                'logo' => ($paramLogo && file_exists(getcwd() . "/uploads/attachements/" . $paramLogo) ? $paramLogo : null),
+                'logo' => ($labelLogo && file_exists(getcwd() . "/uploads/attachements/" . $labelLogo) ? $labelLogo : null),
                 'dimensions_etiquettes' => $dimensionsEtiquettesRepository->findOneDimension(),
+                'paramDocuments' => [
+                    'deliveryNoteLogo' => ($deliveryNoteLogo && file_exists(getcwd() . "/uploads/attachements/" . $deliveryNoteLogo) ? $deliveryNoteLogo : null),
+                    'waybillLogo' => ($waybillLogo && file_exists(getcwd() . "/uploads/attachements/" . $waybillLogo) ? $waybillLogo : null),
+                ],
                 'paramReceptions' => [
                     'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
                     'listStatus' => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, true),
@@ -116,7 +123,7 @@ class ParametrageGlobalController extends AbstractController
                 ],
                 'paramDispatches' => [
                     'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
-                    'consigner' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONSIGNER),
+                    'consignor' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONSIGNER),
                     'receiver' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_RECEIVER),
                     'locationFrom' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_FROM),
                     'locationTo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_TO)
@@ -146,7 +153,9 @@ class ParametrageGlobalController extends AbstractController
                     'valueCarriers' => $globalParamService->getDashboardCarrierDock(),
                 ],
                 'wantsRecipient' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL),
-                'wantsDZLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL)
+                'wantsDZLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL),
+                'wantsCommandAndProjectNumber' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL),
+                'wantsPackCount' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL),
             ]);
     }
 
@@ -213,6 +222,27 @@ class ParametrageGlobalController extends AbstractController
         $parametrageGlobalDZLocation
             ->setValue((int) ($data['param-dz-location-etiquette'] === 'true'));
 
+        $parametrageGlobalCommandAndProjectNumbers = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
+
+        if (empty($parametrageGlobalCommandAndProjectNumbers)) {
+            $parametrageGlobalCommandAndProjectNumbers = new ParametrageGlobal();
+            $parametrageGlobalCommandAndProjectNumbers->setLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
+            $entityManager->persist($parametrageGlobalCommandAndProjectNumbers);
+        }
+
+        $parametrageGlobalCommandAndProjectNumbers
+            ->setValue((int) ($data['param-command-project-numbers-etiquette'] === 'true'));
+
+        $parametrageGlobalPackCount = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL);
+
+        if (empty($parametrageGlobalPackCount)) {
+            $parametrageGlobalPackCount = new ParametrageGlobal();
+            $parametrageGlobalPackCount->setLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL);
+            $entityManager->persist($parametrageGlobalPackCount);
+        }
+
+        $parametrageGlobalPackCount->setValue((int) ($data['param-pack-count'] === 'true'));
+
         $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
 
         if (empty($parametrageGlobal)) {
@@ -241,14 +271,14 @@ class ParametrageGlobalController extends AbstractController
         }
         $parametrageGlobalCL->setValue($data['param-cl-etiquette']);
 
-        $parametrageGlobalLogo = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FILE_FOR_LOGO);
+        $parametrageGlobalLogo = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::LABEL_LOGO);
 
         if (!empty($request->files->all())) {
-            $fileName = $attachmentService->saveFile($request->files->all()['logo'], AttachmentService::LOGO_FOR_LABEL);
+            $fileName = $attachmentService->saveFile($request->files->all()['logo'], AttachmentService::LABEL_LOGO);
             if (empty($parametrageGlobalLogo)) {
                 $parametrageGlobalLogo = new ParametrageGlobal();
                 $parametrageGlobalLogo
-                    ->setLabel(ParametrageGlobal::FILE_FOR_LOGO);
+                    ->setLabel(ParametrageGlobal::LABEL_LOGO);
                 $entityManager->persist($parametrageGlobalLogo);
             }
             $parametrageGlobalLogo->setValue($fileName[array_key_first($fileName)]);
@@ -256,6 +286,58 @@ class ParametrageGlobalController extends AbstractController
         $entityManager->flush();
 
         return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("/ajax-documents", name="ajax_documents",  options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param UserService $userService
+     * @param AttachmentService $attachmentService
+     * @param EntityManagerInterface $em
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function ajaxDocuments(Request $request,
+                                  UserService $userService,
+                                  AttachmentService $attachmentService,
+                                  EntityManagerInterface $em): Response {
+        if(!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        $pgr = $em->getRepository(ParametrageGlobal::class);
+
+        if($request->files->has("logo-delivery-note")) {
+            $logo = $request->files->get("logo-delivery-note");
+
+            $fileName = $attachmentService->saveFile($logo, AttachmentService::DELIVERY_NOTE_LOGO);
+            $setting = $pgr->findOneByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
+            if(!$setting) {
+                $setting = new ParametrageGlobal();
+                $setting->setLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
+                $em->persist($setting);
+            }
+
+            $setting->setValue($fileName[array_key_first($fileName)]);
+        }
+
+        if($request->files->has("logo-waybill")) {
+            $logo = $request->files->get("logo-waybill");
+
+            $fileName = $attachmentService->saveFile($logo, AttachmentService::WAYBILL_LOGO);
+            $setting = $pgr->findOneByLabel(ParametrageGlobal::WAYBILL_LOGO);
+            if(!$setting) {
+                $setting = new ParametrageGlobal();
+                $setting->setLabel(ParametrageGlobal::WAYBILL_LOGO);
+                $em->persist($setting);
+            }
+
+            $setting->setValue($fileName[array_key_first($fileName)]);
+        }
+
+        $em->flush();
+
+        return $this->json([]);
     }
 
     /**

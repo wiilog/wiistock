@@ -1,0 +1,35 @@
+<div class="row"
+     data-multiple-key="packs"
+     data-multiple-object-index="{{ index }}">
+    <input type="hidden" class="data" name="packId" value="{{ pack.id }}">
+    <div class="col-3">
+        <div class="form-group">
+            <label for="transporter-tracking-number">Numéro</label>
+            <input class="form-control data no-clear"
+                   title="Numéro de tracking transporteur"
+                   value="{{ pack.code }}"
+                   name="packNumber" disabled>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="form-group">
+            <label for="transporter-tracking-number">{{ 'colis.Quantité colis'|trans }}</label>
+            <input class="form-control data no-clear"
+                   title="Numéro de tracking transporteur"
+                   value="{{ pack.quantity }}"
+                   name="packQuantity">
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <label for="transporter-tracking-number">Commentaire</label>
+            <input class="form-control data no-clear"
+                   title="Numéro de tracking transporteur"
+                   value="{{ pack.comment }}"
+                   name="packComment">
+        </div>
+    </div>
+    <div class="col-auto align-self-center">
+        <a class="pointer"><i class="fa fa-trash mr-2" onclick="removePackInDispatchModal()"></i></a>
+    </div>
+</div>

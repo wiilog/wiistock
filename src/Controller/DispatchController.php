@@ -92,9 +92,6 @@ class DispatchController extends AbstractController {
         $fields = $service->getVisibleColumnsConfig($entityManager, $this->getUser());
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
-
-        $dispatchBusinessUnits = json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES));
 
         return $this->render('dispatch/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true),
@@ -103,21 +100,7 @@ class DispatchController extends AbstractController {
             'types' => $types,
             'fields' => $fields,
             'visibleColumns' => $this->getUser()->getColumnsVisibleForDispatch(),
-            'modalNewConfig' => [
-                'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
-                'fieldsParam' => $fieldsParam,
-                'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
-                'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
-                'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
-                    $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
-                    return [
-                        'typeLabel' => $type->getLabel(),
-                        'typeId' => $type->getId(),
-                        'champsLibres' => $champsLibres,
-                    ];
-                }, $types),
-			    'notTreatedStatus' => $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::NOT_TREATED, Statut::DRAFT]),
-            ]
+            'modalNewConfig' => $service->getNewDispatchConfig($parametrageGlobalRepository, $statutRepository, $champLibreRepository, $fieldsParamRepository, $types)
         ]);
     }
 
@@ -212,7 +195,7 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/creer", name="dispatch_new", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/creer", name="dispatch_new", options={"expose"=true}, methods={"POST"})
      * @param Request $request
      * @param FreeFieldService $freeFieldService
      * @param DispatchService $dispatchService
@@ -240,6 +223,9 @@ class DispatchController extends AbstractController {
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $transporterRepository = $entityManager->getRepository(Transporteur::class);
+            $packRepository = $entityManager->getRepository(Pack::class);
+
+            $printDeliveryNote = $request->query->get('printDeliveryNote');
 
             $dispatch = new Dispatch();
             $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
@@ -258,6 +244,7 @@ class DispatchController extends AbstractController {
             $emergency = $post->get('emergency');
             $projectNumber = $post->get('projectNumber');
             $businessUnit = $post->get('businessUnit');
+            $packs = $post->get('packs');
 
             $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
             $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
@@ -333,6 +320,24 @@ class DispatchController extends AbstractController {
                 }
             }
 
+            if ($packs) {
+                $packs = json_decode($packs, true);
+                foreach ($packs as $pack) {
+                    $comment = $pack['packComment'];
+                    $packId = $pack['packId'];
+                    $packQuantity = (int)$pack['packQuantity'];
+                    $pack = $packRepository->find($packId);
+                    $pack
+                        ->setComment($comment);
+                    $packDispatch = new DispatchPack();
+                    $packDispatch
+                        ->setPack($pack)
+                        ->setQuantity($packQuantity)
+                        ->setDispatch($dispatch);
+                    $entityManager->persist($packDispatch);
+                }
+            }
+
             $entityManager->persist($dispatch);
             $entityManager->flush();
 
@@ -340,9 +345,15 @@ class DispatchController extends AbstractController {
                 $dispatchService->sendEmailsAccordingToStatus($dispatch, false);
             }
 
+            $showArguments = ['id' => $dispatch->getId()];
+
+            if ($printDeliveryNote) {
+                $showArguments['print-delivery-note'] = "1";
+            }
+
             return new JsonResponse([
                 'success' => true,
-                'redirect' => $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()]),
+                'redirect' => $this->generateUrl('dispatch_show', $showArguments),
                 'msg' => $translator->trans('acheminement.L\'acheminement a bien été créé') . '.'
             ]);
         }
@@ -350,15 +361,18 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/voir/{id}", name="dispatch_show", options={"expose"=true}, methods="GET|POST")
+     * @Route("/voir/{id}/{printBL}", name="dispatch_show", options={"expose"=true}, methods="GET|POST", defaults={"printBL"=0})
      * @param Dispatch $dispatch
      * @param EntityManagerInterface $entityManager
+     * @param bool $printBL
      * @param DispatchService $dispatchService
+     * @param TranslatorInterface $translator
      * @return RedirectResponse|Response
      */
     public function show(Dispatch $dispatch,
                          EntityManagerInterface $entityManager,
-                         DispatchService $dispatchService) {
+                         bool $printBL,
+                         DispatchService $dispatchService, TranslatorInterface $translator) {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -380,7 +394,8 @@ class DispatchController extends AbstractController {
             ],
             'dispatchTreat' => [
                 'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED])
-            ]
+            ],
+            'printBL' => $printBL
         ]);
     }
 
@@ -1159,23 +1174,25 @@ class DispatchController extends AbstractController {
      *     options={"expose"=true},
      *     methods="GET"
      * )
-     * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $trans
+     * @param PDFGeneratorService $pdf
      * @param Dispatch $dispatch
-     * @param Request $request
-     * @return JsonResponse
+     * @return PdfResponse
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function printDeliveryNote(EntityManagerInterface $entityManager,
-                                      Dispatch $dispatch,
-                                      Request $request): JsonResponse {
-        /** @var Utilisateur $loggedUser */
-        $loggedUser = $this->getUser();
+    public function printDeliveryNote(TranslatorInterface $trans, PDFGeneratorService $pdf, Dispatch $dispatch): Response {
+        if (!$dispatch->getDeliveryNoteData()) {
+            throw new NotFoundHttpException($trans->trans('acheminement.Le bon de livraison n\'existe pas pour cet acheminement'));
+        }
 
-        // TODO mettre le champ json dans le dispatch
+        $logo = $this->getDoctrine()
+            ->getRepository(ParametrageGlobal::class)
+            ->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
 
-        $entityManager->flush();
-
-        return new JsonResponse(['success' => true]);
-
+        return $pdf->generatePDFDeliveryNote("bl_{$dispatch->getId()}.pdf", $logo, $dispatch);
     }
 
     /**
@@ -1213,13 +1230,13 @@ class DispatchController extends AbstractController {
         $defaultData = [
             'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
             'dispatchDate' => $now->format('Y-m-d'),
-            'consigner' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONSIGNER),
+            'consignor' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONSIGNER),
             'receiver' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_RECEIVER),
             'locationFrom' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_FROM),
             'locationTo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_TO),
 
-            'consignerUsername' => $isEmerson ? $loggedUser->getUsername() : null,
-            'consignerEmail' => $isEmerson ? $loggedUser->getEmail() : null,
+            'consignorUsername' => $isEmerson ? $loggedUser->getUsername() : null,
+            'consignorEmail' => $isEmerson ? $loggedUser->getEmail() : null,
             'receiverUsername' => $isEmerson ? $loggedUser->getUsername() : null,
             'receiverEmail' => $isEmerson ? $loggedUser->getEmail() : null
         ];
@@ -1265,8 +1282,8 @@ class DispatchController extends AbstractController {
                                         TranslatorInterface $translator,
                                         Request $request): JsonResponse {
 
-        if ($dispatch->getDispatchPacks()->count() > 10) {
-            $message = 'Attention : ' . $translator->trans("acheminement.L''acheminement contient plus 10 colis") . ', cette lettre de voiture ne peut contenir plus de 10 lignes.';
+        if ($dispatch->getDispatchPacks()->count() > DispatchService::WAYBILL_MAX_PACK) {
+            $message = 'Attention : ' . $translator->trans("acheminement.L''acheminement contient plus de {nombre} colis", ["{nombre}" => DispatchService::WAYBILL_MAX_PACK]) . ', cette lettre de voiture ne peut contenir plus de ' . DispatchService::WAYBILL_MAX_PACK . ' lignes.';
             $success = false;
         }
         else {
@@ -1299,5 +1316,32 @@ class DispatchController extends AbstractController {
             'success' => $success,
             'msg' => $message
         ]);
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/waybill",
+     *     name="print_waybill_dispatch",
+     *     options={"expose"=true},
+     *     methods="GET"
+     * )
+     * @param TranslatorInterface $trans
+     * @param PDFGeneratorService $pdf
+     * @param Dispatch $dispatch
+     * @return JsonResponse
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function printWaybillNote(TranslatorInterface $trans, PDFGeneratorService $pdf, Dispatch $dispatch): Response {
+        if (!$dispatch->getWaybillData()) {
+            throw new NotFoundHttpException($trans->trans('acheminement.La lettre de voiture n\'existe pas pour cet acheminement'));
+        }
+
+        $logo = $this->getDoctrine()
+            ->getRepository(ParametrageGlobal::class)
+            ->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
+
+        return $pdf->generatePDFWaybill("lettre_voiture_{$dispatch->getId()}.pdf", $logo, $dispatch);
     }
 }

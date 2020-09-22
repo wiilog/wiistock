@@ -1,0 +1,206 @@
+{% set dn = dispatch.deliveryNoteData %}
+
+<html lang="fr">
+<head>
+    <title>{{ title }}</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        * {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: block;
+            width: 24cm;
+        }
+
+        .full-width {
+            width: 100%;
+        }
+
+        .split > * {
+            display: inline-block;
+            width: 11.9cm;
+            vertical-align: top;
+            margin-top: 0.5cm;
+            border: 1px solid rgba(0, 0, 0, 0); /* alignment is fucked up without it for some reason???????????????? */
+        }
+
+        .split:first-child {
+            float: left;
+        }
+
+        .split:last-child {
+            float: right;
+        }
+
+        .header {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        table {
+            margin-top: 1cm;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: black;
+            border: 1px solid black;
+            color: white;
+        }
+
+        td {
+            padding: 1mm 3mm;
+            border: 1px solid black;
+        }
+
+        th.left {
+            padding-left: 2mm;
+            text-align: left;
+        }
+
+        table.invisible td, td.invisible {
+            border: none;
+        }
+
+        .no-padding {
+            padding-left: 0;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+        .image-title {
+            max-height: 100px;
+            max-width: 100px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="split" style="margin-bottom:1cm">
+        <div>
+            {% if logo %}
+                <img src="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ logo }}"
+                     alt="GT Logistics"
+                     class="image-title"/>
+            {% endif %}
+
+            <div style="float:right;margin-right:1cm">{{ dn.consignor | nl2br }}</div>
+        </div>
+        <div class="header">
+            Delivery note - original
+        </div>
+    </div>
+
+    <table class="full-width">
+        <tr>
+            <td rowspan="4">
+                <label>Ship to</label><br>
+                {{ dn.deliveryAddress | nl2br }}
+            </td>
+            <td>
+                <label>Delivery</label><br>
+                {{ dn.deliveryNumber }}
+            </td>
+            <td>
+                <label>Delivery date</label><br>
+                {{ dn.deliveryDate }}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label>Sales order No:</label><br>
+                {{ dn.salesOrderNumber }}
+            </td>
+            <td>
+                <label>Waybill</label><br>
+                {{ dn.wayBill }}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label>Customer PO number</label><br>
+                {{ dn.customerPONumber }}
+            </td>
+            <td>
+                <label>Customer PO date</label><br>
+                {{ dn.customerPODate }}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label>Rep order No</label><br>
+                {{ dn.respOrderNb }}
+            </td>
+            <td>
+                <label>Project No</label><br>
+                {{ dn.projectNumber }}
+            </td>
+        </tr>
+    </table>
+
+    {# <img src="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ asset('img/gtlogistics.jpg') }}" alt="GT Logistics"/> #}
+    {# <div>{{ data.consigner }}</div> #}
+    {# <div>Ship to : {{ data.deliveryAddress | nl2br }}</div> #}
+    {# <div>Delivery : {{ data.deliveryNumber }}</div> #}
+    {# <div>Sales Order No : {{ data.salesOrderNumber }}</div> #}
+    {# <div>Customer PO Number : {{ data.customerPONumber }}</div> #}
+    {# <div>Rep order No : {{ data.respOrderNb }}</div> #}
+    {# <div>Delivery Date : {{ data.deliveryDate }}</div> #}
+    {# <div>WayBill : {{ data.wayBill }}</div> #}
+    {# <div>Customer PO Number : {{ data.customerPODate }}</div> #}
+    {# <div>Project No : {{ data.projectNumber }}</div> #}
+    {# <--------------------------------------> #}
+    {# <div>Handled By : {{ data.username }}</div> #}
+    {# <div>Tel : {{ data.userPhone }}</div> #}
+    {# <div>Fax : {{ data.userFax }}</div> #}
+    {# <div>Customer/Buyer : {{ data.buyer }}</div> #}
+    {# <div>Tel : {{ data.buyerPhone }}</div> #}
+    {# <div>Fax : {{ data.buyerFax }}</div> #}
+    {# <--------------------------------------> #}
+    {# <div>Invoice to : {{ data.invoiceTo }}</div> #}
+    {# <div>Sold to : {{ data.soldTo }}</div> #}
+    {# <div>End User : {{ data.endUserNo }}</div> #}
+    {# <div>Deliver to : {{ data.deliverTo }}</div> #}
+    {# <--------------------------------------> #}
+    {# <table> #}
+    {# <tr> #}
+    {# <th> #}
+    {# Description #}
+    {# </th> #}
+    {# <th> #}
+    {# Quantity on Order #}
+    {# </th> #}
+    {# <th> #}
+    {# Remaining on Order #}
+    {# </th> #}
+    {# </tr> #}
+    {# {% for pack in data.packs %} #}
+    {# <tr> #}
+    {# <td>{{ pack.code }}</td> #}
+    {# <td>{{ pack.quantity }}</td> #}
+    {# <td>{{ pack.quantity }}</td> #}
+    {# </tr> #}
+    {# {% endfor %} #}
+    {# </table> #}
+    {# <--------------------------------------> #}
+    {# <div>Consigner : {{ data.consigner2 }}</div> #}
+    {# <div>Date : {{ data.date }}</div> #}
+    {# <div>Page 1/1</div> #}
+    {# <div>Note(s) : {{ data.notes }}</div> #}
+
+</div>
+</body>
+</html>

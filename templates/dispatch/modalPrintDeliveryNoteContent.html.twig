@@ -4,11 +4,11 @@
             <label class="col-12">Expéditeur / Consigner</label>
             <div class="col-12">
                 <textarea title="Expéditeur / Consigner"
-                          name="consigner"
+                          name="consignor"
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
                           rows="7"
-                          class="form-control data needed">{{ consigner }}</textarea>
+                          class="form-control data needed">{{ consignor }}</textarea>
             </div>
         </div>
     </div>
@@ -21,7 +21,7 @@
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
                           rows="7"
-                          class="form-control data needed"></textarea>
+                          class="form-control data needed">{{ deliveryAddress }}</textarea>
             </div>
         </div>
     </div>
@@ -45,6 +45,7 @@
             <div class="col-12">
                 <input title="Date de livraison / Delivery date"
                        name="deliveryDate"
+                       value="{{ deliveryDate }}"
                        class="form-control data"
                        type="date"/>
             </div>
@@ -59,6 +60,7 @@
                 <input title="Numéro de comande de vente / Sales order No"
                        name="salesOrderNumber"
                        maxlength="50"
+                       value="{{ salesOrderNumber }}"
                        class="form-control data needed"/>
             </div>
         </div>
@@ -70,6 +72,7 @@
                 <input title="Lettre de voiture / Way bill"
                        name="wayBill"
                        maxlength="50"
+                       value="{{ wayBill }}"
                        class="form-control data"/>
             </div>
         </div>
@@ -83,6 +86,7 @@
                 <input title="Bon de commande client / Customer PO Number"
                        name="customerPONumber"
                        maxlength="50"
+                       value="{{ customerPONumber }}"
                        class="form-control data needed"/>
             </div>
         </div>
@@ -94,6 +98,7 @@
                 <input title="Date commande client / Customer PO Date"
                        name="customerPODate"
                        class="form-control data"
+                       value="{{ customerPODate }}"
                        type="date"/>
             </div>
         </div>
@@ -107,6 +112,7 @@
                 <input title="Réponse numéro commande / Resp. order Nb"
                        name="respOrderNb"
                        maxlength="50"
+                       value="{{ respOrderNb }}"
                        class="form-control data"/>
             </div>
         </div>
@@ -179,6 +185,7 @@
                 <input class="form-control data"
                        name="userFax"
                        maxlength="50"
+                       value="{{ userFax }}"
                        title="Fax."/>
             </div>
         </div>
@@ -193,6 +200,7 @@
                 <input class="form-control data"
                        name="buyer"
                        maxlength="50"
+                       value="{{ buyer }}"
                        title="Client acheteur / Customer buyer"/>
             </div>
         </div>
@@ -204,6 +212,7 @@
                 <input class="form-control data"
                        name="buyerPhone"
                        maxlength="50"
+                       value="{{ buyerPhone }}"
                        title="Tél. / Phone number"/>
             </div>
         </div>
@@ -217,6 +226,7 @@
                 <input class="form-control data"
                        name="buyerFax"
                        maxlength="50"
+                       value="{{ buyerFax }}"
                        title="Fax"/>
             </div>
         </div>
@@ -231,6 +241,7 @@
                 <input class="form-control data"
                        name="invoiceNumber"
                        maxlength="50"
+                       value="{{ invoiceNumber }}"
                        title="Numéro facture / Invoice Nb"/>
             </div>
             <div class="col-12">
@@ -249,6 +260,7 @@
                 <input class="form-control data"
                        name="soldNumber"
                        maxlength="50"
+                       value="{{ soldNumber }}"
                        title="Numéro vente / Sold Nb"/>
             </div>
         </div>
@@ -264,7 +276,7 @@
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
                           rows="7"
-                          class="form-control data needed"></textarea>
+                          class="form-control data needed">{{ invoiceTo }}</textarea>
             </div>
         </div>
     </div>
@@ -277,7 +289,7 @@
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
                           rows="7"
-                          class="form-control data needed"></textarea>
+                          class="form-control data needed">{{ soldTo }}</textarea>
             </div>
         </div>
     </div>
@@ -290,6 +302,7 @@
             <div class="col-12">
                 <input title="Numéro dernier utilisateur / End User Nb"
                        name="endUserNo"
+                       value="{{ endUserNo }}"
                        class="form-control data needed"/>
             </div>
             <div class="col-12">
@@ -319,6 +332,7 @@
                 <input title="Numéro de livraison / Deliver No"
                        name="deliverNo"
                        maxlength="50"
+                       value="{{ deliverNo }}"
                        class="form-control data needed"/>
             </div>
         </div>
@@ -334,7 +348,7 @@
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
                           rows="7"
-                          class="form-control data"></textarea>
+                          class="form-control data">{{ endUser }}</textarea>
             </div>
         </div>
     </div>
@@ -347,7 +361,7 @@
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
                           rows="7"
-                          class="form-control data"></textarea>
+                          class="form-control data">{{ deliverTo }}</textarea>
             </div>
         </div>
     </div>
@@ -369,7 +383,7 @@
                     <input class="form-control data needed"
                            name="code"
                            title="Numéro"
-                           value="{{ (dispatchPack.pack is defined and dispatchPack.pack is not null) ? dispatchPack.pack.code }}"
+                           value="{{ dispatchPack.pack.code }}"
                            disabled/>
                 </div>
                 <div class="col-3">
@@ -388,7 +402,7 @@
                               name="comment"
                               title="Commentaire / Comment"
                               rows="1"
-                              oninput="limitTextareaLength($(this), 7, 100)">{{ dispatchPack.pack.comment is not null ? dispatchPack.pack.comment|striptags }}</textarea>
+                              oninput="limitTextareaLength($(this), 7, 100)">{{ dispatchPack.pack.comment|striptags }}</textarea>
                 </div>
             </div>
         {% endfor %}
@@ -401,8 +415,8 @@
             <label class="col-12">Expéditeur / Consigner</label>
             <div class="col-12">
                 <input class="form-control data needed"
-                       name="consigner2"
-                       value="{{ consigner }}"
+                       name="consignor2"
+                       value="{{ consignor }}"
                        title="Expéditeur / Consigner"/>
             </div>
         </div>
@@ -413,6 +427,7 @@
             <div class="col-12">
                 <input class="form-control data needed"
                        name="date"
+                       value="{{ date }}"
                        title="Date"/>
             </div>
         </div>
