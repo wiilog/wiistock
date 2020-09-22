@@ -5,7 +5,8 @@ twig:
     form_themes: ['bootstrap_4_layout.html.twig']
     exception_controller: null
     globals:
+        web_version: '%web_version%'
         dashboardToken: '%env(APP_DASHBOARD_TOKEN)%'
         app_locale: '%env(APP_LOCALE)%'
-        web_version: '%web_version%'
         app_url: '%env(APP_URL)%'
+        app_forbidden_phones: '%env(APP_FORBIDDEN_PHONES)%'

@@ -96,17 +96,24 @@ class DispatchRepository extends EntityRepository
                 if (!empty($search)) {
                     $qb
                         ->andWhere('(' . $exprBuilder->orX(
-                            'd.creationDate LIKE :value',
+                            "DATE_FORMAT(d.creationDate, '%e/%m/%Y') LIKE :value",
+                            "DATE_FORMAT(d.validationDate, '%e/%m/%Y') LIKE :value",
+                            "DATE_FORMAT(d.treatmentDate, '%e/%m/%Y') LIKE :value",
+                            'search_type.label LIKE :value',
+                            'search_requester.username LIKE :value',
+                            'search_receiver.username LIKE :value',
                             'd.number LIKE :value',
                             'search_locationFrom.label LIKE :value',
                             'search_locationTo.label LIKE :value',
                             'search_statut.nom LIKE :value',
-                            'd.creationDate LIKE :value'
+                            'd.freeFields LIKE :value'
                         ) . ')')
                         ->leftJoin('d.locationFrom', 'search_locationFrom')
                         ->leftJoin('d.locationTo', 'search_locationTo')
                         ->leftJoin('d.statut', 'search_statut')
                         ->leftJoin('d.type', 'search_type')
+                        ->leftJoin('d.requester','search_requester')
+                        ->leftJoin('d.receiver', 'search_receiver')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }

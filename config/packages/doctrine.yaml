@@ -34,3 +34,4 @@ doctrine:
                 JSON_REMOVE: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonRemove
                 REPLACE: DoctrineExtensions\Query\Mysql\Replace
                 CAST: DoctrineExtensions\Query\Mysql\Cast
+                DATE_FORMAT: DoctrineExtensions\Query\Mysql\DateFormat
