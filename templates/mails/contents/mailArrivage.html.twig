@@ -1,32 +1,68 @@
 {% extends 'mails/template.html.twig' %}
 
 {% block content %}
+
+    {% set numeroCommandeList = (
+        (emergencies|length > 0 and emergencies[0].commande)
+        ? [emergencies[0].commande]
+        : arrival.numeroCommandeList
+        )
+    %}
+
+    {% set comment = (arrival.commentaire|striptags|length > 150)
+        ? arrival.commentaire|striptags|slice(0, 150) ~ '...'
+        : arrival.commentaire|striptags
+    %}
+
     <p>Bonjour,</p>
     <p>Votre commande {{ isUrgentArrival ? 'urgente ' }} est arrivée :</p>
     <ul>
-        <li>{{ "arrivage.n° d'arrivage"|trans }}: {{ arrival.numeroArrivage }}</li>
+        <li>{{ "arrivage.n° d\'arrivage"|trans }} : <strong>{{ arrival.numeroArrivage }}</strong></li>
 
-        {% set numeroCommandeList = (
-            (emergencies|length > 0 and emergencies[0].commande)
-                ? [emergencies[0].commande]
-                : arrival.numeroCommandeList
-            ) %}
         {% if numeroCommandeList|length > 0 %}
-            <li>Numéro de commande{{ numeroCommandeList|length > 1 ? 's' }}: {{ numeroCommandeList|join(', ') }}</li>
+            <li>Numéro de commande{{ numeroCommandeList|length > 1 ? 's' }} : <strong>{{ numeroCommandeList|join(', ') }}</strong></li>
         {% endif %}
 
         {% if arrival.fournisseur %}
-            <li>Intitulé fournisseur : {{ arrival.fournisseur.nom }}</li>
+            <li>Fournisseur : <strong>{{ arrival.fournisseur.nom }}</strong></li>
+        {% endif %}
+
+        {% if arrival.transporteur %}
+            <li>Transporteur : <strong>{{ arrival.transporteur.label }}</strong></li>
         {% endif %}
 
         {% if arrival.noTracking %}
-            <li>Numéro tracking transporteur : {{ arrival.noTracking }}</li>
+            <li>Numéro de tracking transporteur : <strong>{{ arrival.noTracking }}</strong></li>
         {% endif %}
 
-        <li>Horodatage {{ "arrivage.arrivage"|trans }} : {{ arrival.date|date('d/m/Y H:i') }}</li>
+        {% if arrival.projectNumber %}
+            <li>Numéro projet : <strong>{{ arrival.projectNumber }}</strong></li>
+        {% endif %}
+
+        {% if arrival.businessUnit %}
+            <li>Business Unit : <strong>{{ arrival.businessUnit }}</strong></li>
+        {% endif %}
+
+        <li>
+            Pièces jointes :
+            <ul>
+                {% for attachment in arrival.attachments %}
+                    <li>{{ attachment.originalName }}</li>
+                {% endfor %}
+            </ul>
+        </li>
+
+        {% if arrival.commentaire %}
+            <li>Commentaire : {{ comment }}</li>
+        {% endif %}
+
+        {% for freeField in freeFields %}
+            <li>{{ freeField.label }} : <strong>{{ freeField.value }}</strong></li>
+        {% endfor %}
+
     </ul>
     {% if isUrgentArrival and isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
-        {% if arrival.duty  %}
+        {% if arrival.duty %}
             <p style="font-weight: bold">
                 La réception de cette commande sera effectuée après dédouanement.
             </p>
@@ -36,9 +72,10 @@
             </p>
         {% endif %}
     {% elseif isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
-        <p>Votre colis sera livré en dropzone en milieu d'après-midi.</p>
+        <p>
+            Votre colis sera livré en dropzone en milieu d'après-midi.
+        </p>
     {% endif %}
-    <p>Merci et bonne journée :-)</p>
 {% endblock %}
 {% block postScriptum %}
     {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}

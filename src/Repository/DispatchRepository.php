@@ -296,6 +296,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('join_dispatchPack_lastTracking_operator.username AS operator')
             ->addSelect('join_status.nom AS status')
             ->addSelect('dispatch.urgent AS urgent')
+            ->addSelect('join_treatedBy.username AS treatedBy')
             ->addSelect('dispatch.freeFields')
 
             ->leftJoin('dispatch.dispatchPacks', 'join_dispatchPack')
@@ -308,6 +309,7 @@ class DispatchRepository extends EntityRepository
             ->leftJoin('dispatch.type', 'join_type')
             ->leftJoin('dispatch.requester', 'join_requester')
             ->leftJoin('dispatch.receiver', 'join_receiver')
+            ->leftJoin('dispatch.treatedBy', 'join_treatedBy')
             ->leftJoin('dispatch.locationFrom', 'join_locationFrom')
             ->leftJoin('dispatch.locationTo', 'join_locationTo')
             ->leftJoin('dispatch.statut', 'join_status')

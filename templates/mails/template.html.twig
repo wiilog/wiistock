@@ -107,28 +107,32 @@
         {% block content %}{% endblock %}
     </div>
     <div>
-        L'équipe GT Logistics
+        Bonne journée,
+    </div>
+    <br>
+    <div>
+        L'équipe GT Logistics.
     </div>
     <div>
         {% block postScriptum %}{% endblock %}
     </div>
     <div style="text-align: center; width: 100%">
-    <div class="redirect-to">
-        <table>
-            <tr>
-                <td class="gt-button">
-                    {% set linkBaseHref = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url  %}
-                    <a href="{{ linkBaseHref ~ (urlSuffix is defined ? urlSuffix) }}">
-                        {% if buttonText is defined %}
-                            {{ buttonText }}
-                        {% else %}
-                            Cliquez ici pour accéder à Follow GT
-                        {% endif %}
-                    </a>
-                </td>
-            </tr>
-        </table>
-    </div>
+        <div class="redirect-to">
+            <table>
+                <tr>
+                    <td class="gt-button">
+                        {% set linkBaseHref = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
+                        <a href="{{ linkBaseHref ~ (urlSuffix is defined ? urlSuffix) }}">
+                            {% if buttonText is defined %}
+                                {{ buttonText }}
+                            {% else %}
+                                Cliquez ici pour accéder à Follow GT
+                            {% endif %}
+                        </a>
+                    </td>
+                </tr>
+            </table>
+        </div>
     </div>
 </div>
 </body>

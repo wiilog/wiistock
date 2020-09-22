@@ -138,6 +138,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $requestedDispatches;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="treatedBy")
+     */
+    private $treatedDispatches;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\FiltreRef", mappedBy="utilisateur", orphanRemoval=true)
      */
     private $filters;
@@ -311,6 +316,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->litigeHistorics = new ArrayCollection();
         $this->receivedDispatches = new ArrayCollection();
         $this->requestedDispatches = new ArrayCollection();
+        $this->treatedDispatches = new ArrayCollection();
         $this->receptionsTraca = new ArrayCollection();
         $this->litiges = new ArrayCollection();
         $this->referencesEmergenciesTriggered = new ArrayCollection();
@@ -1189,6 +1195,37 @@ class Utilisateur implements UserInterface, EquatableInterface
             // set the owning side to null (unless already changed)
             if ($requestedDispatch->getRequester() === $this) {
                 $requestedDispatch->setRequester(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Dispatch[]
+     */
+    public function getTreatedDispatches(): Collection
+    {
+        return $this->treatedDispatches;
+    }
+
+    public function addTreatedDispatch(Dispatch $treatedDispatch): self
+    {
+        if (!$this->treatedDispatches->contains($treatedDispatch)) {
+            $this->treatedDispatches[] = $treatedDispatch;
+            $treatedDispatch->setRequester($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTreatedDispatch(Dispatch $treatedDispatch): self
+    {
+        if ($this->treatedDispatches->contains($treatedDispatch)) {
+            $this->treatedDispatches->removeElement($treatedDispatch);
+            // set the owning side to null (unless already changed)
+            if ($treatedDispatch->getRequester() === $this) {
+                $treatedDispatch->setRequester(null);
             }
         }
 

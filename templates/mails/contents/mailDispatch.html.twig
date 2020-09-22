@@ -12,10 +12,16 @@
     {% set comment = dispatch.commentaire ? dispatch.commentaire|raw %}
     {% set hideNumberParam = hideNumber is defined and hideNumber %}
     {% set hideValidationDateParam = hideValidationDate is defined and hideValidationDate %}
+    {% set hideTreatedBy = hideTreatedBy is defined and hideTreatedBy %}
 
+    <p>Bonjour,</p>
+    <p>Votre {{ 'acheminement.acheminement'|trans }}/expédition est traité(e) avec les informations suivantes :</p>
     <ul>
         {% if not hideNumberParam %}
             <li>Numéro de demande : <strong>{{ dispatch.number }}</strong></li>
+        {% endif %}
+        {% if hideTreatedBy %}
+            <li>Traité par : <strong>{{ dispatch.treatedBy.username }}</strong></li>
         {% endif %}
         <li>Date de création : <strong>{{ dispatch.creationDate|date('d/m/Y H:i:s') }}</strong></li>
         {% if not hideValidationDateParam %}
@@ -25,9 +31,13 @@
         <li>Destinataire : <strong>{{ receiver }}</strong></li>
         <li>Type : <strong>{{ dispatch.type.label }}</strong></li>
         <li>Statut : <strong>{{ dispatch.statut.nom }}</strong></li>
-        <li>Commentaire : {{ comment|striptags }}</li>
-        <li>Dates d'échéance : <strong>{{ (startDate or endDate) ? ('Du ' ~ startDateStr ~ ' au ' ~ endDateStr) : '' }}</strong></li>
+        <li>Dates d'échéances : <strong>{{ (startDate or endDate) ? ('Du ' ~ startDateStr ~ ' au ' ~ endDateStr) : '' }}</strong></li>
+        <li>Transporteur : <strong>{{ dispatch.carrier.label ?? '' }}</strong></li>
+        <li>Numéro de tracking transporteur : <strong>{{ dispatch.carrierTrackingNumber ?? '' }}</strong></li>
+        <li>Numéro projet : <strong>{{ dispatch.projectNumber  ?? '' }}</strong></li>
+        <li>Business Unit :  <strong>{{ dispatch.businessUnit ?? '' }}</strong></li>
         <li>Urgence : <strong>{{ emergency }}</strong></li>
+        <li>Commentaire : {{ comment|striptags }}</li>
         <li>
             Pièces jointes :
             <ul>
@@ -55,7 +65,7 @@
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Quantité à acheminer
+                {{ 'acheminement.Quantité à acheminer'|trans }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">

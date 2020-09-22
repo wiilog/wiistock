@@ -11,10 +11,6 @@ use App\Entity\FiltreSup;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
-use Exception;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -208,15 +204,25 @@ class ArrivageDataService
         }
 
         if (!empty($finalRecipents)) {
+            $title = 'Arrivage reçu : ' . $arrival->getNumeroArrivage() . ', le ' . $arrival->getDate()->format('d/m/Y à H:i');
+
+            $freeFields = $this->freeFieldService->getFilledFreeFieldArray(
+                $this->entityManager,
+                $arrival,
+                null,
+                CategoryType::ARRIVAGE
+            );
+
             $this->mailerService->sendMail(
                 'FOLLOW GT // Arrivage' . ($isUrgentArrival ? ' urgent' : ''),
                 $this->templating->render(
                     'mails/contents/mailArrivage.html.twig',
                     [
-                        'title' => 'Arrivage ' . ($isUrgentArrival ? 'urgent ' : '') . 'reçu',
+                        'title' => $title,
                         'arrival' => $arrival,
                         'emergencies' => $emergencies,
-                        'isUrgentArrival' => $isUrgentArrival
+                        'isUrgentArrival' => $isUrgentArrival,
+                        'freeFields' => $freeFields
                     ]
                 ),
                 $finalRecipents
@@ -247,7 +253,6 @@ class ArrivageDataService
      * @param bool $askQuestion
      * @param Urgence[] $urgences
      * @return array
-     * @throws NonUniqueResultException
      */
     public function createArrivalAlertConfig(Arrivage $arrivage,
                                              bool $askQuestion,
@@ -316,7 +321,6 @@ class ArrivageDataService
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws NonUniqueResultException
      */
     public function processEmergenciesOnArrival(Arrivage $arrival): array
     {
