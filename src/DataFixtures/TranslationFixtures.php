@@ -68,6 +68,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Emplacement dépose' => 'Emplacement dépose',
                 'Nb colis' => 'Nb colis',
                 'demande d\'acheminement' => 'demande d\'acheminement',
+                'Colis à acheminer' => 'Colis à acheminer',
                 'Le colis existe déjà dans cet acheminement' => 'Le colis existe déjà dans cet acheminement',
                 'type d\'acheminement' => 'type d\'acheminement',
                 "Quantité à acheminer" => "Quantité à acheminer",

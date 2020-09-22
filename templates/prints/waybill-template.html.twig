@@ -78,6 +78,10 @@
             bottom: 0;
             width: 24cm;
         }
+        .image-title {
+            max-height: 100px;
+            max-width: 100px;
+        }
     </style>
 </head>
 <body>
@@ -85,7 +89,9 @@
     <div class="split">
         <div>
             {% if logo %}
-                <img src="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ logo }}" alt="GT Logistics"/>
+                <img class="image-title"
+                     src="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ logo }}"
+                     alt="GT Logistics"/>
             {% endif %}
         </div>
         <div>
