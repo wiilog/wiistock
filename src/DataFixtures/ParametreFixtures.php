@@ -148,7 +148,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => [],
             ParametrageGlobal::DASHBOARD_CARRIER_DOCK => [],
             ParametrageGlobal::MVT_DEPOSE_DESTINATION => [],
-            ParametrageGlobal::FILE_FOR_LOGO => [],
+            ParametrageGlobal::LABEL_LOGO => [],
+            ParametrageGlobal::DELIVERY_NOTE_LOGO => [],
+            ParametrageGlobal::WAYBILL_LOGO => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_1 => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_2 => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_3 => [],
@@ -163,7 +165,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::DASHBOARD_PACKAGING_DSQR => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT => [],
-            ParametrageGlobal::DISPATCH_EMERGENCY_VALUES => ["default" => json_encode(["Oui"])],
+            ParametrageGlobal::DISPATCH_EMERGENCY_VALUES => ["default" => json_encode(["24h"])],
         ];
 
 		foreach ($globalParameterLabels as $globalParameterLabel => $values) {

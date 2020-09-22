@@ -2,42 +2,50 @@
 
 {% block content %}
 
-    {% set validationDate = dispatch.validationDate ? dispatch.validationDate|date('d/m/Y H:i:s') %}
+    {% set validationDate = dispatch.validationDate ? dispatch.validationDate|date('d/m/Y à H:i:s') %}
+    {% set treatmentDate = dispatch.treatmentDate ? dispatch.treatmentDate|date('d/m/Y à H:i:s') %}
     {% set startDate = dispatch.startDate %}
     {% set endDate = dispatch.endDate %}
     {% set startDateStr = startDate ? startDate.format('d/m/Y') : '-' %}
     {% set endDateStr = endDate ? startDate.format('d/m/Y') : '-' %}
     {% set emergency = dispatch.emergency ?? 'Non' %}
-    {% set receiver = dispatch.receiver ? dispatch.receiver.username %}
-    {% set comment = dispatch.commentaire ? dispatch.commentaire|raw %}
+    {% set receiver = dispatch.receiver ? dispatch.receiver.username : '' %}
+    {% set comment = dispatch.commentaire ? dispatch.commentaire|raw : '' %}
     {% set hideNumberParam = hideNumber is defined and hideNumber %}
-    {% set hideValidationDateParam = hideValidationDate is defined and hideValidationDate %}
+    {% set hideTreatmentDateParam = hideTreatmentDate is defined and hideTreatmentDate %}
     {% set hideTreatedBy = hideTreatedBy is defined and hideTreatedBy %}
 
     <p>Bonjour,</p>
-    <p>Votre {{ 'acheminement.acheminement'|trans }}/expédition est traité(e) avec les informations suivantes :</p>
+    {% if dispatch.statut.treated %}
+        <p>Votre {{ 'acheminement.acheminement'|trans }}/expédition est traité(e) avec les informations suivantes :</p>
+        {% else %}
+        <p>Votre {{ 'acheminement.acheminement'|trans }}/expédition est en cours de traitement avec les informations suivantes :</p>
+    {% endif %}
     <ul>
         {% if not hideNumberParam %}
             <li>Numéro de demande : <strong>{{ dispatch.number }}</strong></li>
         {% endif %}
+        <li>Date de création : <strong>{{ dispatch.creationDate|date('d/m/Y à H:i:s') }}</strong></li>
+        {% if not hideTreatmentDateParam %}
+            <li>Date de validation : <strong>{{ validationDate }}</strong></li>
+            {% else %}
+                <li>Date de traitement : <strong>{{ treatmentDate }}</strong></li>
+        {% endif %}
         {% if hideTreatedBy %}
             <li>Traité par : <strong>{{ dispatch.treatedBy.username }}</strong></li>
-        {% endif %}
-        <li>Date de création : <strong>{{ dispatch.creationDate|date('d/m/Y H:i:s') }}</strong></li>
-        {% if not hideValidationDateParam %}
-            <li>Date de validation : <strong>{{ validationDate }}</strong></li>
         {% endif %}
         <li>Demandeur : <strong>{{ dispatch.requester.username }}</strong></li>
         <li>Destinataire : <strong>{{ receiver }}</strong></li>
         <li>Type : <strong>{{ dispatch.type.label }}</strong></li>
         <li>Statut : <strong>{{ dispatch.statut.nom }}</strong></li>
-        <li>Dates d'échéances : <strong>{{ (startDate or endDate) ? ('Du ' ~ startDateStr ~ ' au ' ~ endDateStr) : '' }}</strong></li>
+        <li>Dates d'échéance : <strong>{{ (startDate or endDate) ? ('Du ' ~ startDateStr ~ ' au ' ~ endDateStr) : '' }}</strong></li>
         <li>Transporteur : <strong>{{ dispatch.carrier.label ?? '' }}</strong></li>
         <li>Numéro de tracking transporteur : <strong>{{ dispatch.carrierTrackingNumber ?? '' }}</strong></li>
         <li>Numéro projet : <strong>{{ dispatch.projectNumber  ?? '' }}</strong></li>
         <li>Business Unit :  <strong>{{ dispatch.businessUnit ?? '' }}</strong></li>
         <li>Urgence : <strong>{{ emergency }}</strong></li>
         <li>Commentaire : {{ comment|striptags }}</li>
+        {% if dispatch.attachments|length > 0 %}
         <li>
             Pièces jointes :
             <ul>
@@ -46,6 +54,7 @@
                 {% endfor %}
             </ul>
         </li>
+        {% endif %}
     </ul>
 
     <table class="table"
@@ -94,6 +103,7 @@
             {% for dispatchPack in dispatch.dispatchPacks %}
 
                 {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.label : '' %}
+                {% set packLastTracking = dispatchPack.pack.lastTracking ?? '' %}
                 <tr>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
@@ -109,15 +119,15 @@
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.pack.lastTracking.datetime|date('d/m/Y H:i:s') }}
+                        {{ packLastTracking ? packLastTracking.datetime|date('d/m/Y H:i:s') : '-' }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.pack.lastTracking.emplacement.label }}
+                        {{ packLastTracking ? packLastTracking.emplacement.label : '-' }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.pack.lastTracking.operateur.username }}
+                        {{ packLastTracking ? packLastTracking.operateur.username : '-' }}
                     </td>
                 </tr>
             {% endfor %}

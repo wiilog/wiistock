@@ -59,13 +59,29 @@ $(function () {
 
     let $modalPrintDeliveryNote = $('#modalPrintDeliveryNote');
     let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
-    let urlPrintDeliveryNote = Routing.generate('print_delivery_note_dispatch', {dispatch: $('#dispatchId').val()}, true);
-    InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote);
+    let urlPrintDeliveryNote = Routing.generate('delivery_note_dispatch', {dispatch: $('#dispatchId').val()}, true);
+    InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote, {
+        success: () => {
+            window.location.href = Routing.generate('print_delivery_note_dispatch', {dispatch: $('#dispatchId').val()}, true);
+        }
+    });
 
     let $modalPrintWaybill = $('#modalPrintWaybill');
     let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
     let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: $('#dispatchId').val()}, true);
-    InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill);
+    InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill, {
+        success: () => {
+            window.location.href = Routing.generate('print_waybill_dispatch', {dispatch: $('#dispatchId').val()})
+        }
+    });
+
+    const queryParams = GetRequestQuery();
+    const {'print-delivery-note': printDeliveryNote} = queryParams;
+    if (Number(printDeliveryNote)) {
+        delete queryParams['print-delivery-note'];
+        SetRequestQuery(queryParams);
+        $('#generateDeliveryNoteButton').click();
+    }
 });
 
 function togglePackDetails(emptyDetails = false) {

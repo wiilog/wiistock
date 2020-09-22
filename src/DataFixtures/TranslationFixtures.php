@@ -59,7 +59,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Acheminer' => 'Acheminer'
             ],
             'acheminement' => [
-                'Nouvelle demande' => 'Nouvelle demande',
                 'Acheminements' => 'Acheminements',
                 'Acheminement' => 'Acheminement',
                 'acheminement' => 'acheminement',
@@ -69,6 +68,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Emplacement dépose' => 'Emplacement dépose',
                 'Nb colis' => 'Nb colis',
                 'demande d\'acheminement' => 'demande d\'acheminement',
+                'Colis à acheminer' => 'Colis à acheminer',
                 'Le colis existe déjà dans cet acheminement' => 'Le colis existe déjà dans cet acheminement',
                 'type d\'acheminement' => 'type d\'acheminement',
                 "Quantité à acheminer" => "Quantité à acheminer",
@@ -82,10 +82,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "L'acheminement a bien été supprimé" => "L'acheminement a bien été supprimé",
                 'Le bon d\'acheminement n\'existe pas pour cet acheminement' => 'Le bon d\'acheminement n\'existe pas pour cet acheminement',
                 "Des colis sont nécessaires pour générer un bon de livraison" => "Des colis sont nécessaires pour générer un bon de livraison",
-                "L'acheminement a bien été traité" => "L'acheminement a bien été traité",
                 "Acheminement {numéro} traité le {date}" => "Acheminement {numéro} traité le {date}",
-                "L'acheminement contient plus 10 colis" => "L'acheminement contient plus 10 colis",
-                'Générer un bon d\'acheminement' => 'Générer un bon d\'acheminement'
+                "L'acheminement contient plus de {nombre} colis" => "L'acheminement contient plus de {nombre} colis",
+                'Générer un bon d\'acheminement' => 'Générer un bon d\'acheminement',
+                "La lettre de voiture n'existe pas pour cet acheminement" => "La lettre de voiture n'existe pas pour cet acheminement",
+                "Le bon de livraison n'existe pas pour cet acheminement" => "Le bon de livraison n'existe pas pour cet acheminement"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',

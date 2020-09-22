@@ -53,8 +53,8 @@
                 <i class="fa fa-bullseye mr-2"></i>Association/BR
             </a>
             {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
-            <a href="" data-target='#modalProceedDispatch' data-toggle='modal'
-               class="dropdown-item" title="Acheminer">
+            <a href="" data-target='#modalNewDispatch' data-toggle='modal'
+               class="dropdown-item" title="Acheminer" onclick="initNewDispatchEditor('#modalNewDispatch')">
                 <i class="fas fa-exchange-alt mr-2"></i>{{ 'arrivage.Acheminer'|trans }}</a>
             {% endif %}
             {% if canBeDeleted %}

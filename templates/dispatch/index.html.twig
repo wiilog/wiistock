@@ -86,5 +86,6 @@
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="{{ asset('js/dispatch-common.js') }}?{{ date().timestamp }}"></script>
     <script src="{{ asset('js/dispatch.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

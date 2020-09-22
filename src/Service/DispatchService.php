@@ -3,14 +3,23 @@
 
 namespace App\Service;
 
+use App\Entity\Arrivage;
+use App\Entity\CategorieStatut;
 use App\Entity\ChampLibre;
 use App\Entity\Dispatch;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\MouvementTraca;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Repository\ChampLibreRepository;
+use App\Repository\FieldsParamRepository;
+use App\Repository\ParametrageGlobalRepository;
+use App\Repository\StatutRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,6 +34,9 @@ use Twig\Error\SyntaxError as Twig_Error_Syntax;
 use Twig\Environment as Twig_Environment;
 
 class DispatchService {
+
+    const WAYBILL_MAX_PACK = 20;
+
     /**
      * @var Twig_Environment
      */
@@ -144,6 +156,7 @@ class DispatchService {
             'type' => $dispatch->getType() ? $dispatch->getType()->getLabel() : '',
             'status' => $dispatch->getStatut() ? $dispatch->getStatut()->getNom() : '',
             'emergency' => $dispatch->getEmergency() ?? '',
+            'treatedBy' => $dispatch->getTreatedBy() ? $dispatch->getTreatedBy()->getUsername() : '',
             'treatmentDate' => $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate()->format('d/m/Y H:i:s') : '',
             'actions' => $this->templating->render('dispatch/datatableDispatchRow.html.twig', [
                 'dispatch' => $dispatch,
@@ -153,6 +166,35 @@ class DispatchService {
 
         $rows = array_merge($rowCL, $row);
         return $rows;
+    }
+
+    public function getNewDispatchConfig(ParametrageGlobalRepository $parametrageGlobalRepository,
+                                         StatutRepository $statutRepository,
+                                         ChampLibreRepository $champLibreRepository,
+                                         FieldsParamRepository $fieldsParamRepository,
+                                         array $types,
+                                         ?Arrivage $arrival = null) {
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
+
+        $dispatchBusinessUnits = json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES));
+        return [
+            'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
+            'fieldsParam' => $fieldsParam,
+            'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
+            'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
+            'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
+                $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
+                return [
+                    'typeLabel' => $type->getLabel(),
+                    'typeId' => $type->getId(),
+                    'champsLibres' => $champsLibres,
+                ];
+            }, $types),
+            'notTreatedStatus' => $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::NOT_TREATED, Statut::DRAFT]),
+            'packs' => $arrival ? $arrival->getPacks() : [],
+            'fromArrival' => $arrival !== null,
+            'arrival' => $arrival
+        ];
     }
 
     public function createHeaderDetailsConfig(Dispatch $dispatch): array {
@@ -174,7 +216,7 @@ class DispatchService {
         $endDateStr = $endDate ? $endDate->format('d/m/Y') : '-';
         $projectNumber = $dispatch->getProjectNumber();
         $comment = $dispatch->getCommentaire() ?? '';
-        $treatedBy = $dispatch->getTreatedBy()->getUsername() ?? '';
+        $treatedBy = $dispatch->getTreatedBy() ? $dispatch->getTreatedBy()->getUsername() : '';
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
@@ -289,15 +331,15 @@ class DispatchService {
             $title = $status->isTreated()
                 ? $this->translator->trans('acheminement.Acheminement {numéro} traité le {date}', [
                     "{numéro}" => $dispatch->getNumber(),
-                    "{date}" => $dispatch->getValidationDate()->format('d/m/Y à H:i:s')
+                    "{date}" => $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate()->format('d/m/Y à H:i:s') : ''
                 ])
                 : (!$isUpdate
-                    ? ('Une ' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
-                    : ('Changement de statut d\'une ' . $translatedCategory . ' de type ' . $type . ' vous concernant :'));
+                    ? ('Un(e) ' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
+                    : ('Changement de statut d\'un(e) ' . $translatedCategory . ' de type ' . $type . ' vous concernant :'));
             $subject = $status->isTreated() ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translator->trans('acheminement.demande d\'acheminement') . '.')
                 : (!$isUpdate
-                    ? ('FOLLOW GT // Création d\'une ' . $translatedCategory)
-                    : 'FOLLOW GT // Changement de statut d\'une ' . $translatedCategory . '.');
+                    ? ('FOLLOW GT // Création d\'un(e) ' . $translatedCategory)
+                    : 'FOLLOW GT // Changement de statut d\'un(e) ' . $translatedCategory . '.');
 
             $emails = [];
 
@@ -327,7 +369,7 @@ class DispatchService {
                         'title' => $title,
                         'urlSuffix' => $this->router->generate("dispatch_show", ["id" => $dispatch->getId()]),
                         'hideNumber' => $isTreatedStatus,
-                        'hideValidationDate' => $isTreatedStatus,
+                        'hideTreatmentDate' => $isTreatedStatus,
                         'hideTreatedBy' => $isTreatedByOperator,
                         'totalCost' => $freeFieldArray
                     ]),
@@ -345,7 +387,7 @@ class DispatchService {
      * @param bool $fromNomade
      * @throws Exception
      */
-    public function validateDispatchRequest(EntityManagerInterface $entityManager,
+    public function treatDispatchRequest(EntityManagerInterface $entityManager,
                                             Dispatch $dispatch,
                                             Statut $treatedStatus,
                                             Utilisateur $loggedUser,
@@ -414,6 +456,7 @@ class DispatchService {
             ['title' => 'acheminement.Nb colis', 'name' => 'nbPacks', 'orderable' => false, 'translated' => true],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Urgence', 'name' => 'emergency'],
+            ['title' => 'Traité par', 'name' => 'treatedBy']
         ];
 
         return array_merge(
@@ -437,5 +480,7 @@ class DispatchService {
             }, $freeFields)
         );
     }
+
+
 
 }

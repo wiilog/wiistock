@@ -184,6 +184,14 @@ let submitDeleteArrivage = $('#submitDeleteArrivage');
 let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
 InitModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage);
 
+let $modalNewDispatch = $("#modalNewDispatch");
+let $submitNewDispatch = $("#submitNewDispatch");
+let $submitNewDispatchWithBL = $("#submitNewDispatchWithBL");
+let urlDispatchNew = Routing.generate('dispatch_new', true);
+let urlDispatchNewWithBL = Routing.generate('dispatch_new', {printDeliveryNote: 1}, true);
+InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew);
+InitModal($modalNewDispatch, $submitNewDispatchWithBL, urlDispatchNewWithBL);
+
 let originalText = '';
 
 function editRowArrivage(button) {
@@ -251,4 +259,10 @@ function getCommentAndAddHisto()
         tableHistoLitige.ajax.reload();
         commentLitige.val('');
     });
+}
+
+function removePackInDispatchModal($button) {
+    $button
+        .closest('[data-multiple-key]')
+        .remove();
 }

@@ -1868,7 +1868,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             }
                         }
 
-                        $dispatchService->validateDispatchRequest($entityManager, $dispatch, $treatedStatus, $nomadUser, true);
+                        $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $nomadUser, true);
                     }
                 }
             }
