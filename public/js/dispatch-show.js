@@ -90,14 +90,18 @@ function forbiddenPhoneNumberValidator($modal) {
     const $inputs = $modal.find(".forbidden-phone-numbers");
     const $invalidElements = [];
     const errorMessages = [];
-    const numbers = $('#forbiddenPhoneNumbers').val().split(';');
+    const numbers = ($('#forbiddenPhoneNumbers').val() || '')
+        .split(';')
+        .map((number) => number.replace(/[^0-9]/g, ''));
 
     $inputs.each(function() {
         const $input = $(this);
-        const value = $input.val();
+        const rawValue = ($input.val() || '');
+        const value = rawValue.replace(/[^0-9]/g, '');
 
-        if(numbers.indexOf(value) !== -1) {
-            errorMessages.push(`Le numéro de téléphone ${value} ne peut pas être utilisé ici`);
+        if (value
+            && numbers.indexOf(value) !== -1) {
+            errorMessages.push(`Le numéro de téléphone ${rawValue} ne peut pas être utilisé ici`);
             $invalidElements.push($input);
         }
     });
