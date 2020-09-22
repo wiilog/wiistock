@@ -30,16 +30,20 @@
                             </select>
                         </div>
 
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
-                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
-                            <div class="form-group">
-                                <label>Transporteur{{ required ? '*' }}</label>
-                                <select class="form-control data ajax-autocomplete-transporteur w-100 {{ required ? 'needed' }}"
-                                        title="Transporteur"
-                                        name="carrier">
-                                </select>
-                            </div>
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::SHOW_CARRIER_FIELD'))
+                            and isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_EMERSON'))
+                        %}
+                            {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
+                            {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                                {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                                <div class="form-group">
+                                    <label>Transporteur{{ required ? '*' }}</label>
+                                    <select class="form-control data ajax-autocomplete-transporteur w-100 {{ required ? 'needed' }}"
+                                            title="Transporteur"
+                                            name="carrier">
+                                    </select>
+                                </div>
+                            {% endif %}
                         {% endif %}
 
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
