@@ -1064,6 +1064,15 @@ class DispatchController extends AbstractController {
             ');
         }
 
+        $packs = array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks);
+        $packs = array_map(function(DispatchPack $pack) {
+            return [
+                "code" => $pack->getPack()->getCode(),
+                "quantity" => $pack->getQuantity(),
+                "comment" => $pack->getDispatch(),
+            ];
+        }, $packs);
+
         $userSavedData = $loggedUser->getSavedDispatchDeliveryNoteData();
         $dispatchSavedData = $dispatch->getDeliveryNoteData();
         $defaultData = [
@@ -1071,7 +1080,7 @@ class DispatchController extends AbstractController {
             'projectNumber' => $dispatch->getProjectNumber(),
             'username' => $loggedUser->getUsername(),
             'userPhone' => $loggedUser->getPhone(),
-            'packs' => array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks),
+            'packs' => $packs,
             'dispatchEmergency' => $dispatch->getEmergency()
         ];
 
@@ -1097,7 +1106,6 @@ class DispatchController extends AbstractController {
         ]));
 
         return new JsonResponse($json);
-
     }
 
     /**
