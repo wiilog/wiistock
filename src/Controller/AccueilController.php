@@ -11,6 +11,7 @@ use App\Entity\Handling;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Wiilock;
 use App\Service\DashboardService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -68,7 +69,8 @@ class AccueilController extends AbstractController
         $data['pageData'] = ($page === 'emballage')
             ? $dashboardService->getSimplifiedDataForPackagingDashboard($entityManager)
             : [];
-        $data['refreshDate'] = $dashboardService->getLastRefresh();
+        $data['graphsRefreshDate'] = $dashboardService->getLastRefresh(Wiilock::DASHBOARD_FED_KEY);
+        $data['metersRefreshDate'] = $dashboardService->getLastRefresh(Wiilock::DASHBOARD_METER_FED_KEY);
         return $this->render('accueil/dashboardExt.html.twig', $data);
     }
 
@@ -240,7 +242,8 @@ class AccueilController extends AbstractController
     {
         return new JsonResponse([
             'success' => true,
-            'date' => $dashboardService->getLastRefresh()
+            'graphsDate' => $dashboardService->getLastRefresh(Wiilock::DASHBOARD_FED_KEY),
+            'metersDate' => $dashboardService->getLastRefresh(Wiilock::DASHBOARD_METER_FED_KEY),
         ]);
     }
 
