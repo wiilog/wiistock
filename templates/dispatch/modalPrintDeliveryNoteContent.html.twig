@@ -137,7 +137,7 @@
             <div class="col-12">
                 <select title="Urgence / Urgent"
                         name="emergency"
-                        class="form-control data needed">
+                        class="form-control data">
                     <option value=""></option>
                     {% for emergencyValue in dispatchEmergencyValues %}
                         <option value="{{ emergencyValue }}"
@@ -383,7 +383,7 @@
                     <input class="form-control data needed"
                            name="code"
                            title="Numéro"
-                           value="rien" {# TODO: salut la personne qui fait la revue, faut remettre {{ dispatchPack.code }} dans le value si j'ai oublié de le faire #}
+                           value="{{ dispatchPack.code }}"
                            disabled/>
                 </div>
                 <div class="col-3">
@@ -402,8 +402,7 @@
                               name="comment"
                               title="Commentaire / Comment"
                               rows="1"
-                              oninput="limitTextareaLength($(this), 7, 100)">rien</textarea>
-                    {# TODO: salut la personne qui fait la revue, faut remettre {{ dispatchPack.comment }} dans le textarea si j'ai oublié de le faire #}
+                              oninput="limitTextareaLength($(this), 7, 100)">{{ dispatchPack.comment|striptags }}</textarea>
                 </div>
             </div>
         {% endfor %}
@@ -417,7 +416,7 @@
             <div class="col-12">
                 <input class="form-control data needed"
                        name="consignor2"
-                       value="{{ consignor }}"
+                       value="{{ consignor2 }}"
                        title="Expéditeur / Consigner"/>
             </div>
         </div>

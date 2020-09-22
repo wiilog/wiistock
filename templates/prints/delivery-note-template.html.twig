@@ -76,10 +76,14 @@
             padding-left: 0;
         }
 
-        .footer {
+        footer {
             position: absolute;
             bottom: 0;
-            width: 100%;
+            width: 24cm;
+        }
+
+        .text-right {
+            text-align: right;
         }
         .image-title {
             max-height: 100px;
@@ -106,101 +110,134 @@
 
     <table class="full-width">
         <tr>
-            <td rowspan="4">
+            <td colspan="6" rowspan="4">
                 <label>Ship to</label><br>
                 {{ dn.deliveryAddress | nl2br }}
             </td>
-            <td>
+            <td colspan="3">
                 <label>Delivery</label><br>
                 {{ dn.deliveryNumber }}
             </td>
-            <td>
+            <td colspan="3">
                 <label>Delivery date</label><br>
                 {{ dn.deliveryDate }}
             </td>
         </tr>
         <tr>
-            <td>
+            <td colspan="3">
                 <label>Sales order No:</label><br>
                 {{ dn.salesOrderNumber }}
             </td>
-            <td>
+            <td colspan="3">
                 <label>Waybill</label><br>
                 {{ dn.wayBill }}
             </td>
         </tr>
         <tr>
-            <td>
+            <td colspan="3">
                 <label>Customer PO number</label><br>
                 {{ dn.customerPONumber }}
             </td>
-            <td>
+            <td colspan="3">
                 <label>Customer PO date</label><br>
                 {{ dn.customerPODate }}
             </td>
         </tr>
         <tr>
-            <td>
+            <td colspan="3">
                 <label>Rep order No</label><br>
                 {{ dn.respOrderNb }}
             </td>
-            <td>
+            <td colspan="3">
                 <label>Project No</label><br>
                 {{ dn.projectNumber }}
             </td>
         </tr>
+        <tr>
+            <td colspan="6">
+                <label>Handled by</label> : {{ dn.username }}<br>
+                <label>Tel</label> : {{ dn.userPhone }}<br>
+                <label>Fax</label> : {{ dn.userFax }}<br>
+            </td>
+            <td colspan="6">
+                <label>Customer/buyer</label> : {{ dn.buyer }}<br>
+                <label>Tel</label> : {{ dn.buyerPhone }}<br>
+                <label>Fax</label> : {{ dn.buyerFax }}<br>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <label>Invoice to :</label><br>
+                {{ dn.invoiceTo }}
+            </td>
+            <td colspan="3">
+                <label>Sold to :</label><br>
+                {{ dn.soldTo }}
+            </td>
+            <td colspan="3">
+                <label>End user :</label><br>
+                {{ dn.endUser }}
+            </td>
+            <td colspan="3">
+                <label>Deliver to :</label><br>
+                {{ dn.deliverTo }}
+            </td>
+        </tr>
     </table>
 
-    {# <img src="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ asset('img/gtlogistics.jpg') }}" alt="GT Logistics"/> #}
-    {# <div>{{ data.consigner }}</div> #}
-    {# <div>Ship to : {{ data.deliveryAddress | nl2br }}</div> #}
-    {# <div>Delivery : {{ data.deliveryNumber }}</div> #}
-    {# <div>Sales Order No : {{ data.salesOrderNumber }}</div> #}
-    {# <div>Customer PO Number : {{ data.customerPONumber }}</div> #}
-    {# <div>Rep order No : {{ data.respOrderNb }}</div> #}
-    {# <div>Delivery Date : {{ data.deliveryDate }}</div> #}
-    {# <div>WayBill : {{ data.wayBill }}</div> #}
-    {# <div>Customer PO Number : {{ data.customerPODate }}</div> #}
-    {# <div>Project No : {{ data.projectNumber }}</div> #}
-    {# <--------------------------------------> #}
-    {# <div>Handled By : {{ data.username }}</div> #}
-    {# <div>Tel : {{ data.userPhone }}</div> #}
-    {# <div>Fax : {{ data.userFax }}</div> #}
-    {# <div>Customer/Buyer : {{ data.buyer }}</div> #}
-    {# <div>Tel : {{ data.buyerPhone }}</div> #}
-    {# <div>Fax : {{ data.buyerFax }}</div> #}
-    {# <--------------------------------------> #}
-    {# <div>Invoice to : {{ data.invoiceTo }}</div> #}
-    {# <div>Sold to : {{ data.soldTo }}</div> #}
-    {# <div>End User : {{ data.endUserNo }}</div> #}
-    {# <div>Deliver to : {{ data.deliverTo }}</div> #}
-    {# <--------------------------------------> #}
-    {# <table> #}
-    {# <tr> #}
-    {# <th> #}
-    {# Description #}
-    {# </th> #}
-    {# <th> #}
-    {# Quantity on Order #}
-    {# </th> #}
-    {# <th> #}
-    {# Remaining on Order #}
-    {# </th> #}
-    {# </tr> #}
-    {# {% for pack in data.packs %} #}
-    {# <tr> #}
-    {# <td>{{ pack.code }}</td> #}
-    {# <td>{{ pack.quantity }}</td> #}
-    {# <td>{{ pack.quantity }}</td> #}
-    {# </tr> #}
-    {# {% endfor %} #}
-    {# </table> #}
-    {# <--------------------------------------> #}
-    {# <div>Consigner : {{ data.consigner2 }}</div> #}
-    {# <div>Date : {{ data.date }}</div> #}
-    {# <div>Page 1/1</div> #}
-    {# <div>Note(s) : {{ data.notes }}</div> #}
+    <table class="full-width">
+        <tr>
+            <th>Code</th>
+            <th>Description</th>
+            <th>Quantity</th>
+        </tr>
+        {% for pack in dn.packs %}
+            <tr>
+                <td>{{ pack.code }}</td>
+                <td>{{ pack.comment }}</td>
+                <td>{{ pack.quantity }}</td>
+            </tr>
+        {% endfor %}
+    </table>
 
+    <table class="invisible full-width">
+        <tr>
+            <td>
+                <label>Consignor :</label> {{ dn.consignor2 }}
+            </td>
+            <td class="text-right" nowrap>
+                <label>Consignee :</label> ______________________
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label>Date :</label> {{ dn.date }}
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td class="text-right" style="padding-top:1cm;padding-bottom:1cm">
+                <label>Company stamp & signature</label>
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td class="text-right" nowrap>
+                <label>Date :</label> ______________________
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td class="text-right" nowrap>
+                <label>Authorized signatory :</label> ______________________
+            </td>
+        </tr>
+    </table>
+
+    <footer>
+        <label>Note</label><br>
+        {{ dn.notes | nl2br }}
+    </footer>
 </div>
 </body>
 </html>
