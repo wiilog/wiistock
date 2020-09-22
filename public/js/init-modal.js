@@ -199,7 +199,9 @@ function processForm($modal, validator) {
     const dataInputsForm = processInputsForm($modal);
     const dataCheckboxesForm = processCheckboxesForm($modal);
     const dataFilesForm = processFilesForm($modal);
-    const dataValidator = validator($modal);
+    const dataValidator = validator
+        ? validator($modal)
+        : {success: true, errorMessages: [], $isInvalidElements: []};
 
     // TODO remove ?
     const subData = {};
