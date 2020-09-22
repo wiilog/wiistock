@@ -69,10 +69,11 @@ function SubmitAction($modal,
                       path,
                       {tables, keepModal, keepForm} = {}) {
     clearFormErrors($modal);
-    const {success, errorMessages, $isInvalidElements, data} = processForm($modal);
+    const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
+    const {success, errorMessages, $isInvalidElements, data} = processForm($modal, isAttachmentForm);
 
     if (success) {
-        const smartData = $modal.find('input[name="isAttachmentForm"]').val() === '1'
+        const smartData = isAttachmentForm
             ? createFormData(data)
             : JSON.stringify(data);
 
@@ -189,12 +190,13 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
 
 /**
  *
- * @param {*} $modal jQuery modal
+ * @param {jQuery} $modal jQuery modal
+ * @param {boolean} isAttachmentForm
  * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
  */
-function processForm($modal) {
+function processForm($modal, isAttachmentForm) {
     const dataArrayForm = processDataArrayForm($modal);
-    const dataInputsForm = processInputsForm($modal);
+    const dataInputsForm = processInputsForm($modal, isAttachmentForm);
     const dataCheckboxesForm = processCheckboxesForm($modal);
     const dataFilesForm = processFilesForm($modal);
 
@@ -235,10 +237,12 @@ function processForm($modal) {
 
 /**
  *
+ * @param {jQuery} $modal jQuery modal
+ * @param {boolean} isAttachmentForm
  * @param $modal jQuery modal
  * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
  */
-function processInputsForm($modal) {
+function processInputsForm($modal, isAttachmentForm) {
     const $inputs = $modal.find('.data:not([name^="savedFiles"])');
     const data = {};
     const $isInvalidElements = [];
@@ -252,9 +256,17 @@ function processInputsForm($modal) {
         if ($parent && $parent.length > 0) {
             const multipleKey = $parent.data('multiple-key');
             const objectIndex = $parent.data('multiple-object-index');
-            data[multipleKey] = (data[multipleKey] || {});
-            data[multipleKey][objectIndex] = (data[multipleKey][objectIndex] || {});
-            data[multipleKey][objectIndex][name] = val;
+            const multipleValue = data[multipleKey]
+                ? (isAttachmentForm
+                    ? JSON.parse(data[multipleKey])
+                    : data[multipleKey])
+                : {};
+            multipleValue[objectIndex] = (multipleValue[objectIndex] || {});
+            multipleValue[objectIndex][name] = val;
+
+            data[multipleKey] = isAttachmentForm
+                ? JSON.stringify(multipleValue)
+                : multipleValue;
         } else {
             data[name] = val;
         }
@@ -560,11 +572,7 @@ function createFormData(object) {
     Object
         .keys(object)
         .forEach((key) => {
-            formData.append(key,
-                (object[key] && typeof object[key] === 'object' && !Array.isArray(object[key]))
-                    ? JSON.stringify(object[key])
-                    : object[key]
-            );
+            formData.append(key, object[key]);
         });
     return formData;
 }
