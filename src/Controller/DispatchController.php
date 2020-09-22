@@ -1084,11 +1084,11 @@ class DispatchController extends AbstractController {
         }
 
         $packs = array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks);
-        $packs = array_map(function(DispatchPack $pack) {
+        $packs = array_map(function(DispatchPack $dispatchPack) {
             return [
-                "code" => $pack->getPack()->getCode(),
-                "quantity" => $pack->getQuantity(),
-                "comment" => $pack->getDispatch(),
+                "code" => $dispatchPack->getPack()->getCode(),
+                "quantity" => $dispatchPack->getQuantity(),
+                "comment" => $dispatchPack->getPack()->getComment(),
             ];
         }, $packs);
 
@@ -1102,7 +1102,6 @@ class DispatchController extends AbstractController {
             'packs' => $packs,
             'dispatchEmergency' => $dispatch->getEmergency()
         ];
-
         $deliveryNoteData = array_reduce(
             array_keys(Dispatch::DELIVERY_NOTE_DATA),
             function(array $carry, string $dataKey) use ($request, $userSavedData, $dispatchSavedData, $defaultData) {
