@@ -303,12 +303,12 @@ class InventoryMissionController extends AbstractController
                     ]);
                 }
 				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($refArticle, $mission, true);
-				if ($alreadyInMission)
-				    return new JsonResponse([
+				if ($alreadyInMission) {
+                    return new JsonResponse([
                         'success' => false,
                         'msg' => 'Cette référence est déjà présente dans une mission sur la même période. Vous ne pouvez pas l\'ajouter.'
                     ]);
-
+                }
 				$refArticle->addInventoryMission($mission);
                 $entityManager->persist($mission);
                 $entityManager->flush();
