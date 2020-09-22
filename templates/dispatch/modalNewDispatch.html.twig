@@ -30,8 +30,8 @@
                             </select>
                         </div>
 
-                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::SHOW_CARRIER_FIELD'))
-                            and isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_EMERSON'))
+                        {% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_EMERSON'))
+                            or hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::SHOW_CARRIER_FIELD'))
                         %}
                             {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
                             {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}

@@ -136,6 +136,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
     	$selectedByDefault = [
     		Menu::QUALI . Action::TREAT_LITIGE,
+    		Menu::DEM . Action::SHOW_CARRIER_FIELD,
     		Menu::NOMADE . Action::MODULE_ACCESS_STOCK,
     		Menu::NOMADE . Action::MODULE_ACCESS_TRACA,
     		Menu::NOMADE . Action::MODULE_ACCESS_HAND
