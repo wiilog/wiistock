@@ -36,6 +36,7 @@ use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -1083,6 +1084,15 @@ class DispatchController extends AbstractController {
             ');
         }
 
+        $packs = array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks);
+        $packs = array_map(function(DispatchPack $dispatchPack) {
+            return [
+                "code" => $dispatchPack->getPack()->getCode(),
+                "quantity" => $dispatchPack->getQuantity(),
+                "comment" => $dispatchPack->getPack()->getComment(),
+            ];
+        }, $packs);
+
         $userSavedData = $loggedUser->getSavedDispatchDeliveryNoteData();
         $dispatchSavedData = $dispatch->getDeliveryNoteData();
         $defaultData = [
@@ -1090,10 +1100,9 @@ class DispatchController extends AbstractController {
             'projectNumber' => $dispatch->getProjectNumber(),
             'username' => $loggedUser->getUsername(),
             'userPhone' => $loggedUser->getPhone(),
-            'packs' => array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks),
+            'packs' => $packs,
             'dispatchEmergency' => $dispatch->getEmergency()
         ];
-
         $deliveryNoteData = array_reduce(
             array_keys(Dispatch::DELIVERY_NOTE_DATA),
             function(array $carry, string $dataKey) use ($request, $userSavedData, $dispatchSavedData, $defaultData) {
@@ -1116,7 +1125,6 @@ class DispatchController extends AbstractController {
         ]));
 
         return new JsonResponse($json);
-
     }
 
     /**
@@ -1192,7 +1200,9 @@ class DispatchController extends AbstractController {
             ->getRepository(ParametrageGlobal::class)
             ->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
 
-        return $pdf->generatePDFDeliveryNote("bl_{$dispatch->getId()}.pdf", $logo, $dispatch);
+        $nowDate = new DateTime();
+
+        return $pdf->generatePDFDeliveryNote("BL - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}.pdf", $logo, $dispatch);
     }
 
     /**
@@ -1342,6 +1352,8 @@ class DispatchController extends AbstractController {
             ->getRepository(ParametrageGlobal::class)
             ->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
 
-        return $pdf->generatePDFWaybill("lettre_voiture_{$dispatch->getId()}.pdf", $logo, $dispatch);
+        $nowDate = new DateTime();
+
+        return $pdf->generatePDFWaybill("LDV - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}.pdf", $logo, $dispatch);
     }
 }

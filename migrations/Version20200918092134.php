@@ -17,7 +17,7 @@ final class Version20200918092134 extends AbstractMigration {
 
     public function up(Schema $schema): void {
         $this->addSql("ALTER TABLE `dispatch` ADD `emergency` VARCHAR(255) DEFAULT NULL");
-        $this->addSql("UPDATE `dispatch` SET `emergency` = 'Oui' WHERE `urgent` = 1");
+        $this->addSql("UPDATE `dispatch` SET `emergency` = '24h' WHERE `urgent` = 1");
         $this->addSql("ALTER TABLE `dispatch` DROP `urgent`");
     }
 
