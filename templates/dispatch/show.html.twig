@@ -5,6 +5,7 @@
 {% block titleLink path('dispatch_index') %}
 
 {% block page_content %}
+    <input type="hidden" id="forbiddenPhoneNumbers" value="{{ app_forbidden_phones }}"/>
     <input type="hidden" id="dispatchId" value="{{ dispatch.id }}"/>
     <input type="hidden" id="printBL" value="{{ printBL }}"/>
 

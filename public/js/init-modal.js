@@ -10,13 +10,13 @@ let droppedFiles = [];
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path url to call on submit
- * @param {{tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean}} options Object containing some option.
+ * @param {{tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean, validator: undefined|function}} options Object containing some option.
  *   - tables is an array of datatable
  *   - keepForm is an array of datatable
  *   - keepModal true if we do not close form
  *   - success success handler
  *   - clearOnClose clear the modal on close action
- *
+ *   - validator Validation function
  */
 function InitModal($modal, $submit, path, options = {}) {
     if(options.clearOnClose) {
@@ -60,6 +60,7 @@ function InitModal($modal, $submit, path, options = {}) {
  *   - tables is an array of datatable
  *   - keepForm true if we do not clear form
  *   - keepModal true if we do not close form
+ *   - validator true if we do not close form
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -67,9 +68,9 @@ function InitModal($modal, $submit, path, options = {}) {
 function SubmitAction($modal,
                       $submit,
                       path,
-                      {tables, keepModal, keepForm} = {}) {
+                      {tables, keepModal, keepForm, validator} = {}) {
     clearFormErrors($modal);
-    const {success, errorMessages, $isInvalidElements, data} = processForm($modal);
+    const {success, errorMessages, $isInvalidElements, data} = processForm($modal, validator);
 
     if (success) {
         const smartData = $modal.find('input[name="isAttachmentForm"]').val() === '1'
@@ -190,13 +191,15 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
 /**
  *
  * @param {*} $modal jQuery modal
+ * @param validator undefined|function
  * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
  */
-function processForm($modal) {
+function processForm($modal, validator) {
     const dataArrayForm = processDataArrayForm($modal);
     const dataInputsForm = processInputsForm($modal);
     const dataCheckboxesForm = processCheckboxesForm($modal);
     const dataFilesForm = processFilesForm($modal);
+    const dataValidator = validator($modal);
 
     // TODO remove ?
     const subData = {};
@@ -210,24 +213,28 @@ function processForm($modal) {
             && dataInputsForm.success
             && dataCheckboxesForm.success
             && dataFilesForm.success
+            && dataValidator.success
         ),
         errorMessages: [
             ...dataArrayForm.errorMessages,
             ...dataInputsForm.errorMessages,
             ...dataCheckboxesForm.errorMessages,
-            ...dataFilesForm.errorMessages
+            ...dataFilesForm.errorMessages,
+            ...dataValidator.errorMessages
         ],
         $isInvalidElements: [
             ...dataArrayForm.$isInvalidElements,
             ...dataInputsForm.$isInvalidElements,
             ...dataCheckboxesForm.$isInvalidElements,
-            ...dataFilesForm.$isInvalidElements
+            ...dataFilesForm.$isInvalidElements,
+            ...dataValidator.$isInvalidElements
         ],
         data: {
             ...dataArrayForm.data,
             ...dataInputsForm.data,
             ...dataCheckboxesForm.data,
             ...dataFilesForm.data,
+            ...dataValidator.data,
             ...subData
         }
     };

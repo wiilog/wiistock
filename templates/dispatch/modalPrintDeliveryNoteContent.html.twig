@@ -169,7 +169,7 @@
         <div class="form-group row">
             <label class="col-12">Tél. / Phone number</label>
             <div class="col-12">
-                <input class="form-control data needed"
+                <input class="form-control data forbidden-phone-numbers needed"
                        name="userPhone"
                        value="{{ userPhone }}"
                        title="Tél. / Phone number"/>
@@ -182,7 +182,7 @@
         <div class="form-group row">
             <label class="col-12">Fax</label>
             <div class="col-12">
-                <input class="form-control data"
+                <input class="form-control data forbidden-phone-numbers"
                        name="userFax"
                        maxlength="50"
                        value="{{ userFax }}"
@@ -209,7 +209,7 @@
         <div class="form-group row">
             <label class="col-12">Tél. / Phone number</label>
             <div class="col-12">
-                <input class="form-control data"
+                <input class="form-control data forbidden-phone-numbers"
                        name="buyerPhone"
                        maxlength="50"
                        value="{{ buyerPhone }}"
@@ -223,7 +223,7 @@
         <div class="form-group row">
             <label class="col-12">Fax</label>
             <div class="col-12">
-                <input class="form-control data"
+                <input class="form-control data forbidden-phone-numbers"
                        name="buyerFax"
                        maxlength="50"
                        value="{{ buyerFax }}"
@@ -383,7 +383,7 @@
                     <input class="form-control data needed"
                            name="code"
                            title="Numéro"
-                           value="{{ dispatchPack.pack.code }}"
+                           value="rien" {# TODO: salut la personne qui fait la revue, faut remettre {{ dispatchPack.code }} dans le value si j'ai oublié de le faire #}
                            disabled/>
                 </div>
                 <div class="col-3">
@@ -402,7 +402,8 @@
                               name="comment"
                               title="Commentaire / Comment"
                               rows="1"
-                              oninput="limitTextareaLength($(this), 7, 100)">{{ dispatchPack.pack.comment|striptags }}</textarea>
+                              oninput="limitTextareaLength($(this), 7, 100)">rien</textarea>
+                    {# TODO: salut la personne qui fait la revue, faut remettre {{ dispatchPack.comment }} dans le textarea si j'ai oublié de le faire #}
                 </div>
             </div>
         {% endfor %}

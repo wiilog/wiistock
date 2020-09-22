@@ -63,7 +63,8 @@ $(function () {
     InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote, {
         success: () => {
             window.location.href = Routing.generate('print_delivery_note_dispatch', {dispatch: $('#dispatchId').val()}, true);
-        }
+        },
+        validator: forbiddenPhoneNumberValidator
     });
 
     let $modalPrintWaybill = $('#modalPrintWaybill');
@@ -72,7 +73,8 @@ $(function () {
     InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill, {
         success: () => {
             window.location.href = Routing.generate('print_waybill_dispatch', {dispatch: $('#dispatchId').val()})
-        }
+        },
+        validator: forbiddenPhoneNumberValidator
     });
 
     const queryParams = GetRequestQuery();
@@ -83,6 +85,29 @@ $(function () {
         $('#generateDeliveryNoteButton').click();
     }
 });
+
+function forbiddenPhoneNumberValidator($modal) {
+    const $inputs = $modal.find(".forbidden-phone-numbers");
+    const $invalidElements = [];
+    const errorMessages = [];
+    const numbers = $('#forbiddenPhoneNumbers').val().split(';');
+
+    $inputs.each(function() {
+        const $input = $(this);
+        const value = $input.val();
+
+        if(numbers.indexOf(value) !== -1) {
+            errorMessages.push(`Le numéro de téléphone ${value} ne peut pas être utilisé ici`);
+            $invalidElements.push($input);
+        }
+    });
+
+    return {
+        success: $invalidElements.length === 0,
+        errorMessages,
+        $isInvalidElements: $invalidElements
+    };
+}
 
 function togglePackDetails(emptyDetails = false) {
     const $modal = $('#modalPack');
