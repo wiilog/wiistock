@@ -20,12 +20,12 @@ class Translation
 	 */
     private $menu;
     /**
-     * @ORM\Column(type="string", length=64, nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      */
     private $label;
 
     /**
-     * @ORM\Column(type="string", length=64, nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      */
     private $translation;
 

@@ -48,14 +48,14 @@
                id="generateDeliveryNoteButton"
                class="dropdown-item">
                 <i class="fa fa-print"></i>
-                Générer un bon de livraison
+                {{ 'acheminement.Générer un bon de livraison' | trans }}
             </a>
             <a type="button"
                data-dispatch-id='{{ dispatch.id }}'
                onclick="openWaybillModal($(this))"
                class="dropdown-item">
                 <i class="fa fa-print"></i>
-                Générer une lettre de voiture
+                {{ 'acheminement.Générer une lettre de voiture' | trans }}
             </a>
             {% if hasRightExport %}
                 <a class="dropdown-item"
