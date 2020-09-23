@@ -1261,6 +1261,16 @@ class DispatchController extends AbstractController {
 
         $isEmerson = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_EMERSON);
 
+        $consignorUsername = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_NAME);
+        $consignorUsername = $consignorUsername !== null && $consignorUsername !== ''
+            ? $consignorUsername
+            : ($isEmerson ? $loggedUser->getUsername() : null);
+
+        $consignorEmail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL);
+        $consignorEmail = $consignorEmail !== null && $consignorEmail !== ''
+            ? $consignorEmail
+            : ($isEmerson ? $loggedUser->getEmail() : null);
+
         $defaultData = [
             'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
             'dispatchDate' => $now->format('Y-m-d'),
@@ -1268,9 +1278,8 @@ class DispatchController extends AbstractController {
             'receiver' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_RECEIVER),
             'locationFrom' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_FROM),
             'locationTo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_TO),
-
-            'consignorUsername' => $isEmerson ? $loggedUser->getUsername() : null,
-            'consignorEmail' => $isEmerson ? $loggedUser->getEmail() : null,
+            'consignorUsername' => $consignorUsername,
+            'consignorEmail' => $consignorEmail,
             'receiverUsername' => $isEmerson ? $loggedUser->getUsername() : null,
             'receiverEmail' => $isEmerson ? $loggedUser->getEmail() : null
         ];
