@@ -480,14 +480,6 @@ class DispatchController extends AbstractController {
         $locationTake = $post->get('prise') ? $emplacementRepository->find($post->get('prise')) : null;
         $locationDrop = $post->get('depose') ?  $emplacementRepository->find($post->get('depose')) : null;
 
-        $oldStatus = $dispatch->getStatut();
-        if (!$oldStatus || !$oldStatus->isTreated()) {
-            $newStatus = $statutRepository->find($post->get('statut'));
-            $dispatch->setStatut($newStatus);
-        } else {
-            $newStatus = null;
-        }
-
         if ($startDate && $endDate && $startDate > $endDate) {
             return new JsonResponse([
                 'success' => false,
@@ -537,15 +529,6 @@ class DispatchController extends AbstractController {
         $this->persistAttachments($dispatch, $this->attachmentService, $request, $entityManager);
 
         $entityManager->flush();
-
-        if ((!$oldStatus && $newStatus)
-            || (
-                $oldStatus
-                && $newStatus
-                && ($oldStatus->getId() !== $newStatus->getId())
-            )) {
-            $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
-        }
 
         $dispatchStatus = $dispatch->getStatut();
 
