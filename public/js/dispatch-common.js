@@ -58,9 +58,11 @@ function onDispatchTypeChange($select) {
     if($selectStatus.find('option:not(.d-none)').length === 0) {
         $selectStatus.siblings('.error-empty-status').removeClass('d-none');
         $selectStatus.addClass('d-none');
+        $selectStatus.prop('disabled', false)
     } else {
         $selectStatus.siblings('.error-empty-status').addClass('d-none');
         $selectStatus.removeClass('d-none');
+        $selectStatus.prop('disabled', true)
 
         $selectStatus.find('option:not(.d-none)').prop('selected', true);
     }

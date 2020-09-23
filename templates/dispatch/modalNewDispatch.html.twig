@@ -65,7 +65,7 @@
                     </div>
                     <div class="col-md-4 col-12">
                         <div class="form-group">
-                            <label for="type">Statut*</label>
+                            <label for="statut">Statut*</label>
                             <select name="statut"
                                     disabled
                                     class="form-control data w-100 needed need-default">
@@ -78,7 +78,7 @@
                             <div class="error-empty-status d-none">
                                 {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                                     array: [],
-                                    warningLabel: 'Attention ! Aucun statut pour ce type n\'a été créé.',
+                                    warningLabel: 'Aucun statut pour ce type.',
                                     redirectPath: path('status_param_index'),
                                     redirectLabel: 'Aller vers la création des statuts.'
                                 } %}
