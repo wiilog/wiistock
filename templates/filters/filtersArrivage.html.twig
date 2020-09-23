@@ -5,7 +5,10 @@
     {% include 'filters/filter_item/filterStatus.html.twig' %}
     {% include 'filters/filter_item/filterNumArrivage.html.twig' %}
     {% include 'filters/filter_item/filterDuty.html.twig' %}
-    {% include 'filters/filter_item/filterFrozen.html.twig' %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+        {% include 'filters/filter_item/filterFrozen.html.twig' %}
+    {% endif %}
     {% include 'filters/filter_item/filterEmergency.html.twig' %}
     {% include 'filters/filter_item/filterProvider.html.twig' %}
     {% include 'filters/filter_item/filterCarrier.html.twig' %}
