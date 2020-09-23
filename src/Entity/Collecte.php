@@ -250,13 +250,15 @@ class Collecte extends FreeFieldEntity
         return $this;
     }
 
-    public function getStockOrDestruct(): ?bool
-    {
-        return $this->stockOrDestruct;
+    public function isStock(): ?bool {
+        return $this->stockOrDestruct == true;
     }
 
-    public function setStockOrDestruct(bool $stockOrDestruct): self
-    {
+    public function isDestruct(): ?bool {
+        return $this->stockOrDestruct == false;
+    }
+
+    public function setStockOrDestruct(bool $stockOrDestruct): self {
         $this->stockOrDestruct = $stockOrDestruct;
 
         return $this;

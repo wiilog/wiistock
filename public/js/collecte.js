@@ -179,7 +179,6 @@ function deleteRowCollecte(button, modal, submit) {
 let editorNewCollecteAlreadyDone = false;
 
 function initNewCollecteEditor(modal) {
-    console.log(editorNewCollecteAlreadyDone)
     if (!editorNewCollecteAlreadyDone) {
         initEditorInModal(modal);
         editorNewCollecteAlreadyDone = true;

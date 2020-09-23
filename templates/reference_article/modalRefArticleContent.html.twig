@@ -105,18 +105,13 @@
 <div class="row mt-4 mb-3 justify-content-left">
     {% if isADemand is not defined or not isADemand %}
         <div class="form-group col-4 mt-3">
-            <div class="radio-btn">
-                <label for="statut" class="my-auto mr-2">Gestion quantité</label>
-                <div class="btn-group">
-                    <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active' }} disabled cursor-default"
-                          data-title="reference">Par référence</span>
-                    <span class="btn {{ (articleRef.typeQuantite == 'article') ? 'active' : 'not-active' }} disabled cursor-default"
-                          data-toggle="type_quantite" data-title="article">
-                        Par article
-                    </span>
-                </div>
+            {% set reference = articleRef.typeQuantite == 'reference' ? 1 : 0 %}
+            {% set article = articleRef.typeQuantite == 'article' ? 1 : 0 %}
 
-                <input type="hidden" name="type_quantite" class="data type_quantite" value="{{ articleRef.typeQuantite }}">
+            <label>Gestion quantité</label><br>
+            <div class="wii-switch needed" data-title="Status">
+                <input type="radio" name="type_quantite" value="reference" content="Par référence" {{ reference ? 'checked' }} disabled>
+                <input type="radio" name="type_quantite" value="article" content="Par article" {{ article ? 'checked' }} disabled>
             </div>
         </div>
     {% endif %}

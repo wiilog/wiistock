@@ -198,6 +198,7 @@ function processForm($modal, isAttachmentForm) {
     const dataArrayForm = processDataArrayForm($modal);
     const dataInputsForm = processInputsForm($modal, isAttachmentForm);
     const dataCheckboxesForm = processCheckboxesForm($modal);
+    const dataSwitchesForm = processSwitchesForm($modal);
     const dataFilesForm = processFilesForm($modal);
 
     // TODO remove ?
@@ -211,24 +212,28 @@ function processForm($modal, isAttachmentForm) {
             dataArrayForm.success
             && dataInputsForm.success
             && dataCheckboxesForm.success
+            && dataSwitchesForm.success
             && dataFilesForm.success
         ),
         errorMessages: [
             ...dataArrayForm.errorMessages,
             ...dataInputsForm.errorMessages,
             ...dataCheckboxesForm.errorMessages,
+            ...dataSwitchesForm.errorMessages,
             ...dataFilesForm.errorMessages
         ],
         $isInvalidElements: [
             ...dataArrayForm.$isInvalidElements,
             ...dataInputsForm.$isInvalidElements,
             ...dataCheckboxesForm.$isInvalidElements,
+            ...dataSwitchesForm.$isInvalidElements,
             ...dataFilesForm.$isInvalidElements
         ],
         data: {
             ...dataArrayForm.data,
             ...dataInputsForm.data,
             ...dataCheckboxesForm.data,
+            ...dataSwitchesForm.data,
             ...dataFilesForm.data,
             ...subData
         }
@@ -463,6 +468,37 @@ function processCheckboxesForm($modal) {
         success: true,
         errorMessages: [],
         $isInvalidElements: [],
+        data
+    };
+}
+
+/**
+ *
+ * @param $modal jQuery modal
+ * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
+ */
+function processSwitchesForm($modal) {
+    const $switches = $modal.find('.wii-switch');
+    const $invalidElements = [];
+    const messages = [];
+    const data = {};
+
+    $switches.each(function () {
+        const $div = $(this);
+        const $input = $div.find('input:checked');
+
+        if($div.hasClass("needed") && $input.length === 0) {
+            $invalidElements.push($div);
+            messages.push("Veuillez renseigner une valeur pour le champ " + $div.data("title"));
+        } else {
+            data[$input.attr("name")] = $input.val();
+        }
+    });
+
+    return {
+        success: $invalidElements.length === 0,
+        errorMessages: messages,
+        $isInvalidElements: $invalidElements,
         data
     };
 }

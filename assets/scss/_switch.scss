@@ -1,0 +1,36 @@
+
+.wii-switch {
+    display: inline-block;
+    padding: 2px;
+    border-radius: 4px;
+    border: 1px solid #10336b;
+
+    input {
+        display: inline-block;
+        cursor: pointer;
+        appearance: none;
+        outline: 0;
+        height: 30px;
+        padding: 0 10px;
+        border-radius: 4px;
+        color: #10336b;
+        transition: all 200ms linear;
+    }
+
+    input:hover:not(:checked) {
+        background-color: #214d94;
+        color: white;
+    }
+
+    input:checked {
+        background-color: #10336b;
+        color: white;
+    }
+
+    input:before {
+        content: attr(content);
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+    }
+}

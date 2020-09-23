@@ -10,7 +10,7 @@
 
         {% if hasRightFinish %}
             <button class="btn btn-primary btn-ripple {{ ( hasRightDemandeCollecte or hasRightDeleteOrdre )? 'split-button' }}"
-                    {% if collecte.demandeCollecte ? collecte.demandeCollecte.stockOrDestruct : false %}
+                    {% if collecte.demandeCollecte ? collecte.demandeCollecte.stock : false %}
                         onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement')), checkIfRowSelected(openLocationModal)"
                     {% else %}
                         onclick="checkIfRowSelected(() => finishCollecte($(this), true))"

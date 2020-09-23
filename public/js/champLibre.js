@@ -116,8 +116,7 @@ function defaultValueForTypage($select) {
 
     let defaultBlock =
         `<div class="form-group">
-            <label>` + label + `</label><br/>
-            ` + inputDefaultBlock +
+           ` + inputDefaultBlock + ` <label>` + label + `</label>` +
         `</div>`;
 
     valueDefault.html(defaultBlock);

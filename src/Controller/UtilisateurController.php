@@ -301,7 +301,7 @@ class UtilisateurController extends AbstractController
 			}
             $utilisateur
                 ->setSecondaryEmails(json_decode($data['secondaryEmails']))
-                ->setStatus($data['status'] === 'active')
+                ->setStatus($data['status'])
                 ->setUsername($data['username'])
                 ->setAddress($data['address'])
                 ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
