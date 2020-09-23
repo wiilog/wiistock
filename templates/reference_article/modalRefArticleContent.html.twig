@@ -102,7 +102,7 @@
             {% set article = articleRef.typeQuantite == 'article' ? 1 : 0 %}
 
             <label>Gestion quantité</label><br>
-            <div class="wii-switch needed" data-title="Status">
+            <div class="wii-switch needed" data-title="Gestion quantité">
                 <input type="radio" name="type_quantite" value="reference" content="Par référence" {{ reference ? 'checked' }} disabled>
                 <input type="radio" name="type_quantite" value="article" content="Par article" {{ article ? 'checked' }} disabled>
             </div>
