@@ -29,8 +29,6 @@ function onDispatchTypeChange($select) {
     const type = parseInt($select.val());
     let $modalNewDispatch = $("#modalNewDispatch");
     const $selectStatus = $modalNewDispatch.find('select[name="statut"]');
-
-    $selectStatus.removeAttr('disabled');
     $selectStatus.find('option[data-type-id="' + type + '"]').removeClass('d-none');
     $selectStatus.find('option[data-type-id!="' + type + '"]').addClass('d-none');
     $selectStatus.val(null).trigger('change');
@@ -64,9 +62,6 @@ function onDispatchTypeChange($select) {
         $selectStatus.siblings('.error-empty-status').addClass('d-none');
         $selectStatus.removeClass('d-none');
 
-        const dispatchDefaultStatus = JSON.parse($selectStatus.siblings('input[name="dispatchDefaultStatus"]').val() || '{}');
-        if (dispatchDefaultStatus[type]) {
-            $selectStatus.val(dispatchDefaultStatus[type]);
-        }
+        $selectStatus.find('option:not(.d-none)').prop('selected', true);
     }
 }
