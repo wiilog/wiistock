@@ -176,11 +176,12 @@
                     <div class="form-group col-4">
                         <label for="type">Type*</label>
                         {% set uniqueType = typesArrival|length == 1 %}
-                        <select class="needs-default form-control input-sm data needed"
+                        <select class="needs-default form-control input-sm data needed needs-default"
                                 id="type"
                                 name="type"
-                                onchange="onArrivalTypeChange($(this))"
-                                {{ uniqueType ? 'disabled' }}>
+                                onchange="OnTypeChange($(this))"
+                                {{ uniqueType ? 'disabled' }}
+                                {{ uniqueType ? ('data-init="' ~ (typesArrival|first).id ~ '"') }}>
                             {% if uniqueType %}
                                 <option value="{{ (typesArrival|first).id }}">{{ (typesArrival|first).label }}</option>
                             {% else %}
@@ -193,15 +194,31 @@
                     </div>
 
                     <div class="form-group col-4">
-                        <label for="chauffeur">Statut*</label>
-                        <select class="needs-default form-control input-sm data needed"
-                                id="statut"
-                                name="statut"
-                                data-init="{{ defaultStatutArrivageId }}">
-                            {% for statut in statuts %}
-                                <option value="{{ statut.id }}">{{ statut.nom|upper }}</option>
+                        <label>Statut*</label>
+                        <select class="needs-default form-control input-sm data needed needs-default"
+                                {% if uniqueType %}
+                                    data-init="{{ defaultStatuses[(typesArrival|first).id] }}"
+                                {% endif %}
+                                name="status">
+                            <option value="">Choisir un statut...</option>
+                            {% for status in statuses %}
+                                <option class="d-none"
+                                        data-type-id="{{ status.type.id }}"
+                                        value="{{ status.id }}"
+                                        {{ uniqueType and defaultStatuses[(typesArrival|first).id] == status.id ? 'selected' }}>
+                                    {{ status.nom }}
+                                </option>
                             {% endfor %}
                         </select>
+                        <input type="hidden" name="defaultStatuses" value="{{ defaultStatuses|json_encode }}"/>
+                        <div class="error-empty-status d-none">
+                            {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                                array: [],
+                                warningLabel: 'Attention ! Aucun statut pour ce type.',
+                                redirectPath: path('status_param_index'),
+                                redirectLabel: 'Créer un statut.'
+                            } %}
+                        </div>
                     </div>
 
                 </div>

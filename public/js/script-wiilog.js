@@ -951,10 +951,6 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YY
     $(dateInput).datetimepicker(options);
 }
 
-function toggleQuill($modal, enable) {
-    $modal.find('.ql-editor').prop('contenteditable', enable);
-}
-
 function generateCSV(route, filename = 'export', param = null) {
     loadSpinner($('#spinner'));
     let data = param ? {'param': param} : {};
@@ -1384,4 +1380,36 @@ function SetRequestQuery(queryParams = {}) {
     const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}${queryParamStr ? ('?' + queryParamStr) : ''}`
 
     window.history.pushState({path: newUrl}, document.title, newUrl);
+}
+
+function OnTypeChange($select) {
+    const $modal = $select.closest('.modal');
+    const $freeFieldsContainer = $modal.find('.free-fields-container');
+
+    toggleRequiredChampsLibres($select, 'create', $freeFieldsContainer);
+    typeChoice($select, '-new', $freeFieldsContainer)
+
+    const type = parseInt($select.val());
+    const $selectStatus = $modal.find('select[name="status"]');
+    const $errorEmptyStatus = $selectStatus.siblings('.error-empty-status');
+    $errorEmptyStatus.addClass('d-none');
+
+    $selectStatus.removeAttr('disabled');
+    $selectStatus.find('option[data-type-id="' + type + '"]').removeClass('d-none');
+    $selectStatus.find('option[data-type-id!="' + type + '"]').addClass('d-none');
+    $selectStatus.val(null).trigger('change');
+
+    if ($selectStatus.find('option:not(.d-none)').length === 0) {
+        if (type) {
+            $errorEmptyStatus.removeClass('d-none');
+            $selectStatus.addClass('d-none');
+        }
+    } else {
+        $selectStatus.removeClass('d-none');
+
+        const defaultStatuses = JSON.parse($selectStatus.siblings('input[name="defaultStatuses"]').val() || '{}');
+        if (defaultStatuses[type]) {
+            $selectStatus.val(defaultStatuses[type]);
+        }
+    }
 }

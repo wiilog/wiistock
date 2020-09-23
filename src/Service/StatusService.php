@@ -43,16 +43,6 @@ class StatusService {
         $this->router = $router;
     }
 
-    public function findAllStatusArrivage() {
-        $statutRepository = $this->entityManager->getRepository(Statut::class);
-        if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)) {
-            $status = $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::ARRIVAGE, [Arrivage::STATUS_CONFORME, Arrivage::STATUS_RESERVE]);
-        } else {
-            $status = $statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
-        }
-        return $status;
-    }
-
     /**
      * @param null $params
      * @return array
@@ -120,6 +110,10 @@ class StatusService {
             [
                 'label' => 'Traité',
                 'id' => Statut::TREATED
+            ],
+            [
+                'label' => 'Litige',
+                'id' => Statut::DISPUTE
             ]
         ];
     }

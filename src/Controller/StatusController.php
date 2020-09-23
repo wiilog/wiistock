@@ -51,6 +51,7 @@ class StatusController extends AbstractController {
     /**
      * @Route("/", name="status_param_index")
      * @param EntityManagerInterface $entityManager
+     * @param StatusService $statusService
      * @return RedirectResponse|Response
      */
     public function index(EntityManagerInterface $entityManager,
@@ -66,11 +67,13 @@ class StatusController extends AbstractController {
             CategorieStatut::DISPATCH,
             CategorieStatut::HANDLING,
             CategorieStatut::LITIGE_ARR,
-            CategorieStatut::LITIGE_RECEPT
+            CategorieStatut::LITIGE_RECEPT,
+            CategorieStatut::ARRIVAGE
         ]);
         $types = $typeRepository->findByCategoryLabels([
             CategoryType::DEMANDE_DISPATCH,
-            CategoryType::DEMANDE_HANDLING
+            CategoryType::DEMANDE_HANDLING,
+            CategoryType::ARRIVAGE
         ]);
 
         $categoryStatusDispatchIds = array_filter($categories, function ($category) {
@@ -81,9 +84,14 @@ class StatusController extends AbstractController {
             return $category['nom'] === CategorieStatut::HANDLING;
         });
 
+        $categoryStatusArrivalIds = array_filter($categories, function ($category) {
+            return $category['nom'] === CategorieStatut::ARRIVAGE;
+        });
+
         return $this->render('status/index.html.twig', [
             'categoryStatusDispatchId' => array_values($categoryStatusDispatchIds)[0]['id'] ?? 0,
             'categoryStatusHandlingId' => array_values($categoryStatusHandlingIds)[0]['id'] ?? 0,
+            'categoryStatusArrivalId' => array_values($categoryStatusArrivalIds)[0]['id'] ?? 0,
             'categories' => $categories,
             'types' => $types,
             'statusStates' => $statusService->getStatusStatesValues()

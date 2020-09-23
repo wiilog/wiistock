@@ -11,7 +11,10 @@
                 <div class="row">
                     <div class="mb-3 form-group col-12">
                         <label>Entité*</label>
-                        <select name="category" title="Entité" class="data form-control needed" onchange="hideOptionOnChange($('#modalNewStatus'))">
+                        <select name="category"
+                                title="Entité"
+                                class="data form-control needed"
+                                onchange="hideOptionOnChange($('#modalNewStatus'))">
                             {% if categories|length > 1 %}
                                 <option disabled value="" selected></option>
                             {% endif %}
@@ -26,7 +29,7 @@
                         <input type="text" class="data form-control needed" name="label">
                     </div>
 
-                    <div class="mb-3 form-group col-12 d-none dispatch-fields handling-fields">
+                    <div class="mb-3 form-group col-12 d-none dispatch-fields handling-fields arrival-fields">
                         <label for="type">Type*</label>
                         <select name="type" class="data form-control field-needed">
                             <option value="">Type à choisir...</option>
@@ -34,7 +37,8 @@
                                 {% set subClass = (
                                     type.category is not null ? (
                                         (type.category.label == constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH')) ? 'dispatch-fields' :
-                                        (type.category.label == constant('App\\Entity\\CategoryType::DEMANDE_HANDLING')) ? 'handling-fields'
+                                        (type.category.label == constant('App\\Entity\\CategoryType::DEMANDE_HANDLING')) ? 'handling-fields' :
+                                        (type.category.label == constant('App\\Entity\\CategoryType::ARRIVAGE')) ? 'arrival-fields'
                                     )
                                 ) %}
                                 <option value="{{ type.id }}"
@@ -51,7 +55,10 @@
                             <option value=""></option>
                             {% for state in statusStates %}
                                 <option value="{{ state.id }}"
-                                        class="{{ state.id == constant('App\\Entity\\Statut::DRAFT') ? 'dispatch-fields' }}">
+                                        class="{{
+                                            state.id == constant('App\\Entity\\Statut::DRAFT') ? 'dispatch-fields' :
+                                            state.id == constant('App\\Entity\\Statut::DISPUTE') ? 'arrival-fields'
+                                        }}">
                                     {{ state.label }}
                                 </option>
                             {% endfor %}
@@ -91,7 +98,7 @@
                             <span class="slider round"></span>
                         </label>
                     </div>
-                    <div class="col-12 form-group">
+                    <div class="col-12 form-group dispatch-fields handling-fields">
                         <label>Synchronisation nomade ?</label>
                         <label class="switch">
                             <input class="checkbox" type="checkbox" name="needsMobileSync">

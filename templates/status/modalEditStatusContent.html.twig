@@ -24,20 +24,24 @@
         {% set hideType = (
             status.categorie.nom != constant('App\\Entity\\CategorieStatut::DISPATCH')
             and status.categorie.nom != constant('App\\Entity\\CategorieStatut::HANDLING')
+            and status.categorie.nom != constant('App\\Entity\\CategorieStatut::ARRIVAGE')
         ) %}
+        {% set isTypeSelected = status.type is not null %}
         <div class="col-12 form-group {{ hideType ? 'd-none'}}">
             <label for="type">Type*</label>
-            <select name="type" class="data form-control {{ not hideType ? 'needed'}}">
-                {% if status.type is not null %}
+            <select name="type"
+                    class="data form-control {{ not hideType ? 'needed'}}"
+                    {{ isTypeSelected ? 'disabled' }}>
+                {% if isTypeSelected %}
                     <option selected value="{{ status.type.id }}">{{ status.type.label }}</option>
                 {% else %}
                     <option selected value="">Type à choisir...</option>
+                    {% for type in types %}
+                        {% if status.type is null or status.type.id != type.id  %}
+                            <option value="{{ type.id }}">{{ type.label }}</option>
+                        {% endif %}
+                    {% endfor %}
                 {% endif %}
-                {% for type in types %}
-                    {% if status.type is null or status.type.id != type.id  %}
-                        <option value="{{ type.id }}">{{ type.label }}</option>
-                    {% endif %}
-                {% endfor %}
             </select>
         </div>
 
@@ -46,7 +50,10 @@
             <select name="state" class="data form-control needed">
                 {% for state in states %}
                     <option value="{{ state.id }}"
-                            class="{{ state.id == constant('App\\Entity\\Statut::DRAFT') ? 'dispatch-fields' }}"
+                            class="{{
+                                state.id == constant('App\\Entity\\Statut::DRAFT') ? 'dispatch-fields' :
+                                state.id == constant('App\\Entity\\Statut::DISPUTE') ? 'arrival-fields'
+                            }}"
                             {{ state.id == status.state ? 'selected' }}>
                         {{ state.label }}
                     </option>
@@ -57,6 +64,7 @@
         {% set hideDisputeComment = (
             status.categorie.nom == constant('App\\Entity\\CategorieStatut::DISPATCH')
             or status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING')
+            or status.categorie.nom == constant('App\\Entity\\CategorieStatut::ARRIVAGE')
         ) %}
         <div class="col-12 form-group {{ hideDisputeComment ? 'd-none' }}">
             <label for="username">Commentaire litige</label>
@@ -71,6 +79,7 @@
             </label>
         </div>
 
+{#        TODO #}
         {% set hideSendNotifToBuyer = (
             status.categorie.nom == constant('App\\Entity\\CategorieStatut::DISPATCH')
             or status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING')
@@ -101,6 +110,7 @@
         {% set hideNeedMobileSync = (
             status.categorie.nom != constant('App\\Entity\\CategorieStatut::DISPATCH')
             and status.categorie.nom != constant('App\\Entity\\CategorieStatut::HANDLING')
+            and status.categorie.nom != constant('App\\Entity\\CategorieStatut::ARRIVAGE')
             ) %}
         <div class="col-12 form-group" {{ hideNeedMobileSync ? 'd-none' }}>
             <label>Synchronisation nomade ?</label>

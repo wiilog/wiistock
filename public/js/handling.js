@@ -105,43 +105,10 @@ function changeStatus(button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-function toggleHandlingQuill() {
-    let enable = $modalModifyHandling.find('#statut').val() === '1';
-    toggleQuill($modalModifyHandling, enable);
-}
-
 function callbackSaveFilter() {
     // supprime le filtre de l'url
     let str = window.location.href.split('/');
     if (str[5]) {
         window.location.href = Routing.generate('handling_index');
-    }
-}
-
-function onHandlingTypeChange($select) {
-    toggleRequiredChampsLibres($select, 'create');
-
-    const type = parseInt($select.val());
-    let $modalNewHandling = $("#modalNewHandling");
-    const $selectStatus = $modalNewHandling.find('select[name="status"]');
-
-    $selectStatus.removeAttr('disabled');
-    $selectStatus.find('option[data-type-id="' + type + '"]').removeClass('d-none');
-    $selectStatus.find('option[data-type-id!="' + type + '"]').addClass('d-none');
-    $selectStatus.val(null).trigger('change');
-
-    if($selectStatus.find('option:not(.d-none)').length === 0) {
-        $selectStatus.siblings('.error-empty-status').removeClass('d-none');
-        $selectStatus.addClass('d-none');
-    } else {
-        $selectStatus.siblings('.error-empty-status').addClass('d-none');
-        $selectStatus.removeClass('d-none');
-
-        const handlingDefaultStatus = JSON.parse($selectStatus.siblings('input[name="handlingDefaultStatus"]').val() || '{}');
-        if (handlingDefaultStatus[type]) {
-            $selectStatus.val(handlingDefaultStatus[type]);
-        }
-
-        $selectStatus.find('option');
     }
 }

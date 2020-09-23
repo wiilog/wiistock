@@ -16,7 +16,7 @@
                             <label for="type">Type*</label>
                             <select name="type"
                                     class="form-control data d-block type needed"
-                                    onchange="onDispatchTypeChange($(this))">
+                                    onchange="OnTypeChange($(this))">
                                 <option value="">Type à choisir...</option>
                                 {% for type in typeChampsLibres %}
                                     <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
@@ -54,14 +54,18 @@
                     <div class="col-md-4 col-12">
                         <div class="form-group">
                             <label for="type">Statut*</label>
-                            <select name="statut"
+                            <select name="status"
                                     class="form-control data w-100 needed need-default">
                                 <option value="">Choisir un statut...</option>
                                 {% for statut in notTreatedStatus %}
-                                    <option class="d-none" data-type-id="{{ statut.type.id }}" value="{{ statut.id }}">{{ statut.nom }}</option>
+                                    <option class="d-none"
+                                            data-type-id="{{ statut.type.id }}"
+                                            value="{{ statut.id }}">
+                                        {{ statut.nom }}
+                                    </option>
                                 {% endfor %}
                             </select>
-                            <input type="hidden" name="dispatchDefaultStatus" value="{{ dispatchDefaultStatus|json_encode }}"/>
+                            <input type="hidden" name="defaultStatuses" value="{{ defaultStatuses|json_encode }}"/>
                             <div class="error-empty-status d-none">
                                 {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                                     array: [],

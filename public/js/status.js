@@ -40,7 +40,6 @@ $(function () {
             {"data": 'actions', "name": 'actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'category', "name": 'category', 'title': 'Entité'},
             {"data": 'label', "name": 'label', 'title': 'Libellé'},
-            {"data": 'comment', "name": 'comment', 'title': 'Commentaire'},
             {"data": 'state', "name": 'state', 'title': 'État'},
             {"data": 'defaultStatus', "name": 'defaultStatus', 'title': 'Statut par défaut'},
             {"data": 'notifToDeclarant', "name": 'notifToDeclarant', 'title': 'Envoi de mails au déclarant'},
@@ -48,7 +47,7 @@ $(function () {
         ],
         order: [
             [1, 'asc'],
-            [7, 'asc']
+            [6, 'asc']
         ],
         rowConfig: {
             needsRowClickAction: true,
@@ -77,14 +76,16 @@ function hideOptionOnChange($modal, forceClear = true) {
     const $dispatchFields = $modal.find('.dispatch-fields');
     const $handlingFields = $modal.find('.handling-fields');
     const $disputeFields = $modal.find('.dispute-fields');
+    const $arrivalFields = $modal.find('.arrival-fields');
 
     $dispatchFields.addClass('d-none');
     $handlingFields.addClass('d-none');
     $disputeFields.addClass('d-none');
+    $arrivalFields.addClass('d-none');
     $modal.find('.field-needed').removeClass('needed');
 
     if (forceClear) {
-        for(const $field of [$dispatchFields, $dispatchFields, $disputeFields]) {
+        for(const $field of [$dispatchFields, $dispatchFields, $disputeFields, $arrivalFields]) {
             const $select = $field.is('option')
                 ? $field.closest('select')
                 : $field.find('select');
@@ -99,9 +100,11 @@ function hideOptionOnChange($modal, forceClear = true) {
     if (category) {
         const categoryStatusDispatchId = Number($('#categoryStatusDispatchId').val());
         const categoryStatusHandlingId = Number($('#categoryStatusHandlingId').val());
+        const categoryStatusArrivalId = Number($('#categoryStatusArrivalId').val());
         const $fields = (
             (category === categoryStatusDispatchId) ? $dispatchFields :
             (category === categoryStatusHandlingId) ? $handlingFields :
+            (category === categoryStatusArrivalId) ? $arrivalFields :
             $disputeFields
         );
         $fields.removeClass('d-none');
