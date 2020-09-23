@@ -182,9 +182,11 @@
     {% set dnone = (articleRef.typeQuantite == 'article') ? '' : 'd-none' %}
 
     <div class='col-12 article {{ dnone }} mb-2' onclick="visibleBlockModal($(this))">
-        <h3 class='d-flex pointer'><i class="fas fa-sort-up d-none mr-2"></i>
-            <i class="fas fa-sort-down d-block mr-2"></i>
-            Quantité par articles fournisseurs </h3>
+        <h3 class='d-flex pointer'>
+            <i class="fas fa-caret-right d-none mr-2"></i>
+            <i class="fas fa-caret-down d-block mr-2"></i>
+            Quantité par articles fournisseurs
+        </h3>
     </div>
     <div class="form-group col-12 blocVisible d-none">
         <table class="table table-striped table-bordered w-auto m-auto">
@@ -210,8 +212,8 @@
 <div class="row mt-4">
     <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
         <h3 class='d-flex pointer'>
-            <i class="fas fa-sort-up d-block mr-2"></i>
-            <i class="fas fa-sort-down d-none  mr-2"></i>
+            <i class="fas fa-caret-right d-block mr-2"></i>
+            <i class="fas fa-caret-down d-none  mr-2"></i>
             Champs libres
         </h3>
     </div>
@@ -231,8 +233,8 @@
 <div class="row mt-4">
     <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
         <h3 class='d-flex pointer'>
-            <i class="fas fa-sort-up d-none mr-2"></i>
-            <i class="fas fa-sort-down d-block mr-2"></i>
+            <i class="fas fa-caret-right d-none mr-2"></i>
+            <i class="fas fa-caret-down d-block mr-2"></i>
             Articles Fournisseurs
         </h3>
     </div>

@@ -214,8 +214,8 @@ function initEditor(div) {
 function visibleBlockModal(bloc) {
 
     let blocContent = bloc.siblings().filter('.blocVisible');
-    let sortUp = bloc.find('h3').find('.fa-sort-up');
-    let sortDown = bloc.find('h3').find('.fa-sort-down');
+    let sortUp = bloc.find('h3').find('.fa-caret-right');
+    let sortDown = bloc.find('h3').find('.fa-caret-down');
 
     if (sortUp.attr('class').search('d-none') > 0) {
         sortUp.removeClass('d-none');
@@ -479,7 +479,7 @@ function ajaxAutoDemandesInit(select) {
     initSelect2(select, 'Numéros de demande', 3, {route: 'get_demandes'});
 }
 
-let toggleRequiredChampsLibres = function (select, require, $freeFieldContainer = null) {
+function toggleRequiredChampsLibres(select, require, $freeFieldContainer = null) {
     let bloc = ( //TODO pas top
         $freeFieldContainer ? $freeFieldContainer :
         require == 'create' ? $('#typeContentNew') :

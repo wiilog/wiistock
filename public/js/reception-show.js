@@ -597,9 +597,10 @@ function initNewLigneReception($button) {
             ));
         }
     });
-    let $typeContentNewChildren = $('#typeContentNew').children();
-    $typeContentNewChildren.addClass('d-none');
-    $typeContentNewChildren.removeClass('d-block');
+
+    const $freeFieldsContainer = $('.free-fields-container');
+    toggleRequiredChampsLibres($select, 'create', $freeFieldsContainer);
+    typeChoice($select, '-new', $freeFieldsContainer)
 }
 
 
