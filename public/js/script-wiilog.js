@@ -493,6 +493,10 @@ let toggleRequiredChampsLibres = function (select, require, $freeFieldContainer 
             .find('.data')
             .removeClass('needed');
 
+        bloc
+            .find('.wii-switch')
+            .removeClass('needed');
+
         if (require === 'create') { // we don't save free field which are hidden
             bloc
                 .find('.data')
@@ -512,7 +516,7 @@ let toggleRequiredChampsLibres = function (select, require, $freeFieldContainer 
         $.post(path, JSON.stringify(params), function (data) {
             if (data) {
                 data.forEach(function (element) {
-                    const $formControl = bloc.find('[name="' + element + '"]');
+                    const $formControl = bloc.find('[name="' + element + '"], .wii-switch:has(input[name="' + element + '"])');
                     const $label = $formControl.siblings('label');
                     $label.append($('<span class="is-required-label">&nbsp;*</span>'));
                     $formControl.addClass('needed');
