@@ -19,7 +19,12 @@
                                     onchange="onDispatchTypeChange($(this))">
                                 <option value="">Type à choisir...</option>
                                 {% for type in typeChampsLibres %}
-                                    <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
+                                    <option
+                                        data-pick-location-id="{{ type.pickLocation.id }}"
+                                        data-pick-location-label="{{ type.pickLocation.label }}"
+                                        data-drop-location-id="{{ type.dropLocation.id }}"
+                                        data-drop-location-label="{{ type.dropLocation.label }}"
+                                        value="{{ type.typeId }}">{{ type.typeLabel }}</option>
                                 {% endfor %}
                             </select>
                         </div>

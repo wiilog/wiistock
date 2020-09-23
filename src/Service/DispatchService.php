@@ -188,6 +188,14 @@ class DispatchService {
                     'typeLabel' => $type->getLabel(),
                     'typeId' => $type->getId(),
                     'champsLibres' => $champsLibres,
+                    'pickLocation' => [
+                        "id" => $type->getPickLocation() ? $type->getPickLocation()->getId() : null,
+                        "label" => $type->getPickLocation() ? $type->getPickLocation()->getLabel() : null,
+                    ],
+                    'dropLocation' => [
+                        "id" => $type->getDropLocation() ? $type->getDropLocation()->getId() : null,
+                        "label" => $type->getDropLocation() ? $type->getDropLocation()->getLabel() : null,
+                    ]
                 ];
             }, $types),
             'notTreatedStatus' => $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::NOT_TREATED, Statut::DRAFT]),
