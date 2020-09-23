@@ -58,7 +58,7 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                             <div class="form-group">
-                                <label for="command-number">Numéro de commande{{ required ? '*' }}</label>
+                                <label for="command-number">{{'acheminement.Numéro de commande'|trans}}{{ required ? '*' }}</label>
                                 <input class="form-control data {{ required ? 'needed' }}" id="command-number" name="commandNumber">
                             </div>
                         {% endif %}

@@ -261,7 +261,7 @@ class DispatchService {
                 $receiverDetails,
                 ['label' => 'Numéro de projet', 'value' => $projectNumber],
                 ['label' => 'Business Unit', 'value' => $dispatch->getBusinessUnit() ?? ''],
-                ['label' => 'Numéro de commande', 'value' => $commandNumber],
+                ['label' => $this->translator->trans('acheminement.Numéro de commande'), 'value' => $commandNumber],
                 ['label' => $this->translator->trans('acheminement.Emplacement prise'), 'value' => $locationFrom ? $locationFrom->getLabel() : ''],
                 ['label' => $this->translator->trans('acheminement.Emplacement dépose'), 'value' => $locationTo ? $locationTo->getLabel() : ''],
                 ['label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''],
