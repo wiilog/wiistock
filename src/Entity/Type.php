@@ -134,6 +134,16 @@ class Type
      */
     private $handlings;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="dropTypes")
+     */
+    private $dropLocation;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="pickTypes")
+     */
+    private $pickLocation;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -671,6 +681,30 @@ class Type
                 $handling->setType(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDropLocation(): ?Emplacement
+    {
+        return $this->dropLocation;
+    }
+
+    public function setDropLocation(?Emplacement $dropLocation): self
+    {
+        $this->dropLocation = $dropLocation;
+
+        return $this;
+    }
+
+    public function getPickLocation(): ?Emplacement
+    {
+        return $this->pickLocation;
+    }
+
+    public function setPickLocation(?Emplacement $pickLocation): self
+    {
+        $this->pickLocation = $pickLocation;
 
         return $this;
     }
