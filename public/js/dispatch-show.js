@@ -264,11 +264,15 @@ function openDeliveryNoteModal($button) {
     const dispatchId = $button.data('dispatch-id');
     $
         .get(Routing.generate('api_delivery_note_dispatch', {dispatch: dispatchId}))
-        .then((html) => {
-            const $modal = $('#modalPrintDeliveryNote');
-            const $modalBody = $modal.find('.modal-body');
-            $modalBody.html(html);
-            $modal.modal('show');
+        .then((result) => {
+            if(result.success) {
+                const $modal = $('#modalPrintDeliveryNote');
+                const $modalBody = $modal.find('.modal-body');
+                $modalBody.html(result.html);
+                $modal.modal('show');
+            } else {
+                showBSAlert(result.msg, "danger");
+            }
         })
 }
 
@@ -276,11 +280,15 @@ function openWaybillModal($button) {
     const dispatchId = $button.data('dispatch-id');
     $
         .get(Routing.generate('api_dispatch_waybill', {dispatch: dispatchId}))
-        .then((html) => {
-            const $modal = $('#modalPrintWaybill');
-            const $modalBody = $modal.find('.modal-body');
-            $modalBody.html(html);
-            $modal.modal('show');
+        .then((result) => {
+            if(result.success) {
+                const $modal = $('#modalPrintWaybill');
+                const $modalBody = $modal.find('.modal-body');
+                $modalBody.html(result.html);
+                $modal.modal('show');
+            } else {
+                showBSAlert(result.msg, "danger");
+            }
         })
 }
 

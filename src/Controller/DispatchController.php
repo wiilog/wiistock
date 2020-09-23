@@ -1079,9 +1079,11 @@ class DispatchController extends AbstractController {
 
         if ($dispatch->getDispatchPacks()->count() === 0) {
             $errorMessage = $translator->trans('acheminement.Des colis sont nécessaires pour générer un bon de livraison') . '.';
-            return new JsonResponse('
-                <div class="text-danger">' . $errorMessage . '</div>
-            ');
+
+            return $this->json([
+                "success" => false,
+                "msg" => $errorMessage
+            ]);
         }
 
         $packs = array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks);
@@ -1120,11 +1122,14 @@ class DispatchController extends AbstractController {
 
         $parametrageGlobalRepository = $this->getDoctrine()->getRepository(ParametrageGlobal::class);
 
-        $json = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
+        $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
             'dispatchEmergencyValues' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
         ]));
 
-        return new JsonResponse($json);
+        return $this->json([
+            "success" => true,
+            "html" => $html
+        ]);
     }
 
     /**
@@ -1223,8 +1228,18 @@ class DispatchController extends AbstractController {
      */
     public function apiWaybill(Request $request,
                                EntityManagerInterface $entityManager,
+                               TranslatorInterface $translator,
                                SpecificService $specificService,
                                Dispatch $dispatch): JsonResponse {
+        if ($dispatch->getDispatchPacks()->count() === 0) {
+            $errorMessage = $translator->trans('acheminement.Des colis sont nécessaires pour générer une lettre de voiture') . '.';
+
+            return $this->json([
+                "success" => false,
+                "msg" => $errorMessage
+            ]);
+        }
+
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
@@ -1266,11 +1281,14 @@ class DispatchController extends AbstractController {
             []
         );
 
-        $json = $this->renderView('dispatch/modalPrintWayBillContent.html.twig', array_merge($wayBillData, [
+        $html = $this->renderView('dispatch/modalPrintWayBillContent.html.twig', array_merge($wayBillData, [
             'packsCounter' => $dispatch->getDispatchPacks()->count()
         ]));
 
-        return new JsonResponse($json);
+        return $this->json([
+            "success" => true,
+            "html" => $html
+        ]);
     }
 
     /**
