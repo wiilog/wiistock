@@ -232,8 +232,8 @@ class DispatchController extends AbstractController {
             $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 
             $fileBag = $request->files->count() > 0 ? $request->files : null;
-            $locationTake = $emplacementRepository->find($post->get('prise'));
-            $locationDrop = $emplacementRepository->find($post->get('depose'));
+            $locationTake = $post->get('prise') ? $emplacementRepository->find($post->get('prise')) : null;
+            $locationDrop = $post->get('depose') ?  $emplacementRepository->find($post->get('depose')) : null;
 
             $comment = $post->get('commentaire');
             $startDateRaw = $post->get('startDate');
@@ -477,8 +477,8 @@ class DispatchController extends AbstractController {
         $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
         $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
 
-        $locationTake = $emplacementRepository->find($post->get('prise'));
-        $locationDrop = $emplacementRepository->find($post->get('depose'));
+        $locationTake = $post->get('prise') ? $emplacementRepository->find($post->get('prise')) : null;
+        $locationDrop = $post->get('depose') ?  $emplacementRepository->find($post->get('depose')) : null;
 
         $oldStatus = $dispatch->getStatut();
         if (!$oldStatus || !$oldStatus->isTreated()) {
