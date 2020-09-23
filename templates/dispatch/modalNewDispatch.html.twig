@@ -28,12 +28,15 @@
                                 {% endfor %}
                             </select>
                         </div>
-
-                        <div class="form-group">
-                            <label for="prise" title="Emplacement prise">{{ 'acheminement.Emplacement prise'|trans }}*</label>
-                            <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block needed location-prise w-100" id="prise">
-                            </select>
-                        </div>
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_PICK') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                            <div class="form-group">
+                                <label for="prise" title="Emplacement prise">{{ 'acheminement.Emplacement prise'|trans }}{{ required ? '*' }}</label>
+                                <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block {{ required ? 'needed' }} location-prise w-100" id="prise">
+                                </select>
+                            </div>
+                        {% endif %}
 
                         {% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_EMERSON'))
                             or hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::SHOW_CARRIER_FIELD'))
@@ -80,12 +83,15 @@
                                 } %}
                             </div>
                         </div>
-
-                        <div class="form-group w-100">
-                            <label for="depose" title="Emplacement dépose">{{ 'acheminement.Emplacement dépose'|trans }}*</label>
-                            <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block needed location-depose" id="depose">
-                            </select>
-                        </div>
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_DROP') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                            <div class="form-group w-100">
+                                <label for="depose" title="Emplacement dépose">{{ 'acheminement.Emplacement dépose'|trans }}{{ required ? '*' }}</label>
+                                <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block {{ required ? 'needed' }} location-depose" id="depose">
+                                </select>
+                            </div>
+                        {% endif %}
 
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}

@@ -77,6 +77,8 @@ class FieldsParam
     const FIELD_CODE_BUSINESS_UNIT_DISPATCH = 'businessUnit';
     const FIELD_CODE_COMMENT_DISPATCH = 'comment';
     const FIELD_CODE_ATTACHMENTS_DISPATCH = 'attachments';
+    const FIELD_CODE_LOCATION_PICK = 'pickLocation';
+    const FIELD_CODE_LOCATION_DROP = 'dropLocation';
 
     const FIELD_LABEL_CARRIER_DISPATCH = 'transporteur';
     const FIELD_LABEL_CARRIER_TRACKING_NUMBER_DISPATCH = 'numéro de tracking transporteur';
@@ -88,6 +90,9 @@ class FieldsParam
     const FIELD_LABEL_COMMENT_DISPATCH = 'commentaire';
     const FIELD_LABEL_ATTACHMENTS_DISPATCH = 'pièces jointes';
     const FIELD_LABEL_BUSINESS_UNIT_DISPATCH = 'business unit';
+
+    const FIELD_LABEL_LOCATION_PICK = 'emplacement de prise';
+    const FIELD_LABEL_LOCATION_DROP = 'emplacement de dépose';
 
 	/**
      * @ORM\Id()
