@@ -452,7 +452,7 @@ class DispatchService {
 
         $columns = [
             ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true],
-            ['title' => 'acheminement.Numéro de commande', 'name' => 'number', 'translated' => true],
+            ['title' => 'Numéro demande', 'name' => 'number'],
             ['title' => 'Date de création',  'name' => 'creationDate'],
             ['title' => 'Date de validation', 'name' => 'validationDate'],
             ['title' => 'Date de traitement', 'name' => 'treatmentDate'],

@@ -8,7 +8,7 @@ $(function() {
     initSelect2($('#statut'), 'Statuts');
     initSelect2(filtersContainer.find('.filter-select2[name="carriers"]'), 'Transporteurs');
     initSelect2(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
-    ajaxAutoDispatchInit(filtersContainer.find('.filter-select2[name="dispatchNumber"]'), Trans.translated('acheminement.Numéro de commande'));
+    ajaxAutoDispatchInit(filtersContainer.find('.filter-select2[name="dispatchNumber"]'), 'Numéro de demande');
     ajaxAutoUserInit(filtersContainer.find('.ajax-autocomplete-user[name=receivers]'), 'Destinataires');
     ajaxAutoUserInit(filtersContainer.find('.ajax-autocomplete-user[name=requesters]'), 'Demandeurs');
     initSelect2(filtersContainer.find('.filter-select2[name="multipleTypes"]'), 'Types');
