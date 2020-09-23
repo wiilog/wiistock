@@ -114,6 +114,12 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES => [
                 'default' => null,
             ],
+            ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL => [
+                'default' => null,
+            ],
+            ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_NAME => [
+                'default' => null,
+            ],
             ParametrageGlobal::AUTO_PRINT_COLIS => [
                 'default' => true,
             ],
