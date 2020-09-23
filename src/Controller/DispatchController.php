@@ -41,11 +41,14 @@ use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Error\LoaderError;
@@ -1125,11 +1128,19 @@ class DispatchController extends AbstractController {
      * )
      * @param EntityManagerInterface $entityManager
      * @param Dispatch $dispatch
+     * @param PDFGeneratorService $pdf
+     * @param DispatchService $dispatchService
      * @param Request $request
      * @return JsonResponse
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function postDeliveryNote(EntityManagerInterface $entityManager,
                                      Dispatch $dispatch,
+                                     PDFGeneratorService $pdf,
+                                     DispatchService $dispatchService,
                                      Request $request): JsonResponse {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
@@ -1157,40 +1168,55 @@ class DispatchController extends AbstractController {
 
         $entityManager->flush();
 
-        return new JsonResponse([
-            'success' => true,
-            'msg' => 'Le téléchargement de votre bon de livraison va commencer...'
-        ]);
-    }
-
-    /**
-     * @Route(
-     *     "/{dispatch}/delivery-note",
-     *     name="print_delivery_note_dispatch",
-     *     options={"expose"=true},
-     *     methods="GET"
-     * )
-     * @param TranslatorInterface $trans
-     * @param PDFGeneratorService $pdf
-     * @param Dispatch $dispatch
-     * @return PdfResponse
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function printDeliveryNote(TranslatorInterface $trans, PDFGeneratorService $pdf, Dispatch $dispatch): Response {
-        if (!$dispatch->getDeliveryNoteData()) {
-            throw new NotFoundHttpException($trans->trans('acheminement.Le bon de livraison n\'existe pas pour cet acheminement'));
-        }
-
         $logo = $this->getDoctrine()
             ->getRepository(ParametrageGlobal::class)
             ->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
 
         $nowDate = new DateTime();
 
-        return $pdf->generatePDFDeliveryNote("BL - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}.pdf", $logo, $dispatch);
+        $fileName = $pdf->generatePDFDeliveryNote(
+            "LDV - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}.pdf",
+            $logo,
+            $dispatch,
+            $entityManager
+        );
+
+        $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Le téléchargement de votre bon de livraison va commencer...',
+            'entete' => $this->renderView("dispatch/dispatch-show-header.html.twig", [
+                'dispatch' => $dispatch,
+                'showDetails' => $detailsConfig,
+                'modifiable' => !$dispatch->getStatut() || $dispatch->getStatut()->isDraft(),
+            ]),
+            'fileName' => $fileName
+        ]);
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/delivery-note/{fileName}",
+     *     name="print_delivery_note_dispatch",
+     *     options={"expose"=true},
+     *     methods="GET"
+     * )
+     * @param TranslatorInterface $trans
+     * @param Dispatch $dispatch
+     * @param KernelInterface $kernel
+     * @param string $fileName
+     * @return PdfResponse
+     */
+    public function printDeliveryNote(TranslatorInterface $trans, Dispatch $dispatch, KernelInterface $kernel, string $fileName): Response {
+        if (!$dispatch->getDeliveryNoteData()) {
+            throw new NotFoundHttpException($trans->trans('acheminement.Le bon de livraison n\'existe pas pour cet acheminement'));
+        }
+
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $fileName);
+
+        return $response;
     }
 
     /**
@@ -1284,12 +1310,19 @@ class DispatchController extends AbstractController {
      * )
      * @param EntityManagerInterface $entityManager
      * @param Dispatch $dispatch
+     * @param PDFGeneratorService $pdf
+     * @param DispatchService $dispatchService
      * @param TranslatorInterface $translator
      * @param Request $request
      * @return JsonResponse
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function postDispatchWaybill(EntityManagerInterface $entityManager,
                                         Dispatch $dispatch,
+                                        PDFGeneratorService $pdf,
+                                        DispatchService $dispatchService,
                                         TranslatorInterface $translator,
                                         Request $request): JsonResponse {
 
@@ -1322,39 +1355,54 @@ class DispatchController extends AbstractController {
             $message = 'Le téléchargement de votre lettre de voiture va commencer...';
             $success = true;
         }
-
-        return new JsonResponse([
-            'success' => $success,
-            'msg' => $message
-        ]);
-    }
-
-    /**
-     * @Route(
-     *     "/{dispatch}/waybill",
-     *     name="print_waybill_dispatch",
-     *     options={"expose"=true},
-     *     methods="GET"
-     * )
-     * @param TranslatorInterface $trans
-     * @param PDFGeneratorService $pdf
-     * @param Dispatch $dispatch
-     * @return JsonResponse
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function printWaybillNote(TranslatorInterface $trans, PDFGeneratorService $pdf, Dispatch $dispatch): Response {
-        if (!$dispatch->getWaybillData()) {
-            throw new NotFoundHttpException($trans->trans('acheminement.La lettre de voiture n\'existe pas pour cet acheminement'));
-        }
-
         $logo = $this->getDoctrine()
             ->getRepository(ParametrageGlobal::class)
             ->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
 
         $nowDate = new DateTime();
 
-        return $pdf->generatePDFWaybill("LDV - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}.pdf", $logo, $dispatch);
+        $fileName = $pdf->generatePDFWaybill(
+            "LDV - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}.pdf",
+            $logo,
+            $dispatch,
+            $entityManager
+        );
+
+        $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
+
+        return new JsonResponse([
+            'success' => $success,
+            'msg' => $message,
+            'entete' => $this->renderView("dispatch/dispatch-show-header.html.twig", [
+                'dispatch' => $dispatch,
+                'showDetails' => $detailsConfig,
+                'modifiable' => !$dispatch->getStatut() || $dispatch->getStatut()->isDraft(),
+            ]),
+            'fileName' => $fileName
+        ]);
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/waybill/{fileName}",
+     *     name="print_waybill_dispatch",
+     *     options={"expose"=true},
+     *     methods="GET"
+     * )
+     * @param TranslatorInterface $trans
+     * @param Dispatch $dispatch
+     * @param string $fileName
+     * @param KernelInterface $kernel
+     * @return JsonResponse
+     */
+    public function printWaybillNote(TranslatorInterface $trans, Dispatch $dispatch, string $fileName, KernelInterface $kernel): Response {
+        if (!$dispatch->getWaybillData()) {
+            throw new NotFoundHttpException($trans->trans('acheminement.La lettre de voiture n\'existe pas pour cet acheminement'));
+        }
+
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $fileName);
+
+        return $response;
     }
 }
