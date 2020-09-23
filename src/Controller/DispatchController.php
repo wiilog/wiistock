@@ -1136,6 +1136,7 @@ class DispatchController extends AbstractController {
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function postDeliveryNote(EntityManagerInterface $entityManager,
                                      Dispatch $dispatch,
@@ -1168,18 +1169,23 @@ class DispatchController extends AbstractController {
 
         $entityManager->flush();
 
-        $logo = $this->getDoctrine()
-            ->getRepository(ParametrageGlobal::class)
-            ->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $logo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
 
-        $nowDate = new DateTime();
+        $nowDate = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
-        $fileName = $pdf->generatePDFDeliveryNote(
-            "LDV - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}.pdf",
-            $logo,
-            $dispatch,
-            $entityManager
-        );
+        $documentTitle = "BL - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}";
+        $fileName = $pdf->generatePDFDeliveryNote($documentTitle, $logo, $dispatch);
+
+        $deliveryNoteAttachment = new PieceJointe();
+        $deliveryNoteAttachment
+            ->setDispatch($dispatch)
+            ->setFileName($fileName)
+            ->setOriginalName($documentTitle . '.pdf');
+
+        $entityManager->persist($deliveryNoteAttachment);
+
+        $entityManager->flush();
 
         $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
 
@@ -1191,13 +1197,13 @@ class DispatchController extends AbstractController {
                 'showDetails' => $detailsConfig,
                 'modifiable' => !$dispatch->getStatut() || $dispatch->getStatut()->isDraft(),
             ]),
-            'fileName' => $fileName
+            'attachmentId' => $deliveryNoteAttachment->getId()
         ]);
     }
 
     /**
      * @Route(
-     *     "/{dispatch}/delivery-note/{fileName}",
+     *     "/{dispatch}/delivery-note/{attachment}",
      *     name="print_delivery_note_dispatch",
      *     options={"expose"=true},
      *     methods="GET"
@@ -1205,16 +1211,19 @@ class DispatchController extends AbstractController {
      * @param TranslatorInterface $trans
      * @param Dispatch $dispatch
      * @param KernelInterface $kernel
-     * @param string $fileName
+     * @param PieceJointe $attachment
      * @return PdfResponse
      */
-    public function printDeliveryNote(TranslatorInterface $trans, Dispatch $dispatch, KernelInterface $kernel, string $fileName): Response {
+    public function printDeliveryNote(TranslatorInterface $trans,
+                                      Dispatch $dispatch,
+                                      KernelInterface $kernel,
+                                      PieceJointe $attachment): Response {
         if (!$dispatch->getDeliveryNoteData()) {
             throw new NotFoundHttpException($trans->trans('acheminement.Le bon de livraison n\'existe pas pour cet acheminement'));
         }
 
-        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName));
-        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $fileName);
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
 
         return $response;
     }
@@ -1229,6 +1238,7 @@ class DispatchController extends AbstractController {
      * )
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $translator
      * @param SpecificService $specificService
      * @param Dispatch $dispatch
      * @return JsonResponse
@@ -1327,6 +1337,8 @@ class DispatchController extends AbstractController {
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function postDispatchWaybill(EntityManagerInterface $entityManager,
                                         Dispatch $dispatch,
@@ -1364,18 +1376,24 @@ class DispatchController extends AbstractController {
             $message = 'Le téléchargement de votre lettre de voiture va commencer...';
             $success = true;
         }
-        $logo = $this->getDoctrine()
-            ->getRepository(ParametrageGlobal::class)
-            ->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
 
-        $nowDate = new DateTime();
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $logo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
 
-        $fileName = $pdf->generatePDFWaybill(
-            "LDV - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}.pdf",
-            $logo,
-            $dispatch,
-            $entityManager
-        );
+        $nowDate = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
+        $title = "LDV - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}";
+        $fileName = $pdf->generatePDFWaybill($title, $logo, $dispatch);
+
+        $wayBillAttachment = new PieceJointe();
+        $wayBillAttachment
+            ->setDispatch($dispatch)
+            ->setFileName($fileName)
+            ->setOriginalName($title . '.pdf');
+
+        $entityManager->persist($wayBillAttachment);
+
+        $entityManager->flush();
 
         $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
 
@@ -1387,30 +1405,33 @@ class DispatchController extends AbstractController {
                 'showDetails' => $detailsConfig,
                 'modifiable' => !$dispatch->getStatut() || $dispatch->getStatut()->isDraft(),
             ]),
-            'fileName' => $fileName
+            'attachmentId' => $wayBillAttachment->getId()
         ]);
     }
 
     /**
      * @Route(
-     *     "/{dispatch}/waybill/{fileName}",
+     *     "/{dispatch}/waybill/{attachment}",
      *     name="print_waybill_dispatch",
      *     options={"expose"=true},
      *     methods="GET"
      * )
      * @param TranslatorInterface $trans
      * @param Dispatch $dispatch
-     * @param string $fileName
+     * @param PieceJointe $attachment
      * @param KernelInterface $kernel
      * @return JsonResponse
      */
-    public function printWaybillNote(TranslatorInterface $trans, Dispatch $dispatch, string $fileName, KernelInterface $kernel): Response {
+    public function printWaybillNote(TranslatorInterface $trans,
+                                     Dispatch $dispatch,
+                                     PieceJointe $attachment,
+                                     KernelInterface $kernel): Response {
         if (!$dispatch->getWaybillData()) {
             throw new NotFoundHttpException($trans->trans('acheminement.La lettre de voiture n\'existe pas pour cet acheminement'));
         }
 
-        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName));
-        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $fileName);
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
 
         return $response;
     }

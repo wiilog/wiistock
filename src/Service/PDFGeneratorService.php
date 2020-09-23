@@ -119,7 +119,6 @@ Class PDFGeneratorService
      * @param array $sheetConfigs Array of ['title' => string, 'code' => string, 'content' => assoc_array]
      * @return string
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
@@ -150,16 +149,13 @@ Class PDFGeneratorService
      * @param string $title
      * @param string|null $logo
      * @param Dispatch $dispatch
-     * @param EntityManagerInterface $entityManager
      * @return PdfResponse The PDF response
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function generatePDFWaybill(string $title, ?string $logo, Dispatch $dispatch, EntityManagerInterface $entityManager): string {
-        $nowDate = new DateTime();
-
-        $fileName = "LDV-{$dispatch->getNumber()}-Emerson-{$nowDate->format('dmYHis')}.pdf";
+    public function generatePDFWaybill(string $title, ?string $logo, Dispatch $dispatch): string {
+        $fileName = uniqid() . '.pdf';
 
         $this->PDFGenerator->generateFromHtml(
             $this->templating->render('prints/waybill-template.html.twig', [
@@ -169,20 +165,10 @@ Class PDFGeneratorService
             ]),
             ($this->kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName),
             [
-            'page-size' => "A4",
-            'encoding' => 'UTF-8'
+                'page-size' => "A4",
+                'encoding' => 'UTF-8'
             ]
         );
-
-        $wayBillPJ = new PieceJointe();
-        $wayBillPJ
-            ->setDispatch($dispatch)
-            ->setFileName($fileName)
-            ->setOriginalName($fileName);
-
-        $entityManager->persist($wayBillPJ);
-
-        $entityManager->flush();
 
         return $fileName;
     }
@@ -191,16 +177,15 @@ Class PDFGeneratorService
      * @param string $title
      * @param string|null $logo
      * @param Dispatch $dispatch
-     * @param EntityManagerInterface $entityManager
      * @return Response The PDF response
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function generatePDFDeliveryNote(string $title, ?string $logo, Dispatch $dispatch, EntityManagerInterface $entityManager): string {
-        $nowDate = new DateTime();
-
-        $fileName = "BL-{$dispatch->getNumber()}-Emerson-{$nowDate->format('dmYHis')}.pdf";
+    public function generatePDFDeliveryNote(string $title,
+                                            ?string $logo,
+                                            Dispatch $dispatch): string {
+        $fileName = uniqid() . '.pdf';
 
         $this->PDFGenerator->generateFromHtml(
             $this->templating->render('prints/delivery-note-template.html.twig', [
@@ -210,20 +195,10 @@ Class PDFGeneratorService
             ]),
             ($this->kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName),
             [
-            'page-size' => "A4",
-            'encoding' => 'UTF-8'
+                'page-size' => "A4",
+                'encoding' => 'UTF-8'
             ]
         );
-
-        $deliveryNotePJ = new PieceJointe();
-        $deliveryNotePJ
-            ->setDispatch($dispatch)
-            ->setFileName($fileName)
-            ->setOriginalName($fileName);
-
-        $entityManager->persist($deliveryNotePJ);
-
-        $entityManager->flush();
 
         return $fileName;
     }
