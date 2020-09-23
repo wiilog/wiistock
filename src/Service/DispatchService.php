@@ -201,7 +201,7 @@ class DispatchService {
                     ]
                 ];
             }, $types),
-            'notTreatedStatus' => $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::NOT_TREATED, Statut::DRAFT]),
+            'notTreatedStatus' => $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
             'packs' => $arrival ? $arrival->getPacks() : [],
             'fromArrival' => $arrival !== null,
             'arrival' => $arrival
