@@ -236,7 +236,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $columnsVisibleForArticle;
 
     /**
-     * @ORM\Column(type="json_array", nullable=true)
+     * @ORM\Column(type="json", nullable=true)
      */
     private $columnsVisibleForDispatch;
 
