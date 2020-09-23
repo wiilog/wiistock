@@ -308,12 +308,10 @@ class CollecteController extends AbstractController
             $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $collecteRepository->find($data['collecte']);
             if (($data['quantity-to-pick'] <= 0) || empty($data['quantity-to-pick'])) {
-                {
-                    return new JsonResponse([
-                        'success' => false,
-                        'msg' => 'La Quantité doit être superieur à zero.'
-                    ]);
-                }
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'La quantité doit être superieur à zero.'
+                ]);
             }
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
@@ -344,6 +342,7 @@ class CollecteController extends AbstractController
             ]);
 
         }
+
         throw new NotFoundHttpException('404');
     }
 
