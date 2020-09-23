@@ -32,6 +32,8 @@ if ($debug) {
     if (class_exists(Debug::class)) {
         Debug::enable();
     }
+} else {
+    umask(0002);
 }
 
 $kernel = new Kernel($env, $debug);

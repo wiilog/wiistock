@@ -10,13 +10,13 @@ let droppedFiles = [];
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path url to call on submit
- * @param {{tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean}} options Object containing some option.
+ * @param {{tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean, validator: undefined|function}} options Object containing some option.
  *   - tables is an array of datatable
  *   - keepForm is an array of datatable
  *   - keepModal true if we do not close form
  *   - success success handler
  *   - clearOnClose clear the modal on close action
- *
+ *   - validator Validation function
  */
 function InitModal($modal, $submit, path, options = {}) {
     if(options.clearOnClose) {
@@ -60,6 +60,7 @@ function InitModal($modal, $submit, path, options = {}) {
  *   - tables is an array of datatable
  *   - keepForm true if we do not clear form
  *   - keepModal true if we do not close form
+ *   - validator true if we do not close form
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -67,10 +68,10 @@ function InitModal($modal, $submit, path, options = {}) {
 function SubmitAction($modal,
                       $submit,
                       path,
-                      {tables, keepModal, keepForm} = {}) {
+                      {tables, keepModal, keepForm, validator} = {}) {
     clearFormErrors($modal);
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
-    const {success, errorMessages, $isInvalidElements, data} = processForm($modal, isAttachmentForm);
+    const {success, errorMessages, $isInvalidElements, data} = processForm($modal, isAttachmentForm, validator);
 
     if (success) {
         const smartData = isAttachmentForm
@@ -192,14 +193,18 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
  *
  * @param {jQuery} $modal jQuery modal
  * @param {boolean} isAttachmentForm
+ * @param {undefined|function} validator
  * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
  */
-function processForm($modal, isAttachmentForm) {
+function processForm($modal, isAttachmentForm, validator) {
     const dataArrayForm = processDataArrayForm($modal);
     const dataInputsForm = processInputsForm($modal, isAttachmentForm);
     const dataCheckboxesForm = processCheckboxesForm($modal);
     const dataSwitchesForm = processSwitchesForm($modal);
     const dataFilesForm = processFilesForm($modal);
+    const dataValidator = validator
+        ? validator($modal)
+        : {success: true, errorMessages: [], $isInvalidElements: []};
 
     // TODO remove ?
     const subData = {};
@@ -214,20 +219,23 @@ function processForm($modal, isAttachmentForm) {
             && dataCheckboxesForm.success
             && dataSwitchesForm.success
             && dataFilesForm.success
+            && dataValidator.success
         ),
         errorMessages: [
             ...dataArrayForm.errorMessages,
             ...dataInputsForm.errorMessages,
             ...dataCheckboxesForm.errorMessages,
+            ...dataFilesForm.errorMessages,
             ...dataSwitchesForm.errorMessages,
-            ...dataFilesForm.errorMessages
+            ...(dataValidator.errorMessages || [])
         ],
         $isInvalidElements: [
             ...dataArrayForm.$isInvalidElements,
             ...dataInputsForm.$isInvalidElements,
             ...dataCheckboxesForm.$isInvalidElements,
+            ...dataFilesForm.$isInvalidElements,
             ...dataSwitchesForm.$isInvalidElements,
-            ...dataFilesForm.$isInvalidElements
+            ...(dataValidator.$isInvalidElements || [])
         ],
         data: {
             ...dataArrayForm.data,
@@ -235,6 +243,7 @@ function processForm($modal, isAttachmentForm) {
             ...dataCheckboxesForm.data,
             ...dataSwitchesForm.data,
             ...dataFilesForm.data,
+            ...(dataValidator.data || {}),
             ...subData
         }
     };

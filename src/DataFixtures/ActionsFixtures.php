@@ -70,6 +70,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 Action::DELETE_ACHE,
                 Action::EDIT_UNPROCESSED_DISPATCH,
                 Action::DELETE_UNPROCESSED_DISPATCH,
+                Action::SHOW_CARRIER_FIELD
 			],
 			Menu::ORDRE => [
 				Action::DISPLAY_ORDRE_COLL,
@@ -127,8 +128,15 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
             ]
 		];
 
+        $specifics = [
+            Action::SHOW_CARRIER_FIELD => [
+                SpecificService::CLIENT_EMERSON
+            ]
+        ];
+
     	$selectedByDefault = [
     		Menu::QUALI . Action::TREAT_LITIGE,
+    		Menu::DEM . Action::SHOW_CARRIER_FIELD,
     		Menu::NOMADE . Action::MODULE_ACCESS_STOCK,
     		Menu::NOMADE . Action::MODULE_ACCESS_TRACA,
     		Menu::NOMADE . Action::MODULE_ACCESS_HAND
@@ -139,7 +147,12 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 			foreach ($actionLabels as $actionLabel) {
 				$action = $actionRepository->findOneByMenuLabelAndActionLabel($menuCode, $actionLabel);
 
-				if (empty($action)) {
+                $canCreate = (
+                    !isset($specifics[$actionLabel]) ||
+                    in_array($this->specificService->getAppClient(), $specifics[$actionLabel])
+                );
+
+				if (empty($action) && $canCreate) {
 					$action = new Action();
 
 					$action

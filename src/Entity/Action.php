@@ -49,6 +49,7 @@ class Action
     const DELETE_ACHE = 'supprimer acheminements';
     const EDIT_UNPROCESSED_DISPATCH = 'modifier des acheminements à traiter';
     const DELETE_UNPROCESSED_DISPATCH = 'supprimer acheminements à traiter';
+    const SHOW_CARRIER_FIELD = 'afficher le champ transporteur';
 
 	// menu ordre
 	const DISPLAY_ORDRE_COLL = 'afficher collectes';

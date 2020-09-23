@@ -25,19 +25,23 @@
     </select>
 </div>
 
-{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
-{% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
-    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
-    <div class="form-group">
-        <label>Transporteur{{ required ? '*' }}</label>
-            <select class="form-control data ajax-autocomplete-transporteur-edit w-100 {{ required ? 'needed' }}"
-                    title="Transporteur"
-                    name="carrier">
-                {% if dispatch.carrier is defined and dispatch.carrier is not null %}
-                    <option selected value="{{ dispatch.carrier.id }}">{{ dispatch.carrier.label }}</option>
-                {% endif %}
-            </select>
-    </div>
+{% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_EMERSON'))
+    or hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::SHOW_CARRIER_FIELD'))
+%}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+        <div class="form-group">
+            <label>Transporteur{{ required ? '*' }}</label>
+                <select class="form-control data ajax-autocomplete-transporteur-edit w-100 {{ required ? 'needed' }}"
+                        title="Transporteur"
+                        name="carrier">
+                    {% if dispatch.carrier is defined and dispatch.carrier is not null %}
+                        <option selected value="{{ dispatch.carrier.id }}">{{ dispatch.carrier.label }}</option>
+                    {% endif %}
+                </select>
+        </div>
+    {% endif %}
 {% endif %}
 
 {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH') %}
