@@ -200,6 +200,7 @@ function processForm($modal, isAttachmentForm, validator) {
     const dataArrayForm = processDataArrayForm($modal);
     const dataInputsForm = processInputsForm($modal, isAttachmentForm);
     const dataCheckboxesForm = processCheckboxesForm($modal);
+    const dataSwitchesForm = processSwitchesForm($modal);
     const dataFilesForm = processFilesForm($modal);
     const dataValidator = validator
         ? validator($modal)
@@ -216,6 +217,7 @@ function processForm($modal, isAttachmentForm, validator) {
             dataArrayForm.success
             && dataInputsForm.success
             && dataCheckboxesForm.success
+            && dataSwitchesForm.success
             && dataFilesForm.success
             && dataValidator.success
         ),
@@ -224,6 +226,7 @@ function processForm($modal, isAttachmentForm, validator) {
             ...dataInputsForm.errorMessages,
             ...dataCheckboxesForm.errorMessages,
             ...dataFilesForm.errorMessages,
+            ...dataSwitchesForm.errorMessages,
             ...(dataValidator.errorMessages || [])
         ],
         $isInvalidElements: [
@@ -231,12 +234,14 @@ function processForm($modal, isAttachmentForm, validator) {
             ...dataInputsForm.$isInvalidElements,
             ...dataCheckboxesForm.$isInvalidElements,
             ...dataFilesForm.$isInvalidElements,
+            ...dataSwitchesForm.$isInvalidElements,
             ...(dataValidator.$isInvalidElements || [])
         ],
         data: {
             ...dataArrayForm.data,
             ...dataInputsForm.data,
             ...dataCheckboxesForm.data,
+            ...dataSwitchesForm.data,
             ...dataFilesForm.data,
             ...(dataValidator.data || {}),
             ...subData
@@ -472,6 +477,37 @@ function processCheckboxesForm($modal) {
         success: true,
         errorMessages: [],
         $isInvalidElements: [],
+        data
+    };
+}
+
+/**
+ *
+ * @param $modal jQuery modal
+ * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
+ */
+function processSwitchesForm($modal) {
+    const $switches = $modal.find('.wii-switch');
+    const $invalidElements = [];
+    const messages = [];
+    const data = {};
+
+    $switches.each(function () {
+        const $div = $(this);
+        const $input = $div.find('input:checked');
+
+        if($div.hasClass("needed") && $input.length === 0) {
+            $invalidElements.push($div);
+            messages.push("Veuillez renseigner une valeur pour le champ " + $div.data("title"));
+        } else {
+            data[$input.attr("name")] = $input.val();
+        }
+    });
+
+    return {
+        success: $invalidElements.length === 0,
+        errorMessages: messages,
+        $isInvalidElements: $invalidElements,
         data
     };
 }

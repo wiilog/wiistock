@@ -159,7 +159,7 @@ class DemandeCollecteService
                 [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
                 [ 'label' => 'Date de la demande', 'value' => $date ? $date->format('d/m/Y') : '' ],
                 [ 'label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : '' ],
-                [ 'label' => 'Destination', 'value' => $collecte->getStockOrDestruct() ? 'Mise en stock' : 'Destruction' ],
+                [ 'label' => 'Destination', 'value' => $collecte->isStock() ? 'Mise en stock' : 'Destruction' ],
                 [ 'label' => 'Objet', 'value' => $object ],
                 [ 'label' => 'Point de collecte', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
                 [ 'label' => 'Type', 'value' => $type ? $type->getLabel() : '' ]

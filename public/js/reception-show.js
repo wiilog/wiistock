@@ -383,10 +383,6 @@ function articleChanged($select) {
     }
 }
 
-function toggleRequiredChampsFixes(button) {
-    displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'), button);
-}
-
 function initNewReferenceArticleEditor() {
     if (!editorNewReferenceArticleAlreadyDone) {
         initEditor('.editor-container-new');

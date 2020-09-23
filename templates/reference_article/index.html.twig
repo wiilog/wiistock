@@ -30,7 +30,7 @@
     {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
-            <div class="col-auto">
+            <div class="col-auto ml-auto">
                 <div class="btn-group">
                     {% if hasRightToCreate %}
                         <button type="button" class="btn btn-primary split-button btn-ripple"
