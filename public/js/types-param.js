@@ -38,6 +38,7 @@ function typeSelectChange($typeSelect) {
     const $mailCheckContainer = $('.send-mail');
     const $defaultLocations = $('.needs-default-locations');
     const $mailCheck = $mailCheckContainer.find('input[name="sendMail"]');
+
     $mailCheck.prop('checked', false);
     if ($selectedOption.data('needs-send-mail')) {
         $mailCheckContainer.removeClass('d-none');
