@@ -1,27 +1,8 @@
-{% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-
-{% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
-
-{# droit de modification/suppression pour les colis dans des acheminements brouillons #}
-{% if packDispatch.dispatch.statut.draft %}
-    {% set hasRightEdit = hasRightEdit and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_DRAFT_DISPATCH')) %}
-    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_DRAFT_DISPATCH')) %}
-{% endif %}
-
-{# droit de modification/suppression pour les colis dans des acheminements à traiter #}
-{% if not packDispatch.dispatch.statut.treated and not packDispatch.dispatch.statut.draft  %}
-    {% set hasRightEdit = hasRightEdit and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_UNPROCESSED_DISPATCH')) %}
-    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_UNPROCESSED_DISPATCH')) %}
-{% endif %}
-
-{# droit de suppression pour les colis dans des acheminements traités #}
-{% if packDispatch.dispatch.statut.treated %}
-    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PROCESSED_DISPATCH')) %}
-{% endif %}
+{% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_PACK')) %}
+{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PACK')) %}
 
 <div class="d-flex">
-    <div class="dropdown dropright">
+    <div class="dropdown dropright {{ not hasRightDelete and not hasRightEdit ? 'd-none' }}">
         <div class="d-none">
             <div class="btn btn-col-action action-on-click" data-id='{{ packDispatch.id }}' data-toggle='modal' data-target='#modalEditArticle'
                  onclick="openShowPackModal({

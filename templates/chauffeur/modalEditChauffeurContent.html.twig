@@ -17,7 +17,7 @@
 
 <div class="form-group">
     <label for="transporteur">Transporteur</label>
-    <select class="form-control ajax-autocomplete-transporteur-edit data" name="transporteur" onclick="iniTransporteurEdit()" >
+    <select class="form-control ajax-autocomplete-transporteur-edit data" name="transporteur">
         {% if transporteur is not empty %}
             <option value="{{ transporteur.id}}" >{{ transporteur.label}}</option>
         {% endif %}

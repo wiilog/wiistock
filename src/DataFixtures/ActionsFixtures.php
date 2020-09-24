@@ -45,7 +45,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::EDIT,
 				Action::DELETE,
 				Action::EXPORT,
-				Action::LIST_ALL
+                Action::LIST_ALL,
 			],
 			Menu::QUALI => [
 				Action::DISPLAY_LITI,
@@ -64,7 +64,10 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DELETE,
 				Action::EXPORT,
                 Action::CREATE_ACHE,
-                Action::SHOW_CARRIER_FIELD
+                Action::SHOW_CARRIER_FIELD,
+                Action::GENERATE_DELIVERY_NOTE,
+                Action::GENERATE_DISPATCH_BILL,
+                Action::GENERATE_WAY_BILL,
 			],
 			Menu::ORDRE => [
 				Action::DISPLAY_ORDRE_COLL,
@@ -133,6 +136,9 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                     Action::EDIT_DRAFT_DISPATCH,
                     Action::EDIT_UNPROCESSED_DISPATCH,
                     Action::EDIT_PROCESSED_DISPATCH,
+                    Action::ADD_PACK,
+                    Action::EDIT_PACK,
+                    Action::DELETE_PACK,
                 ],
             ],
             Menu::TRACA => [
@@ -144,7 +150,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 ],
                 Action::DELETE => [
                     Action::DELETE_ARRI,
-                ],
+                ]
             ]
         ];
 

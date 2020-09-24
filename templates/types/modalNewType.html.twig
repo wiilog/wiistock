@@ -11,7 +11,7 @@
                 <div class="row">
                     <div class="mb-3 form-group col-12">
                         <label for="category">Catégorie*</label>
-                        <select name="category" id="frequencies" class="data form-control needed" onchange="typeSelectChange($(this))">
+                        <select name="category" id="frequencies" class="data form-control needed" onchange="typeSelectChange($(this), $('#modalNewType'))">
                             <option placeholder="" disabled value="" selected></option>
                             {% for category in categories %}
                                 <option value="{{ category.id }}"

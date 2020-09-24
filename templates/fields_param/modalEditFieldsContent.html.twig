@@ -35,11 +35,20 @@
             </div>
         {% endif %}
 
-        {% set isCheckedModify = field.displayed ? 'checked' : '' %}
+        {% set isCheckedFormDisplayed = field.displayedForms ? 'checked' : '' %}
         <div class="form-group col-12">
-            <label>Affiché ?</label>
+            <label>Affiché dans les formulaires ?</label>
             <label class="switch">
-                <input class="checkbox data" type="checkbox" name="displayed" {{ isCheckedModify }} onchange="switchDisplay($(this))">
+                <input class="checkbox data" type="checkbox" name="displayed-forms" {{ isCheckedFormDisplayed }} onchange="switchDisplay($(this))">
+                <span class="slider round"></span>
+            </label>
+        </div>
+
+        {% set isCheckedFilterDisplayed = field.displayedFilters ? 'checked' : '' %}
+        <div class="form-group col-12">
+            <label>Affiché dans les filtres ?</label>
+            <label class="switch">
+                <input class="checkbox data" type="checkbox" name="displayed-filters" {{ isCheckedFilterDisplayed }}>
                 <span class="slider round"></span>
             </label>
         </div>

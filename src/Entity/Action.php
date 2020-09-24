@@ -29,7 +29,7 @@ class Action
 	const DISPLAY_ENCO = 'afficher encours';
 	const DISPLAY_PACK = 'afficher colis';
 	const DISPLAY_URGE = 'afficher urgences';
-	const LIST_ALL = 'lister tous les arrivages';
+    const LIST_ALL = 'lister tous les arrivages';
 	const ADD_PACK = 'ajouter colis';
 	const EDIT_PACK = 'modifier colis';
 	const DELETE_PACK = 'supprimer colis';
@@ -52,6 +52,9 @@ class Action
     const DELETE_DRAFT_DISPATCH = 'supprimer acheminements brouillons';
     const DELETE_UNPROCESSED_DISPATCH = 'supprimer acheminements à traiter';
     const SHOW_CARRIER_FIELD = 'afficher le champ transporteur';
+    const GENERATE_DELIVERY_NOTE = 'générer un bon de livraison';
+    const GENERATE_WAY_BILL = 'générer une lettre de voiture';
+    const GENERATE_DISPATCH_BILL = "générer un bon d'acheminement";
     const DELETE_PROCESSED_DISPATCH = 'supprimer acheminements traités';
 
 	// menu ordre

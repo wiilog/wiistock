@@ -24,6 +24,10 @@
     {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PROCESSED_DISPATCH')) %}
 {% endif %}
 
+{% set hasRightToGenerateDeliveryNote = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DELIVERY_NOTE')) %}
+{% set hasRightToGenerateWayBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_WAY_BILL')) %}
+{% set hasRightToGenerateDispatchBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DISPATCH_BILL')) %}
+
 {% block showActions %}
     <div class="btn-group">
         {% if hasRightEdit %}
@@ -54,22 +58,26 @@
             <span class="fa fa-angle-down"></span>
         </button>
         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-            <a type="button"
-               data-dispatch-id='{{ dispatch.id }}'
-               onclick="openDeliveryNoteModal($(this))"
-               id="generateDeliveryNoteButton"
-               class="dropdown-item">
-                <i class="fa fa-print"></i>
-                {{ 'acheminement.Générer un bon de livraison' | trans }}
-            </a>
-            <a type="button"
-               data-dispatch-id='{{ dispatch.id }}'
-               onclick="openWaybillModal($(this))"
-               class="dropdown-item">
-                <i class="fa fa-print"></i>
-                {{ 'acheminement.Générer une lettre de voiture' | trans }}
-            </a>
-            {% if hasRightExport %}
+            {% if hasRightToGenerateDeliveryNote %}
+                <a type="button"
+                   data-dispatch-id='{{ dispatch.id }}'
+                   onclick="openDeliveryNoteModal($(this))"
+                   id="generateDeliveryNoteButton"
+                   class="dropdown-item">
+                    <i class="fa fa-print"></i>
+                    {{ 'acheminement.Générer un bon de livraison' | trans }}
+                </a>
+            {% endif %}
+            {% if hasRightToGenerateWayBill %}
+                <a type="button"
+                   data-dispatch-id='{{ dispatch.id }}'
+                   onclick="openWaybillModal($(this))"
+                   class="dropdown-item">
+                    <i class="fa fa-print"></i>
+                    {{ 'acheminement.Générer une lettre de voiture' | trans }}
+                </a>
+            {% endif %}
+            {% if hasRightToGenerateDispatchBill %}
                 <a class="dropdown-item"
                    onclick="runDispatchPrint()">
                     <i class="fas fa-print"></i>
