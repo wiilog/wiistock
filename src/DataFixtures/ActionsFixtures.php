@@ -67,9 +67,12 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DELETE,
 				Action::EXPORT,
                 Action::CREATE_ACHE,
-                Action::DELETE_ACHE,
+                Action::EDIT_DRAFT_DISPATCH,
                 Action::EDIT_UNPROCESSED_DISPATCH,
+                Action::EDIT_PROCESSED_DISPATCH,
+                Action::DELETE_DRAFT_DISPATCH,
                 Action::DELETE_UNPROCESSED_DISPATCH,
+                Action::DELETE_PROCESSED_DISPATCH
 			],
 			Menu::ORDRE => [
 				Action::DISPLAY_ORDRE_COLL,
@@ -135,6 +138,28 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 		];
         $actionRepository = $manager->getRepository(Action::class);
         $roleRepository = $manager->getRepository(Role::class);
+
+        $allSavedActions = $actionRepository->findAll();
+
+        $menusToLower = array_reduce(array_keys($menus), function (array $carry, string $key) use ($menus) {
+            $carry[mb_strtolower($key)] = array_map(function ($action) {
+                return mb_strtolower($action);
+            }, $menus[$key]);
+            return $carry;
+        }, []);
+
+
+        foreach ($allSavedActions as $savedAction) {
+            $menu = mb_strtolower($savedAction->getMenu()->getLabel());
+            $label = mb_strtolower($savedAction->getLabel());
+
+            if (!isset($menusToLower[$menu])
+                || (!in_array($label, $menusToLower[$menu]))) {
+                $manager->remove($savedAction);
+                dump("Suppression du droit :  $menu / $label");
+            }
+        }
+
 		foreach ($menus as $menuCode => $actionLabels) {
 			foreach ($actionLabels as $actionLabel) {
 				$action = $actionRepository->findOneByMenuLabelAndActionLabel($menuCode, $actionLabel);

@@ -46,9 +46,12 @@ class Action
 	const DISPLAY_HAND = 'afficher services';
     const DISPLAY_ACHE = 'afficher acheminements';
     const CREATE_ACHE = 'créer acheminements';
-    const DELETE_ACHE = 'supprimer acheminements';
-    const EDIT_UNPROCESSED_DISPATCH = 'modifier des acheminements à traiter';
+    const EDIT_DRAFT_DISPATCH = 'modifier acheminements brouillons';
+    const EDIT_UNPROCESSED_DISPATCH = 'modifier acheminements à traiter';
+    const EDIT_PROCESSED_DISPATCH = 'modifier acheminements traités';
+    const DELETE_DRAFT_DISPATCH = 'supprimer acheminements brouillons';
     const DELETE_UNPROCESSED_DISPATCH = 'supprimer acheminements à traiter';
+    const DELETE_PROCESSED_DISPATCH = 'supprimer acheminements traités';
 
 	// menu ordre
 	const DISPLAY_ORDRE_COLL = 'afficher collectes';
