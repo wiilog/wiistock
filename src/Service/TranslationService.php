@@ -38,7 +38,7 @@ class TranslationService {
 
         $translationRepository = $this->entityManager->getRepository(Translation::class);
 
-        if ($translationRepository->countUpdatedRows() > 0
+        if($translationRepository->countUpdatedRows() > 0
             || !file_exists($translationYAML)
             || !file_exists($translationJS)) {
             $translations = $translationRepository->findAll();
@@ -56,7 +56,7 @@ class TranslationService {
 
     private function generateYamlTranslations(string $directory, array $translations) {
         $menus = [];
-        foreach ($translations as $translation) {
+        foreach($translations as $translation) {
             $menus[$translation->getMenu()][$translation->getLabel()] = (
             $translation->getTranslation() ?: $translation->getLabel()
             );
@@ -70,7 +70,7 @@ class TranslationService {
     private function generateJavascriptTranslations(string $directory, array $translations) {
         $translationsArray = array_reduce(
             $translations,
-            function (array $carry, Translation $translation) {
+            function(array $carry, Translation $translation) {
                 $key = $translation->getMenu() . "." . $translation->getLabel();
                 $carry[$key] = [
                     'original' => $translation->getLabel(),
@@ -97,8 +97,8 @@ class TranslationService {
         // Delete the translations folder
         $this->rrmdir($projectDir . "/var/cache/$env/translations");
 
-		$input = new ArrayInput(array(
-			'command' => 'cache:warmup',
+        $input = new ArrayInput(array(
+            'command' => 'cache:warmup',
             '--env' => $env
         ));
 
@@ -106,28 +106,29 @@ class TranslationService {
         $application->run($input, $output);
     }
 
-	/**
-	 * @param string $file
-	 * @param string $right
-	 */
-	public function chmod($file, $right) {
-		$process = Process::fromShellCommandline('chmod a+' . $right . ' ' . $file);
-		$process->run();
-	}
+    /**
+     * @param string $file
+     * @param string $right
+     */
+    public function chmod($file, $right) {
+        if(PHP_OS_FAMILY != "Windows") {
+            $process = Process::fromShellCommandline('chmod a+' . $right . ' ' . $file);
+            $process->run();
+        }
+    }
 
     /**
      * Recursively delete all sub-folders and files from a folder passed as parameter.
      * @param $dir
      */
-	private function rrmdir(string $dir) {
-        if (is_dir($dir)) {
+    private function rrmdir(string $dir) {
+        if(is_dir($dir)) {
             $objects = scandir($dir);
-            foreach ($objects as $object) {
-                if ($object != "." && $object != "..") {
-                    if (is_dir($dir . DIRECTORY_SEPARATOR . $object) && !is_link($dir . "/" . $object)) {
+            foreach($objects as $object) {
+                if($object != "." && $object != "..") {
+                    if(is_dir($dir . DIRECTORY_SEPARATOR . $object) && !is_link($dir . "/" . $object)) {
                         $this->rrmdir($dir . DIRECTORY_SEPARATOR . $object);
-                    }
-                    else {
+                    } else {
                         unlink($dir . DIRECTORY_SEPARATOR . $object);
                     }
                 }

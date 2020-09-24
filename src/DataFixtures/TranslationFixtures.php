@@ -59,6 +59,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Acheminer' => 'Acheminer'
             ],
             'acheminement' => [
+                'Numéro de commande' => 'Numéro de commande',
                 'Acheminements' => 'Acheminements',
                 'Acheminement' => 'Acheminement',
                 'acheminement' => 'acheminement',
@@ -82,9 +83,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "L'acheminement a bien été supprimé" => "L'acheminement a bien été supprimé",
                 'Le bon d\'acheminement n\'existe pas pour cet acheminement' => 'Le bon d\'acheminement n\'existe pas pour cet acheminement',
                 "Des colis sont nécessaires pour générer un bon de livraison" => "Des colis sont nécessaires pour générer un bon de livraison",
+                "Des colis sont nécessaires pour générer une lettre de voiture" => "Des colis sont nécessaires pour générer une lettre de voiture",
                 "Acheminement {numéro} traité le {date}" => "Acheminement {numéro} traité le {date}",
                 "L'acheminement contient plus de {nombre} colis" => "L'acheminement contient plus de {nombre} colis",
                 'Générer un bon d\'acheminement' => 'Générer un bon d\'acheminement',
+                'Générer un bon de livraison' => 'Générer un bon de livraison',
+                'Générer une lettre de voiture' => 'Générer une lettre de voiture',
                 "La lettre de voiture n'existe pas pour cet acheminement" => "La lettre de voiture n'existe pas pour cet acheminement",
                 "Le bon de livraison n'existe pas pour cet acheminement" => "Le bon de livraison n'existe pas pour cet acheminement"
             ],

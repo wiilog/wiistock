@@ -9,9 +9,8 @@
 </div>
 <div class="form-group">
     <label>Statut*</label>
-    {% set isTreatedStatus = dispatch.statut is not null and dispatch.statut.state == constant('App\\Entity\\Statut::TREATED') %}
     <select name="statut"
-            {{ isTreatedStatus ? 'disabled' }}
+            disabled
             class="form-control data d-block needed"
             title="Statut">
         {# outside the for if status is treated #}
@@ -25,11 +24,13 @@
     </select>
 </div>
 
-{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
-{% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
-    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
-    <div class="form-group">
-        <label>Transporteur{{ required ? '*' }}</label>
+{% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_EMERSON'))
+    or hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::SHOW_CARRIER_FIELD')) %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+        <div class="form-group">
+            <label>Transporteur{{ required ? '*' }}</label>
             <select class="form-control data ajax-autocomplete-transporteur-edit w-100 {{ required ? 'needed' }}"
                     title="Transporteur"
                     name="carrier">
@@ -37,7 +38,8 @@
                     <option selected value="{{ dispatch.carrier.id }}">{{ dispatch.carrier.label }}</option>
                 {% endif %}
             </select>
-    </div>
+        </div>
+    {% endif %}
 {% endif %}
 
 {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH') %}
@@ -56,7 +58,7 @@
 {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
     {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
     <div class="form-group">
-        <label>Numéro de commande{{ required ? '*' }}</label>
+        <label>{{'acheminement.Numéro de commande'|trans}}{{ required ? '*' }}</label>
         <input class="form-control data {{ required ? 'needed' }}"
                title="Numéro de commande"
                name="commandNumber"
@@ -117,7 +119,7 @@
 
 {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_DISPATCH') %}
 {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
-    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToEdit') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
     <div class="form-group">
         <label>Urgence{{ required ? '*' }}</label>
         <div class="w-100">
@@ -133,22 +135,32 @@
     </div>
 {% endif %}
 
-<div class="form-group w-100">
-    <label for="prise" title="Emplacement de prise">{{ 'acheminement.Emplacement prise'|trans }}*</label>
-    <select name="prise" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-prise" id="prise">
-        {% if dispatch.locationFrom %}
-            <option value="{{ dispatch.locationFrom.id }}">{{ dispatch.locationFrom.label }}</option>
-        {% endif %}
-    </select>
-</div>
-<div class="form-group w-100">
-    <label for="depose" title="Emplacement de dépose">{{ 'acheminement.Emplacement dépose'|trans }}*</label>
-    <select name="depose" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-depose" id="depose">
-        {% if dispatch.locationTo %}
-            <option value="{{ dispatch.locationTo.id }}">{{ dispatch.locationTo.label }}</option>
-        {% endif %}
-    </select>
-</div>
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_PICK') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    <div class="form-group w-100">
+        <label for="prise" title="Emplacement de prise">{{ 'acheminement.Emplacement prise'|trans }}{{ required ? '*' }}</label>
+        <select name="prise" class="form-control data ajax-autocompleteEmplacement-edit d-block {{ required ? 'needed' }} location-prise"
+                id="prise">
+            {% if dispatch.locationFrom %}
+                <option value="{{ dispatch.locationFrom.id }}">{{ dispatch.locationFrom.label }}</option>
+            {% endif %}
+        </select>
+    </div>
+{% endif %}
+
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_DROP') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    <div class="form-group w-100">
+        <label for="depose" title="Emplacement de dépose">{{ 'acheminement.Emplacement dépose'|trans }}{{ required ? '*' }}</label>
+        <select name="depose" class="form-control data ajax-autocompleteEmplacement-edit d-block {{ required ? 'needed' }} location-depose" id="depose">
+            {% if dispatch.locationTo %}
+                <option value="{{ dispatch.locationTo.id }}">{{ dispatch.locationTo.label }}</option>
+            {% endif %}
+        </select>
+    </div>
+{% endif %}
 
 {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_DISPATCH') %}
 {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}

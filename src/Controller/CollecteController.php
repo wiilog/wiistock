@@ -307,7 +307,12 @@ class CollecteController extends AbstractController
 
             $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $collecteRepository->find($data['collecte']);
-
+            if (($data['quantity-to-pick'] <= 0) || empty($data['quantity-to-pick'])) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'La quantité doit être superieur à zero.'
+                ]);
+            }
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
                     $collecteReference = $collecteReferenceRepository->getByCollecteAndRA($collecte, $refArticle);
@@ -326,8 +331,7 @@ class CollecteController extends AbstractController
                     return $this->redirectToRoute('access_denied');
                 }
                 $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser(), $champLibreService);
-            }
-            elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
             }
             $entityManager->flush();
@@ -336,7 +340,9 @@ class CollecteController extends AbstractController
                 'success' => true,
                 'msg' => 'La référence <strong>' . $refArticle->getLibelle() . '</strong> a bien été ajoutée à la collecte.'
             ]);
+
         }
+
         throw new NotFoundHttpException('404');
     }
 

@@ -274,7 +274,7 @@ a {
         border: 1px solid red !important;
     }
 
-    &:not(.select2-container) {
+    &:not(.select2-container):not(.wii-switch) {
         padding-right: 2.25rem;
     }
 }

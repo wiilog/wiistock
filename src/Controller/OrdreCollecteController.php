@@ -491,7 +491,7 @@ class OrdreCollecteController extends AbstractController
                 $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
                 $article->getQuantite() ?? 0,
                 $article->getBarCode(),
-                $collecte->getStockOrDestruct() ? 'Mise en stock' : 'Destruction'
+                $collecte->isStock() ? 'Mise en stock' : 'Destruction'
             ]);
         }
     }

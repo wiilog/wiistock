@@ -16,23 +16,16 @@
     </div>
     <div class="form-group col-4">
         {% if isADemand is not defined or not isADemand %}
-            <div class="input-group radio-btn">
-                <label for="statut" class="my-auto mr-2">Statut</label>
-                <div>
-                    {% set actif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')) ? 'active' : 'not-active' %}
-                    {% set inactif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')) ? 'active' : 'not-active' %}
+            {% set active = statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 1 : 0 %}
 
-                    <span class="btn {{ actif }} {{ disabled }}" data-toggle="statut-edit"
-                          data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
-                          {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
-                        {{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}
-                    </span><span class="btn {{ inactif }} {{ disabled }}" data-toggle="statut-edit"
-                                 data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}"
-                                 {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
-                        {{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}
-                    </span>
-                </div>
-                <input type="hidden" name="statut" id="statut-edit" class="data" value="{{ statut }}">
+            <label>Statut</label><br>
+            <div class="wii-switch needed" data-title="Statut">
+                <input type="radio" name="statut"
+                       value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
+                       content="Actif" {{ active ? 'checked' }}>
+                <input type="radio" name="statut"
+                       value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}"
+                       content="Inactif" {{ not active ? 'checked' }}>
             </div>
         {% endif %}
     </div>
@@ -105,18 +98,13 @@
 <div class="row mt-4 mb-3 justify-content-left">
     {% if isADemand is not defined or not isADemand %}
         <div class="form-group col-4 mt-3">
-            <div class="radio-btn">
-                <label for="statut" class="my-auto mr-2">Gestion quantité</label>
-                <div class="btn-group">
-                    <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active' }} disabled cursor-default"
-                          data-title="reference">Par référence</span>
-                    <span class="btn {{ (articleRef.typeQuantite == 'article') ? 'active' : 'not-active' }} disabled cursor-default"
-                          data-toggle="type_quantite" data-title="article">
-                        Par article
-                    </span>
-                </div>
+            {% set reference = articleRef.typeQuantite == 'reference' ? 1 : 0 %}
+            {% set article = articleRef.typeQuantite == 'article' ? 1 : 0 %}
 
-                <input type="hidden" name="type_quantite" class="data type_quantite" value="{{ articleRef.typeQuantite }}">
+            <label>Gestion quantité</label><br>
+            <div class="wii-switch needed" data-title="Gestion quantité">
+                <input type="radio" name="type_quantite" value="reference" content="Par référence" {{ reference ? 'checked' }} disabled>
+                <input type="radio" name="type_quantite" value="article" content="Par article" {{ article ? 'checked' }} disabled>
             </div>
         </div>
     {% endif %}

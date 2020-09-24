@@ -130,8 +130,7 @@ class HandlingRepository extends EntityRepository
         $countTotal = $qb
             ->select('COUNT(handling)')
             ->getQuery()
-            ->getResult();
-
+            ->getSingleScalarResult();
         // filtres sup
         foreach ($filters as $filter) {
             switch($filter['field']) {
@@ -181,14 +180,14 @@ class HandlingRepository extends EntityRepository
                         ->leftJoin('handling.requester', 'search_requester')
                         ->leftJoin('handling.status', 'search_status')
 						->andWhere('(
-                            handling.number LIKE :value
-                            OR handling.creationDate LIKE :value
-                            OR search_type.label LIKE :value
-                            OR search_requester.username LIKE :value
-                            OR handling.subject LIKE :value
-                            OR handling.desiredDate LIKE :value
-                            OR handling.validationDate LIKE :value
-                            OR search_status.nom LIKE :value
+                            handling.number LIKE :search_value
+                            OR handling.creationDate LIKE :search_value
+                            OR search_type.label LIKE :search_value
+                            OR search_requester.username LIKE :search_value
+                            OR handling.subject LIKE :search_value
+                            OR handling.desiredDate LIKE :search_value
+                            OR handling.validationDate LIKE :search_value
+                            OR search_status.nom LIKE :search_value
 						)')
 						->setParameter('search_value', '%' . $search . '%');
 				}
@@ -241,7 +240,7 @@ class HandlingRepository extends EntityRepository
         $countFiltered = $qb
             ->select('COUNT(handling)')
             ->getQuery()
-            ->getResult();
+            ->getSingleScalarResult();
 
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

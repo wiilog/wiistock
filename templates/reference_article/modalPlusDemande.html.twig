@@ -8,15 +8,10 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div class='row mb-3'>
-                    <label class='col'>Type de demande</label>
-                    <div class="col input-group radio-btn">
-                        <div>
-                            <span class="btn not-active checkbox" data-toggle="demande" data-title="livraison" id="demande"
-                            onclick="clearModal('#modalPlusDemande'), toggleLivraisonCollecte($(this))">Livraison</span><span class="btn not-active checkbox" data-toggle="demande" data-title="collecte" id="collecte"
-                            onclick="clearModal('#modalPlusDemande'), toggleLivraisonCollecte($(this))">Collecte</span>
-                        </div>
-                    </div>
+                <label>Type de demande</label><br>
+                <div class="wii-switch needed" data-title="Type de demande">
+                    <input type="radio" name="type" value="livraison" content="Livraison" onclick="toggleLivraisonCollecte($(this))">
+                    <input type="radio" name="type" value="collecte" content="Collecte" onclick="toggleLivraisonCollecte($(this))">
                 </div>
 
                 <div class="plusDemandeContent d-none row mb-3"></div>

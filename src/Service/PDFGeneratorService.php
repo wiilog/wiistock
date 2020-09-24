@@ -4,10 +4,15 @@
 namespace App\Service;
 
 use App\Entity\Dispatch;
+use App\Entity\PieceJointe;
+use App\Kernel;
+use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Twig\Environment as Twig_Environment;
 use Knp\Snappy\PDF as PDFGenerator;
 use Twig\Error\LoaderError;
@@ -28,13 +33,17 @@ Class PDFGeneratorService
     /** @var $PDFGenerator */
     private $PDFGenerator;
 
+    private $kernel;
+
     public function __construct(GlobalParamService $globalParamService,
                                 PDFGenerator $PDFGenerator,
+                                KernelInterface $kernel,
                                 Twig_Environment $templating)
     {
         $this->globalParamService = $globalParamService;
         $this->templating = $templating;
         $this->PDFGenerator = $PDFGenerator;
+        $this->kernel = $kernel;
     }
 
     // TODO throw error if dimension do not exists
@@ -110,7 +119,6 @@ Class PDFGeneratorService
      * @param array $sheetConfigs Array of ['title' => string, 'code' => string, 'content' => assoc_array]
      * @return string
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
@@ -139,50 +147,60 @@ Class PDFGeneratorService
 
     /**
      * @param string $title
-     * @param string $logo
+     * @param string|null $logo
      * @param Dispatch $dispatch
-     * @return Response The PDF response
+     * @return PdfResponse The PDF response
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function generatePDFWaybill(string $title, ?string $logo, Dispatch $dispatch): Response {
-        $html = $this->PDFGenerator->getOutputFromHtml(
+    public function generatePDFWaybill(string $title, ?string $logo, Dispatch $dispatch): string {
+        $fileName = uniqid() . '.pdf';
+
+        $this->PDFGenerator->generateFromHtml(
             $this->templating->render('prints/waybill-template.html.twig', [
                 'title' => $title,
                 'dispatch' => $dispatch,
                 'logo' => $logo
-            ]), [
+            ]),
+            ($this->kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName),
+            [
                 'page-size' => "A4",
                 'encoding' => 'UTF-8'
             ]
         );
 
-        return new PdfResponse($html, $title);
+        return $fileName;
     }
 
     /**
      * @param string $title
-     * @param string $logo
+     * @param string|null $logo
      * @param Dispatch $dispatch
      * @return Response The PDF response
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function generatePDFDeliveryNote(string $title, ?string $logo, Dispatch $dispatch): Response {
-        $html = $this->PDFGenerator->getOutputFromHtml(
+    public function generatePDFDeliveryNote(string $title,
+                                            ?string $logo,
+                                            Dispatch $dispatch): string {
+        $fileName = uniqid() . '.pdf';
+
+        $this->PDFGenerator->generateFromHtml(
             $this->templating->render('prints/delivery-note-template.html.twig', [
                 'title' => $title,
                 'dispatch' => $dispatch,
                 'logo' => $logo
-            ]), [
+            ]),
+            ($this->kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName),
+            [
                 'page-size' => "A4",
                 'encoding' => 'UTF-8'
             ]
         );
 
-        return new PdfResponse($html, $title);
+        return $fileName;
     }
 
     /**

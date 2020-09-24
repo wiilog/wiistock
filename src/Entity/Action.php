@@ -51,6 +51,7 @@ class Action
     const EDIT_PROCESSED_DISPATCH = 'modifier acheminements traités';
     const DELETE_DRAFT_DISPATCH = 'supprimer acheminements brouillons';
     const DELETE_UNPROCESSED_DISPATCH = 'supprimer acheminements à traiter';
+    const SHOW_CARRIER_FIELD = 'afficher le champ transporteur';
     const DELETE_PROCESSED_DISPATCH = 'supprimer acheminements traités';
 
 	// menu ordre
