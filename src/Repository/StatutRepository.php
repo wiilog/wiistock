@@ -46,6 +46,24 @@ class StatutRepository extends EntityRepository {
         return $qb->getQuery()->getSingleScalarResult();
     }
 
+    public function countDisputes($category, $type, $current = null) {
+        $qb = $this->createQueryBuilder("s")
+            ->select("COUNT(s)")
+            ->where("s.categorie = :category")
+            ->andWhere("s.type = :type")
+            ->andWhere("s.state = :dispute")
+            ->setParameter("category", $category)
+            ->setParameter("type", $type)
+            ->setParameter('dispute', Statut::DISPUTE);
+
+        if ($current) {
+            $qb->andWhere("s.id != :current")
+                ->setParameter("current", $current);
+        }
+
+        return $qb->getQuery()->getSingleScalarResult();
+    }
+
     public function countDefaults($category, $type, $current = null) {
         $qb = $this->createQueryBuilder("s")
             ->select("COUNT(s)")
@@ -317,13 +335,15 @@ class StatutRepository extends EntityRepository {
                     'category.nom = :categoryLabel_arrivalDispute',
                     'category.nom = :categoryLabel_receptionDispute',
                     'category.nom = :categoryLabel_dispatch',
-                    'category.nom = :categoryLabel_handling'
+                    'category.nom = :categoryLabel_handling',
+                    'category.nom = :categoryLabel_arrival'
                 ) . ')')
             ->setParameters([
                 'categoryLabel_arrivalDispute' => CategorieStatut::LITIGE_ARR,
                 'categoryLabel_receptionDispute' => CategorieStatut::LITIGE_RECEPT,
                 'categoryLabel_dispatch' => CategorieStatut::DISPATCH,
-                'categoryLabel_handling' => CategorieStatut::HANDLING
+                'categoryLabel_handling' => CategorieStatut::HANDLING,
+                'categoryLabel_arrival' => CategorieStatut::ARRIVAGE
             ]);
 
         $qb
@@ -409,7 +429,8 @@ class StatutRepository extends EntityRepository {
         }
 
         if ($type) {
-            $qb->andWhere("status.type = :type")
+            $qb
+                ->andWhere("status.type = :type")
                 ->setParameter("type", $type);
         }
 

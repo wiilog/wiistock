@@ -94,7 +94,8 @@ function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseC
             arrivageUrgentLoading = false;
             if (secondResponse.success) {
                 arrivalCallback(
-                    isCreation, {
+                    isCreation,
+                    {
                         ...arrivalResponseCreation,
                         alertConfigs: arrivalResponseCreation.alertConfigs.length > 0
                             ? arrivalResponseCreation.alertConfigs
@@ -125,14 +126,14 @@ function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseC
     });
 }
 
-function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId, statutConformeId}, arrivalsDatatable, success = null) {
+function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId}, arrivalsDatatable, success = null) {
     if (!redirectAfterAlert) {
         if (arrivalsDatatable) {
             arrivalsDatatable.ajax.reload();
         }
 
         if (success) {
-            success({statutConformeId});
+            success();
         }
     }
     else {

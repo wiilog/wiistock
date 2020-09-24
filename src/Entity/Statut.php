@@ -15,6 +15,7 @@ class Statut
     const DRAFT = 0;
     const NOT_TREATED = 1;
     const TREATED = 2;
+    const DISPUTE = 3;
 
     /**
      * @ORM\Id()
@@ -183,6 +184,10 @@ class Statut
 
     public function isNotTreated(): ?bool {
         return $this->state === self::NOT_TREATED;
+    }
+
+    public function isDispute(): ?bool {
+        return $this->state === self::DISPUTE;
     }
 
     public function getCategorie(): ? CategorieStatut

@@ -295,21 +295,6 @@ function editDashboardParams() {
     });
 }
 
-function editStatusArrivage($select) {
-    let path = Routing.generate('edit_status_arrivage',true);
-    const param = {
-        value: $select.val()
-    };
-
-    $.post(path, param, (resp) => {
-        if (resp) {
-            showBSAlert("Le statut de l'arrivage par défaut a bien été mis à jour.", 'success');
-        } else {
-            showBSAlert("Une erreur est survenue lors de la mise à jour du statut par défaut de l'arrivage.", 'danger');
-        }
-    });
-}
-
 function editFont() {
     let path = Routing.generate('edit_font', true);
     let param = {

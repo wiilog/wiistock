@@ -4,13 +4,22 @@
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' %}
     {% include 'filters/filter_item/filterNumArrivage.html.twig' %}
-    {% include 'filters/filter_item/filterDuty.html.twig' %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DUTY_ARRIVAGE') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterDuty.html.twig' %}
+    {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterFrozen.html.twig' %}
     {% endif %}
     {% include 'filters/filter_item/filterEmergency.html.twig' %}
-    {% include 'filters/filter_item/filterProvider.html.twig' %}
-    {% include 'filters/filter_item/filterCarrier.html.twig' %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterProvider.html.twig' %}
+    {% endif %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterCarrier.html.twig' %}
+    {% endif %}
     {% include 'filters/filter_item/filterUser.html.twig' %}
 {% endblock %}

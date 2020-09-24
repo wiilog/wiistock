@@ -270,7 +270,6 @@ class ArrivageRepository extends EntityRepository
             ->getSingleScalarResult();
 
         // filtres sup
-        $statut = null;
         $needsDefaultDateFilter = true;
         foreach ($filters as $filter) {
             switch ($filter['field']) {
@@ -442,7 +441,9 @@ class ArrivageRepository extends EntityRepository
                             ->orderBy('nbum', $order)
                             ->groupBy('col2.arrivage, a');
                     } else if ($column === 'statut') {
-                        $orderStatut = $order;
+                        $qb
+                            ->leftJoin('a.statut', 'order_status')
+                            ->orderBy('order_status.nom', $order);
                     } else {
                         if (property_exists(Arrivage::class, $column)) {
                             $qb
@@ -468,30 +469,20 @@ class ArrivageRepository extends EntityRepository
                 ->setParameter('dateMax', $nowToString . " 23:59:59");
         }
 
-        $arrivages = $qb->select('a')
+        $countFiltered = $qb
+            ->select('COUNT(a)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        if (!empty($params)) {
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        }
+
+        $arrivages = $qb
+            ->select('a')
             ->getQuery()
             ->getResult();
-
-        if ($statut) {
-            $arrivages = array_filter($arrivages, function (Arrivage $arrivage) use ($statut) {
-                return ($arrivage->getStatus() === $statut);
-            });
-        }
-
-        if ($orderStatut) {
-            usort($arrivages, function (Arrivage $arrivage1, Arrivage $arrivage2) use ($orderStatut) {
-                return $orderStatut === 'asc'
-                    ? strcmp($arrivage1->getStatus(), $arrivage2->getStatus())
-                    : strcmp($arrivage2->getStatus(), $arrivage1->getStatus());
-            });
-        }
-
-        $countFiltered = count($arrivages);
-        if (!empty($params)) {
-            if ((!empty($params->get('start')) || $params->get('start') === "0") && !empty($params->get('length'))) {
-                $arrivages = array_slice($arrivages, intval($params->get('start')), intval($params->get('length')));
-            }
-        }
 
         return [
             'data' => $arrivages ?? null,
