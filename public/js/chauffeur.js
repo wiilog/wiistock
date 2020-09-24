@@ -23,18 +23,19 @@ let tableChauffeurConfig = {
     },
 };
 let tableChauffeur = initDataTable('tableChauffeur_id', tableChauffeurConfig);
+ajaxAutoCompleteTransporteurInit($('.ajax-autocomplete-transporteur'));
 
-let modalNewChauffeur = $("#modalNewChauffeur");
-let submitNewChauffeur = $("#submitNewChauffeur");
+let $modalNewChauffeur = $("#modalNewChauffeur");
+let $submitNewChauffeur = $("#submitNewChauffeur");
 let urlNewChauffeur = Routing.generate('chauffeur_new', true);
-InitModal(modalNewChauffeur, submitNewChauffeur, urlNewChauffeur, {tables: [tableChauffeur]});
+InitModal($modalNewChauffeur, $submitNewChauffeur, urlNewChauffeur, {tables: [tableChauffeur]});
 
-let modalModifyChauffeur = $('#modalEditChauffeur');
-let submitModifyChauffeur = $('#submitEditChauffeur');
+let $modalModifyChauffeur = $('#modalEditChauffeur');
+let $submitModifyChauffeur = $('#submitEditChauffeur');
 let urlModifyChauffeur = Routing.generate('chauffeur_edit', true);
-InitModal(modalModifyChauffeur, submitModifyChauffeur, urlModifyChauffeur, {tables: [tableChauffeur]});
+InitModal($modalModifyChauffeur, $submitModifyChauffeur, urlModifyChauffeur, {tables: [tableChauffeur]});
 
-let modalDeleteChauffeur = $('#modalDeleteChauffeur');
-let submitDeleteChauffeur = $('#submitDeleteChauffeur');
+let $modalDeleteChauffeur = $('#modalDeleteChauffeur');
+let $submitDeleteChauffeur = $('#submitDeleteChauffeur');
 let urlDeleteChauffeur = Routing.generate('chauffeur_delete', true);
-InitModal(modalDeleteChauffeur, submitDeleteChauffeur, urlDeleteChauffeur, {tables: [tableChauffeur]});
+InitModal($modalDeleteChauffeur, $submitDeleteChauffeur, urlDeleteChauffeur, {tables: [tableChauffeur]});
