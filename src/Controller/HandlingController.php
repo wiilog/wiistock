@@ -451,8 +451,8 @@ class HandlingController extends AbstractController
             [
                 $handling->getCreationDate()->format('d/m/Y H:i'),
                 $handling->getRequester()->getUsername(),
-                $handling->getSource(),
-                $handling->getDestination(),
+                $handling->getSource() ?? '',
+                $handling->getDestination() ?? '',
                 $handling->getDesiredDate()->format('d/m/Y H:i'),
                 $handling->getValidationDate() ? $handling->getValidationDate()->format('d/m/Y H:i') : '',
                 $handling->getStatus() ? $handling->getStatus()->getNom() : '',
