@@ -11,10 +11,11 @@ $(function () {
             },
             columns: [
                 {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
-                {"data": 'displayed', 'title': 'Affiché'},
+                {"data": 'fieldCode', 'title': 'Champ fixe'},
                 {"data": 'mustCreate', 'title': 'Obligatoire à la création'},
                 {"data": 'mustEdit', 'title': 'Obligatoire à la modification'},
-                {"data": 'fieldCode', 'title': 'Champ fixe'},
+                {"data": 'displayedForms', 'title': 'Affiché sur les formulaires'},
+                {"data": 'displayedFilters', 'title': 'Affiché sur les filtres'},
             ],
             rowConfig: {
                 needsRowClickAction: true,
