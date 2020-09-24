@@ -19,10 +19,10 @@
         <strong>{{ handling.subject }}</strong>
     </div>
     <div>Chargement :
-        <strong>{{ handling.source }}</strong>
+        <strong>{{ handling.source ?? '' }}</strong>
     </div>
     <div>Déchargement :
-        <strong>{{ handling.destination }}</strong>
+        <strong>{{ handling.destination ?? '' }}</strong>
     </div>
     <div>Date souhaitée :
         <strong>{{ handling.desiredDate|date('Y-m-d à H:i:s') }}</strong>

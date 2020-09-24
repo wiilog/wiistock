@@ -171,8 +171,8 @@ class HandlingController extends AbstractController
                 ->setType($type)
                 ->setRequester($requester)
                 ->setSubject(substr($post->get('subject'), 0, 64))
-                ->setSource($post->get('source'))
-                ->setDestination($post->get('destination'))
+                ->setSource($post->get('source') ?? '')
+                ->setDestination($post->get('destination') ?? '')
                 ->setStatus($status)
                 ->setDesiredDate($desiredDate)
 				->setComment($post->get('comment'))
@@ -290,8 +290,8 @@ class HandlingController extends AbstractController
 
         $handling
             ->setSubject(substr($post->get('subject'), 0, 64))
-            ->setSource($post->get('source'))
-            ->setDestination($post->get('destination'))
+            ->setSource($post->get('source') ?? '')
+            ->setDestination($post->get('destination') ?? '')
             ->setDesiredDate($desiredDate)
             ->setComment($post->get('comment') ?: '')
             ->setEmergency($post->getBoolean('emergency'));
@@ -436,8 +436,8 @@ class HandlingController extends AbstractController
             [
                 $handling->getCreationDate()->format('d/m/Y H:i'),
                 $handling->getRequester()->getUsername(),
-                $handling->getSource(),
-                $handling->getDestination(),
+                $handling->getSource() ?? '',
+                $handling->getDestination() ?? '',
                 $handling->getDesiredDate()->format('d/m/Y H:i'),
                 $handling->getValidationDate() ? $handling->getValidationDate()->format('d/m/Y H:i') : '',
                 $handling->getStatus() ? $handling->getStatus()->getNom() : '',
