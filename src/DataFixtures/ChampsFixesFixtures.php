@@ -59,9 +59,9 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface
                 ['code' => FieldsParam::FIELD_CODE_LOCATION_PICK, 'label' => FieldsParam::FIELD_LABEL_LOCATION_PICK, 'displayedForms' => true, 'displayedFilters' => true, 'default' => true],
                 ['code' => FieldsParam::FIELD_CODE_LOCATION_DROP, 'label' => FieldsParam::FIELD_LABEL_LOCATION_DROP, 'displayedForms' => true, 'displayedFilters' => true, 'default' => true],
             ],
-            FieldsParam::ENTITY_CODE_HANDLING => [
+                FieldsParam::ENTITY_CODE_HANDLING => [
                 ['code' => FieldsParam::FIELD_CODE_LOADING_ZONE, 'label' => FieldsParam::FIELD_LABEL_LOADING_ZONE, 'displayedForms' => true, 'displayedFilters' => true],
-                ['code' => FieldsParam::FIELD_CODE_UNLOADING_ZONE, 'label' => FieldsParam::FIELD_LABEL_UNLOADING_ZONE, 'displayedForms' => true, 'displayedFilters' => true]
+                ['code' => FieldsParam::FIELD_CODE_UNLOADING_ZONE, 'label' => FieldsParam::FIELD_LABEL_UNLOADING_ZONE, 'displayedForms' => true, 'displayedFilters' => true],
             ]
         ];
 
