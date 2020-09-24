@@ -28,7 +28,8 @@ class HandlingRepository extends EntityRepository
         'desiredDate' => 'desiredDate',
         'validationDate' => 'validationDate',
         'status' => 'status',
-        'emergency' => 'emergency'
+        'emergency' => 'emergency',
+        'treatedBy' => 'treatedBy'
     ];
 
     public function countHandlingToTreat(){
@@ -179,6 +180,7 @@ class HandlingRepository extends EntityRepository
                         ->leftJoin('handling.type', 'search_type')
                         ->leftJoin('handling.requester', 'search_requester')
                         ->leftJoin('handling.status', 'search_status')
+                        ->leftJoin('handling.treatedByHandling', 'search_treatedBy')
 						->andWhere('(
                             handling.number LIKE :search_value
                             OR handling.creationDate LIKE :search_value
@@ -188,6 +190,7 @@ class HandlingRepository extends EntityRepository
                             OR handling.desiredDate LIKE :search_value
                             OR handling.validationDate LIKE :search_value
                             OR search_status.nom LIKE :search_value
+                            OR search_treatedBy.username LIKE :search_value
 						)')
 						->setParameter('search_value', '%' . $search . '%');
 				}
@@ -228,6 +231,10 @@ class HandlingRepository extends EntityRepository
                     } else if ($column === 'emergency') {
                         $qb
                             ->orderBy('handling.emergency', $order);
+                    } else if ($column === 'treatedBy') {
+                        $qb
+                            ->leftJoin('handling.treatedByHandling', 'order_treatedByHandling')
+                            ->orderBy('order_treatedByHandling.username', $order);
                     } else {
                         $qb
                             ->orderBy('handling.' . $column, $order);
