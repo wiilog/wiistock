@@ -1,6 +1,6 @@
 $(function () {
-
     initFreeSelect2($('select.select2-free'));
+
     $('select[name="dispatchEmergencies"]').on('change', editDispatchEmergencies);
     $('.table').each(function () {
         const $table = $(this);

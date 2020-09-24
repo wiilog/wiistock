@@ -137,6 +137,11 @@ class FieldsParam
     private $displayedFilters;
 
     /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $elements = [];
+
+    /**
      * @ORM\Column(type="boolean", nullable=true, options={"default": false})
      */
     private $fieldRequiredHidden;
@@ -221,6 +226,15 @@ class FieldsParam
 
     public function setDisplayedFilters(?bool $displayedFilters): self {
         $this->displayedFilters = $displayedFilters;
+        return $this;
+    }
+
+    public function getElements(): ?array {
+        return $this->elements;
+    }
+
+    public function setElements(?array $elements): self {
+        $this->elements = $elements;
         return $this;
     }
 
