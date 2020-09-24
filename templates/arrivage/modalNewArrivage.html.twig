@@ -164,8 +164,8 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
                         <div class="form-group col-4">
-                            <label for="numeroCommandeList">
-                                N°&nbsp;commande&nbsp;/&nbsp;BL{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}
+                            <label for="numeroCommandeList" title="Numéro de commande">
+                                {{ 'arrivage.Numéro de commande'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}
                             </label>
                             <select id="numeroCommandeList"
                                     class="form-control input-sm data select2-free w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}"
