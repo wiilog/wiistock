@@ -52,7 +52,7 @@ $(function () {
                 }
             });
 
-        OnTypeChange($modalNewArrivage.find('[name="type"]'));
+        onTypeChange($modalNewArrivage.find('[name="type"]'));
     });
 
     let path = Routing.generate('filter_get_by_page');

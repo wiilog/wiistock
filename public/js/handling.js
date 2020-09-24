@@ -85,7 +85,8 @@ function initNewHandlingEditor(modal) {
         initEditor('.editor-container-new');
         editorNewHandlingAlreadyDone = true;
     }
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+    onTypeChange($(modal).find('select[name="type"]'));
 }
 
 function changeStatus(button) {

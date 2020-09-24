@@ -1391,7 +1391,7 @@ function SetRequestQuery(queryParams = {}) {
     window.history.pushState({path: newUrl}, document.title, newUrl);
 }
 
-function OnTypeChange($select) {
+function onTypeChange($select) {
     const $modal = $select.closest('.modal');
     toggleRequiredChampsLibres($select, 'create');
     const $freeFieldsContainer = $modal.find('.free-fields-container');

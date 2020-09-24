@@ -179,7 +179,7 @@
                         <select class="needs-default form-control input-sm data needed needs-default"
                                 id="type"
                                 name="type"
-                                onchange="OnTypeChange($(this))"
+                                onchange="onTypeChange($(this))"
                                 {{ uniqueType ? 'disabled' }}
                                 {{ uniqueType ? ('data-init="' ~ (typesArrival|first).id ~ '"') }}>
                             {% if uniqueType %}
