@@ -4,8 +4,11 @@
                 class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
 </a>
 <div class="collapse col-12" id="paramReceptions">
+    <div class="float-right btn btn-col-action btn-check-reverse" onclick="editReceptionStatus()">
+        <i class='fas fa-check'></i>
+    </div>
     <div class="row mt-2">
-        <div class="form-group col-4">
+        <div class="form-group col-4 p-0">
             <div class="w-100">
                 <label for="receptionLocation" class="d-block">Emplacement de réception par défaut</label>
                 <select class="form-control ajax-autocomplete-location d-block" id="receptionLocation">
@@ -16,9 +19,6 @@
     </div>
     <div class="row mt-2">
         <div class="col-12">
-            <div class="float-right btn btn-col-action btn-check-reverse" onclick="editReceptionStatus()">
-                <i class='fas fa-check'></i>
-            </div>
             <div class="form-group w-450px">
                 <div class="w-100">
                     <label class="d-block">Renommer les statuts de réception</label>
