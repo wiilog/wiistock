@@ -139,6 +139,7 @@ class StatusController extends AbstractController {
 
             $defaults = $statusRepository->countDefaults($category, $type);
             $drafts = $statusRepository->countDrafts($category, $type);
+            $disputes = $statusRepository->countDisputes($category, $type);
 
             if ($statusRepository->countSimilarLabels($category, $data['label'])) {
                 $success = false;
@@ -149,6 +150,9 @@ class StatusController extends AbstractController {
             } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
                 $success = false;
                 $message = 'Vous ne pouvez pas créer un statut brouillon pour cette entité et ce type, il en existe déjà un.';
+            } else if (((int) $data['state']) === Statut::DISPUTE && $disputes > 0) {
+                $success = false;
+                $message = 'Vous ne pouvez pas créer un statut litige pour cette entité et ce type, il en existe déjà un.';
             } else {
                 $type = $typeRepository->find($data['type']);
                 $status = new Statut();

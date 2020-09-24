@@ -104,7 +104,7 @@ class StatusService {
                 'id' => Statut::DRAFT
             ],
             [
-                'label' => 'À traité',
+                'label' => 'À traiter',
                 'id' => Statut::NOT_TREATED
             ],
             [
