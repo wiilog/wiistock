@@ -20,7 +20,7 @@
         <li>{{ "arrivage.n° d\'arrivage"|trans }} : <strong>{{ arrival.numeroArrivage }}</strong></li>
 
         {% if numeroCommandeList|length > 0 %}
-            <li>Numéro de commande{{ numeroCommandeList|length > 1 ? 's' }} : <strong>{{ numeroCommandeList|join(', ') }}</strong></li>
+            <li>{{ 'arrivage.Numéro de commande'|trans }}{{ numeroCommandeList|length > 1 ? 's' }} : <strong>{{ numeroCommandeList|join(', ') }}</strong></li>
         {% endif %}
 
         {% if arrival.fournisseur %}

@@ -130,15 +130,19 @@ class TypeController extends AbstractController
                 $champLibreRepository->deleteByType($type);
                 $entityManager->flush();
             }
+
             else {
+
                 // sinon on vérifie qu'il n'est pas lié par des contraintes de clé étrangère
                 $articlesRefExist = $referenceArticleRepository->countByType($type);
                 $articlesExist = $articleRepository->countByType($type);
                 $champsLibresExist = $champLibreRepository->countByType($type);
                 $filters = 0;
+
                 foreach ($champLibreRepository->findByType($type) as $cl) {
                     $filters += $this->filtreRefRepository->countByChampLibre($cl);
                 }
+
                 if ((int)$champsLibresExist + (int)$articlesExist + (int)$articlesRefExist > 0) {
                     return new JsonResponse([
                         'success' => true,

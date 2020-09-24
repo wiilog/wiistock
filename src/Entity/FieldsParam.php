@@ -129,7 +129,12 @@ class FieldsParam
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $displayed;
+    private $displayedForms;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $displayedFilters;
 
     /**
      * @ORM\Column(type="boolean", nullable=true, options={"default": false})
@@ -201,15 +206,21 @@ class FieldsParam
         return $this;
     }
 
-    public function getDisplayed(): ?bool
-    {
-        return $this->displayed;
+    public function isDisplayedForms(): ?bool {
+        return $this->displayedForms;
     }
 
-    public function setDisplayed(?bool $displayed): self
-    {
-        $this->displayed = $displayed;
+    public function setDisplayedForms(?bool $displayedForms): self {
+        $this->displayedForms = $displayedForms;
+        return $this;
+    }
 
+    public function isDisplayedFilters(): ?bool {
+        return $this->displayedFilters;
+    }
+
+    public function setDisplayedFilters(?bool $displayedFilters): self {
+        $this->displayedFilters = $displayedFilters;
         return $this;
     }
 

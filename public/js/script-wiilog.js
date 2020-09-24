@@ -1398,11 +1398,13 @@ function SetRequestQuery(queryParams = {}) {
     window.history.pushState({path: newUrl}, document.title, newUrl);
 }
 
-function OnTypeChange($select) {
+function onTypeChange($select) {
     const $modal = $select.closest('.modal');
-
     toggleRequiredChampsLibres($select, 'create');
-    typeChoice($select, '-new')
+    const $freeFieldsContainer = $modal.find('.free-fields-container');
+
+    toggleRequiredChampsLibres($select, 'create', $freeFieldsContainer);
+    typeChoice($select, '-new', $freeFieldsContainer);
 
     const type = parseInt($select.val());
 
@@ -1418,15 +1420,12 @@ function OnTypeChange($select) {
         $selectStatus.prop('disabled', true);
     } else {
         const $correspondingStatuses = $selectStatus.find('option[data-type-id="' + type + '"]');
-
         $selectStatus.removeAttr('disabled');
         $correspondingStatuses.removeClass('d-none');
-
         const defaultStatuses = JSON.parse($selectStatus.siblings('input[name="defaultStatuses"]').val() || '{}');
 
         if ($correspondingStatuses.length !== 0) {
             $selectStatus.removeClass('d-none');
-
             if (defaultStatuses[type]) {
                 $selectStatus.val(defaultStatuses[type]);
             } else if ($correspondingStatuses.length === 1) {

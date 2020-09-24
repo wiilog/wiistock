@@ -70,7 +70,8 @@ class FieldsParamController extends AbstractController
                 $rows[] =
                     [
                         'fieldCode' => $field->getFieldLabel(),
-						'displayed' => $field->getDisplayed() ? 'oui' : 'non',
+						'displayedForms' => $field->isDisplayedForms() ? 'oui' : 'non',
+						'displayedFilters' => $field->isDisplayedFilters() ? 'oui' : 'non',
 						'mustCreate' => $field->getMustToCreate() ? 'oui' : 'non',
 						'mustEdit' => $field->getMustToModify() ? 'oui' : 'non',
 						'Actions' => $this->renderView('fields_param/datatableFieldsRow.html.twig', [
@@ -138,7 +139,8 @@ class FieldsParamController extends AbstractController
                     ->setMustToModify($data['mustToModify'])
                     ->setMustToCreate($data['mustToCreate']);
             }
-            $field->setDisplayed($data['displayed'] ?? true);
+            $field->setDisplayedForms($data['displayed-forms'] ?? true);
+            $field->setDisplayedFilters($data['displayed-filters'] ?? true);
 
             $entityManager->persist($field);
             $entityManager->flush();

@@ -413,17 +413,18 @@ class ArrivageDataService
                 'value' => $arrivage->getNoTracking()
             ],
             [
-                'label' => 'N° commandes / BL',
+                'label' => $this->translator->trans('arrivage.Numéro de commande'),
+                'title' => 'Numéro de commande',
                 'value' => !empty($numeroCommandeList) ? implode(', ', $numeroCommandeList) : ''
             ],
             [
                 'label' => $this->translator->trans('arrivage.destinataire'),
-                'labelTitle' => 'destinataire',
+                'title' => 'destinataire',
                 'value' => $destinataire ? $destinataire->getUsername() : ''
             ],
             [
                 'label' => $this->translator->trans('arrivage.acheteurs'),
-                'labelTitle' => 'acheteurs',
+                'title' => 'acheteurs',
                 'value' => $buyers->count() > 0 ? implode(', ', $buyers->map(function (Utilisateur $buyer) {return $buyer->getUsername();})->toArray()) : ''
             ],
             [
@@ -436,12 +437,12 @@ class ArrivageDataService
             ],
             [
                 'label' => $this->translator->trans('arrivage.douane'),
-                'labelTitle' => 'douane',
+                'title' => 'douane',
                 'value' => $arrivage->getDuty() ? 'oui' : 'non'
             ],
             [
                 'label' => $this->translator->trans('arrivage.congelé'),
-                'labelTitle' => 'congelé',
+                'title' => 'congelé',
                 'value' => $arrivage->getFrozen() ? 'oui' : 'non'
             ]
         ];
@@ -495,7 +496,7 @@ class ArrivageDataService
             ['title' => 'Transporteur', 'name' => 'carrier'],
             ['title' => 'Chauffeur', 'name' => 'driver'],
             ['title' => 'N° tracking transporteur', 'name' => 'trackingCarrierNumber'],
-            ['title' => 'N° commande / bl', 'name' => 'orderNumber'],
+            ['title' => 'arrivage.Numéro de commande', 'name' => 'orderNumber', 'translated' => true],
             ['title' => 'Type', 'name' => 'type'],
             ['title' => 'Fournisseur', 'name' => 'provider'],
             ['title' => 'arrivage.destinataire', 'name' => 'receiver', 'translated' => true],

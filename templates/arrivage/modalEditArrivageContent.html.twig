@@ -1,6 +1,6 @@
 <div class="row">
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
             <div class="form-group col">
                 <label for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
                 <select class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }}" id="fournisseur" name="fournisseur">
@@ -13,7 +13,7 @@
             </div>
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
         <div class="form-group col">
             <label for="transporteur">Transporteur{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
             <select class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }}" id="transporteur" name="transporteur">
@@ -26,7 +26,7 @@
         </div>
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
         <div class="form-group col">
             <label for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
             <select class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }}" id="chauffeur" name="chauffeur">
@@ -43,7 +43,7 @@
 
 <div class="row">
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
         <div class="form-group col-4">
             <label for="noTracking">N° tracking transporteur{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : ''}}</label>
             <input type="text" id="noTracking" class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : ''}}" name="noTracking" maxlength="64"
@@ -53,7 +53,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayed') %}
         <div class="form-group col-4">
-            <label for="numeroCommandeList">N° commande / BL{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : ''}}</label>
+            <label for="numeroCommandeList" title="Numéro de commande">{{ 'arrivage.Numéro de commande'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : ''}}</label>
             <select id="numeroCommandeList"
                     class="form-control input-sm data select2-free w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}"
                     name="numeroCommandeList" multiple="multiple">
@@ -91,7 +91,7 @@
 
 <div class="row">
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TARGET_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
         <div class="form-group col-4">
             <label for="destinataire" title="destinataire">{{ 'arrivage.destinataire'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
             <select class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }}" id="destinataire" name="destinataire">
@@ -104,7 +104,7 @@
         </div>
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
         <div class="form-group w-100 col-4">
             <label for="acheteursEdit" title="acheteurs">{{ 'arrivage.acheteurs'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
             <select class="form-control data select2 {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }}" name="acheteurs" multiple="multiple"
@@ -121,7 +121,7 @@
 
 <div class="row">
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
         <div class="form-group col-4">
             <label for="noProject">Numéro de projet{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
             <input type="text"
@@ -131,7 +131,7 @@
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
         <div class="form-group col-4">
             <label for="chauffeur">Business Unit{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
             <select class="needs-default form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }}"
@@ -151,7 +151,7 @@
 
 <div class="row">
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DUTY_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
         <div class="form-group col-2">
             <label title="douane">{{ 'arrivage.douane'|trans }}</label>
             <label class="switch d-block-switch mt-2">
@@ -163,7 +163,7 @@
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
         <div class="form-group col-2">
             <label>{{ 'arrivage.congelé'|trans }}</label>
             <label class="switch d-block-switch mt-2">
@@ -189,7 +189,7 @@
 
 <div class="row">
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
         {% set commentNeeded = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
         <div class="form-group col-8 h-fit-content">
             <label for="commentaire">Commentaire{{ commentNeeded ? '*' }}</label>
@@ -202,7 +202,7 @@
         </div>
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PJ_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
         <div class="form-group col-4">
             <div>
                 {% include 'attachment/attachment.html.twig' with {

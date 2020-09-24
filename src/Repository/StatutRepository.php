@@ -46,6 +46,24 @@ class StatutRepository extends EntityRepository {
         return $qb->getQuery()->getSingleScalarResult();
     }
 
+    public function countDisputes($category, $type, $current = null) {
+        $qb = $this->createQueryBuilder("s")
+            ->select("COUNT(s)")
+            ->where("s.categorie = :category")
+            ->andWhere("s.type = :type")
+            ->andWhere("s.state = :dispute")
+            ->setParameter("category", $category)
+            ->setParameter("type", $type)
+            ->setParameter('dispute', Statut::DISPUTE);
+
+        if ($current) {
+            $qb->andWhere("s.id != :current")
+                ->setParameter("current", $current);
+        }
+
+        return $qb->getQuery()->getSingleScalarResult();
+    }
+
     public function countDefaults($category, $type, $current = null) {
         $qb = $this->createQueryBuilder("s")
             ->select("COUNT(s)")

@@ -615,8 +615,9 @@ class DispatchController extends AbstractController {
             $dispatch = $dispatchRepository->find($data['dispatch']);
 
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::DELETE) ||
-                !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_ACHE) ||
-                !$dispatch->getStatut()->isTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_UNPROCESSED_DISPATCH)) {
+                !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_DRAFT_DISPATCH) ||
+                !$dispatch->getStatut()->isTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_UNPROCESSED_DISPATCH) ||
+                $dispatch->getStatut()->isTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_PROCESSED_DISPATCH)) {
                 return $this->redirectToRoute('access_denied');
             }
 

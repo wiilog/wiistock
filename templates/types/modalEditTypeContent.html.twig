@@ -13,7 +13,7 @@
             <select name="category"
                     id="categories"
                     class="data form-control needed"
-                    onchange="typeSelectChange($(this))">
+                    onchange="typeSelectChange($(this), $('#modalEditType'))">
                 {% for category in categories %}
                     {% set selected = (category.id == type.category.id ? 'selected') %}
                         <option value="{{ category.id }}"
