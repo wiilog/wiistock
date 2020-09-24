@@ -66,15 +66,19 @@
                            min = "{{ 'now' | date('Y-m-d\\TH:i') }}"/>
                 </div>
 
-                <div class="form-group needed">
-                    <label for="source">Chargement*</label>
-                    <input class="form-control data needed" name="source">
+                {% if fieldsParam|isFieldRequired('loadingZone', 'displayed') %}
+                <div class="form-group">
+                    <label for="source">Chargement{{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? '*' : '' }}</label>
+                    <input class="form-control data {{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? 'needed' : '' }}" name="source">
                 </div>
+                {% endif %}
 
-                <div class="form-group needed">
-                    <label for="destination">Déchargement*</label>
-                    <input class="form-control data needed" name="destination">
+                {% if fieldsParam|isFieldRequired('unloadingZone', 'displayed') %}
+                <div class="form-group">
+                    <label for="destination">Déchargement{{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? '*' : '' }}</label>
+                    <input class="form-control data {{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? 'needed' : '' }}" name="destination">
                 </div>
+                {% endif %}
 
                 <!-- CHAMPS LIBRES -->
                 <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>

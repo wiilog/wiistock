@@ -94,6 +94,14 @@ class FieldsParam
     const FIELD_LABEL_LOCATION_PICK = 'emplacement de prise';
     const FIELD_LABEL_LOCATION_DROP = 'emplacement de dépose';
 
+    const ENTITY_CODE_HANDLING = 'services';
+
+    const FIELD_CODE_LOADING_ZONE = 'loadingZone';
+    const FIELD_CODE_UNLOADING_ZONE = 'unloadingZone';
+
+    const FIELD_LABEL_LOADING_ZONE = 'chargement';
+    const FIELD_LABEL_UNLOADING_ZONE = 'déchargement';
+
 	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()

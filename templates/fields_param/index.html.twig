@@ -88,6 +88,22 @@
                         </table>
                     </div>
                 </div>
+                {% set section = constant('App\\Entity\\FieldsParam::ENTITY_CODE_HANDLING') %}
+                <div class="row pt-3">
+                    <a data-toggle="collapse"
+                       href="#{{ section }}"
+                       role="button"
+                       aria-expanded="false"
+                       aria-controls="{{ section }}"
+                       class="col-12 mb-4">
+                        <h1 class="btn btn-primary m-0 w-100 border-radius-light">Catégorie {{ section }}<i
+                                class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+                    </a>
+                    <div class="collapse col-12" id="{{ section }}">
+                        <table id="table{{ section }}" class="table w-100">
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

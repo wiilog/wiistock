@@ -7,6 +7,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
+use App\Entity\FieldsParam;
 use App\Entity\Menu;
 use App\Entity\Handling;
 
@@ -100,8 +101,10 @@ class HandlingController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
 
         $filterStatus = $request->query->get('filter');
 
@@ -109,6 +112,7 @@ class HandlingController extends AbstractController
             'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE),
 			'filterStatus' => $filterStatus,
             'types' => $types,
+            'fieldsParam' => $fieldsParam,
             'modalNewConfig' => [
                 'handlingDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
                 'freeFieldsTypes' => array_map(function (Type $type) use ($freeFieldsRepository) {
@@ -171,8 +175,8 @@ class HandlingController extends AbstractController
                 ->setType($type)
                 ->setRequester($requester)
                 ->setSubject(substr($post->get('subject'), 0, 64))
-                ->setSource($post->get('source'))
-                ->setDestination($post->get('destination'))
+                ->setSource($post->get('source') ?? '')
+                ->setDestination($post->get('destination') ?? '')
                 ->setStatus($status)
                 ->setDesiredDate($desiredDate)
 				->setComment($post->get('comment'))
@@ -206,7 +210,9 @@ class HandlingController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => $translator->trans("services.La demande de service a bien été créée") . '.'
+                'msg' => $translator->trans("services.La demande de service {numéro} a bien été créée", [
+                        "{numéro}" => '<strong>'.$handling->getNumber().'</strong>',
+                    ]) . '.'
             ]);
         }
         throw new NotFoundHttpException('404 not found');
@@ -229,16 +235,20 @@ class HandlingController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $handlingRepository = $entityManager->getRepository(Handling::class);
             $attachmentsRepository = $entityManager->getRepository(PieceJointe::class);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
             $handling = $handlingRepository->find($data['id']);
             $status = $handling->getStatus();
             $statusTreated = $status && $status->isTreated();
+            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
+
             $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
                 'handling' => $handling,
                 'handlingStatus' => !$statusTreated
                     ? $statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType())
                     : [],
                 'attachments' => $attachmentsRepository->findBy(['handling' => $handling]),
+                'fieldsParam' => $fieldsParam
             ]);
 
             return new JsonResponse($json);
@@ -290,8 +300,8 @@ class HandlingController extends AbstractController
 
         $handling
             ->setSubject(substr($post->get('subject'), 0, 64))
-            ->setSource($post->get('source'))
-            ->setDestination($post->get('destination'))
+            ->setSource($post->get('source') ?? $handling->getSource())
+            ->setDestination($post->get('destination') ?? $handling->getDestination())
             ->setDesiredDate($desiredDate)
             ->setComment($post->get('comment') ?: '')
             ->setEmergency($post->getBoolean('emergency'));
@@ -328,7 +338,9 @@ class HandlingController extends AbstractController
 
         return new JsonResponse([
             'success' => true,
-            'msg' => $translator->trans("services.La demande de service a bien été modifiée") . '.'
+            'msg' => $translator->trans("services.La demande de service {numéro} a bien été modifiée", [
+                    "{numéro}" => '<strong>'.$handling->getNumber().'</strong>',
+                ]) . '.'
         ]);
 
     }
@@ -369,6 +381,7 @@ class HandlingController extends AbstractController
             $attachmentRepository = $entityManager->getRepository(PieceJointe::class);
 
             $handling = $handlingRepository->find($data['handling']);
+            $handlingNumber = $handling->getNumber();
 
             if ($handling) {
                 $attachments = $attachmentRepository->findBy(['handling' => $handling]);
@@ -382,7 +395,9 @@ class HandlingController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => $translator->trans('services.La demande de service a bien été supprimée').'.'
+                'msg' => $translator->trans('services.La demande de service {numéro} a bien été supprimée', [
+                        "{numéro}" => '<strong>'.$handlingNumber.'</strong>',
+                    ]).'.'
             ]);
         }
 

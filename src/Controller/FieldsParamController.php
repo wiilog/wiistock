@@ -145,7 +145,7 @@ class FieldsParamController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'Le champ fixe "' . $fieldName . '" dans "' . $fieldEntity . '" a bien été modifié.'
+                'msg' => 'Le champ fixe <strong>' . $fieldName . '</strong> dans <strong>' . $fieldEntity . '</strong> a bien été modifié.'
             ]);
         }
         throw new NotFoundHttpException('404');
