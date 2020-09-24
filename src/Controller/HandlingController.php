@@ -180,6 +180,7 @@ class HandlingController extends AbstractController
 
             if ($status && $status->isTreated()) {
                 $handling->setValidationDate($date);
+                $handling->setTreatedByHandling($requester);
             }
 
             $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
@@ -277,6 +278,8 @@ class HandlingController extends AbstractController
         $date = (new DateTime('now', new DateTimeZone('Europe/Paris')));
         $desiredDateStr = $post->get('desired-date');
         $desiredDate = $desiredDateStr ? new DateTime($desiredDateStr) : null;
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
 
         $oldStatus = $handling->getStatus();
 
@@ -298,6 +301,7 @@ class HandlingController extends AbstractController
 
         if (!$handling->getValidationDate() && $newStatus->isTreated()) {
             $handling->setValidationDate($date);
+            $handling->setTreatedByHandling($currentUser);
         }
 
         $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
@@ -415,6 +419,7 @@ class HandlingController extends AbstractController
                 'date attendue',
                 'date de réalisation',
                 'statut',
+                'traité par'
             ];
 
             $data = [];
@@ -441,6 +446,7 @@ class HandlingController extends AbstractController
                 $handling->getDesiredDate()->format('d/m/Y H:i'),
                 $handling->getValidationDate() ? $handling->getValidationDate()->format('d/m/Y H:i') : '',
                 $handling->getStatus() ? $handling->getStatus()->getNom() : '',
+                $handling->getTreatedByHandling() ? $handling->getTreatedByHandling()->getUsername() : '',
             ];
     }
 }

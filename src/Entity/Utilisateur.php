@@ -143,6 +143,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $treatedDispatches;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Handling", mappedBy="treatedByHandling")
+     */
+    private $treatedHandlings;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\FiltreRef", mappedBy="utilisateur", orphanRemoval=true)
      */
     private $filters;
@@ -317,6 +322,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->receivedDispatches = new ArrayCollection();
         $this->requestedDispatches = new ArrayCollection();
         $this->treatedDispatches = new ArrayCollection();
+        $this->treatedHandlings = new ArrayCollection();
         $this->receptionsTraca = new ArrayCollection();
         $this->litiges = new ArrayCollection();
         $this->referencesEmergenciesTriggered = new ArrayCollection();
@@ -1226,6 +1232,37 @@ class Utilisateur implements UserInterface, EquatableInterface
             // set the owning side to null (unless already changed)
             if ($treatedDispatch->getRequester() === $this) {
                 $treatedDispatch->setRequester(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Dispatch[]
+     */
+    public function getTreatedHandlings(): Collection
+    {
+        return $this->treatedHandlings;
+    }
+
+    public function addTreatedHandling(Dispatch $treatedHandling): self
+    {
+        if (!$this->treatedHandlings->contains($treatedHandling)) {
+            $this->treatedHandlings[] = $treatedHandling;
+            $treatedHandling->setRequester($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTreatedHandling(Dispatch $treatedHandling): self
+    {
+        if ($this->treatedHandlings->contains($treatedHandling)) {
+            $this->treatedHandlings->removeElement($treatedHandling);
+            // set the owning side to null (unless already changed)
+            if ($treatedHandling->getRequester() === $this) {
+                $treatedHandling->setRequester(null);
             }
         }
 

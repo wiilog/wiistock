@@ -32,6 +32,7 @@ let tableHandlingConfig = {
         { "data": 'validationDate', 'name': 'validationDate', 'title': 'Date de réalisation' },
         { "data": 'status', 'name': 'status', 'title': 'Statut' },
         { "data": 'emergency', 'name': 'emergency', 'title': 'Urgence' },
+        { "data": 'treatedBy', 'name': 'treatedBy', 'title': 'Traité par' },
     ],
 };
 let tableHandling = initDataTable('tableHandling_id', tableHandlingConfig);
