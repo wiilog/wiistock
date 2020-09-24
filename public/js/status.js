@@ -42,12 +42,11 @@ $(function () {
             {"data": 'label', "name": 'label', 'title': 'Libellé'},
             {"data": 'state', "name": 'state', 'title': 'État'},
             {"data": 'defaultStatus', "name": 'defaultStatus', 'title': 'Statut par défaut'},
-            {"data": 'notifToDeclarant', "name": 'notifToDeclarant', 'title': 'Envoi de mails au déclarant'},
             {"data": 'order', "name": 'order', 'title': 'Ordre'},
         ],
         order: [
             [1, 'asc'],
-            [6, 'asc']
+            [5, 'asc']
         ],
         rowConfig: {
             needsRowClickAction: true,

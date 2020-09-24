@@ -10,6 +10,10 @@ parameters:
     client: '%env(APP_CLIENT)%'
     dashboardToken: '%env(APP_DASHBOARD_TOKEN)%'
     appLocale: '%env(APP_LOCALE)%'
+
+    # default value for env variabledi
+    env(APP_FORBIDDEN_PHONES): ''
+
     #menu_config added via menu.yaml
 
 services:

@@ -79,10 +79,10 @@
             </label>
         </div>
 
-{#        TODO #}
         {% set hideSendNotifToBuyer = (
             status.categorie.nom == constant('App\\Entity\\CategorieStatut::DISPATCH')
             or status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING')
+            or status.categorie.nom == constant('App\\Entity\\CategorieStatut::ARRIVAGE')
         ) %}
         <div class="col-12 form-group {{ hideSendNotifToBuyer ? 'd-none'}}">
             <label>Envoi de mails aux acheteurs ?</label>
@@ -91,14 +91,20 @@
                 <span class="slider round"></span>
             </label>
         </div>
-        <div class="col-12 form-group">
+        {% set hideSendNotifToDeclarant = (
+            status.categorie.nom == constant('App\\Entity\\CategorieStatut::ARRIVAGE')
+        ) %}
+        <div class="col-12 form-group {{ hideSendNotifToDeclarant ? 'd-none'}}">
             <label>Envoi de mails au déclarant ?</label>
             <label class="switch">
                 <input class="checkbox" type="checkbox" name="sendMailsDeclarant" {{ status.sendNotifToDeclarant ? 'checked' }}/>
                 <span class="slider round"></span>
             </label>
         </div>
-        {% set hideSendNotifToBuyer = status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING') %}
+        {% set hideSendNotifToBuyer = (
+            status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING')
+            or status.categorie.nom == constant('App\\Entity\\CategorieStatut::ARRIVAGE')
+        ) %}
         <div class="col-12 form-group {{ hideSendNotifToBuyer ? 'd-none' }}">
             <label>Envoi de mails au destinataire ?</label>
             <label class="switch">
@@ -107,12 +113,11 @@
             </label>
         </div>
 
-        {% set hideNeedMobileSync = (
-            status.categorie.nom != constant('App\\Entity\\CategorieStatut::DISPATCH')
-            and status.categorie.nom != constant('App\\Entity\\CategorieStatut::HANDLING')
-            and status.categorie.nom != constant('App\\Entity\\CategorieStatut::ARRIVAGE')
-            ) %}
-        <div class="col-12 form-group" {{ hideNeedMobileSync ? 'd-none' }}>
+        {% set showNeedMobileSync = (
+            status.categorie.nom == constant('App\\Entity\\CategorieStatut::DISPATCH')
+            or status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING')
+        ) %}
+        <div class="col-12 form-group {{ not showNeedMobileSync ? 'd-none' }}">
             <label>Synchronisation nomade ?</label>
             <label class="switch">
                 <input class="checkbox" type="checkbox" name="needsMobileSync" {{ status.needsMobileSync ? 'checked' }}/>

@@ -204,7 +204,8 @@ class StatusController extends AbstractController {
             $categoryTypeToGet = (
                 ($statusCategory->getNom() === CategorieStatut::HANDLING) ? CategoryType::DEMANDE_HANDLING :
                 (($statusCategory->getNom() === CategorieStatut::DISPATCH) ? CategoryType::DEMANDE_DISPATCH :
-                    null)
+                (($statusCategory->getNom() === CategorieStatut::ARRIVAGE) ? CategoryType::ARRIVAGE :
+                    null))
             );
 
             $types = isset($categoryTypeToGet)
