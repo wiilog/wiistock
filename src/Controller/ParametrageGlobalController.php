@@ -78,6 +78,7 @@ class ParametrageGlobalController extends AbstractController
         $categoryCLRepository = $entityManager->getRepository(CategorieCL::class);
         $translationRepository = $entityManager->getRepository(Translation::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $labelLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
         $deliveryNoteLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
@@ -92,6 +93,8 @@ class ParametrageGlobalController extends AbstractController
             },
             $workFreeDaysRepository->findAll()
         );
+
+        $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
 
         return $this->render('parametrage_global/index.html.twig',
             [
@@ -115,8 +118,6 @@ class ParametrageGlobalController extends AbstractController
                 'paramArrivages' => [
                     'redirect' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL) ?? true,
                     'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
-                    'defaultStatusArrivageId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE),
-                    'listStatusArrivage' => $statusService->findAllStatusArrivage(),
                     'location' => $globalParamService->getMvtDeposeArrival(),
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
                     'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL)
@@ -126,7 +127,9 @@ class ParametrageGlobalController extends AbstractController
                     'consignor' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONSIGNER),
                     'receiver' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_RECEIVER),
                     'locationFrom' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_FROM),
-                    'locationTo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_TO)
+                    'locationTo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_TO),
+                    'waybillContactName' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_NAME),
+                    'waybillContactPhoneMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL),
                 ],
                 'mailerServer' => $mailerServerRepository->findOneMailerServer(),
                 'wantsBL' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
@@ -705,38 +708,6 @@ class ParametrageGlobalController extends AbstractController
             return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route(
-     *     "/statut-arrivage",
-     *     name="edit_status_arrivage",
-     *     options={"expose"=true},
-     *     methods="POST",
-     *     condition="request.isXmlHttpRequest()"
-     * )
-     * @param Request $request
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function editStatusArrivage(Request $request): Response
-    {
-        $post = $request->request;
-        $em = $this->getDoctrine()->getManager();
-        $paramGlobalRepository = $em->getRepository(ParametrageGlobal::class);
-        $parametrageGlobal = $paramGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE);
-
-        if (empty($parametrageGlobal)) {
-            $parametrageGlobal = new ParametrageGlobal();
-            $parametrageGlobal->setLabel(ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE);
-            $em->persist($parametrageGlobal);
-        }
-        $value = $post->get('value');
-        $trimmedValue = trim($value);
-        $parametrageGlobal->setValue(!empty($trimmedValue) ? $trimmedValue : null);
-        $em->flush();
-
-        return new JsonResponse(true);
     }
 
     /**

@@ -38,9 +38,8 @@ $(function () {
                         true,
                         {
                             ...(res || {}),
-                            success: ({statutConformeId}) => {
+                            success: () => {
                                 $modalNewArrivage.find('.list-multiple').select2();
-                                $modalNewArrivage.find('#statut').val(statutConformeId);
 
                                 let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
                                 $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
@@ -53,8 +52,7 @@ $(function () {
                 }
             });
 
-        onArrivalTypeChange($modalNewArrivage.find('[name="type"]'));
-
+        OnTypeChange($modalNewArrivage.find('[name="type"]'));
     });
 
     let path = Routing.generate('filter_get_by_page');
@@ -175,35 +173,4 @@ function initNewArrivageEditor(modal) {
     initSelect2($modal.find('.ajax-autocomplete-user'), '', 1);
     $modal.find('.list-multiple').select2();
     initFreeSelect2($('.select2-free'));
-}
-
-
-function onArrivalTypeChange($select) {
-    const $modal = $select.closest('.modal');
-    const $freeFieldsContainer = $modal.find('.free-fields-container');
-    toggleRequiredChampsLibres($select, 'create', $freeFieldsContainer);
-    typeChoice($select, '-new', $freeFieldsContainer)
-
-    // TODO
-    // const type = parseInt($select.val());
-    // let $modalNewDispatch = $("#modalNewArrivage");
-    // const $selectStatus = $modalNewDispatch.find('select[name="statut"]');
-    //
-    // $selectStatus.removeAttr('disabled');
-    // $selectStatus.find('option[data-type-id="' + type + '"]').removeClass('d-none');
-    // $selectStatus.find('option[data-type-id!="' + type + '"]').addClass('d-none');
-    // $selectStatus.val(null).trigger('change');
-    //
-    // if($selectStatus.find('option:not(.d-none)').length === 0) {
-    //     $selectStatus.siblings('.error-empty-status').removeClass('d-none');
-    //     $selectStatus.addClass('d-none');
-    // } else {
-    //     $selectStatus.siblings('.error-empty-status').addClass('d-none');
-    //     $selectStatus.removeClass('d-none');
-    //
-    //     const dispatchDefaultStatus = JSON.parse($selectStatus.siblings('input[name="dispatchDefaultStatus"]').val() || '{}');
-    //     if (dispatchDefaultStatus[type]) {
-    //         $selectStatus.val(dispatchDefaultStatus[type]);
-    //     }
-    // }
 }

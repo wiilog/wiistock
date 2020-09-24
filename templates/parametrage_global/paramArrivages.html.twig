@@ -43,18 +43,6 @@
         </div>
     </div>
     <div class="row mt-2">
-        <div class="form-group w-450px col-4">
-            <label for="arrivageStatus" class="d-block">Statut arrivage par défaut</label>
-            <select class="form-control d-block" id="arrivageStatus" onchange="editStatusArrivage($(this))">
-                <option></option>
-                {% for status in listStatusArrivage %}
-                    {% set selected = (status.id == defaultStatusArrivageId) ? 'selected' %}
-                    <option value="{{ status.id }}" {{ selected }}>{{ status.nom }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-    <div class="row mt-2">
         <div class="form-group col-4">
             <label for="locationWaitingDock" class="d-block">Emplacement de destination des arrivages</label>
             <select class="form-control ajax-autocomplete-location d-block data w-100"

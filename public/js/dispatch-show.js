@@ -61,8 +61,11 @@ $(function () {
     let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
     let urlPrintDeliveryNote = Routing.generate('delivery_note_dispatch', {dispatch: $('#dispatchId').val()}, true);
     InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote, {
-        success: () => {
-            window.location.href = Routing.generate('print_delivery_note_dispatch', {dispatch: $('#dispatchId').val()}, true);
+        success: ({attachmentId}) => {
+            window.location.href = Routing.generate('print_delivery_note_dispatch', {
+                dispatch: $('#dispatchId').val(),
+                attachment: attachmentId
+            })
         },
         validator: forbiddenPhoneNumberValidator
     });
@@ -71,8 +74,11 @@ $(function () {
     let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
     let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: $('#dispatchId').val()}, true);
     InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill, {
-        success: () => {
-            window.location.href = Routing.generate('print_waybill_dispatch', {dispatch: $('#dispatchId').val()})
+        success: ({attachmentId}) => {
+            window.location.href = Routing.generate('print_waybill_dispatch', {
+                dispatch: $('#dispatchId').val(),
+                attachment: attachmentId
+            })
         },
         validator: forbiddenPhoneNumberValidator
     });

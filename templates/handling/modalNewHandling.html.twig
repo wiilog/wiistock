@@ -15,8 +15,7 @@
                 <div class="form-group">
                     <label for="type">Type*</label>
                     <select name="type" class="form-control data d-block type needed"
-                            onclick="typeChoice($(this), '-new')"
-                            onchange="onHandlingTypeChange($(this))">
+                            onchange="OnTypeChange($(this))">
                         <option value="">Type à choisir...</option>
                         {% for type in freeFieldsTypes %}
                             <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
@@ -33,11 +32,11 @@
                             <option class="d-none" data-type-id="{{ status.type.id }}" value="{{ status.id }}">{{ status.nom }}</option>
                         {% endfor %}
                     </select>
-                    <input type="hidden" name="handlingDefaultStatus" value="{{ handlingDefaultStatus|json_encode }}"/>
+                    <input type="hidden" name="defaultStatuses" value="{{ defaultStatuses|json_encode }}"/>
                     <div class="error-empty-status d-none">
                         {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                             array: [],
-                            warningLabel: 'Attention ! Aucun statut pour ce type n\'a été créé.',
+                            warningLabel: 'Aucun statut pour ce type.',
                             redirectPath: path('status_param_index'),
                             redirectLabel: 'Aller vers la création des statuts.'
                         } %}

@@ -77,9 +77,12 @@
         <select class="form-control data needed"
                 id="statut"
                 name="statut">
-            <option disabled selected> </option>
+            {% set statusIsNotSet = arrivage.statut is not empty %}
+            {% if statusIsNotSet %}
+                <option disabled selected> </option>
+            {% endif %}
             {% for statut in statuts %}
-                {% set selected = (arrivage.statut is not empty and statut.id == arrivage.statut.id ? 'selected' : '') %}
+                {% set selected = (statusIsNotSet and statut.id == arrivage.statut.id ? 'selected' : '') %}
                 <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom|upper }}</option>
             {% endfor %}
         </select>

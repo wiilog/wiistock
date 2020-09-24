@@ -132,13 +132,12 @@ class ArrivageController extends AbstractController
      * @Route("/", name="arrivage_index")
      * @param EntityManagerInterface $entityManager
      * @param ArrivageDataService $arrivageDataService
-     * @param StatusService $statusService
+     *
      * @return RedirectResponse|Response
      * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager,
-                          ArrivageDataService $arrivageDataService,
-                          StatusService $statusService)
+                          ArrivageDataService $arrivageDataService)
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
             return $this->redirectToRoute('access_denied');
@@ -153,6 +152,7 @@ class ArrivageController extends AbstractController
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
@@ -161,28 +161,31 @@ class ArrivageController extends AbstractController
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
-        $paramGlobalDefaultStatusArrivageId = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE);
 
-        $status = $statusService->findAllStatusArrivage();
+        $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
 
         return $this->render('arrivage/index.html.twig', [
             'carriers' => $transporteurRepository->findAllSorted(),
             'chauffeurs' => $chauffeurRepository->findAllSorted(),
-            'users' => $utilisateurRepository->findBy(['status' => true],['username'=> 'ASC']),
+            'users' => $utilisateurRepository->findBy(['status' => true], ['username'=> 'ASC']),
             'fournisseurs' => $fournisseurRepository->findAllSorted(),
             'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
             'natures' => $natureRepository->findAll(),
-            'statuts' => $status,
+            'statuts' => $statuses,
             'typesArrival' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'fieldsParam' => $fieldsParam,
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $user->getPageLengthForArrivage() ?: 10,
             'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
-            'defaultStatutArrivageId' => $paramGlobalDefaultStatusArrivageId,
             'champs' => $champs,
             'columnsVisibles' => $user->getColumnsVisibleForArrivage(),
-            'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::ARRIVAL_BUSINESS_UNIT_VALUES))
+            'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::ARRIVAL_BUSINESS_UNIT_VALUES)),
+            'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
+            'modalNewConfig' => [
+                'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
+                'statuses' => $statuses,
+            ]
         ]);
     }
 
@@ -261,7 +264,7 @@ class ArrivageController extends AbstractController
             $arrivage
                 ->setIsUrgent(false)
                 ->setDate($date)
-                ->setStatut($statutRepository->find($data['statut']))
+                ->setStatut($statutRepository->find($data['status']))
                 ->setUtilisateur($this->getUser())
                 ->setNumeroArrivage($numeroArrivage)
                 ->setDuty(isset($data['duty']) ? $data['duty'] == 'true' : false)
@@ -354,7 +357,6 @@ class ArrivageController extends AbstractController
 
             $entityManager->flush();
             $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
-            $statutConformeId = $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::ARRIVAGE, Arrivage::STATUS_CONFORME);
 
             return new JsonResponse([
                 'success' => true,
@@ -365,7 +367,6 @@ class ArrivageController extends AbstractController
                 'printArrivage' => isset($data['printArrivage']) && $data['printArrivage'] === 'true',
                 'arrivageId' => $arrivage->getId(),
                 'numeroArrivage' => $arrivage->getNumeroArrivage(),
-                'statutConformeId' => $statutConformeId,
                 'alertConfigs' => $alertConfigs
             ]);
         }
@@ -376,13 +377,11 @@ class ArrivageController extends AbstractController
      * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param StatusService $statusService
      * @return Response
      * @throws NonUniqueResultException
      */
     public function editApi(Request $request,
-                            EntityManagerInterface $entityManager,
-                            StatusService $statusService): Response
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
@@ -396,6 +395,7 @@ class ArrivageController extends AbstractController
                 $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
                 $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
                 $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+                $statutRepository = $entityManager->getRepository(Statut::class);
 
                 $arrivage = $arrivageRepository->find($data['id']);
 
@@ -406,7 +406,7 @@ class ArrivageController extends AbstractController
                 }
                 $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
-                $status = $statusService->findAllStatusArrivage();
+                $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE, $arrivage->getType());
 
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
@@ -415,7 +415,7 @@ class ArrivageController extends AbstractController
                     'fournisseurs' => $fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
                     'chauffeurs' => $chauffeurRepository->findAllSorted(),
-                    'statuts' => $status,
+                    'statuts' => $statuses,
                     'fieldsParam' => $fieldsParam,
                     'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::ARRIVAL_BUSINESS_UNIT_VALUES))
                 ]);
@@ -1033,7 +1033,16 @@ class ArrivageController extends AbstractController
                 $litige->setEmergencyTriggered($post->get('emergency') === 'true');
             }
             if ((!$litige->getStatus() || !$litige->getStatus()->isTreated()) && $arrivage) {
-                $arrivage->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARRIVAGE, Arrivage::STATUS_LITIGE));
+                $typeStatuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE, $arrivage->getType());
+                $disputeStatus = array_reduce(
+                    $typeStatuses,
+                    function(?Statut $disputeStatus, Statut $status) {
+                        return $disputeStatus
+                            ?? ($status->isDispute() ? $status : null);
+                    },
+                    null
+                );
+                $arrivage->setStatut($disputeStatus);
             }
             $typeDescription = $litige->getType()->getDescription();
             $typeLabel = $litige->getType()->getLabel();

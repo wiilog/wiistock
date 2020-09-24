@@ -146,6 +146,9 @@ class DispatchService {
         $row = [
             'id' => $dispatch->getId() ?? 'Non défini',
             'number' => $dispatch->getNumber() ?? '',
+            'carrier' => $dispatch->getCarrier() ? $dispatch->getCarrier()->getLabel() : '',
+            'carrierTrackingNumber' => $dispatch->getCarrierTrackingNumber(),
+            'commandNumber' => $dispatch->getCommandNumber(),
             'creationDate' => $dispatch->getCreationDate() ? $dispatch->getCreationDate()->format('d/m/Y H:i:s') : '',
             'validationDate' => $dispatch->getValidationDate() ? $dispatch->getValidationDate()->format('d/m/Y H:i:s') : '',
             'requester' => $dispatch->getRequester() ? $dispatch->getRequester()->getUserName() : '',
@@ -181,7 +184,7 @@ class DispatchService {
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,
             'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
-            'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
+            'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
             'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
                 $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
                 return [
@@ -198,7 +201,7 @@ class DispatchService {
                     ]
                 ];
             }, $types),
-            'notTreatedStatus' => $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::NOT_TREATED, Statut::DRAFT]),
+            'notTreatedStatus' => $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
             'packs' => $arrival ? $arrival->getPacks() : [],
             'fromArrival' => $arrival !== null,
             'arrival' => $arrival
@@ -261,7 +264,7 @@ class DispatchService {
                 $receiverDetails,
                 ['label' => 'Numéro de projet', 'value' => $projectNumber],
                 ['label' => 'Business Unit', 'value' => $dispatch->getBusinessUnit() ?? ''],
-                ['label' => 'Numéro de commande', 'value' => $commandNumber],
+                ['label' => $this->translator->trans('acheminement.Numéro de commande'), 'value' => $commandNumber],
                 ['label' => $this->translator->trans('acheminement.Emplacement prise'), 'value' => $locationFrom ? $locationFrom->getLabel() : ''],
                 ['label' => $this->translator->trans('acheminement.Emplacement dépose'), 'value' => $locationTo ? $locationTo->getLabel() : ''],
                 ['label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''],
@@ -453,6 +456,9 @@ class DispatchService {
         $columns = [
             ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true],
             ['title' => 'Numéro demande', 'name' => 'number'],
+            ['title' => 'Transporteur', 'name' => 'carrier'],
+            ['title' => 'Numéro de tracking transporteur', 'name' => 'carrierTrackingNumber'],
+            ['title' => 'acheminement.Numéro de commande', 'name' => 'commandNumber', 'translated' => true],
             ['title' => 'Date de création',  'name' => 'creationDate'],
             ['title' => 'Date de validation', 'name' => 'validationDate'],
             ['title' => 'Date de traitement', 'name' => 'treatmentDate'],
@@ -464,7 +470,7 @@ class DispatchService {
             ['title' => 'acheminement.Nb colis', 'name' => 'nbPacks', 'orderable' => false, 'translated' => true],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Urgence', 'name' => 'emergency'],
-            ['title' => 'Traité par', 'name' => 'treatedBy']
+            ['title' => 'Traité par', 'name' => 'treatedBy'],
         ];
 
         return array_merge(

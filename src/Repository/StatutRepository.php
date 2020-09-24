@@ -317,13 +317,15 @@ class StatutRepository extends EntityRepository {
                     'category.nom = :categoryLabel_arrivalDispute',
                     'category.nom = :categoryLabel_receptionDispute',
                     'category.nom = :categoryLabel_dispatch',
-                    'category.nom = :categoryLabel_handling'
+                    'category.nom = :categoryLabel_handling',
+                    'category.nom = :categoryLabel_arrival'
                 ) . ')')
             ->setParameters([
                 'categoryLabel_arrivalDispute' => CategorieStatut::LITIGE_ARR,
                 'categoryLabel_receptionDispute' => CategorieStatut::LITIGE_RECEPT,
                 'categoryLabel_dispatch' => CategorieStatut::DISPATCH,
-                'categoryLabel_handling' => CategorieStatut::HANDLING
+                'categoryLabel_handling' => CategorieStatut::HANDLING,
+                'categoryLabel_arrival' => CategorieStatut::ARRIVAGE
             ]);
 
         $qb
@@ -409,7 +411,8 @@ class StatutRepository extends EntityRepository {
         }
 
         if ($type) {
-            $qb->andWhere("status.type = :type")
+            $qb
+                ->andWhere("status.type = :type")
                 ->setParameter("type", $type);
         }
 

@@ -24,15 +24,6 @@
                     data-toggle='modal' class="btn btn-primary btn-ripple ml-auto split-button">
                 Modifier
             </button>
-        {% else %}
-            <button type="button" class="btn btn-primary btn-ripple ml-auto split-button"
-                    id="printArrivageBtn">
-                <a
-                    href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
-                    <i class='fas fa-print pointer'></i>
-                    Imprimer <span title="arrivage">{{ 'arrivage.arrivage'|trans }}</span>
-                </a>
-            </button>
         {% endif %}
         <button type="button" class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
                 data-toggle="dropdown"
@@ -41,28 +32,31 @@
             <span class="fa fa-angle-down"></span>
         </button>
         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
-                <a class="dropdown-item"
-                   id="printArrivageBtn"
-                   href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
-                    <i class='fas fa-print pointer'></i>
-                    Imprimer <span title="arrivage">{{ 'arrivage.arrivage'|trans }}</span>
-                </a>
-            {% endif %}
+            <a class="dropdown-item"
+               id="printArrivageBtn"
+               href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
+                <i class='fas fa-print pointer mr-2'></i>
+                Imprimer <span title="arrivage">{{ 'arrivage.arrivage'|trans }}</span>
+            </a>
             <a href="" class="dropdown-item" data-target='#modalNewAssociation' data-toggle='modal'>
-                <i class="fa fa-bullseye mr-2"></i>Association/BR
+                <i class="fa fa-bullseye mr-2"></i>
+                Association/BR
             </a>
             {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
-            <a href="" data-target='#modalNewDispatch' data-toggle='modal'
-               class="dropdown-item" title="Acheminer" onclick="initNewDispatchEditor('#modalNewDispatch')">
-                <i class="fas fa-exchange-alt mr-2"></i>{{ 'arrivage.Acheminer'|trans }}</a>
+                <a href="" data-target='#modalNewDispatch' data-toggle='modal'
+                   class="dropdown-item" title="Acheminer" onclick="initNewDispatchEditor('#modalNewDispatch')">
+                    <i class="fas fa-exchange-alt mr-2"></i>
+                    {{ 'arrivage.Acheminer'|trans }}
+                </a>
             {% endif %}
             {% if canBeDeleted %}
                 {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE_ARRI')) %}
                     <a href="" data-id='{{ arrivage.id }}' data-target='#modalDeleteArrivage' data-toggle='modal'
                        class="dropdown-item"
                        onclick="deleteRowArrivage($(this), $('#modalDeleteArrivage'), $('#submitDeleteArrivage'))">
-                        <i class="fa fa-trash mr-2"></i>Supprimer</a>
+                        <i class="fa fa-trash mr-2"></i>
+                        Supprimer
+                    </a>
                 {% endif %}
             {% endif %}
         </div>

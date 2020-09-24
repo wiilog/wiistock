@@ -41,11 +41,14 @@ use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Error\LoaderError;
@@ -232,8 +235,8 @@ class DispatchController extends AbstractController {
             $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 
             $fileBag = $request->files->count() > 0 ? $request->files : null;
-            $locationTake = $emplacementRepository->find($post->get('prise'));
-            $locationDrop = $emplacementRepository->find($post->get('depose'));
+            $locationTake = $post->get('prise') ? $emplacementRepository->find($post->get('prise')) : null;
+            $locationDrop = $post->get('depose') ?  $emplacementRepository->find($post->get('depose')) : null;
 
             $comment = $post->get('commentaire');
             $startDateRaw = $post->get('startDate');
@@ -260,7 +263,7 @@ class DispatchController extends AbstractController {
 
             $dispatch
                 ->setCreationDate($date)
-                ->setStatut($statutRepository->find($post->get('statut')))
+                ->setStatut($statutRepository->find($post->get('status')))
                 ->setType($typeRepository->find($post->get('type')))
                 ->setRequester($utilisateurRepository->find($post->get('requester')))
                 ->setLocationFrom($locationTake)
@@ -477,16 +480,8 @@ class DispatchController extends AbstractController {
         $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
         $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
 
-        $locationTake = $emplacementRepository->find($post->get('prise'));
-        $locationDrop = $emplacementRepository->find($post->get('depose'));
-
-        $oldStatus = $dispatch->getStatut();
-        if (!$oldStatus || !$oldStatus->isTreated()) {
-            $newStatus = $statutRepository->find($post->get('statut'));
-            $dispatch->setStatut($newStatus);
-        } else {
-            $newStatus = null;
-        }
+        $locationTake = $post->get('prise') ? $emplacementRepository->find($post->get('prise')) : null;
+        $locationDrop = $post->get('depose') ?  $emplacementRepository->find($post->get('depose')) : null;
 
         if ($startDate && $endDate && $startDate > $endDate) {
             return new JsonResponse([
@@ -537,15 +532,6 @@ class DispatchController extends AbstractController {
         $this->persistAttachments($dispatch, $this->attachmentService, $request, $entityManager);
 
         $entityManager->flush();
-
-        if ((!$oldStatus && $newStatus)
-            || (
-                $oldStatus
-                && $newStatus
-                && ($oldStatus->getId() !== $newStatus->getId())
-            )) {
-            $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
-        }
 
         $dispatchStatus = $dispatch->getStatut();
 
@@ -1142,11 +1128,20 @@ class DispatchController extends AbstractController {
      * )
      * @param EntityManagerInterface $entityManager
      * @param Dispatch $dispatch
+     * @param PDFGeneratorService $pdf
+     * @param DispatchService $dispatchService
      * @param Request $request
      * @return JsonResponse
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws Exception
      */
     public function postDeliveryNote(EntityManagerInterface $entityManager,
                                      Dispatch $dispatch,
+                                     PDFGeneratorService $pdf,
+                                     DispatchService $dispatchService,
                                      Request $request): JsonResponse {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
@@ -1174,40 +1169,63 @@ class DispatchController extends AbstractController {
 
         $entityManager->flush();
 
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $logo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
+
+        $nowDate = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
+        $documentTitle = "BL - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}";
+        $fileName = $pdf->generatePDFDeliveryNote($documentTitle, $logo, $dispatch);
+
+        $deliveryNoteAttachment = new PieceJointe();
+        $deliveryNoteAttachment
+            ->setDispatch($dispatch)
+            ->setFileName($fileName)
+            ->setOriginalName($documentTitle . '.pdf');
+
+        $entityManager->persist($deliveryNoteAttachment);
+
+        $entityManager->flush();
+
+        $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
+
         return new JsonResponse([
             'success' => true,
-            'msg' => 'Le téléchargement de votre bon de livraison va commencer...'
+            'msg' => 'Le téléchargement de votre bon de livraison va commencer...',
+            'entete' => $this->renderView("dispatch/dispatch-show-header.html.twig", [
+                'dispatch' => $dispatch,
+                'showDetails' => $detailsConfig,
+                'modifiable' => !$dispatch->getStatut() || $dispatch->getStatut()->isDraft(),
+            ]),
+            'attachmentId' => $deliveryNoteAttachment->getId()
         ]);
     }
 
     /**
      * @Route(
-     *     "/{dispatch}/delivery-note",
+     *     "/{dispatch}/delivery-note/{attachment}",
      *     name="print_delivery_note_dispatch",
      *     options={"expose"=true},
      *     methods="GET"
      * )
      * @param TranslatorInterface $trans
-     * @param PDFGeneratorService $pdf
      * @param Dispatch $dispatch
+     * @param KernelInterface $kernel
+     * @param PieceJointe $attachment
      * @return PdfResponse
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
-    public function printDeliveryNote(TranslatorInterface $trans, PDFGeneratorService $pdf, Dispatch $dispatch): Response {
+    public function printDeliveryNote(TranslatorInterface $trans,
+                                      Dispatch $dispatch,
+                                      KernelInterface $kernel,
+                                      PieceJointe $attachment): Response {
         if (!$dispatch->getDeliveryNoteData()) {
             throw new NotFoundHttpException($trans->trans('acheminement.Le bon de livraison n\'existe pas pour cet acheminement'));
         }
 
-        $logo = $this->getDoctrine()
-            ->getRepository(ParametrageGlobal::class)
-            ->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
 
-        $nowDate = new DateTime();
-
-        return $pdf->generatePDFDeliveryNote("BL - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}.pdf", $logo, $dispatch);
+        return $response;
     }
 
     /**
@@ -1220,6 +1238,7 @@ class DispatchController extends AbstractController {
      * )
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $translator
      * @param SpecificService $specificService
      * @param Dispatch $dispatch
      * @return JsonResponse
@@ -1252,6 +1271,16 @@ class DispatchController extends AbstractController {
 
         $isEmerson = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_EMERSON);
 
+        $consignorUsername = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_NAME);
+        $consignorUsername = $consignorUsername !== null && $consignorUsername !== ''
+            ? $consignorUsername
+            : ($isEmerson ? $loggedUser->getUsername() : null);
+
+        $consignorEmail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL);
+        $consignorEmail = $consignorEmail !== null && $consignorEmail !== ''
+            ? $consignorEmail
+            : ($isEmerson ? $loggedUser->getEmail() : null);
+
         $defaultData = [
             'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
             'dispatchDate' => $now->format('Y-m-d'),
@@ -1259,9 +1288,8 @@ class DispatchController extends AbstractController {
             'receiver' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_RECEIVER),
             'locationFrom' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_FROM),
             'locationTo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_TO),
-
-            'consignorUsername' => $isEmerson ? $loggedUser->getUsername() : null,
-            'consignorEmail' => $isEmerson ? $loggedUser->getEmail() : null,
+            'consignorUsername' => $consignorUsername,
+            'consignorEmail' => $consignorEmail,
             'receiverUsername' => $isEmerson ? $loggedUser->getUsername() : null,
             'receiverEmail' => $isEmerson ? $loggedUser->getEmail() : null
         ];
@@ -1301,12 +1329,21 @@ class DispatchController extends AbstractController {
      * )
      * @param EntityManagerInterface $entityManager
      * @param Dispatch $dispatch
+     * @param PDFGeneratorService $pdf
+     * @param DispatchService $dispatchService
      * @param TranslatorInterface $translator
      * @param Request $request
      * @return JsonResponse
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function postDispatchWaybill(EntityManagerInterface $entityManager,
                                         Dispatch $dispatch,
+                                        PDFGeneratorService $pdf,
+                                        DispatchService $dispatchService,
                                         TranslatorInterface $translator,
                                         Request $request): JsonResponse {
 
@@ -1340,38 +1377,62 @@ class DispatchController extends AbstractController {
             $success = true;
         }
 
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $logo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
+
+        $nowDate = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
+        $title = "LDV - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}";
+        $fileName = $pdf->generatePDFWaybill($title, $logo, $dispatch);
+
+        $wayBillAttachment = new PieceJointe();
+        $wayBillAttachment
+            ->setDispatch($dispatch)
+            ->setFileName($fileName)
+            ->setOriginalName($title . '.pdf');
+
+        $entityManager->persist($wayBillAttachment);
+
+        $entityManager->flush();
+
+        $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
+
         return new JsonResponse([
             'success' => $success,
-            'msg' => $message
+            'msg' => $message,
+            'entete' => $this->renderView("dispatch/dispatch-show-header.html.twig", [
+                'dispatch' => $dispatch,
+                'showDetails' => $detailsConfig,
+                'modifiable' => !$dispatch->getStatut() || $dispatch->getStatut()->isDraft(),
+            ]),
+            'attachmentId' => $wayBillAttachment->getId()
         ]);
     }
 
     /**
      * @Route(
-     *     "/{dispatch}/waybill",
+     *     "/{dispatch}/waybill/{attachment}",
      *     name="print_waybill_dispatch",
      *     options={"expose"=true},
      *     methods="GET"
      * )
      * @param TranslatorInterface $trans
-     * @param PDFGeneratorService $pdf
      * @param Dispatch $dispatch
+     * @param PieceJointe $attachment
+     * @param KernelInterface $kernel
      * @return JsonResponse
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
-    public function printWaybillNote(TranslatorInterface $trans, PDFGeneratorService $pdf, Dispatch $dispatch): Response {
+    public function printWaybillNote(TranslatorInterface $trans,
+                                     Dispatch $dispatch,
+                                     PieceJointe $attachment,
+                                     KernelInterface $kernel): Response {
         if (!$dispatch->getWaybillData()) {
             throw new NotFoundHttpException($trans->trans('acheminement.La lettre de voiture n\'existe pas pour cet acheminement'));
         }
 
-        $logo = $this->getDoctrine()
-            ->getRepository(ParametrageGlobal::class)
-            ->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
 
-        $nowDate = new DateTime();
-
-        return $pdf->generatePDFWaybill("LDV - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}.pdf", $logo, $dispatch);
+        return $response;
     }
 }
