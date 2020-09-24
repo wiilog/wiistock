@@ -237,10 +237,13 @@ function visibleBlockModal(bloc) {
     }
 }
 
-function typeChoice(bloc, text, content = $('.free-fields-container')) {
-    let cible = bloc.val();
-    content.children().addClass('d-none');
-    $('#' + cible + text).removeClass('d-none');
+function typeChoice($select, text, $freeFieldsContainer = null) {
+    if(!$freeFieldsContainer) {
+        $freeFieldsContainer = $select.siblings('.modal').find('.free-fields-container');
+    }
+
+    $freeFieldsContainer.children().addClass('d-none');
+    $('#' + $select.val() + text).removeClass('d-none');
 }
 
 function updateQuantityDisplay($elem) {
@@ -480,9 +483,15 @@ function ajaxAutoDemandesInit(select) {
     initSelect2(select, 'Numéros de demande', 3, {route: 'get_demandes'});
 }
 
-function toggleRequiredChampsLibres(select, require, $freeFieldContainer = null) {
-    const bloc = $freeFieldContainer ? $freeFieldContainer : $('.free-fields-container');
-    const typeId = select.val();
+function toggleRequiredChampsLibres($select, require, $freeFieldContainer = null) {
+    const bloc = $freeFieldContainer
+        ? $freeFieldContainer
+        : $select.siblings('.modal')
+            .find('.free-fields-container')
+            .children()
+            .addClass('d-none');
+
+    const typeId = $select.val();
 
     let params = {};
     if (typeId) {
@@ -1391,10 +1400,9 @@ function SetRequestQuery(queryParams = {}) {
 
 function OnTypeChange($select) {
     const $modal = $select.closest('.modal');
-    const $freeFieldsContainer = $modal.find('.free-fields-container');
 
-    toggleRequiredChampsLibres($select, 'create', $freeFieldsContainer);
-    typeChoice($select, '-new', $freeFieldsContainer)
+    toggleRequiredChampsLibres($select, 'create');
+    typeChoice($select, '-new')
 
     const type = parseInt($select.val());
     const $selectStatus = $modal.find('select[name="status"]');
