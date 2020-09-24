@@ -88,15 +88,9 @@
     </div>
 
     <!-- CHAMPS LIBRES -->
-    <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
-        <h3 class='d-flex pointer'>
-            <i class="fas fa-caret-right d-block mr-2"></i>
-            <i class="fas fa-caret-down  d-none mr-2"></i>
-            Champs libres
-        </h3>
-    </div>
-    <div class="form-group col-12 blocVisible d-block" id='typeEdit'>
-        <div class="row">
+    <div class="col-12">
+        <span class="toggle-collapsible expanded">Champs libres</span>
+        <div class="collapsible expanded free-fields-container">
             {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                 freeFields: typeChampsLibres.champsLibres,
                 freeFieldValues: article.freeFields,
@@ -106,6 +100,7 @@
             } %}
         </div>
     </div>
+
     <div class="col-12 row mt-4">
         <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
             <h3 class='d-flex pointer'>

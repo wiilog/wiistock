@@ -1,6 +1,6 @@
 {% if demandeType == 'collecte' %}
     <div id='collecteShow' class='d-none col-12'>
-        <div class="form-group col-12 d-flex w-100 mb-3">
+        <div class="form-group w-100 mt-2">
             <label for="">Mes demandes</label>
             <select name="collecte" class="form-control ajax-autocomplete-article data select2">
                 {% for collecte in collectes %}
@@ -10,11 +10,11 @@
                 {% endfor %}
             </select>
         </div>
-        {{articleOrNo | raw }}
+        {{ articleOrNo | raw }}
     </div>
 {% elseif demandeType == 'livraison' %}
     <div id="livraisonShow" class='d-none col-12'>
-        <div class="form-group col-12 d-flex w-100 mb-3">
+        <div class="form-group w-100 mt-2">
             <label for="">Mes demandes</label>
             <select name="livraison" class="form-control ajax-autocomplete-article data select2">
                 {% for demande in demandes %}
@@ -24,6 +24,6 @@
                 {% endfor %}
             </select>
         </div>
-        {{articleOrNo | raw }}
+        {{ articleOrNo | raw }}
     </div>
 {% endif %}

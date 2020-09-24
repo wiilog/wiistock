@@ -354,7 +354,7 @@
 
                 <!-- CHAMPS LIBRES -->
                 <span class="toggle-collapsible expanded">Champs libres</span>
-                <div class="collapsible expanded free-fields-container">
+                <div class="collapsible expanded free-fields-container mb-2">
                     {% for type in typesArrival %}
                         <div class="d-none row" id="{{ type.id }}-new">
                             {% include 'champ_libre/freeFieldsViewing.html.twig' with {
@@ -368,7 +368,7 @@
                     {% endfor %}
                 </div>
 
-                <div class="row mt-2">
+                <div class="row">
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
                         {% set commentNeeded = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}

@@ -43,7 +43,7 @@
 <div class="row">
     <div class="form-group col-4">
         <label for="type">Type*</label>
-        <select name="type" onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
+        <select name="type" onclick="typeChoice($(this), '-new')"
                 onchange="toggleRequiredChampsLibres($(this),'create')"
                 class="form-control data d-block type needed" id="">
             <option value="">Type à choisir...</option>
@@ -136,25 +136,18 @@
 </div>
 
 <!-- CHAMPS LIBRES -->
-<div class="row mt-4">
-    <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
-        <h3 class='d-flex pointer'>
-            <i class="fas fa-caret-right d-block mr-2"></i>
-            <i class="fas fa-caret-down d-none  mr-2"></i>
-            Champs libres
-        </h3>
-    </div>
-    <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
-        {% for type in typeChampsLibres %}
-            <div class="d-none row" id="{{ type.typeId }}-new">
-                {% include 'champ_libre/freeFieldsViewing.html.twig' with {
-                    freeFields: type.champsLibres,
-                    freeFieldValues: [],
-                    colType: 'col-4',
-                    requiredType: 'requiredCreate',
-                    actionType: 'new'
-                } %}
-            </div>
-        {% endfor %}
-    </div>
+<span class="toggle-collapsible expanded">Champs libres</span>
+<div class="collapsible expanded free-fields-container">
+    {% for type in typeChampsLibres %}
+        <div class="d-none row" id="{{ type.typeId }}-new">
+            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+                freeFields: type.champsLibres,
+                freeFieldValues: [],
+                colType: 'col-md-4 col-12',
+                requiredType: 'requiredCreate',
+                actionType: 'new'
+            } %}
+        </div>
+    {% endfor %}
 </div>
+

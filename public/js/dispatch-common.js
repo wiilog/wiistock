@@ -24,7 +24,7 @@ function onDispatchTypeChange($select) {
     const $selectedOption = $select.find('option:selected');
 
     toggleRequiredChampsLibres($select, 'create');
-    typeChoice($select, '-new', $('.free-fields-container'))
+    typeChoice($select, '-new')
 
     const type = parseInt($select.val());
     let $modalNewDispatch = $("#modalNewDispatch");

@@ -158,8 +158,8 @@ function toggleLivraisonCollecte($switch) {
     let boutonNouvelleDemande = $switch.closest('.modal').find('.boutonCreationDemande');
 
     $.post(path, params, function (data) {
-        if (data === false) {
-            $('.error-msg').html('Vous n\'avez créé aucune demande de ' + type + '.');
+        if(!data.success) {
+            $('.error-msg').html(data.msg);
             boutonNouvelleDemande.removeClass('d-none');
             let pathIndex;
             if (type === 'livraison') {
@@ -171,6 +171,7 @@ function toggleLivraisonCollecte($switch) {
             boutonNouvelleDemande.find('#creationDemande').html(
                 "<a href=\'" + pathIndex + "\'>Nouvelle demande de " + type + "</a>"
             );
+
             $switch.closest('.modal').find('.plusDemandeContent').addClass('d-none');
         } else {
             ajaxPlusDemandeContent($switch, type);
@@ -236,7 +237,7 @@ function visibleBlockModal(bloc) {
     }
 }
 
-function typeChoice(bloc, text, content) {
+function typeChoice(bloc, text, content = $('.free-fields-container')) {
     let cible = bloc.val();
     content.children().addClass('d-none');
     $('#' + cible + text).removeClass('d-none');
@@ -480,12 +481,9 @@ function ajaxAutoDemandesInit(select) {
 }
 
 function toggleRequiredChampsLibres(select, require, $freeFieldContainer = null) {
-    let bloc = ( //TODO pas top
-        $freeFieldContainer ? $freeFieldContainer :
-        require == 'create' ? $('#typeContentNew') :
-            $('#typeContentEdit')
-    );
+    const bloc = $freeFieldContainer ? $freeFieldContainer : $('.free-fields-container');
     const typeId = select.val();
+
     let params = {};
     if (typeId) {
         bloc

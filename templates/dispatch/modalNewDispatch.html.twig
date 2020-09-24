@@ -224,10 +224,11 @@
                         <input type="hidden" name="isAttachmentForm" value="1"/>
                     {% endif %}
                 </div>
+
                 {% if typeChampsLibres is not empty %}
-                    <div class="row">
                         <!-- CHAMPS LIBRES -->
-                        <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
+                        <span class="toggle-collapsible expanded">Champs libres</span>
+                        <div class="collapsible expanded free-fields-container">
                             {% for type in typeChampsLibres %}
                                 <div class="d-none row" id="{{ type.typeId }}-new">
                                     {% include 'champ_libre/freeFieldsViewing.html.twig' with {
@@ -240,8 +241,8 @@
                                 </div>
                             {% endfor %}
                         </div>
-                    </div>
                 {% endif %}
+
                 {% if packs is defined and packs is not empty %}
                     <div class="row">
                         <div class="col-12">
