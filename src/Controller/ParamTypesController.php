@@ -5,8 +5,10 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategoryType;
+use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\Type;
+use App\Service\GlobalParamService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -94,10 +96,12 @@ class ParamTypesController extends AbstractController
     /**
      * @Route("/creer", name="types_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param GlobalParamService $globalParamService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function new(Request $request,
+                        GlobalParamService $globalParamService,
                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -109,18 +113,16 @@ class ParamTypesController extends AbstractController
 
             $typeRepository = $entityManager->getRepository(Type::class);
             $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
             // on vérifie que le label n'est pas déjà utilisé
             $labelExist = $typeRepository->countByLabelAndCategory($data['label'], $data['category']);
 
+
             if (!$labelExist) {
-                $category = $categoryTypeRepository->find($data['category']);
                 $type = new Type();
-                $type
-                    ->setLabel($data['label'])
-                    ->setSendMail($data["sendMail"] ?? false)
-                    ->setDescription($data['description'])
-                    ->setCategory($category);
+
+                $globalParamService->treatTypeCreationOrEdition($type, $categoryTypeRepository, $emplacementRepository, $data);
 
                 $em->persist($type);
                 $em->flush();
@@ -171,10 +173,12 @@ class ParamTypesController extends AbstractController
     /**
      * @Route("/modifier", name="types_edit",  options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param GlobalParamService $globalParamService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function edit(Request $request,
+                         GlobalParamService $globalParamService,
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -184,6 +188,7 @@ class ParamTypesController extends AbstractController
 
             $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
             $type = $typeRepository->find($data['type']);
             $typeLabel = $type->getLabel();
@@ -192,12 +197,7 @@ class ParamTypesController extends AbstractController
             $labelExist = $typeRepository->countByLabelDiff($data['label'], $typeLabel, $data['category']);
 
             if (!$labelExist) {
-                $category = $categoryTypeRepository->find($data['category']);
-                $type
-                    ->setLabel($data['label'])
-                    ->setSendMail($data["sendMail"] ?? false)
-                    ->setCategory($category)
-                    ->setDescription($data['description']);
+                $globalParamService->treatTypeCreationOrEdition($type, $categoryTypeRepository, $emplacementRepository, $data);
 
                 $entityManager->persist($type);
                 $entityManager->flush();

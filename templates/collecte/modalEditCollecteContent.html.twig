@@ -41,24 +41,13 @@
         </select>
     </div>
 </div>
-<div class="form-group row">
-    <label class="col-12" for="Destination">Destination</label>
-    <span class="input-group radio-btn col">
-        {% set classDestruction = collecte.stockOrDestruct == 1 ? 'not-active' : 'active' %}
-        {% set classStock = collecte.stockOrDestruct == 0 ? 'active' : 'not-active' %}
 
-        <span class="btn {{ classDestruction }}"
-              data-toggle="destination"
-              data-title="0"
-              onclick="toggleRadioButton($(this))">Destruction</span>
-        <span class="btn active"
-              data-toggle="destination"
-              data-title="1"
-              onclick="toggleRadioButton($(this))">Mise en stock</span>
-    </span>
-
-    <input type="number" name="destination" class="d-none data" value="{{ collecte.stockOrDestruct }}"
-           id="destination">
+<div class="form-group">
+    <label>Destination*</label><br>
+    <div class="wii-switch needed" data-title="Destination">
+        <input type="radio" name="destination" value="0" content="Destruction" {% if collecte.isDestruct %}checked{% endif %}>
+        <input type="radio" name="destination" value="1" content="Mise en stock" {% if collecte.isStock %}checked{% endif %}>
+    </div>
 </div>
 
 <div class="form-group row">

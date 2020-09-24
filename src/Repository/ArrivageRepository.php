@@ -359,10 +359,11 @@ class ArrivageRepository extends EntityRepository
                         ->leftJoin('a.acheteurs', 'ach3')
                         ->leftJoin('a.utilisateur', 'u3')
                         ->leftJoin('a.type', 'search_type')
-                        ->andWhere('(
+                        ->andWhere("(
                             a.numeroArrivage LIKE :value
                             OR t3.label LIKE :value
                             OR ch3.nom LIKE :value
+                            OR ch3.prenom LIKE :value
                             OR a.noTracking LIKE :value
                             OR a.numeroCommandeList LIKE :value
                             OR f3.nom LIKE :value
@@ -372,7 +373,8 @@ class ArrivageRepository extends EntityRepository
                             OR search_type.label LIKE :value
                             OR a.businessUnit LIKE :value
                             OR a.projectNumber LIKE :value
-                        )')
+                            OR DATE_FORMAT(a.date, '%e/%m/%Y') LIKE :value
+                        )")
                         ->setParameter('value', '%' . $search . '%');
                 }
             }

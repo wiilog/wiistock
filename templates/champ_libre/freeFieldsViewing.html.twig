@@ -15,27 +15,19 @@
             </div>
             <div class="col-12">
                 {% if freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
-                    <div class="mt-2">
+                    <div class="wii-switch {{ attribute(freeField, requiredType) ? 'needed' }}" data-title="{{ freeField.label }}">
                         {% set entityValue = freeFieldValues[freeField.id] is defined
                             ? freeFieldValues[freeField.id]
                             : ( freeField.defaultValue is defined
-                                ? freeField.defaultValue
-                                : "0")
-                        %}
-                        {% set checked = (entityValue == "1" ? 'checked') %}
-                        <label class="switch">
-                            <input type="checkbox"
-                                   class="checkbox needs-default"
-                                   {{ checked }}
-                                   data-init="{{ entityValue }}"
-                                   id="{{ freeField.id ~ actionType }}"
-                                   name="{{ freeField.id }}">
-                            <span class="slider round"></span>
-                        </label>
+                            ? freeField.defaultValue
+                            : "0") %}
+
+                        <input type="radio" name="{{ freeField.id }}" value="1" content="Oui" {{ entityValue == 1 ? 'checked' }}>
+                        <input type="radio" name="{{ freeField.id }}" value="0" content="Non" {{ entityValue == 0 ? 'checked' }}>
                     </div>
                 {% elseif  freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_NUMBER') %}
                     <input type="number" id="{{ freeField.id ~ actionType }}"
-                           class="form-control data needs-default {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
+                           class="form-control data needs-default {{ attribute(freeField, requiredType) ? 'needed' }}"
                            data-init="{{ entityValue }}"
                            value="{{ entityValue }}"
                            name="{{ freeField.id }}">

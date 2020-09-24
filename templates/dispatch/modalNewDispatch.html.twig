@@ -16,45 +16,60 @@
                             <label for="type">Type*</label>
                             <select name="type"
                                     class="form-control data d-block type needed"
-                                    onchange="OnTypeChange($(this))">
+                                    onchange="onDispatchTypeChange($(this))">
                                 <option value="">Type à choisir...</option>
                                 {% for type in typeChampsLibres %}
-                                    <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
+                                    <option
+                                        data-pick-location-id="{{ type.pickLocation.id }}"
+                                        data-pick-location-label="{{ type.pickLocation.label }}"
+                                        data-drop-location-id="{{ type.dropLocation.id }}"
+                                        data-drop-location-label="{{ type.dropLocation.label }}"
+                                        value="{{ type.typeId }}">
+                                        {{ type.typeLabel }}
+                                    </option>
                                 {% endfor %}
                             </select>
                         </div>
-
-                        <div class="form-group">
-                            <label for="prise" title="Emplacement prise">{{ 'acheminement.Emplacement prise'|trans }}*</label>
-                            <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block needed location-prise w-100" id="prise">
-                            </select>
-                        </div>
-
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_PICK') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                             <div class="form-group">
-                                <label>Transporteur{{ required ? '*' }}</label>
-                                <select class="form-control data ajax-autocomplete-transporteur w-100 {{ required ? 'needed' }}"
-                                        title="Transporteur"
-                                        name="carrier">
+                                <label for="prise" title="Emplacement prise">{{ 'acheminement.Emplacement prise'|trans }}{{ required ? '*' }}</label>
+                                <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block {{ required ? 'needed' }} location-prise w-100" id="prise">
                                 </select>
                             </div>
+                        {% endif %}
+
+                        {% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_EMERSON'))
+                            or hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::SHOW_CARRIER_FIELD'))
+                        %}
+                            {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
+                            {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                                {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                                <div class="form-group">
+                                    <label>Transporteur{{ required ? '*' }}</label>
+                                    <select class="form-control data ajax-autocomplete-transporteur w-100 {{ required ? 'needed' }}"
+                                            title="Transporteur"
+                                            name="carrier">
+                                    </select>
+                                </div>
+                            {% endif %}
                         {% endif %}
 
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                             <div class="form-group">
-                                <label for="command-number">Numéro de commande{{ required ? '*' }}</label>
+                                <label for="command-number">{{'acheminement.Numéro de commande'|trans}}{{ required ? '*' }}</label>
                                 <input class="form-control data {{ required ? 'needed' }}" id="command-number" name="commandNumber">
                             </div>
                         {% endif %}
                     </div>
                     <div class="col-md-4 col-12">
                         <div class="form-group">
-                            <label for="type">Statut*</label>
+                            <label for="status">Statut*</label>
                             <select name="status"
+                                    disabled
                                     class="form-control data w-100 needed need-default">
                                 <option value="">Choisir un statut...</option>
                                 {% for statut in notTreatedStatus %}
@@ -69,18 +84,21 @@
                             <div class="error-empty-status d-none">
                                 {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                                     array: [],
-                                    warningLabel: 'Attention ! Aucun statut pour ce type n\'a été créé.',
+                                    warningLabel: 'Aucun statut pour ce type.',
                                     redirectPath: path('status_param_index'),
                                     redirectLabel: 'Aller vers la création des statuts.'
                                 } %}
                             </div>
                         </div>
-
-                        <div class="form-group w-100">
-                            <label for="depose" title="Emplacement dépose">{{ 'acheminement.Emplacement dépose'|trans }}*</label>
-                            <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block needed location-depose" id="depose">
-                            </select>
-                        </div>
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_DROP') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                            <div class="form-group w-100">
+                                <label for="depose" title="Emplacement dépose">{{ 'acheminement.Emplacement dépose'|trans }}{{ required ? '*' }}</label>
+                                <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block {{ required ? 'needed' }} location-depose" id="depose">
+                                </select>
+                            </div>
+                        {% endif %}
 
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
@@ -258,9 +276,9 @@
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="submitNewDispatch" type="button" class="btn btn-success">Enregistrer</button>
-                {% if fromArrival %}
-                    <button id="submitNewDispatchWithBL" type="button" class="btn btn-success">Enregistrer et générer le BL</button>
-                {% endif %}
+{#                {% if fromArrival %}#}
+{#                    <button id="submitNewDispatchWithBL" type="button" class="btn btn-success">Enregistrer et générer le BL</button>#}
+{#                {% endif %}#}
             </div>
         </div>
     </div>

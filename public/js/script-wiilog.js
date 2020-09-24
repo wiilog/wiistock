@@ -149,35 +149,34 @@ function toggleRadioButton($button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-function toggleLivraisonCollecte($button) {
-    toggleRadioButton($button);
+function toggleLivraisonCollecte($switch) {
+    let type = $switch.val();
 
-    let typeDemande = $button.data('title');
     let path = Routing.generate('demande', true);
     let demande = $('#demande');
-    let params = JSON.stringify({demande: demande, typeDemande: typeDemande});
-    let boutonNouvelleDemande = $button.closest('.modal').find('.boutonCreationDemande');
+    let params = JSON.stringify({demande, typeDemande: type});
+    let boutonNouvelleDemande = $switch.closest('.modal').find('.boutonCreationDemande');
 
     $.post(path, params, function (data) {
         if (data === false) {
-            $('.error-msg').html('Vous n\'avez créé aucune demande de ' + typeDemande + '.');
+            $('.error-msg').html('Vous n\'avez créé aucune demande de ' + type + '.');
             boutonNouvelleDemande.removeClass('d-none');
             let pathIndex;
-            if (typeDemande === 'livraison') {
+            if (type === 'livraison') {
                 pathIndex = Routing.generate('demande_index', false);
             } else {
                 pathIndex = Routing.generate('collecte_index', false);
             }
 
             boutonNouvelleDemande.find('#creationDemande').html(
-                "<a href=\'" + pathIndex + "\'>Nouvelle demande de " + typeDemande + "</a>"
+                "<a href=\'" + pathIndex + "\'>Nouvelle demande de " + type + "</a>"
             );
-            $button.closest('.modal').find('.plusDemandeContent').addClass('d-none');
+            $switch.closest('.modal').find('.plusDemandeContent').addClass('d-none');
         } else {
-            ajaxPlusDemandeContent($button, typeDemande);
-            $button.closest('.modal').find('.boutonCreationDemande').addClass('d-none');
-            $button.closest('.modal').find('.plusDemandeContent').removeClass('d-none');
-            $button.closest('.modal').find('.editChampLibre').removeClass('d-none');
+            ajaxPlusDemandeContent($switch, type);
+            $switch.closest('.modal').find('.boutonCreationDemande').addClass('d-none');
+            $switch.closest('.modal').find('.plusDemandeContent').removeClass('d-none');
+            $switch.closest('.modal').find('.editChampLibre').removeClass('d-none');
         }
     }, 'json');
 }
@@ -493,6 +492,10 @@ let toggleRequiredChampsLibres = function (select, require, $freeFieldContainer 
             .find('.data')
             .removeClass('needed');
 
+        bloc
+            .find('.wii-switch')
+            .removeClass('needed');
+
         if (require === 'create') { // we don't save free field which are hidden
             bloc
                 .find('.data')
@@ -512,7 +515,7 @@ let toggleRequiredChampsLibres = function (select, require, $freeFieldContainer 
         $.post(path, JSON.stringify(params), function (data) {
             if (data) {
                 data.forEach(function (element) {
-                    const $formControl = bloc.find('[name="' + element + '"]');
+                    const $formControl = bloc.find('[name="' + element + '"], .wii-switch:has(input[name="' + element + '"])');
                     const $label = $formControl.siblings('label');
                     $label.append($('<span class="is-required-label">&nbsp;*</span>'));
                     $formControl.addClass('needed');
@@ -550,6 +553,12 @@ function displayError(modal, msg, success) {
 
 function clearModal(modal) {
     let $modal = $(modal);
+
+    let switches = $modal.find('.wii-switch').find('input[type="radio"]');
+    switches.each(function() {
+        $(this).prop('checked', false);
+    })
+
     let inputs = $modal.find('.modal-body').find(".data");
     // on vide tous les inputs (sauf les disabled et les input hidden)
     inputs.each(function () {

@@ -18,6 +18,7 @@
                     {% set selected = (category.id == type.category.id ? 'selected') %}
                         <option value="{{ category.id }}"
                                 {{ selected }}
+                                data-needs-default-locations="{{ category.label == constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH') }}"
                                 data-needs-send-mail="{{ category.label == constant('App\\Entity\\CategoryType::DEMANDE_LIVRAISON') }}">
                             {{ category.label }}</option>
                 {% endfor %}
@@ -53,6 +54,24 @@
                        name="sendMail" {{ type.sendMail ? 'checked' }}>
                 <span class="slider round"></span>
             </label>
+        </div>
+
+        {% set needsHide = type.category.label != constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH') %}
+        <div class="col-12 form-group {{ needsHide ? 'd-none' }} needs-default-locations">
+            <label for="prise">Emplacement de prise par défaut</label>
+            <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block location-prise w-100" id="prise">
+                {% if type.pickLocation %}
+                    <option value="{{ type.pickLocation.id }}">{{ type.pickLocation.label }}</option>
+                {% endif %}
+            </select>
+        </div>
+        <div class="col-12 form-group {{ needsHide ? 'd-none' }} needs-default-locations">
+            <label for="depose">Emplacement de dépose par défaut</label>
+            <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block location-prise w-100" id="depose">
+                {% if type.dropLocation %}
+                    <option value="{{ type.dropLocation.id }}">{{ type.dropLocation.label }}</option>
+                {% endif %}
+            </select>
         </div>
     </div>
 </form>

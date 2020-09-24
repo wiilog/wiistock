@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+    <style>
+/*            transition: all 100ms linear;*/
+        .wii-switch input {
+            appearance: none;
+            width: 100px;
+            height: 20px;
+            background-color: #FFFFFF;
+            position: relative;
+            outline: 0;
+        }
+
+        .wii-switch input:checked {
+            background-color: #130078;
+        }
+
+        .wii-switch input:before {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 20px;
+            line-height: 20px;
+            text-align: center;
+            color: black;
+            vertical-align: 50%;
+        }
+    </style>
+</head>
+<body>
+<div class="wii-switch">
+    <input type="radio" name="required" value="1" data-text="ON">
+    <input type="radio" name="required" value="0" data-text="OFF">
+</div>
+
+<div class="wii-switch">
+    <input type="radio" name="not-required" value="1" data-text="ON">
+    <input type="radio" name="not-required" value="0" data-text="OFF">
+</div>
+
+<label>
+    <input type="text">
+</label>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $('body').on("change", '.wii-switch', initializeSwitches);
+    $('.wii-switch').each(initializeSwitches);
+
+    function initializeSwitches() {
+        const clicked = $(this);
+        const other = $(`input[name="${clicked.prop("name")}"]`);
+        const label = clicked.parent().parent();
+
+        if (label.prop("tagName").toLowerCase() === "label") {
+            label.addClass("wii-switch");
+        }
+    }
+</script>
+</body>
+</html>

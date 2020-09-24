@@ -91,6 +91,16 @@ class Emplacement
      */
     private $dispatchesTo;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Type::class, mappedBy="dropLocation")
+     */
+    private $dropTypes;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Type::class, mappedBy="pickLocation")
+     */
+    private $pickTypes;
+
 
     public function __construct()
     {
@@ -104,6 +114,8 @@ class Emplacement
         $this->allowedNatures = new ArrayCollection();
         $this->dispatchesFrom = new ArrayCollection();
         $this->dispatchesTo = new ArrayCollection();
+        $this->dropTypes = new ArrayCollection();
+        $this->pickTypes = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -446,6 +458,68 @@ class Emplacement
             // set the owning side to null (unless already changed)
             if ($dispatchTo->getLocationTo() === $this) {
                 $dispatchTo->setLocationTo(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Type[]
+     */
+    public function getDropTypes(): Collection
+    {
+        return $this->dropTypes;
+    }
+
+    public function addDropType(Type $dropType): self
+    {
+        if (!$this->dropTypes->contains($dropType)) {
+            $this->dropTypes[] = $dropType;
+            $dropType->setDropLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDropType(Type $dropType): self
+    {
+        if ($this->dropTypes->contains($dropType)) {
+            $this->dropTypes->removeElement($dropType);
+            // set the owning side to null (unless already changed)
+            if ($dropType->getDropLocation() === $this) {
+                $dropType->setDropLocation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Type[]
+     */
+    public function getPickTypes(): Collection
+    {
+        return $this->pickTypes;
+    }
+
+    public function addPickType(Type $pickType): self
+    {
+        if (!$this->pickTypes->contains($pickType)) {
+            $this->pickTypes[] = $pickType;
+            $pickType->setPickLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function removePickType(Type $pickType): self
+    {
+        if ($this->pickTypes->contains($pickType)) {
+            $this->pickTypes->removeElement($pickType);
+            // set the owning side to null (unless already changed)
+            if ($pickType->getPickLocation() === $this) {
+                $pickType->setPickLocation(null);
             }
         }
 

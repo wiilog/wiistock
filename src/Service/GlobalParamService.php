@@ -3,11 +3,15 @@
 
 namespace App\Service;
 
+use App\Entity\CategoryType;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\Emplacement;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Transporteur;
+use App\Entity\Type;
+use App\Repository\CategoryTypeRepository;
+use App\Repository\EmplacementRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -56,6 +60,27 @@ Class GlobalParamService
 		$response['isCode128'] = $typeBarcode === '1';
 		return $response;
 	}
+
+	public function treatTypeCreationOrEdition(Type $type, CategoryTypeRepository $categoryTypeRepository, EmplacementRepository $emplacementRepository, array $data) {
+        $category = $categoryTypeRepository->find($data['category']);
+
+        $isDispatch = ($category->getLabel() === CategoryType::DEMANDE_DISPATCH);
+
+        $type
+            ->setLabel($data['label'])
+            ->setSendMail($data["sendMail"] ?? false)
+            ->setCategory($category)
+            ->setDescription($data['description']);
+
+        if ($isDispatch) {
+            $dropLocation = $data["depose"] ? $emplacementRepository->find($data["depose"]) : null;
+            $pickLocation = $data["prise"] ? $emplacementRepository->find($data["prise"]) : null;
+
+            $type
+                ->setDropLocation($dropLocation)
+                ->setPickLocation($pickLocation);
+        }
+    }
 
 	/**
 	 * @return array|null

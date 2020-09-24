@@ -15,6 +15,7 @@
                             <option placeholder="" disabled value="" selected></option>
                             {% for category in categories %}
                                 <option value="{{ category.id }}"
+                                        data-needs-default-locations="{{ category.label == constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH') }}"
                                         data-needs-send-mail="{{ category.label == constant('App\\Entity\\CategoryType::DEMANDE_LIVRAISON') }}">
                                     {{ category.label }}
                                 </option>
@@ -42,6 +43,20 @@
                             <input class="checkbox" type="checkbox" name="sendMail">
                             <span class="slider round"></span>
                         </label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 form-group d-none needs-default-locations">
+                        <label for="prise">Emplacement de prise par défaut</label>
+                        <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block location-prise w-100" id="prise">
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 form-group d-none needs-default-locations">
+                        <label for="depose">Emplacement de dépose par défaut</label>
+                        <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block location-prise w-100" id="depose">
+                        </select>
                     </div>
                 </div>
             </div>

@@ -36,11 +36,24 @@ InitModal(ModalDeleteType, SubmitDeleteType, urlDeleteType, {tables: [tableTypes
 function typeSelectChange($typeSelect) {
     const $selectedOption = $typeSelect.find('option:selected');
     const $mailCheckContainer = $('.send-mail');
+    const $defaultLocations = $('.needs-default-locations');
     const $mailCheck = $mailCheckContainer.find('input[name="sendMail"]');
+
     $mailCheck.prop('checked', false);
     if ($selectedOption.data('needs-send-mail')) {
         $mailCheckContainer.removeClass('d-none');
     } else {
         $mailCheckContainer.addClass('d-none');
     }
+    if ($selectedOption.data('needs-default-locations')) {
+        ajaxAutoCompleteEmplacementInit($defaultLocations.find('.ajax-autocompleteEmplacement'));
+        $defaultLocations.removeClass('d-none');
+    } else {
+        $defaultLocations.addClass('d-none');
+    }
+}
+
+function initNewTypeModal() {
+    const $defaultLocations = $('.needs-default-locations');
+    ajaxAutoCompleteEmplacementInit($defaultLocations.find('.ajax-autocompleteEmplacement'));
 }

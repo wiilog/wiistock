@@ -71,7 +71,8 @@
             <input type="text" class="form-control data" name="comment" value="{{ status.comment }}"/>
         </div>
 
-        <div class="col-12 form-group">
+        {% set hideDefault = status.categorie.nom == constant('App\\Entity\\CategorieStatut::DISPATCH') %}
+        <div class="col-12 form-group {{ hideDefault ? 'd-none' }}">
             <label>Statut par défaut pour cette entité ?</label>
             <label class="switch">
                 <input class="checkbox" type="checkbox" name="defaultForCategory" {{ status.defaultForCategory ? 'checked' }}/>

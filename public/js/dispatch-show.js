@@ -61,18 +61,26 @@ $(function () {
     let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
     let urlPrintDeliveryNote = Routing.generate('delivery_note_dispatch', {dispatch: $('#dispatchId').val()}, true);
     InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote, {
-        success: () => {
-            window.location.href = Routing.generate('print_delivery_note_dispatch', {dispatch: $('#dispatchId').val()}, true);
-        }
+        success: ({attachmentId}) => {
+            window.location.href = Routing.generate('print_delivery_note_dispatch', {
+                dispatch: $('#dispatchId').val(),
+                attachment: attachmentId
+            })
+        },
+        validator: forbiddenPhoneNumberValidator
     });
 
     let $modalPrintWaybill = $('#modalPrintWaybill');
     let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
     let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: $('#dispatchId').val()}, true);
     InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill, {
-        success: () => {
-            window.location.href = Routing.generate('print_waybill_dispatch', {dispatch: $('#dispatchId').val()})
-        }
+        success: ({attachmentId}) => {
+            window.location.href = Routing.generate('print_waybill_dispatch', {
+                dispatch: $('#dispatchId').val(),
+                attachment: attachmentId
+            })
+        },
+        validator: forbiddenPhoneNumberValidator
     });
 
     const queryParams = GetRequestQuery();
@@ -83,6 +91,33 @@ $(function () {
         $('#generateDeliveryNoteButton').click();
     }
 });
+
+function forbiddenPhoneNumberValidator($modal) {
+    const $inputs = $modal.find(".forbidden-phone-numbers");
+    const $invalidElements = [];
+    const errorMessages = [];
+    const numbers = ($('#forbiddenPhoneNumbers').val() || '')
+        .split(';')
+        .map((number) => number.replace(/[^0-9]/g, ''));
+
+    $inputs.each(function() {
+        const $input = $(this);
+        const rawValue = ($input.val() || '');
+        const value = rawValue.replace(/[^0-9]/g, '');
+
+        if (value
+            && numbers.indexOf(value) !== -1) {
+            errorMessages.push(`Le numéro de téléphone ${rawValue} ne peut pas être utilisé ici`);
+            $invalidElements.push($input);
+        }
+    });
+
+    return {
+        success: $invalidElements.length === 0,
+        errorMessages,
+        $isInvalidElements: $invalidElements
+    };
+}
 
 function togglePackDetails(emptyDetails = false) {
     const $modal = $('#modalPack');
@@ -235,11 +270,15 @@ function openDeliveryNoteModal($button) {
     const dispatchId = $button.data('dispatch-id');
     $
         .get(Routing.generate('api_delivery_note_dispatch', {dispatch: dispatchId}))
-        .then((html) => {
-            const $modal = $('#modalPrintDeliveryNote');
-            const $modalBody = $modal.find('.modal-body');
-            $modalBody.html(html);
-            $modal.modal('show');
+        .then((result) => {
+            if(result.success) {
+                const $modal = $('#modalPrintDeliveryNote');
+                const $modalBody = $modal.find('.modal-body');
+                $modalBody.html(result.html);
+                $modal.modal('show');
+            } else {
+                showBSAlert(result.msg, "danger");
+            }
         })
 }
 
@@ -247,11 +286,15 @@ function openWaybillModal($button) {
     const dispatchId = $button.data('dispatch-id');
     $
         .get(Routing.generate('api_dispatch_waybill', {dispatch: dispatchId}))
-        .then((html) => {
-            const $modal = $('#modalPrintWaybill');
-            const $modalBody = $modal.find('.modal-body');
-            $modalBody.html(html);
-            $modal.modal('show');
+        .then((result) => {
+            if(result.success) {
+                const $modal = $('#modalPrintWaybill');
+                const $modalBody = $modal.find('.modal-body');
+                $modalBody.html(result.html);
+                $modal.modal('show');
+            } else {
+                showBSAlert(result.msg, "danger");
+            }
         })
 }
 

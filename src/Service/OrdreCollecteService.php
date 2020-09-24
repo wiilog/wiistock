@@ -196,7 +196,7 @@ class OrdreCollecteService
 		$collecteReferences = $ordreCollecteReferenceRepository->findByOrdreCollecte($ordreCollecte);
 
 		// cas de mise en stockage
-		if ($demandeCollecte->getStockOrDestruct()) {
+		if ($demandeCollecte->isStock()) {
 			foreach ($collecteReferences as $collecteReference) {
 			    /** @var ReferenceArticle $refArticle */
 				$refArticle = $collecteReference->getReferenceArticle();
@@ -414,7 +414,7 @@ class OrdreCollecteService
             [ 'label' => 'Statut', 'value' => $ordreCollecte->getStatut() ? $this->stringService->mbUcfirst($ordreCollecte->getStatut()->getNom()) : '' ],
             [ 'label' => 'Opérateur', 'value' => $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '' ],
             [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
-            [ 'label' => 'Destination', 'value' => $demande->getStockOrDestruct() ? 'Mise en stock' : 'Destruction' ],
+            [ 'label' => 'Destination', 'value' => $demande->isStock() ? 'Mise en stock' : 'Destruction' ],
             [ 'label' => 'Point de collecte', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
             [ 'label' => 'Date de collecte', 'value' => $dateCollecte ? $dateCollecte->format('d/m/Y H:i') : '' ],
             [
