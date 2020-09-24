@@ -4,7 +4,16 @@
         <div class="dropdown-menu dropdown-follow-gt pointer">
             <div class="d-none">
                 <div class="btn btn-col-action action-on-click" data-id='{{ typeId }}' data-toggle='modal' data-target='#modalEditType'
-                     onclick="editRow($(this), Routing.generate('types_api_edit', true), $('#modalEditType'), $('#submitEditType'))">
+                     onclick="editRow($(this),
+                     Routing.generate('types_api_edit', true),
+                     $('#modalEditType'),
+                     $('#submitEditType'),
+                     false,
+                     'editor-container-edit',
+                     false,
+                     ($modal) => {
+                         initTypeLocations($modal)
+                     })">
                     <i class='fas fa-pencil-alt'></i>
                 </div>
             </div>

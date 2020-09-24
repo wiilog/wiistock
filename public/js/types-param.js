@@ -33,13 +33,14 @@ let SubmitDeleteType = $("#submitDeleteType");
 let urlDeleteType = Routing.generate('types_delete', true)
 InitModal(ModalDeleteType, SubmitDeleteType, urlDeleteType, {tables: [tableTypes]});
 
-function typeSelectChange($typeSelect) {
+function typeSelectChange($typeSelect, $modal) {
     const $selectedOption = $typeSelect.find('option:selected');
     const $mailCheckContainer = $('.send-mail');
-    const $defaultLocations = $('.needs-default-locations');
+    const $defaultLocations = $modal.find('.needs-default-locations');
     const $mailCheck = $mailCheckContainer.find('input[name="sendMail"]');
 
     $mailCheck.prop('checked', false);
+
     if ($selectedOption.data('needs-send-mail')) {
         $mailCheckContainer.removeClass('d-none');
     } else {
@@ -53,7 +54,7 @@ function typeSelectChange($typeSelect) {
     }
 }
 
-function initNewTypeModal() {
-    const $defaultLocations = $('.needs-default-locations');
+function initTypeLocations($modal) {
+    const $defaultLocations = $modal.find('.needs-default-locations');
     ajaxAutoCompleteEmplacementInit($defaultLocations.find('.ajax-autocompleteEmplacement'));
 }
