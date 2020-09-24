@@ -1405,26 +1405,38 @@ function OnTypeChange($select) {
     typeChoice($select, '-new')
 
     const type = parseInt($select.val());
-    const $selectStatus = $modal.find('select[name="status"]');
-    const $errorEmptyStatus = $selectStatus.siblings('.error-empty-status');
-    $errorEmptyStatus.addClass('d-none');
 
-    $selectStatus.removeAttr('disabled');
-    $selectStatus.find('option[data-type-id="' + type + '"]').removeClass('d-none');
+    const $selectStatus = $modal.find('select[name="status"]');
     $selectStatus.find('option[data-type-id!="' + type + '"]').addClass('d-none');
     $selectStatus.val(null).trigger('change');
 
-    if ($selectStatus.find('option:not(.d-none)').length === 0) {
-        if (type) {
-            $errorEmptyStatus.removeClass('d-none');
-            $selectStatus.addClass('d-none');
-        }
-    } else {
+    const $errorEmptyStatus = $selectStatus.siblings('.error-empty-status');
+    $errorEmptyStatus.addClass('d-none');
+
+    if(!type) {
         $selectStatus.removeClass('d-none');
+        $selectStatus.prop('disabled', true);
+    } else {
+        const $correspondingStatuses = $selectStatus.find('option[data-type-id="' + type + '"]');
+
+        $selectStatus.removeAttr('disabled');
+        $correspondingStatuses.removeClass('d-none');
 
         const defaultStatuses = JSON.parse($selectStatus.siblings('input[name="defaultStatuses"]').val() || '{}');
-        if (defaultStatuses[type]) {
-            $selectStatus.val(defaultStatuses[type]);
+
+        if ($correspondingStatuses.length !== 0) {
+            $selectStatus.removeClass('d-none');
+
+            if (defaultStatuses[type]) {
+                $selectStatus.val(defaultStatuses[type]);
+            } else if ($correspondingStatuses.length === 1) {
+                $selectStatus.val($correspondingStatuses[0].value);
+            } else {
+                $selectStatus.removeAttr('disabled');
+            }
+        } else if (type) {
+            $errorEmptyStatus.removeClass('d-none');
+            $selectStatus.addClass('d-none');
         }
     }
 }

@@ -48,5 +48,5 @@ function onDispatchTypeChange($select) {
     }
 
     const $selectStatus = $modal.find('select[name="status"]');
-    $selectStatus.prop('disabled', $selectStatus.find('option:not(.d-none)').length > 0)
+    $selectStatus.prop('disabled', true);
 }

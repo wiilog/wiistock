@@ -184,7 +184,6 @@ class DispatchService {
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,
             'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
-            'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
             'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
                 $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
                 return [

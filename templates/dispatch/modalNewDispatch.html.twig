@@ -80,7 +80,6 @@
                                     </option>
                                 {% endfor %}
                             </select>
-                            <input type="hidden" name="defaultStatuses" value="{{ defaultStatuses|json_encode }}"/>
                             <div class="error-empty-status d-none">
                                 {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                                     array: [],
