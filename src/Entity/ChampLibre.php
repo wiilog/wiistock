@@ -107,6 +107,11 @@ class ChampLibre
     private $requiredEdit;
 
     /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $displayedCreate;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategorieCL", inversedBy="champsLibres")
      */
     private $categorieCL;
@@ -239,6 +244,15 @@ class ChampLibre
     {
         $this->requiredEdit = $requiredEdit;
 
+        return $this;
+    }
+
+    public function getDisplayedCreate(): ?bool {
+        return $this->displayedCreate;
+    }
+
+    public function setDisplayedCreate(?bool $displayedCreate): self {
+        $this->displayedCreate = $displayedCreate;
         return $this;
     }
 

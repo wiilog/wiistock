@@ -52,6 +52,7 @@ let tableChampLibreConfig = {
         {"data": 'Typage', 'title': 'Typage'},
         {"data": 'Valeur par défaut', 'title': 'Valeur par défaut'},
         {"data": 'Elements', 'title': 'Éléments', className: 'noVis'},
+        {"data": 'Affiché à la création', 'title': 'Affiché à la création'},
         {"data": 'Obligatoire à la création', 'title': 'Obligatoire à la création'},
         {"data": 'Obligatoire à la modification', 'title': 'Obligatoire à la modification'},
     ],
@@ -127,4 +128,10 @@ function deleteType($button) {
     let $modalDeleteType = $('#modalDeleteType');
     $modalDeleteType.find('.modal-body').html(contentFirstDeleteTypeModal);
     deleteRow($button, $modalDeleteType, $('#submitDeleteType'));
+}
+
+function toggleCreationMandatory($switch) {
+    if(!$switch.is(':checked')) {
+        $('input[name="requiredCreate"]').prop('checked', 0);
+    }
 }
