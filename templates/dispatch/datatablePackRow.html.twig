@@ -1,10 +1,8 @@
-{% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE'))
-    and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_ACHE'))
-%}
+{% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_PACK')) %}
+{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PACK')) %}
 
 <div class="d-flex">
-    <div class="dropdown dropright">
+    <div class="dropdown dropright {{ not hasRightDelete and not hasRightEdit ? 'd-none' }}">
         <div class="d-none">
             <div class="btn btn-col-action action-on-click" data-id='{{ packDispatch.id }}' data-toggle='modal' data-target='#modalEditArticle'
                  onclick="openShowPackModal({

@@ -5,6 +5,8 @@ namespace App\DataFixtures;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Role;
+use App\Repository\ActionRepository;
+use App\Repository\RoleRepository;
 use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -39,16 +41,11 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DISPLAY_ENCO,
 				Action::DISPLAY_URGE,
 				Action::DISPLAY_PACK,
-				Action::ADD_PACK,
-				Action::EDIT_PACK,
-				Action::DELETE_PACK,
-				Action::EDIT_ARRI,
-				Action::DELETE_ARRI,
 				Action::CREATE,
 				Action::EDIT,
 				Action::DELETE,
 				Action::EXPORT,
-				Action::LIST_ALL
+                Action::LIST_ALL,
 			],
 			Menu::QUALI => [
 				Action::DISPLAY_LITI,
@@ -67,10 +64,10 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DELETE,
 				Action::EXPORT,
                 Action::CREATE_ACHE,
-                Action::DELETE_ACHE,
-                Action::EDIT_UNPROCESSED_DISPATCH,
-                Action::DELETE_UNPROCESSED_DISPATCH,
-                Action::SHOW_CARRIER_FIELD
+                Action::SHOW_CARRIER_FIELD,
+                Action::GENERATE_DELIVERY_NOTE,
+                Action::GENERATE_DISPATCH_BILL,
+                Action::GENERATE_WAY_BILL,
 			],
 			Menu::ORDRE => [
 				Action::DISPLAY_ORDRE_COLL,
@@ -128,53 +125,144 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
             ]
 		];
 
-        $specifics = [
-            Action::SHOW_CARRIER_FIELD => [
-                SpecificService::CLIENT_EMERSON
+        $subActions = [
+            Menu::DEM => [
+                Action::DELETE => [
+                    Action::DELETE_DRAFT_DISPATCH,
+                    Action::DELETE_UNPROCESSED_DISPATCH,
+                    Action::DELETE_PROCESSED_DISPATCH
+                ],
+                Action::EDIT => [
+                    Action::EDIT_DRAFT_DISPATCH,
+                    Action::EDIT_UNPROCESSED_DISPATCH,
+                    Action::EDIT_PROCESSED_DISPATCH,
+                    Action::ADD_PACK,
+                    Action::EDIT_PACK,
+                    Action::DELETE_PACK,
+                ],
+            ],
+            Menu::TRACA => [
+                Action::EDIT => [
+                    Action::EDIT_ARRI,
+                    Action::ADD_PACK,
+                    Action::EDIT_PACK,
+                    Action::DELETE_PACK,
+                ],
+                Action::DELETE => [
+                    Action::DELETE_ARRI,
+                ]
             ]
         ];
 
-    	$selectedByDefault = [
-    		Menu::QUALI . Action::TREAT_LITIGE,
-    		Menu::DEM . Action::SHOW_CARRIER_FIELD,
-    		Menu::NOMADE . Action::MODULE_ACCESS_STOCK,
-    		Menu::NOMADE . Action::MODULE_ACCESS_TRACA,
-    		Menu::NOMADE . Action::MODULE_ACCESS_HAND
-		];
+        $selectedByDefault = [
+            Menu::QUALI => [
+                Action::TREAT_LITIGE,
+            ],
+            Menu::NOMADE => [
+                Action::MODULE_ACCESS_STOCK,
+                Action::MODULE_ACCESS_TRACA,
+                Menu::NOMADE => Action::MODULE_ACCESS_HAND
+            ]
+        ];
         $actionRepository = $manager->getRepository(Action::class);
         $roleRepository = $manager->getRepository(Role::class);
-		foreach ($menus as $menuCode => $actionLabels) {
-			foreach ($actionLabels as $actionLabel) {
-				$action = $actionRepository->findOneByMenuLabelAndActionLabel($menuCode, $actionLabel);
 
-                $canCreate = (
-                    !isset($specifics[$actionLabel]) ||
-                    in_array($this->specificService->getAppClient(), $specifics[$actionLabel])
-                );
+        $this->deleteUnusedActionsAndMenus($actionRepository, $menus, $manager, $subActions);
+        $manager->flush();
+        $this->createNewActions($menus, $actionRepository, $manager, $roleRepository, $subActions, $selectedByDefault);
+		$manager->flush();
+    }
 
-				if (empty($action) && $canCreate) {
-					$action = new Action();
+    public function createNewActions(array $menus,
+                                     ActionRepository $actionRepository,
+                                     ObjectManager $manager,
+                                     RoleRepository $roleRepository,
+                                     array $subActions,
+                                     array $selectedByDefault) {
+        foreach ($menus as $menuCode => $actionLabels) {
+            foreach ($actionLabels as $actionLabel) {
+                $hasSubActions = array_key_exists($menuCode, $subActions) && array_key_exists($actionLabel, $subActions[$menuCode]);
+                $action = $actionRepository->findOneByMenuLabelAndActionLabel($menuCode, $actionLabel);
 
-					$action
-						->setLabel($actionLabel)
-						->setMenu($this->getReference('menu-' . $menuCode));
+                if (empty($action)) {
+                    $action = new Action();
 
-					// actions à sélectionner par défaut
-					if (in_array($menuCode . $actionLabel, $selectedByDefault)) {
-					    if (!isset($roles)) {
+                    $action
+                        ->setLabel($actionLabel)
+                        ->setMenu($this->getReference('menu-' . $menuCode));
+
+                    // actions à sélectionner par défaut
+                    if (array_key_exists($menuCode, $selectedByDefault) && in_array($actionLabel, $selectedByDefault[$menuCode])) {
+                        if (!isset($roles)) {
                             $roles = $roleRepository->findAll();
                         }
-						foreach ($roles as $role) {
-							$action->addRole($role);
-						}
-					}
-					$manager->persist($action);
-					dump("création de l'action " . $menuCode . " / " . $actionLabel);
-				}
-			}
-		}
+                        foreach ($roles as $role) {
+                            $action->addRole($role);
+                        }
+                    }
+                    $manager->persist($action);
+                    dump("création de l'action " . $menuCode . " / " . $actionLabel);
+                }
+                $manager->flush();
+                if (!$action->getRoles()->isEmpty() && $hasSubActions) {
+                    foreach ($subActions[$menuCode][$actionLabel] as $subActionLabel) {
+                        $subAction = $actionRepository->findOneByMenuLabelAndActionLabel($menuCode, $subActionLabel);
+                        if (empty($subAction)) {
+                            $subAction = new Action();
 
-		$manager->flush();
+                            $subAction
+                                ->setLabel($subActionLabel)
+                                ->setMenu($this->getReference('menu-' . $menuCode));
+
+                            foreach ($action->getRoles()->toArray() as $role) {
+                                $subAction->addRole($role);
+                            }
+                            $manager->persist($subAction);
+                            dump("création de l'action " . $menuCode . " / " . $subActionLabel);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public function deleteUnusedActionsAndMenus(ActionRepository $actionRepository, array $menus, ObjectManager $manager, array $subActions) {
+        $allSavedActions = $actionRepository->findAll();
+
+        $menusToLower = array_reduce(array_keys($menus), function (array $carry, string $menuLabel) use ($menus, $subActions) {
+
+            $carry[mb_strtolower($menuLabel)] = array_map(function ($action) {
+                return mb_strtolower($action);
+            }, $menus[mb_strtolower($menuLabel)]);
+
+            if (array_key_exists(mb_strtolower($menuLabel), $subActions)) {
+                foreach ($subActions[mb_strtolower($menuLabel)] as $parentActions) {
+                    foreach ($parentActions as $subAction) {
+                        $carry[mb_strtolower($menuLabel)][] = $subAction;
+                    }
+                }
+            }
+
+            return $carry;
+        }, []);
+
+
+        foreach ($allSavedActions as $savedAction) {
+            $menu = $savedAction->getMenu();
+            $menuLabelToLower = mb_strtolower($menu->getLabel());
+            $actionLabelToLower = mb_strtolower($savedAction->getLabel());
+
+            if (!isset($menusToLower[$menuLabelToLower])) {
+                foreach ($menu->getActions() as $action) {
+                    $manager->remove($action);
+                    dump("Suppression du droit :  $menuLabelToLower / $actionLabelToLower");
+                }
+                $manager->remove($menu);
+            } else if (!in_array($actionLabelToLower, $menusToLower[$menuLabelToLower])) {
+                $manager->remove($savedAction);
+                dump("Suppression du droit :  $menuLabelToLower / $actionLabelToLower");
+            }
+        }
     }
 
     public function getDependencies()

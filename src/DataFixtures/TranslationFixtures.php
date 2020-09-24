@@ -56,7 +56,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'destinataire' => 'destinataire',
                 'douane' => 'douane',
                 'congelé' => 'congelé',
-                'Acheminer' => 'Acheminer'
+                'Acheminer' => 'Acheminer',
+                'Numéro de commande' => 'Numéro de commande',
             ],
             'acheminement' => [
                 'Numéro de commande' => 'Numéro de commande',
