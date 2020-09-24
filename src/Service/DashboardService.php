@@ -805,8 +805,6 @@ class DashboardService
     /**
      * @param EntityManagerInterface $entityManager
      * @param string $meterType
-     * @throws DBALException
-     * @throws NonUniqueResultException
      * @throws Throwable
      */
     public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager, string $meterType): void
@@ -825,7 +823,11 @@ class DashboardService
         if (!$this->wiilockService->dashboardIsBeingFed($entityManager, $meterType)) {
             $this->wiilockService->startFeedingDashboard($entityManager, $meterType);
             try {
-                $this->retrieveAndInsertAppropriateDataType($meterType, $entityManager);
+                if ($meterType === Wiilock::DASHBOARD_GRAPH_FED_KEY) {
+                    $this->retrieveAndInsertGlobalGraphData($entityManager);
+                } else if ($meterType === Wiilock::DASHBOARD_METER_FED_KEY) {
+                    $this->retrieveAndInsertGlobalMeterData($entityManager);
+                }
             }
             catch (Throwable $throwable) {
                 $this->wiilockService->stopFeedingDashboard($entityManager, $meterType);
@@ -835,19 +837,6 @@ class DashboardService
 
             $this->wiilockService->stopFeedingDashboard($entityManager, $meterType);
             $this->flushAndClearEm($entityManager);
-        }
-    }
-
-    /**
-     * @param string $meterType
-     * @param EntityManagerInterface $entityManager
-     * @throws Exception
-     */
-    private function retrieveAndInsertAppropriateDataType(string $meterType, EntityManagerInterface $entityManager) {
-        if ($meterType === Wiilock::DASHBOARD_FED_KEY) {
-            $this->retrieveAndInsertGlobalGraphData($entityManager);
-        } else if ($meterType === Wiilock::DASHBOARD_METER_FED_KEY) {
-            $this->retrieveAndInsertGlobalMeterData($entityManager);
         }
     }
 
@@ -908,6 +897,7 @@ class DashboardService
      * @param $data
      * @param string $dashboard
      * @param EntityManagerInterface $entityManager
+     * @throws NonUniqueResultException
      */
     private function parseRetrievedDataAndPersistMeter($data, string $dashboard, EntityManagerInterface $entityManager): void
     {

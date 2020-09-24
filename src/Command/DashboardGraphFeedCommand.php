@@ -19,7 +19,7 @@ use Throwable;
 
 class DashboardGraphFeedCommand extends Command
 {
-    protected static $defaultName = 'app:feed:dashboards';
+    protected static $defaultName = 'app:feed:dashboards:graphs';
 
     private $em;
     private $dashboardService;
@@ -46,7 +46,7 @@ class DashboardGraphFeedCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->dashboardService->retrieveAndInsertGlobalDashboardData($this->getEntityManager(), Wiilock::DASHBOARD_FED_KEY);
+        $this->dashboardService->retrieveAndInsertGlobalDashboardData($this->getEntityManager(), Wiilock::DASHBOARD_GRAPH_FED_KEY);
     }
 
     /**

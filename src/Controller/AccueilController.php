@@ -69,7 +69,7 @@ class AccueilController extends AbstractController
         $data['pageData'] = ($page === 'emballage')
             ? $dashboardService->getSimplifiedDataForPackagingDashboard($entityManager)
             : [];
-        $data['graphsRefreshDate'] = $dashboardService->getLastRefresh(Wiilock::DASHBOARD_FED_KEY);
+        $data['graphsRefreshDate'] = $dashboardService->getLastRefresh(Wiilock::DASHBOARD_GRAPH_FED_KEY);
         $data['metersRefreshDate'] = $dashboardService->getLastRefresh(Wiilock::DASHBOARD_METER_FED_KEY);
         return $this->render('accueil/dashboardExt.html.twig', $data);
     }
@@ -242,7 +242,7 @@ class AccueilController extends AbstractController
     {
         return new JsonResponse([
             'success' => true,
-            'graphsDate' => $dashboardService->getLastRefresh(Wiilock::DASHBOARD_FED_KEY),
+            'graphsDate' => $dashboardService->getLastRefresh(Wiilock::DASHBOARD_GRAPH_FED_KEY),
             'metersDate' => $dashboardService->getLastRefresh(Wiilock::DASHBOARD_METER_FED_KEY),
         ]);
     }
