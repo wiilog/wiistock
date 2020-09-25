@@ -91,6 +91,12 @@ class Emplacement
      */
     private $dispatchesTo;
 
+    /**
+     * @var Collection
+     * @ORM\ManyToMany(targetEntity="App\Entity\LocationCluster", mappedBy="locations")
+     */
+    private $clusters;
+
 
     public function __construct()
     {
@@ -104,6 +110,7 @@ class Emplacement
         $this->allowedNatures = new ArrayCollection();
         $this->dispatchesFrom = new ArrayCollection();
         $this->dispatchesTo = new ArrayCollection();
+        $this->clusters = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -449,6 +456,37 @@ class Emplacement
             }
         }
 
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getClusters(): Collection {
+        return $this->clusters;
+    }
+
+    /**
+     * @param LocationCluster $locationCluster
+     * @return Emplacement
+     */
+    public function addCluster(LocationCluster $locationCluster): self {
+        if (!$this->clusters->contains($locationCluster)) {
+            $this->clusters->add($locationCluster);
+            $locationCluster->addLocation($this);
+        }
+        return $this;
+    }
+
+    /**
+     * @param LocationCluster $locationCluster
+     * @return Emplacement
+     */
+    public function removeCluster(LocationCluster $locationCluster): self {
+        if (!$this->clusters->contains($locationCluster)) {
+            $this->clusters->removeElement($locationCluster);
+            $locationCluster->removeLocation($this);
+        }
         return $this;
     }
 }

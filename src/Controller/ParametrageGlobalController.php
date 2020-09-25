@@ -8,6 +8,8 @@ use App\Entity\CategorieStatut;
 use App\Entity\ChampLibre;
 use App\Entity\DaysWorked;
 use App\Entity\DimensionsEtiquettes;
+use App\Entity\Emplacement;
+use App\Entity\LocationCluster;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -25,6 +27,7 @@ use App\Service\GlobalParamService;
 use App\Service\StatusService;
 use App\Service\TranslationService;
 use App\Service\UserService;
+use Cassandra\Cluster;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -734,8 +737,6 @@ class ParametrageGlobalController extends AbstractController
             $listMultipleSelect = [
                 ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => 'listNaturesColis',
                 ParametrageGlobal::DASHBOARD_CARRIER_DOCK => 'carrierDock',
-                ParametrageGlobal::DASHBOARD_LOCATIONS_1 => 'locationsFirstGraph',
-                ParametrageGlobal::DASHBOARD_LOCATIONS_2 => 'locationsSecondGraph',
                 ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => 'locationDropZone',
                 ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => 'locationAvailable',
                 ParametrageGlobal::DASHBOARD_LOCATION_DOCK => 'locationToTreat',
@@ -776,6 +777,9 @@ class ParametrageGlobalController extends AbstractController
                 $param = $parametrageGlobalRepository->findOneByLabel($labelParam);
                 $param->setValue($post->get($selectId));
             }
+
+            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1, $post->get('locationsFirstGraph'), $entityManager);
+            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2, $post->get('locationsSecondGraph'), $entityManager);
             $entityManager->flush();
 
             return new JsonResponse(true);
@@ -839,5 +843,25 @@ class ParametrageGlobalController extends AbstractController
         $parametrage->setValue($value);
         $em->flush();
         return new JsonResponse(true);
+    }
+
+    private function setLocationListCluster(?string $clusterCode,
+                                            ?string $listRawLocationIds,
+                                            EntityManagerInterface $entityManager) {
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $locationClusterRepository = $entityManager->getRepository(LocationCluster::class);
+
+        $listLocationIds = $listRawLocationIds ? explode(',', $listRawLocationIds) : [];
+
+        $cluster = $locationClusterRepository->findOneBy(['code' => $clusterCode]);
+        /** @var Emplacement $locationInCluster */
+        foreach ($cluster->getLocations() as $locationInCluster) {
+            $locationInCluster->removeCluster($cluster);
+        }
+        $cluster->getLocations()->clear();
+        foreach ($listLocationIds as $locationId) {
+            $location = $locationRepository->find($locationId);
+            $location->addCluster($cluster);
+        }
     }
 }

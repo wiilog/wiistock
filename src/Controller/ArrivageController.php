@@ -826,12 +826,10 @@ class ArrivageController extends AbstractController
             $natureRepository = $entityManager->getRepository(Nature::class);
             $packRepository = $entityManager->getRepository(Pack::class);
 
-            $colisData = $packRepository->countColisByArrivageAndNature(
-                [
-                    $dateTimeMin->format('Y-m-d H:i:s'),
-                    $dateTimeMax->format('Y-m-d H:i:s')
-                ]
-            );
+            $colisData = $packRepository->countColisByArrivageAndNature([
+                $dateTimeMin->format('Y-m-d H:i:s'),
+                $dateTimeMax->format('Y-m-d H:i:s')
+            ]);
             $arrivals = $arrivageRepository->getByDates($dateTimeMin, $dateTimeMax);
             $buyersByArrival = $utilisateurRepository->getUsernameBuyersGroupByArrival();
             $natureLabels = $natureRepository->findAllLabels();

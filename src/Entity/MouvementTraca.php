@@ -126,6 +126,17 @@ class MouvementTraca extends FreeFieldEntity
     private $linkedPackLastTrackings;
 
     /**
+     * @var ArrayCollection|null
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="firstDrop")
+     */
+    private $firstDropsOnLocationCluster;
+    /**
+     * @var ArrayCollection|null
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="lastTracking")
+     */
+    private $lastTrackingOnLocationCluster;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="mouvementsTraca")
      */
     private $receptionReferenceArticle;
@@ -136,6 +147,8 @@ class MouvementTraca extends FreeFieldEntity
         $this->attachements = new ArrayCollection();
         $this->linkedPackLastDrops = new ArrayCollection();
         $this->linkedPackLastTrackings = new ArrayCollection();
+        $this->firstDropsOnLocationCluster = new ArrayCollection();
+        $this->lastTrackingOnLocationCluster = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -364,20 +377,15 @@ class MouvementTraca extends FreeFieldEntity
     {
         if (!$this->linkedPackLastDrops->contains($linkedPackLastDrop)) {
             $this->linkedPackLastDrops[] = $linkedPackLastDrop;
-            $linkedPackLastDrop->setLastDrop($this);
         }
 
         return $this;
     }
 
-    public function removeLinkedPacksLastDrop(Pack $linkedPackLastDrop): self
+    public function removeLinkedPackLastDrop(Pack $linkedPackLastDrop): self
     {
         if ($this->linkedPackLastDrops->contains($linkedPackLastDrop)) {
             $this->linkedPackLastDrops->removeElement($linkedPackLastDrop);
-            // set the owning side to null (unless already changed)
-            if ($linkedPackLastDrop->getLastDrop() === $this) {
-                $linkedPackLastDrop->setLastDrop(null);
-            }
         }
 
         return $this;
@@ -418,6 +426,72 @@ class MouvementTraca extends FreeFieldEntity
      */
     public function setQuantity(int $quantity): self {
         $this->quantity = $quantity;
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getFirstDropsOnLocationCluster(): ?Collection {
+        return $this->firstDropsOnLocationCluster;
+    }
+
+    /**
+     * @param LocationClusterRecord $locationClusterRecord
+     * @return $this
+     */
+    public function addFirstDropOnLocationCluster(LocationClusterRecord $locationClusterRecord): self
+    {
+        if (!$this->firstDropsOnLocationCluster->contains($locationClusterRecord)) {
+            $this->firstDropsOnLocationCluster[] = $locationClusterRecord;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param LocationClusterRecord $locationClusterRecord
+     * @return $this
+     */
+    public function removeFirstDropOnLocationCluster(LocationClusterRecord $locationClusterRecord): self
+    {
+        if ($this->firstDropsOnLocationCluster->contains($locationClusterRecord)) {
+            $this->firstDropsOnLocationCluster->removeElement($locationClusterRecord);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getLastTrackingOnLocationCluster(): ?Collection {
+        return $this->lastTrackingOnLocationCluster;
+    }
+
+    /**
+     * @param LocationClusterRecord $locationClusterRecord
+     * @return $this
+     */
+    public function addLastTrackingOnLocationCluster(LocationClusterRecord $locationClusterRecord): self
+    {
+        if (!$this->lastTrackingOnLocationCluster->contains($locationClusterRecord)) {
+            $this->lastTrackingOnLocationCluster[] = $locationClusterRecord;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param LocationClusterRecord $locationClusterRecord
+     * @return $this
+     */
+    public function removeLastTrackingOnLocationCluster(LocationClusterRecord $locationClusterRecord): self
+    {
+        if ($this->lastTrackingOnLocationCluster->contains($locationClusterRecord)) {
+            $this->lastTrackingOnLocationCluster->removeElement($locationClusterRecord);
+        }
+
         return $this;
     }
 }

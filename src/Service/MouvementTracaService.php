@@ -6,6 +6,8 @@ use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Dispatch;
+use App\Entity\LocationCluster;
+use App\Entity\LocationClusterRecord;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
@@ -15,6 +17,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use Cassandra\Cluster;
 use DateTime;
 use Exception;
 use Symfony\Component\Security\Core\Security;
@@ -203,7 +206,6 @@ class MouvementTracaService
             ->setMouvementStock($mouvementStock)
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
 
-
         $this->managePackLinksWithTracking(
             $mouvementTraca,
             $entityManager,
@@ -281,7 +283,7 @@ class MouvementTracaService
      * @param MouvementTraca $tracking
      * @param EntityManagerInterface $entityManager
      * @param Statut $type
-     * @param string|Pack $pack
+     * @param string|Pack $packOrCode
      * @param bool $persist
      * @param int $defaultQuantity Quantity used if pack does not exist
      * @param int|null $natureId
@@ -289,49 +291,83 @@ class MouvementTracaService
     public function managePackLinksWithTracking(MouvementTraca $tracking,
                                                 EntityManagerInterface $entityManager,
                                                 Statut $type,
-                                                $pack,
+                                                $packOrCode,
                                                 bool $persist,
                                                 int $defaultQuantity,
                                                 int $natureId = null): void {
         $packRepository = $entityManager->getRepository(Pack::class);
+        $isDrop = ($type->getNom() === MouvementTraca::TYPE_DEPOSE);
 
         if (!empty($natureId)) {
             $natureRepository = $entityManager->getRepository(Nature::class);
             $nature = $natureRepository->find($natureId);
         }
 
-        $packs = ($pack instanceof Pack)
-            ? [$pack]
-            : $packRepository->findBy(['code' => $pack]);
+        $pack = ($packOrCode instanceof Pack)
+            ? $packOrCode
+            : $packRepository->findOneBy(['code' => $packOrCode]);
 
-        if (empty($packs)) {
-            $newPack = new Pack();
-            $newPack
+        if (!isset($pack)) {
+            $pack = new Pack();
+            $pack
                 ->setQuantity($defaultQuantity)
-                ->setCode($pack);
-
-            $packs[] = $newPack;
+                ->setCode($packOrCode);
 
             if ($persist) {
-                $entityManager->persist($newPack);
+                $entityManager->persist($pack);
             }
         }
 
-        $tracking->setPack($packs[0]);
+        if (!empty($nature)) {
+            $pack->setNature($nature);
+        }
+
+        $previousLastTracking = $pack->getLastTracking();
+
+        $tracking->setPack($pack);
 
         $packsAlreadyExisting = $tracking->getLinkedPackLastDrops();
         // si c'est une prise ou une dépose on vide ses colis liés
         foreach ($packsAlreadyExisting as $packLastDrop) {
-            $tracking->removeLinkedPacksLastDrop($packLastDrop);
+            $packLastDrop->setLastDrop(null);
         }
 
-        foreach ($packs as $existingPack) {
-            if ($type->getNom() === MouvementTraca::TYPE_DEPOSE) {
-                $tracking->addLinkedPackLastDrop($existingPack);
-            }
+        if ($isDrop) {
+            $pack->setLastDrop($tracking);
+        }
 
-            if (!empty($nature)) {
-                $existingPack->setNature($nature);
+        $location = $tracking->getEmplacement();
+        if ($location) {
+            /** @var LocationCluster $cluster */
+            foreach ($location->getClusters() as $cluster) {
+                $record = $cluster->getLocationClusterRecord($pack);
+
+                if (!isset($record)) {
+                    $record = new LocationClusterRecord();
+                    $entityManager->persist($record);
+                }
+
+                if ($isDrop) {
+                    $record->setActive(true);
+                    $previousRecordLastTracking = $record->getLastTracking();
+                    // check if pack previous last tracking !== record previous lastTracking
+                    // IF not equals then we set firstDrop
+                    // ELSE that is to say the pack come from the location cluster
+                    if ($previousRecordLastTracking !== $previousLastTracking
+                        && (
+                            !$previousRecordLastTracking
+                            || !$previousLastTracking
+                            || ($previousRecordLastTracking->getId() !== $previousLastTracking->getId())
+                        )) {
+                        $record->setFirstDrop($tracking);
+                    }
+                }
+                else {
+                    $record->setActive(false);
+                }
+
+                // set last tracking after check of drop
+                $record->setLastTracking($tracking);
             }
         }
     }

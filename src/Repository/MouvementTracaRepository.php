@@ -148,58 +148,6 @@ class MouvementTracaRepository extends EntityRepository
     }
 
     /**
-     * @param string $colis
-     * @return  MouvementTraca
-     */
-    public function getLastByColis($colis)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT mt
-			FROM App\Entity\MouvementTraca mt
-			WHERE mt.colis = :colis
-			ORDER BY mt.datetime DESC, mt.id DESC"
-        )->setParameter('colis', $colis);
-
-        $result = $query->execute();
-        return $result ? $result[0] : null;
-    }
-
-    /**
-     * @param string $colis
-     * @param DateTimeInterface $date
-     * @return  MouvementTraca
-     */
-    public function getByColisAndPriorToDate($colis, $date)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT mt
-			FROM App\Entity\MouvementTraca mt
-			WHERE mt.colis = :colis AND mt.datetime >= :date"
-        )->setParameters([
-            'colis' => $colis,
-            'date' => $date,
-        ]);
-
-        return $query->execute();
-    }
-
-    public function getColisById(array $ids)
-    {
-        $result = $this
-            ->createQueryBuilder('mouvementTraca')
-            ->select('mouvementTraca.colis')
-            ->where('mouvementTraca.id IN (:mouvementTracaIds)')
-            ->setParameter('mouvementTracaIds', $ids, Connection::PARAM_STR_ARRAY)
-            ->getQuery()
-            ->getResult();
-        return $result ? array_column($result, 'colis') : [];
-    }
-
-    /**
      * Retourne les ids de mouvementTraca qui correspondent aux colis encours sur les emplacement donnés
      * @param Emplacement[]|int[] $locations
      * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
@@ -216,35 +164,6 @@ class MouvementTracaRepository extends EntityRepository
                 ->executeQuery($this->createSQLQueryPacksOnLocation($locations, $field, $onDateBracket, $limit), [])
                 ->fetchAll(FetchMode::COLUMN)
             : [];
-    }
-
-    /**
-     * Retourne les mouvementTraca qui correspondent aux colis encours sur les emplacement donnés
-     * @param Emplacement[]|int[] $locations
-     * @param int $limit
-     * @return array[]
-     * @throws DBALException
-     */
-    public function getLastOnLocations(array $locations, ?int $limit = null): array
-    {
-        $trackingIdsToGet = $this->getForPacksOnLocations($locations);
-
-        $queryBuilder = $this->createQueryBuilder('tracking')
-            ->addSelect('tracking.datetime AS lastTrackingDateTime')
-            ->addSelect('currentLocation.id AS currentLocationId')
-            ->addSelect('currentLocation.label AS currentLocationLabel')
-            ->addSelect('tracking.colis AS code')
-            ->join('tracking.emplacement', 'currentLocation')
-            ->where('tracking.id IN (:trackingIds)')
-            ->setParameter('trackingIds', $trackingIdsToGet, Connection::PARAM_STR_ARRAY)
-            ->orderBy('tracking.datetime', 'ASC');
-        if (isset($limit)) {
-            $queryBuilder
-                ->setMaxResults($limit);
-        }
-        return $queryBuilder
-            ->getQuery()
-            ->getResult();
     }
 
     /**
@@ -437,14 +356,14 @@ class MouvementTracaRepository extends EntityRepository
                         ->leftJoin('a1.articleFournisseur', 'af1')
                         ->leftJoin('af1.referenceArticle', 'afra1')
                         ->andWhere('(
-						m.colis LIKE :value OR
-						e2.label LIKE :value OR
-						s2.nom LIKE :value OR
-						afra1.reference LIKE :value OR
-						a1.label LIKE :value OR
-						mra1.reference LIKE :value OR
-						mra1.libelle LIKE :value OR
-						u2.username LIKE :value
+                            m.colis LIKE :value OR
+                            e2.label LIKE :value OR
+                            s2.nom LIKE :value OR
+                            afra1.reference LIKE :value OR
+                            a1.label LIKE :value OR
+                            mra1.reference LIKE :value OR
+                            mra1.libelle LIKE :value OR
+                            u2.username LIKE :value
 						)')
                         ->setParameter('value', '%' . $search . '%');
                 }
@@ -601,7 +520,7 @@ class MouvementTracaRepository extends EntityRepository
     public function countDropsOnLocations(array $locationIds, DateTime $dateMin, DateTime $dateMax): int {
         if (!empty($locationIds)) {
             $queryBuilder = $this->createQueryBuilder('mouvementTraca')
-                ->select('COUNT(mouvementTraca)')
+                ->select('COUNT(mouvementTraca.id)')
                 ->join('mouvementTraca.emplacement', 'location')
                 ->join('mouvementTraca.type', 'type')
                 ->where('location.id IN (:locationIds)')
@@ -695,17 +614,5 @@ class MouvementTracaRepository extends EntityRepository
             WHERE m.mouvementStock = :mouvementStock"
         )->setParameter('mouvementStock', $mouvementStock);
         return $query->getSingleScalarResult();
-    }
-
-    public function findMvtByArticles()
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT *
-            FROM App/entity/MouvementTraca ");
-            $result =  $query->getQuery()
-                            ->getSingleScalarResult();
-        return $result;
     }
 }

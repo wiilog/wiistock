@@ -264,41 +264,6 @@ class PackRepository extends EntityRepository
 
     /**
      * @param array $locations
-     * @param array $naturesFilter
-     * @param int|null $limit
-     * @return array Array of [
-     *      'natureId' => int,
-     *      'natureLabel' => string,
-     *      'firstTrackingDateTime' => DateTime,
-     *      'lastTrackingDateTime' => DateTime,
-     *      'currentLocationId' => int,
-     *      'currentLocationLabel' => string
-     *      'code' => string
-     * ]
-     * @throws DBALException
-     */
-    public function getPackIntelOnLocations(array $locations, array $naturesFilter = [], ?int $limit = null): array
-    {
-        $queryBuilder = $this->createPacksOnLocationsQueryBuilder($locations, $naturesFilter)
-            ->select('nature.id as natureId')
-            ->addSelect('nature.label as natureLabel')
-            ->addSelect('firstTracking.datetime AS firstTrackingDateTime')
-            ->addSelect('lastTracking.datetime AS lastTrackingDateTime')
-            ->addSelect('currentLocation.id AS currentLocationId')
-            ->addSelect('currentLocation.label AS currentLocationLabel')
-            ->addSelect('colis.code AS code');
-        if (isset($limit)) {
-            $queryBuilder
-                ->orderBy('firstTracking.datetime', 'ASC')
-                ->setMaxResults($limit);
-        }
-        return $queryBuilder
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
-     * @param array $locations
      * @param array $onDateBracket
      * @return int
      * @throws NoResultException
@@ -312,7 +277,6 @@ class PackRepository extends EntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
-
 
     /**
      * @param array $locations

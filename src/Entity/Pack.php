@@ -70,10 +70,16 @@ class Pack
      */
     private $dispatchPacks;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="pack", orphanRemoval=true)
+     */
+    private $locationClusterRecords;
+
     public function __construct() {
         $this->litiges = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
         $this->dispatchPacks = new ArrayCollection();
+        $this->locationClusterRecords = new ArrayCollection();
         $this->quantity = 1;
     }
 
@@ -150,7 +156,13 @@ class Pack
 
     public function setLastDrop(?MouvementTraca $lastDrop): self
     {
+        if (isset($this->lastDrop)) {
+            $this->lastDrop->removeLinkedPackLastDrop($this);
+        }
         $this->lastDrop = $lastDrop;
+        if (isset($this->lastDrop)) {
+            $this->lastDrop->addLinkedPackLastDrop($this);
+        }
 
         return $this;
     }
@@ -234,5 +246,39 @@ class Pack
 
     public function getQuantity(): int {
         return $this->quantity;
+    }
+
+    /**
+     * @return ArrayCollection
+     */
+    public function getLocationClusterRecords(): ArrayCollection {
+        return $this->locationClusterRecords;
+    }
+
+    /**
+     * @param LocationClusterRecord $locationClusterRecord
+     * @return self
+     */
+    public function addLocationClusterRecord(LocationClusterRecord $locationClusterRecord): self {
+        if (!$this->locationClusterRecords->contains($locationClusterRecord)) {
+            $this->locationClusterRecords[] = $locationClusterRecord;
+            $locationClusterRecord->setPack($this);
+        }
+        return $this;
+    }
+
+    /**
+     * @param LocationClusterRecord $locationClusterRecord
+     * @return self
+     */
+    public function removeLocationClusterRecord(LocationClusterRecord $locationClusterRecord): self {
+        if ($this->locationClusterRecords->contains($locationClusterRecord)) {
+            $this->locationClusterRecords->removeElement($locationClusterRecord);
+            // set the owning side to null (unless already changed)
+            if ($locationClusterRecord->getPack() === $this) {
+                $locationClusterRecord->setPack(null);
+            }
+        }
+        return $this;
     }
 }

@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
+use App\Entity\LocationCluster;
 use App\Entity\Pack;
 use App\Entity\DashboardChartMeter;
 use App\Entity\DashboardMeter;
@@ -418,38 +419,35 @@ class DashboardService
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param int $graph
-     * @param string $dashboard
+     * @param string $clusterCode
      * @throws DBALException
      * @throws NonUniqueResultException
+     * @throws Exception
      */
-    public function getAndSetGraphDataForAdmin(EntityManagerInterface $entityManager, int $graph)
+    public function getAndSetGraphDataForAdmin(EntityManagerInterface $entityManager, string $clusterCode)
     {
+        if (!in_array($clusterCode, [LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1, LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2 ])) {
+            throw new Exception('Cluster code in not supported');
+        }
+
         $adminDelay = '48:00';
 
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $locationClusterRepository = $entityManager->getRepository(LocationCluster::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $packRepository = $entityManager->getRepository(Pack::class);
         $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
 
-        $natureLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_NATURE_COLIS : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
-        $empLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_LOCATIONS_1 : ParametrageGlobal::DASHBOARD_LOCATIONS_2;
+        $naturesFilterParam = ($clusterCode === LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1)
+            ? ParametrageGlobal::DASHBOARD_NATURE_COLIS
+            : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
 
         // on récupère les natures paramétrées
-        $paramNatureForGraph = $parametrageGlobalRepository->findOneByLabel($natureLabelToLookFor)->getValue();
+        $paramNatureForGraph = $parametrageGlobalRepository->getOneParamByLabel($naturesFilterParam);
         $naturesIdForGraph = !empty($paramNatureForGraph) ? explode(',', $paramNatureForGraph) : [];
         $naturesForGraph = !empty($naturesIdForGraph)
             ? $natureRepository->findBy(['id' => $naturesIdForGraph])
-            : [];
-
-        // on récupère les emplacements paramétrés
-        $paramEmplacementWanted = $parametrageGlobalRepository->findOneByLabel($empLabelToLookFor)->getValue();
-        $emplacementsIdWanted = !empty($paramEmplacementWanted) ? explode(',', $paramEmplacementWanted) : [];
-        $emplacementsWanted = !empty($emplacementsIdWanted)
-            ? $emplacementRepository->findBy(['id' => $emplacementsIdWanted])
             : [];
 
         $locationCounters = [];
@@ -463,7 +461,7 @@ class DashboardService
         ];
 
         if (!empty($naturesForGraph) && !empty($emplacementsWanted)) {
-            $packsOnCluster = $packRepository->getPackIntelOnLocations($emplacementsWanted, $naturesForGraph);
+            $packsOnCluster = $locationClusterRepository->getPacksOnCluster($clusterCode, $naturesForGraph);
 
             $countByNatureBase = [];
             foreach ($naturesForGraph as $wantedNature) {
@@ -858,8 +856,8 @@ class DashboardService
         dump('Finished Dock Graph');
         $this->flushAndClearEm($entityManager);
 
-        $this->getAndSetGraphDataForAdmin($entityManager, 1);
-        $this->getAndSetGraphDataForAdmin($entityManager, 2);
+        $this->getAndSetGraphDataForAdmin($entityManager, LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1);
+        $this->getAndSetGraphDataForAdmin($entityManager, LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2);
         dump('Finished Admin Graphs');
         $this->flushAndClearEm($entityManager);
 
