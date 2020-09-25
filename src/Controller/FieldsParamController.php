@@ -139,8 +139,11 @@ class FieldsParamController extends AbstractController
             $field->setDisplayedFilters($data['displayed-filters'] ?? true);
 
             if($field->getElements() !== null) {
-                dump($data['elements']);
-                $field->setElements($data['elements'] ?? []);
+                if(isset($data['elements-text'])) {
+                    $field->setElements(explode(';', $data['elements-text']));
+                } else if(isset($data['elements'])) {
+                    $field->setElements($data['elements'] ?? []);
+                }
             }
 
             $entityManager->persist($field);
@@ -151,6 +154,7 @@ class FieldsParamController extends AbstractController
                 'msg' => 'Le champ fixe "' . $fieldName . '" dans "' . $fieldEntity . '" a bien été modifié.'
             ]);
         }
+
         throw new NotFoundHttpException('404');
     }
 }

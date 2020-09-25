@@ -56,11 +56,16 @@
         {% if field.elements is not null %}
             <div class="form-group col-12">
                 <label>Valeurs possibles</label><br>
-                <select class="form-control data select2-free w-100" multiple="multiple" name="elements">
-                    {% for element in field.elements %}
-                        <option value="{{ element }}" selected>{{ element }}</option>
-                    {% endfor %}
-                </select>
+                {# Temporaire pour Emerson, les business unit doivent êtres séparés par des ';' #}
+                {% if field.fieldCode == 'businessUnit' %}
+                    <input type="text" name="elements-text" class="form-controls data" value="{{ field.elements | join(';') }}"/>
+                {% else %}
+                    <select class="form-control data select2-free w-100" multiple="multiple" name="elements">
+                        {% for element in field.elements %}
+                            <option value="{{ element }}" selected>{{ element }}</option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
             </div>
         {% endif %}
     </div>
