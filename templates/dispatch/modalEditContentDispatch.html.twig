@@ -117,7 +117,7 @@
     </div>
 {% endif %}
 
-{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_DISPATCH') %}
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
 {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
     {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
     <div class="form-group">
@@ -162,7 +162,7 @@
     </div>
 {% endif %}
 
-{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_DISPATCH') %}
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
 {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
     {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
     <div class="form-group">
@@ -174,7 +174,7 @@
     </div>
 {% endif %}
 
-{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT_DISPATCH') %}
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
 {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
     {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
     <div class="form-group">

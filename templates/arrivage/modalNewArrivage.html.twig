@@ -321,7 +321,7 @@
                     {% endif %}
                 </div>
                 <div class="row">
-                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER_ARRIVAGE') %}
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
                         <div class="form-group col-4">
                             <label for="noProject">Numéro de projet{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}</label>
@@ -331,7 +331,7 @@
                         </div>
                     {% endif %}
 
-                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT_ARRIVAGE') %}
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
                         <div class="form-group col-4">
                             <label for="chauffeur">Business Unit{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}</label>
