@@ -58,7 +58,7 @@
                 <label>Valeurs possibles</label><br>
                 {# Temporaire pour Emerson, les business unit doivent êtres séparés par des ';' #}
                 {% if field.fieldCode == 'businessUnit' %}
-                    <input type="text" name="elements-text" class="form-controls data" value="{{ field.elements | join(';') }}"/>
+                    <input type="text" name="elements-text" class="form-control data" value="{{ field.elements | join(';') }}"/>
                 {% else %}
                     <select class="form-control data select2-free w-100" multiple="multiple" name="elements">
                         {% for element in field.elements %}

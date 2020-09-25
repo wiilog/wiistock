@@ -37,5 +37,8 @@ final class Version20200924144412 extends AbstractMigration {
         $this->addSql("DELETE FROM parametrage_global WHERE label = 'ARRIVAL_BUSINESS_UNIT_VALUES'");
         $this->addSql("DELETE FROM parametrage_global WHERE label = 'DISPATCH_BUSINESS_UNIT_VALUES'");
         $this->addSql("DELETE FROM parametrage_global WHERE label = 'DISPATCH EMERGENCIES'");
+        $this->addSql("DELETE FROM fields_param WHERE field_code = 'urgence'");
+        $this->addSql("DELETE FROM fields_param WHERE field_code = 'business unit'");
+        $this->addSql("DELETE FROM fields_param WHERE field_code = 'numéro projet'");
     }
 }
