@@ -100,7 +100,7 @@ class DispatchController extends AbstractController {
         return $this->render('dispatch/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true),
             'carriers' => $carrierRepository->findAllSorted(),
-            'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
+            'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY_DISPATCH),
             'types' => $types,
             'fields' => $fields,
             'visibleColumns' => $this->getUser()->getColumnsVisibleForDispatch(),
@@ -581,13 +581,13 @@ class DispatchController extends AbstractController {
                 ? $statutRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::DRAFT, Statut::NOT_TREATED])
                 : [];
 
-            $dispatchBusinessUnits = json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES));
+            $dispatchBusinessUnits = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT_DISPATCH);
 
             $json = $this->renderView('dispatch/modalEditContentDispatch.html.twig', [
                 'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
                 'dispatch' => $dispatch,
                 'fieldsParam' => $fieldsParam,
-                'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
+                'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY_DISPATCH),
                 'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                 'statuses' => $statuses,
                 'attachments' => $pieceJointeRepository->findBy(['dispatch' => $dispatch])
@@ -1110,7 +1110,7 @@ class DispatchController extends AbstractController {
         $parametrageGlobalRepository = $this->getDoctrine()->getRepository(ParametrageGlobal::class);
 
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
-            'dispatchEmergencyValues' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
+            'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY_DISPATCH),
         ]));
 
         return $this->json([

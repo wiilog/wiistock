@@ -102,12 +102,6 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL => [
                 'default' => true,
             ],
-            ParametrageGlobal::ARRIVAL_BUSINESS_UNIT_VALUES => [
-                'default' => null,
-            ],
-            ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES => [
-                'default' => null,
-            ],
             ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL => [
                 'default' => null,
             ],
@@ -165,7 +159,6 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::DASHBOARD_PACKAGING_DSQR => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT => [],
-            ParametrageGlobal::DISPATCH_EMERGENCY_VALUES => ["default" => json_encode(["24h"])],
         ];
 
 		foreach ($globalParameterLabels as $globalParameterLabel => $values) {
