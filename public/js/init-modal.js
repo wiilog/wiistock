@@ -1,6 +1,6 @@
 const FORM_INVALID_CLASS = 'is-invalid';
 const FORM_ERROR_CONTAINER = 'error-msg';
-const FILE_MAX_SIZE = 2000000;
+const FILE_MAX_SIZE = 10000000;
 
 let droppedFiles = [];
 

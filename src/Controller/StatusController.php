@@ -51,6 +51,7 @@ class StatusController extends AbstractController {
     /**
      * @Route("/", name="status_param_index")
      * @param EntityManagerInterface $entityManager
+     * @param StatusService $statusService
      * @return RedirectResponse|Response
      */
     public function index(EntityManagerInterface $entityManager,
@@ -66,11 +67,13 @@ class StatusController extends AbstractController {
             CategorieStatut::DISPATCH,
             CategorieStatut::HANDLING,
             CategorieStatut::LITIGE_ARR,
-            CategorieStatut::LITIGE_RECEPT
+            CategorieStatut::LITIGE_RECEPT,
+            CategorieStatut::ARRIVAGE
         ]);
         $types = $typeRepository->findByCategoryLabels([
             CategoryType::DEMANDE_DISPATCH,
-            CategoryType::DEMANDE_HANDLING
+            CategoryType::DEMANDE_HANDLING,
+            CategoryType::ARRIVAGE
         ]);
 
         $categoryStatusDispatchIds = array_filter($categories, function ($category) {
@@ -81,9 +84,14 @@ class StatusController extends AbstractController {
             return $category['nom'] === CategorieStatut::HANDLING;
         });
 
+        $categoryStatusArrivalIds = array_filter($categories, function ($category) {
+            return $category['nom'] === CategorieStatut::ARRIVAGE;
+        });
+
         return $this->render('status/index.html.twig', [
             'categoryStatusDispatchId' => array_values($categoryStatusDispatchIds)[0]['id'] ?? 0,
             'categoryStatusHandlingId' => array_values($categoryStatusHandlingIds)[0]['id'] ?? 0,
+            'categoryStatusArrivalId' => array_values($categoryStatusArrivalIds)[0]['id'] ?? 0,
             'categories' => $categories,
             'types' => $types,
             'statusStates' => $statusService->getStatusStatesValues()
@@ -131,6 +139,7 @@ class StatusController extends AbstractController {
 
             $defaults = $statusRepository->countDefaults($category, $type);
             $drafts = $statusRepository->countDrafts($category, $type);
+            $disputes = $statusRepository->countDisputes($category, $type);
 
             if ($statusRepository->countSimilarLabels($category, $data['label'])) {
                 $success = false;
@@ -141,6 +150,9 @@ class StatusController extends AbstractController {
             } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
                 $success = false;
                 $message = 'Vous ne pouvez pas créer un statut brouillon pour cette entité et ce type, il en existe déjà un.';
+            } else if (((int) $data['state']) === Statut::DISPUTE && $disputes > 0) {
+                $success = false;
+                $message = 'Vous ne pouvez pas créer un statut litige pour cette entité et ce type, il en existe déjà un.';
             } else {
                 $type = $typeRepository->find($data['type']);
                 $status = new Statut();
@@ -196,7 +208,8 @@ class StatusController extends AbstractController {
             $categoryTypeToGet = (
                 ($statusCategory->getNom() === CategorieStatut::HANDLING) ? CategoryType::DEMANDE_HANDLING :
                 (($statusCategory->getNom() === CategorieStatut::DISPATCH) ? CategoryType::DEMANDE_DISPATCH :
-                    null)
+                (($statusCategory->getNom() === CategorieStatut::ARRIVAGE) ? CategoryType::ARRIVAGE :
+                    null))
             );
 
             $types = isset($categoryTypeToGet)

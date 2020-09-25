@@ -110,7 +110,7 @@ class HandlingController extends AbstractController
 			'filterStatus' => $filterStatus,
             'types' => $types,
             'modalNewConfig' => [
-                'handlingDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
+                'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
                 'freeFieldsTypes' => array_map(function (Type $type) use ($freeFieldsRepository) {
                     $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_HANDLING);
                     return [

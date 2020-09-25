@@ -67,8 +67,6 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			}
 		}
         $statutRepository = $manager->getRepository(Statut::class);
-        $statutConformeArrival = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARRIVAGE, Arrivage::STATUS_CONFORME);
-        $statutConformeArrivalId = isset ($statutConformeArrival) ? $statutConformeArrival->getId() : null;
         $dimensionEtiquetteRepository = $manager->getRepository(DimensionsEtiquettes::class);
         $dimensionEtiquette = $dimensionEtiquetteRepository->findOneDimension();
 		$globalParameterLabels = [
@@ -103,10 +101,6 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ],
             ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL => [
                 'default' => true,
-            ],
-            ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE => [
-                'default' => null,
-                SpecificService::CLIENT_SAFRAN_ED => $statutConformeArrivalId
             ],
             ParametrageGlobal::ARRIVAL_BUSINESS_UNIT_VALUES => [
                 'default' => null,

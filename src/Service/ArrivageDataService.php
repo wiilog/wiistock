@@ -200,7 +200,8 @@ class ArrivageDataService
                 []
             );
         } else if ($arrival->getDestinataire()) {
-            $finalRecipents = $arrival->getDestinataire()->getMainAndSecondaryEmails();
+            $recipient = $arrival->getDestinataire();
+            $finalRecipents = $recipient ? $recipient->getMainAndSecondaryEmails() : [];
         }
 
         if (!empty($finalRecipents)) {

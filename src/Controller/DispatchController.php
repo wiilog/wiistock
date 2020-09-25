@@ -263,7 +263,7 @@ class DispatchController extends AbstractController {
 
             $dispatch
                 ->setCreationDate($date)
-                ->setStatut($statutRepository->find($post->get('statut')))
+                ->setStatut($statutRepository->find($post->get('status')))
                 ->setType($typeRepository->find($post->get('type')))
                 ->setRequester($utilisateurRepository->find($post->get('requester')))
                 ->setLocationFrom($locationTake)

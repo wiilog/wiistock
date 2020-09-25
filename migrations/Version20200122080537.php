@@ -21,8 +21,8 @@ final class Version20200122080537 extends AbstractMigration
 
     public function up(Schema $schema) : void
     {
-        $litigeStatut = Arrivage::STATUS_LITIGE;
-        $confirmeStatut = Arrivage::STATUS_CONFORME;
+        $litigeStatut = 'litige';
+        $confirmeStatut = 'conforme';
         $categorieStatutArrivage = CategorieStatut::ARRIVAGE;
 
         $this->addSql('ALTER TABLE arrivage ADD statut_id INT DEFAULT NULL');

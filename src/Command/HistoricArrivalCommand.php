@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
+use App\Entity\Pack;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -40,13 +41,14 @@ class HistoricArrivalCommand extends Command
         $todayEnd = new \DateTime("now", new \DateTimeZone("Europe/Paris"));
         $todayEnd->setTime(23, 59);
         $arrivagesToday = $arrivageRepository->findByDates($todayStart, $todayEnd);
-        $arrivageWithoutLitiges = array_filter($arrivagesToday, function (Arrivage $arrivage) {
-            if ($arrivage->getStatus() === Arrivage::STATUS_CONFORME) return true;
-            return false;
-        });
+        $arrivageWithoutLitiges = array_filter(
+            $arrivagesToday,
+            function (Arrivage $arrivage) {
+                return $arrivage->getStatut()->isDispute();
+            }
+        );
         $conformRate = count($arrivagesToday) > 0
-            ?
-            (int)((count($arrivageWithoutLitiges) / count($arrivagesToday)) * 100)
+            ? (int)((count($arrivageWithoutLitiges) / count($arrivagesToday)) * 100)
             : null;
         $todayHistory = new ArrivalHistory();
         $todayHistory

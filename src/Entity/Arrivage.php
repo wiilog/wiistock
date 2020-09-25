@@ -12,10 +12,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Arrivage extends FreeFieldEntity
 {
-    const STATUS_CONFORME = 'conforme';
-    const STATUS_RESERVE = 'reserve';
-	const STATUS_LITIGE = 'litige';
-
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -151,28 +147,6 @@ class Arrivage extends FreeFieldEntity
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getStatus(): string {
-        /** @var Pack[] $colisCollection */
-        $colisCollection = $this->packs->toArray();
-        $isLitige = false;
-        foreach($colisCollection as $colis) {
-            /** @var Litige[] $litiges */
-            $litiges = $colis->getLitiges()->toArray();
-            foreach ($litiges as $litige) {
-                $status = $litige->getStatus();
-                $isLitige = !isset($status) || !$status->isTreated();
-                if ($isLitige) {
-                    break;
-                }
-            }
-
-            if ($isLitige) {
-                break;
-            }
-        }
-        return $isLitige ? self::STATUS_LITIGE : self::STATUS_CONFORME;
     }
 
     public function getFournisseur(): ?Fournisseur
