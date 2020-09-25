@@ -5,7 +5,7 @@
         ? freeField.defaultValue
         : '') %}
 
-    {% if actionType == 'new' and freeField.displayedCreate %}
+    {% if (actionType == 'new' and freeField.displayedCreate) or actionType == 'edit' %}
         <div class="{{ colType }} my-2">
             <div class="row form-group">
                 <div class="col-12">
