@@ -211,32 +211,6 @@ function initEditor(div) {
 
 //FONCTION REFARTICLE
 
-//Cache/affiche les bloc des modal edit/new
-function visibleBlockModal(bloc) {
-
-    let blocContent = bloc.siblings().filter('.blocVisible');
-    let sortUp = bloc.find('h3').find('.fa-caret-right');
-    let sortDown = bloc.find('h3').find('.fa-caret-down');
-
-    if (sortUp.attr('class').search('d-none') > 0) {
-        sortUp.removeClass('d-none');
-        sortUp.addClass('d-block');
-        sortDown.removeClass('d-block');
-        sortDown.addClass('d-none');
-
-        blocContent.removeClass('d-none')
-        blocContent.addClass('d-block');
-    } else {
-        sortUp.removeClass('d-block');
-        sortUp.addClass('d-none');
-        sortDown.removeClass('d-none');
-        sortDown.addClass('d-block');
-
-        blocContent.removeClass('d-block')
-        blocContent.addClass('d-none')
-    }
-}
-
 function typeChoice($select, text, $freeFieldsContainer = null) {
     if(!$freeFieldsContainer) {
         $freeFieldsContainer = $select.siblings('.modal').find('.free-fields-container');
