@@ -68,6 +68,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 Action::GENERATE_DELIVERY_NOTE,
                 Action::GENERATE_DISPATCH_BILL,
                 Action::GENERATE_WAY_BILL,
+                Action::TREAT_HANDLING,
 			],
 			Menu::ORDRE => [
 				Action::DISPLAY_ORDRE_COLL,

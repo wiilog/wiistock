@@ -21,7 +21,14 @@
         {% if not statusDisabled %}
             {% for status in handlingStatus %}
                 {% if status.id != handling.status.id %}
-                    <option value="{{ status.id }}">{{ status.nom }}</option>
+                    {% if
+                        (
+                        status.state == constant('App\\Entity\\Statut::TREATED')
+                        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::TREAT_HANDLING'))
+                        ) or status.state != constant('App\\Entity\\Statut::TREATED')
+                    %}
+                        <option value="{{ status.id }}">{{ status.nom }}</option>
+                    {% endif %}
                 {% endif %}
             {% endfor %}
         {% endif %}
