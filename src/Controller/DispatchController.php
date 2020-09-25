@@ -709,6 +709,7 @@ class DispatchController extends AbstractController {
         $packCode = $data['pack'];
         $natureId = $data['nature'];
         $quantity = $data['quantity'];
+        $comment = $data['comment'];
 
         $alreadyCreated = !$dispatch
             ->getDispatchPacks()
@@ -741,10 +742,9 @@ class DispatchController extends AbstractController {
             $entityManager->persist($packDispatch);
 
             $nature = $natureRepository->find($natureId);
-            $pack
-                ->setNature($nature);
-            $packDispatch
-                ->setQuantity($quantity);
+            $pack->setNature($nature);
+            $pack->setComment($comment);
+            $packDispatch->setQuantity($quantity);
 
             $entityManager->flush();
 
@@ -782,12 +782,13 @@ class DispatchController extends AbstractController {
         } else {
             $natureId = $data['nature'];
             $quantity = $data['quantity'];
+            $comment = $data['comment'];
 
             $pack = $dispatchPack->getPack();
 
             $nature = $natureRepository->find($natureId);
-            $pack
-                ->setNature($nature);
+            $pack->setNature($nature)
+            ->setComment($comment);
 
             $dispatchPack
                 ->setQuantity($quantity);
@@ -1107,7 +1108,7 @@ class DispatchController extends AbstractController {
             []
         );
 
-        $parametrageGlobalRepository = $this->getDoctrine()->getRepository(ParametrageGlobal::class);
+        $fieldsParamRepository = $this->getDoctrine()->getRepository(FieldsParam::class);
 
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
             'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY_DISPATCH),

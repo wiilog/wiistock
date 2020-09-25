@@ -76,7 +76,6 @@ class Pack
     private $volume;
 
     /**
-     * @var null|string
      * @ORM\Column(type="text", nullable=true)
      */
     private $comment;
@@ -270,17 +269,10 @@ class Pack
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
     public function getComment(): ?string {
         return $this->comment;
     }
 
-    /**
-     * @param string|null $comment
-     * @return self
-     */
     public function setComment(?string $comment): self {
         $this->comment = $comment;
         return $this;
