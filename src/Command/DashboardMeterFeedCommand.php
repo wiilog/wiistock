@@ -6,6 +6,8 @@
 // */1 6-18 * * 1-6
 namespace App\Command;
 
+use App\Entity\DashboardMeter;
+use App\Entity\Wiilock;
 use App\Service\DashboardService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,9 +17,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-class DashboardFeedCommand extends Command
+class DashboardMeterFeedCommand extends Command
 {
-    protected static $defaultName = 'app:feed:dashboards';
+    protected static $defaultName = 'app:feed:dashboards:meters';
 
     private $em;
     private $dashboardService;
@@ -44,7 +46,7 @@ class DashboardFeedCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->dashboardService->retrieveAndInsertGlobalDashboardData($this->getEntityManager());
+        $this->dashboardService->retrieveAndInsertGlobalDashboardData($this->getEntityManager(), Wiilock::DASHBOARD_METER_FED_KEY);
     }
 
     /**
