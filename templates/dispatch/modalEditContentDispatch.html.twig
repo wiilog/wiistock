@@ -57,7 +57,7 @@
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
         <div class="form-group col-md-4 col-12">
             <label for="depose" title="Emplacement de dépose">{{ 'acheminement.Emplacement dépose'|trans }}{{ required ? '*' }}</label>
-            <select name="depose" class="form-control data ajax-autocompleteEmplacement-edit d-block {{ required ? 'needed' }} location-depose"
+            <select name="depose" class="form-control data ajax-autocompleteEmplacement-edit {{ required ? 'needed' }} location-depose"
                     id="depose">
                 {% if dispatch.locationTo %}
                     <option value="{{ dispatch.locationTo.id }}">{{ dispatch.locationTo.label }}</option>
@@ -175,7 +175,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEADLINE_DISPATCH') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
-        <div class="form-group col-md-4 col-12">
+        <div class="form-group col">
             <label>Echéance{{ required ? '*' }}</label>
             <div class="input-group w-100">
                 <div class="input-group-prepend">
@@ -201,15 +201,17 @@
     {% endif %}
 
     <!-- CHAMPS LIBRES -->
-    <span class="toggle-collapsible expanded">Champs libres</span>
-    <div class="collapsible expanded free-fields-container mb-2">
-        {% include 'champ_libre/freeFieldsViewing.html.twig' with {
-            freeFields: dispatch.type.champsLibres,
-            freeFieldValues: dispatch.freeFields,
-            colType: 'col-12',
-            requiredType: 'requiredEdit',
-            actionType: 'edit'
-        } %}
+    <div class="col-12">
+        <span class="toggle-collapsible expanded">Champs libres</span>
+        <div class="collapsible expanded free-fields-container row mb-2">
+            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+                freeFields: dispatch.type.champsLibres,
+                freeFieldValues: dispatch.freeFields,
+                colType: 'col-md-4 col-12',
+                requiredType: 'requiredEdit',
+                actionType: 'edit'
+            } %}
+        </div>
     </div>
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMENT_DISPATCH') %}

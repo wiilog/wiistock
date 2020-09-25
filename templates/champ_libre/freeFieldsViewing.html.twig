@@ -5,7 +5,7 @@
             ? freeField.defaultValue
             : '')
     %}
-    <div class="{{ colType }} my-2">
+    <div class="{{ colType is defined ? colType }} my-2">
         <div class="row form-group">
             <div class="col-12">
                 <label for="input">
