@@ -51,7 +51,7 @@ class FieldsParamRepository extends EntityRepository
             ->createQuery(
                 "SELECT f.fieldCode
                 FROM App\Entity\FieldsParam f
-                WHERE f.entityCode = :entity AND f.displayed = 0"
+                WHERE f.entityCode = :entity AND f.displayedForms = 0"
             )
             ->setParameter('entity', $entity);
 
