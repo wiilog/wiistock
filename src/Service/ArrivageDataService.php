@@ -457,7 +457,7 @@ class ArrivageDataService
         return array_merge(
             $configFiltered,
             $freeFieldArray,
-            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayed')
+            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedForms')
                 ? [[
                 'label' => 'Commentaire',
                 'value' => $comment ?: '',
@@ -467,7 +467,7 @@ class ArrivageDataService
                 'isNeededNotEmpty' => true
             ]]
                 : [],
-            $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayed')
+            $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayedForms')
                 ? [[
                     'label' => 'Pièces jointes',
                     'value' => $attachments->toArray(),
