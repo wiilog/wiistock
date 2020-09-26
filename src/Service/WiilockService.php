@@ -7,7 +7,6 @@ use App\Entity\Wiilock;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 
 
 Class WiilockService

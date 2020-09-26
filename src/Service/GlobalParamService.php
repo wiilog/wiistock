@@ -5,6 +5,7 @@ namespace App\Service;
 
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\Emplacement;
+use App\Entity\LocationCluster;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Transporteur;
@@ -182,7 +183,6 @@ Class GlobalParamService
 
     /**
      * @return array
-     * @throws NonUniqueResultException
      */
 	public function getDashboardLocations()
     {
@@ -197,8 +197,6 @@ Class GlobalParamService
 			ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES,
 			ParametrageGlobal::DASHBOARD_LOCATION_LITIGES,
 			ParametrageGlobal::DASHBOARD_LOCATION_URGENCES,
-			ParametrageGlobal::DASHBOARD_LOCATIONS_1,
-            ParametrageGlobal::DASHBOARD_LOCATIONS_2,
             ParametrageGlobal::DASHBOARD_PACKAGING_1,
             ParametrageGlobal::DASHBOARD_PACKAGING_2,
             ParametrageGlobal::DASHBOARD_PACKAGING_3,
@@ -236,6 +234,27 @@ Class GlobalParamService
 				$resp[$paramLabel] = ['id' => '', 'text' => ''];
 			}
 		}
+
+		$locationClusterRepository = $this->em->getRepository(LocationCluster::class);
+
+		foreach ([LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1, LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1] as $clusterCode) {
+            $locationCluster = $locationClusterRepository->findOneBy(['code' => $clusterCode]);
+            $resp[$clusterCode] = ['id' => '', 'text' => ''];
+            /** @var Emplacement $location */
+            foreach ($locationCluster->getLocations() as $location) {
+                $id = $location->getId();
+                $text = $location->getLabel();
+                if (!empty($resp[$clusterCode]['id'])) {
+                    $resp[$clusterCode]['id'] .= ',';
+                }
+                if (!empty($resp[$clusterCode]['text'])) {
+                    $resp[$clusterCode]['text'] .= ',';
+                }
+
+                $resp[$clusterCode]['id'] .= $id;
+                $resp[$clusterCode]['text'] .= $text;
+            }
+        }
 
 		return $resp;
 	}

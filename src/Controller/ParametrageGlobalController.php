@@ -27,7 +27,6 @@ use App\Service\GlobalParamService;
 use App\Service\StatusService;
 use App\Service\TranslationService;
 use App\Service\UserService;
-use Cassandra\Cluster;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;

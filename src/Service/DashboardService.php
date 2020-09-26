@@ -420,7 +420,6 @@ class DashboardService
     /**
      * @param EntityManagerInterface $entityManager
      * @param string $clusterCode
-     * @throws DBALException
      * @throws NonUniqueResultException
      * @throws Exception
      */

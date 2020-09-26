@@ -8,7 +8,6 @@ use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\Utilisateur;
 use DateTime;
-use DateTimeInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\FetchMode;

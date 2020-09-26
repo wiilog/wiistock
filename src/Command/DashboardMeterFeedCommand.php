@@ -6,7 +6,6 @@
 // */1 6-18 * * 1-6
 namespace App\Command;
 
-use App\Entity\DashboardMeter;
 use App\Entity\Wiilock;
 use App\Service\DashboardService;
 use Doctrine\ORM\EntityManager;
@@ -34,7 +33,7 @@ class DashboardMeterFeedCommand extends Command
 
     protected function configure()
     {
-        $this->setDescription('This command feeeds the dashboard data.');
+        $this->setDescription('This command feeds the dashboard data.');
     }
 
     /**

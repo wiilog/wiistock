@@ -3,8 +3,6 @@
 
 namespace App\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -34,13 +32,13 @@ class LocationClusterRecord {
 
     /**
      * @var MouvementTraca|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="firstDropsOnLocationCluster", onDelete="SET NULL")
+     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="firstDropsOnLocationCluster")
      */
     private $firstDrop;
 
     /**
      * @var MouvementTraca|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="lastTrackingOnLocationCluster", onDelete="SET NULL")
+     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="lastTrackingOnLocationCluster")
      */
     private $lastTracking;
 

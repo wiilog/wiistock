@@ -130,8 +130,6 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN => [],
 			ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => [],
 			ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => [],
-			ParametrageGlobal::DASHBOARD_LOCATIONS_1 => [],
-			ParametrageGlobal::DASHBOARD_LOCATIONS_2 => [],
 			ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => [],
 			ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => [],
             ParametrageGlobal::DASHBOARD_CARRIER_DOCK => [],

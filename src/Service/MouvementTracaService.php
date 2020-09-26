@@ -17,7 +17,6 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use Cassandra\Cluster;
 use DateTime;
 use Exception;
 use Symfony\Component\Security\Core\Security;
@@ -358,6 +357,7 @@ class MouvementTracaService
                             !$previousRecordLastTracking
                             || !$previousLastTracking
                             || ($previousRecordLastTracking->getId() !== $previousLastTracking->getId())
+                            // TODO with lastDrop of pack
                         )) {
                         $record->setFirstDrop($tracking);
                     }
