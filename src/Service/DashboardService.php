@@ -554,7 +554,7 @@ class DashboardService
                     return $carry;
                 },
                 []),
-            'key' => self::DASHBOARD_ADMIN . '-' . $graph,
+            'key' => self::DASHBOARD_ADMIN . '-' . $clusterCode,
             'data' => $graphData,
             'location' => (isset($locationToDisplay) ? $locationToDisplay : '-'),
             'total' => (isset($totalToDisplay) ? $totalToDisplay : '-'),
