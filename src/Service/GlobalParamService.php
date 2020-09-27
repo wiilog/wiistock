@@ -236,8 +236,13 @@ Class GlobalParamService
 		}
 
 		$locationClusterRepository = $this->em->getRepository(LocationCluster::class);
+        $clusterCodes = [
+            LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1,
+            LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2,
+            LocationCluster::CLUSTER_CODE_DOCK_DASHBOARD_DROPZONE
+        ];
 
-		foreach ([LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1, LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2] as $clusterCode) {
+		foreach ($clusterCodes as $clusterCode) {
             $locationCluster = $locationClusterRepository->findOneBy(['code' => $clusterCode]);
             $resp[$clusterCode] = ['id' => '', 'text' => ''];
             /** @var Emplacement $location */

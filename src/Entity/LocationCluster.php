@@ -12,8 +12,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class LocationCluster {
 
-    public const CLUSTER_CODE_ADMIN_DASHBOARD_1 = 'CLUSTER_CODE_ADMIN_DASHBOARD_1';
-    public const CLUSTER_CODE_ADMIN_DASHBOARD_2 = 'CLUSTER_CODE_ADMIN_DASHBOARD_2';
+    public const CLUSTER_CODE_ADMIN_DASHBOARD_1 = 'ADMIN_DASHBOARD_1';
+    public const CLUSTER_CODE_ADMIN_DASHBOARD_2 = 'ADMIN_DASHBOARD_2';
+    public const CLUSTER_CODE_DOCK_DASHBOARD_DROPZONE = 'DOCK_DASHBOARD_DROPZONE';
 
     /**
      * @var int|null
@@ -36,13 +37,27 @@ class LocationCluster {
     private $locations;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="locationCluster", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="locationCluster")
      */
     private $locationClusterRecords;
+
+    /**
+     * @var Collection
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterMeter", mappedBy="locationClusterFrom")
+     */
+    private $metersFrom;
+
+    /**
+     * @var Collection
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterMeter", mappedBy="locationClusterInto")
+     */
+    private $metersInto;
 
     public function __construct() {
         $this->locations = new ArrayCollection();
         $this->locationClusterRecords = new ArrayCollection();
+        $this->metersFrom = new ArrayCollection();
+        $this->metersInto = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -141,6 +156,74 @@ class LocationCluster {
             // set the owning side to null (unless already changed)
             if ($locationClusterRecord->getLocationCluster() === $this) {
                 $locationClusterRecord->setLocationCluster(null);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getMetersFrom(): Collection {
+        return $this->metersFrom;
+    }
+
+    /**
+     * @param LocationClusterMeter $meter
+     * @return self
+     */
+    public function addMeterFrom(LocationClusterMeter $meter): self {
+        if (!$this->metersFrom->contains($meter)) {
+            $this->metersFrom[] = $meter;
+            $meter->setLocationClusterFrom($this);
+        }
+        return $this;
+    }
+
+    /**
+     * @param LocationClusterMeter $meter
+     * @return self
+     */
+    public function removeMeterFrom(LocationClusterMeter $meter): self {
+        if ($this->metersFrom->contains($meter)) {
+            $this->metersFrom->removeElement($meter);
+            // set the owning side to null (unless already changed)
+            if ($meter->getLocationClusterFrom() === $this) {
+                $meter->setLocationClusterFrom(null);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getMetersInto(): Collection {
+        return $this->metersInto;
+    }
+
+    /**
+     * @param LocationClusterMeter $meter
+     * @return self
+     */
+    public function addMeterInto(LocationClusterMeter $meter): self {
+        if (!$this->metersInto->contains($meter)) {
+            $this->metersInto[] = $meter;
+            $meter->setLocationClusterInto($this);
+        }
+        return $this;
+    }
+
+    /**
+     * @param LocationClusterMeter $meter
+     * @return self
+     */
+    public function removeMeterInto(LocationClusterMeter $meter): self {
+        if ($this->metersInto->contains($meter)) {
+            $this->metersInto->removeElement($meter);
+            // set the owning side to null (unless already changed)
+            if ($meter->getLocationClusterInto() === $this) {
+                $meter->setLocationClusterInto(null);
             }
         }
         return $this;

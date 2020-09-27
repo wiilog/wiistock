@@ -37,10 +37,12 @@ class MouvementTracaService
     private $security;
     private $entityManager;
     private $attachmentService;
+    private $locationClusterService;
 
     public function __construct(UserService $userService,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
+                                LocationClusterService $locationClusterService,
                                 Twig_Environment $templating,
                                 Security $security,
                                 AttachmentService $attachmentService)
@@ -51,6 +53,7 @@ class MouvementTracaService
         $this->userService = $userService;
         $this->security = $security;
         $this->attachmentService = $attachmentService;
+        $this->locationClusterService = $locationClusterService;
     }
 
     /**
@@ -141,7 +144,7 @@ class MouvementTracaService
     }
 
     /**
-     * @param string|Pack $pack
+     * @param string|Pack $packOrCode
      * @param Emplacement|null $location
      * @param Utilisateur $user
      * @param DateTime $date
@@ -158,7 +161,7 @@ class MouvementTracaService
      * @return MouvementTraca
      * @throws Exception
      */
-    public function createTrackingMovement($pack,
+    public function createTrackingMovement($packOrCode,
                                            ?Emplacement $location,
                                            Utilisateur $user,
                                            DateTime $date,
@@ -169,10 +172,6 @@ class MouvementTracaService
     {
         $entityManager = $options['entityManager'] ?? $this->entityManager;
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $articleRepository = $entityManager->getRepository(Article::class);
-
-        $codePack = $pack instanceof Pack ? $pack->getCode() : $pack;
 
         $type = ($typeMouvementTraca instanceof Statut)
             ? $typeMouvementTraca
@@ -191,9 +190,12 @@ class MouvementTracaService
         $from = $options['from'] ?? null;
         $receptionReferenceArticle = $options['receptionReferenceArticle'] ?? null;
         $uniqueIdForMobile = $options['uniqueIdForMobile'] ?? null;
+        $natureId = $options['natureId'] ?? null;
 
-        $mouvementTraca = new MouvementTraca();
-        $mouvementTraca
+        $codePack = $packOrCode instanceof Pack ? $packOrCode->getCode() : $packOrCode;
+
+        $tracking = new MouvementTraca();
+        $tracking
             ->setColis($codePack)
             ->setQuantity($quantity)
             ->setEmplacement($location)
@@ -205,45 +207,102 @@ class MouvementTracaService
             ->setMouvementStock($mouvementStock)
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
 
-        $this->managePackLinksWithTracking(
-            $mouvementTraca,
-            $entityManager,
-            $type,
-            $pack,
-            false,
-            $quantity,
-            $options['natureId'] ?? null
+        $this->manageTrackingPack($entityManager, $tracking, $packOrCode, $quantity, $natureId);
+        $this->managePackLinksWithTracking($entityManager, $tracking);
+        $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
+        $this->manageTrackingFiles($tracking, $fileBag);
+
+        return $tracking;
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param MouvementTraca $tracking
+     * @param Pack|string $packOrCode
+     * @param $quantity
+     * @param $natureId
+     */
+    private function manageTrackingPack(EntityManagerInterface $entityManager,
+                                        MouvementTraca $tracking,
+                                        $packOrCode,
+                                        $quantity,
+                                        $natureId) {
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $codePack = $packOrCode instanceof Pack ? $packOrCode->getCode() : $packOrCode;
+
+        $pack = ($packOrCode instanceof Pack)
+            ? $packOrCode
+            : $packRepository->findOneBy(['code' => $packOrCode]);
+
+        if (!isset($pack)) {
+            $pack = new Pack();
+            $pack
+                ->setQuantity($quantity)
+                ->setCode($codePack);
+            $entityManager->persist($pack);
+        }
+
+        if (!empty($natureId)) {
+            $natureRepository = $entityManager->getRepository(Nature::class);
+            $nature = $natureRepository->find($natureId);
+
+            if (!empty($nature)) {
+                $pack->setNature($nature);
+            }
+        }
+
+        $tracking->setPack($pack);
+    }
+
+    private function manageTrackingLinks(EntityManagerInterface $entityManager,
+                                         MouvementTraca $tracking,
+                                         $from,
+                                         $receptionReferenceArticle) {
+
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+
+        $pack = $tracking->getPack();
+        $packCode = $pack ? $pack->getCode() : null;
+
+        $refOrArticle = (
+            $referenceArticleRepository->findOneBy(['barCode' => $packCode])
+            ?: $articleRepository->findOneBy(['barCode' => $packCode])
         );
 
-        $refOrArticle = $referenceArticleRepository->findOneBy(['barCode' => $codePack])
-            ?: $articleRepository->findOneBy(['barCode' => $codePack]);
         if ($refOrArticle instanceof ReferenceArticle) {
-            $mouvementTraca->setReferenceArticle($refOrArticle);
+            $tracking->setReferenceArticle($refOrArticle);
         } else if ($refOrArticle instanceof Article) {
-            $mouvementTraca->setArticle($refOrArticle);
+            $tracking->setArticle($refOrArticle);
         }
 
         if (isset($from)) {
             if ($from instanceof Arrivage) {
-                $mouvementTraca->setArrivage($from);
+                $tracking->setArrivage($from);
             } else if ($from instanceof Reception) {
-                $mouvementTraca->setReception($from);
+                $tracking->setReception($from);
             } else if ($from instanceof Dispatch) {
-                $mouvementTraca->setDispatch($from);
+                $tracking->setDispatch($from);
             }
         }
 
         if (isset($receptionReferenceArticle)) {
-            $mouvementTraca->setReceptionReferenceArticle($receptionReferenceArticle);
+            $tracking->setReceptionReferenceArticle($receptionReferenceArticle);
         }
+    }
 
+    /**
+     * @param MouvementTraca $tracking
+     * @param $fileBag
+     */
+    private function manageTrackingFiles(MouvementTraca $tracking, $fileBag) {
         if (isset($fileBag)) {
-            $attachements = $this->attachmentService->createAttachements($fileBag);
-            foreach ($attachements as $attachement) {
-                $mouvementTraca->addAttachment($attachement);
+            $attachments = $this->attachmentService->createAttachements($fileBag);
+            foreach ($attachments as $attachment) {
+                $tracking->addAttachment($attachment);
             }
         }
-        return $mouvementTraca;
     }
 
     private function generateUniqueIdForMobile(EntityManagerInterface $entityManager,
@@ -279,51 +338,14 @@ class MouvementTracaService
     }
 
     /**
-     * @param MouvementTraca $tracking
      * @param EntityManagerInterface $entityManager
-     * @param Statut $type
-     * @param string|Pack $packOrCode
-     * @param bool $persist
-     * @param int $defaultQuantity Quantity used if pack does not exist
-     * @param int|null $natureId
+     * @param MouvementTraca $tracking
      */
-    public function managePackLinksWithTracking(MouvementTraca $tracking,
-                                                EntityManagerInterface $entityManager,
-                                                Statut $type,
-                                                $packOrCode,
-                                                bool $persist,
-                                                int $defaultQuantity,
-                                                int $natureId = null): void {
-        $packRepository = $entityManager->getRepository(Pack::class);
-        $isDrop = ($type->getNom() === MouvementTraca::TYPE_DEPOSE);
+    public function managePackLinksWithTracking(EntityManagerInterface $entityManager,
+                                                MouvementTraca $tracking): void {
 
-        if (!empty($natureId)) {
-            $natureRepository = $entityManager->getRepository(Nature::class);
-            $nature = $natureRepository->find($natureId);
-        }
-
-        $pack = ($packOrCode instanceof Pack)
-            ? $packOrCode
-            : $packRepository->findOneBy(['code' => $packOrCode]);
-
-        if (!isset($pack)) {
-            $pack = new Pack();
-            $pack
-                ->setQuantity($defaultQuantity)
-                ->setCode($packOrCode);
-
-            if ($persist) {
-                $entityManager->persist($pack);
-            }
-        }
-
-        if (!empty($nature)) {
-            $pack->setNature($nature);
-        }
-
-        $previousLastTracking = $pack->getLastTracking();
-
-        $tracking->setPack($pack);
+        $pack = $tracking->getPack();
+        $previousLastTracking = $pack ? $pack->getLastTracking() : null;
 
         $packsAlreadyExisting = $tracking->getLinkedPackLastDrops();
         // si c'est une prise ou une dépose on vide ses colis liés
@@ -331,7 +353,7 @@ class MouvementTracaService
             $packLastDrop->setLastDrop(null);
         }
 
-        if ($isDrop) {
+        if ($tracking->isDrop()) {
             $pack->setLastDrop($tracking);
         }
 
@@ -346,7 +368,7 @@ class MouvementTracaService
                     $entityManager->persist($record);
                 }
 
-                if ($isDrop) {
+                if ($tracking->isDrop()) {
                     $record->setActive(true);
                     $previousRecordLastTracking = $record->getLastTracking();
                     // check if pack previous last tracking !== record previous lastTracking
@@ -368,6 +390,28 @@ class MouvementTracaService
 
                 // set last tracking after check of drop
                 $record->setLastTracking($tracking);
+
+                $this->locationClusterService->setMeter(
+                    $entityManager,
+                    LocationClusterService::METER_ACTION_INCREASE,
+                    $tracking->getDatetime(),
+                    $cluster
+                );
+
+                if ($previousLastTracking
+                    && $previousLastTracking->isTaking()) {
+                    $locationPreviousLastTracking = $previousLastTracking->getEmplacement();
+                    $locationClustersPreviousLastTracking = $locationPreviousLastTracking ? $locationPreviousLastTracking->getClusters() : [];
+                    foreach ($locationClustersPreviousLastTracking as $locationClusterPreviousLastTracking) {
+                        $this->locationClusterService->setMeter(
+                            $entityManager,
+                            LocationClusterService::METER_ACTION_INCREASE,
+                            $tracking->getDatetime(),
+                            $cluster,
+                            $locationClusterPreviousLastTracking
+                        );
+                    }
+                }
             }
         }
     }

@@ -79,7 +79,7 @@
                         </select>
                     </div>
                 </div>
-                {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES')] %}
+                {% set valueLocation = locations[constant('App\\Entity\\LocationCluster::CLUSTER_CODE_DOCK_DASHBOARD_DROPZONE')] %}
                 <input hidden id="locationDropZoneValue" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
             </div>
         </div>

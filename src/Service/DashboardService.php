@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
 use App\Entity\LocationCluster;
+use App\Entity\LocationClusterMeter;
 use App\Entity\Pack;
 use App\Entity\DashboardChartMeter;
 use App\Entity\DashboardMeter;
@@ -362,29 +363,15 @@ class DashboardService
     private function parseColisData(EntityManagerInterface $entityManager)
     {
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+        $locationClusterMeterRepository = $entityManager->getRepository(LocationClusterMeter::class);
+
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-        $packsCountByDays = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($entityManager) {
-            $packRepository = $entityManager->getRepository(Pack::class);
-            $locations = $this->findEmplacementsParam(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES);
-            if (!empty($locations)) {
-                $response = [];
-                $response['delay'] = null;
-                $response['count'] = 0;
-                $response['label'] = array_reduce(
-                    $locations,
-                    function (string $carry, Emplacement $location) {
-                        return $carry . (!empty($carry) ? ', ' : '') . $location->getLabel();
-                    },
-                    ''
-                );
-                $response['count'] = $packRepository->countPacksOnLocations($locations, [
-                    'minDate' => $dateMin,
-                    'maxDate' => $dateMax
-                ]);
-            } else {
-                $response = null;
-            }
-            return !empty($response['count']) ? $response['count'] : 0;
+
+        $packsCountByDays = $this->getDailyObjectsStatistics(function (DateTime $date) use ($locationClusterMeterRepository) {
+            return $locationClusterMeterRepository->countByDate(
+                $date,
+                LocationCluster::CLUSTER_CODE_DOCK_DASHBOARD_DROPZONE
+            );
         }, $workFreeDays);
         $dashboardData = [
             'data' => $this->saveArrayForEncoding($packsCountByDays),

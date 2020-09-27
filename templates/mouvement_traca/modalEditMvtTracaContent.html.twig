@@ -1,53 +1,66 @@
 <div class="row">
-    <div class="form-group col-6">
+    <div class="form-group col-md-6 col-12">
         <label for="datetime">Date*</label>
-        <input type="datetime-local" class="form-control data datetime needed" id="datetime"
-               name="datetime" value="{{ mvt.datetime|date('Y-m-d\\TH:i') }}">
+        <input type="text"
+               class="form-control w-100"
+               title="Date"
+               disabled
+               value="{{ mvt.datetime|date('Y-m-d\\TH:i') }}"/>
     </div>
 
-    <div class="form-group col-6 w-100">
-        <label for="operator my-auto mr-2">Opérateur*</label>
-        <select name="operator" class="form-control ajax-autocomplete-user-edit data needed operator">
+    <div class="form-group col-md-6 col-12">
+        <label for="operator">Opérateur*</label>
+        <select name="operator"
+                title="Opérateur"
+                class="form-control ajax-autocomplete-user-edit data needed operator w-100">
             {% if mvt.operateur %}
                 <option value="{{ mvt.operateur.id }}">{{ mvt.operateur.username }}</option>>
             {% endif %}
         </select>
     </div>
 
-    <div class="form-group col-6">
-        <label for="colis" title="Colis">{{"mouvement de traçabilité.Colis"|trans}}*</label>
-        <input type="text" class="form-control data needed" id="colis" name="colis" value="{{ mvt.colis }}">
+    <div class="form-group col-md-6 col-12">
+        <label title="Colis">{{"mouvement de traçabilité.Colis"|trans}}*</label>
+        <input type="text"
+               title="Colis"
+               class="form-control w-100"
+               disabled
+               value="{{ mvt.colis }}">
     </div>
 
-    <div class="form-group col-6">
-        <label for="type">Action*</label>
-        <select class="form-control data needed" id="type" name="type">
-            {% for statut in statuts %}
-                {% if statut.nom != constant('App\\Entity\\MouvementTraca::TYPE_PRISE_DEPOSE') %}
-                    {% set selected = (statut.nom == mvt.type.nom) ? 'selected' : ''%}
-                    <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
-                {% endif %}
-            {% endfor %}
-        </select>
-    </div>
-
-    <div class="form-group col-12 w-100">
-        <label class="my-auto mr-2">Emplacement*</label>
-        <select name="emplacement" class="form-control ajax-autocompleteEmplacement-edit data needed">
-            {% if mvt.emplacement is not null %}
-                <option value="{{ mvt.emplacement.id }}">{{ mvt.emplacement.label }}</option>
+    <div class="form-group col-md-6 col-12">
+        <label>Action*</label>
+        <select class="form-control w-100"
+                title="Action"
+                disabled>
+            {% if mvt.type is not null %}
+                <option value="{{ mvt.type.id }}" selected>{{ mvt.type.nom }}</option>
             {% endif %}
         </select>
     </div>
 
-    {% include 'mouvement_traca/trackingMovementQuantity.html.twig' with {quantity: mvt.quantity} %}
+    <div class="form-group col-md-6 col-12">
+        <label>Emplacement*</label>
+        <select name="emplacement"
+                class="form-control w-100"
+                disabled>
+            {% if mvt.emplacement is not null %}
+                <option value="{{ mvt.emplacement.id }}" selected>{{ mvt.emplacement.label }}</option>
+            {% endif %}
+        </select>
+    </div>
+
+    {% include 'mouvement_traca/trackingMovementQuantity.html.twig' with {
+        quantity: mvt.quantity,
+        containerClass: 'col-md-6'
+    } %}
 </div>
 
 <div class="row champsLibresBlock">
     {% include 'champ_libre/freeFieldsViewing.html.twig' with {
         freeFields: champsLibres,
         freeFieldValues: mvt.freeFields,
-        colType: 'col-12',
+        colType: 'col-md-6 col-12',
         requiredType: 'requiredEdit',
         actionType: 'edit'
     } %}

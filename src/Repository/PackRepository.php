@@ -264,22 +264,6 @@ class PackRepository extends EntityRepository
 
     /**
      * @param array $locations
-     * @param array $onDateBracket
-     * @return int
-     * @throws NoResultException
-     * @throws NonUniqueResultException|DBALException
-     */
-    public function countPacksOnLocations(array $locations, array $onDateBracket = []): int
-    {
-        return $this
-            ->createPacksOnLocationsQueryBuilder($locations, [], $onDateBracket)
-            ->select('COUNT(colis.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
-    /**
-     * @param array $locations
      * @param array $natures
      * @param array $dateBracket
      * @param bool $isCount
@@ -395,46 +379,5 @@ class PackRepository extends EntityRepository
             },
             []
         );
-    }
-
-
-    /**
-     * @param array $locations
-     * @param array $naturesFilter
-     * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]|[]
-     * @return mixed
-     * @throws DBALException
-     */
-    private function createPacksOnLocationsQueryBuilder(array $locations, array $naturesFilter = [], array $onDateBracket = []): QueryBuilder
-    {
-        $entityManager = $this->getEntityManager();
-        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-        $firstTrackingForColis = $mouvementTracaRepository->getFirstIdForPacksOnLocations($locations, $onDateBracket);
-        $lastTrackingForColis = $mouvementTracaRepository->getForPacksOnLocations($locations, $onDateBracket);
-
-        $queryBuilder = $this
-            ->createQueryBuilder('colis')
-            ->join('colis.nature', 'nature')
-            ->join(MouvementTraca::class, 'firstTracking', 'WITH', 'firstTracking.id IN (:firstTrackingIds) AND firstTracking.colis = colis.code')
-            ->join(MouvementTraca::class, 'lastTracking', 'WITH', 'lastTracking.id IN (:lastTrackingIds) AND lastTracking.colis = colis.code')
-            ->join('lastTracking.emplacement', 'currentLocation')
-            ->setParameter('firstTrackingIds', $firstTrackingForColis, Connection::PARAM_STR_ARRAY)
-            ->setParameter('lastTrackingIds', $lastTrackingForColis, Connection::PARAM_STR_ARRAY);
-
-        if (!empty($naturesFilter)) {
-            $queryBuilder
-                ->andWhere('nature.id IN (:naturesFilter)')
-                ->setParameter(
-                    'naturesFilter',
-                    array_map(function ($nature) {
-                        return ($nature instanceof Nature)
-                            ? $nature->getId()
-                            : $nature;
-                    }, $naturesFilter),
-                    Connection::PARAM_STR_ARRAY
-                );
-        }
-
-        return $queryBuilder;
     }
 }

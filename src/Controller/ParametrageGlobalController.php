@@ -736,7 +736,6 @@ class ParametrageGlobalController extends AbstractController
             $listMultipleSelect = [
                 ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => 'listNaturesColis',
                 ParametrageGlobal::DASHBOARD_CARRIER_DOCK => 'carrierDock',
-                ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => 'locationDropZone',
                 ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => 'locationAvailable',
                 ParametrageGlobal::DASHBOARD_LOCATION_DOCK => 'locationToTreat',
                 ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK => 'locationWaitingDock',
@@ -779,6 +778,7 @@ class ParametrageGlobalController extends AbstractController
 
             $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1, $post->get('locationsFirstGraph'), $entityManager);
             $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2, $post->get('locationsSecondGraph'), $entityManager);
+            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_DOCK_DASHBOARD_DROPZONE, $post->get('locationDropZone'), $entityManager);
             $entityManager->flush();
 
             return new JsonResponse(true);

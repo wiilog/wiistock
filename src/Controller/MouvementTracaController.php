@@ -347,7 +347,6 @@ class MouvementTracaController extends AbstractController
      */
     public function edit(EntityManagerInterface $entityManager,
                          FreeFieldService $freeFieldService,
-                         MouvementTracaService $mouvementTracaService,
                          Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -357,14 +356,9 @@ class MouvementTracaController extends AbstractController
 
             $post = $request->request;
 
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
-            $date = DateTime::createFromFormat(DateTime::ATOM, $post->get('datetime') . ':00P', new \DateTimeZone('Europe/Paris'));
-            $type = $statutRepository->find($post->get('type'));
-            $location = $emplacementRepository->find($post->get('emplacement'));
             $operator = $utilisateurRepository->find($post->get('operator'));
             $quantity = $post->getInt('quantity') ?: 1;
 
@@ -377,22 +371,9 @@ class MouvementTracaController extends AbstractController
 
             /** @var MouvementTraca $mvt */
             $mvt = $mouvementTracaRepository->find($post->get('id'));
-            $mouvementTracaService->managePackLinksWithTracking(
-                $mvt,
-                $entityManager,
-                $type,
-                $post->get('colis'),
-                $quantity,
-                true
-            );
-
             $mvt
-                ->setDatetime($date)
                 ->setOperateur($operator)
-                ->setColis($post->get('colis'))
                 ->setQuantity($quantity)
-                ->setType($type)
-                ->setEmplacement($location)
                 ->setCommentaire($post->get('commentaire'));
 
             $entityManager->flush();

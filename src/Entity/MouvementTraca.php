@@ -53,6 +53,7 @@ class MouvementTraca extends FreeFieldEntity
     private $emplacement;
 
     /**
+     * @var Statut|null
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut")
      */
     private $type;
@@ -249,6 +250,22 @@ class MouvementTraca extends FreeFieldEntity
     public function getType(): ?Statut
     {
         return $this->type;
+    }
+
+    public function isDrop(): bool
+    {
+        return (
+            $this->type
+            && $this->type->getNom() === self::TYPE_DEPOSE
+        );
+    }
+
+    public function isTaking(): bool
+    {
+        return (
+            $this->type
+            && $this->type->getNom() === self::TYPE_PRISE
+        );
     }
 
     public function setType(?Statut $type): self
