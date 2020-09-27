@@ -845,22 +845,26 @@ class ParametrageGlobalController extends AbstractController
     }
 
     private function setLocationListCluster(?string $clusterCode,
-                                            ?string $listRawLocationIds,
+                                            ?array $listLocationIds,
                                             EntityManagerInterface $entityManager) {
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $locationClusterRepository = $entityManager->getRepository(LocationCluster::class);
 
-        $listLocationIds = $listRawLocationIds ? explode(',', $listRawLocationIds) : [];
-
         $cluster = $locationClusterRepository->findOneBy(['code' => $clusterCode]);
         /** @var Emplacement $locationInCluster */
         foreach ($cluster->getLocations() as $locationInCluster) {
-            $locationInCluster->removeCluster($cluster);
+            $locationId = (string) $locationInCluster->getId();
+            if (empty($listLocationIds)
+                || !in_array($locationId, $listLocationIds)) {
+                $locationInCluster->removeCluster($cluster);
+            }
         }
-        $cluster->getLocations()->clear();
-        foreach ($listLocationIds as $locationId) {
-            $location = $locationRepository->find($locationId);
-            $location->addCluster($cluster);
+
+        if (!empty($listLocationIds)) {
+            foreach ($listLocationIds as $locationId) {
+                $location = $locationRepository->find($locationId);
+                $location->addCluster($cluster);
+            }
         }
     }
 }

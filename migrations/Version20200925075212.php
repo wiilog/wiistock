@@ -35,6 +35,8 @@ final class Version20200925075212 extends AbstractMigration
         $this->migrateLocationClusterRecord('DASHBOARD_LOCATIONS_1', ParametrageGlobal::DASHBOARD_NATURE_COLIS, LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1);
         $this->migrateLocationClusterRecord('DASHBOARD_LOCATIONS_2', ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS, LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2);
 
+        $this->addSql("DELETE FROM dashboard_chart_meter WHERE dashboard_chart_meter.chart_key = 'admin-1'");
+        $this->addSql("DELETE FROM dashboard_chart_meter WHERE dashboard_chart_meter.chart_key = 'admin-2'");
         $this->addSql("DELETE FROM parametrage_global WHERE parametrage_global.label = 'DASHBOARD_LOCATIONS_1'");
         $this->addSql("DELETE FROM parametrage_global WHERE parametrage_global.label = 'DASHBOARD_LOCATIONS_2'");
     }
@@ -100,7 +102,7 @@ final class Version20200925075212 extends AbstractMigration
                 $trackingArray = $this->connection
                     ->executeQuery("
                         SELECT mouvement_traca.id AS tracking_id,
-                               mouvement_traca.emplacement_id AS location_id
+                               mouvement_traca.emplacement_id AS location_id,
                                type.nom AS type
                         FROM mouvement_traca
                             INNER JOIN statut type on mouvement_traca.type_id = type.id
@@ -125,7 +127,7 @@ final class Version20200925075212 extends AbstractMigration
 
                 $this->addSql("
                     INSERT INTO location_cluster_record (pack_id, first_drop_id, last_tracking_id, location_cluster_id, `active`)
-                    VALUES ({$packId}, {$firstDrop}, {$lastDropId}, {$locationClusterQuery}, 1)
+                    VALUES ({$packId}, {$firstDrop}, {$lastDropId}, ({$locationClusterQuery}), 1)
                 ");
             }
         }

@@ -483,7 +483,7 @@ class Emplacement
      * @return Emplacement
      */
     public function removeCluster(LocationCluster $locationCluster): self {
-        if (!$this->clusters->contains($locationCluster)) {
+        if ($this->clusters->contains($locationCluster)) {
             $this->clusters->removeElement($locationCluster);
             $locationCluster->removeLocation($this);
         }

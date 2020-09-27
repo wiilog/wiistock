@@ -11,7 +11,7 @@ use Doctrine\ORM\EntityRepository;
  * @package App\Repository
  */
 class LocationClusterRepository extends EntityRepository {
-    public function getPacksOnCluster(string $code, array $naturesFilter): int {
+    public function getPacksOnCluster(string $code, array $naturesFilter): array {
         $queryBuilder = $this->createQueryBuilder('cluster')
             ->select('nature.id as natureId')
             ->addSelect('nature.label as natureLabel')
@@ -44,5 +44,9 @@ class LocationClusterRepository extends EntityRepository {
                     Connection::PARAM_STR_ARRAY
                 );
         }
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
     }
 }

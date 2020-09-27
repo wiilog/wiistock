@@ -459,7 +459,7 @@ class DashboardService
             'packDateTime' => null
         ];
 
-        if (!empty($naturesForGraph) && !empty($emplacementsWanted)) {
+        if (!empty($naturesForGraph)) {
             $packsOnCluster = $locationClusterRepository->getPacksOnCluster($clusterCode, $naturesForGraph);
 
             $countByNatureBase = [];
@@ -529,7 +529,7 @@ class DashboardService
             });
         }
 
-        if (!isset($graphData)) {
+        if (empty($graphData)) {
             $graphData = $this->getObjectForTimeSpan(function () {
                 return 0;
             });

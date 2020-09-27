@@ -88,16 +88,16 @@ class LocationCluster {
      * @return LocationCluster
      */
     public function removeLocation(Emplacement $location): self {
-        if (!$this->locations->contains($location)) {
+        if ($this->locations->contains($location)) {
             $this->locations->removeElement($location);
         }
         return $this;
     }
 
     /**
-     * @return ArrayCollection
+     * @return Collection
      */
-    public function getLocationClusterRecords(): ArrayCollection {
+    public function getLocationClusterRecords(): Collection {
         return $this->locationClusterRecords;
     }
 
