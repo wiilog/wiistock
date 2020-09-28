@@ -597,9 +597,9 @@ function initNewLigneReception($button) {
             ));
         }
     });
-    let $typeContentNewChildren = $('#typeContentNew').children();
-    $typeContentNewChildren.addClass('d-none');
-    $typeContentNewChildren.removeClass('d-block');
+
+    toggleRequiredChampsLibres($select, 'create');
+    typeChoice($select, '-new')
 }
 
 
@@ -734,6 +734,7 @@ function toggleDLForm() {
     const $demandeForm = $input
         .parents('form')
         .find('.demande-form');
+
     if ($input.is(':checked')) {
         $demandeForm.removeClass('d-none');
         $demandeForm.find('.data').attr('disabled', null);

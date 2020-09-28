@@ -82,7 +82,7 @@ class Handling extends FreeFieldEntity
     private $number;
 
     /**
-     * @ORM\Column(type="boolean")
+     * @ORM\Column(type="string", nullable=true)
      */
     private $emergency;
 
@@ -90,6 +90,12 @@ class Handling extends FreeFieldEntity
      * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="handling")
      */
     private $attachments;
+
+    /**
+     * @var Utilisateur|null
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="treatedHandlings")
+     */
+    private $treatedByHandling;
 
     public function __construct()
     {
@@ -234,12 +240,12 @@ class Handling extends FreeFieldEntity
         return $this;
     }
 
-    public function getEmergency(): ?bool
+    public function getEmergency(): ?string
     {
         return $this->emergency;
     }
 
-    public function setEmergency(bool $emergency): self
+    public function setEmergency(string $emergency): self
     {
         $this->emergency = $emergency;
 
@@ -275,5 +281,17 @@ class Handling extends FreeFieldEntity
         }
 
         return $this;
+    }
+
+    public function setTreatedByHandling(?utilisateur $treatedBy): self
+    {
+        $this->treatedByHandling = $treatedBy;
+
+        return $this;
+    }
+
+    public function getTreatedByHandling(): ?Utilisateur
+    {
+        return $this->treatedByHandling;
     }
 }

@@ -32,6 +32,7 @@ let tableHandlingConfig = {
         { "data": 'validationDate', 'name': 'validationDate', 'title': 'Date de réalisation' },
         { "data": 'status', 'name': 'status', 'title': 'Statut' },
         { "data": 'emergency', 'name': 'emergency', 'title': 'Urgence' },
+        { "data": 'treatedBy', 'name': 'treatedBy', 'title': 'Traité par' },
     ],
 };
 let tableHandling = initDataTable('tableHandling_id', tableHandlingConfig);
@@ -40,6 +41,8 @@ $(function() {
     initDateTimePicker();
     initSelect2($('.filter-select2[name="statut"]'), 'Statuts');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
+    initSelect2($('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
+
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
 

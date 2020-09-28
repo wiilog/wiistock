@@ -3,7 +3,7 @@ let quillNew;
 
 $(function() {
     $('.select2').select2();
-    $('#modalNewMvtTraca').find('.champsLibresBlock .list-multiple').select2();
+    $('#modalNewMvtTraca').find('.list-multiple').select2();
 
     initDateTimePicker();
     initSelect2($('#statut'), 'Types');

@@ -43,7 +43,8 @@ class Action
 	// menu demande
 	const DISPLAY_DEM_COLL = 'afficher collectes';
 	const DISPLAY_DEM_LIVR = 'afficher livraisons';
-	const DISPLAY_HAND = 'afficher services';
+    const DISPLAY_HAND = 'afficher services';
+    const TREAT_HANDLING = 'traiter services';
     const DISPLAY_ACHE = 'afficher acheminements';
     const CREATE_ACHE = 'créer acheminements';
     const EDIT_DRAFT_DISPATCH = 'modifier acheminements brouillons';

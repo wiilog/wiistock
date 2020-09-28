@@ -182,7 +182,7 @@ class ArrivageController extends AbstractController
             'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
             'champs' => $champs,
             'columnsVisibles' => $user->getColumnsVisibleForArrivage(),
-            'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::ARRIVAL_BUSINESS_UNIT_VALUES)),
+            'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
             'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
@@ -419,7 +419,7 @@ class ArrivageController extends AbstractController
                     'chauffeurs' => $chauffeurRepository->findAllSorted(),
                     'statuts' => $statuses,
                     'fieldsParam' => $fieldsParam,
-                    'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::ARRIVAL_BUSINESS_UNIT_VALUES))
+                    'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT)
                 ]);
             } else {
                 $html = '';

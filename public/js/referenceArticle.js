@@ -156,11 +156,11 @@ function resizeTable() {
         .responsive.recalc();
 }
 
-function showDemande(bloc) {
+function showDemande(bloc, type) {
     let $livraisonShow = $('#livraisonShow');
     let $collecteShow = $('#collecteShow');
 
-    if (bloc.data("title") == "livraison") {
+    if (type === "livraison") {
         $collecteShow.removeClass('d-block');
         $collecteShow.addClass('d-none');
         $collecteShow.find('div').find('select, .quantite').removeClass('data');
@@ -171,8 +171,7 @@ function showDemande(bloc) {
         $livraisonShow.find('div').find('select, .quantite').addClass('data');
         $livraisonShow.find('.data').addClass('needed');
         //setMaxQuantityByArtRef($livraisonShow.find('#quantity-to-deliver'));
-
-    } else if (bloc.data("title") == "collecte") {
+    } else if (type === "collecte") {
         $collecteShow.removeClass('d-none');
         $collecteShow.addClass('d-block');
         $collecteShow.find('div').find('select, .quantite').addClass('data');
@@ -305,7 +304,7 @@ let recupIdRefArticle = function (div) {
     $('.boutonCreationDemande').addClass('d-none');
 };
 
-let ajaxPlusDemandeContent = function (button, demande) {
+let ajaxPlusDemandeContent = function (button, type) {
     let plusDemandeContent = $(`.plusDemandeContent`);
     let editChampLibre = $('.editChampLibre');
     let modalFooter = button.closest('.modal').find('.modal-footer');
@@ -313,37 +312,30 @@ let ajaxPlusDemandeContent = function (button, demande) {
     editChampLibre.html('');
     modalFooter.addClass('d-none');
 
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            dataReponse = JSON.parse(this.responseText);
-            if (dataReponse.plusContent) {
-                plusDemandeContent.html(dataReponse.plusContent);
-            } else {
-                //TODO gérer erreur
-            }
-            if (dataReponse.editChampLibre) {
-                editChampLibre.html(dataReponse.editChampLibre);
-                modalFooter.removeClass('d-none');
-            }
-            if (dataReponse.temp || dataReponse.byRef) {
-                modalFooter.removeClass('d-none');
-            } else {
-                //TODO gérer erreur
-            }
-            showDemande(button);
-            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-            $('.list-multiple').select2();
+    const path = Routing.generate('ajax_plus_demande_content', true);
+    const data = JSON.stringify({
+        demande: type,
+        id: $('#submitPlusDemande').val()
+    });
+
+    $.post(path, data, function(data) {
+        if (data.plusContent) {
+            plusDemandeContent.html(data.plusContent);
         }
-    }
-    let json = {
-        'demande': demande,
-        'id': $('#submitPlusDemande').val(),
-    };
-    let Json = JSON.stringify(json)
-    let path = Routing.generate('ajax_plus_demande_content', true);
-    xhttp.open("POST", path, true);
-    xhttp.send(Json);
+
+        if (data.editChampLibre) {
+            editChampLibre.html(data.editChampLibre);
+            modalFooter.removeClass('d-none');
+        }
+
+        if (data.temp || data.byRef) {
+            modalFooter.removeClass('d-none');
+        }
+
+        showDemande(button, type);
+        ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+        $('.list-multiple').select2();
+    });
 }
 
 let ajaxEditArticle = function ($select) {

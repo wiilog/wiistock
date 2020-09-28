@@ -100,7 +100,7 @@ class DispatchController extends AbstractController {
         return $this->render('dispatch/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true),
             'carriers' => $carrierRepository->findAllSorted(),
-            'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
+            'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
             'types' => $types,
             'fields' => $fields,
             'visibleColumns' => $this->getUser()->getColumnsVisibleForDispatch(),
@@ -581,13 +581,13 @@ class DispatchController extends AbstractController {
                 ? $statutRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::DRAFT, Statut::NOT_TREATED])
                 : [];
 
-            $dispatchBusinessUnits = json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES));
+            $dispatchBusinessUnits = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
 
             $json = $this->renderView('dispatch/modalEditContentDispatch.html.twig', [
                 'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
                 'dispatch' => $dispatch,
                 'fieldsParam' => $fieldsParam,
-                'emergencies' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
+                'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
                 'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                 'statuses' => $statuses,
                 'attachments' => $pieceJointeRepository->findBy(['dispatch' => $dispatch])
@@ -709,6 +709,7 @@ class DispatchController extends AbstractController {
         $packCode = $data['pack'];
         $natureId = $data['nature'];
         $quantity = $data['quantity'];
+        $comment = $data['comment'];
 
         $alreadyCreated = !$dispatch
             ->getDispatchPacks()
@@ -741,10 +742,9 @@ class DispatchController extends AbstractController {
             $entityManager->persist($packDispatch);
 
             $nature = $natureRepository->find($natureId);
-            $pack
-                ->setNature($nature);
-            $packDispatch
-                ->setQuantity($quantity);
+            $pack->setNature($nature);
+            $pack->setComment($comment);
+            $packDispatch->setQuantity($quantity);
 
             $entityManager->flush();
 
@@ -782,12 +782,13 @@ class DispatchController extends AbstractController {
         } else {
             $natureId = $data['nature'];
             $quantity = $data['quantity'];
+            $comment = $data['comment'];
 
             $pack = $dispatchPack->getPack();
 
             $nature = $natureRepository->find($natureId);
-            $pack
-                ->setNature($nature);
+            $pack->setNature($nature)
+            ->setComment($comment);
 
             $dispatchPack
                 ->setQuantity($quantity);
@@ -1107,10 +1108,10 @@ class DispatchController extends AbstractController {
             []
         );
 
-        $parametrageGlobalRepository = $this->getDoctrine()->getRepository(ParametrageGlobal::class);
+        $fieldsParamRepository = $this->getDoctrine()->getRepository(FieldsParam::class);
 
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
-            'dispatchEmergencyValues' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
+            'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
         ]));
 
         return $this->json([

@@ -46,7 +46,6 @@ $(function () {
     // config tableau de bord : emplacements
     initSelect2ValuesForDashboard();
     $('#locationArrivageDest').on('change', editArrivageDestination);
-    $('select[name="businessUnit"]').on('change', editBusinessUnit);
     $('#locationDemandeLivraison').on('change', function() {
         editDemandeLivraisonDestination($(this));
     });
@@ -318,16 +317,6 @@ function editArrivageDestination() {
             showBSAlert("la destination des arrivages a bien été mise à jour.", 'success');
         } else {
             showBSAlert("Une erreur est survenue lors de la mise à jour de la destination des arrivages.", 'danger');
-        }
-    });
-}
-
-function editBusinessUnit() {
-    $.post(Routing.generate('set_business_unit'), {value: $(this).val()}, (resp) => {
-        if (resp) {
-            alertSuccessMsg("La liste business unit a bien été mise à jour.");
-        } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la liste business unit.");
         }
     });
 }
