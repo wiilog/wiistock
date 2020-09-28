@@ -18,11 +18,19 @@ class LocationClusterMeterRepository extends EntityRepository {
             ->join('meter.locationClusterInto', 'locationClusterInto')
             ->leftJoin('meter.locationClusterFrom', 'locationClusterFrom')
             ->where('meter.date = :date')
-            ->andWhere('locationClusterFrom.code = :fromCode')
             ->andWhere('locationClusterInto.code = :intoCode')
             ->setParameter('date', $date->format('Y-m-d'))
-            ->setParameter('fromCode', $locationClusterCodeFrom)
-            ->setParameter('intoCode', $locationClusterCodeInto);
+            ->setParameter('intoCode', $locationClusterCodeInto);;
+
+        if (!empty($locationClusterCodeFrom)) {
+            $queryBuilder
+                ->andWhere('locationClusterFrom.code = :fromCode')
+                ->setParameter('fromCode', $locationClusterCodeFrom);
+        }
+        else {
+            $queryBuilder
+                ->andWhere('locationClusterFrom.code IS NULL');
+        }
 
         $res = $queryBuilder
             ->getQuery()

@@ -29,7 +29,7 @@ final class Version20200928075905 extends AbstractMigration
 
         $dropzoneCode = LocationCluster::CLUSTER_CODE_DOCK_DASHBOARD_DROPZONE;
         $this->migrateParameters('DASHBOARD_LOCATION_TO_DROP_ZONES', $dropzoneCode);
-        $locationClusterInto = "
+        $locationClusterIntoQuery = "
             SELECT id
             FROM location_cluster
             WHERE code = '{$dropzoneCode}'
@@ -58,7 +58,7 @@ final class Version20200928075905 extends AbstractMigration
                         SELECT COUNT(mouvement_traca.id) AS counter
                         FROM mouvement_traca
                         INNER JOIN statut on mouvement_traca.type_id = statut.id
-                        WHERE datetime BETWEEN '{$dateToCheckStrBegin}' AND {$dateToCheckStrEnd}
+                        WHERE datetime BETWEEN '{$dateToCheckStrBegin}' AND '{$dateToCheckStrEnd}'
                           AND statut.nom = '{$dropType}'
                           AND mouvement_traca.emplacement_id IN ({$locationRaw})
                       ")
@@ -66,7 +66,7 @@ final class Version20200928075905 extends AbstractMigration
 
                 $this->addSql("
                     INSERT INTO location_cluster_meter (location_cluster_from_id, location_cluster_into_id, `date`, drop_counter)
-                    VALUES (NULL, {$locationClusterInto}, '{$dateToCheckStr}', {$counter})
+                    VALUES (NULL, ({$locationClusterIntoQuery}), '{$dateToCheckStr}', {$counter})
                 ");
             }
         }

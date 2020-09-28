@@ -365,6 +365,9 @@ class MouvementTracaService
 
                 if (!isset($record)) {
                     $record = new LocationClusterRecord();
+                    $record
+                        ->setPack($pack)
+                        ->setLocationCluster($cluster);
                     $entityManager->persist($record);
                 }
 
@@ -384,12 +387,14 @@ class MouvementTracaService
                         $record->setFirstDrop($tracking);
                     }
                 }
-                else {
+                else if (isset($record)) {
                     $record->setActive(false);
                 }
 
-                // set last tracking after check of drop
-                $record->setLastTracking($tracking);
+                if (isset($record)) {
+                    // set last tracking after check of drop
+                    $record->setLastTracking($tracking);
+                }
 
                 $this->locationClusterService->setMeter(
                     $entityManager,

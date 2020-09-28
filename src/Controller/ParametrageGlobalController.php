@@ -740,6 +740,7 @@ class ParametrageGlobalController extends AbstractController
                 ParametrageGlobal::DASHBOARD_LOCATION_DOCK => 'locationToTreat',
                 ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK => 'locationWaitingDock',
                 ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN => 'locationWaitingAdmin',
+                ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => 'locationDropZone',
                 ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => 'locationLitiges',
                 ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => 'locationUrgences',
                 ParametrageGlobal::DASHBOARD_PACKAGING_1 => 'packaging1',

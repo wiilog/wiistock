@@ -194,7 +194,6 @@ Class GlobalParamService
 			ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK,
 			ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN,
 			ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE,
-			ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES,
 			ParametrageGlobal::DASHBOARD_LOCATION_LITIGES,
 			ParametrageGlobal::DASHBOARD_LOCATION_URGENCES,
             ParametrageGlobal::DASHBOARD_PACKAGING_1,
