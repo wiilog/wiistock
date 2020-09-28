@@ -94,6 +94,14 @@ class FieldsParam
     const FIELD_LABEL_LOCATION_PICK = 'emplacement de prise';
     const FIELD_LABEL_LOCATION_DROP = 'emplacement de dépose';
 
+    const ENTITY_CODE_HANDLING = 'services';
+
+    const FIELD_CODE_LOADING_ZONE = 'loadingZone';
+    const FIELD_CODE_UNLOADING_ZONE = 'unloadingZone';
+
+    const FIELD_LABEL_LOADING_ZONE = 'chargement';
+    const FIELD_LABEL_UNLOADING_ZONE = 'déchargement';
+
 	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -135,6 +143,11 @@ class FieldsParam
      * @ORM\Column(type="boolean", nullable=true)
      */
     private $displayedFilters;
+
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $elements = [];
 
     /**
      * @ORM\Column(type="boolean", nullable=true, options={"default": false})
@@ -221,6 +234,15 @@ class FieldsParam
 
     public function setDisplayedFilters(?bool $displayedFilters): self {
         $this->displayedFilters = $displayedFilters;
+        return $this;
+    }
+
+    public function getElements(): ?array {
+        return $this->elements;
+    }
+
+    public function setElements(?array $elements): self {
+        $this->elements = $elements;
         return $this;
     }
 

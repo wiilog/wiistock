@@ -9,6 +9,7 @@ use App\Entity\Menu;
 use App\Entity\ParametrageGlobal;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -23,24 +24,19 @@ use Symfony\Component\Routing\Annotation\Route;
 class FieldsParamController extends AbstractController
 {
 
-	/**
-	 * @Route("/", name="fields_param_index")
-	 * @param UserService $userService
-	 * @return RedirectResponse|Response
-	 */
-    public function index(UserService $userService,
-                          EntityManagerInterface $entityManager)
-    {
+    /**
+     * @Route("/", name="fields_param_index")
+     * @param UserService $userService
+     * @param EntityManagerInterface $entityManager
+     * @return RedirectResponse|Response
+     * @throws NonUniqueResultException
+     */
+	public function index(UserService $userService, EntityManagerInterface $entityManager) {
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_CF)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        return $this->render('fields_param/index.html.twig', [
-            'urgences' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EMERGENCY_VALUES)),
-            'dispatchBusinessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_BUSINESS_UNIT_VALUES)),
-            'arrivalBusinessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::ARRIVAL_BUSINESS_UNIT_VALUES))
-        ]);
+        return $this->render('fields_param/index.html.twig');
     }
 
     /**
@@ -142,14 +138,23 @@ class FieldsParamController extends AbstractController
             $field->setDisplayedForms($data['displayed-forms'] ?? true);
             $field->setDisplayedFilters($data['displayed-filters'] ?? true);
 
+            if($field->getElements() !== null) {
+                if(isset($data['elements-text'])) {
+                    $field->setElements(explode(';', $data['elements-text']));
+                } else if(isset($data['elements'])) {
+                    $field->setElements($data['elements'] ?? []);
+                }
+            }
+
             $entityManager->persist($field);
             $entityManager->flush();
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'Le champ fixe "' . $fieldName . '" dans "' . $fieldEntity . '" a bien été modifié.'
+                'msg' => 'Le champ fixe <strong>' . $fieldName . '</strong> dans <strong>' . $fieldEntity . '</strong> a bien été modifié.'
             ]);
         }
+
         throw new NotFoundHttpException('404');
     }
 }

@@ -74,4 +74,5 @@ class DispatchPack
     public function getQuantity(): int {
         return $this->quantity;
     }
+
 }

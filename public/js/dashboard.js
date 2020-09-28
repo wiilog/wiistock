@@ -289,19 +289,25 @@ function reloadData() {
 }
 
 function updateRefreshDate() {
-    const treatDate = (date) => {
-        const $refreshDate = $('.refreshDate');
-        $refreshDate.text(date);
-        $refreshDate.parent().removeClass('d-none');
+    const treatDate = (graphsDate, metersDate) => {
+        const $graphsRefreshDate = $('.graphsRefreshDate');
+        const $metersRefreshDate = $('.metersRefreshDate');
+
+        $graphsRefreshDate.text(graphsDate);
+        $graphsRefreshDate.parent().removeClass('d-none');
+
+        $metersRefreshDate.text(metersDate);
+        $metersRefreshDate.parent().removeClass('d-none');
     };
     if (isDashboardExt()) {
-        const date = $('#dashboard-refresh-date').data('date')
-        treatDate(date);
+        const dateGraphs = $('#dashboard-refresh-date').data('date');
+        const dateMeters = $('#dashboard-meters-refresh-date').data('date');
+        treatDate(dateGraphs, dateMeters);
     }
     else {
         $.get(Routing.generate('last_refresh'), function (response) {
             if (response && response.success) {
-                treatDate(response.date);
+                treatDate(response.graphsDate, response.metersDate);
             }
         });
     }

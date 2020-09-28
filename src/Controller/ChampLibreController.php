@@ -114,6 +114,7 @@ class ChampLibreController extends AbstractController
                         'Label' => ($champLibre->getLabel() ? $champLibre->getLabel() : 'Non défini'),
                         "S'applique à" => ($champLibre->getCategorieCL() ? $champLibre->getCategorieCL()->getLabel() : ''),
                         'Typage' => $typageCLFr,
+                        'Affiché à la création' => ($champLibre->getDisplayedCreate() ? "oui" : "non"),
                         'Obligatoire à la création' => ($champLibre->getRequiredCreate() ? "oui" : "non"),
                         'Obligatoire à la modification' => ($champLibre->getRequiredEdit() ? "oui" : "non"),
                         'Valeur par défaut' => $defaultValue,
@@ -169,8 +170,9 @@ class ChampLibreController extends AbstractController
 			$champLibre
 				->setlabel($data['label'])
 				->setCategorieCL($categorieCL)
-				->setRequiredCreate($data['requiredCreate'])
+				->setRequiredCreate($data['displayedCreate'] ? $data['requiredCreate'] : false)
 				->setRequiredEdit($data['requiredEdit'])
+				->setDisplayedCreate($data['displayedCreate'])
 				->setType($type)
 				->settypage($data['typage']);
 
@@ -244,8 +246,9 @@ class ChampLibreController extends AbstractController
 		$champLibre
 			->setLabel($data['label'])
 			->setCategorieCL($categorieCL)
-			->setRequiredCreate($data['requiredCreate'])
+			->setRequiredCreate($data['displayedCreate'] ? $data['requiredCreate'] : false)
 			->setRequiredEdit($data['requiredEdit'])
+			->setDisplayedCreate($data['displayedCreate'])
 			->setTypage($data['typage']);
 		if (in_array($champLibre->getTypage(), [ChampLibre::TYPE_LIST, ChampLibre::TYPE_LIST_MULTIPLE])) {
 			$champLibre

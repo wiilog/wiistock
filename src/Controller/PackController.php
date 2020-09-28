@@ -155,6 +155,7 @@ class PackController extends AbstractController {
                 ? [
                     'code' => $packCode,
                     'quantity' => $pack->getQuantity(),
+                    'comment' => $pack->getComment(),
                     'nature' => $pack->getNature()
                         ? [
                             'id' => $pack->getNature()->getId(),

@@ -423,7 +423,7 @@ class DashboardService
      * @throws DBALException
      * @throws NonUniqueResultException
      */
-    public function getAndSetGraphDataForAdmin(EntityManagerInterface $entityManager, int $graph, string $dashboard)
+    public function getAndSetGraphDataForAdmin(EntityManagerInterface $entityManager, int $graph)
     {
         $adminDelay = '48:00';
 
@@ -546,7 +546,7 @@ class DashboardService
             ? $olderPackLocation['locationLabel']
             : null;
         $dashboardData = [
-            'dashboard' => $dashboard,
+            'dashboard' => self::DASHBOARD_ADMIN,
             'chartColors' => array_reduce(
                 $naturesForGraph,
                 function (array $carry, Nature $nature) {
@@ -557,7 +557,7 @@ class DashboardService
                     return $carry;
                 },
                 []),
-            'key' => $dashboard . '-' . $graph,
+            'key' => self::DASHBOARD_ADMIN . '-' . $graph,
             'data' => $graphData,
             'location' => (isset($locationToDisplay) ? $locationToDisplay : '-'),
             'total' => (isset($totalToDisplay) ? $totalToDisplay : '-'),
@@ -804,48 +804,41 @@ class DashboardService
 
     /**
      * @param EntityManagerInterface $entityManager
+     * @param string $meterType
      * @throws Throwable
      */
-    public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager): void
+    public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager, string $meterType): void
     {
-        $lastUpdateDate = $this->wiilockService->getLastDashboardFeedingTime($entityManager);
+        $lastUpdateDate = $this->wiilockService->getLastDashboardFeedingTime($entityManager, $meterType);
         $currentDate = new DateTime();
-        $dateDiff = $currentDate
-            ->diff($lastUpdateDate);
-        $hoursBetweenNowAndLastUpdateDate = $dateDiff->h + ($dateDiff->days * 24);
-        if ($hoursBetweenNowAndLastUpdateDate > 2) {
-            $this->wiilockService->stopFeedingDashboard($entityManager);
-            $entityManager->flush();
+        if ($lastUpdateDate) {
+            $dateDiff = $currentDate
+                ->diff($lastUpdateDate);
+            $hoursBetweenNowAndLastUpdateDate = $dateDiff->h + ($dateDiff->days * 24);
+            if ($hoursBetweenNowAndLastUpdateDate > 2) {
+                $this->wiilockService->stopFeedingDashboard($entityManager, $meterType);
+                $entityManager->flush();
+            }
         }
-        if (!$this->wiilockService->dashboardIsBeingFed($entityManager)) {
-            $this->wiilockService->startFeedingDashboard($entityManager);
-
+        if (!$this->wiilockService->dashboardIsBeingFed($entityManager, $meterType)) {
+            $this->wiilockService->startFeedingDashboard($entityManager, $meterType);
             try {
-                $this->flushAndClearEm($entityManager);
-                $this->retrieveAndInsertParsedDockData($entityManager);
-                dump('Finished Dock');
-                $this->flushAndClearEm($entityManager);
-                $this->retrieveAndInsertParsedAdminData($entityManager);
-                dump('Finished Admin');
-                $this->flushAndClearEm($entityManager);
-                $this->retrieveAndInsertParsedPackagingData($entityManager);
-                dump('Finished Packaging');
-                $this->flushAndClearEm($entityManager);
-                $this->retrieveAndInsertLastEnCours($entityManager);
-                dump('Finished Late');
-                $this->flushAndClearEm($entityManager);
+                if ($meterType === Wiilock::DASHBOARD_GRAPH_FED_KEY) {
+                    $this->retrieveAndInsertGlobalGraphData($entityManager);
+                } else if ($meterType === Wiilock::DASHBOARD_METER_FED_KEY) {
+                    $this->retrieveAndInsertGlobalMeterData($entityManager);
+                }
             }
             catch (Throwable $throwable) {
-                $this->wiilockService->stopFeedingDashboard($entityManager);
+                $this->wiilockService->stopFeedingDashboard($entityManager, $meterType);
                 $this->flushAndClearEm($entityManager);
                 throw $throwable;
             }
 
-            $this->wiilockService->stopFeedingDashboard($entityManager);
+            $this->wiilockService->stopFeedingDashboard($entityManager, $meterType);
             $this->flushAndClearEm($entityManager);
         }
     }
-
 
     /**
      * @param EntityManagerInterface $entityManager
@@ -860,18 +853,51 @@ class DashboardService
      * @param EntityManagerInterface $entityManager
      * @throws Exception
      */
-    private function retrieveAndInsertParsedDockData(EntityManagerInterface $entityManager): void
-    {
+    private function retrieveAndInsertGlobalGraphData(EntityManagerInterface $entityManager) {
+        $this->getAndSetGraphDataForDock($entityManager);
+        dump('Finished Dock Graph');
+        $this->flushAndClearEm($entityManager);
+
+        $this->getAndSetGraphDataForAdmin($entityManager, 1);
+        $this->getAndSetGraphDataForAdmin($entityManager, 2);
+        dump('Finished Admin Graphs');
+        $this->flushAndClearEm($entityManager);
+
+        $this->getAndSetGraphDataForPackaging($entityManager);
+        dump('Finished Packaging Graph');
+        $this->flushAndClearEm($entityManager);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @throws Exception
+     */
+    private function retrieveAndInsertGlobalMeterData(EntityManagerInterface $entityManager) {
         $dockData = $this->getDataForReceptionDockDashboard();
         $this->parseRetrievedDataAndPersistMeter($dockData, self::DASHBOARD_DOCK, $entityManager);
         dump('Finished Dock Counter');
-        $this->getAndSetGraphDataForDock($entityManager);
+        $this->flushAndClearEm($entityManager);
+
+        $adminData = $this->getDataForReceptionAdminDashboard();
+        $this->parseRetrievedDataAndPersistMeter($adminData, self::DASHBOARD_ADMIN, $entityManager);
+        dump('Finished Admin Counter');
+        $this->flushAndClearEm($entityManager);
+
+        $packagingData = $this->getDataForMonitoringPackagingDashboard();
+        $this->parseRetrievedDataAndPersistMeter($packagingData, self::DASHBOARD_PACKAGING, $entityManager);
+        dump('Finished Packaging Counter');
+        $this->flushAndClearEm($entityManager);
+
+        $this->retrieveAndInsertLastEnCours($entityManager);
+        dump('Finished Late packs');
+        $this->flushAndClearEm($entityManager);
     }
 
     /**
      * @param $data
      * @param string $dashboard
      * @param EntityManagerInterface $entityManager
+     * @throws NonUniqueResultException
      */
     private function parseRetrievedDataAndPersistMeter($data, string $dashboard, EntityManagerInterface $entityManager): void
     {
@@ -894,33 +920,6 @@ class DashboardService
             }
         }
     }
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @throws DBALException
-     * @throws NonUniqueResultException
-     */
-    private function retrieveAndInsertParsedAdminData(EntityManagerInterface $entityManager): void
-    {
-        $adminData = $this->getDataForReceptionAdminDashboard();
-        $this->parseRetrievedDataAndPersistMeter($adminData, self::DASHBOARD_ADMIN, $entityManager);
-        dump('Finished Admin Counter');
-        $this->getAndSetGraphDataForAdmin($entityManager, 1, self::DASHBOARD_ADMIN);
-        $this->getAndSetGraphDataForAdmin($entityManager, 2, self::DASHBOARD_ADMIN);
-    }
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @throws Exception
-     */
-    private function retrieveAndInsertParsedPackagingData(EntityManagerInterface $entityManager): void
-    {
-        $packagingData = $this->getDataForMonitoringPackagingDashboard();
-        $this->parseRetrievedDataAndPersistMeter($packagingData, self::DASHBOARD_PACKAGING, $entityManager);
-        dump('Finished Packaging Counter');
-        $this->getAndSetGraphDataForPackaging($entityManager);
-    }
-
     /**
      * @param EntityManagerInterface $entityManager
      * @throws NonUniqueResultException
@@ -974,7 +973,6 @@ class DashboardService
     {
         $latePackRepository = $entityManager->getRepository(LatePack::class);
         $lastLates = $this->enCoursService->getLastEnCoursForLate();
-        dump('Finished Late retrieve');
         $latePackRepository->clearTable();
         foreach ($lastLates as $lastLate) {
             $latePack = new LatePack();
@@ -987,9 +985,9 @@ class DashboardService
         }
     }
 
-    public function getLastRefresh(): string {
+    public function getLastRefresh(string $meterType): string {
         $wiilockRepository = $this->entityManager->getRepository(Wiilock::class);
-        $dashboardLock = $wiilockRepository->findOneBy(['lockKey' => Wiilock::DASHBOARD_FED_KEY]);
+        $dashboardLock = $wiilockRepository->findOneBy(['lockKey' => $meterType]);
         return ($dashboardLock && $dashboardLock->getUpdateDate())
             ? $dashboardLock->getUpdateDate()->format('d/m/Y H:i')
             : 'Aucune données';

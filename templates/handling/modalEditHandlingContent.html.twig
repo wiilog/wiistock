@@ -14,20 +14,27 @@
         <label>Statut*</label>
         <select name="status"
             {{ statusDisabled ? 'disabled' }}
-                class="form-control data d-block needed"
-                title="Statut">
-            {% if handling.status is not null %}
-                <option selected value="{{ handling.status.id }}">{{ handling.status.nom }}</option>
-            {% endif %}
-            {% if not statusDisabled %}
-                {% for status in handlingStatus %}
-                    {% if status.id != handling.status.id %}
+            class="form-control data d-block needed"
+            title="Statut">
+        {% if handling.status is not null %}
+            <option selected value="{{ handling.status.id }}">{{ handling.status.nom }}</option>
+        {% endif %}
+        {% if not statusDisabled %}
+            {% for status in handlingStatus %}
+                {% if status.id != handling.status.id %}
+                    {% if
+                        (
+                        status.state == constant('App\\Entity\\Statut::TREATED')
+                        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::TREAT_HANDLING'))
+                        ) or status.state != constant('App\\Entity\\Statut::TREATED')
+                    %}
                         <option value="{{ status.id }}">{{ status.nom }}</option>
                     {% endif %}
-                {% endfor %}
-            {% endif %}
-        </select>
-    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </select>
+</div>
 
     <div class="form-group needed col-md-6 col-12">
         <label for="subject">Objet*</label>
@@ -70,15 +77,19 @@
                disabled>
     </div>
 
-    <div class="form-group needed col-md-6 col-12">
-        <label for="source">Chargement*</label>
-        <input class="form-control data needed input" value="{{ handling.source }}" name="source">
+{% if fieldsParam|isFieldRequired('loadingZone', 'displayed') %}
+    <div class="form-group col-md-6 col-12">
+        <label for="source">Chargement{{ fieldsParam|isFieldRequired('loadingZone', 'mustToModify') ? '*' : '' }}</label>
+        <input class="form-control data {{ fieldsParam|isFieldRequired('loadingZone', 'mustToModify') ? 'needed' : '' }} input" value="{{ handling.source }}" name="source">
     </div>
+{% endif %}
 
-    <div class="form-group needed col-md-6 col-12">
-        <label for="destination">Déchargement*</label>
-        <input class="form-control data needed input" value="{{ handling.destination }}" name="destination">
+{% if fieldsParam|isFieldRequired('unloadingZone', 'displayed') %}
+    <div class="form-group col-md-6 col-12">
+        <label for="destination">Déchargement{{ fieldsParam|isFieldRequired('unloadingZone', 'mustToModify') ? '*' : '' }}</label>
+        <input class="form-control data {{ fieldsParam|isFieldRequired('unloadingZone', 'mustToModify') ? 'needed' : '' }} input" value="{{ handling.destination }}" name="destination">
     </div>
+{% endif %}
 
     {% if handling.type is not null and handling.type.champsLibres.count > 0 %}
         <div class="col-12">

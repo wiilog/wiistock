@@ -25,25 +25,32 @@
                         </select>
                     </div>
 
-                    <div class="form-group col-md-6 col-12">
-                        <label for="type">Statut*</label>
-                        <select name="status"
-                                class="form-control data w-100 needed need-default">
-                            <option value="">Choisir un statut...</option>
-                            {% for status in handlingStatus %}
+                <div class="form-group col-md-6 col-12">
+                    <label for="type">Statut*</label>
+                    <select name="status"
+                            class="form-control data w-100 needed need-default">
+                        <option value="">Choisir un statut...</option>
+                        {% for status in handlingStatus %}
+                            {% if
+                                (
+                                    status.state == constant('App\\Entity\\Statut::TREATED')
+                                    and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::TREAT_HANDLING'))
+                                ) or status.state != constant('App\\Entity\\Statut::TREATED')
+                            %}
                                 <option class="d-none" data-type-id="{{ status.type.id }}" value="{{ status.id }}">{{ status.nom }}</option>
-                            {% endfor %}
-                        </select>
-                        <input type="hidden" name="defaultStatuses" value="{{ defaultStatuses|json_encode }}"/>
-                        <div class="error-empty-status d-none">
-                            {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
-                                array: [],
-                                warningLabel: 'Aucun statut pour ce type.',
-                                redirectPath: path('status_param_index'),
-                                redirectLabel: 'Aller vers la création des statuts.'
-                            } %}
-                        </div>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <input type="hidden" name="defaultStatuses" value="{{ defaultStatuses|json_encode }}"/>
+                    <div class="error-empty-status d-none">
+                        {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                            array: [],
+                            warningLabel: 'Aucun statut pour ce type.',
+                            redirectPath: path('status_param_index'),
+                            redirectLabel: 'Aller vers la création des statuts.'
+                        } %}
                     </div>
+                </div>
 
                     <div class="form-group needed col-md-6 col-12">
                         <label for="subject">Objet*</label>
@@ -77,15 +84,19 @@
                         </label>
                     </div>
 
-                    <div class="form-group needed col-md-6 col-12">
-                        <label for="source">Chargement*</label>
-                        <input class="form-control data needed" name="source">
-                    </div>
+                {% if fieldsParam|isFieldRequired('loadingZone', 'displayedForms') %}
+                <div class="form-group col-md-6 col-12">
+                    <label for="source">Chargement{{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? '*' : '' }}</label>
+                    <input class="form-control data {{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? 'needed' : '' }}" name="source">
+                </div>
+                {% endif %}
 
-                    <div class="form-group needed col-md-6 col-12">
-                        <label for="destination">Déchargement*</label>
-                        <input class="form-control data needed" name="destination">
-                    </div>
+                {% if fieldsParam|isFieldRequired('unloadingZone', 'displayedForms') %}
+                <div class="form-group col-md-6 col-12">
+                    <label for="destination">Déchargement{{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? '*' : '' }}</label>
+                    <input class="form-control data {{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? 'needed' : '' }}" name="destination">
+                </div>
+                {% endif %}
 
                     <!-- CHAMPS LIBRES -->
                     <div class="col-12">

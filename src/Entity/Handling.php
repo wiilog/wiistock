@@ -91,6 +91,12 @@ class Handling extends FreeFieldEntity
      */
     private $attachments;
 
+    /**
+     * @var Utilisateur|null
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="treatedHandlings")
+     */
+    private $treatedByHandling;
+
     public function __construct()
     {
         $this->attachments = new ArrayCollection();
@@ -275,5 +281,17 @@ class Handling extends FreeFieldEntity
         }
 
         return $this;
+    }
+
+    public function setTreatedByHandling(?utilisateur $treatedBy): self
+    {
+        $this->treatedByHandling = $treatedBy;
+
+        return $this;
+    }
+
+    public function getTreatedByHandling(): ?Utilisateur
+    {
+        return $this->treatedByHandling;
     }
 }
