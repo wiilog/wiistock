@@ -292,18 +292,27 @@ function openDeliveryNoteModal($button) {
 
 function openWaybillModal($button) {
     const dispatchId = $button.data('dispatch-id');
-    $
-        .get(Routing.generate('api_dispatch_waybill', {dispatch: dispatchId}))
-        .then((result) => {
-            if(result.success) {
-                const $modal = $('#modalPrintWaybill');
-                const $modalBody = $modal.find('.modal-body');
-                $modalBody.html(result.html);
-                $modal.modal('show');
-            } else {
-                showBSAlert(result.msg, "danger");
-            }
-        })
+
+    Promise.all([
+        $.get(Routing.generate('check_dispatch_waybill', {dispatch: dispatchId})),
+        $.get(Routing.generate('api_dispatch_waybill', {dispatch: dispatchId}))
+    ]).then((values) => {
+        let check = values[0];
+        if(!check.success) {
+            showBSAlert(check.msg, "danger");
+            return;
+        }
+
+        let result = values[1];
+        if(result.success) {
+            const $modal = $('#modalPrintWaybill');
+            const $modalBody = $modal.find('.modal-body');
+            $modalBody.html(result.html);
+            $modal.modal('show');
+        } else {
+            showBSAlert(result.msg, "danger");
+        }
+    });
 }
 
 function copyTo($button, inputSourceName, inputTargetName) {

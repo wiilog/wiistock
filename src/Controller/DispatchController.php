@@ -1233,6 +1233,37 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route(
+     *     "/{dispatch}/check-waybill",
+     *     name="check_dispatch_waybill",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     */
+    public function checkWaybill(TranslatorInterface $trans, Dispatch $dispatch) {
+        $invalidPacks = array_filter($dispatch->getDispatchPacks()->toArray(), function(DispatchPack $pack) {
+            return !$pack->getPack()->getWeight() || !$pack->getPack()->getVolume();
+        });
+
+        if ($dispatch->getDispatchPacks()->count() === 0) {
+            return $this->json([
+                "success" => false,
+                "msg" => $trans->trans('acheminement.Des colis sont nécessaires pour générer une lettre de voiture')
+            ]);
+        } else if($invalidPacks) {
+            return $this->json([
+                "success" => false,
+                "msg" => $trans->trans("acheminement.Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée")
+            ]);
+        } else {
+            return $this->json([
+                "success" => true,
+            ]);
+        }
+    }
+
+    /**
+     * @Route(
      *     "/{dispatch}/api-waybill",
      *     name="api_dispatch_waybill",
      *     options={"expose"=true},
@@ -1241,7 +1272,6 @@ class DispatchController extends AbstractController {
      * )
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
      * @param SpecificService $specificService
      * @param Dispatch $dispatch
      * @return JsonResponse
@@ -1250,17 +1280,8 @@ class DispatchController extends AbstractController {
      */
     public function apiWaybill(Request $request,
                                EntityManagerInterface $entityManager,
-                               TranslatorInterface $translator,
                                SpecificService $specificService,
                                Dispatch $dispatch): JsonResponse {
-        if ($dispatch->getDispatchPacks()->count() === 0) {
-            $errorMessage = $translator->trans('acheminement.Des colis sont nécessaires pour générer une lettre de voiture') . '.';
-
-            return $this->json([
-                "success" => false,
-                "msg" => $errorMessage
-            ]);
-        }
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
