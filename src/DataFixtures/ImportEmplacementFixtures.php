@@ -36,13 +36,16 @@ class ImportEmplacementFixtures extends Fixture
             $i++;
 
             $label = $row[0];
+
+            $description = isset($row[1]) ? $row[1] : $label;
             $emplacement = $emplacementRepository->findOneBy(['label' => $label]);
 
             if (empty($emplacement)) {
                 $emplacement = new Emplacement();
                 $emplacement
-                    ->setLabel($row[0])
-                    ->setDescription($row[1]);
+                    ->setLabel($label)
+                    ->setIsActive(true)
+                    ->setDescription($description);
                 $manager->persist($emplacement);
             }
         }
