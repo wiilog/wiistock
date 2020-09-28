@@ -76,6 +76,11 @@
                     class="form-control input-sm data {{ required ? 'needed' : '' }}"
                     name="emergency">
                     <option value="">Non urgent</option>
+
+                    {% if dispatch.emergency and dispatch.emergency not in emergencies %}
+                        <option value="{{ dispatch.emergency }}" selected>{{ dispatch.emergency }}</option>
+                    {% endif %}
+
                     {% for emergency in emergencies %}
                         <option value="{{ emergency }}" {% if dispatch.emergency == emergency %}selected{% endif %}>{{ emergency }}</option>
                     {% endfor %}
@@ -162,9 +167,11 @@
                     class="form-control data {{ required ? 'needed' }}"
                     title="Business Unit">
                 <option value=""></option>
+
                 {% if dispatch.businessUnit and dispatch.businessUnit not in dispatchBusinessUnits %}
                     <option value="{{ dispatch.businessUnit }}" selected>{{ dispatch.businessUnit }}</option>
                 {% endif %}
+
                 {% for businessUnit in dispatchBusinessUnits %}
                     <option value="{{ businessUnit }}" {{ businessUnit == dispatch.businessUnit ? 'selected' }}>{{ businessUnit }}</option>
                 {% endfor %}

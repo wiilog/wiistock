@@ -67,6 +67,11 @@
                     class="form-control input-sm data {{ required ? 'needed' : '' }}"
                     name="emergency">
                     <option value="">Non urgent</option>
+
+                    {% if handling.emergency and handling.emergency not in emergencies %}
+                        <option value="{{ handling.emergency }}" selected>{{ handling.emergency }}</option>
+                    {% endif %}
+
                     {% for emergency in emergencies %}
                         <option value="{{ emergency }}" {% if handling.emergency == emergency %}selected{% endif %}>{{ emergency }}</option>
                     {% endfor %}
