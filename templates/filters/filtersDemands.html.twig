@@ -11,7 +11,8 @@
     {% include 'filters/filter_item/filterUser.html.twig' %}
     {% include 'filters/filter_item/filterType.html.twig' %}
 
-    {% if displayHandlingFilter is defined and displayHandlingFilter %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterEmergencyMultiple.html.twig' %}
     {% endif %}
 {% endblock %}
