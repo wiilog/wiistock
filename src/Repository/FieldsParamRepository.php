@@ -21,7 +21,7 @@ class FieldsParamRepository extends EntityRepository
         $em = $this->getEntityManager();
         $query = $em
             ->createQuery(
-                "SELECT f.fieldCode, f.fieldLabel, f.mustToCreate, f.mustToModify, f.displayedForms, f.displayedFilters
+                "SELECT f.fieldCode, f.fieldLabel, f.mustToCreate, f.mustToModify, f.displayedFormsCreate, f.displayedFormsEdit, f.displayedFilters
                 FROM App\Entity\FieldsParam f
                 WHERE f.entityCode = :entity"
             )
@@ -33,8 +33,9 @@ class FieldsParamRepository extends EntityRepository
                 $acc[$field['fieldCode']] = [
                     'mustToCreate' => $field['mustToCreate'],
                     'mustToModify' => $field['mustToModify'],
-                    'displayedForms' => $field['displayedForms'],
-                    'displayedFilters' => $field['displayedFilters'],
+                    'displayedFormsCreate' => $field['displayedFormsCreate'],
+                    'displayedFormsEdit' => $field['displayedFormsEdit'],
+                    'displayedFilters' => $field['displayedFilters']
                 ];
                 return $acc;
             },
@@ -51,7 +52,7 @@ class FieldsParamRepository extends EntityRepository
             ->createQuery(
                 "SELECT f.fieldCode
                 FROM App\Entity\FieldsParam f
-                WHERE f.entityCode = :entity AND f.displayed = 0"
+                WHERE f.entityCode = :entity AND f.displayedFormsCreate = 0 AND f.displayedFormsEdit = 0"
             )
             ->setParameter('entity', $entity);
 

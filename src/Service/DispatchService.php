@@ -12,19 +12,16 @@ use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\MouvementTraca;
-use App\Entity\ParametrageGlobal;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Repository\ChampLibreRepository;
 use App\Repository\FieldsParamRepository;
-use App\Repository\ParametrageGlobalRepository;
 use App\Repository\StatutRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -57,6 +54,7 @@ class DispatchService {
     private $translator;
     private $mailerService;
     private $mouvementTracaService;
+    private $fieldsParamService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
@@ -65,7 +63,8 @@ class DispatchService {
                                 FreeFieldService $champLibreService,
                                 TranslatorInterface $translator,
                                 MouvementTracaService $mouvementTracaService,
-                                MailerService $mailerService) {
+                                MailerService $mailerService,
+                                FieldsParamService $fieldsParamService) {
         $this->templating = $templating;
         $this->mouvementTracaService = $mouvementTracaService;
         $this->entityManager = $entityManager;
@@ -74,6 +73,7 @@ class DispatchService {
         $this->freeFieldService = $champLibreService;
         $this->translator = $translator;
         $this->mailerService = $mailerService;
+        $this->fieldsParamService = $fieldsParamService;
     }
 
     /**
@@ -167,12 +167,10 @@ class DispatchService {
             ]),
         ];
 
-        $rows = array_merge($rowCL, $row);
-        return $rows;
+        return array_merge($rowCL, $row);
     }
 
-    public function getNewDispatchConfig(ParametrageGlobalRepository $parametrageGlobalRepository,
-                                         StatutRepository $statutRepository,
+    public function getNewDispatchConfig(StatutRepository $statutRepository,
                                          ChampLibreRepository $champLibreRepository,
                                          FieldsParamRepository $fieldsParamRepository,
                                          array $types,
@@ -208,6 +206,9 @@ class DispatchService {
     }
 
     public function createHeaderDetailsConfig(Dispatch $dispatch): array {
+        $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
+
         $status = $dispatch->getStatut();
         $type = $dispatch->getType();
         $carrier = $dispatch->getCarrier();
@@ -227,6 +228,7 @@ class DispatchService {
         $projectNumber = $dispatch->getProjectNumber();
         $comment = $dispatch->getCommentaire() ?? '';
         $treatedBy = $dispatch->getTreatedBy() ? $dispatch->getTreatedBy()->getUsername() : '';
+        $attachments = $dispatch->getAttachments();
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
@@ -252,42 +254,105 @@ class DispatchService {
             $receiverDetails["isRaw"] = true;
         }
 
-        return array_merge(
-            [
-                ['label' => 'Statut', 'value' => $status ? $status->getNom() : ''],
-                ['label' => 'Type', 'value' => $type ? $type->getLabel() : ''],
-                ['label' => 'Transporteur', 'value' => $carrier ? $carrier->getLabel() : ''],
-                ['label' => 'Numéro de tracking transporteur', 'value' => $carrierTrackingNumber],
-                ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
-                ["label" => "Destinataire", "value" => $receiver ? $receiver->getUsername() : ''],
-                $receiverDetails,
-                ['label' => 'Numéro de projet', 'value' => $projectNumber],
-                ['label' => 'Business Unit', 'value' => $dispatch->getBusinessUnit() ?? ''],
-                ['label' => $this->translator->trans('acheminement.Numéro de commande'), 'value' => $commandNumber, 'title' => 'Numéro de commande'],
-                ['label' => $this->translator->trans('acheminement.Emplacement prise'), 'value' => $locationFrom ? $locationFrom->getLabel() : '', 'title' => 'Emplacement prise'],
-                ['label' => $this->translator->trans('acheminement.Emplacement dépose'), 'value' => $locationTo ? $locationTo->getLabel() : '', 'title' => 'Emplacement dépose'],
-                ['label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''],
-                ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i:s') : ''],
-                ['label' => 'Dates d\'échéance', 'value' => ($startDate || $endDate) ? ('Du ' . $startDateStr . ' au ' . $endDateStr) : ''],
-                ['label' => 'Traité par', 'value' => $treatedBy],
-                ['label' => 'Date de traitement', 'value' => $treatmentDate ? $treatmentDate->format('d/m/Y H:i:s') : '']
-            ],
-            $freeFieldArray,
-            [
+        $config = [
                 [
-                    'label' => 'Pièces jointes',
-                    'value' => $dispatch->getAttachments()->toArray(),
-                    'isAttachments' => true,
-                    'isNeededNotEmpty' => true
+                    'label' => 'Statut',
+                    'value' => $status ? $status->getNom() : ''
                 ],
                 [
-                    'label' => 'Commentaire',
-                    'value' => $comment ?: '',
-                    'isRaw' => true,
-                    'isScrollable' => true,
-                    'isNeededNotEmpty' => true
+                    'label' => 'Type',
+                    'value' => $type ? $type->getLabel() : ''
+                ],
+                [
+                    'label' => 'Transporteur',
+                    'value' => $carrier ? $carrier->getLabel() : '',
+                    'show' => [ 'fieldName' => 'carrier' ]
+                ],
+                [
+                    'label' => 'Numéro de tracking transporteur',
+                    'value' => $carrierTrackingNumber,
+                    'show' => [ 'fieldName' => 'trackingCarrierNumber' ]
+                ],
+                [
+                    'label' => 'Demandeur',
+                    'value' => $requester ? $requester->getUsername() : ''
+                ],
+                [
+                    "label" => "Destinataire",
+                    "value" => $receiver ? $receiver->getUsername() : '',
+                    'show' => [ 'fieldName' => 'receiver' ]
+                ],
+                $receiverDetails,
+                [
+                    'label' => 'Numéro de projet',
+                    'value' => $projectNumber,
+                    'show' => [ 'fieldName' => 'projectNumber' ]
+                ],
+                [
+                    'label' => 'Business Unit',
+                    'value' => $dispatch->getBusinessUnit() ?? '',
+                    'show' => [ 'fieldName' => 'businessUnit' ]
+                ],
+                [
+                    'label' => $this->translator->trans('acheminement.Numéro de commande'),
+                    'value' => $commandNumber, 'title' => 'Numéro de commande',
+                    'show' => [ 'fieldName' => 'commandNumber' ]
+                ],
+                [
+                    'label' => $this->translator->trans('acheminement.Emplacement prise'),
+                    'value' => $locationFrom ? $locationFrom->getLabel() : '', 'title' => 'Emplacement prise',
+                    'show' => [ 'fieldName' => 'locationFrom' ]
+                ],
+                [
+                    'label' => $this->translator->trans('acheminement.Emplacement dépose'),
+                    'value' => $locationTo ? $locationTo->getLabel() : '', 'title' => 'Emplacement dépose',
+                    'show' => [ 'fieldName' => 'locationTo' ]
+                ],
+                [
+                    'label' => 'Date de création',
+                    'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''
+                ],
+                [
+                    'label' => 'Date de validation',
+                    'value' => $validationDate ? $validationDate->format('d/m/Y H:i:s') : ''
+                ],
+                [
+                    'label' => 'Dates d\'échéance',
+                    'value' => ($startDate || $endDate) ? ('Du ' . $startDateStr . ' au ' . $endDateStr) : ''
+                ],
+                [
+                    'label' => 'Traité par',
+                    'value' => $treatedBy
+                ],
+                [
+                    'label' => 'Date de traitement',
+                    'value' => $treatmentDate ? $treatmentDate->format('d/m/Y H:i:s') : ''
                 ]
-            ]
+            ];
+
+        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DISPATCH);
+
+        return array_merge(
+            $configFiltered,
+            $freeFieldArray,
+            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayed')
+                ? [[
+                'label' => 'Commentaire',
+                'value' => $comment ?: '',
+                'isRaw' => true,
+                'colClass' => 'col-sm-6 col-12',
+                'isScrollable' => true,
+                'isNeededNotEmpty' => true
+            ]]
+                : [],
+            $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayed')
+                ? [[
+                'label' => 'Pièces jointes',
+                'value' => $attachments->toArray(),
+                'isAttachments' => true,
+                'isNeededNotEmpty' => true
+            ]]
+                : []
         );
     }
 
@@ -405,7 +470,7 @@ class DispatchService {
         $dispatchPacks = $dispatch->getDispatchPacks();
         $takingLocation = $dispatch->getLocationFrom();
         $dropLocation = $dispatch->getLocationTo();
-        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
         $dispatch
             ->setStatut($treatedStatus)
             ->setTreatmentDate($date);
@@ -493,7 +558,4 @@ class DispatchService {
             }, $freeFields)
         );
     }
-
-
-
 }

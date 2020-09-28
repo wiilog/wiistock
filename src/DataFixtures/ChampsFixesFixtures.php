@@ -77,7 +77,8 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                     $field
                         ->setEntityCode($fieldEntity)
                         ->setFieldLabel($fieldCode['label'])
-                        ->setDisplayedForms($fieldCode['displayedForms'])
+                        ->setDisplayedFormsCreate($fieldCode['displayedFormsCreate'])
+                        ->setDisplayedFormsEdit($fieldCode['displayedFormsEdit'])
                         ->setDisplayedFilters($fieldCode['displayedFilters'])
                         ->setMustToModify($fieldCode['default'] ?? false)
                         ->setMustToCreate($fieldCode['default'] ?? false)

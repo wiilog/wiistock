@@ -10,7 +10,7 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class='row'>
-                    {% if fieldsParam|isFieldRequired('dateCommande', 'displayed') %}
+                    {% if fieldsParam|isFieldRequired('dateCommande', 'displayedFormsCreate') %}
                         <div class="form-group col-6">
                             <label for="dateCommande">Date
                                 commande{{ fieldsParam|isFieldRequired('dateCommande', 'mustToCreate') ? '*' : '' }}</label>
@@ -24,7 +24,7 @@
                         </div>
                     {% endif %}
 
-                    {% if fieldsParam|isFieldRequired('dateAttendue', 'displayed') %}
+                    {% if fieldsParam|isFieldRequired('dateAttendue', 'displayedFormsCreate') %}
                         <div class="form-group col-6">
                             <label for="dateAttendue">Date
                                 attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'mustToCreate') ? '*' : '' }}</label>
@@ -40,7 +40,7 @@
                 </div>
 
                 <div class="row">
-                    {% if fieldsParam|isFieldRequired('numCommande', 'displayed') %}
+                    {% if fieldsParam|isFieldRequired('numCommande', 'displayedFormsCreate') %}
                         <div class="form-group col-6">
                             <label>Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'mustToCreate') ? '*' : '' }}</label>
                             <input type="text"
@@ -49,7 +49,7 @@
                         </div>
                     {% endif %}
 
-                    {% if fieldsParam|isFieldRequired('emplacement', 'displayed') %}
+                    {% if fieldsParam|isFieldRequired('emplacement', 'displayedFormsCreate') %}
                         <div class="form-group col-6 w-100">
                             <label>Emplacement{{ fieldsParam|isFieldRequired('emplacement', 'mustToCreate') ? '*' : '' }}</label>
                             <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'mustToCreate') ? 'needed' : '' }}" name="location"
@@ -61,7 +61,7 @@
                 </div>
 
                 <div class="row fly-form">
-                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
+                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayedFormsCreate') %}
                         <div class="form-group w-100 col">
                             <label
                                 for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
@@ -79,7 +79,7 @@
                         {% endif %}
                     {% endif %}
 
-                    {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
+                    {% if fieldsParam|isFieldRequired('transporteur', 'displayedFormsCreate') %}
                         <div class="form-group w-100 col">
                             <label
                                 for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
@@ -135,7 +135,7 @@
                     </div>
                 {% endif %}
 
-                {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
+                {% if fieldsParam|isFieldRequired('commentaire', 'displayedFormsCreate') %}
                     <div class="form-group">
                         <label
                             for="NumeroReception">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? '*' : '' }}</label>
@@ -170,7 +170,7 @@
                 </div>
 
                 <div class="row">
-                    {% if fieldsParam|isFieldRequired('anomalie', 'displayed') %}
+                    {% if fieldsParam|isFieldRequired('anomalie', 'displayedFormsCreate') %}
                         <div class="form-group col-6 pt-4">
                             <label>Anomalie</label>
                             <label class="switch">

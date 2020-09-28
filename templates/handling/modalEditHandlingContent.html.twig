@@ -65,14 +65,14 @@
            disabled>
 </div>
 
-{% if fieldsParam|isFieldRequired('loadingZone', 'displayed') %}
+{% if fieldsParam|isFieldRequired('loadingZone', 'displayedFormsEdit') %}
     <div class="form-group">
         <label for="source">Chargement{{ fieldsParam|isFieldRequired('loadingZone', 'mustToModify') ? '*' : '' }}</label>
         <input class="form-control data {{ fieldsParam|isFieldRequired('loadingZone', 'mustToModify') ? 'needed' : '' }} input" value="{{ handling.source }}" name="source">
     </div>
 {% endif %}
 
-{% if fieldsParam|isFieldRequired('unloadingZone', 'displayed') %}
+{% if fieldsParam|isFieldRequired('unloadingZone', 'displayedFormsEdit') %}
     <div class="form-group">
         <label for="destination">Déchargement{{ fieldsParam|isFieldRequired('unloadingZone', 'mustToModify') ? '*' : '' }}</label>
         <input class="form-control data {{ fieldsParam|isFieldRequired('unloadingZone', 'mustToModify') ? 'needed' : '' }} input" value="{{ handling.destination }}" name="destination">

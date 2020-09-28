@@ -73,14 +73,14 @@
                            min = "{{ 'now' | date('Y-m-d\\TH:i') }}"/>
                 </div>
 
-                {% if fieldsParam|isFieldRequired('loadingZone', 'displayedForms') %}
+                {% if fieldsParam|isFieldRequired('loadingZone', 'displayedFormsCreate') %}
                 <div class="form-group">
                     <label for="source">Chargement{{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? '*' : '' }}</label>
                     <input class="form-control data {{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? 'needed' : '' }}" name="source">
                 </div>
                 {% endif %}
 
-                {% if fieldsParam|isFieldRequired('unloadingZone', 'displayedForms') %}
+                {% if fieldsParam|isFieldRequired('unloadingZone', 'displayedFormsCreate') %}
                 <div class="form-group">
                     <label for="destination">Déchargement{{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? '*' : '' }}</label>
                     <input class="form-control data {{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? 'needed' : '' }}" name="destination">
