@@ -128,7 +128,7 @@
                 name="emergency">
                 <option value="">Non urgent</option>
 
-                {% if displatch.emergency and displatch.emergency not in emergencies %}
+                {% if dispatch.emergency and dispatch.emergency not in emergencies %}
                     <option value="{{ dispatch.emergency }}" selected>{{ dispatch.emergency }}</option>
                 {% endif %}
 
