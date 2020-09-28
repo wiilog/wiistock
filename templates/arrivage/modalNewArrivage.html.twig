@@ -10,7 +10,7 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class="row fly-form">
-                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
+                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayedForms') %}
                         <div class="form-group col w-100">
                             <label
                                 for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
@@ -33,7 +33,7 @@
                             </div>
                         {% endif %}
                     {% endif %}
-                    {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
+                    {% if fieldsParam|isFieldRequired('transporteur', 'displayedForms') %}
                         <div class="form-group col w-100">
                             <label
                                 for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
@@ -55,7 +55,7 @@
                             </div>
                         {% endif %}
                     {% endif %}
-                    {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
+                    {% if fieldsParam|isFieldRequired('chauffeur', 'displayedForms') %}
                         <div class="form-group col w-100">
                             <label
                                 for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired('chauffeur', 'mustToCreate') ? '*' : '' }}</label>

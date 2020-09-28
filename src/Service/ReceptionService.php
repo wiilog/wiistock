@@ -172,7 +172,7 @@ class ReceptionService
         return array_merge(
             $configFiltered,
             $freeFieldArray,
-            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayed')
+            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedForms')
                 ? [[
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',
