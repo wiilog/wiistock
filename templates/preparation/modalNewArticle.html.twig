@@ -12,7 +12,7 @@
 
                 <div class="mb-3">
                     <label for="article">Article</label>
-                    <select type="text" class="data form-control select2" name="article"  value=""
+                    <select class="data form-control select2" name="article"  value=""
                         required="true">
                         {% for article in articles %}
                         <option value="{{ article.id }}">{{ article.reference }}</option>

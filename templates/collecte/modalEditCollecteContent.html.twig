@@ -53,9 +53,7 @@
 <div class="form-group row">
     <label class="col-12" for="type">Type*</label>
     <div class="col-12">
-        <select name="type" class="form-control data d-block type needed col-12"
-                onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))"
-                onchange="toggleRequiredChampsLibres($(this), 'edit')" disabled>
+        <select name="type" class="form-control data d-block type needed col-12" disabled>
             <option value="{{ collecte.type.id }}">{{ collecte.type.label }}</option>
             {% for type in types %}
                 {% if collecte.type != type %}
@@ -67,18 +65,15 @@
 </div>
 
 <!-- CHAMPS LIBRES -->
-<div class="row mt-4">
-    <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
-        <div class="row">
-            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
-                freeFields: freeFieldsGroupedByTypes[collecte.type.id] is defined ? freeFieldsGroupedByTypes[collecte.type.id] : [],
-                freeFieldValues: collecte.freeFields,
-                colType: 'col-12',
-                requiredType: 'requiredEdit',
-                actionType: 'edit'
-            } %}
-        </div>
-    </div>
+<span class="toggle-collapsible expanded">Champs libres</span>
+<div class="collapsible expanded free-fields-container mb-2">
+    {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+        freeFields: freeFieldsGroupedByTypes[collecte.type.id] is defined ? freeFieldsGroupedByTypes[collecte.type.id] : [],
+        freeFieldValues: collecte.freeFields,
+        colType: 'col-md-4 col-12',
+        requiredType: 'requiredEdit',
+        actionType: 'edit'
+    } %}
 </div>
 
 <div class="form-group row">

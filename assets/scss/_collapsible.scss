@@ -1,0 +1,32 @@
+.toggle-collapsible {
+    cursor: pointer;
+    transition: all 0.25s ease-out;
+
+    &::before {
+        content: '⯈ ';
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 3px;
+        transform: translateY(-2px);
+        transition: transform .2s ease-out;
+    }
+
+    &.expanded::before {
+        transform: rotate(90deg) translateX(-3px);
+    }
+}
+
+.collapsible {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .25s ease-in-out;
+}
+
+.collapsible.expanded {
+    max-height: initial;
+    overflow: initial;
+}
+
+.collapsible-content p {
+    margin-bottom: 0;
+}

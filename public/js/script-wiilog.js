@@ -158,8 +158,8 @@ function toggleLivraisonCollecte($switch) {
     let boutonNouvelleDemande = $switch.closest('.modal').find('.boutonCreationDemande');
 
     $.post(path, params, function (data) {
-        if (data === false) {
-            $('.error-msg').html('Vous n\'avez créé aucune demande de ' + type + '.');
+        if(!data.success) {
+            $('.error-msg').html(data.msg);
             boutonNouvelleDemande.removeClass('d-none');
             let pathIndex;
             if (type === 'livraison') {
@@ -171,6 +171,7 @@ function toggleLivraisonCollecte($switch) {
             boutonNouvelleDemande.find('#creationDemande').html(
                 "<a href=\'" + pathIndex + "\'>Nouvelle demande de " + type + "</a>"
             );
+
             $switch.closest('.modal').find('.plusDemandeContent').addClass('d-none');
         } else {
             ajaxPlusDemandeContent($switch, type);
@@ -210,36 +211,13 @@ function initEditor(div) {
 
 //FONCTION REFARTICLE
 
-//Cache/affiche les bloc des modal edit/new
-function visibleBlockModal(bloc) {
-
-    let blocContent = bloc.siblings().filter('.blocVisible');
-    let sortUp = bloc.find('h3').find('.fa-sort-up');
-    let sortDown = bloc.find('h3').find('.fa-sort-down');
-
-    if (sortUp.attr('class').search('d-none') > 0) {
-        sortUp.removeClass('d-none');
-        sortUp.addClass('d-block');
-        sortDown.removeClass('d-block');
-        sortDown.addClass('d-none');
-
-        blocContent.removeClass('d-none')
-        blocContent.addClass('d-block');
-    } else {
-        sortUp.removeClass('d-block');
-        sortUp.addClass('d-none');
-        sortDown.removeClass('d-none');
-        sortDown.addClass('d-block');
-
-        blocContent.removeClass('d-block')
-        blocContent.addClass('d-none')
+function typeChoice($select, text, $freeFieldsContainer = null) {
+    if(!$freeFieldsContainer) {
+        $freeFieldsContainer = $select.siblings('.modal').find('.free-fields-container');
     }
-}
 
-function typeChoice(bloc, text, content) {
-    let cible = bloc.val();
-    content.children().addClass('d-none');
-    $('#' + cible + text).removeClass('d-none');
+    $freeFieldsContainer.children().addClass('d-none');
+    $('#' + $select.val() + text).removeClass('d-none');
 }
 
 function updateQuantityDisplay($elem) {
@@ -479,13 +457,16 @@ function ajaxAutoDemandesInit(select) {
     initSelect2(select, 'Numéros de demande', 3, {route: 'get_demandes'});
 }
 
-let toggleRequiredChampsLibres = function (select, require, $freeFieldContainer = null) {
-    let bloc = ( //TODO pas top
-        $freeFieldContainer ? $freeFieldContainer :
-        require == 'create' ? $('#typeContentNew') :
-            $('#typeContentEdit')
-    );
-    const typeId = select.val();
+function toggleRequiredChampsLibres($select, require, $freeFieldContainer = null) {
+    const bloc = $freeFieldContainer
+        ? $freeFieldContainer
+        : $select.siblings('.modal')
+            .find('.free-fields-container')
+            .children()
+            .addClass('d-none');
+
+    const typeId = $select.val();
+
     let params = {};
     if (typeId) {
         bloc
@@ -1398,12 +1379,16 @@ function onTypeChange($select) {
 
     toggleRequiredChampsLibres($select, 'create', $freeFieldsContainer);
     typeChoice($select, '-new', $freeFieldsContainer);
+
     const type = parseInt($select.val());
+
     const $selectStatus = $modal.find('select[name="status"]');
     $selectStatus.find('option[data-type-id!="' + type + '"]').addClass('d-none');
     $selectStatus.val(null).trigger('change');
+
     const $errorEmptyStatus = $selectStatus.siblings('.error-empty-status');
     $errorEmptyStatus.addClass('d-none');
+
     if(!type) {
         $selectStatus.removeClass('d-none');
         $selectStatus.prop('disabled', true);
@@ -1412,6 +1397,7 @@ function onTypeChange($select) {
         $selectStatus.removeAttr('disabled');
         $correspondingStatuses.removeClass('d-none');
         const defaultStatuses = JSON.parse($selectStatus.siblings('input[name="defaultStatuses"]').val() || '{}');
+
         if ($correspondingStatuses.length !== 0) {
             $selectStatus.removeClass('d-none');
             if (defaultStatuses[type]) {

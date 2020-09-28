@@ -77,7 +77,10 @@ class ArrivageDataService
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
         $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
 
-        $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $this->security->getUser());
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->security->getUser();
+
+        $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $currentUser);
 
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARRIVAGE);
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, $categorieCL);
@@ -168,8 +171,7 @@ class ArrivageDataService
             )
         ];
 
-        $rows = array_merge($rowCL, $row);
-        return $rows;
+        return array_merge($rowCL, $row);
     }
 
     /**
@@ -398,66 +400,73 @@ class ArrivageDataService
             ],
             [
                 'label' => 'Fournisseur',
-                'value' => $provider ? $provider->getNom() : ''
+                'value' => $provider ? $provider->getNom() : '',
+                'show' => [ 'fieldName' => 'fournisseur' ]
             ],
             [
                 'label' => 'Transporteur',
-                'value' => $carrier ? $carrier->getLabel() : ''
+                'value' => $carrier ? $carrier->getLabel() : '',
+                'show' => [ 'fieldName' => 'transporteur' ]
             ],
             [
                 'label' => 'Chauffeur',
-                'value' => $driver ? $driver->getNom() : ''
+                'value' => $driver ? $driver->getNom() : '',
+                'show' => [ 'fieldName' => 'chauffeur' ]
             ],
             [
                 'label' => 'N° tracking transporteur',
-                'value' => $arrivage->getNoTracking()
+                'value' => $arrivage->getNoTracking(),
+                'show' => [ 'fieldName' => 'noTracking' ]
             ],
             [
                 'label' => $this->translator->trans('arrivage.Numéro de commande'),
                 'title' => 'Numéro de commande',
-                'value' => !empty($numeroCommandeList) ? implode(', ', $numeroCommandeList) : ''
+                'value' => !empty($numeroCommandeList) ? implode(', ', $numeroCommandeList) : '',
+                'show' => [ 'fieldName' => 'numeroCommandeList' ]
             ],
             [
                 'label' => $this->translator->trans('arrivage.destinataire'),
                 'title' => 'destinataire',
-                'value' => $destinataire ? $destinataire->getUsername() : ''
+                'value' => $destinataire ? $destinataire->getUsername() : '',
+                'show' => [ 'fieldName' => 'destinataire' ]
             ],
             [
                 'label' => $this->translator->trans('arrivage.acheteurs'),
                 'title' => 'acheteurs',
-                'value' => $buyers->count() > 0 ? implode(', ', $buyers->map(function (Utilisateur $buyer) {return $buyer->getUsername();})->toArray()) : ''
+                'value' => $buyers->count() > 0 ? implode(', ', $buyers->map(function (Utilisateur $buyer) {return $buyer->getUsername();})->toArray()) : '',
+                'show' => [ 'fieldName' => 'acheteurs' ]
             ],
             [
                 'label' => 'Numéro de projet',
-                'value' => $arrivage->getProjectNumber()
+                'value' => $arrivage->getProjectNumber(),
+                'show' => [ 'fieldName' => 'projectNumber' ]
             ],
             [
                 'label' => 'Business unit',
-                'value' => $arrivage->getBusinessUnit()
+                'value' => $arrivage->getBusinessUnit(),
+                'show' => [ 'fieldName' => 'businessUnit' ]
             ],
             [
                 'label' => $this->translator->trans('arrivage.douane'),
                 'title' => 'douane',
-                'value' => $arrivage->getDuty() ? 'oui' : 'non'
+                'value' => $arrivage->getDuty() ? 'oui' : 'non',
+                'show' => [ 'fieldName' => 'duty' ]
             ],
             [
                 'label' => $this->translator->trans('arrivage.congelé'),
                 'title' => 'congelé',
-                'value' => $arrivage->getFrozen() ? 'oui' : 'non'
+                'value' => $arrivage->getFrozen() ? 'oui' : 'non',
+                'show' => [ 'fieldName' => 'frozen' ]
             ]
         ];
 
-        $configFiltered =  array_filter($config, function ($fieldConfig) use ($fieldsParam) {
-            return (
-                !isset($fieldConfig['show'])
-                || $this->fieldsParamService->isFieldRequired($fieldsParam, $fieldConfig['show']['fieldName'], $fieldConfig['show']['action'])
-            );
-        });
+        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_ARRIVAGE);
 
         return array_merge(
             $configFiltered,
             $freeFieldArray,
-            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayed')
+            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsCreate')
+            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsEdit')
                 ? [[
                 'label' => 'Commentaire',
                 'value' => $comment ?: '',
@@ -467,7 +476,8 @@ class ArrivageDataService
                 'isNeededNotEmpty' => true
             ]]
                 : [],
-            $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayed')
+                $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayedFormsCreate')
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayedFormsEdit')
                 ? [[
                     'label' => 'Pièces jointes',
                     'value' => $attachments->toArray(),

@@ -30,18 +30,15 @@
 </div>
 
 <!-- CHAMPS LIBRES -->
-<div class="row mt-4">
-    <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
-        <div class="row">
-            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
-                freeFields: freeFieldsGroupedByTypes[demande.type.id] is defined ? freeFieldsGroupedByTypes[demande.type.id] : [],
-                freeFieldValues: demande.freeFields,
-                colType: 'col-12',
-                requiredType: 'requiredEdit',
-                actionType: 'edit'
-            } %}
-        </div>
-    </div>
+<span class="toggle-collapsible expanded">Champs libres</span>
+<div class="collapsible expanded free-fields-container mb-2">
+    {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+        freeFields: freeFieldsGroupedByTypes[demande.type.id] is defined ? freeFieldsGroupedByTypes[demande.type.id] : [],
+        freeFieldValues: demande.freeFields,
+        colType: 'col-md-4 col-12',
+        requiredType: 'requiredEdit',
+        actionType: 'edit'
+    } %}
 </div>
 
 <div class="form-group">

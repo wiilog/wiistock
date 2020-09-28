@@ -75,23 +75,17 @@
         </div>
     </div>
 {% endif %}
-<div class="row mt-4">
-    <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
-        <h3 class='d-flex pointer'>
-            <i class="fas fa-sort-up d-block mr-2"></i>
-            <i class="fas fa-sort-down d-none mr-2"></i>
-            Champs libres
-        </h3>
-    </div>
-    <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
-        <div class="row">
-            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
-                freeFields: champsLibres,
-                freeFieldValues: [],
-                colType: 'col-4',
-                requiredType: 'requiredCreate',
-                actionType: 'new'
-            } %}
-        </div>
+
+<span class="toggle-collapsible expanded">Champs libres</span>
+<div class="collapsible expanded free-fields-container">
+    <div class="row">
+        {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+            freeFields: champsLibres,
+            freeFieldValues: [],
+            colType: 'col-md-4 col-12',
+            requiredType: 'requiredCreate',
+            actionType: 'new'
+        } %}
     </div>
 </div>
+
