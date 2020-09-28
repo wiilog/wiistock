@@ -20,7 +20,7 @@ final class Version20200924153539 extends AbstractMigration
     public function up(Schema $schema) : void
     {
         $this->addSql("ALTER TABLE fields_param CHANGE displayed_forms displayed_forms_create TINYINT(1)");
-        $this->addSql("ALTER TABLE fields_param ADD displayed_form_edit TINYINT(1)");
+        $this->addSql("ALTER TABLE fields_param ADD displayed_forms_edit TINYINT(1)");
         $this->addSql("UPDATE fields_param SET displayed_forms_edit = displayed_forms_create");
     }
 
