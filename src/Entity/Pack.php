@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -183,13 +184,19 @@ class Pack
      * @return Collection|MouvementTraca[]
      */
     public function getTrackingMovements(): Collection {
-        return $this->trackingMovements;
+        $criteria = Criteria::create()
+            ->orderBy(['datetime' => 'DESC']);
+        return $this->trackingMovements->matching($criteria);
     }
 
     public function addTrackingMovement(MouvementTraca $trackingMovement): self
     {
         if (!$this->trackingMovements->contains($trackingMovement)) {
-            $this->trackingMovements[] = $trackingMovement;
+            // push on top new movement
+            $trackingMovements = $this->trackingMovements->toArray();
+            array_unshift($trackingMovements, $trackingMovement);
+            $this->trackingMovements = new ArrayCollection($trackingMovements);
+
             $trackingMovement->setPack($this);
         }
 

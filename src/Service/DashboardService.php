@@ -541,10 +541,10 @@ class DashboardService
                     return $carry;
                 },
                 []),
-            'key' => self::DASHBOARD_ADMIN . '-' . $clusterCode,
+            'key' => $clusterCode,
             'data' => $graphData,
-            'location' => (isset($locationToDisplay) ? $locationToDisplay : '-'),
-            'total' => (isset($totalToDisplay) ? $totalToDisplay : '-'),
+            'location' => (!empty($locationToDisplay) ? $locationToDisplay : '-'),
+            'total' => (!empty($totalToDisplay) ? $totalToDisplay : '-'),
         ];
         $this->updateOrPersistDashboardGraphMeter($entityManager, $dashboardData);
     }
@@ -913,28 +913,16 @@ class DashboardService
     {
         $dsqrLabel = 'OF envoyés par le DSQR';
         $gtLabel = 'OF traités par GT';
-        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $locationClusterMeterRepository = $this->entityManager->getRepository(LocationClusterMeter::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-        $locationDropIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_DSQR);
-        $locationOriginIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT);
-        $locationTargetIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT);
-        $locationDropIdsArray = !empty($locationDropIds) ? explode(',', $locationDropIds) : [];
-        $locationOriginIdsArray = !empty($locationOriginIds) ? explode(',', $locationOriginIds) : [];
-        $locationTargetIdsArray = !empty($locationTargetIds) ? explode(',', $locationTargetIds) : [];
 
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-        $chartData = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax)
-                                                      use ($dsqrLabel,
-                                                           $gtLabel,
-                                                           $mouvementTracaRepository,
-                                                           $locationDropIdsArray,
-                                                           $locationOriginIdsArray,
-                                                           $locationTargetIdsArray) {
+        $chartData = $this->getDailyObjectsStatistics(function (DateTime $date)
+                                                      use ($dsqrLabel, $gtLabel, $locationClusterMeterRepository) {
 
             return [
-                $dsqrLabel => $mouvementTracaRepository->countDropsOnLocations($locationDropIdsArray, $dateMin, $dateMax),
-                $gtLabel => $mouvementTracaRepository->countMovementsFromInto($locationOriginIdsArray, $locationTargetIdsArray, $dateMin, $dateMax)
+                $dsqrLabel => $locationClusterMeterRepository->countByDate($date, LocationCluster::CLUSTER_CODE_PACKAGING_DSQR),
+                $gtLabel => $locationClusterMeterRepository->countByDate($date, LocationCluster::CLUSTER_CODE_PACKAGING_GT_TARGET, LocationCluster::CLUSTER_CODE_PACKAGING_GT_ORIGIN),
             ];
         }, $workFreeDays);
         $dashboardData = [

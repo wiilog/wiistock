@@ -206,10 +206,7 @@ Class GlobalParamService
             ParametrageGlobal::DASHBOARD_PACKAGING_8,
             ParametrageGlobal::DASHBOARD_PACKAGING_RPA,
             ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE,
-            ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE,
-            ParametrageGlobal::DASHBOARD_PACKAGING_DSQR,
-            ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT,
-            ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT,
+            ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE
 		];
 
 		$resp = [];
@@ -238,7 +235,10 @@ Class GlobalParamService
         $clusterCodes = [
             LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1,
             LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2,
-            LocationCluster::CLUSTER_CODE_DOCK_DASHBOARD_DROPZONE
+            LocationCluster::CLUSTER_CODE_DOCK_DASHBOARD_DROPZONE,
+            LocationCluster::CLUSTER_CODE_PACKAGING_DSQR,
+            LocationCluster::CLUSTER_CODE_PACKAGING_GT_TARGET,
+            LocationCluster::CLUSTER_CODE_PACKAGING_GT_ORIGIN
         ];
 
 		foreach ($clusterCodes as $clusterCode) {

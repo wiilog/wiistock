@@ -252,7 +252,7 @@ class MouvementTracaService
             }
         }
 
-        $tracking->setPack($pack);
+        $pack->addTrackingMovement($tracking);
     }
 
     private function manageTrackingLinks(EntityManagerInterface $entityManager,
@@ -345,7 +345,11 @@ class MouvementTracaService
                                                 MouvementTraca $tracking): void {
 
         $pack = $tracking->getPack();
-        $previousLastTracking = $pack ? $pack->getLastTracking() : null;
+        $lastTrackingMovements = $pack ? $pack->getTrackingMovements()->toArray() : [];
+
+        $previousLastTracking = (!empty($lastTrackingMovements) && count($lastTrackingMovements) > 1)
+            ? $lastTrackingMovements[1]
+            : null;
 
         $packsAlreadyExisting = $tracking->getLinkedPackLastDrops();
         // si c'est une prise ou une dépose on vide ses colis liés
@@ -405,8 +409,10 @@ class MouvementTracaService
 
                 if ($previousLastTracking
                     && $previousLastTracking->isTaking()) {
+
                     $locationPreviousLastTracking = $previousLastTracking->getEmplacement();
                     $locationClustersPreviousLastTracking = $locationPreviousLastTracking ? $locationPreviousLastTracking->getClusters() : [];
+                    /** @var LocationCluster $locationClusterPreviousLastTracking */
                     foreach ($locationClustersPreviousLastTracking as $locationClusterPreviousLastTracking) {
                         $this->locationClusterService->setMeter(
                             $entityManager,

@@ -753,10 +753,7 @@ class ParametrageGlobalController extends AbstractController
                 ParametrageGlobal::DASHBOARD_PACKAGING_8 => 'packaging8',
                 ParametrageGlobal::DASHBOARD_PACKAGING_RPA => 'packagingRPA',
                 ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE => 'packagingLitige',
-                ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE => 'packagingUrgence',
-                ParametrageGlobal::DASHBOARD_PACKAGING_DSQR => 'packagingDSQR',
-                ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT => 'packagingDestinationGT',
-                ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT => 'packagingOrigineGT',
+                ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE => 'packagingUrgence'
             ];
 
             foreach ($listMultipleSelect as $labelParam => $selectId) {
@@ -780,6 +777,9 @@ class ParametrageGlobalController extends AbstractController
             $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1, $post->get('locationsFirstGraph'), $entityManager);
             $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2, $post->get('locationsSecondGraph'), $entityManager);
             $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_DOCK_DASHBOARD_DROPZONE, $post->get('locationDropZone'), $entityManager);
+            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_PACKAGING_DSQR, $post->get('packagingDSQR'), $entityManager);
+            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_PACKAGING_GT_ORIGIN, $post->get('packagingOrigineGT'), $entityManager);
+            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_PACKAGING_GT_TARGET, $post->get('packagingDestinationGT'), $entityManager);
             $entityManager->flush();
 
             return new JsonResponse(true);

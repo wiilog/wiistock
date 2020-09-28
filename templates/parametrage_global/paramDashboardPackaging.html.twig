@@ -140,7 +140,7 @@
                     </select>
                 </div>
             </div>
-            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_DSQR')] %}
+            {% set valueLocation = locations[constant('App\\Entity\\LocationCluster::CLUSTER_CODE_PACKAGING_DSQR')] %}
             <input type="hidden" id="packagingLocationDSQR" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
         <div class="form-group w-fit-content">
@@ -151,7 +151,7 @@
                     </select>
                 </div>
             </div>
-            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT')] %}
+            {% set valueLocation = locations[constant('App\\Entity\\LocationCluster::CLUSTER_CODE_PACKAGING_GT_ORIGIN')] %}
             <input type="hidden" id="packagingLocationOrigineGT" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
         <div class="form-group w-fit-content">
@@ -162,7 +162,7 @@
                     </select>
                 </div>
             </div>
-            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT')] %}
+            {% set valueLocation = locations[constant('App\\Entity\\LocationCluster::CLUSTER_CODE_PACKAGING_GT_TARGET')] %}
             <input type="hidden" id="packagingLocationDestinationGT" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
     </div>
