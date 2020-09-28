@@ -551,7 +551,6 @@ class DispatchController extends AbstractController {
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response {
@@ -710,6 +709,8 @@ class DispatchController extends AbstractController {
         $natureId = $data['nature'];
         $quantity = $data['quantity'];
         $comment = $data['comment'];
+        $weight = (floatval(str_replace(',', '.', $data['weight'])) ?: null);
+        $volume = (floatval(str_replace(',', '.', $data['volume'])) ?: null);
 
         $alreadyCreated = !$dispatch
             ->getDispatchPacks()
@@ -721,7 +722,9 @@ class DispatchController extends AbstractController {
 
         if ($alreadyCreated) {
             $success = false;
-            $message = $translator->trans('acheminement.Le colis existe déjà dans cet acheminement');
+            $message = $translator->trans('acheminement.Le colis {numéro} existe déjà dans cet acheminement', [
+                    "{numéro}" => '<strong>' . $packCode . '</strong>'
+                ]) . '.';
         } else {
             $natureRepository = $entityManager->getRepository(Nature::class);
             $packRepository = $entityManager->getRepository(Pack::class);
@@ -745,11 +748,15 @@ class DispatchController extends AbstractController {
             $pack->setNature($nature);
             $pack->setComment($comment);
             $packDispatch->setQuantity($quantity);
+            $pack->setWeight($weight);
+            $pack->setVolume($volume);
 
             $entityManager->flush();
 
             $success = true;
-            $message = $translator->trans('colis.Le colis a bien été sauvegardé');
+            $message = $translator->trans('colis.Le colis {numéro} a bien été ajouté', [
+                    "{numéro}" => '<strong>' . $pack->getCode() . '</strong>'
+                ]) . '.';
         }
 
         return new JsonResponse([
@@ -783,12 +790,17 @@ class DispatchController extends AbstractController {
             $natureId = $data['nature'];
             $quantity = $data['quantity'];
             $comment = $data['comment'];
+            $weight = (floatval(str_replace(',', '.', $data['weight'])) ?: null);
+            $volume = (floatval(str_replace(',', '.', $data['volume'])) ?: null);
 
             $pack = $dispatchPack->getPack();
 
             $nature = $natureRepository->find($natureId);
-            $pack->setNature($nature)
-            ->setComment($comment);
+            $pack
+                ->setNature($nature)
+                ->setComment($comment)
+                ->setWeight($weight)
+                ->setVolume($volume);
 
             $dispatchPack
                 ->setQuantity($quantity);
@@ -796,7 +808,9 @@ class DispatchController extends AbstractController {
             $entityManager->flush();
 
             $success = true;
-            $message = $translator->trans('colis.Le colis a bien été sauvegardé');
+            $message = $translator->trans('colis.Le colis {numéro} a bien été modifié', [
+                    "{numéro}" => '<strong>' . $pack->getCode() . '</strong>'
+                ]) . '.';
         }
         return new JsonResponse([
             'success' => $success,
@@ -818,15 +832,16 @@ class DispatchController extends AbstractController {
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
             $pack = $dispatchPackRepository->find($data['pack']);
+            $packCode = $pack->getPack()->getCode();
             $entityManager->remove($pack);
             $entityManager->flush();
 
-            $data = [
+            return new JsonResponse([
                 'success' => true,
-                'msg' => $translator->trans('colis.Le colis a bien été supprimé' . '.')
-            ];
-
-            return new JsonResponse($data);
+                'msg' => $translator->trans('colis.Le colis {numéro} a bien été supprimé', [
+                        "{numéro}" => '<strong>' . $packCode . '</strong>'
+                    ]) . '.'
+            ]);
         }
 
         throw new NotFoundHttpException("404");
@@ -1056,7 +1071,6 @@ class DispatchController extends AbstractController {
      * @param TranslatorInterface $translator
      * @param Dispatch $dispatch
      * @return JsonResponse
-     * @throws NonUniqueResultException
      */
     public function apiDeliveryNote(Request $request,
                                     TranslatorInterface $translator,

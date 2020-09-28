@@ -132,6 +132,10 @@ function togglePackDetails(emptyDetails = false) {
     $quantityField.val(null);
     const $packQuantityField = $modal.find('[name="pack-quantity"]');
     $packQuantityField.val(null);
+    const $weightField = $modal.find('[name="weight"]');
+    $weightField.val(null);
+    const $volumeField = $modal.find('[name="volume"]');
+    $volumeField.val(null);
     const $commentField = $modal.find('.ql-editor');
     $commentField.html(null);
 
@@ -145,6 +149,8 @@ function togglePackDetails(emptyDetails = false) {
                     if (pack.quantity || pack.quantity === 0) {
                         $quantityField.val(pack.quantity);
                         $packQuantityField.val(pack.quantity);
+                        $weightField.val(pack.weight);
+                        $volumeField.val(pack.volume);
                     }
 
                     $commentField.html(pack.comment);
@@ -187,13 +193,15 @@ function openNewPackModal() {
     $modal.modal('show');
 }
 
-function openShowPackModal({code, nature, quantity, packQuantity, comment, lastMovementDate, lastLocation, operator}) {
+function openShowPackModal({code, nature, quantity, packQuantity, weight, volume, comment, lastMovementDate, lastLocation, operator}) {
     const $modal = $('#modalShowPack');
 
     $modal.find('[name="pack-number"]').val(code);
     $modal.find('[name="pack-nature"]').val(nature);
     $modal.find('[name="pack-dispatch-quantity"]').val(quantity);
     $modal.find('[name="pack-quantity"]').val(packQuantity);
+    $modal.find('[name="pack-weight"]').val(weight);
+    $modal.find('[name="pack-volume"]').val(volume);
     $modal.find('.pack-comment').html(comment);
     $modal.find('[name="pack-last-movement"]').val(lastMovementDate);
     $modal.find('[name="pack-last-location"]').val(lastLocation);
@@ -202,8 +210,8 @@ function openShowPackModal({code, nature, quantity, packQuantity, comment, lastM
     $modal.modal('show');
 }
 
-function openEditPackModal({packDispatchId, code, quantity, comment, natureId, packQuantity}) {
-    const modalSelector = '#modalPack'
+function openEditPackModal({packDispatchId, code, quantity, comment, natureId, packQuantity, weight, volume}) {
+    const modalSelector = '#modalPack';
     const $modal = $(modalSelector);
 
     clearModal(modalSelector);
@@ -231,12 +239,16 @@ function openEditPackModal({packDispatchId, code, quantity, comment, natureId, p
     const $quantityField = $modal.find('[name="quantity"]');
     const $packField = $modal.find('[name="pack"]');
     const $packQuantityField = $modal.find('[name="pack-quantity"]');
+    const $packWeightField = $modal.find('[name="weight"]');
+    const $packVolumeField = $modal.find('[name="volume"]');
     const $commentField = $modal.find('.ql-editor');
 
     $packField.val(code);
     $natureField.val(natureId);
     $quantityField.val(quantity);
     $packQuantityField.val(packQuantity);
+    $packWeightField.val(weight);
+    $packVolumeField.val(volume);
     $commentField.html(comment);
 
     $modal.modal('show');

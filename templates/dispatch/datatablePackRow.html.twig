@@ -5,52 +5,72 @@
     <div class="dropdown dropright {{ not hasRightDelete and not hasRightEdit ? 'd-none' }}">
         <div class="d-none">
             <div class="btn btn-col-action action-on-click" data-id='{{ packDispatch.id }}' data-toggle='modal' data-target='#modalEditArticle'
-                 onclick="openShowPackModal({
+                 {% if modifiable %}
+                 onclick="openEditPackModal({
+                     packDispatchId: {{ packDispatch.id }},
                      code: '{{ pack.code }}',
-                     nature: '{{ pack.nature is not null ? pack.nature.label : 'null' }}',
                      quantity: {{ packDispatch.quantity is not empty ? packDispatch.quantity : 0 }},
-                     packQuantity: {{ pack.quantity is not empty ? pack.quantity : 0 }},
                      comment: '{{ pack.comment }}',
-                     lastMovementDate: '{{ pack.lastTracking and pack.lastTracking.dateTime ? pack.lastTracking.dateTime | date('d/m/Y H:i') : '' }}',
-                     lastLocation: '{{ pack.lastTracking and pack.lastTracking.emplacement ? pack.lastTracking.emplacement.label : '' }}',
-                     operator: '{{ pack.lastTracking and pack.lastTracking.operateur ? pack.lastTracking.operateur.username : '' }}',
-                 })">
+                     packQuantity: {{ pack.quantity is not empty ? pack.quantity : 0 }},
+                     natureId: {{ pack.nature is not null ? pack.nature.id : 'null' }},
+                     weight: {{ pack.weight is not null ? pack.weight : 'null' }},
+                     volume: {{ pack.volume is not null ? pack.volume : 'null' }},
+                     })"
+                     {% else %}
+                         onclick="openShowPackModal({
+                             code: '{{ pack.code }}',
+                             nature: '{{ pack.nature is not null ? pack.nature.label : 'null' }}',
+                             quantity: {{ packDispatch.quantity is not empty ? packDispatch.quantity : 0 }},
+                             packQuantity: {{ pack.quantity is not empty ? pack.quantity : 0 }},
+                             weight: {{ pack.weight is not empty ? pack.weight : 'null' }},
+                             volume: {{ pack.volume is not empty ? pack.volume : 'null' }},
+                             comment: '{{ pack.comment }}',
+                             lastMovementDate: '{{ pack.lastTracking and pack.lastTracking.dateTime ? pack.lastTracking.dateTime | date('d/m/Y H:i') : '' }}',
+                             lastLocation: '{{ pack.lastTracking and pack.lastTracking.emplacement ? pack.lastTracking.emplacement.label : '' }}',
+                             operator: '{{ pack.lastTracking and pack.lastTracking.operateur ? pack.lastTracking.operateur.username : '' }}',
+                             })"
+                {% endif %}
+                 >
                 <i class='fas fa-pencil-alt'></i>
             </div>
         </div>
-        {{ include('datatable/dotsRow.html.twig') }}
-        <div class="dropdown-menu dropdown-follow-gt pointer">
-            {% if pack.arrivage %}
-                <a class="dropdown-item" href="{{ path('arrivage_show', {id: pack.arrivage.id}) }}">
-                    <i class="fas fa-exchange-alt mr-2"></i>Arrivage lié
-                </a>
-            {% endif %}
-
-            {% if modifiable %}
-                {% if hasRightEdit %}
-                    <a class="dropdown-item pointer"
-                       onclick="openEditPackModal({
-                           packDispatchId: {{ packDispatch.id }},
-                           code: '{{ pack.code }}',
-                           quantity: {{ packDispatch.quantity is not empty ? packDispatch.quantity : 0 }},
-                           comment: '{{ pack.comment }}',
-                           packQuantity: {{ pack.quantity is not empty ? pack.quantity : 0 }},
-                           natureId: {{ pack.nature is not null ? pack.nature.id : 'null' }},
-                           })">
-                        <i class='fas fa-pen mr-2'></i>Modifier
+        {% if pack.arrivage or modifiable %}
+            {{ include('datatable/dotsRow.html.twig') }}
+            <div class="dropdown-menu dropdown-follow-gt pointer">
+                {% if pack.arrivage %}
+                    <a class="dropdown-item" href="{{ path('arrivage_show', {id: pack.arrivage.id}) }}">
+                        <i class="fas fa-exchange-alt mr-2"></i>Arrivage lié
                     </a>
                 {% endif %}
 
-                {% if hasRightDelete %}
-                    <div class="dropdown-item"
-                         data-id='{{ packDispatch.id }}'
-                         data-target='#modalDeletePack'
-                         data-toggle='modal'
-                         onclick="deleteRow($(this), $('#modalDeletePack'), $('#submitDeletePack'))">
-                        <i class='fas fa-trash mr-2'></i>Supprimer
-                    </div>
+                {% if modifiable %}
+                    {% if hasRightEdit %}
+                        <a class="dropdown-item pointer"
+                           onclick="openEditPackModal({
+                               packDispatchId: {{ packDispatch.id }},
+                               code: '{{ pack.code }}',
+                               quantity: {{ packDispatch.quantity is not empty ? packDispatch.quantity : 0 }},
+                               comment: '{{ pack.comment }}',
+                               packQuantity: {{ pack.quantity is not empty ? pack.quantity : 0 }},
+                               natureId: {{ pack.nature is not null ? pack.nature.id : 'null' }},
+                               weight: {{ pack.weight is not null ? pack.weight : '' }},
+                               volume: {{ pack.volume is not null ? pack.volume : '' }},
+                               })">
+                            <i class='fas fa-pen mr-2'></i>Modifier
+                        </a>
+                    {% endif %}
+
+                    {% if hasRightDelete %}
+                        <div class="dropdown-item"
+                             data-id='{{ packDispatch.id }}'
+                             data-target='#modalDeletePack'
+                             data-toggle='modal'
+                             onclick="deleteRow($(this), $('#modalDeletePack'), $('#submitDeletePack'))">
+                            <i class='fas fa-trash mr-2'></i>Supprimer
+                        </div>
+                    {% endif %}
                 {% endif %}
-            {% endif %}
-        </div>
+            </div>
+        {% endif %}
     </div>
 </div>

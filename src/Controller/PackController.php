@@ -22,6 +22,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Throwable;
 
 /**
  * @Route("/colis")
@@ -95,7 +96,7 @@ class PackController extends AbstractController {
         try {
             $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
             $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
         }
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
@@ -156,6 +157,8 @@ class PackController extends AbstractController {
                     'code' => $packCode,
                     'quantity' => $pack->getQuantity(),
                     'comment' => $pack->getComment(),
+                    'weight' => $pack->getWeight(),
+                    'volume' => $pack->getVolume(),
                     'nature' => $pack->getNature()
                         ? [
                             'id' => $pack->getNature()->getId(),
@@ -200,11 +203,13 @@ class PackController extends AbstractController {
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param UserService $userService
+     * @param TranslatorInterface $translator
      * @return Response
      */
     public function edit(Request $request,
                          EntityManagerInterface $entityManager,
-                         UserService $userService): Response {
+                         UserService $userService,
+                         TranslatorInterface $translator): Response {
         if (!$userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -259,7 +264,9 @@ class PackController extends AbstractController {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => 'Votre colis a bien été modifié.'
+            'msg' => $translator->trans('colis.Le colis {numéro} a bien été modifié', [
+                    "{numéro}" => '<strong>' . $pack->getCode() . '</strong>'
+                ]) . '.'
         ]);
     }
 
@@ -268,9 +275,10 @@ class PackController extends AbstractController {
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param UserService $userService
+     * @param TranslatorInterface $translator
      * @return Response
      */
-    public function delete(Request $request, EntityManagerInterface $entityManager, UserService $userService): Response
+    public function delete(Request $request, EntityManagerInterface $entityManager, UserService $userService, TranslatorInterface $translator): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
@@ -279,10 +287,17 @@ class PackController extends AbstractController {
             $packRepository = $entityManager->getRepository(Pack::class);
 
             $pack = $packRepository->find($data['pack']);
+            $packCode = $pack->getCode();
+
             $entityManager->remove($pack);
             $entityManager->flush();
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse([
+                'success' => true,
+                'msg' => $translator->trans('colis.Le colis {numéro} a bien été supprimé', [
+                        "{numéro}" => '<strong>' . $packCode . '</strong>'
+                    ]) . '.'
+            ]);
         }
 
         throw new NotFoundHttpException("404");

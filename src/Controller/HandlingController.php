@@ -214,7 +214,7 @@ class HandlingController extends AbstractController
             return new JsonResponse([
                 'success' => true,
                 'msg' => $translator->trans("services.La demande de service {numéro} a bien été créée", [
-                        "{numéro}" => '<strong>'.$handling->getNumber().'</strong>',
+                        "{numéro}" => '<strong>' . $handling->getNumber() . '</strong>'
                     ]) . '.'
             ]);
         }
@@ -346,7 +346,7 @@ class HandlingController extends AbstractController
         return new JsonResponse([
             'success' => true,
             'msg' => $translator->trans("services.La demande de service {numéro} a bien été modifiée", [
-                    "{numéro}" => '<strong>'.$handling->getNumber().'</strong>',
+                    "{numéro}" => '<strong>' . $handling->getNumber() . '</strong>'
                 ]) . '.'
         ]);
 
@@ -403,7 +403,7 @@ class HandlingController extends AbstractController
             return new JsonResponse([
                 'success' => true,
                 'msg' => $translator->trans('services.La demande de service {numéro} a bien été supprimée', [
-                        "{numéro}" => '<strong>'.$handlingNumber.'</strong>',
+                        "{numéro}" => '<strong>' . $handlingNumber . '</strong>'
                     ]).'.'
             ]);
         }
