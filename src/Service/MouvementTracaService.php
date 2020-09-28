@@ -4,7 +4,10 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\Article;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
 use App\Entity\Dispatch;
 use App\Entity\Nature;
 use App\Entity\Pack;
@@ -35,11 +38,13 @@ class MouvementTracaService
     private $security;
     private $entityManager;
     private $attachmentService;
+    private $freeFieldService;
 
     public function __construct(UserService $userService,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
+                                FreeFieldService $freeFieldService,
                                 Security $security,
                                 AttachmentService $attachmentService)
     {
@@ -49,6 +54,7 @@ class MouvementTracaService
         $this->userService = $userService;
         $this->security = $security;
         $this->attachmentService = $attachmentService;
+        $this->freeFieldService = $freeFieldService;
     }
 
     /**
@@ -79,63 +85,83 @@ class MouvementTracaService
     }
 
     /**
-     * @param MouvementTraca $mouvement
+     * @param MouvementTraca $movement
      * @return array
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function dataRowMouvement($mouvement)
+    public function dataRowMouvement($movement)
     {
-        if ($mouvement->getArrivage()) {
+        if ($movement->getArrivage()) {
             $fromPath = 'arrivage_show';
             $fromLabel = 'arrivage.arrivage';
-            $fromEntityId = $mouvement->getArrivage()->getId();
-            $originFrom = $mouvement->getArrivage()->getNumeroArrivage();
-        } else if ($mouvement->getReception()) {
+            $fromEntityId = $movement->getArrivage()->getId();
+            $originFrom = $movement->getArrivage()->getNumeroArrivage();
+        } else if ($movement->getReception()) {
             $fromPath = 'reception_show';
             $fromLabel = 'réception.réception';
-            $fromEntityId = $mouvement->getReception()->getId();
-            $originFrom = $mouvement->getReception()->getNumeroReception();
-        } else if ($mouvement->getDispatch()) {
+            $fromEntityId = $movement->getReception()->getId();
+            $originFrom = $movement->getReception()->getNumeroReception();
+        } else if ($movement->getDispatch()) {
             $fromPath = 'dispatch_show';
             $fromLabel = 'acheminement.Acheminement';
-            $fromEntityId = $mouvement->getDispatch()->getId();
-            $originFrom = $mouvement->getDispatch()->getNumber();
+            $fromEntityId = $movement->getDispatch()->getId();
+            $originFrom = $movement->getDispatch()->getNumber();
         } else {
             $fromPath = null;
             $fromEntityId = null;
             $fromLabel = null;
             $originFrom = '-';
         }
-        return [
-            'id' => $mouvement->getId(),
-            'date' => $mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '',
-            'colis' => $mouvement->getColis(),
+
+        $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
+        $freeFieldsRepository = $this->entityManager->getRepository(ChampLibre::class);
+
+        $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::MVT_TRACA);
+        $category = CategoryType::MOUVEMENT_TRACA;
+        $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
+
+        $rowCL = [];
+        /** @var ChampLibre $freeField */
+        foreach ($freeFields as $freeField) {
+            $rowCL[$freeField['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
+                'valeur' => $movement->getFreeFieldValue($freeField['id']),
+                "typage" => $freeField['typage'],
+            ]);
+        }
+
+        $rows = [
+            'id' => $movement->getId(),
+            'date' => $movement->getDatetime() ? $movement->getDatetime()->format('d/m/Y H:i') : '',
+            'colis' => $movement->getColis(),
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', [
                 'from' => $originFrom,
                 'fromLabel' => $fromLabel,
                 'entityPath' => $fromPath,
                 'entityId' => $fromEntityId
             ]),
-            'location' => $mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '',
-            'reference' => $mouvement->getReferenceArticle()
-                ? $mouvement->getReferenceArticle()->getReference()
-                : ($mouvement->getArticle()
-                    ? $mouvement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
+            'location' => $movement->getEmplacement() ? $movement->getEmplacement()->getLabel() : '',
+            'reference' => $movement->getReferenceArticle()
+                ? $movement->getReferenceArticle()->getReference()
+                : ($movement->getArticle()
+                    ? $movement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
                     : ''),
-            'label' => $mouvement->getReferenceArticle()
-                ? $mouvement->getReferenceArticle()->getLibelle()
-                : ($mouvement->getArticle()
-                    ? $mouvement->getArticle()->getLabel()
+            'label' => $movement->getReferenceArticle()
+                ? $movement->getReferenceArticle()->getLibelle()
+                : ($movement->getArticle()
+                    ? $movement->getArticle()->getLabel()
                     : ''),
-            'quantity' => $mouvement->getQuantity() ? $mouvement->getQuantity() : '',
-            'type' => $mouvement->getType() ? $mouvement->getType()->getNom() : '',
-            'operateur' => $mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '',
-            'Actions' => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
-                'mvt' => $mouvement,
+            'quantity' => $movement->getQuantity() ? $movement->getQuantity() : '',
+            'type' => $movement->getType() ? $movement->getType()->getNom() : '',
+            'operateur' => $movement->getOperateur() ? $movement->getOperateur()->getUsername() : '',
+            'actions' => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
+                'mvt' => $movement,
             ])
         ];
+
+        $rows = array_merge($rowCL, $rows);
+        return $rows;
     }
 
     /**
@@ -347,4 +373,48 @@ class MouvementTracaService
             $pack->setLastTracking($pack->getTrackingMovements()->count() <= 1 ? null : $pack->getTrackingMovements()->toArray()[1]);
         }
     }
+
+    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+
+        $columnsVisible = $currentUser->getColumnsVisibleForTrackingMovement();
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::MVT_TRACA);
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::MOUVEMENT_TRACA, $categorieCL);
+
+        $columns = [
+            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true],
+            ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
+            ['title' => 'Date', 'name' => 'date'],
+            ['title' => 'colis.colis', 'name' => 'colis', 'translated' => true],
+            ['title' => 'Référence', 'name' => 'reference'],
+            ['title' => 'Libellé',  'name' => 'label'],
+            ['title' => 'Quantité', 'name' => 'quantity'],
+            ['title' => 'Emplacement', 'name' => 'location'],
+            ['title' => 'Type', 'name' => 'type'],
+            ['title' => 'Opérateur', 'name' => 'operateur'],
+        ];
+
+        return array_merge(
+            array_map(function (array $column) use ($columnsVisible) {
+                return [
+                    'title' => $column['title'],
+                    'alwaysVisible' => $column['alwaysVisible'] ?? false,
+                    'data' => $column['name'],
+                    'name' => $column['name'],
+                    'translated' => $column['translated'] ?? false,
+                    'class' => $column['class'] ?? (in_array($column['name'], $columnsVisible) ? 'display' : 'hide')
+                ];
+            }, $columns),
+            array_map(function (array $freeField) use ($columnsVisible) {
+                return [
+                    'title' => ucfirst(mb_strtolower($freeField['label'])),
+                    'data' => $freeField['label'],
+                    'name' => $freeField['label'],
+                    'class' => (in_array($freeField['label'], $columnsVisible) ? 'display' : 'hide'),
+                ];
+            }, $freeFields)
+        );
+    }
+
 }

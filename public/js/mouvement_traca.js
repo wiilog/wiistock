@@ -1,7 +1,7 @@
-
+let tableMvt;
 let quillNew;
 
-$(function() {
+$(function () {
     $('.select2').select2();
     $('#modalNewMvtTraca').find('.champsLibresBlock .list-multiple').select2();
 
@@ -12,7 +12,7 @@ $(function() {
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_MVT_TRACA);
-    $.post(path, params, function(data) {
+    $.post(path, params, function (data) {
         displayFiltersSup(data);
     }, 'json');
 
@@ -20,38 +20,45 @@ $(function() {
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     initNewModal($('#modalNewMvtTraca'));
 
-});
+    return $
+        .post(Routing.generate('tracking_movement_api_columns'))
+        .then((columns) => {
+            let config = {
+                responsive: true,
+                serverSide: true,
+                processing: true,
+                order: [[2, "desc"]],
+                ajax: {
+                    "url": Routing.generate('tracking_movement_api', true),
+                    "type": "POST",
+                },
+                drawConfig: {
+                    needsSearchOverride: true,
+                },
+                rowConfig: {
+                    needsRowClickAction: true
+                },
+                columns: columns.map(function (column) {
+                    return {
+                        ...column,
+                        class: column.title === 'Actions' ? 'noVis' : undefined,
+                        title: column.title === 'Actions' ? '' : column.title
+                    }
+                }),
+                hideColumnConfig: {
+                    columns,
+                    tableFilter: 'tableMvts'
+                },
+            };
 
-let pathMvt = Routing.generate('mvt_traca_api', true);
-let tableMvtConfig = {
-    responsive: true,
-    serverSide: true,
-    processing: true,
-    order: [[2, "desc"]],
-    ajax: {
-        "url": pathMvt,
-        "type": "POST",
-    },
-    drawConfig: {
-        needsSearchOverride: true,
-    },
-    rowConfig: {
-        needsRowClickAction: true
-    },
-    columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
-        {"data": 'origin', 'name': 'origin', 'title': 'Issu de', className: 'noVis', orderable: false},
-        {"data": 'date', 'name': 'date', 'title': 'Date'},
-        {"data": "colis", 'name': 'colis', 'title': 'colis.colis', translated: true},
-        {"data": "reference", 'name': 'reference', 'title': 'Référence'},
-        {"data": "label", 'name': 'label', 'title': 'Libellé'},
-        {"data": "quantity", 'name': 'quantity', 'title': 'Quantité'},
-        {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
-        {"data": 'type', 'name': 'type', 'title': 'Type'},
-        {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
-    ],
-};
-let tableMvt = initDataTable('tableMvts', tableMvtConfig);
+            tableMvt = initDataTable('tableMvts', config);
+
+            let modalColumnVisible = $('#modalColumnVisibleTrackingMovement');
+            let submitColumnVisible = $('#submitColumnVisibleTrackingMovement');
+            let urlColumnVisible = Routing.generate('save_column_visible_for_tracking_movement', true);
+            InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+        });
+});
 
 $.fn.dataTable.ext.search.push(
     function (settings, data) {
@@ -138,7 +145,7 @@ function initNewModal($modal) {
 function resetNewModal($modal) {
     // date
     const date = moment().format();
-    $modal.find('.datetime').val(date.slice(0,16));
+    $modal.find('.datetime').val(date.slice(0, 16));
 
     // operator
     const $operatorSelect = $modal.find('.ajax-autocomplete-user');
@@ -164,7 +171,7 @@ function resetNewModal($modal) {
 function switchMvtCreationType($input) {
     let pathToGetAppropriateHtml = Routing.generate("mouvement_traca_get_appropriate_html", true);
     let paramsToGetAppropriateHtml = $input.val();
-    $.post(pathToGetAppropriateHtml, JSON.stringify(paramsToGetAppropriateHtml), function(response) {
+    $.post(pathToGetAppropriateHtml, JSON.stringify(paramsToGetAppropriateHtml), function (response) {
         if (response) {
             const $modal = $input.closest('.modal');
             $modal.find('.more-body-new-mvt-traca').html(response.modalBody);
@@ -180,6 +187,6 @@ function switchMvtCreationType($input) {
  * Used in mouvement_traca/index.html.twig
  */
 function clearURL() {
-    window.history.pushState({}, document.title,  `${window.location.pathname}`);
+    window.history.pushState({}, document.title, `${window.location.pathname}`);
 }
 
