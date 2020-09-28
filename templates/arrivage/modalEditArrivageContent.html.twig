@@ -51,7 +51,7 @@
         </div>
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayedForms') %}
+    {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayedFormsEdit') %}
         <div class="form-group col-4">
             <label for="numeroCommandeList" title="Numéro de commande">{{ 'arrivage.Numéro de commande'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : ''}}</label>
             <select id="numeroCommandeList"

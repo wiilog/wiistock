@@ -58,7 +58,7 @@
     </div>
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
         <div class="form-group col-md-6 col-12">
             <label>Urgence{{ required ? '*' }}</label>

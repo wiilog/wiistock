@@ -15,7 +15,7 @@ class FieldsParamRepository extends EntityRepository
 {
     /**
      * @param $entity
-     * @return array [fieldCode => ['mustToCreate' => boolean, 'mustToModify' => boolean, 'displayedForms' => boolean, 'displayedFilters' => boolean]]
+     * @return array [fieldCode => ['mustToCreate' => boolean, 'mustToModify' => boolean, 'displayedFormsCreate' => boolean, 'displayedFormsEdit' => boolean, 'displayedFilters' => boolean]]
      */
     function getByEntity($entity): array {
         $em = $this->getEntityManager();

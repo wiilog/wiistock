@@ -11,8 +11,12 @@
     {% include 'filters/filter_item/filterUser.html.twig' %}
     {% include 'filters/filter_item/filterType.html.twig' %}
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
-        {% include 'filters/filter_item/filterEmergencyMultiple.html.twig' %}
+    {% if emergencies is defined %}
+        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
+        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+            {% include 'filters/filter_item/filterEmergencyMultiple.html.twig' %}
+        {% endif %}
+    {% else %}
+        {% include 'filters/filter_item/filterEmergency.html.twig' %}
     {% endif %}
 {% endblock %}
