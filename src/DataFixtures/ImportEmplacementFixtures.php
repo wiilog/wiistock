@@ -29,21 +29,26 @@ class ImportEmplacementFixtures extends Fixture
         array_shift($rows); // supprime la 1è ligne d'en-têtes
 
         $emplacementRepository = $manager->getRepository(Emplacement::class);
-
+        $emplacements = [];
         $i = 1;
         foreach($rows as $row) {
             dump($i);
             $i++;
 
             $label = $row[0];
+
+            $description = isset($row[1]) ? $row[1] : $label;
             $emplacement = $emplacementRepository->findOneBy(['label' => $label]);
 
-            if (empty($emplacement)) {
+            if (empty($emplacement) && !isset($emplacements[$label])) {
                 $emplacement = new Emplacement();
                 $emplacement
-                    ->setLabel($row[0])
-                    ->setDescription($row[1]);
+                    ->setLabel($label)
+                    ->setIsActive(true)
+                    ->setDescription($description);
                 $manager->persist($emplacement);
+
+                $emplacements[$label] = true;
             }
         }
         $manager->flush();
