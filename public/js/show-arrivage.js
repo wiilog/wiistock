@@ -42,36 +42,6 @@ $(function () {
         window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
     }
 
-    let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
-    let tableColisConfig = {
-        ajax: {
-            "url": pathColis,
-            "type": "POST"
-        },
-        domConfig: {
-            removeInfo: true
-        },
-        rowConfig: {
-            needsRowClickAction: true
-        },
-        columns: [
-            {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis'},
-            {"data": 'nature', 'name': 'nature', 'title': 'natures.nature', translated: true},
-            {"data": 'code', 'name': 'code', 'title': 'Code'},
-            {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
-            {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
-            {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
-        ],
-        order: [[2, 'asc']],
-        columnDefs: [
-            {
-                orderable: false,
-                targets: 0
-            }
-        ]
-    };
-    let tableColis = initDataTable('tableColis', tableColisConfig);
-
     //édition de colis
     const modalEditPack = $('#modalEditPack');
     const submitEditPack = $('#submitEditPack');
@@ -106,6 +76,36 @@ function openTableHisto() {
     tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
 }
 extendsDateSort('customDate');
+
+let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
+let tableColisConfig = {
+    ajax: {
+        "url": pathColis,
+        "type": "POST"
+    },
+    domConfig: {
+        removeInfo: true
+    },
+    rowConfig: {
+        needsRowClickAction: true
+    },
+    columns: [
+        {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis'},
+        {"data": 'nature', 'name': 'nature', 'title': 'natures.nature', translated: true},
+        {"data": 'code', 'name': 'code', 'title': 'Code'},
+        {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
+        {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
+        {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
+    ],
+    order: [[2, 'asc']],
+    columnDefs: [
+        {
+            orderable: false,
+            targets: 0
+        }
+    ]
+};
+let tableColis = initDataTable('tableColis', tableColisConfig);
 
 let modalAddColis = $('#modalAddColis');
 let submitAddColis = $('#submitAddColis');
