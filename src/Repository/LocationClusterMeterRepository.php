@@ -14,7 +14,7 @@ class LocationClusterMeterRepository extends EntityRepository {
         $queryBuilder = $this->createQueryBuilder('meter');
 
         $queryBuilder
-            ->select('COUNT(meter.dropCounter) AS counter')
+            ->select('SUM(meter.dropCounter) AS counter')
             ->join('meter.locationClusterInto', 'locationClusterInto')
             ->leftJoin('meter.locationClusterFrom', 'locationClusterFrom')
             ->where('meter.date = :date')
