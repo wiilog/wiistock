@@ -25,32 +25,31 @@
                         </select>
                     </div>
 
-                <div class="form-group col-md-6 col-12">
-                    <label for="type">Statut*</label>
-                    <select name="status"
-                            class="form-control data w-100 needed need-default">
-                        <option value="">Choisir un statut...</option>
-                        {% for status in handlingStatus %}
-                            {% if
-                                (
+                    <div class="form-group col-md-6 col-12">
+                        <label for="type">Statut*</label>
+                        <select name="status"
+                                class="form-control data w-100 needed need-default">
+                            <option value="">Choisir un statut...</option>
+                            {% for status in handlingStatus %}
+                                {% if
+                                    (
                                     status.state == constant('App\\Entity\\Statut::TREATED')
                                     and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::TREAT_HANDLING'))
-                                ) or status.state != constant('App\\Entity\\Statut::TREATED')
-                            %}
-                                <option class="d-none" data-type-id="{{ status.type.id }}" value="{{ status.id }}">{{ status.nom }}</option>
-                            {% endif %}
-                        {% endfor %}
-                    </select>
-                    <input type="hidden" name="defaultStatuses" value="{{ defaultStatuses|json_encode }}"/>
-                    <div class="error-empty-status d-none">
-                        {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
-                            array: [],
-                            warningLabel: 'Aucun statut pour ce type.',
-                            redirectPath: path('status_param_index'),
-                            redirectLabel: 'Aller vers la création des statuts.'
-                        } %}
+                                    ) or status.state != constant('App\\Entity\\Statut::TREATED') %}
+                                    <option class="d-none" data-type-id="{{ status.type.id }}" value="{{ status.id }}">{{ status.nom }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        <input type="hidden" name="defaultStatuses" value="{{ defaultStatuses|json_encode }}"/>
+                        <div class="error-empty-status d-none">
+                            {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                                array: [],
+                                warningLabel: 'Aucun statut pour ce type.',
+                                redirectPath: path('status_param_index'),
+                                redirectLabel: 'Aller vers la création des statuts.'
+                            } %}
+                        </div>
                     </div>
-                </div>
 
                     <div class="form-group needed col-md-6 col-12">
                         <label for="subject">Objet*</label>
@@ -74,29 +73,39 @@
                                min="{{ 'now' | date('Y-m-d\\TH:i') }}"/>
                     </div>
 
-                    <div class="form-group col-12">
-                        <label>Urgence</label><br>
-                        <label class="switch mt-2">
-                            <input class="checkbox"
-                                   name="emergency"
-                                   type="checkbox"/>
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+                        <div class="form-group col-12">
+                            <label>Urgence{{ required ? '*' }}</label>
+                            <div class="w-100">
+                                <select
+                                    class="form-control input-sm data {{ required ? 'needed' : '' }}"
+                                    name="emergency">
+                                    <option value="">Non urgent</option>
+                                    {% for emergency in emergencies %}
+                                        <option value="{{ emergency }}">{{ emergency }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    {% endif %}
 
-                {% if fieldsParam|isFieldRequired('loadingZone', 'displayedForms') %}
-                <div class="form-group col-md-6 col-12">
-                    <label for="source">Chargement{{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? '*' : '' }}</label>
-                    <input class="form-control data {{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? 'needed' : '' }}" name="source">
-                </div>
-                {% endif %}
+                    {% if fieldsParam|isFieldRequired('loadingZone', 'displayedForms') %}
+                        <div class="form-group col-md-6 col-12">
+                            <label for="source">Chargement{{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? '*' : '' }}</label>
+                            <input class="form-control data {{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? 'needed' : '' }}"
+                                   name="source">
+                        </div>
+                    {% endif %}
 
-                {% if fieldsParam|isFieldRequired('unloadingZone', 'displayedForms') %}
-                <div class="form-group col-md-6 col-12">
-                    <label for="destination">Déchargement{{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? '*' : '' }}</label>
-                    <input class="form-control data {{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? 'needed' : '' }}" name="destination">
-                </div>
-                {% endif %}
+                    {% if fieldsParam|isFieldRequired('unloadingZone', 'displayedForms') %}
+                        <div class="form-group col-md-6 col-12">
+                            <label for="destination">Déchargement{{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? '*' : '' }}</label>
+                            <input class="form-control data {{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? 'needed' : '' }}"
+                                   name="destination">
+                        </div>
+                    {% endif %}
 
                     <!-- CHAMPS LIBRES -->
                     <div class="col-12">
@@ -117,10 +126,10 @@
                     </div>
 
                     <div class="form-group col-md-8 col-12">
-                            <label for="comment">Commentaire</label>
-                            <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
-                            <div class="editor-container-new" id="editor-container-edit">
-                            </div>
+                        <label for="comment">Commentaire</label>
+                        <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
+                        <div class="editor-container-new" id="editor-container-edit">
+                        </div>
                     </div>
                     <div class="form-group col-md-4 col-12">
                         {% include 'attachment/attachment.html.twig' with {'isNew' : true} %}

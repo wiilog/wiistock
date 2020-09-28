@@ -104,7 +104,7 @@ class HandlingService
             'desiredDate' => $handling->getDesiredDate() ? $handling->getDesiredDate()->format('d/m/Y H:i:s') : null,
             'validationDate' => $handling->getValidationDate() ? $handling->getValidationDate()->format('d/m/Y H:i:s') : null,
             'status' => $handling->getStatus()->getNom() ? $handling->getStatus()->getNom() : null,
-            'emergency' => $handling->getEmergency() ? 'oui' : 'non',
+            'emergency' => $handling->getEmergency() ?? '',
             'treatedBy' => $handling->getTreatedByHandling() ? $handling->getTreatedByHandling()->getUsername() : '',
             'Actions' => $this->templating->render('handling/datatableHandlingRow.html.twig', [
                 'handling' => $handling
