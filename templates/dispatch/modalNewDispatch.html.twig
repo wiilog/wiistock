@@ -35,14 +35,15 @@
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                             <div class="form-group">
                                 <label for="prise" title="Emplacement prise">{{ 'acheminement.Emplacement prise'|trans }}{{ required ? '*' }}</label>
-                                <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block {{ required ? 'needed' }} location-prise w-100" id="prise">
+                                <select name="prise"
+                                        class="form-control data ajax-autocompleteEmplacement d-block {{ required ? 'needed' }} location-prise w-100"
+                                        id="prise">
                                 </select>
                             </div>
                         {% endif %}
 
                         {% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_EMERSON'))
-                            or hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::SHOW_CARRIER_FIELD'))
-                        %}
+                            or hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::SHOW_CARRIER_FIELD')) %}
                             {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
                             {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                                 {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
@@ -60,8 +61,8 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                             <div class="form-group">
-                                <label for="command-number" title="Numéro de commande">{{'acheminement.Numéro de commande'|trans}}{{ required ? '*' }}</label>
-                                <input class="form-control data {{ required ? 'needed' }}" id="command-number" name="commandNumber" >
+                                <label for="command-number" title="Numéro de commande">{{ 'acheminement.Numéro de commande' | trans }}{{ required ? '*' }}</label>
+                                <input class="form-control data {{ required ? 'needed' }}" id="command-number" name="commandNumber">
                             </div>
                         {% endif %}
                     </div>
@@ -93,8 +94,11 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                             <div class="form-group w-100">
-                                <label for="depose" title="Emplacement dépose">{{ 'acheminement.Emplacement dépose'|trans }}{{ required ? '*' }}</label>
-                                <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block {{ required ? 'needed' }} location-depose" id="depose">
+                                <label for="depose"
+                                       title="Emplacement dépose">{{ 'acheminement.Emplacement dépose'|trans }}{{ required ? '*' }}</label>
+                                <select name="depose"
+                                        class="form-control data ajax-autocompleteEmplacement d-block {{ required ? 'needed' }} location-depose"
+                                        id="depose">
                                 </select>
                             </div>
                         {% endif %}
@@ -110,7 +114,7 @@
                             </div>
                         {% endif %}
 
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_DISPATCH') %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                             {% set projectNumberValue = arrival ? arrival.projectNumber %}
@@ -134,7 +138,7 @@
                                    data-id="{{ app.user.id }}"/>
                         </div>
 
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_DISPATCH') %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                             <div class="form-group">
@@ -161,7 +165,7 @@
                             </div>
                         {% endif %}
 
-                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT_DISPATCH') %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                             {% set businessUnitValue = arrival ? arrival.businessUnit %}
@@ -173,7 +177,8 @@
                                         data-init="{{ businessUnitValue }}">
                                     <option value=""></option>
                                     {% for businessUnit in dispatchBusinessUnits %}
-                                        <option value="{{ businessUnit }}" {{ (businessUnit == businessUnitValue) ? 'selected' }}>{{ businessUnit }}</option>
+                                        <option
+                                            value="{{ businessUnit }}" {{ (businessUnit == businessUnitValue) ? 'selected' }}>{{ businessUnit }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -206,9 +211,27 @@
                             </div>
                         </div>
                     {% endif %}
-                    <div class="col-md-4 col-12">
-                    </div>
                 </div>
+
+
+                    {% if typeChampsLibres is not empty %}
+                        <!-- CHAMPS LIBRES -->
+                        <span class="toggle-collapsible expanded">Champs libres</span>
+                        <div class="collapsible expanded free-fields-container mb-2">
+                            {% for type in typeChampsLibres %}
+                                <div class="row d-none" id="{{ type.typeId }}-new">
+                                    {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+                                        freeFields: type.champsLibres,
+                                        freeFieldValues: [],
+                                        colType: 'col-md-4 col-12',
+                                        requiredType: 'requiredCreate',
+                                        actionType: 'new'
+                                    } %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
                 <div class="row">
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMENT_DISPATCH') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
@@ -225,35 +248,16 @@
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                         <div class="form-group col-md-4 col-12">
-                            <div>
-                                {% include 'attachment/attachment.html.twig' with {
-                                    'isNew': true,
-                                    'required': required
-                                } %}
-                            </div>
+                            {% include 'attachment/attachment.html.twig' with {
+                                'isNew': true,
+                                'required': required
+                            } %}
                         </div>
                     {% else %}
                         <input type="hidden" name="isAttachmentForm" value="1"/>
                     {% endif %}
                 </div>
-                {% if typeChampsLibres is not empty %}
-                    <div class="row">
-                        <!-- CHAMPS LIBRES -->
-                        <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
-                            {% for type in typeChampsLibres %}
-                                <div class="d-none row" id="{{ type.typeId }}-new">
-                                    {% include 'champ_libre/freeFieldsViewing.html.twig' with {
-                                        freeFields: type.champsLibres,
-                                        freeFieldValues: [],
-                                        colType: 'col-md-4 col-12',
-                                        requiredType: 'requiredCreate',
-                                        actionType: 'new'
-                                    } %}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
+
                 {% if packs is defined and packs is not empty %}
                     <div class="row">
                         <div class="col-12">
@@ -275,9 +279,9 @@
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="submitNewDispatch" type="button" class="btn btn-success">Enregistrer</button>
-{#                {% if fromArrival %}#}
-{#                    <button id="submitNewDispatchWithBL" type="button" class="btn btn-success">Enregistrer et générer le BL</button>#}
-{#                {% endif %}#}
+                {# {% if fromArrival %} #}
+                {# <button id="submitNewDispatchWithBL" type="button" class="btn btn-success">Enregistrer et générer le BL</button> #}
+                {# {% endif %} #}
             </div>
         </div>
     </div>

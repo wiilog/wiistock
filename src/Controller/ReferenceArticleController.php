@@ -1065,6 +1065,7 @@ class ReferenceArticleController extends AbstractController
                 $articleOrNo  = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, $data['demande'], $byRef);
 
                 $json = [
+                    "success" => true,
                     'plusContent' => $this->renderView('reference_article/modalPlusDemandeContent.html.twig', [
                         'articleOrNo' => $articleOrNo,
                         'collectes' => $collectes,
@@ -1075,7 +1076,10 @@ class ReferenceArticleController extends AbstractController
 					'byRef' => $byRef && ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
 				];
             } else {
-                $json = false;
+                $json = [
+                    "success" => false,
+                    "msg" => "Cette référence article n'est plus disponible."
+                ];
             }
 
             return new JsonResponse($json);
@@ -1287,14 +1291,10 @@ class ReferenceArticleController extends AbstractController
             $demandes = $demandeRepository->findByStatutAndUser($statutDemande, $this->getUser());
             $collectes = $collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
 
-            if ($data['typeDemande'] === 'livraison' && $demandes) {
-                $json = $demandes;
-            } elseif ($data['typeDemande'] === 'collecte' && $collectes) {
-                $json = $collectes;
-            } else {
-                $json = false;
-            }
-            return new JsonResponse($json);
+            return $this->json([
+                "success" => $demandes || $collectes,
+                "msg" => "Vous n'avez créé aucune demande de {$data['typeDemande']}"
+            ]);
         }
 
         throw new NotFoundHttpException('404');

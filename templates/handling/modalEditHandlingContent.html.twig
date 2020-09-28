@@ -1,17 +1,18 @@
-<div class="form-group">
-    <label>Type*</label>
-    <select name="type"
-            class="form-control d-block type needed"
-            disabled
-            title="Type">
-        <option selected value={{ handling.type.id }}>{{ handling.type.label }}</option>
-    </select>
-</div>
+<div class="row">
+    <div class="form-group col-md-6 col-12">
+        <label>Type*</label>
+        <select name="type"
+                class="form-control d-block type needed"
+                disabled
+                title="Type">
+            <option selected value={{ handling.type.id }}>{{ handling.type.label }}</option>
+        </select>
+    </div>
 
-{% set statusDisabled = handling.status is not null and handling.status.treated %}
-<div class="form-group">
-    <label>Statut*</label>
-    <select name="status"
+    {% set statusDisabled = handling.status is not null and handling.status.treated %}
+    <div class="form-group col-md-6 col-12">
+        <label>Statut*</label>
+        <select name="status"
             {{ statusDisabled ? 'disabled' }}
             class="form-control data d-block needed"
             title="Statut">
@@ -35,91 +36,103 @@
     </select>
 </div>
 
-<div class="form-group needed">
-    <label for="subject">Objet*</label>
-    <input class="form-control data needed" name="subject" value="{{ handling.subject }}">
-</div>
+    <div class="form-group needed col-md-6 col-12">
+        <label for="subject">Objet*</label>
+        <input class="form-control data needed" name="subject" value="{{ handling.subject }}">
+    </div>
 
-<div class="form-group needed">
-    <label for="requester">Demandeur</label>
-    <select type="text" class="demandeur form-control data needed input" name="requester" disabled>
-        <option value="{{ handling.requester.id }}">{{ handling.requester.username }}</option>
-    </select>
-</div>
+    <div class="form-group needed col-md-6 col-12">
+        <label for="requester">Demandeur</label>
+        <select class="demandeur form-control data needed input" name="requester" disabled>
+            <option value="{{ handling.requester.id }}">{{ handling.requester.username }}</option>
+        </select>
+    </div>
 
-<div class="form-group">
-    <label for="desired-date">Date attendue</label>
-    <input class="form-control data needed"
-           type="datetime-local"
-           value="{{ handling.desiredDate|date('Y-m-d\\TH:i') }}"
-           name="desired-date"
-           min="{{ 'now' | date('Y-m-d') }}">
-</div>
+    <div class="form-group col-md-6 col-12">
+        <label for="desired-date">Date attendue</label>
+        <input class="form-control data needed"
+               type="datetime-local"
+               value="{{ handling.desiredDate|date('Y-m-d\\TH:i') }}"
+               name="desired-date"
+               min="{{ 'now' | date('Y-m-d') }}">
+    </div>
 
-{% set validationDate = handling.validationDate ? handling.validationDate|date('Y-m-d\\TH:i') : '' %}
-<div class="form-group">
-    <label for="desired-date">Date de réalisation</label>
-    <input class="form-control needed"
-           type="datetime-local"
-           value="{{ validationDate }}"
-           disabled>
-</div>
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+        <div class="form-group col-md-6 col-12">
+            <label>Urgence{{ required ? '*' }}</label>
+            <div class="w-100">
+                <select
+                    class="form-control input-sm data {{ required ? 'needed' : '' }}"
+                    name="emergency">
+                    <option value="">Non urgent</option>
+
+                    {% if handling.emergency and handling.emergency not in emergencies %}
+                        <option value="{{ handling.emergency }}" selected>{{ handling.emergency }}</option>
+                    {% endif %}
+
+                    {% for emergency in emergencies %}
+                        <option value="{{ emergency }}" {% if handling.emergency == emergency %}selected{% endif %}>{{ emergency }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    {% endif %}
+
+    {% set validationDate = handling.validationDate ? handling.validationDate|date('Y-m-d\\TH:i') : '' %}
+    <div class="form-group col-12">
+        <label for="desired-date">Date de réalisation</label>
+        <input class="form-control needed"
+               type="datetime-local"
+               value="{{ validationDate }}"
+               disabled>
+    </div>
 
 {% if fieldsParam|isFieldRequired('loadingZone', 'displayedFormsEdit') %}
-    <div class="form-group">
+    <div class="form-group col-md-6 col-12">
         <label for="source">Chargement{{ fieldsParam|isFieldRequired('loadingZone', 'mustToModify') ? '*' : '' }}</label>
         <input class="form-control data {{ fieldsParam|isFieldRequired('loadingZone', 'mustToModify') ? 'needed' : '' }} input" value="{{ handling.source }}" name="source">
     </div>
 {% endif %}
 
 {% if fieldsParam|isFieldRequired('unloadingZone', 'displayedFormsEdit') %}
-    <div class="form-group">
+    <div class="form-group col-md-6 col-12">
         <label for="destination">Déchargement{{ fieldsParam|isFieldRequired('unloadingZone', 'mustToModify') ? '*' : '' }}</label>
         <input class="form-control data {{ fieldsParam|isFieldRequired('unloadingZone', 'mustToModify') ? 'needed' : '' }} input" value="{{ handling.destination }}" name="destination">
     </div>
 {% endif %}
 
-{% if handling.type is not null and handling.type.champsLibres.count > 0 %}
-    <div class="form-group col-12 blocVisible d-block">
-        <div class="row">
-            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
-                freeFields: handling.type.champsLibres,
-                freeFieldValues: handling.freeFields,
-                colType: 'col-12',
-                requiredType: 'requiredEdit',
-                actionType: 'edit'
-            } %}
+    {% if handling.type is not null and handling.type.champsLibres.count > 0 %}
+        <div class="col-12">
+            <span class="toggle-collapsible expanded">Champs libres</span>
+            <div class="collapsible expanded free-fields-container mb-2">
+                {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+                    freeFields: handling.type.champsLibres,
+                    freeFieldValues: handling.freeFields,
+                    colType: 'col-md-4 col-12',
+                    requiredType: 'requiredEdit',
+                    actionType: 'edit'
+                } %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="form-group col-md-8 col-12">
+        <label for="commentaire">Commentaire</label>
+        <input id='commentaire'
+               class="comment form-control data"
+               name="comment"
+               type="hidden"
+               value="{{ handling.comment }}">
+        <div class="editor-container-edit"
+             id="editor-container-edit"
+             value="{{ handling.comment }}">
+            {{ handling.comment|raw }}
         </div>
     </div>
-{% endif %}
 
-<div class="form-group">
-    <label for="commentaire">Commentaire</label>
-    <input id='commentaire'
-           class="comment form-control data"
-           name="comment"
-           type="hidden"
-           value="{{ handling.comment }}">
-    <div class="editor-container-edit"
-         id="editor-container-edit"
-         value="{{ handling.comment }}">
-        {{ handling.comment|raw }}
-    </div>
-</div>
-
-<div class="form-group">
-    <div>
+    <div class="form-group col-md-4 col-12">
         {% include 'attachment/attachment.html.twig' with {'isNew' : false} %}
     </div>
-</div>
-
-<div class="form-group">
-    <label>Urgence</label>
-    <label class="switch mt-2">
-        <input class="checkbox"
-               name="emergency"
-            {{ handling.emergency ? 'checked' }}
-               type="checkbox"/>
-        <span class="slider round"></span>
-    </label>
 </div>

@@ -51,7 +51,7 @@
         </div>
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
-    {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayed') %}
+    {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayedForms') %}
         <div class="form-group col-4">
             <label for="numeroCommandeList" title="Numéro de commande">{{ 'arrivage.Numéro de commande'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : ''}}</label>
             <select id="numeroCommandeList"
@@ -107,7 +107,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
         <div class="form-group w-100 col-4">
             <label for="acheteursEdit" title="acheteurs">{{ 'arrivage.acheteurs'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
-            <select type="text" class="form-control data select2 {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }}" name="acheteurs" multiple="multiple"
+            <select class="form-control data select2 {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }}" name="acheteurs" multiple="multiple"
                     id="acheteursEdit">
                 {% for utilisateur in utilisateurs %}
                     <option value="{{ utilisateur.username }}">
@@ -120,7 +120,7 @@
 </div>
 
 <div class="row">
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
         <div class="form-group col-4">
             <label for="noProject">Numéro de projet{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
@@ -130,7 +130,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
         <div class="form-group col-4">
             <label for="chauffeur">Business Unit{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>

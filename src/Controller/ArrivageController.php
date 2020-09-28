@@ -166,7 +166,9 @@ class ArrivageController extends AbstractController
             'users' => $utilisateurRepository->findBy(['status' => true], ['username'=> 'ASC']),
             'fournisseurs' => $fournisseurRepository->findAllSorted(),
             'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
-            'natures' => $natureRepository->findAll(),
+            'natures' => $natureRepository->findBy([
+                'displayed' => true
+            ]),
             'statuts' => $statuses,
             'typesArrival' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'fieldsParam' => $fieldsParam,
@@ -176,7 +178,7 @@ class ArrivageController extends AbstractController
             'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
             'champs' => $champs,
             'columnsVisibles' => $user->getColumnsVisibleForArrivage(),
-            'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT_ARRIVAGE),
+            'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
             'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
@@ -414,7 +416,7 @@ class ArrivageController extends AbstractController
                     'chauffeurs' => $chauffeurRepository->findAllSorted(),
                     'statuts' => $statuses,
                     'fieldsParam' => $fieldsParam,
-                    'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT_ARRIVAGE)
+                    'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT)
                 ]);
             } else {
                 $html = '';
@@ -964,7 +966,9 @@ class ArrivageController extends AbstractController
             'acheteurs' => $acheteursNames,
             'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
             'allColis' => $arrivage->getPacks(),
-            'natures' => $natureRepository->findAll(),
+            'natures' => $natureRepository->findBy([
+                'displayed' => true
+            ]),
             'printColis' => $printColis,
             'printArrivage' => $printArrivage,
             'utilisateurs' => $usersRepository->getIdAndLibelleBySearch(''),
