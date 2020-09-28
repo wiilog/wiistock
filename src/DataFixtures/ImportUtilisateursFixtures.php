@@ -84,7 +84,7 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
                         ->setColumnsVisibleForArrivage(Utilisateur::COL_VISIBLE_ARR_DEFAULT)
                         ->setColumnsVisibleForDispatch(Utilisateur::COL_VISIBLE_DISPATCH_DEFAULT)
                         ->setColumnsVisibleForLitige(Utilisateur::COL_VISIBLE_LIT_DEFAULT)
-                        ->setPassword(null)
+                        ->setPassword("")
                         ->setMobileLoginKey($uniqueMobileKey);
 
                     $manager->persist($user);
