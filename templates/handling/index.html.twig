@@ -31,14 +31,14 @@
                             <span class="fa fa-angle-down"></span>
                         </button>
                         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                            <div class="dropdown-item" onclick="generateCSV('get_handlings_for_csv', 'services')">
+                            <div class="dropdown-item" onclick="saveExportFile('get_handlings_for_csv', false)">
                                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                             </div>
                         </div>
                     </div>
                 {% else %}
                     {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
-                        <div class="btn btn-primary btn-ripple" onclick="generateCSV('get_handlings_for_csv', 'services')">
+                        <div class="btn btn-primary btn-ripple" onclick="saveExportFile('get_handlings_for_csv', false)">
                             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                         </div>
                     {% endif %}
