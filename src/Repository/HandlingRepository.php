@@ -155,10 +155,13 @@ class HandlingRepository extends EntityRepository
                         ->andWhere("filter_type.label in (:filter_type_value)")
                         ->setParameter('filter_type_value', $filter['value']);
                     break;
-                case 'emergency':
+                case 'emergencyMultiple':
+                    $value = array_map(function($value) {
+                        return explode(":", $value)[0];
+                    }, explode(',', $filter['value']));
                     $qb
                         ->andWhere("handling.emergency in (:filter_emergency_value)")
-                        ->setParameter('filter_emergency_value', $filter['value']);
+                        ->setParameter('filter_emergency_value', $value);
                     break;
                 case 'dateMin':
                     $qb->andWhere('handling.creationDate >= :filter_dateMin_value')
