@@ -22,8 +22,8 @@
                              nature: '{{ pack.nature is not null ? pack.nature.label : 'null' }}',
                              quantity: {{ packDispatch.quantity is not empty ? packDispatch.quantity : 0 }},
                              packQuantity: {{ pack.quantity is not empty ? pack.quantity : 0 }},
-                             weight: {{ pack.weight is not empty ? pack.weight : 'null' }},
-                             volume: {{ pack.volume is not empty ? pack.volume : 'null' }},
+                             weight: {{ pack.weight ? pack.weight : 'null' }},
+                             volume: {{ pack.volume ? pack.volume : 'null' }},
                              comment: '{{ pack.comment }}',
                              lastMovementDate: '{{ pack.lastTracking and pack.lastTracking.dateTime ? pack.lastTracking.dateTime | date('d/m/Y H:i') : '' }}',
                              lastLocation: '{{ pack.lastTracking and pack.lastTracking.emplacement ? pack.lastTracking.emplacement.label : '' }}',
@@ -53,8 +53,8 @@
                                comment: '{{ pack.comment }}',
                                packQuantity: {{ pack.quantity is not empty ? pack.quantity : 0 }},
                                natureId: {{ pack.nature is not null ? pack.nature.id : 'null' }},
-                               weight: {{ pack.weight is not null ? pack.weight : '' }},
-                               volume: {{ pack.volume is not null ? pack.volume : '' }},
+                               weight: {{ pack.weight ? pack.weight : 'null' }},
+                               volume: {{ pack.volume ? pack.volume : 'null' }},
                                })">
                             <i class='fas fa-pen mr-2'></i>Modifier
                         </a>
