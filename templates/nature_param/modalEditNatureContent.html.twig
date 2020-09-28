@@ -28,11 +28,19 @@
             <label for="code">Préfixe</label>
             <input type="text" class="data form-control" name="prefix" value="{{ nature.prefix ? nature.prefix : '' }}">
         </div>
-        <div class="form-group col-12 mb-0">
+        <div class="form-group col-12">
             <label>Synchronisation nomade ?</label>
             {% set checkedSync = nature.needsMobileSync ? 'checked' %}
             <label class="switch ml-3">
                 <input class="checkbox data" type="checkbox" name="mobileSync" {{ checkedSync }}>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="form-group col-12 mb-0">
+            <label>Affichage sur les formulaires ?</label>
+            {% set checkedDisplayed = nature.displayed ? 'checked' %}
+            <label class="switch ml-3">
+                <input class="checkbox data" type="checkbox" name="displayed" {{ checkedDisplayed }}>
                 <span class="slider round"></span>
             </label>
         </div>

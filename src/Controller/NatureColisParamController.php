@@ -74,6 +74,7 @@ class NatureColisParamController extends AbstractController
                         'Quantité par défaut' => $nature->getDefaultQuantity() ?? 'Non définie',
                         'Préfixe' => $nature->getPrefix() ?? 'Non défini',
                         'mobileSync' => $nature->getNeedsMobileSync() ? 'Oui' : 'Non',
+                        'displayed' => $nature->getDisplayed() ? 'Oui' : 'Non',
                         'Couleur' => $nature->getColor() ? '<div style="background-color:' . $nature->getColor() . ';"><br></div>' : 'Non définie',
                         'description' => $nature->getDescription() ?? 'Non définie',
                         'Actions' => $this->renderView('nature_param/datatableNatureRow.html.twig', [
@@ -108,6 +109,7 @@ class NatureColisParamController extends AbstractController
                 ->setLabel($data['label'])
                 ->setPrefix($data['prefix'] ?? null)
                 ->setColor($data['color'])
+                ->setDisplayed($data['displayed'])
                 ->setNeedsMobileSync($data['mobileSync'] ?? false)
                 ->setDefaultQuantity($data['quantity'])
                 ->setDescription($data['description'] ?? null)
@@ -172,6 +174,7 @@ class NatureColisParamController extends AbstractController
                 ->setLabel($data['label'])
                 ->setPrefix($data['prefix'] ?? null)
                 ->setDefaultQuantity($data['quantity'])
+                ->setDisplayed($data['displayed'])
                 ->setNeedsMobileSync($data['mobileSync'] ?? false)
                 ->setDescription($data['description'] ?? null)
                 ->setColor($data['color'])

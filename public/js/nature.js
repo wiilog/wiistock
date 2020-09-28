@@ -20,6 +20,7 @@ let tableNatureConfig = {
         {"data": 'Couleur', 'title': 'Couleur'},
         {"data": 'description', 'title': 'Description'},
         {"data": 'mobileSync', 'title': 'Synchronisation nomade'},
+        {"data": 'displayed', 'title': 'Affichage sur les formulaires'},
     ],
     rowConfig: {
         needsRowClickAction: true
