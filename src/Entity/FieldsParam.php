@@ -86,7 +86,6 @@ class FieldsParam
     const FIELD_LABEL_COMMAND_NUMBER_DISPATCH = 'numéro de commande';
     const FIELD_LABEL_COMMENT_DISPATCH = 'commentaire';
     const FIELD_LABEL_ATTACHMENTS_DISPATCH = 'pièces jointes';
-
     const FIELD_LABEL_LOCATION_PICK = 'emplacement de prise';
     const FIELD_LABEL_LOCATION_DROP = 'emplacement de dépose';
 
@@ -133,7 +132,12 @@ class FieldsParam
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $displayedForms;
+    private $displayedFormsCreate;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $displayedFormsEdit;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
@@ -215,12 +219,21 @@ class FieldsParam
         return $this;
     }
 
-    public function isDisplayedForms(): ?bool {
-        return $this->displayedForms;
+    public function isDisplayedFormsCreate(): ?bool {
+        return $this->displayedFormsCreate;
     }
 
-    public function setDisplayedForms(?bool $displayedForms): self {
-        $this->displayedForms = $displayedForms;
+    public function setDisplayedFormsCreate(?bool $displayedFormsCreate): self {
+        $this->displayedFormsCreate = $displayedFormsCreate;
+        return $this;
+    }
+
+    public function isDisplayedFormsEdit(): ?bool {
+        return $this->displayedFormsEdit;
+    }
+
+    public function setDisplayedFormsEdit(?bool $displayedFormsEdit): self {
+        $this->displayedFormsEdit = $displayedFormsEdit;
         return $this;
     }
 

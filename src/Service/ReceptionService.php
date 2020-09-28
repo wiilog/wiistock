@@ -8,6 +8,7 @@ use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Reception;
+use App\Entity\Utilisateur;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -53,7 +54,10 @@ class ReceptionService
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $receptionRepository = $this->entityManager->getRepository(Reception::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $this->user);
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->user;
+
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $currentUser);
         $queryResult = $receptionRepository->findByParamAndFilters($params, $filters);
 
         $receptions = $queryResult['data'];
@@ -70,16 +74,16 @@ class ReceptionService
         ];
     }
 
-	/**
-	 * @param Reception $reception
-	 * @return array
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
+    /**
+     * @param Reception $reception
+     * @return array
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
     public function dataRowReception(Reception $reception)
     {
-        $row =
+        return
             [
                 'id' => ($reception->getId()),
                 "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
@@ -94,8 +98,7 @@ class ReceptionService
                     ['reception' => $reception]
                 ),
                 'urgence' => $reception->getEmergencyTriggered()
-        ];
-        return $row;
+            ];
     }
 
     public function createHeaderDetailsConfig(Reception $reception): array {
@@ -121,58 +124,57 @@ class ReceptionService
         );
 
         $config = [
-            [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
+            [
+                'label' => 'Statut',
+                'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : ''
+            ],
             [
                 'label' => $this->translator->trans('réception.n° de réception'),
                 'title' => 'n° de réception',
                 'value' => $reception->getNumeroReception(),
-                'show' => [ 'fieldName' => 'numeroReception', 'action' => 'displayed' ]
+                'show' => [ 'fieldName' => 'numeroReception' ]
             ],
             [
                 'label' => 'Fournisseur',
                 'value' => $provider ? $provider->getNom() : '',
-                'show' => [ 'fieldName' => 'fournisseur', 'action' => 'displayed' ]
+                'show' => [ 'fieldName' => 'fournisseur' ]
             ],
             [
                 'label' => 'Transporteur',
                 'value' => $carrier ? $carrier->getLabel() : '',
-                'show' => [ 'fieldName' => 'transporteur', 'action' => 'displayed' ]
+                'show' => [ 'fieldName' => 'transporteur' ]
             ],
             [
                 'label' => 'Emplacement',
                 'value' => $location ? $location->getLabel() : '',
-                'show' => [ 'fieldName' => 'emplacement', 'action' => 'displayed' ]
+                'show' => [ 'fieldName' => 'emplacement' ]
             ],
             [
                 'label' => 'Date commande',
                 'value' => $dateCommande ? $dateCommande->format('d/m/Y') : '',
-                'show' => [ 'fieldName' => 'dateCommande', 'action' => 'displayed' ]
+                'show' => [ 'fieldName' => 'dateCommande' ]
             ],
             [
                 'label' => 'Numéro de commande',
                 'value' => $reference ?: '',
-                'show' => [ 'fieldName' => 'numCommande', 'action' => 'displayed' ]
+                'show' => [ 'fieldName' => 'numCommande' ]
             ],
             [
                 'label' => 'Date attendue',
                 'value' => $dateAttendue ? $dateAttendue->format('d/m/Y') : '',
-                'show' => [ 'fieldName' => 'dateAttendue', 'action' => 'displayed' ]
+                'show' => [ 'fieldName' => 'dateAttendue' ]
             ],
             [ 'label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i') : '' ],
             [ 'label' => 'Date de fin', 'value' => $dateEndReception ? $dateEndReception->format('d/m/Y H:i') : '' ],
         ];
 
-        $configFiltered =  array_filter($config, function ($fieldConfig) use ($fieldsParam) {
-            return (
-                !isset($fieldConfig['show'])
-                || $this->fieldsParamService->isFieldRequired($fieldsParam, $fieldConfig['show']['fieldName'], $fieldConfig['show']['action'])
-            );
-        });
+        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_RECEPTION);
 
         return array_merge(
             $configFiltered,
             $freeFieldArray,
-            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedForms')
+            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsCreate')
+            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsEdit'))
                 ? [[
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',

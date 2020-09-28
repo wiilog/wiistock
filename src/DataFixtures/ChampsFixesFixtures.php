@@ -50,10 +50,10 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_DEADLINE_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_DEADLINE_DISPATCH, 'displayedForms' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedForms' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_COMMAND_NUMBER_DISPATCH, 'displayedForms' => true, 'displayedFilters' => true],
-                ['code' => FieldsParam::FIELD_CODE_PROJECT_NUMBER, 'label' => FieldsParam::FIELD_LABEL_PROJECT_NUMBER, 'displayedForms' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_COMMENT_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_COMMENT_DISPATCH, 'displayedForms' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_ATTACHMENTS_DISPATCH, 'displayedForms' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_BUSINESS_UNIT, 'label' => FieldsParam::FIELD_LABEL_BUSINESS_UNIT, 'values' => [], 'displayedForms' => true, 'displayedFilters' => true],
+                ['code' => FieldsParam::FIELD_CODE_PROJECT_NUMBER, 'label' => FieldsParam::FIELD_LABEL_PROJECT_NUMBER, 'displayedForms' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_LOCATION_PICK, 'label' => FieldsParam::FIELD_LABEL_LOCATION_PICK, 'displayedForms' => true, 'displayedFilters' => true, 'default' => true],
                 ['code' => FieldsParam::FIELD_CODE_LOCATION_DROP, 'label' => FieldsParam::FIELD_LABEL_LOCATION_DROP, 'displayedForms' => true, 'displayedFilters' => true, 'default' => true],
             ],
@@ -78,7 +78,8 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                     $field
                         ->setEntityCode($fieldEntity)
                         ->setFieldLabel($fieldCode['label'])
-                        ->setDisplayedForms($fieldCode['displayedForms'])
+                        ->setDisplayedFormsCreate($fieldCode['displayedFormsCreate'])
+                        ->setDisplayedFormsEdit($fieldCode['displayedFormsEdit'])
                         ->setDisplayedFilters($fieldCode['displayedFilters'])
                         ->setMustToModify($fieldCode['default'] ?? false)
                         ->setMustToCreate($fieldCode['default'] ?? false)

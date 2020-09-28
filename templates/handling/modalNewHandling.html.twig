@@ -91,21 +91,19 @@
                         </div>
                     {% endif %}
 
-                    {% if fieldsParam|isFieldRequired('loadingZone', 'displayedForms') %}
-                        <div class="form-group col-md-6 col-12">
-                            <label for="source">Chargement{{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? '*' : '' }}</label>
-                            <input class="form-control data {{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? 'needed' : '' }}"
-                                   name="source">
-                        </div>
-                    {% endif %}
+                {% if fieldsParam|isFieldRequired('loadingZone', 'displayedFormsCreate') %}
+                <div class="form-group col-md-6 col-12">
+                    <label for="source">Chargement{{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? '*' : '' }}</label>
+                    <input class="form-control data {{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? 'needed' : '' }}" name="source">
+                </div>
+                {% endif %}
 
-                    {% if fieldsParam|isFieldRequired('unloadingZone', 'displayedForms') %}
-                        <div class="form-group col-md-6 col-12">
-                            <label for="destination">Déchargement{{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? '*' : '' }}</label>
-                            <input class="form-control data {{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? 'needed' : '' }}"
-                                   name="destination">
-                        </div>
-                    {% endif %}
+                {% if fieldsParam|isFieldRequired('unloadingZone', 'displayedFormsCreate') %}
+                <div class="form-group col-md-6 col-12">
+                    <label for="destination">Déchargement{{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? '*' : '' }}</label>
+                    <input class="form-control data {{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? 'needed' : '' }}" name="destination">
+                </div>
+                {% endif %}
 
                     <!-- CHAMPS LIBRES -->
                     <div class="col-12">
