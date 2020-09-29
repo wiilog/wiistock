@@ -13,13 +13,14 @@ $(function () {
                 {"data": 'fieldCode', 'title': 'Champ fixe'},
                 {"data": 'mustCreate', 'title': 'Obligatoire à la création'},
                 {"data": 'mustEdit', 'title': 'Obligatoire à la modification'},
-                {"data": 'displayedForms', 'title': 'Affiché sur les formulaires'},
-                {"data": 'displayedFilters', 'title': 'Affiché sur les filtres'},
+                {"data": 'displayedFormsCreate', 'title': 'Affiché sur formulaires de création'},
+                {"data": 'displayedFormsEdit', 'title': 'Affiché sur formulaires d\'édition'},
+                {"data": 'displayedFilters', 'title': 'Affiché sur les filtres'}
             ],
             rowConfig: {
                 needsRowClickAction: true,
             },
-            order: [[4, "asc"]],
+            order: [[1, "asc"]],
             info: false,
             filter: false,
             paging: false
@@ -39,14 +40,43 @@ function displayErrorFields() {
     });
 }
 
-function switchDisplay(checkbox) {
-    if (!checkbox.is(':checked')) {
+function switchDisplay($checkbox) {
+    const $modal = $checkbox.closest('.modal');
+    if (!$modal.find('[name="displayed-forms-create"]').prop('checked')
+        && !$modal.find('[name="displayed-forms-edit"]').prop('checked')) {
         $('.checkbox').prop('checked', false);
     }
 }
 
-function switchDisplayByMust(checkbox) {
-    if (checkbox.is(':checked')) {
-        $('.checkbox[name="displayed"]').prop('checked', true);
+function switchDisplayByMust($checkbox) {
+    const $modal = $checkbox.closest('.modal');
+    if ($checkbox.attr('name') === 'mustToCreate'
+        && $modal.find('[name="displayed-forms-create"]').prop('checked')) {
+        $('.checkbox[name="displayed-forms-create"]').prop('checked', false);
+    } else if ($checkbox.attr('name') === 'mustToModify'
+        && $modal.find('[name="displayed-forms-edit"]').prop('checked')) {
+        $('.checkbox[name="displayed-forms-edit"]').prop('checked', false);
     }
+}
+
+function editDispatchEmergencies() {
+    $.post(Routing.generate('set_dispatch_emergencies'), {value: $(this).val()}, (resp) => {
+        if (resp) {
+            showBSAlert("La liste urgences d'acheminements a bien été mise à jour.");
+        } else {
+            showBSAlert("Une erreur est survenue lors de la mise à jour de la liste urgences d'acheminements.");
+        }
+    });
+}
+
+function editBusinessUnit($select, paramName) {
+    const val = $select.val() || [];
+    const valStr = JSON.stringify(val);
+    $.post(Routing.generate('toggle_params'), JSON.stringify({param: paramName, val: valStr})).then((resp) => {
+        if (resp) {
+            showBSAlert("La liste business unit a bien été mise à jour.");
+        } else {
+            showBSAlert("Une erreur est survenue lors de la mise à jour de la liste business unit.");
+        }
+    })
 }

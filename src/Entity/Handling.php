@@ -245,10 +245,9 @@ class Handling extends FreeFieldEntity
         return $this->emergency;
     }
 
-    public function setEmergency(string $emergency): self
+    public function setEmergency(?string $emergency): self
     {
         $this->emergency = $emergency;
-
         return $this;
     }
 

@@ -29,7 +29,7 @@
                 } %}
 
                 <div class="row">
-                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayedForms') %}
+                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayedFormsCreate') %}
                         <div class="form-group col">
                             <label for="fournisseurLitige">Fournisseur</label>
                             <input type="text" id="fournisseurLitige" class="form-control data" name="fournisseurLitige"
@@ -37,14 +37,14 @@
                         </div>
                     {% endif %}
 
-                    {% if fieldsParam|isFieldRequired('transporteur', 'displayedForms') %}
+                    {% if fieldsParam|isFieldRequired('transporteur', 'displayedFormsCreate') %}
                         <div class="form-group col">
                             <label for="transporteurLitige">Transporteur</label>
                             <input type="text" id="transporteurLitige" class="form-control data" name="transporteurLitige"
                                    value="{{ arrivage.transporteur ? arrivage.transporteur.label }}" disabled>
                         </div>
                     {% endif %}
-                    {% if fieldsParam|isFieldRequired('chauffeur', 'displayedForms') %}
+                    {% if fieldsParam|isFieldRequired('chauffeur', 'displayedFormsCreate') %}
                         <div class="form-group col">
                             <label for="chauffeurLitige">Chauffeur</label>
                             <input type="text" id="chauffeurLitige" class="form-control data" name="chauffeurLitige"
@@ -59,7 +59,7 @@
                                value="{{ arrivage.numeroArrivage }}" disabled>
                     </div>
 
-                    {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayedForms') %}
+                    {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayedFormsCreate') %}
                         <div class="form-group w-100 col-4">
                             <label for="numeroCommandeListLitige">N° commande / BL</label>
                             <select id="numeroCommandeListLitige"
@@ -82,7 +82,7 @@
                     </div>
                 </div>
                 <div class="row">
-                    {% if fieldsParam|isFieldRequired('acheteurs', 'displayedForms') %}
+                    {% if fieldsParam|isFieldRequired('acheteurs', 'displayedFormsCreate') %}
                         <div class="form-group w-100 col-4">
                             <label for="acheteursLitige">Acheteur(s)</label>
                             <select class="form-control data"

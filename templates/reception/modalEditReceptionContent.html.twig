@@ -1,5 +1,5 @@
 <div class="row">
-    {% if fieldsParam|isFieldRequired('numeroReception', 'displayedForms') %}
+    {% if fieldsParam|isFieldRequired('numeroReception', 'displayedFormsEdit') %}
         <div class="form-group col-6">
             <label for="numeroReception"
                    title="n° de réception">{{ 'réception.n° de réception'|trans }}{{ fieldsParam|isFieldRequired('numeroReception', 'mustToModify') ? '*' : '' }}</label>
@@ -21,7 +21,7 @@
 </div>
 
 <div class="row">
-    {% if fieldsParam|isFieldRequired('dateCommande', 'displayedForms') %}
+    {% if fieldsParam|isFieldRequired('dateCommande', 'displayedFormsEdit') %}
         <div class="form-group col-6">
             <label for="dateCommande">Date commande{{ fieldsParam|isFieldRequired('dateCommande', 'mustToModify') ? '*' : '' }}</label>
             <input type="text"
@@ -33,7 +33,7 @@
         </div>
     {% endif %}
 
-    {% if fieldsParam|isFieldRequired('dateAttendue', 'displayedForms') %}
+    {% if fieldsParam|isFieldRequired('dateAttendue', 'displayedFormsEdit') %}
         <div class="form-group col-6">
             <label for="dateAttendue">Date attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'mustToModify') ? '*' : '' }}</label>
             <input type="text" class="form-control data {{ fieldsParam|isFieldRequired('dateAttendue', 'mustToModify') ? 'needed' : '' }}"
@@ -46,7 +46,7 @@
 </div>
 
 <div class="row">
-    {% if fieldsParam|isFieldRequired('numCommande', 'displayedForms') %}
+    {% if fieldsParam|isFieldRequired('numCommande', 'displayedFormsEdit') %}
         <div class="form-group col-6">
             <label for="numeroCommande">Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'mustToModify') ? '*' : '' }}</label>
             <input type="text" class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'mustToModify') ? 'needed' : '' }}"
@@ -54,7 +54,7 @@
                    value="{{ reception.reference }}">
         </div>
     {% endif %}
-    {% if fieldsParam|isFieldRequired('emplacement', 'displayedForms') %}
+    {% if fieldsParam|isFieldRequired('emplacement', 'displayedFormsEdit') %}
         <div class="form-group col-6 w-100">
             <label>Emplacement{{ fieldsParam|isFieldRequired('emplacement', 'mustToModify') ? '*' : '' }}</label>
             <select
@@ -69,7 +69,7 @@
 </div>
 
 <div class="row fly-form">
-    {% if fieldsParam|isFieldRequired('fournisseur', 'displayedForms') %}
+    {% if fieldsParam|isFieldRequired('fournisseur', 'displayedFormsEdit') %}
         <div class="form-group w-100 col">
             <label for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? '*' : '' }}</label>
             <select
@@ -88,7 +88,7 @@
             </div>
         {% endif %}
     {% endif %}
-    {% if fieldsParam|isFieldRequired('transporteur', 'displayedForms') %}
+    {% if fieldsParam|isFieldRequired('transporteur', 'displayedFormsEdit') %}
         <div class="form-group w-100 col">
             <label for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? '*' : '' }}</label>
             <select
@@ -147,7 +147,7 @@
 {% endif %}
 
 <div class="row">
-    {% if fieldsParam|isFieldRequired('utilisateur', 'displayedForms') %}
+    {% if fieldsParam|isFieldRequired('utilisateur', 'displayedFormsEdit') %}
         <div class="form-group w-100 col-6">
             <label for="utilisateur">Utilisateur{{ fieldsParam|isFieldRequired('utilisateur', 'mustToModify') ? '*' : '' }}</label>
             <select
@@ -159,7 +159,7 @@
         </div>
     {% endif %}
 </div>
-{% if fieldsParam|isFieldRequired('commentaire', 'displayedForms') %}
+{% if fieldsParam|isFieldRequired('commentaire', 'displayedFormsEdit') %}
     <div class="form-group">
         <label for="Reception">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? '*' : '' }}</label>
         <input id='commentaire' class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? 'needed' : '' }}"

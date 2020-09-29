@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Dispatch;
 use App\Entity\Action;
-use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
@@ -35,8 +34,6 @@ use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
-use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -51,6 +48,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -76,10 +74,8 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/", name="dispatch_index")
      * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
      * @param DispatchService $service
      * @return RedirectResponse|Response
-     * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager, DispatchService $service) {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
@@ -93,7 +89,11 @@ class DispatchController extends AbstractController {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
-        $fields = $service->getVisibleColumnsConfig($entityManager, $this->getUser());
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $fields = $service->getVisibleColumnsConfig($entityManager, $currentUser);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
@@ -102,9 +102,10 @@ class DispatchController extends AbstractController {
             'carriers' => $carrierRepository->findAllSorted(),
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
             'types' => $types,
+            'fieldsParam' => $fieldsParam,
             'fields' => $fields,
-            'visibleColumns' => $this->getUser()->getColumnsVisibleForDispatch(),
-            'modalNewConfig' => $service->getNewDispatchConfig($parametrageGlobalRepository, $statutRepository, $champLibreRepository, $fieldsParamRepository, $types)
+            'visibleColumns' => $currentUser->getColumnsVisibleForDispatch(),
+            'modalNewConfig' => $service->getNewDispatchConfig($statutRepository, $champLibreRepository, $fieldsParamRepository, $types)
         ]);
     }
 
@@ -121,7 +122,10 @@ class DispatchController extends AbstractController {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $columns = $service->getVisibleColumnsConfig($entityManager, $this->getUser());
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+
+            $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser);
 
             return $this->json($columns);
         }
@@ -144,7 +148,10 @@ class DispatchController extends AbstractController {
         $fields = array_keys($data);
         $fields[] = "actions";
 
-        $this->getUser()->setColumnsVisibleForDispatch($fields);
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $currentUser->setColumnsVisibleForDispatch($fields);
         $entityManager->flush();
 
         return $this->json([
@@ -232,7 +239,7 @@ class DispatchController extends AbstractController {
             $printDeliveryNote = $request->query->get('printDeliveryNote');
 
             $dispatch = new Dispatch();
-            $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
             $fileBag = $request->files->count() > 0 ? $request->files : null;
             $locationTake = $post->get('prise') ? $emplacementRepository->find($post->get('prise')) : null;
@@ -370,13 +377,12 @@ class DispatchController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @param bool $printBL
      * @param DispatchService $dispatchService
-     * @param TranslatorInterface $translator
      * @return RedirectResponse|Response
      */
     public function show(Dispatch $dispatch,
                          EntityManagerInterface $entityManager,
                          bool $printBL,
-                         DispatchService $dispatchService, TranslatorInterface $translator) {
+                         DispatchService $dispatchService) {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -410,7 +416,6 @@ class DispatchController extends AbstractController {
      * @param TranslatorInterface $translator
      * @return PdfResponse
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
@@ -461,7 +466,6 @@ class DispatchController extends AbstractController {
                          FreeFieldService $freeFieldService,
                          EntityManagerInterface $entityManager,
                          TranslatorInterface $translator): Response {
-        $statutRepository = $entityManager->getRepository(Statut::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $transporterRepository = $entityManager->getRepository(Transporteur::class);
@@ -560,7 +564,6 @@ class DispatchController extends AbstractController {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
-            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
@@ -877,7 +880,7 @@ class DispatchController extends AbstractController {
 
                 $dispatch
                     ->setStatut($untreatedStatus)
-                    ->setValidationDate(new DateTime('now', new \DateTimeZone('Europe/Paris')));
+                    ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
 
                 $entityManager->flush();
                 $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
@@ -975,7 +978,7 @@ class DispatchController extends AbstractController {
         try {
             $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
             $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
         }
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
