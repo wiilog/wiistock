@@ -6,13 +6,14 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
+use App\Entity\LocationCluster;
+use App\Entity\LocationClusterMeter;
 use App\Entity\Pack;
 use App\Entity\DashboardChartMeter;
 use App\Entity\DashboardMeter;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\LatePack;
-use App\Entity\MouvementTraca;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReceptionTraca;
@@ -22,7 +23,6 @@ use App\Entity\WorkFreeDay;
 use App\Entity\Wiilock;
 use DateTime;
 use DateTimeZone;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -361,29 +361,15 @@ class DashboardService
     private function parseColisData(EntityManagerInterface $entityManager)
     {
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+        $locationClusterMeterRepository = $entityManager->getRepository(LocationClusterMeter::class);
+
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-        $packsCountByDays = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($entityManager) {
-            $packRepository = $entityManager->getRepository(Pack::class);
-            $locations = $this->findEmplacementsParam(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES);
-            if (!empty($locations)) {
-                $response = [];
-                $response['delay'] = null;
-                $response['count'] = 0;
-                $response['label'] = array_reduce(
-                    $locations,
-                    function (string $carry, Emplacement $location) {
-                        return $carry . (!empty($carry) ? ', ' : '') . $location->getLabel();
-                    },
-                    ''
-                );
-                $response['count'] = $packRepository->countPacksOnLocations($locations, [
-                    'minDate' => $dateMin,
-                    'maxDate' => $dateMax
-                ]);
-            } else {
-                $response = null;
-            }
-            return !empty($response['count']) ? $response['count'] : 0;
+
+        $packsCountByDays = $this->getDailyObjectsStatistics(function (DateTime $date) use ($locationClusterMeterRepository) {
+            return $locationClusterMeterRepository->countByDate(
+                $date,
+                LocationCluster::CLUSTER_CODE_DOCK_DASHBOARD_DROPZONE
+            );
         }, $workFreeDays);
         $dashboardData = [
             'data' => $this->saveArrayForEncoding($packsCountByDays),
@@ -418,38 +404,34 @@ class DashboardService
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param int $graph
-     * @param string $dashboard
-     * @throws DBALException
+     * @param string $clusterCode
      * @throws NonUniqueResultException
+     * @throws Exception
      */
-    public function getAndSetGraphDataForAdmin(EntityManagerInterface $entityManager, int $graph)
+    public function getAndSetGraphDataForAdmin(EntityManagerInterface $entityManager, string $clusterCode)
     {
+        if (!in_array($clusterCode, [LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1, LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2 ])) {
+            throw new Exception('Cluster code in not supported');
+        }
+
         $adminDelay = '48:00';
 
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $locationClusterRepository = $entityManager->getRepository(LocationCluster::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $packRepository = $entityManager->getRepository(Pack::class);
         $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
 
-        $natureLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_NATURE_COLIS : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
-        $empLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_LOCATIONS_1 : ParametrageGlobal::DASHBOARD_LOCATIONS_2;
+        $naturesFilterParam = ($clusterCode === LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1)
+            ? ParametrageGlobal::DASHBOARD_NATURE_COLIS
+            : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
 
         // on récupère les natures paramétrées
-        $paramNatureForGraph = $parametrageGlobalRepository->findOneByLabel($natureLabelToLookFor)->getValue();
+        $paramNatureForGraph = $parametrageGlobalRepository->getOneParamByLabel($naturesFilterParam);
         $naturesIdForGraph = !empty($paramNatureForGraph) ? explode(',', $paramNatureForGraph) : [];
         $naturesForGraph = !empty($naturesIdForGraph)
             ? $natureRepository->findBy(['id' => $naturesIdForGraph])
-            : [];
-
-        // on récupère les emplacements paramétrés
-        $paramEmplacementWanted = $parametrageGlobalRepository->findOneByLabel($empLabelToLookFor)->getValue();
-        $emplacementsIdWanted = !empty($paramEmplacementWanted) ? explode(',', $paramEmplacementWanted) : [];
-        $emplacementsWanted = !empty($emplacementsIdWanted)
-            ? $emplacementRepository->findBy(['id' => $emplacementsIdWanted])
             : [];
 
         $locationCounters = [];
@@ -462,8 +444,8 @@ class DashboardService
             'packDateTime' => null
         ];
 
-        if (!empty($naturesForGraph) && !empty($emplacementsWanted)) {
-            $packsOnCluster = $packRepository->getPackIntelOnLocations($emplacementsWanted, $naturesForGraph);
+        if (!empty($naturesForGraph)) {
+            $packsOnCluster = $locationClusterRepository->getPacksOnCluster($clusterCode, $naturesForGraph);
 
             $countByNatureBase = [];
             foreach ($naturesForGraph as $wantedNature) {
@@ -532,7 +514,7 @@ class DashboardService
             });
         }
 
-        if (!isset($graphData)) {
+        if (empty($graphData)) {
             $graphData = $this->getObjectForTimeSpan(function () {
                 return 0;
             });
@@ -557,10 +539,10 @@ class DashboardService
                     return $carry;
                 },
                 []),
-            'key' => self::DASHBOARD_ADMIN . '-' . $graph,
+            'key' => $clusterCode,
             'data' => $graphData,
-            'location' => (isset($locationToDisplay) ? $locationToDisplay : '-'),
-            'total' => (isset($totalToDisplay) ? $totalToDisplay : '-'),
+            'location' => (!empty($locationToDisplay) ? $locationToDisplay : '-'),
+            'total' => (!empty($totalToDisplay) ? $totalToDisplay : '-'),
         ];
         $this->updateOrPersistDashboardGraphMeter($entityManager, $dashboardData);
     }
@@ -804,38 +786,34 @@ class DashboardService
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param string $meterType
      * @throws Throwable
      */
-    public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager, string $meterType): void
+    public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager): void
     {
-        $lastUpdateDate = $this->wiilockService->getLastDashboardFeedingTime($entityManager, $meterType);
+        $lastUpdateDate = $this->wiilockService->getLastDashboardFeedingTime($entityManager);
         $currentDate = new DateTime();
         if ($lastUpdateDate) {
             $dateDiff = $currentDate
                 ->diff($lastUpdateDate);
             $hoursBetweenNowAndLastUpdateDate = $dateDiff->h + ($dateDiff->days * 24);
             if ($hoursBetweenNowAndLastUpdateDate > 2) {
-                $this->wiilockService->stopFeedingDashboard($entityManager, $meterType);
+                $this->wiilockService->toggleFeedingDashboard($entityManager, false);
                 $entityManager->flush();
             }
         }
-        if (!$this->wiilockService->dashboardIsBeingFed($entityManager, $meterType)) {
-            $this->wiilockService->startFeedingDashboard($entityManager, $meterType);
+        if (!$this->wiilockService->dashboardIsBeingFed($entityManager)) {
+            $this->wiilockService->toggleFeedingDashboard($entityManager, true);
             try {
-                if ($meterType === Wiilock::DASHBOARD_GRAPH_FED_KEY) {
-                    $this->retrieveAndInsertGlobalGraphData($entityManager);
-                } else if ($meterType === Wiilock::DASHBOARD_METER_FED_KEY) {
-                    $this->retrieveAndInsertGlobalMeterData($entityManager);
-                }
+                $this->retrieveAndInsertGlobalMeterData($entityManager);
+                $this->retrieveAndInsertGlobalGraphData($entityManager);
             }
             catch (Throwable $throwable) {
-                $this->wiilockService->stopFeedingDashboard($entityManager, $meterType);
+                $this->wiilockService->toggleFeedingDashboard($entityManager, false);
                 $this->flushAndClearEm($entityManager);
                 throw $throwable;
             }
 
-            $this->wiilockService->stopFeedingDashboard($entityManager, $meterType);
+            $this->wiilockService->toggleFeedingDashboard($entityManager, false);
             $this->flushAndClearEm($entityManager);
         }
     }
@@ -858,8 +836,8 @@ class DashboardService
         dump('Finished Dock Graph');
         $this->flushAndClearEm($entityManager);
 
-        $this->getAndSetGraphDataForAdmin($entityManager, 1);
-        $this->getAndSetGraphDataForAdmin($entityManager, 2);
+        $this->getAndSetGraphDataForAdmin($entityManager, LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1);
+        $this->getAndSetGraphDataForAdmin($entityManager, LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2);
         dump('Finished Admin Graphs');
         $this->flushAndClearEm($entityManager);
 
@@ -929,28 +907,16 @@ class DashboardService
     {
         $dsqrLabel = 'OF envoyés par le DSQR';
         $gtLabel = 'OF traités par GT';
-        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $locationClusterMeterRepository = $this->entityManager->getRepository(LocationClusterMeter::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-        $locationDropIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_DSQR);
-        $locationOriginIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT);
-        $locationTargetIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT);
-        $locationDropIdsArray = !empty($locationDropIds) ? explode(',', $locationDropIds) : [];
-        $locationOriginIdsArray = !empty($locationOriginIds) ? explode(',', $locationOriginIds) : [];
-        $locationTargetIdsArray = !empty($locationTargetIds) ? explode(',', $locationTargetIds) : [];
 
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-        $chartData = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax)
-                                                      use ($dsqrLabel,
-                                                           $gtLabel,
-                                                           $mouvementTracaRepository,
-                                                           $locationDropIdsArray,
-                                                           $locationOriginIdsArray,
-                                                           $locationTargetIdsArray) {
+        $chartData = $this->getDailyObjectsStatistics(function (DateTime $date)
+                                                      use ($dsqrLabel, $gtLabel, $locationClusterMeterRepository) {
 
             return [
-                $dsqrLabel => $mouvementTracaRepository->countDropsOnLocations($locationDropIdsArray, $dateMin, $dateMax),
-                $gtLabel => $mouvementTracaRepository->countMovementsFromInto($locationOriginIdsArray, $locationTargetIdsArray, $dateMin, $dateMax)
+                $dsqrLabel => $locationClusterMeterRepository->countByDate($date, LocationCluster::CLUSTER_CODE_PACKAGING_DSQR),
+                $gtLabel => $locationClusterMeterRepository->countByDate($date, LocationCluster::CLUSTER_CODE_PACKAGING_GT_TARGET, LocationCluster::CLUSTER_CODE_PACKAGING_GT_ORIGIN),
             ];
         }, $workFreeDays);
         $dashboardData = [
