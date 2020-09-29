@@ -104,6 +104,7 @@
 
                 {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.label : '' %}
                 {% set packLastTracking = dispatchPack.pack.lastTracking ?? '' %}
+                {% set packLocationLastTracking = packLastTracking.emplacement ?? '' %}
                 <tr>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
@@ -123,7 +124,7 @@
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ packLastTracking ? packLastTracking.emplacement.label : '-' }}
+                        {{ packLocationLastTracking ? packLocationLastTracking.label : '-' }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">

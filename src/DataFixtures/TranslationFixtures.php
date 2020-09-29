@@ -71,7 +71,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Nb colis' => 'Nb colis',
                 'demande d\'acheminement' => 'demande d\'acheminement',
                 'Colis à acheminer' => 'Colis à acheminer',
-                'Le colis existe déjà dans cet acheminement' => 'Le colis existe déjà dans cet acheminement',
+                'Le colis {numéro} existe déjà dans cet acheminement' => 'Le colis {numéro} existe déjà dans cet acheminement',
                 'type d\'acheminement' => 'type d\'acheminement',
                 "Quantité à acheminer" => "Quantité à acheminer",
                 "Quantité colis" => "Quantité colis",
@@ -141,13 +141,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Numéro colis' => 'Numéro colis',
                 "Quantité colis" => "Quantité colis",
                 "Liste des colis" => "Liste des colis",
-                'Votre colis a bien été modifié' => 'Votre colis a bien été modifié',
                 "Voulez-vous réellement supprimer ce colis ?" => "Voulez-vous réellement supprimer ce colis ?",
                 "Supprimer le colis" => "Supprimer le colis",
-                "Le colis a bien été supprimé" => "Le colis a bien été supprimé",
-                "Le colis a bien été modifié" => "Le colis a bien été modifié",
+                "Le colis {numéro} a bien été supprimé" => "Le colis {numéro} a bien été supprimé",
+                "Le colis {numéro} a bien été modifié" => "Le colis {numéro} a bien été modifié",
                 'Le colis n\'existe pas' => 'Le colis n\'existe pas',
-                'Le colis a bien été sauvegardé' => 'Le colis a bien été sauvegardé'
+                'Le colis {numéro} a bien été ajouté' => 'Le colis {numéro} a bien été ajouté'
             ],
             'services' => [
                 'Types de service' => 'Types de service',
