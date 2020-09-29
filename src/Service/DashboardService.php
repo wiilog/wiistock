@@ -786,38 +786,34 @@ class DashboardService
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param string $meterType
      * @throws Throwable
      */
-    public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager, string $meterType): void
+    public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager): void
     {
-        $lastUpdateDate = $this->wiilockService->getLastDashboardFeedingTime($entityManager, $meterType);
+        $lastUpdateDate = $this->wiilockService->getLastDashboardFeedingTime($entityManager);
         $currentDate = new DateTime();
         if ($lastUpdateDate) {
             $dateDiff = $currentDate
                 ->diff($lastUpdateDate);
             $hoursBetweenNowAndLastUpdateDate = $dateDiff->h + ($dateDiff->days * 24);
             if ($hoursBetweenNowAndLastUpdateDate > 2) {
-                $this->wiilockService->stopFeedingDashboard($entityManager, $meterType);
+                $this->wiilockService->toggleFeedingDashboard($entityManager, false);
                 $entityManager->flush();
             }
         }
-        if (!$this->wiilockService->dashboardIsBeingFed($entityManager, $meterType)) {
-            $this->wiilockService->startFeedingDashboard($entityManager, $meterType);
+        if (!$this->wiilockService->dashboardIsBeingFed($entityManager)) {
+            $this->wiilockService->toggleFeedingDashboard($entityManager, true);
             try {
-                if ($meterType === Wiilock::DASHBOARD_GRAPH_FED_KEY) {
-                    $this->retrieveAndInsertGlobalGraphData($entityManager);
-                } else if ($meterType === Wiilock::DASHBOARD_METER_FED_KEY) {
-                    $this->retrieveAndInsertGlobalMeterData($entityManager);
-                }
+                $this->retrieveAndInsertGlobalMeterData($entityManager);
+                $this->retrieveAndInsertGlobalGraphData($entityManager);
             }
             catch (Throwable $throwable) {
-                $this->wiilockService->stopFeedingDashboard($entityManager, $meterType);
+                $this->wiilockService->toggleFeedingDashboard($entityManager, false);
                 $this->flushAndClearEm($entityManager);
                 throw $throwable;
             }
 
-            $this->wiilockService->stopFeedingDashboard($entityManager, $meterType);
+            $this->wiilockService->toggleFeedingDashboard($entityManager, false);
             $this->flushAndClearEm($entityManager);
         }
     }

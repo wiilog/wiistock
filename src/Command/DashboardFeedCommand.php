@@ -16,9 +16,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-class DashboardMeterFeedCommand extends Command
+class DashboardFeedCommand extends Command
 {
-    protected static $defaultName = 'app:feed:dashboards:meters';
+    protected static $defaultName = 'app:feed:dashboards';
 
     private $em;
     private $dashboardService;
@@ -45,7 +45,7 @@ class DashboardMeterFeedCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->dashboardService->retrieveAndInsertGlobalDashboardData($this->getEntityManager(), Wiilock::DASHBOARD_METER_FED_KEY);
+        $this->dashboardService->retrieveAndInsertGlobalDashboardData($this->getEntityManager());
     }
 
     /**
