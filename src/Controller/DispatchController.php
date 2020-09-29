@@ -825,7 +825,7 @@ class DispatchController extends AbstractController {
 
             $data = [
                 'success' => true,
-                'msg' => $translator->trans('colis.Le colis a bien été supprimé' . '.')
+                'msg' => $translator->trans('colis.Le colis a bien été supprimé') . '.'
             ];
 
             return new JsonResponse($data);
@@ -1233,6 +1233,43 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route(
+     *     "/{dispatch}/check-waybill",
+     *     name="check_dispatch_waybill",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @param TranslatorInterface $translator
+     * @param Dispatch $dispatch
+     * @return JsonResponse
+     */
+    public function checkWaybill(TranslatorInterface $translator, Dispatch $dispatch) {
+
+        $invalidPacks = array_filter($dispatch->getDispatchPacks()->toArray(), function(DispatchPack $pack) {
+            return !$pack->getPack()->getWeight() || !$pack->getPack()->getVolume();
+        });
+
+        if ($dispatch->getDispatchPacks()->count() === 0) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => $translator->trans('acheminement.Des colis sont nécessaires pour générer une lettre de voiture') . '.'
+            ]);
+        }
+        else if ($invalidPacks) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => $translator->trans("acheminement.Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée") . '.'
+            ]);
+        }
+        else {
+            return new JsonResponse([
+                "success" => true,
+            ]);
+        }
+    }
+
+    /**
+     * @Route(
      *     "/{dispatch}/api-waybill",
      *     name="api_dispatch_waybill",
      *     options={"expose"=true},
@@ -1241,7 +1278,6 @@ class DispatchController extends AbstractController {
      * )
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
      * @param SpecificService $specificService
      * @param Dispatch $dispatch
      * @return JsonResponse
@@ -1250,17 +1286,8 @@ class DispatchController extends AbstractController {
      */
     public function apiWaybill(Request $request,
                                EntityManagerInterface $entityManager,
-                               TranslatorInterface $translator,
                                SpecificService $specificService,
                                Dispatch $dispatch): JsonResponse {
-        if ($dispatch->getDispatchPacks()->count() === 0) {
-            $errorMessage = $translator->trans('acheminement.Des colis sont nécessaires pour générer une lettre de voiture') . '.';
-
-            return $this->json([
-                "success" => false,
-                "msg" => $errorMessage
-            ]);
-        }
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();

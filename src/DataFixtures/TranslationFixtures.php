@@ -91,7 +91,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Générer un bon de livraison' => 'Générer un bon de livraison',
                 'Générer une lettre de voiture' => 'Générer une lettre de voiture',
                 "La lettre de voiture n'existe pas pour cet acheminement" => "La lettre de voiture n'existe pas pour cet acheminement",
-                "Le bon de livraison n'existe pas pour cet acheminement" => "Le bon de livraison n'existe pas pour cet acheminement"
+                "Le bon de livraison n'existe pas pour cet acheminement" => "Le bon de livraison n'existe pas pour cet acheminement",
+                "Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée" => "Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',
