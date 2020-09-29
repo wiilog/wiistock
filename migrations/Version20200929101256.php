@@ -69,7 +69,7 @@ final class Version20200929101256 extends AbstractMigration
                     }, array_values($pack))
                 );
                 $this->connection
-                    ->executeQuery("INSERT INTO mouvement_traca ({$keys}) VALUES ({{$values}});");
+                    ->executeQuery("INSERT INTO mouvement_traca ({$keys}) VALUES ({$values});");
                 $this->connection
                     ->executeQuery("
                         UPDATE pack
