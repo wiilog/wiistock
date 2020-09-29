@@ -10,6 +10,7 @@
         callback: 'callbackSaveFilter',
     } %}
 {% endblock %}
+
 {% block page_content %}
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
@@ -30,7 +31,7 @@
                             <span class="fa fa-angle-down"></span>
                         </button>
                         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                            <div class="dropdown-item" onclick="saveExportFile('get_handlings_for_csv', false)">
+                            <div class="dropdown-item" onclick="saveExportFile('get_handlings_for_csv')">
                                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                             </div>
                         </div>

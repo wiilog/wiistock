@@ -110,7 +110,7 @@ class HandlingRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @return Handling[]|null
+     * @return Handling[]
      */
     public function getByDates($dateMin, $dateMax)
     {
@@ -119,22 +119,25 @@ class HandlingRepository extends EntityRepository
 
         $queryBuilder = $this->createQueryBuilder('handling')
             ->select('handling.id')
+            ->addSelect('handling.number AS number')
             ->addSelect('handling.creationDate AS creationDate')
-            ->addSelect('joinRequester.username AS demandeur')
-            ->addSelect('joinType.label AS type')
-            ->addSelect('handling.subject AS objet')
-            ->addSelect('handling.source AS source')
-            ->addSelect('handling.destination AS destination')
+            ->addSelect('join_requester.username AS requester')
+            ->addSelect('join_type.label AS type')
+            ->addSelect('handling.subject AS subject')
+            ->addSelect('handling.source AS loadingZone')
+            ->addSelect('handling.destination AS unloadingZone')
             ->addSelect('handling.desiredDate AS desiredDate')
             ->addSelect('handling.validationDate AS validationDate')
-            ->addSelect('joinStatus.nom AS statut')
+            ->addSelect('join_status.nom AS status')
             ->addSelect('handling.comment AS comment')
             ->addSelect('handling.emergency AS emergency')
+            ->addSelect('join_treatedByHandling.username AS treatedBy')
             ->addSelect('handling.freeFields')
 
-            ->leftJoin('handling.requester', 'joinRequester')
-            ->leftJoin('handling.type', 'joinType')
-            ->leftJoin('handling.status', 'joinStatus')
+            ->leftJoin('handling.requester', 'join_requester')
+            ->leftJoin('handling.type', 'join_type')
+            ->leftJoin('handling.status', 'join_status')
+            ->leftJoin('handling.treatedByHandling', 'join_treatedByHandling')
 
             ->where('handling.creationDate BETWEEN :dateMin AND :dateMax')
 
@@ -142,6 +145,7 @@ class HandlingRepository extends EntityRepository
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
             ]);
+
         return $queryBuilder
             ->getQuery()
             ->getResult();
