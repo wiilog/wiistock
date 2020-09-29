@@ -20,7 +20,7 @@ final class Version20200929101256 extends AbstractMigration
     public function up(Schema $schema) : void
     {
         $packsWithSameLastTracking = $this->connection->executeQuery('
-            SELECT pack.id AS pack_id, mouvement_traca.*
+            SELECT pack.id AS pack_id_duplicate, mouvement_traca.*
             FROM pack
             INNER JOIN mouvement_traca on pack.last_tracking_id = mouvement_traca.id
             WHERE pack.last_tracking_id IN (
@@ -35,13 +35,13 @@ final class Version20200929101256 extends AbstractMigration
         $alreadyViewedTracking = [];
         foreach ($packsWithSameLastTracking as $pack) {
             $trackingId = $pack['id'];
-            $packId = $pack['pack_id'];
+            $packId = $pack['pack_id_duplicate'];
             if (!array_key_exists($trackingId, $alreadyViewedTracking)) {
                 $alreadyViewedTracking[$trackingId] = true;
             }
             else {
                 unset($pack['id']);
-                unset($pack['pack_id']);
+                unset($pack['pack_id_duplicate']);
                 $keys = implode(
                     ',',
                     array_map(function ($key) {
