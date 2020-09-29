@@ -22,6 +22,7 @@
 }
 
 .dashboard-box-container {
+
     &.side-panels {
         height: 15vh;
 
@@ -48,6 +49,10 @@
         .dashboard-ext & {
             height: 26vh;
         }
+    }
+
+    &.multi-line-box {
+        height: 20vh;
     }
 
     &.fourth-row-height {
