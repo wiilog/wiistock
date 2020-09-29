@@ -404,12 +404,10 @@ class MouvementTracaController extends AbstractController
     /**
      * @Route("/supprimer", name="mvt_traca_delete", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
-     * @param MouvementTracaService $mouvementTracaService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function delete(Request $request,
-                           MouvementTracaService $mouvementTracaService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {

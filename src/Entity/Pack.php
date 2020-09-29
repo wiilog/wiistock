@@ -55,7 +55,7 @@ class Pack
     /**
      * @var Collection
      * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="pack", cascade={"remove"})
-     * @ORM\OrderBy({"datetime" = "DESC"})
+     * @ORM\OrderBy({"datetime" = "DESC", "id" = "DESC"})
      */
     private $trackingMovements;
 
@@ -190,7 +190,10 @@ class Pack
      */
     public function getTrackingMovements(string $order = 'DESC'): Collection {
         $criteria = Criteria::create()
-            ->orderBy(['datetime' => $order]);
+            ->orderBy([
+                'datetime' => $order,
+                'id' => $order
+            ]);
         return $this->trackingMovements->matching($criteria);
     }
 

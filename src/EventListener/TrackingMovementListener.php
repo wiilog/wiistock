@@ -21,64 +21,69 @@ class TrackingMovementListener
     }
 
     /**
-     * @param MouvementTraca $trackingMovement
+     * @param MouvementTraca $movementToDelete
      * @throws Exception
      */
-    public function preRemove(MouvementTraca $trackingMovement) {
-        $pack = $trackingMovement->getPack();
+    public function preRemove(MouvementTraca $movementToDelete) {
+        $pack = $movementToDelete->getPack();
 
         $trackingMovements = $pack->getTrackingMovements();
 
         $newLastTracking = null;
         $newLastDrop = null;
-        foreach ($trackingMovements as $savedTrackingMovement) {
-            if ($trackingMovement !== $savedTrackingMovement) {
-                if (!isset($newLastTracking)) {
-                    $newLastTracking = $trackingMovement;
-                }
+        $lastDropToUpdate = (
+            !$pack->getLastDrop()
+            || $pack->getLastDrop()->getId() === $movementToDelete->getId()
+        );
 
-                if ($trackingMovement->isDrop()) {
-                    $newLastDrop = $trackingMovement;
-                }
+        $lastTrackingToUpdate = (
+            $pack->getLastTracking()
+            && $pack->getLastTracking()->getId() === $movementToDelete->getId()
+        );
+        foreach ($trackingMovements as $savedTrackingMovement) {
+            if (($movementToDelete !== $savedTrackingMovement)
+                && (!isset($newLastTracking))) {
+                $newLastTracking = $savedTrackingMovement;
             }
 
-            if (isset($newLastTracking) && isset($newLastDrop)) {
+            if (isset($newLastTracking)) {
                 break;
             }
         }
 
-        $linkedLastDrop = $trackingMovement->getLinkedPackLastDrop();
-        $linkedLastTracking = $trackingMovement->getLinkedPackLastTracking();
-
-        if ($linkedLastDrop) {
-            $linkedLastDrop->setLastDrop($newLastDrop);
+        if ($lastDropToUpdate
+            && isset($newLastTracking)
+            && $newLastTracking->isDrop()) {
+            $newLastDrop = $newLastTracking;
         }
 
-        if ($linkedLastTracking) {
-            $linkedLastTracking->setLastTracking($newLastTracking);
+        if ($lastDropToUpdate) {
+            $pack->setLastDrop($newLastDrop);
         }
 
-        $firstDropsRecordIds = $trackingMovement->getFirstDropsRecords()
+        if ($lastTrackingToUpdate) {
+            $pack->setLastTracking($newLastTracking);
+        }
+
+        $firstDropsRecordIds = $movementToDelete->getFirstDropsRecords()
             ->map(function (LocationClusterRecord $record) {
                 return $record->getId();
             })
             ->toArray();
-        $this->treatFirstDropRecord($trackingMovement);
-        $this->treatLastTrackingRecord($firstDropsRecordIds, $trackingMovement);
+        $this->treatFirstDropRecord($movementToDelete);
+        $this->treatLastTrackingRecord($firstDropsRecordIds, $movementToDelete);
 
-        $this->treatLocationClusterMeter($trackingMovement);
-
-        $this->entityManager->flush();
+        $this->treatLocationClusterMeter($movementToDelete);
     }
 
-    private function treatFirstDropRecord(MouvementTraca $trackingMovement): void {
-        $pack = $trackingMovement->getPack();
-        $firstDropRecords = $trackingMovement->getFirstDropsRecords();
+    private function treatFirstDropRecord(MouvementTraca $movementToDelete): void {
+        $pack = $movementToDelete->getPack();
+        $firstDropRecords = $movementToDelete->getFirstDropsRecords();
         /** @var LocationClusterRecord $firstDropRecords */
         foreach ($firstDropRecords as $firstDropRecord) {
             // record inactive OR firstDrop == lastTracking (one movement on cluster)
             if (!$firstDropRecord->isActive()
-                || $trackingMovement === $firstDropRecord->getLastTracking()) {
+                || $movementToDelete === $firstDropRecord->getLastTracking()) {
                 $firstDropRecord->setFirstDrop(null);
                 $this->entityManager->remove($firstDropRecord);
             }
@@ -86,7 +91,7 @@ class TrackingMovementListener
                 $replacedTracking = null;
                 // get next drop on cluster
                 foreach ($pack->getTrackingMovements() as $packTrackingMovement) {
-                    if ($packTrackingMovement === $trackingMovement) {
+                    if ($packTrackingMovement === $movementToDelete) {
                         break;
                     }
                     else if ($packTrackingMovement->isDrop()) {
@@ -104,9 +109,9 @@ class TrackingMovementListener
         }
     }
     private function treatLastTrackingRecord(array $recordIdsToIgnore,
-                                             MouvementTraca $trackingMovement): void {
-        $pack = $trackingMovement->getPack();
-        $lastTrackingRecords = $trackingMovement->getLastTrackingRecords();
+                                             MouvementTraca $movementToDelete): void {
+        $pack = $movementToDelete->getPack();
+        $lastTrackingRecords = $movementToDelete->getLastTrackingRecords();
         /** @var LocationClusterRecord $record */
         foreach ($lastTrackingRecords as $record) {
             if ($record->getId()
@@ -119,7 +124,7 @@ class TrackingMovementListener
                     $replacedTracking = null;
                     // get last taking
                     foreach ($pack->getTrackingMovements('ASC') as $packTrackingMovement) {
-                        if ($packTrackingMovement === $trackingMovement) {
+                        if ($packTrackingMovement === $movementToDelete) {
                             break;
                         }
                         $replacedTracking = $packTrackingMovement;
