@@ -358,7 +358,7 @@ class AccueilController extends AbstractController
             2 => LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2
         ];
 
-        $key = DashboardService::DASHBOARD_ADMIN . '-' . $graphToCode[$graph];
+        $key = $graphToCode[$graph];
         $data = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_ADMIN, $key);
         $orderedData = [];
         $orderedData['chartColors'] = $data['chartColors'] ?? [];
