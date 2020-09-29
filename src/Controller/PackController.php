@@ -22,6 +22,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Throwable;
 
 /**
  * @Route("/colis")
@@ -95,7 +96,7 @@ class PackController extends AbstractController {
         try {
             $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
             $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
         }
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
@@ -156,6 +157,8 @@ class PackController extends AbstractController {
                     'code' => $packCode,
                     'quantity' => $pack->getQuantity(),
                     'comment' => $pack->getComment(),
+                    'weight' => $pack->getWeight(),
+                    'volume' => $pack->getVolume(),
                     'nature' => $pack->getNature()
                         ? [
                             'id' => $pack->getNature()->getId(),
@@ -200,67 +203,40 @@ class PackController extends AbstractController {
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param UserService $userService
+     * @param PackService $packService
+     * @param TranslatorInterface $translator
      * @return Response
      */
     public function edit(Request $request,
                          EntityManagerInterface $entityManager,
-                         UserService $userService): Response {
+                         UserService $userService,
+                         PackService $packService,
+                         TranslatorInterface $translator): Response {
         if (!$userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
         $data = json_decode($request->getContent(), true);
-
+        $response = [];
         $packRepository = $entityManager->getRepository(Pack::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
 
         $pack = $packRepository->find($data['id']);
-
-        if (!empty($pack)) {
-            $natureId = $data['nature'] ?? null;
-            $quantity = $data['quantity'] ?? null;
-            $comment = $data['comment'] ?? null;
-            $weight = !empty($data['weight']) ? str_replace(",", ".", $data['weight']) : null;
-            $volume = !empty($data['volume']) ? str_replace(",", ".", $data['volume']) : null;
-
-            if ($quantity <= 0) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'La quantité doit être supérieure à 0.'
-                ]);
-            }
-
-            if (!empty($weight) && (!is_numeric($weight) || ((float) $weight) <= 0)) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Le poids doit être un nombre supérieur à 0.'
-                ]);
-            }
-
-            if (!empty($volume) && (!is_numeric($volume) || ((float) $volume) <= 0)) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Le volume doit être un nombre supérieur à 0.' . $volume
-                ]);
-            }
-
-            $nature = $natureRepository->find($natureId);
-            if (!empty($nature)) {
-                $pack->setNature($nature);
-            }
-
-            $pack
-                ->setQuantity($quantity)
-                ->setWeight($weight)
-                ->setVolume($volume)
-                ->setComment($comment);
+        $packDataIsValid =  $packService->checkPackDataBeforeEdition($data);
+        if (!empty($pack) && $packDataIsValid['success']) {
+            $packService
+                ->editPack($data, $natureRepository, $pack);
 
             $entityManager->flush();
+            $response = [
+                'success' => true,
+                'msg' => $translator->trans('colis.Le colis {numéro} a bien été modifié', [
+                        "{numéro}" => '<strong>' . $pack->getCode() . '</strong>'
+                    ]) . '.'
+            ];
+        } else if (!$packDataIsValid['success']) {
+            $response = $packDataIsValid;
         }
-
-        return new JsonResponse([
-            'success' => true,
-            'msg' => 'Votre colis a bien été modifié.'
-        ]);
+        return new JsonResponse($response);
     }
 
     /**
@@ -268,9 +244,10 @@ class PackController extends AbstractController {
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param UserService $userService
+     * @param TranslatorInterface $translator
      * @return Response
      */
-    public function delete(Request $request, EntityManagerInterface $entityManager, UserService $userService): Response
+    public function delete(Request $request, EntityManagerInterface $entityManager, UserService $userService, TranslatorInterface $translator): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
@@ -279,10 +256,17 @@ class PackController extends AbstractController {
             $packRepository = $entityManager->getRepository(Pack::class);
 
             $pack = $packRepository->find($data['pack']);
+            $packCode = $pack->getCode();
+
             $entityManager->remove($pack);
             $entityManager->flush();
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse([
+                'success' => true,
+                'msg' => $translator->trans('colis.Le colis {numéro} a bien été supprimé', [
+                        "{numéro}" => '<strong>' . $packCode . '</strong>'
+                    ]) . '.'
+            ]);
         }
 
         throw new NotFoundHttpException("404");
