@@ -298,18 +298,19 @@ function openWaybillModal($button) {
         $.get(Routing.generate('api_dispatch_waybill', {dispatch: dispatchId}))
     ]).then((values) => {
         let check = values[0];
-        if(!check.success) {
+        if (!check.success) {
             showBSAlert(check.msg, "danger");
             return;
         }
 
         let result = values[1];
-        if(result.success) {
+        if (result.success) {
             const $modal = $('#modalPrintWaybill');
             const $modalBody = $modal.find('.modal-body');
             $modalBody.html(result.html);
             $modal.modal('show');
-        } else {
+        }
+        else {
             showBSAlert(result.msg, "danger");
         }
     });

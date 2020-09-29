@@ -825,7 +825,7 @@ class DispatchController extends AbstractController {
 
             $data = [
                 'success' => true,
-                'msg' => $translator->trans('colis.Le colis a bien été supprimé' . '.')
+                'msg' => $translator->trans('colis.Le colis a bien été supprimé') . '.'
             ];
 
             return new JsonResponse($data);
@@ -1239,24 +1239,30 @@ class DispatchController extends AbstractController {
      *     methods="GET",
      *     condition="request.isXmlHttpRequest()"
      * )
+     * @param TranslatorInterface $translator
+     * @param Dispatch $dispatch
+     * @return JsonResponse
      */
-    public function checkWaybill(TranslatorInterface $trans, Dispatch $dispatch) {
+    public function checkWaybill(TranslatorInterface $translator, Dispatch $dispatch) {
+
         $invalidPacks = array_filter($dispatch->getDispatchPacks()->toArray(), function(DispatchPack $pack) {
             return !$pack->getPack()->getWeight() || !$pack->getPack()->getVolume();
         });
 
         if ($dispatch->getDispatchPacks()->count() === 0) {
-            return $this->json([
-                "success" => false,
-                "msg" => $trans->trans('acheminement.Des colis sont nécessaires pour générer une lettre de voiture')
+            return new JsonResponse([
+                'success' => false,
+                'msg' => $translator->trans('acheminement.Des colis sont nécessaires pour générer une lettre de voiture') . '.'
             ]);
-        } else if($invalidPacks) {
-            return $this->json([
-                "success" => false,
-                "msg" => $trans->trans("acheminement.Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée")
+        }
+        else if ($invalidPacks) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => $translator->trans("acheminement.Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée") . '.'
             ]);
-        } else {
-            return $this->json([
+        }
+        else {
+            return new JsonResponse([
                 "success" => true,
             ]);
         }
