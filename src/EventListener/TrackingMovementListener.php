@@ -117,15 +117,18 @@ class TrackingMovementListener
                 }
                 else {
                     $replacedTracking = null;
-                    // get next drop on cluster
-                    foreach ($pack->getTrackingMovements() as $packTrackingMovement) {
-                        $replacedTracking = $packTrackingMovement;
-                        if ($record->getFirstDrop() === $trackingMovement) {
+                    // get last taking
+                    foreach ($pack->getTrackingMovements('ASC') as $packTrackingMovement) {
+                        if ($packTrackingMovement === $trackingMovement) {
                             break;
                         }
+                        $replacedTracking = $packTrackingMovement;
                     }
                     if (isset($replacedTracking)){
                         $record->setLastTracking($replacedTracking);
+                        if ($replacedTracking->isTaking()) {
+                            $record->setActive(false);
+                        }
                     }
                     else {
                         $record->setLastTracking(null);

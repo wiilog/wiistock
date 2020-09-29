@@ -185,11 +185,12 @@ class Pack
     }
 
     /**
+     * @param string $order
      * @return Collection|MouvementTraca[]
      */
-    public function getTrackingMovements(): Collection {
+    public function getTrackingMovements(string $order = 'DESC'): Collection {
         $criteria = Criteria::create()
-            ->orderBy(['datetime' => 'DESC']);
+            ->orderBy(['datetime' => $order]);
         return $this->trackingMovements->matching($criteria);
     }
 

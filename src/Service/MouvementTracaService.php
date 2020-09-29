@@ -396,13 +396,9 @@ class MouvementTracaService
                     // check if pack previous last tracking !== record previous lastTracking
                     // IF not equals then we set firstDrop
                     // ELSE that is to say the pack come from the location cluster
-                    if ($previousRecordLastTracking !== $previousLastTracking
-                        && (
-                            !$previousRecordLastTracking
-                            || !$previousLastTracking
-                            || ($previousRecordLastTracking->getId() !== $previousLastTracking->getId())
-                            // TODO with lastDrop of pack
-                        )) {
+                    if (!$previousRecordLastTracking
+                        || !$previousLastTracking
+                        || ($previousRecordLastTracking->getId() !== $previousLastTracking->getId())) {
                         $record->setFirstDrop($tracking);
                     }
                 }

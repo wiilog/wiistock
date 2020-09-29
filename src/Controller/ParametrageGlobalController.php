@@ -856,8 +856,10 @@ class ParametrageGlobalController extends AbstractController
         /** @var Emplacement $locationInCluster */
         foreach ($cluster->getLocations() as $locationInCluster) {
             $locationId = (string) $locationInCluster->getId();
+            // check if location is removed from cluster
             if (empty($listLocationIds)
                 || !in_array($locationId, $listLocationIds)) {
+
                 $records = $cluster->getLocationClusterRecords(true);
                 /** @var LocationClusterRecord $record */
                 foreach ($records as $record) {
@@ -901,6 +903,7 @@ class ParametrageGlobalController extends AbstractController
                         }
                     }
                 }
+
                 $locationInCluster->removeCluster($cluster);
             }
         }
