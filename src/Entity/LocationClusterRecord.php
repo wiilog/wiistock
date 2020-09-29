@@ -143,7 +143,7 @@ class LocationClusterRecord {
      */
     public function setLastTracking(?MouvementTraca $lastTracking): self {
         if (isset($this->lastTracking)) {
-            $this->lastTracking->removeLastTrackingOnLocationCluster($this);
+            $this->lastTracking->removeLastTrackingRecord($this);
         }
         $this->lastTracking = $lastTracking;
         if (isset($this->lastTracking)) {
