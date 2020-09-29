@@ -203,71 +203,40 @@ class PackController extends AbstractController {
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param UserService $userService
+     * @param PackService $packService
      * @param TranslatorInterface $translator
      * @return Response
      */
     public function edit(Request $request,
                          EntityManagerInterface $entityManager,
                          UserService $userService,
+                         PackService $packService,
                          TranslatorInterface $translator): Response {
         if (!$userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
         $data = json_decode($request->getContent(), true);
-
+        $response = [];
         $packRepository = $entityManager->getRepository(Pack::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
 
         $pack = $packRepository->find($data['id']);
-
-        if (!empty($pack)) {
-            $natureId = $data['nature'] ?? null;
-            $quantity = $data['quantity'] ?? null;
-            $comment = $data['comment'] ?? null;
-            $weight = !empty($data['weight']) ? str_replace(",", ".", $data['weight']) : null;
-            $volume = !empty($data['volume']) ? str_replace(",", ".", $data['volume']) : null;
-
-            if ($quantity <= 0) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'La quantité doit être supérieure à 0.'
-                ]);
-            }
-
-            if (!empty($weight) && (!is_numeric($weight) || ((float) $weight) <= 0)) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Le poids doit être un nombre supérieur à 0.'
-                ]);
-            }
-
-            if (!empty($volume) && (!is_numeric($volume) || ((float) $volume) <= 0)) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Le volume doit être un nombre supérieur à 0.' . $volume
-                ]);
-            }
-
-            $nature = $natureRepository->find($natureId);
-            if (!empty($nature)) {
-                $pack->setNature($nature);
-            }
-
-            $pack
-                ->setQuantity($quantity)
-                ->setWeight($weight)
-                ->setVolume($volume)
-                ->setComment($comment);
+        $packDataIsValid =  $packService->checkPackDataBeforeEdition($data);
+        if (!empty($pack) && $packDataIsValid['success']) {
+            $packService
+                ->editPack($data, $natureRepository, $pack);
 
             $entityManager->flush();
+            $response = [
+                'success' => true,
+                'msg' => $translator->trans('colis.Le colis {numéro} a bien été modifié', [
+                        "{numéro}" => '<strong>' . $pack->getCode() . '</strong>'
+                    ]) . '.'
+            ];
+        } else if (!$packDataIsValid['success']) {
+            $response = $packDataIsValid;
         }
-
-        return new JsonResponse([
-            'success' => true,
-            'msg' => $translator->trans('colis.Le colis {numéro} a bien été modifié', [
-                    "{numéro}" => '<strong>' . $pack->getCode() . '</strong>'
-                ]) . '.'
-        ]);
+        return new JsonResponse($response);
     }
 
     /**
