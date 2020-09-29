@@ -27,6 +27,7 @@ use App\Service\FreeFieldService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
+use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use App\Service\DispatchService;
 
@@ -213,6 +214,7 @@ class DispatchController extends AbstractController {
      * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
      * @param TranslatorInterface $translator
+     * @param UniqueNumberService $uniqueNumberService
      * @return Response
      * @throws Exception
      */
@@ -221,7 +223,8 @@ class DispatchController extends AbstractController {
                         DispatchService $dispatchService,
                         AttachmentService $attachmentService,
                         EntityManagerInterface $entityManager,
-                        TranslatorInterface $translator): Response {
+                        TranslatorInterface $translator,
+                        UniqueNumberService $uniqueNumberService): Response {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
                 !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
@@ -235,11 +238,14 @@ class DispatchController extends AbstractController {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $transporterRepository = $entityManager->getRepository(Transporteur::class);
             $packRepository = $entityManager->getRepository(Pack::class);
+            $dispatchRepository = $entityManager->getRepository(Dispatch::class);
 
             $printDeliveryNote = $request->query->get('printDeliveryNote');
 
             $dispatch = new Dispatch();
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $dateStr = $date->format('Ymd');
+            $prefix = Dispatch::PREFIX_NUMBER;
 
             $fileBag = $request->files->count() > 0 ? $request->files : null;
             $locationTake = $post->get('prise') ? $emplacementRepository->find($post->get('prise')) : null;
@@ -259,7 +265,9 @@ class DispatchController extends AbstractController {
 
             $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
             $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
-            $number = $dispatchService->createDispatchNumber($entityManager, $date);
+
+            $lastDispatchNumber = $dispatchRepository->getLastDispatchNumberByPrefix($prefix . '-' . $dateStr);
+            $number = $uniqueNumberService->createUniqueNumber($prefix, $lastDispatchNumber);
 
             if ($startDate && $endDate && $startDate > $endDate) {
                 return new JsonResponse([

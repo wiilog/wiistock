@@ -35,6 +35,7 @@ use App\Service\GlobalParamService;
 use App\Service\LitigeService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
+use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use App\Service\FreeFieldService;
@@ -986,6 +987,7 @@ class ArrivageController extends AbstractController
      * @param ArrivageDataService $arrivageDataService
      * @param LitigeService $litigeService
      * @param EntityManagerInterface $entityManager
+     * @param UniqueNumberService $uniqueNumberService
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
@@ -994,7 +996,8 @@ class ArrivageController extends AbstractController
     public function newLitige(Request $request,
                               ArrivageDataService $arrivageDataService,
                               LitigeService $litigeService,
-                              EntityManagerInterface $entityManager): Response
+                              EntityManagerInterface $entityManager,
+                              UniqueNumberService $uniqueNumberService): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
@@ -1007,9 +1010,14 @@ class ArrivageController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $packRepository = $entityManager->getRepository(Pack::class);
             $usersRepository = $entityManager->getRepository(Utilisateur::class);
+            $disputeRepository = $entityManager->getRepository(Litige::class);
 
             $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $disputeNumber = $litigeService->createDisputeNumber($entityManager, 'LA', $now);
+            $dateStr = $now->format('Ymd');
+            $prefix = Litige::DISPUTE_ARRIVAL_PREFIX;
+
+            $lastDisputeNumber = $disputeRepository->getLastDisputeNumberByPrefixAndDate($prefix, $dateStr);
+            $disputeNumber = $uniqueNumberService->createUniqueNumber($prefix, $lastDisputeNumber);
 
             $litige = new Litige();
             $litige

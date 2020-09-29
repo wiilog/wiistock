@@ -200,31 +200,4 @@ class LitigeService
             );
         }
     }
-
-    public function createDisputeNumber(EntityManagerInterface $entityManager,
-                                        string $prefix,
-                                        DateTime $date): string {
-
-        $litigeRepository = $entityManager->getRepository(Litige::class);
-
-        $dateStr = $date->format('ymd');
-
-        $lastNumeroLitige = $litigeRepository->getLastNumeroLitigeByPrefixeAndDate($prefix, $dateStr);
-        if ($lastNumeroLitige) {
-            $lastCounter = (int) substr($lastNumeroLitige, -4, 4);
-            $currentCounter = ($lastCounter + 1);
-        }
-        else {
-            $currentCounter = 1;
-        }
-
-        $currentCounterStr = (
-            $currentCounter < 10 ? ('000' . $currentCounter) :
-            ($currentCounter < 100 ? ('00' . $currentCounter) :
-            ($currentCounter < 1000 ? ('0' . $currentCounter) :
-            $currentCounter))
-        );
-
-        return ($prefix . $dateStr . $currentCounterStr);
-    }
 }

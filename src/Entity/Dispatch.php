@@ -14,7 +14,7 @@ class Dispatch extends FreeFieldEntity
 {
     const CATEGORIE = 'acheminements';
 
-    const PREFIX_NUMBER = 'A-';
+    const PREFIX_NUMBER = 'A';
 
 
     /**

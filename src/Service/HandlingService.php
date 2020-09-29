@@ -142,31 +142,4 @@ class HandlingService
             }
         }
     }
-
-    public function createHandlingNumber(EntityManagerInterface $entityManager,
-                                         DateTime $date): string {
-
-        $handlingRepository = $entityManager->getRepository(Handling::class);
-
-        $dateStr = $date->format('Ymd');
-
-        $lastHandlingNumber = $handlingRepository->getLastHandlingNumberByPrefix(Handling::PREFIX_NUMBER . $dateStr);
-
-        if ($lastHandlingNumber) {
-            $lastCounter = (int) substr($lastHandlingNumber, -4, 4);
-            $currentCounter = ($lastCounter + 1);
-        }
-        else {
-            $currentCounter = 1;
-        }
-
-        $currentCounterStr = (
-        $currentCounter < 10 ? ('000' . $currentCounter) :
-            ($currentCounter < 100 ? ('00' . $currentCounter) :
-                ($currentCounter < 1000 ? ('0' . $currentCounter) :
-                    $currentCounter))
-        );
-
-        return (Handling::PREFIX_NUMBER . $dateStr . $currentCounterStr);
-    }
 }

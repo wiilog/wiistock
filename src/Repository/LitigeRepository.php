@@ -492,19 +492,19 @@ class LitigeRepository extends EntityRepository
 		return array_column($result, 'reference');
 	}
 
-    public function getLastNumeroLitigeByPrefixeAndDate($prefixe, $date)
+    public function getLastDisputeNumberByPrefixAndDate($prefix, $date)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
         /** @lang DQL */
-            'SELECT l.numeroLitige as numeroLitige
+            'SELECT l.numeroLitige as disputeNumber
 			FROM App\Entity\Litige l
 			WHERE l.numeroLitige LIKE :value
 			ORDER BY l.creationDate DESC'
-        )->setParameter('value', $prefixe . $date . '%');
+        )->setParameter('value', $prefix . '-' . $date . '%');
 
         $result = $query->execute();
-        return $result ? $result[0]['numeroLitige'] : null;
+        return $result ? $result[0]['disputeNumber'] : null;
     }
 
     public function getIdAndDisputeNumberBySearch($search)

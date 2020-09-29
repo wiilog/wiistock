@@ -20,6 +20,7 @@ use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
+use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use App\Service\HandlingService;
 
@@ -141,7 +142,11 @@ class HandlingController extends AbstractController
      * @param FreeFieldService $freeFieldService
      * @param AttachmentService $attachmentService
      * @param TranslatorInterface $translator
+     * @param UniqueNumberService $uniqueNumberService
      * @return Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      * @throws Exception
      */
     public function new(EntityManagerInterface $entityManager,
@@ -149,7 +154,8 @@ class HandlingController extends AbstractController
                         HandlingService $handlingService,
                         FreeFieldService $freeFieldService,
                         AttachmentService $attachmentService,
-                        TranslatorInterface $translator): Response
+                        TranslatorInterface $translator,
+                        UniqueNumberService $uniqueNumberService): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
@@ -158,23 +164,28 @@ class HandlingController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+            $handlingRepository = $entityManager->getRepository(Handling::class);
 
             $post = $request->request;
 
             $handling = new Handling();
-            $date = (new DateTime('now', new DateTimeZone('Europe/Paris')));
+            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $dateStr = $date->format('Ymd');
+            $prefix = Handling::PREFIX_NUMBER;
 
             $status = $statutRepository->find($post->get('status'));
             $type = $typeRepository->find($post->get('type'));
             $desiredDate = $post->get('desired-date') ? new DateTime($post->get('desired-date')) : null;
             $fileBag = $request->files->count() > 0 ? $request->files : null;
-            $number = $handlingService->createHandlingNumber($entityManager, $date);
+
+            $lastDispatchNumber = $handlingRepository->getLastHandlingNumberByPrefix($prefix . '-' . $dateStr);
+            $handlingNumber = $uniqueNumberService->createUniqueNumber($prefix, $lastDispatchNumber);
 
             /** @var Utilisateur $requester */
             $requester = $this->getUser();
 
             $handling
-                ->setNumber($number)
+                ->setNumber($handlingNumber)
                 ->setCreationDate($date)
                 ->setType($type)
                 ->setRequester($requester)

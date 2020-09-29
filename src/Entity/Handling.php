@@ -14,7 +14,7 @@ class Handling extends FreeFieldEntity
 {
     const CATEGORIE = 'service';
 
-    const PREFIX_NUMBER = 'S-';
+    const PREFIX_NUMBER = 'S';
 
     /**
      * @ORM\Id()

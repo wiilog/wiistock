@@ -43,6 +43,7 @@ use App\Service\ReceptionService;
 use App\Service\AttachmentService;
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
+use App\Service\UniqueNumberService;
 use App\Service\UserService;
 
 use App\Service\FreeFieldService;
@@ -1249,13 +1250,16 @@ class ReceptionController extends AbstractController
      * @param LitigeService $litigeService
      * @param ArticleDataService $articleDataService
      * @param Request $request
+     * @param UniqueNumberService $uniqueNumberService
      * @return Response
+     * @throws NonUniqueResultException
      * @throws Exception
      */
     public function newLitige(EntityManagerInterface $entityManager,
                               LitigeService $litigeService,
                               ArticleDataService $articleDataService,
-                              Request $request): Response
+                              Request $request,
+                              UniqueNumberService $uniqueNumberService): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::QUALI, Action::CREATE)) {
@@ -1267,12 +1271,17 @@ class ReceptionController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $disputeRepository = $entityManager->getRepository(Litige::class);
 
             $litige = new Litige();
 
             $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $dateStr = $now->format('Ymd');
+            $prefix = Litige::DISPUTE_RECEPTION_PREFIX;
 
-            $disputeNumber = $litigeService->createDisputeNumber($entityManager, 'LR', $now);
+            $lastDisputeNumber = $disputeRepository->getLastDisputeNumberByPrefixAndDate($prefix, $dateStr);
+            $disputeNumber = $uniqueNumberService->createUniqueNumber($prefix, $lastDisputeNumber);
+
             $litige
                 ->setStatus($statutRepository->find($post->get('statutLitige')))
                 ->setType($typeRepository->find($post->get('typeLitige')))
