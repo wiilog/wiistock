@@ -290,7 +290,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('join_dispatchPack_lastTracking_location.label AS lastLocation')
             ->addSelect('join_dispatchPack_lastTracking_operator.username AS operator')
             ->addSelect('join_status.nom AS status')
-            ->addSelect('dispatch.urgent AS urgent')
+            ->addSelect('dispatch.emergency AS emergency')
             ->addSelect('join_treatedBy.username AS treatedBy')
             ->addSelect('dispatch.freeFields')
 
