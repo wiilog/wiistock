@@ -43,11 +43,12 @@
     {% include 'mouvement_traca/trackingMovementQuantity.html.twig' with {quantity: mvt.quantity} %}
 </div>
 
-<div class="row champsLibresBlock">
+<span class="toggle-collapsible expanded">Champs libres</span>
+<div class="collapsible expanded free-fields-container mb-2">
     {% include 'champ_libre/freeFieldsViewing.html.twig' with {
         freeFields: champsLibres,
         freeFieldValues: mvt.freeFields,
-        colType: 'col-12',
+        colType: 'col-md-6 col-12',
         requiredType: 'requiredEdit',
         actionType: 'edit'
     } %}

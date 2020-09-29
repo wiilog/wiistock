@@ -15,7 +15,6 @@ use App\Entity\Fournisseur;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use App\Entity\Menu;
-use App\Entity\MouvementTraca;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
@@ -36,13 +35,11 @@ use App\Service\GlobalParamService;
 use App\Service\LitigeService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
-use App\Service\StatusService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use App\Service\FreeFieldService;
 use DateTime;
 use DateTimeZone;
-use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -58,7 +55,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -170,7 +166,9 @@ class ArrivageController extends AbstractController
             'users' => $utilisateurRepository->findBy(['status' => true], ['username'=> 'ASC']),
             'fournisseurs' => $fournisseurRepository->findAllSorted(),
             'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
-            'natures' => $natureRepository->findAll(),
+            'natures' => $natureRepository->findBy([
+                'displayed' => true
+            ]),
             'statuts' => $statuses,
             'typesArrival' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'fieldsParam' => $fieldsParam,
@@ -180,7 +178,7 @@ class ArrivageController extends AbstractController
             'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
             'champs' => $champs,
             'columnsVisibles' => $user->getColumnsVisibleForArrivage(),
-            'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT_ARRIVAGE),
+            'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
             'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
@@ -260,12 +258,15 @@ class ArrivageController extends AbstractController
             $suffix = $counter < 10 ? ("0" . $counter) : $counter;
             $numeroArrivage = $date->format('ymdHis') . '-' . $suffix;
 
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+
             $arrivage = new Arrivage();
             $arrivage
                 ->setIsUrgent(false)
                 ->setDate($date)
                 ->setStatut($statutRepository->find($data['status']))
-                ->setUtilisateur($this->getUser())
+                ->setUtilisateur($currentUser)
                 ->setNumeroArrivage($numeroArrivage)
                 ->setDuty(isset($data['duty']) ? $data['duty'] == 'true' : false)
                 ->setFrozen(isset($data['frozen']) ? $data['frozen'] == 'true' : false)
@@ -343,7 +344,7 @@ class ArrivageController extends AbstractController
                 ]);
             }
 
-            $colisService->persistMultiPacks($arrivage, $natures, $this->getUser(), $entityManager);
+            $colisService->persistMultiPacks($arrivage, $natures, $currentUser, $entityManager);
 
             $champLibreService->manageFreeFields($arrivage, $data, $entityManager);
 
@@ -378,7 +379,6 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
@@ -394,7 +394,6 @@ class ArrivageController extends AbstractController
                 $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
                 $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
                 $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-                $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
                 $statutRepository = $entityManager->getRepository(Statut::class);
 
                 $arrivage = $arrivageRepository->find($data['id']);
@@ -417,7 +416,7 @@ class ArrivageController extends AbstractController
                     'chauffeurs' => $chauffeurRepository->findAllSorted(),
                     'statuts' => $statuses,
                     'fieldsParam' => $fieldsParam,
-                    'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT_ARRIVAGE)
+                    'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT)
                 ]);
             } else {
                 $html = '';
@@ -612,7 +611,6 @@ class ArrivageController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
             $arrivage = $arrivageRepository->find($data['arrivage']);
 
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
@@ -952,7 +950,6 @@ class ArrivageController extends AbstractController
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $usersRepository = $entityManager->getRepository(Utilisateur::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {
@@ -969,7 +966,9 @@ class ArrivageController extends AbstractController
             'acheteurs' => $acheteursNames,
             'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
             'allColis' => $arrivage->getPacks(),
-            'natures' => $natureRepository->findAll(),
+            'natures' => $natureRepository->findBy([
+                'displayed' => true
+            ]),
             'printColis' => $printColis,
             'printArrivage' => $printArrivage,
             'utilisateurs' => $usersRepository->getIdAndLibelleBySearch(''),
@@ -977,7 +976,7 @@ class ArrivageController extends AbstractController
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
-            'modalNewDispatchConfig' => $dispatchService->getNewDispatchConfig($parametrageGlobalRepository, $statutRepository, $champLibreRepository, $fieldsParamRepository, $types, $arrivage)
+            'modalNewDispatchConfig' => $dispatchService->getNewDispatchConfig($statutRepository, $champLibreRepository, $fieldsParamRepository, $types, $arrivage)
         ]);
     }
 
@@ -1053,13 +1052,17 @@ class ArrivageController extends AbstractController
             $nl = !empty($userComment) ? "\n" : '';
             $trimmedTypeDescription = !empty($trimmedTypeDescription) ? "\n" . $trimmedTypeDescription : '';
             $commentaire = $userComment . $nl . 'Type à la création -> ' . $typeLabel . $trimmedTypeDescription . "\n" . 'Statut à la création -> ' . $statutNom;
+
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+
             if (!empty($commentaire)) {
                 $histo = new LitigeHistoric();
                 $histo
                     ->setDate(new DateTime('now'))
                     ->setComment($commentaire)
                     ->setLitige($litige)
-                    ->setUser($this->getUser());
+                    ->setUser($currentUser);
                 $entityManager->persist($histo);
             }
 
@@ -1123,7 +1126,10 @@ class ArrivageController extends AbstractController
 
             $natures = json_decode($data['colis'], true);
 
-            $persistedColis = $colisService->persistMultiPacks($arrivage, $natures, $this->getUser(), $entityManager);
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+
+            $persistedColis = $colisService->persistMultiPacks($arrivage, $natures, $currentUser, $entityManager);
             $entityManager->flush();
 
             return new JsonResponse([
@@ -1264,6 +1270,10 @@ class ArrivageController extends AbstractController
             $this->templating = $templating;
             $newStatus = $statutRepository->find($statutAfter);
             $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_LITIGE);
+
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+
             if ($hasRightToTreatLitige || !$newStatus->isTreated()) {
                 $litige->setStatus($newStatus);
             }
@@ -1318,7 +1328,7 @@ class ArrivageController extends AbstractController
                 $histoLitige
                     ->setLitige($litige)
                     ->setDate(new DateTime('now'))
-                    ->setUser($this->getUser())
+                    ->setUser($currentUser)
                     ->setComment($comment);
                 $entityManager->persist($histoLitige);
                 $entityManager->flush();
@@ -1705,6 +1715,8 @@ class ArrivageController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
             return $this->redirectToRoute('access_denied');
         }
+
+        /** @var Utilisateur $user */
         $user = $this->getUser();
 
         return new JsonResponse($user->getColumnsVisibleForArrivage());

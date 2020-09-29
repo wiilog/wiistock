@@ -41,6 +41,8 @@ $(function() {
     initDateTimePicker();
     initSelect2($('.filter-select2[name="statut"]'), 'Statuts');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
+    initSelect2($('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
+
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
 

@@ -967,7 +967,7 @@ class ReceptionController extends AbstractController
             'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
             'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
             'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
-            'typeChampsLibresDL' => $typeChampLibreDL,
+            'typeChampsLibres' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
             'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,

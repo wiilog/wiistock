@@ -43,6 +43,7 @@ $(function () {
             {"data": 'state', "name": 'state', 'title': 'État'},
             {"data": 'defaultStatus', "name": 'defaultStatus', 'title': 'Statut par défaut'},
             {"data": 'order', "name": 'order', 'title': 'Ordre'},
+            {"data": 'type', "name": 'type', 'title': 'Type'},
         ],
         order: [
             [1, 'asc'],

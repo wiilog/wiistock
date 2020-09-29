@@ -1,4 +1,4 @@
-<div class="form-group col-12 d-flex w-100 mb-3">
+<div class="form-group w-100 mt-2">
     <label for="code">Code article*</label>
     <select class="form-control ajax-autocomplete-article data select2" id="article" onchange="ajaxEditArticle($(this))" name="article">
         <option value="">choisir un article</option>
@@ -6,5 +6,4 @@
             <option value="{{article.id}}">{{article.barCode}}</option>
         {% endfor %}
     </select>
-
 </div>

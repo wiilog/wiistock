@@ -113,6 +113,7 @@ class HandlingController extends AbstractController
 			'filterStatus' => $filterStatus,
             'types' => $types,
             'fieldsParam' => $fieldsParam,
+            'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
                 'freeFieldsTypes' => array_map(function (Type $type) use ($freeFieldsRepository) {
@@ -124,6 +125,7 @@ class HandlingController extends AbstractController
                     ];
                 }, $types),
                 'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
+                'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY)
             ]
 		]);
     }
@@ -180,7 +182,7 @@ class HandlingController extends AbstractController
                 ->setStatus($status)
                 ->setDesiredDate($desiredDate)
 				->setComment($post->get('comment'))
-                ->setEmergency($post->getBoolean('emergency'));
+                ->setEmergency($post->get('emergency'));
 
             if ($status && $status->isTreated()) {
                 $handling->setValidationDate($date);
@@ -212,7 +214,7 @@ class HandlingController extends AbstractController
             return new JsonResponse([
                 'success' => true,
                 'msg' => $translator->trans("services.La demande de service {numéro} a bien été créée", [
-                        "{numéro}" => '<strong>'.$handling->getNumber().'</strong>',
+                        "{numéro}" => '<strong>' . $handling->getNumber() . '</strong>'
                     ]) . '.'
             ]);
         }
@@ -249,7 +251,8 @@ class HandlingController extends AbstractController
                     ? $statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType())
                     : [],
                 'attachments' => $attachmentsRepository->findBy(['handling' => $handling]),
-                'fieldsParam' => $fieldsParam
+                'fieldsParam' => $fieldsParam,
+                'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY)
             ]);
 
             return new JsonResponse($json);
@@ -307,7 +310,7 @@ class HandlingController extends AbstractController
             ->setDestination($post->get('destination') ?? $handling->getDestination())
             ->setDesiredDate($desiredDate)
             ->setComment($post->get('comment') ?: '')
-            ->setEmergency($post->getBoolean('emergency'));
+            ->setEmergency($post->get('emergency'));
 
         if (!$handling->getValidationDate() && $newStatus->isTreated()) {
             $handling->setValidationDate($date);
@@ -343,7 +346,7 @@ class HandlingController extends AbstractController
         return new JsonResponse([
             'success' => true,
             'msg' => $translator->trans("services.La demande de service {numéro} a bien été modifiée", [
-                    "{numéro}" => '<strong>'.$handling->getNumber().'</strong>',
+                    "{numéro}" => '<strong>' . $handling->getNumber() . '</strong>'
                 ]) . '.'
         ]);
 
@@ -400,7 +403,7 @@ class HandlingController extends AbstractController
             return new JsonResponse([
                 'success' => true,
                 'msg' => $translator->trans('services.La demande de service {numéro} a bien été supprimée', [
-                        "{numéro}" => '<strong>'.$handlingNumber.'</strong>',
+                        "{numéro}" => '<strong>' . $handlingNumber . '</strong>'
                     ]).'.'
             ]);
         }

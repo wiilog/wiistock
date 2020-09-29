@@ -12,73 +12,69 @@
                 <!--
                 BLOCK DL
                 -->
-                <div class="demande-livraison">
+                    <label>Demande de livraison</label>
+                    <label class="switch">
+                        <input class="checkbox data needs-default"
+                               name="create-demande"
+                               onclick="toggleDLForm()"
+                               data-init="{{ createDL ? 1 : 0 }}"
+                               type="checkbox"/>
+                        <span class="slider round"></span>
+                    </label>
+                <div class="demande-form mt-2" style="background-color:#F8F8F8;padding:10px;border-radius:4px;">
                     <div class="row">
-                        <div class="col-auto">
-                            <h5 class="bold mb-3">Demande de livraison</h5>
+                        <div class="col-4 form-group">
+                            <label for="destination">Destination*</label>
+                            <select name="destination" class="data ajax-autocompleteEmplacement w-100 needed" id="locationDemandeLivraison"
+                                    data-is-prefilled="{{ livraisonLocation is not empty }}">
+                                <option></option>
+                            </select>
+                            <input hidden id="locationDemandeLivraisonValue"
+                                   data-id="{{ livraisonLocation ? livraisonLocation.id : (app.user.dropzone and needsCurrentUser ? app.user.dropzone.id) }}"
+                                   data-text="{{ livraisonLocation ? livraisonLocation.text : (app.user.dropzone and needsCurrentUser ? app.user.dropzone.label) }}">
                         </div>
-                        <div class="col-auto ml-auto">
-                            <label class="switch">
-                                <input class="checkbox data needs-default"
-                                       name="create-demande"
-                                       onclick="toggleDLForm()"
-                                       data-init="{{ createDL ? 1 : 0 }}"
-                                       type="checkbox"/>
-                                <span class="slider round"></span>
-                            </label>
+                        <div class="col-4 form-group">
+                            <label for="demandeur">Demandeur*</label>
+                            <select class="select2-user data w-100 needed" name="demandeur" id="demandeurDL" onchange="demandeurChanged($(this))">
+                                <option></option>
+                            </select>
+                        </div>
+                        <input hidden id="currentUser" data-id="{{ needsCurrentUser ? app.user.id }}"
+                               data-text="{{ needsCurrentUser ? app.user.username }}">
+                        <div class="col-4 form-group">
+                            <label for="type">Type*</label>
+                            <select class="select2-type data w-100 needed" name="type"
+                                    onchange="typeChoice($(this), '-new');toggleRequiredChampsLibres($(this),'create')">
+                                <option>&nbsp;</option>
+                                {% for type in typeChampsLibres %}
+                                    <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
-                    <div class="demande-form">
-                        <div class="row">
-                            <div class="col-4 form-group">
-                                <label for="destination">Destination*</label>
-                                <select name="destination" class="data ajax-autocompleteEmplacement w-100 needed" id="locationDemandeLivraison"
-                                        data-is-prefilled="{{ livraisonLocation is not empty }}">
-                                    <option></option>
-                                </select>
-                                <input hidden id="locationDemandeLivraisonValue"
-                                       data-id="{{ livraisonLocation ? livraisonLocation.id : (app.user.dropzone and needsCurrentUser ? app.user.dropzone.id) }}"
-                                       data-text="{{ livraisonLocation ? livraisonLocation.text : (app.user.dropzone and needsCurrentUser ? app.user.dropzone.label) }}">
+
+                    <!-- CHAMPS LIBRES -->
+                    <span class="toggle-collapsible expanded">Champs libres</span>
+                    <div class="collapsible expanded free-fields-container mb-2">
+                        {% for type in typeChampsLibres %}
+                            <div class="d-none row" id="{{ type.typeId }}-new">
+                                {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+                                    freeFields: type.champsLibres,
+                                    freeFieldValues: [],
+                                    colType: 'col-md-4 col-12',
+                                    requiredType: 'requiredCreate',
+                                    actionType: 'new'
+                                } %}
                             </div>
-                            <div class="col-4 form-group">
-                                <label for="demandeur">Demandeur*</label>
-                                <select type="text" class="select2-user data w-100 needed" name="demandeur" id="demandeurDL" onchange="demandeurChanged($(this))">
-                                    <option></option>
-                                </select>
-                            </div>
-                            <input hidden id="currentUser" data-id="{{ needsCurrentUser ? app.user.id }}" data-text="{{ needsCurrentUser ? app.user.username }}">
-                            <div class="col-4 form-group">
-                                <label for="type">Type*</label>
-                                <select type="text" class="select2-type data w-100 needed" name="type"
-                                        onchange="typeChoice($(this), '-new', $('#typeContentNew')), toggleRequiredChampsLibres($(this),'create')">
-                                    <option>&nbsp;</option>
-                                    {% for type in typeChampsLibresDL %}
-                                        <option value="{{type.typeId}}">{{type.typeLabel}}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                        <!-- CHAMPS LIBRES -->
-                        <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
-                            {% for type in typeChampsLibresDL %}
-                                <div class="d-none row" id="{{ type.typeId }}-new">
-                                    {% include 'champ_libre/freeFieldsViewing.html.twig' with {
-                                        freeFields: type.champsLibres,
-                                        freeFieldValues: [],
-                                        colType: 'col-3',
-                                        requiredType: 'requiredCreate',
-                                        actionType: 'new'
-                                    } %}
-                                </div>
-                            {% endfor %}
-                        </div>
-                        <label for="commentaire-dl" class="mt-3">Commentaire</label>
-                        <input id='commentaire-dl'
+                        {% endfor %}
+                    </div>
+
+                    <label for="commentaire-dl">Commentaire</label>
+                    <input id='commentaire-dl'
                            class="commentaire data"
                            name="commentaire"
                            type="hidden"/>
-                        <div class="editor-container" id="editor-container-new-demande"></div>
-                    </div>
+                    <div class="editor-container" id="editor-container-new-demande"></div>
                 </div>
 
                 <!--

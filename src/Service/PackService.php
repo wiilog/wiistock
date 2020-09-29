@@ -11,10 +11,12 @@ use App\Entity\MouvementTraca;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Utilisateur;
+use App\Repository\NatureRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Security;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -117,6 +119,61 @@ Class PackService
                     : '')
                 : ''
         ];
+    }
+
+    /**
+     * @param array $data
+     * @return array ['success' => bool, 'msg': string]
+     */
+    public function checkPackDataBeforeEdition(array $data): array {
+        $quantity = $data['quantity'] ?? null;
+        $weight = !empty($data['weight']) ? str_replace(",", ".", $data['weight']) : null;
+        $volume = !empty($data['volume']) ? str_replace(",", ".", $data['volume']) : null;
+
+        if ($quantity <= 0) {
+            return [
+                'success' => false,
+                'msg' => 'La quantité doit être supérieure à 0.'
+            ];
+        }
+
+        if (!empty($weight) && (!is_numeric($weight) || ((float) $weight) <= 0)) {
+            return [
+                'success' => false,
+                'msg' => 'Le poids doit être un nombre valide supérieur à 0.'
+            ];
+        }
+
+        if (!empty($volume) && (!is_numeric($volume) || ((float) $volume) <= 0)) {
+            return [
+                'success' => false,
+                'msg' => 'Le volume doit être un nombre valide supérieur à 0.'
+            ];
+        }
+
+        return [
+            'success' => true,
+            'msg' => 'OK',
+        ];
+    }
+
+    public function editPack(array $data, NatureRepository $natureRepository, Pack $pack) {
+        $natureId = $data['nature'] ?? null;
+        $quantity = $data['quantity'] ?? null;
+        $comment = $data['comment'] ?? null;
+        $weight = !empty($data['weight']) ? str_replace(",", ".", $data['weight']) : null;
+        $volume = !empty($data['volume']) ? str_replace(",", ".", $data['volume']) : null;
+
+        $nature = $natureRepository->find($natureId);
+        if (!empty($nature)) {
+            $pack->setNature($nature);
+        }
+
+        $pack
+            ->setQuantity($quantity)
+            ->setWeight($weight)
+            ->setVolume($volume)
+            ->setComment($comment);
     }
 
     /**

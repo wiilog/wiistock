@@ -10,7 +10,7 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class="row fly-form">
-                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
+                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayedFormsCreate') %}
                         <div class="form-group col w-100">
                             <label
                                 for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
@@ -33,7 +33,7 @@
                             </div>
                         {% endif %}
                     {% endif %}
-                    {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
+                    {% if fieldsParam|isFieldRequired('transporteur', 'displayedFormsCreate') %}
                         <div class="form-group col w-100">
                             <label
                                 for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
@@ -55,7 +55,7 @@
                             </div>
                         {% endif %}
                     {% endif %}
-                    {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
+                    {% if fieldsParam|isFieldRequired('chauffeur', 'displayedFormsCreate') %}
                         <div class="form-group col w-100">
                             <label
                                 for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired('chauffeur', 'mustToCreate') ? '*' : '' }}</label>
@@ -82,7 +82,7 @@
                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                     <div class="row new-on-fly-form-container align-items-start">
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                             <div class="row col formulaire fly-form">
                                 <div class="form-group col-10 invisible" id="fournisseurDisplay">
                                     <label for="newFournisseur">Nom*</label>
@@ -102,7 +102,7 @@
                             </div>
                         {% endif %}
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                             <div class="row col formulaire fly-form">
                                 <div class="form-group col-10 invisible" id="transporteurDisplay">
                                     <label for="newTransporteur">Nom*</label>
@@ -124,7 +124,7 @@
                         {% endif %}
 
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                             <div class="row col formulaire fly-form">
                                 <div class="form-group col-10 invisible" id="chauffeurDisplay">
                                     <label for="newChauffeurName">Nom*</label>
@@ -152,7 +152,7 @@
                 {% endif %}
                 <div class="row">
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group col-4">
                             <label for="noTracking">N° tracking
                                 transporteur{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}</label>
@@ -162,7 +162,7 @@
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group col-4">
                             <label for="numeroCommandeList" title="Numéro de commande">
                                 {{ 'arrivage.Numéro de commande'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}
@@ -176,7 +176,7 @@
                     <div class="form-group col-4">
                         <label for="type">Type*</label>
                         {% set uniqueType = typesArrival|length == 1 %}
-                        <select class="needs-default form-control input-sm data needed needs-default"
+                        <select class="form-control input-sm data needed needs-default"
                                 id="type"
                                 name="type"
                                 onchange="onTypeChange($(this))"
@@ -225,10 +225,10 @@
 
                 <div class="row">
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TARGET_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="col-4">
                             <div class="row">
-                                {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                                {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                                     <div class="form-group col-12 w-100">
                                         <label title="destinatire" for="destinataire">
                                             {{ 'arrivage.destinataire'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}
@@ -249,7 +249,7 @@
                     {% endif %}
 
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group w-100 col-4">
                             <label title="acheteurs" for="acheteurs">
                                 {{ 'arrivage.acheteurs'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}
@@ -265,7 +265,7 @@
                     {% endif %}
 
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PRINT_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group col-2">
                             <label title="arrivage">Imprimer {{ 'arrivage.arrivage'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
@@ -302,7 +302,7 @@
                                         </label>
                                         <input type="number" class="form-control input-sm data-array needed-positiv"
                                                name="colis" data-id="{{ nature.id }}"
-                                               min="0" {#data-init="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}"#}
+                                               min="0" {# data-init="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}" #}
                                                value="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}">
                                     </div>
                                 {% endfor %}
@@ -321,8 +321,8 @@
                     {% endif %}
                 </div>
                 <div class="row">
-                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group col-4">
                             <label for="noProject">Numéro de projet{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}</label>
                             <input type="text"
@@ -331,12 +331,13 @@
                         </div>
                     {% endif %}
 
-                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group col-4">
                             <label for="chauffeur">Business Unit{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}</label>
-                            <select class="needs-default form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}"
-                                    name="businessUnit">
+                            <select
+                                class="needs-default form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}"
+                                name="businessUnit">
                                 <option value=""></option>
                                 {% for business in businessUnits %}
                                     <option value="{{ business }}">{{ business }}</option>
@@ -347,7 +348,7 @@
                 </div>
                 <div class="row">
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DUTY_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group col-2">
                             <label>{{ 'arrivage.douane'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
@@ -357,7 +358,7 @@
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group col-2">
                             <label>{{ 'arrivage.congelé'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
@@ -369,8 +370,9 @@
                 </div>
 
                 <!-- CHAMPS LIBRES -->
-                <div class="col-12 blocVisible d-block free-fields-container">
-                    {% for type in typesArrival%}
+                <span class="toggle-collapsible expanded">Champs libres</span>
+                <div class="collapsible expanded free-fields-container mb-2">
+                    {% for type in typesArrival %}
                         <div class="d-none row" id="{{ type.id }}-new">
                             {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                                 freeFields: type.champsLibres,
@@ -385,7 +387,7 @@
 
                 <div class="row">
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         {% set commentNeeded = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                         <div class="form-group col-8 h-fit-content">
                             <label for="commentaire">Commentaire{{ commentNeeded ? '*' }}</label>
@@ -396,7 +398,7 @@
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PJ_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedForms') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group col-4">
                             <div>
                                 {% include 'attachment/attachment.html.twig' with {

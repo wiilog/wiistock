@@ -82,7 +82,7 @@ class Handling extends FreeFieldEntity
     private $number;
 
     /**
-     * @ORM\Column(type="boolean")
+     * @ORM\Column(type="string", nullable=true)
      */
     private $emergency;
 
@@ -240,15 +240,14 @@ class Handling extends FreeFieldEntity
         return $this;
     }
 
-    public function getEmergency(): ?bool
+    public function getEmergency(): ?string
     {
         return $this->emergency;
     }
 
-    public function setEmergency(bool $emergency): self
+    public function setEmergency(?string $emergency): self
     {
         $this->emergency = $emergency;
-
         return $this;
     }
 

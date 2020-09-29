@@ -43,5 +43,7 @@ function onDispatchTypeChange($select) {
         $dropLocationSelect.val(null).trigger('change');
     }
     const $selectStatus = $modal.find('select[name="status"]');
-    $selectStatus.prop('disabled', true);
+    if(!$selectStatus.hasClass('d-none')) {
+        $selectStatus.prop('disabled', true);
+    }
 }
