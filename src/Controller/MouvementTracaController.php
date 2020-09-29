@@ -136,7 +136,10 @@ class MouvementTracaController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $columns = $service->getVisibleColumnsConfig($entityManager, $this->getUser());
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+
+            $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser);
 
             return $this->json($columns);
         }
@@ -150,7 +153,9 @@ class MouvementTracaController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response {
+    public function saveColumnVisible(Request $request,
+                                      EntityManagerInterface $entityManager): Response {
+
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -158,13 +163,15 @@ class MouvementTracaController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
         $fields[] = "actions";
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
 
-        $this->getUser()->setColumnsVisibleForTrackingMovement($fields);
+        $currentUser->setColumnsVisibleForTrackingMovement($fields);
         $entityManager->flush();
 
         return $this->json([
             "success" => true,
-            "msg" => "Vos préférences de colonnes ont bien été sauvegardées"
+            "msg" => "Vos préférences de colonnes ont bien été sauvegardées."
         ]);
     }
 

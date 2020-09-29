@@ -156,7 +156,7 @@ class DispatchController extends AbstractController {
 
         return $this->json([
             "success" => true,
-            "msg" => "Vos préférences de colonnes ont bien été sauvegardées"
+            "msg" => "Vos préférences de colonnes ont bien été sauvegardées."
         ]);
     }
 

@@ -57,20 +57,19 @@
 
                         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                             {% if hasRightCreate and hasRightExport %}
-                                <div class="dropdown-item pointer"
+                                <a class="dropdown-item pointer"
                                      onclick="saveExportFile('get_mouvements_traca_csv')">
-                                    <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-                                </div>
+                                    <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
+                                    Exporter au format CSV
+                                </a>
                             {% endif %}
-
-                            {% if hasRightExport %}
-                                <button class="dropdown-item pointer"
-                                        data-toggle="modal"
-                                        data-target="#modalColumnVisibleTrackingMovement">
-                                    <i class="fa fa-cog mr-2"></i>
-                                    Gestion des colonnes
-                                </button>
-                            {% endif %}
+                            <a class="dropdown-item pointer"
+                               data-toggle="modal"
+                               data-target="#modalColumnVisibleTrackingMovement"
+                               href="#">
+                                <i class="fa fa-cog mr-2"></i>
+                                Gestion des colonnes
+                            </a>
                         </div>
                     </div>
                 </div>
