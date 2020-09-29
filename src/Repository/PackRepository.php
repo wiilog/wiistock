@@ -4,15 +4,12 @@ namespace App\Repository;
 
 use App\Entity\Arrivage;
 use App\Entity\Pack;
-use App\Entity\MouvementTraca;
-use App\Entity\Nature;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\QueryBuilder;
 use Exception;
 
 /**

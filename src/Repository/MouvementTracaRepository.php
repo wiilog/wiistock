@@ -3,14 +3,11 @@
 namespace App\Repository;
 
 use App\Entity\Pack;
-use App\Entity\Emplacement;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DBALException;
-use Doctrine\DBAL\FetchMode;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;

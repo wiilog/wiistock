@@ -10,6 +10,7 @@ use App\Entity\DaysWorked;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\Emplacement;
 use App\Entity\LocationCluster;
+use App\Entity\LocationClusterRecord;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -857,6 +858,49 @@ class ParametrageGlobalController extends AbstractController
             $locationId = (string) $locationInCluster->getId();
             if (empty($listLocationIds)
                 || !in_array($locationId, $listLocationIds)) {
+                $records = $cluster->getLocationClusterRecords(true);
+                /** @var LocationClusterRecord $record */
+                foreach ($records as $record) {
+                    $recordLastTracking = $record->getLastTracking();
+                    $recordFirstDrop = $record->getFirstDrop();
+                    $lastTrackingIsOnLocation = (
+                        $recordLastTracking
+                        && $recordLastTracking->getEmplacement() === $locationInCluster
+                    );
+                    $firstDropIsOnLocation = (
+                        $recordFirstDrop
+                        && $recordFirstDrop->getEmplacement() === $locationInCluster
+                    );
+                    if ($lastTrackingIsOnLocation
+                        || (
+                            $firstDropIsOnLocation
+                            && ($recordFirstDrop === $recordLastTracking)
+                        )) {
+                        $entityManager->remove($record);
+                    }
+                    else if ((
+                        $firstDropIsOnLocation
+                        && ($recordFirstDrop !== $recordLastTracking)
+                    )) {
+                        $pack = $recordFirstDrop->getPack();
+                        $trackingMovements = $pack->getTrackingMovements();
+                        $newFirstDrop = null;
+                        foreach ($trackingMovements as $trackingMovement) {
+                            if ($trackingMovement === $recordFirstDrop) {
+                                break;
+                            }
+                            else if($trackingMovement->isDrop()) {
+                                $newFirstDrop = $trackingMovement;
+                            }
+                        }
+                        if (isset($newFirstDrop)) {
+                            $record->setFirstDrop($newFirstDrop);
+                        }
+                        else {
+                            $entityManager->remove($record);
+                        }
+                    }
+                }
                 $locationInCluster->removeCluster($cluster);
             }
         }

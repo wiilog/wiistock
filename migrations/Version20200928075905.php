@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\LocationCluster;
-use App\Entity\MouvementTraca;
 use DateTime;
-use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;

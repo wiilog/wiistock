@@ -32,13 +32,13 @@ class LocationClusterRecord {
 
     /**
      * @var MouvementTraca|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="firstDropsOnLocationCluster")
+     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="firstDropRecords")
      */
     private $firstDrop;
 
     /**
      * @var MouvementTraca|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="lastTrackingOnLocationCluster")
+     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="lastTrackingRecords")
      */
     private $lastTracking;
 
@@ -121,11 +121,11 @@ class LocationClusterRecord {
      */
     public function setFirstDrop(?MouvementTraca $firstDrop): self {
         if (isset($this->firstDrop)) {
-            $this->firstDrop->removeFirstDropOnLocationCluster($this);
+            $this->firstDrop->removeFirstDropRecord($this);
         }
         $this->firstDrop = $firstDrop;
         if (isset($this->firstDrop)) {
-            $this->firstDrop->addFirstDropOnLocationCluster($this);
+            $this->firstDrop->addFirstDropRecord($this);
         }
         return $this;
     }
@@ -147,7 +147,7 @@ class LocationClusterRecord {
         }
         $this->lastTracking = $lastTracking;
         if (isset($this->lastTracking)) {
-            $this->lastTracking->addLastTrackingOnLocationCluster($this);
+            $this->lastTracking->addLastTrackingRecord($this);
         }
         return $this;
     }

@@ -421,9 +421,6 @@ class MouvementTracaController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $mouvementTracaService->manageMouvementTracaPreRemove($mvt);
-            $entityManager->flush();
-
             $entityManager->remove($mvt);
             $entityManager->flush();
             return new JsonResponse();

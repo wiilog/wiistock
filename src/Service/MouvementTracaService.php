@@ -329,9 +329,16 @@ class MouvementTracaService
         if (!empty($pack)) {
             $entityManager->persist($pack);
         }
-        foreach ($mouvementTraca->getLinkedPackLastDrops() as $colisMvt) {
-            $entityManager->persist($colisMvt);
+        $linkedPackLastDrop = $mouvementTraca->getLinkedPackLastDrop();
+        if ($linkedPackLastDrop) {
+            $entityManager->persist($linkedPackLastDrop);
         }
+
+        $linkedPackLastTracking = $mouvementTraca->getLinkedPackLastTracking();
+        if ($linkedPackLastTracking) {
+            $entityManager->persist($linkedPackLastTracking);
+        }
+
         foreach ($mouvementTraca->getAttachments() as $attachement) {
             $entityManager->persist($attachement);
         }
@@ -351,10 +358,10 @@ class MouvementTracaService
             ? $lastTrackingMovements[1]
             : null;
 
-        $packsAlreadyExisting = $tracking->getLinkedPackLastDrops();
         // si c'est une prise ou une dépose on vide ses colis liés
-        foreach ($packsAlreadyExisting as $packLastDrop) {
-            $packLastDrop->setLastDrop(null);
+        $packsAlreadyExisting = $tracking->getLinkedPackLastDrop();
+        if ($packsAlreadyExisting) {
+            $packsAlreadyExisting->setLastDrop(null);
         }
 
         if ($tracking->isDrop()) {
@@ -366,6 +373,14 @@ class MouvementTracaService
             /** @var LocationCluster $cluster */
             foreach ($location->getClusters() as $cluster) {
                 $record = $cluster->getLocationClusterRecord($pack);
+
+                if (isset($record)) {
+                    $currentFirstDrop = $record->getFirstDrop();
+                    if ($currentFirstDrop && ($currentFirstDrop->getEmplacement() !== $location)) {
+                        $entityManager->remove($record);
+                        $record = null;
+                    }
+                }
 
                 if (!isset($record)) {
                     $record = new LocationClusterRecord();
@@ -424,18 +439,6 @@ class MouvementTracaService
                     }
                 }
             }
-        }
-    }
-
-    /**
-     * @param MouvementTraca $mouvementTraca
-     */
-    public function manageMouvementTracaPreRemove(MouvementTraca $mouvementTraca) {
-        foreach ($mouvementTraca->getLinkedPackLastDrops() as $pack) {
-            $pack->setLastDrop(null);
-        }
-        foreach ($mouvementTraca->getLinkedPackLastTracking() as $pack) {
-            $pack->setLastTracking($pack->getTrackingMovements()->count() <= 1 ? null : $pack->getTrackingMovements()->toArray()[1]);
         }
     }
 }

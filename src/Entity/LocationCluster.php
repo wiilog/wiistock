@@ -5,6 +5,7 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -115,10 +116,14 @@ class LocationCluster {
     }
 
     /**
+     * @param bool $onlyActive
      * @return Collection
      */
-    public function getLocationClusterRecords(): Collection {
-        return $this->locationClusterRecords;
+    public function getLocationClusterRecords(bool $onlyActive = false): Collection {
+        return $onlyActive
+            ? $this->locationClusterRecords
+            : $this->locationClusterRecords
+                ->matching(Criteria::create()->where(Criteria::expr()->eq('active', 1)));
     }
 
     /**
