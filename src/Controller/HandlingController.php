@@ -17,6 +17,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Service\AttachmentService;
+use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
 use App\Service\UserService;
@@ -34,6 +35,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -160,7 +162,7 @@ class HandlingController extends AbstractController
             $post = $request->request;
 
             $handling = new Handling();
-            $date = (new DateTime('now', new \DateTimeZone('Europe/Paris')));
+            $date = (new DateTime('now', new DateTimeZone('Europe/Paris')));
 
             $status = $statutRepository->find($post->get('status'));
             $type = $typeRepository->find($post->get('type'));
@@ -414,57 +416,92 @@ class HandlingController extends AbstractController
     /**
      * @Route("/infos", name="get_handlings_for_csv", options={"expose"=true}, methods={"GET","POST"})
      * @param Request $request
+     * @param CSVExportService $CSVExportService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function getOrdreLivraisonIntels(Request $request, EntityManagerInterface $entityManager): Response
+    public function getHandlingsIntels(Request $request,
+                                       CSVExportService $CSVExportService,
+                                       EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
 
-            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (Throwable $throwable) {
+        }
 
-            $handlingRepository = $entityManager->getRepository(Handling::class);
-            $handlings = $handlingRepository->findByDates($dateTimeMin, $dateTimeMax);
+        if (isset($dateTimeMin) && isset($dateTimeMax)) {
+            $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+            $handlingsRepository = $entityManager->getRepository(Handling::class);
 
-            $headers = [
-                'date création',
-                'demandeur',
-                'chargement',
-                'déchargement',
-                'date attendue',
-                'date de réalisation',
-                'statut',
-                'traité par'
-            ];
+            $freeFields = $freeFieldsRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_HANDLING]);
+            $handlings = $handlingsRepository->getByDates($dateTimeMin, $dateTimeMax);
+            $currentDate = new DateTime('now');
 
-            $data = [];
-            $data[] = $headers;
+            $freeFieldIds = array_map(
+                function (ChampLibre $cl) {
+                    return $cl->getId();
+                },
+                $freeFields
+            );
+            $freeFieldsHeader = array_map(
+                function (ChampLibre $cl) {
+                    return $cl->getLabel();
+                },
+                $freeFields
+            );
 
-            foreach ($handlings as $handling) {
-                $this->buildInfos($handling, $data);
-            }
-            return new JsonResponse($data);
+            $csvHeader = array_merge(
+                [
+                    'numéro de demande',
+                    'date création',
+                    'demandeur',
+                    'type',
+                    'objet',
+                    'chargement',
+                    'déchargement',
+                    'date attendue',
+                    'date de réalisation',
+                    'statut',
+                    'commentaire',
+                    'urgence',
+                    'traité par'
+                ],
+                $freeFieldsHeader
+            );
+
+            $globalTitle = 'export-services-' . $currentDate->format('d-m-Y') . '.csv';
+            return $CSVExportService->createBinaryResponseFromData(
+                $globalTitle,
+                $handlings,
+                $csvHeader,
+                function ($handling) use ($freeFieldIds) {
+                    $row = [];
+                    $row[] = $handling['number'] ?? '';
+                    $row[] = $handling['creationDate']->format('d/m/Y H:i:s') ?? '';
+                    $row[] = $handling['requester'] ?? '';
+                    $row[] = $handling['type'] ?? '';
+                    $row[] = $handling['subject'] ?? '';
+                    $row[] = $handling['loadingZone'] ?? '';
+                    $row[] = $handling['unloadingZone'] ?? '';
+                    $row[] = $handling['desiredDate'] ? $handling['desiredDate']->format('d/m/Y H:i:s') : '';
+                    $row[] = $handling['validationDate'] ? $handling['validationDate']->format('d/m/Y H:i:s') : '';
+                    $row[] = $handling['status'] ?? '';
+                    $row[] = strip_tags($handling['comment']) ?? '';
+                    $row[] = $handling['emergency'] ?? '';
+                    $row[] = $handling['treatedBy'] ?? '';
+
+                    foreach ($freeFieldIds as $freeFieldId) {
+                        $row[] = $handling['freeFields'][$freeFieldId] ?? "";
+                    }
+                    return [$row];
+                }
+            );
         } else {
             throw new NotFoundHttpException('404');
         }
-    }
-
-
-    private function buildInfos(Handling $handling, &$data)
-    {
-        $data[] =
-            [
-                $handling->getCreationDate()->format('d/m/Y H:i'),
-                $handling->getRequester()->getUsername(),
-                $handling->getSource() ?? '',
-                $handling->getDestination() ?? '',
-                $handling->getDesiredDate()->format('d/m/Y H:i'),
-                $handling->getValidationDate() ? $handling->getValidationDate()->format('d/m/Y H:i') : '',
-                $handling->getStatus() ? $handling->getStatus()->getNom() : '',
-                $handling->getTreatedByHandling() ? $handling->getTreatedByHandling()->getUsername() : '',
-            ];
     }
 }

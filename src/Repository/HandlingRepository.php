@@ -32,6 +32,11 @@ class HandlingRepository extends EntityRepository
         'treatedBy' => 'treatedBy'
     ];
 
+    /**
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function countHandlingToTreat(){
 
         $qb = $this->createQueryBuilder('handling');
@@ -105,25 +110,55 @@ class HandlingRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @return Handling[]|null
+     * @return Handling[]
      */
-    public function findByDates($dateMin, $dateMax)
+    public function getByDates($dateMin, $dateMax)
     {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT handling
-            FROM App\Entity\Handling handling
-            WHERE handling.creationDate BETWEEN :dateMin AND :dateMax'
-        )->setParameters([
-            'dateMin' => $dateMin,
-            'dateMax' => $dateMax
-        ]);
-        return $query->execute();
+        $queryBuilder = $this->createQueryBuilder('handling')
+            ->select('handling.id')
+            ->addSelect('handling.number AS number')
+            ->addSelect('handling.creationDate AS creationDate')
+            ->addSelect('join_requester.username AS requester')
+            ->addSelect('join_type.label AS type')
+            ->addSelect('handling.subject AS subject')
+            ->addSelect('handling.source AS loadingZone')
+            ->addSelect('handling.destination AS unloadingZone')
+            ->addSelect('handling.desiredDate AS desiredDate')
+            ->addSelect('handling.validationDate AS validationDate')
+            ->addSelect('join_status.nom AS status')
+            ->addSelect('handling.comment AS comment')
+            ->addSelect('handling.emergency AS emergency')
+            ->addSelect('join_treatedByHandling.username AS treatedBy')
+            ->addSelect('handling.freeFields')
+
+            ->leftJoin('handling.requester', 'join_requester')
+            ->leftJoin('handling.type', 'join_type')
+            ->leftJoin('handling.status', 'join_status')
+            ->leftJoin('handling.treatedByHandling', 'join_treatedByHandling')
+
+            ->where('handling.creationDate BETWEEN :dateMin AND :dateMax')
+
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
     }
 
+
+    /**
+     * @param $params
+     * @param $filters
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
 	public function findByParamAndFilters($params, $filters)
     {
         $qb = $this->createQueryBuilder('handling');
@@ -268,6 +303,10 @@ class HandlingRepository extends EntityRepository
         ];
     }
 
+    /**
+     * @param $prefix
+     * @return mixed|null
+     */
     public function getLastHandlingNumberByPrefix($prefix)
     {
         $queryBuilder = $this->createQueryBuilder('handling');

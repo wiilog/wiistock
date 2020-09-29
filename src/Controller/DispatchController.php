@@ -1041,7 +1041,7 @@ class DispatchController extends AbstractController {
                     $row[] = $dispatch['locationTo'] ?? '';
                     $row[] = $dispatch['nbPacks'] ?? '';
                     $row[] = $dispatch['status'] ?? '';
-                    $row[] = $dispatch['urgent'] ? 'oui' : 'non';
+                    $row[] = $dispatch['emergency'] ?? '';
                     $row[] = $dispatch['packNatureLabel'] ?? '';
                     $row[] = $dispatch['packCode'] ?? '';
                     $row[] = $dispatch['packQuantity'] ?? '';
