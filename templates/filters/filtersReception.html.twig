@@ -3,6 +3,9 @@
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' %}
-    {% include 'filters/filter_item/filterProvider.html.twig' %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FOURNISSEUR') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterProvider.html.twig' %}
+    {% endif %}
     {% include 'filters/filter_item/filterEmergency.html.twig' %}
 {% endblock %}

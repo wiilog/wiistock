@@ -63,6 +63,11 @@ class Nature
      */
     private $emplacements;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true, options={"default": 1})
+     */
+    private $displayed;
+
     public function __construct()
     {
         $this->packs = new ArrayCollection();
@@ -185,6 +190,18 @@ class Nature
     public function setNeedsMobileSync(?bool $needsMobileSync): self
     {
         $this->needsMobileSync = $needsMobileSync;
+
+        return $this;
+    }
+
+    public function getDisplayed(): ?bool
+    {
+        return $this->displayed;
+    }
+
+    public function setDisplayed(?bool $displayed): self
+    {
+        $this->displayed = $displayed;
 
         return $this;
     }

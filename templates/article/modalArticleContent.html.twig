@@ -88,36 +88,23 @@
     </div>
 
     <!-- CHAMPS LIBRES -->
-    <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
-        <h3 class='d-flex pointer'>
-            <i class="fas fa-sort-up d-block mr-2"></i>
-            <i class="fas fa-sort-down  d-none mr-2"></i>
-            Champs libres
-        </h3>
-    </div>
-    <div class="form-group col-12 blocVisible d-block" id='typeEdit'>
-        <div class="row">
+    <div class="col-12">
+        <span class="toggle-collapsible expanded">Champs libres</span>
+        <div class="collapsible expanded free-fields-container">
             {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                 freeFields: typeChampsLibres.champsLibres,
                 freeFieldValues: article.freeFields,
-                colType: 'col-4',
+                colType: 'col-md-4 col-12',
                 requiredType: 'requiredEdit',
                 actionType: 'edit'
             } %}
         </div>
     </div>
-    <div class="col-12 row mt-4">
-        <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
-            <h3 class='d-flex pointer'>
-                <i class="fas fa-sort-up d-none mr-2"></i>
-                <i class="fas fa-sort-down d-block mr-2"></i>
-                Articles Fournisseurs
-            </h3>
-        </div>
-        <div class="form-group blocVisible col-12 d-none">
-            <div class="form-group col-12 d-block" id='articleFournisseursEdit'>
-                {% include 'article/fournisseurArticleShowContent.html.twig' %}
-            </div>
+
+    <div class="col-12 mt-4">
+        <span class="toggle-collapsible">Articles fournisseurs</span>
+        <div class="collapsible mb-2">
+            {% include 'article/fournisseurArticleShowContent.html.twig' %}
         </div>
     </div>
 </div>

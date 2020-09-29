@@ -1,6 +1,7 @@
 {% extends 'mails/template.html.twig' %}
 
 {% set emergency = handling.emergency ? 'Oui' : 'Non' %}
+{% set treatedBy = handling.treatedByHandling ? handling.treatedByHandling.username : '' %}
 
 {% block content %}
     <div>Numéro de demande :
@@ -19,10 +20,10 @@
         <strong>{{ handling.subject }}</strong>
     </div>
     <div>Chargement :
-        <strong>{{ handling.source }}</strong>
+        <strong>{{ handling.source ?? '' }}</strong>
     </div>
     <div>Déchargement :
-        <strong>{{ handling.destination }}</strong>
+        <strong>{{ handling.destination ?? '' }}</strong>
     </div>
     <div>Date souhaitée :
         <strong>{{ handling.desiredDate|date('Y-m-d à H:i:s') }}</strong>
@@ -35,6 +36,9 @@
     </div>
     <div>Urgence :
         <strong>{{ emergency }}</strong>
+    </div>
+    <div>Traité par :
+        <strong>{{ treatedBy }}</strong>
     </div>
     {% if (handling.comment is not empty and handling.comment != '<p><br></p>') %}
         <div>Commentaire : {{ handling.comment|raw }}</div>
