@@ -623,8 +623,6 @@ class ArrivageController extends AbstractController
                 foreach ($arrivage->getPacks() as $pack) {
                     $entityManager->remove($pack);
                     foreach ($pack->getTrackingMovements() as $arrivageMvtTraca) {
-                        $mouvementTracaService->manageMouvementTracaPreRemove($arrivageMvtTraca);
-                        $entityManager->flush();
                         $entityManager->remove($arrivageMvtTraca);
                     }
                     $litiges = $pack->getLitiges();
@@ -640,8 +638,6 @@ class ArrivageController extends AbstractController
                 }
 
                 foreach ($arrivage->getMouvementsTraca() as $mouvementTraca) {
-                    $mouvementTracaService->manageMouvementTracaPreRemove($mouvementTraca);
-                    $entityManager->flush();
                     $entityManager->remove($mouvementTraca);
                 }
 
@@ -842,12 +838,10 @@ class ArrivageController extends AbstractController
                 $freeFields
             );
 
-            $colisData = $packRepository->countColisByArrivageAndNature(
-                [
-                    $dateTimeMin->format('Y-m-d H:i:s'),
-                    $dateTimeMax->format('Y-m-d H:i:s')
-                ]
-            );
+            $colisData = $packRepository->countColisByArrivageAndNature([
+                $dateTimeMin->format('Y-m-d H:i:s'),
+                $dateTimeMax->format('Y-m-d H:i:s')
+            ]);
             $arrivals = $arrivageRepository->getByDates($dateTimeMin, $dateTimeMax);
             $buyersByArrival = $utilisateurRepository->getUsernameBuyersGroupByArrival();
             $natureLabels = $natureRepository->findAllLabels();

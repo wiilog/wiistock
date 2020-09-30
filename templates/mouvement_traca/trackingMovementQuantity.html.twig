@@ -1,5 +1,6 @@
 {% set value = quantity is defined ? quantity : 1 %}
-<div class="form-group col-12">
+{% set containerClass = containerClass is defined ? containerClass %}
+<div class="form-group col-12 {{ containerClass }}">
     <label>Quantité*</label>
     <input type="number"
            name="quantity"

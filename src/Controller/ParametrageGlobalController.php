@@ -8,6 +8,9 @@ use App\Entity\CategorieStatut;
 use App\Entity\ChampLibre;
 use App\Entity\DaysWorked;
 use App\Entity\DimensionsEtiquettes;
+use App\Entity\Emplacement;
+use App\Entity\LocationCluster;
+use App\Entity\LocationClusterRecord;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -794,13 +797,11 @@ class ParametrageGlobalController extends AbstractController
             $listMultipleSelect = [
                 ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => 'listNaturesColis',
                 ParametrageGlobal::DASHBOARD_CARRIER_DOCK => 'carrierDock',
-                ParametrageGlobal::DASHBOARD_LOCATIONS_1 => 'locationsFirstGraph',
-                ParametrageGlobal::DASHBOARD_LOCATIONS_2 => 'locationsSecondGraph',
-                ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => 'locationDropZone',
                 ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => 'locationAvailable',
                 ParametrageGlobal::DASHBOARD_LOCATION_DOCK => 'locationToTreat',
                 ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK => 'locationWaitingDock',
                 ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN => 'locationWaitingAdmin',
+                ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => 'locationDropZone',
                 ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => 'locationLitiges',
                 ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => 'locationUrgences',
                 ParametrageGlobal::DASHBOARD_PACKAGING_1 => 'packaging1',
@@ -813,10 +814,7 @@ class ParametrageGlobalController extends AbstractController
                 ParametrageGlobal::DASHBOARD_PACKAGING_8 => 'packaging8',
                 ParametrageGlobal::DASHBOARD_PACKAGING_RPA => 'packagingRPA',
                 ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE => 'packagingLitige',
-                ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE => 'packagingUrgence',
-                ParametrageGlobal::DASHBOARD_PACKAGING_DSQR => 'packagingDSQR',
-                ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT => 'packagingDestinationGT',
-                ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT => 'packagingOrigineGT',
+                ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE => 'packagingUrgence'
             ];
 
             foreach ($listMultipleSelect as $labelParam => $selectId) {
@@ -836,6 +834,13 @@ class ParametrageGlobalController extends AbstractController
                 $param = $parametrageGlobalRepository->findOneByLabel($labelParam);
                 $param->setValue($post->get($selectId));
             }
+
+            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1, $post->get('locationsFirstGraph'), $entityManager);
+            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2, $post->get('locationsSecondGraph'), $entityManager);
+            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_DOCK_DASHBOARD_DROPZONE, $post->get('locationDropZone'), $entityManager);
+            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_PACKAGING_DSQR, $post->get('packagingDSQR'), $entityManager);
+            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_PACKAGING_GT_ORIGIN, $post->get('packagingOrigineGT'), $entityManager);
+            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_PACKAGING_GT_TARGET, $post->get('packagingDestinationGT'), $entityManager);
             $entityManager->flush();
 
             return new JsonResponse(true);
@@ -899,5 +904,75 @@ class ParametrageGlobalController extends AbstractController
         $parametrage->setValue($value);
         $em->flush();
         return new JsonResponse(true);
+    }
+
+    private function setLocationListCluster(?string $clusterCode,
+                                            ?array $listLocationIds,
+                                            EntityManagerInterface $entityManager) {
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $locationClusterRepository = $entityManager->getRepository(LocationCluster::class);
+
+        $cluster = $locationClusterRepository->findOneBy(['code' => $clusterCode]);
+        /** @var Emplacement $locationInCluster */
+        foreach ($cluster->getLocations() as $locationInCluster) {
+            $locationId = (string) $locationInCluster->getId();
+            // check if location is removed from cluster
+            if (empty($listLocationIds)
+                || !in_array($locationId, $listLocationIds)) {
+
+                $records = $cluster->getLocationClusterRecords(true);
+                /** @var LocationClusterRecord $record */
+                foreach ($records as $record) {
+                    $recordLastTracking = $record->getLastTracking();
+                    $recordFirstDrop = $record->getFirstDrop();
+                    $lastTrackingIsOnLocation = (
+                        $recordLastTracking
+                        && $recordLastTracking->getEmplacement() === $locationInCluster
+                    );
+                    $firstDropIsOnLocation = (
+                        $recordFirstDrop
+                        && $recordFirstDrop->getEmplacement() === $locationInCluster
+                    );
+                    if ($lastTrackingIsOnLocation
+                        || (
+                            $firstDropIsOnLocation
+                            && ($recordFirstDrop === $recordLastTracking)
+                        )) {
+                        $entityManager->remove($record);
+                    }
+                    else if ((
+                        $firstDropIsOnLocation
+                        && ($recordFirstDrop !== $recordLastTracking)
+                    )) {
+                        $pack = $recordFirstDrop->getPack();
+                        $trackingMovements = $pack->getTrackingMovements();
+                        $newFirstDrop = null;
+                        foreach ($trackingMovements as $trackingMovement) {
+                            if ($trackingMovement === $recordFirstDrop) {
+                                break;
+                            }
+                            else if($trackingMovement->isDrop()) {
+                                $newFirstDrop = $trackingMovement;
+                            }
+                        }
+                        if (isset($newFirstDrop)) {
+                            $record->setFirstDrop($newFirstDrop);
+                        }
+                        else {
+                            $entityManager->remove($record);
+                        }
+                    }
+                }
+
+                $locationInCluster->removeCluster($cluster);
+            }
+        }
+
+        if (!empty($listLocationIds)) {
+            foreach ($listLocationIds as $locationId) {
+                $location = $locationRepository->find($locationId);
+                $location->addCluster($cluster);
+            }
+        }
     }
 }

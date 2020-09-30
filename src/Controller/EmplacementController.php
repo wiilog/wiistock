@@ -69,6 +69,9 @@ class EmplacementController extends AbstractController
      * @Route("/api", name="emplacement_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @return Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function api(Request $request): Response
     {
