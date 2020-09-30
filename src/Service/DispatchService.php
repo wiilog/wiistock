@@ -129,8 +129,8 @@ class DispatchService {
 
         $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
         $freeFieldsRepository = $this->entityManager->getRepository(ChampLibre::class);
-        $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
 
+        $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
         $category = CategoryType::DEMANDE_DISPATCH;
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
 

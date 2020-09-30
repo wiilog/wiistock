@@ -82,13 +82,13 @@ class MouvementTracaController extends AbstractController
      * @return RedirectResponse|Response
      * @throws NonUniqueResultException
      */
-    public function index(EntityManagerInterface $entityManager,
+    public function index(Request $request, EntityManagerInterface $entityManager,
                           FilterSupService $filterSupService,
-                          Request $request)
-    {
-        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
+                          MouvementTracaService $service) {
+        if(!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
             return $this->redirectToRoute('access_denied');
         }
+
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
@@ -105,18 +105,74 @@ class MouvementTracaController extends AbstractController
             $entityManager->flush();
         }
 
+        $fields = $service->getVisibleColumnsConfig($entityManager, $this->getUser());
+
         $redirectAfterTrackingMovementCreation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
 
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
             'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true),
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
+            'fields' => $fields,
+            'visibleColumns' => $this->getUser()->getColumnsVisibleForTrackingMovement(),
         ]);
     }
 
     private function errorWithDropOff($pack, $location, $packTranslation, $natureTranslation) {
         $bold = '<span class="font-weight-bold"> ';
         return 'Le ' . $packTranslation . $bold . $pack . '</span> ne dispose pas des ' . $natureTranslation . ' pour être déposé sur l\'emplacement' . $bold . $location . '</span>.';
+    }
+
+    /**
+     * @Route("/api-columns", name="tracking_movement_api_columns", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param MouvementTracaService $service
+     * @return Response
+     */
+    public function apiColumns(Request $request, EntityManagerInterface $entityManager, MouvementTracaService $service): Response {
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+
+            $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser);
+
+            return $this->json($columns);
+        }
+
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/colonne-visible", name="save_column_visible_for_tracking_movement", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function saveColumnVisible(Request $request,
+                                      EntityManagerInterface $entityManager): Response {
+
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $fields = array_keys($data);
+        $fields[] = "actions";
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $currentUser->setColumnsVisibleForTrackingMovement($fields);
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Vos préférences de colonnes ont bien été sauvegardées."
+        ]);
     }
 
     /**
@@ -286,7 +342,7 @@ class MouvementTracaController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="mvt_traca_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="tracking_movement_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @return Response
      * @throws Exception
@@ -306,7 +362,7 @@ class MouvementTracaController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="mvt_traca_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-modifier", name="tracking_movement_api_edit", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @return Response
@@ -347,7 +403,6 @@ class MouvementTracaController extends AbstractController
      */
     public function edit(EntityManagerInterface $entityManager,
                          FreeFieldService $freeFieldService,
-                         MouvementTracaService $mouvementTracaService,
                          Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -357,14 +412,9 @@ class MouvementTracaController extends AbstractController
 
             $post = $request->request;
 
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
-            $date = DateTime::createFromFormat(DateTime::ATOM, $post->get('datetime') . ':00P', new \DateTimeZone('Europe/Paris'));
-            $type = $statutRepository->find($post->get('type'));
-            $location = $emplacementRepository->find($post->get('emplacement'));
             $operator = $utilisateurRepository->find($post->get('operator'));
             $quantity = $post->getInt('quantity') ?: 1;
 
@@ -377,22 +427,9 @@ class MouvementTracaController extends AbstractController
 
             /** @var MouvementTraca $mvt */
             $mvt = $mouvementTracaRepository->find($post->get('id'));
-            $mouvementTracaService->managePackLinksWithTracking(
-                $mvt,
-                $entityManager,
-                $type,
-                $post->get('colis'),
-                $quantity,
-                true
-            );
-
             $mvt
-                ->setDatetime($date)
                 ->setOperateur($operator)
-                ->setColis($post->get('colis'))
                 ->setQuantity($quantity)
-                ->setType($type)
-                ->setEmplacement($location)
                 ->setCommentaire($post->get('commentaire'));
 
             $entityManager->flush();
@@ -423,12 +460,10 @@ class MouvementTracaController extends AbstractController
     /**
      * @Route("/supprimer", name="mvt_traca_delete", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
-     * @param MouvementTracaService $mouvementTracaService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function delete(Request $request,
-                           MouvementTracaService $mouvementTracaService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -439,9 +474,6 @@ class MouvementTracaController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $mouvementTracaService->manageMouvementTracaPreRemove($mvt);
-            $entityManager->flush();
 
             $entityManager->remove($mvt);
             $entityManager->flush();

@@ -156,7 +156,7 @@ class DispatchController extends AbstractController {
 
         return $this->json([
             "success" => true,
-            "msg" => "Vos préférences de colonnes ont bien été sauvegardées"
+            "msg" => "Vos préférences de colonnes ont bien été sauvegardées."
         ]);
     }
 
@@ -712,6 +712,8 @@ class DispatchController extends AbstractController {
         $natureId = $data['nature'];
         $quantity = $data['quantity'];
         $comment = $data['comment'];
+        $weight = (floatval(str_replace(',', '.', $data['weight'])) ?: null);
+        $volume = (floatval(str_replace(',', '.', $data['volume'])) ?: null);
 
         $alreadyCreated = !$dispatch
             ->getDispatchPacks()
@@ -723,7 +725,9 @@ class DispatchController extends AbstractController {
 
         if ($alreadyCreated) {
             $success = false;
-            $message = $translator->trans('acheminement.Le colis existe déjà dans cet acheminement');
+            $message = $translator->trans('acheminement.Le colis {numéro} existe déjà dans cet acheminement', [
+                    "{numéro}" => '<strong>' . $packCode . '</strong>'
+                ]) . '.';
         } else {
             $natureRepository = $entityManager->getRepository(Nature::class);
             $packRepository = $entityManager->getRepository(Pack::class);
@@ -747,11 +751,15 @@ class DispatchController extends AbstractController {
             $pack->setNature($nature);
             $pack->setComment($comment);
             $packDispatch->setQuantity($quantity);
+            $pack->setWeight($weight);
+            $pack->setVolume($volume);
 
             $entityManager->flush();
 
             $success = true;
-            $message = $translator->trans('colis.Le colis a bien été sauvegardé');
+            $message = $translator->trans('colis.Le colis {numéro} a bien été ajouté', [
+                    "{numéro}" => '<strong>' . $pack->getCode() . '</strong>'
+                ]) . '.';
         }
 
         return new JsonResponse([
@@ -763,11 +771,13 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/packs/edit", name="dispatch_edit_pack", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param PackService $packService
      * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function editPack(Request $request,
+                             PackService $packService,
                              TranslatorInterface $translator,
                              EntityManagerInterface $entityManager): Response {
         $data = json_decode($request->getContent(), true);
@@ -779,31 +789,35 @@ class DispatchController extends AbstractController {
         /** @var DispatchPack $dispatchPack */
         $dispatchPack = $dispatchPackRepository->find($packDispatchId);
         if (empty($dispatchPack)) {
-            $success = false;
-            $message = $translator->trans("colis.Le colis n''existe pas");
+            $response = [
+                'success' => false,
+                'msg' => $translator->trans("colis.Le colis n''existe pas")
+            ];
         } else {
-            $natureId = $data['nature'];
-            $quantity = $data['quantity'];
-            $comment = $data['comment'];
-
             $pack = $dispatchPack->getPack();
 
-            $nature = $natureRepository->find($natureId);
-            $pack->setNature($nature)
-            ->setComment($comment);
+            $packDataIsValid = $packService->checkPackDataBeforeEdition($data);
 
-            $dispatchPack
-                ->setQuantity($quantity);
+            if ($packDataIsValid['success']) {
+                $quantity = $data['quantity'];
+                $packService
+                    ->editPack($data, $natureRepository, $pack);
+                $dispatchPack
+                    ->setQuantity($quantity);
 
-            $entityManager->flush();
+                $entityManager->flush();
 
-            $success = true;
-            $message = $translator->trans('colis.Le colis a bien été sauvegardé');
+                $response = [
+                    'success' => true,
+                    'msg' => $translator->trans('colis.Le colis {numéro} a bien été modifié', [
+                            "{numéro}" => '<strong>' . $pack->getCode() . '</strong>'
+                        ]) . '.'
+                ];
+            } else {
+                $response = $packDataIsValid;
+            }
         }
-        return new JsonResponse([
-            'success' => $success,
-            'msg' => $message
-        ]);
+        return new JsonResponse($response);
     }
 
     /**
@@ -820,15 +834,16 @@ class DispatchController extends AbstractController {
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
             $pack = $dispatchPackRepository->find($data['pack']);
+            $packCode = $pack->getPack()->getCode();
             $entityManager->remove($pack);
             $entityManager->flush();
 
-            $data = [
+            return new JsonResponse([
                 'success' => true,
-                'msg' => $translator->trans('colis.Le colis a bien été supprimé' . '.')
-            ];
-
-            return new JsonResponse($data);
+                'msg' => $translator->trans('colis.Le colis {numéro} a bien été supprimé', [
+                        "{numéro}" => '<strong>' . $packCode . '</strong>'
+                    ]) . '.'
+            ]);
         }
 
         throw new NotFoundHttpException("404");
@@ -1026,7 +1041,7 @@ class DispatchController extends AbstractController {
                     $row[] = $dispatch['locationTo'] ?? '';
                     $row[] = $dispatch['nbPacks'] ?? '';
                     $row[] = $dispatch['status'] ?? '';
-                    $row[] = $dispatch['urgent'] ? 'oui' : 'non';
+                    $row[] = $dispatch['emergency'] ?? '';
                     $row[] = $dispatch['packNatureLabel'] ?? '';
                     $row[] = $dispatch['packCode'] ?? '';
                     $row[] = $dispatch['packQuantity'] ?? '';
@@ -1233,6 +1248,43 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route(
+     *     "/{dispatch}/check-waybill",
+     *     name="check_dispatch_waybill",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @param TranslatorInterface $translator
+     * @param Dispatch $dispatch
+     * @return JsonResponse
+     */
+    public function checkWaybill(TranslatorInterface $translator, Dispatch $dispatch) {
+
+        $invalidPacks = array_filter($dispatch->getDispatchPacks()->toArray(), function(DispatchPack $pack) {
+            return !$pack->getPack()->getWeight() || !$pack->getPack()->getVolume();
+        });
+
+        if ($dispatch->getDispatchPacks()->count() === 0) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => $translator->trans('acheminement.Des colis sont nécessaires pour générer une lettre de voiture') . '.'
+            ]);
+        }
+        else if ($invalidPacks) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => $translator->trans("acheminement.Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée") . '.'
+            ]);
+        }
+        else {
+            return new JsonResponse([
+                "success" => true,
+            ]);
+        }
+    }
+
+    /**
+     * @Route(
      *     "/{dispatch}/api-waybill",
      *     name="api_dispatch_waybill",
      *     options={"expose"=true},
@@ -1241,7 +1293,6 @@ class DispatchController extends AbstractController {
      * )
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
      * @param SpecificService $specificService
      * @param Dispatch $dispatch
      * @return JsonResponse
@@ -1250,17 +1301,8 @@ class DispatchController extends AbstractController {
      */
     public function apiWaybill(Request $request,
                                EntityManagerInterface $entityManager,
-                               TranslatorInterface $translator,
                                SpecificService $specificService,
                                Dispatch $dispatch): JsonResponse {
-        if ($dispatch->getDispatchPacks()->count() === 0) {
-            $errorMessage = $translator->trans('acheminement.Des colis sont nécessaires pour générer une lettre de voiture') . '.';
-
-            return $this->json([
-                "success" => false,
-                "msg" => $errorMessage
-            ]);
-        }
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();

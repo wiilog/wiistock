@@ -10,7 +10,7 @@
             {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
                 <div data-id='{{ mvt.id }}' data-target='#modalEditMvtTraca' data-toggle='modal'
                      class="d-none action-on-click"
-                     onclick="editRow($(this), Routing.generate('mvt_traca_api_edit', true), $('#modalEditMvtTraca'), $('#submitEditMvtTraca'), true)">
+                     onclick="editRow($(this), Routing.generate('tracking_movement_api_edit', true), $('#modalEditMvtTraca'), $('#submitEditMvtTraca'), true)">
                     <i class='fas fa-pencil-alt mr-2'></i>Modifier
                 </div>
             {% endif %}

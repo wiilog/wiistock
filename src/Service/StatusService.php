@@ -90,6 +90,7 @@ class StatusService {
             'defaultStatus' => $status->isDefaultForCategory() ? 'oui' : 'non',
             'notifToDeclarant' => $status->getSendNotifToDeclarant() ? 'oui' : 'non',
             'order' => $status->getDisplayOrder() ?? '',
+            'type' => $status->getType() ? $status->getType()->getLabel() : '',
             'actions' => $this->templating->render('status/datatableStatusRow.html.twig', [
                 'url' => $url,
                 'statusId' => $status->getId(),
