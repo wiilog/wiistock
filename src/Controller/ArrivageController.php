@@ -1693,6 +1693,7 @@ class ArrivageController extends AbstractController
             /** @var $user Utilisateur */
             $champs[] = "actions";
             $user->setColumnsVisibleForArrivage($champs);
+            dump($user, $champs, $data);
             $entityManager->flush();
 
             return new JsonResponse();

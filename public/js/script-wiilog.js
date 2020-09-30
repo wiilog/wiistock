@@ -200,8 +200,7 @@ function initEditor(div) {
             formats: [
                 'header',
                 'bold', 'italic', 'underline', 'strike', 'blockquote',
-                'list', 'bullet', 'indent',
-                'link', 'image'
+                'list', 'bullet', 'indent', 'link', 'image'
             ],
             theme: 'snow'
         });

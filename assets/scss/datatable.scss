@@ -1,3 +1,19 @@
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: $blueGT !important;
+
+    &.current {
+        background: $blueGT !important;
+        border-color: $blueGT !important;
+        color: #fff !important;
+    }
+
+    &:hover {
+        background: $lightGrey !important;
+        border-color: $lightGrey !important;
+        color: #1a1a1a !important;
+    }
+}
+
 .split-button {
     margin-right: 2px;
 }

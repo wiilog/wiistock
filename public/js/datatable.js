@@ -67,13 +67,11 @@ function initActionOnCell(cell) {
 }
 
 
-function showOrHideColumn(check, concernedTable, concernedTableColumns) {
+function showOrHideColumn(check, concernedTable) {
     let columnName = check.data('name');
 
     let column = concernedTable.column(columnName + ':name');
     column.visible(!column.visible());
-    concernedTableColumns.find('th, td').removeClass('hide');
-    concernedTableColumns.find('th, td').addClass('display');
     check.toggleClass('data');
     initActionOnCell(column);
 }
@@ -112,8 +110,8 @@ function manageArticleAndRefSearch($input, $printButton) {
 }
 
 function toggleInputRadioOnRow(tr) {
-    const $row = $(tr);
-    $row.find('input[type="checkbox"]').trigger('click');
+    const $checkbox = $(tr).find('input[type="checkbox"]');
+    $checkbox.prop('checked', !$checkbox.is(':checked'));
 }
 
 function createDatatableDomFooter({information, length, pagination}) {
@@ -180,7 +178,9 @@ function overrideSearch($input, table, callback = null) {
             }
         }
     });
-    $input.attr('placeholder', 'entrée pour valider');
+
+    $input.addClass('form-control');
+    $input.attr('placeholder', 'Entrée pour valider');
 }
 
 function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $tableDom}) {
@@ -334,6 +334,8 @@ function overrideSearchSpecifEmplacement($input) {
             managePrintButtonTooltip(true, $printButton);
         }
     });
+
+    $input.addClass('form-control');
     $input.attr('placeholder', 'entrée pour valider');
 }
 

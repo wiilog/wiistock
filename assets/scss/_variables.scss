@@ -4,6 +4,7 @@ $yellowWiilog: #ffbc02;
 $blueGT: #130078;
 $blueButton: #1C328E;
 $blue: #154280;
+$lightBlue: #5e9df6;
 $grey: #c6c6c6;
 $greyDark: #424242;
 $darkGrey: #6c757d;
@@ -31,3 +32,13 @@ $bodyColor: #383838;
 $breakpointSmallScreen: 800px;
 
 $wiiStockTextColors: (grey: $greyDashboard, black: $blackDashboard, blue: $backgroundBodyColorDark, white: $white, primary: $blueGT);
+
+//overriding bootstrap colors
+$primary:       $blueGT;
+$secondary:     $greyDark;
+$success:       $green;
+$info:          $lightBlue;
+$warning:       #ffc107;
+$danger:        $red;
+$light:         $lightGrey;
+$dark:          $darkGrey;
