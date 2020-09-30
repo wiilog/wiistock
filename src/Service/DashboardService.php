@@ -259,6 +259,9 @@ class DashboardService
             'packaging6' => [ParametrageGlobal::DASHBOARD_PACKAGING_6, $defaultDelay],
             'packaging7' => [ParametrageGlobal::DASHBOARD_PACKAGING_7, $defaultDelay],
             'packaging8' => [ParametrageGlobal::DASHBOARD_PACKAGING_8, $defaultDelay],
+            'packaging9' => [ParametrageGlobal::DASHBOARD_PACKAGING_9, $defaultDelay],
+            'packaging10' => [ParametrageGlobal::DASHBOARD_PACKAGING_10, $defaultDelay],
+            'packagingKitting' => [ParametrageGlobal::DASHBOARD_PACKAGING_KITTING, $defaultDelay],
             'packagingRPA' => [ParametrageGlobal::DASHBOARD_PACKAGING_RPA, $defaultDelay],
             'packagingLitige' => [ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE, $defaultDelay],
             'packagingUrgence' => [ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE, $urgenceDelay]
