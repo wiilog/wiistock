@@ -700,44 +700,30 @@ class CollecteController extends AbstractController
                 function (Collecte $collecte) use ($freeFieldIds) {
                     $rows = [];
                     foreach ($collecte->getArticles() as $article) {
-                        $collecteData = [];
-                        $collecteData[] = $collecte->getNumero();
-                        $collecteData[] = $collecte->getDate()->format('d/m/Y h:i');
-                        $collecteData[] = $collecte->getValidationDate() ? $collecte->getValidationDate()->format('d/m/Y h:i') :" " ;
-                        $collecteData[] = $collecte->getType()->getLabel();
-                        $collecteData[] = $collecte->getStatut()->getNom();
-                        $collecteData[] = $collecte->getObjet();
-                        $collecteData[] = $collecte->isStock() ? "Mise en stock" : "Destruction";
-                        $collecteData[] = $collecte->getDemandeur()->getUsername();
-                        $collecteData[] = $collecte->getPointCollecte();
-                        $collecteData[] = $collecte->getCommentaire();
+                        $collecteData = $collecte->serialize();
                         $collecteData[] = $article->getBarCode();
                         $collecteData[] = $article->getQuantite();
 
                         foreach ($freeFieldIds as $freeFieldId) {
-                            $collecteData[] = $collecte['freefields'][$freeFieldId] ?? "";
+                            $collecteData[] = $collecteData['freeFields'][$freeFieldId] ?? "";
                         }
+
+                        unset($collecteData['freeFields']);
+
                         $rows[] = $collecteData;
                     }
 
                     foreach ($collecte->getCollecteReferences() as $collecteReference) {
-                        $collecteData = [];
-                        $collecteData[] = $collecte->getNumero();
-                        $collecteData[] = $collecte->getDate()->format('d/m/Y h:i');
-                        $collecteData[] = $collecte->getValidationDate() ? $collecte->getValidationDate()->format('d/m/Y h:i') :" " ;
-                        $collecteData[] = $collecte->getType()->getLabel();
-                        $collecteData[] = $collecte->getStatut()->getNom();
-                        $collecteData[] = $collecte->getObjet();
-                        $collecteData[] = $collecte->getStockOrDestruct() ? "Mise en stock" : "Destruction";
-                        $collecteData[] = $collecte->getDemandeur()->getUsername();
-                        $collecteData[] = $collecte->getPointCollecte();
-                        $collecteData[] = $collecte->getCommentaire();
+                        $collecteData = $collecte->serialize();
                         $collecteData[] = $collecteReference->getReferenceArticle()->getBarCode();
                         $collecteData[] = $collecteReference->getQuantite();
 
                         foreach ($freeFieldIds as $freeFieldId) {
-                            $collecteData[] = $collecte['freefields'][$freeFieldId] ?? "";
+                            $collecteData[] = $collecteData['freeFields'][$freeFieldId] ?? "";
                         }
+
+                        unset($collecteData['freeFields']);
+
                         $rows[] = $collecteData;
                     }
 
