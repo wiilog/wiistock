@@ -68,6 +68,7 @@ final class Version20200928075905 extends AbstractMigration
             SELECT id
             FROM location_cluster
             WHERE code = '{$dropzoneCode}'
+            LIMIT 1
         ";
         $locationRaw = $this->connection
             ->executeQuery("SELECT value FROM parametrage_global WHERE parametrage_global.label = 'DASHBOARD_LOCATION_TO_DROP_ZONES'")
