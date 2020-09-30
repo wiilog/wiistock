@@ -15,8 +15,9 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\Article;
-
+use DateTime;
 use App\Service\ArticleDataService;
+use App\Service\CSVExportService;
 use App\Service\DemandeCollecteService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
@@ -634,4 +635,117 @@ class CollecteController extends AbstractController
 		}
 		throw new NotFoundHttpException("404");
 	}
+
+    /**
+     * @Route("/csv", name="get_demandes_collectes_for_csv",options={"expose"=true}, methods="GET|POST" )
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @param CSVExportService $CSVExportService
+     * @return Response
+     */
+	public function getDemandesCollecteCSV(EntityManagerInterface $entityManager,
+                                           Request $request,
+                                           CSVExportService $CSVExportService): Response
+    {
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+
+        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+
+        if (isset($dateTimeMin) && isset($dateTimeMax)) {
+
+            $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+            $freeFields = $freeFieldsRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_COLLECTE]);
+
+            $freeFieldIds = array_map(
+                function (ChampLibre $cl) {
+                    return $cl->getId();
+                },
+                $freeFields
+            );
+            $freeFieldsHeader = array_map(
+                function (ChampLibre $cl) {
+                    return $cl->getLabel();
+                },
+                $freeFields
+            );
+
+            $collecteRepository = $entityManager->getRepository(Collecte::class);
+            $collectes = $collecteRepository->findByDates($dateTimeMin, $dateTimeMax);
+
+            $csvHeader = array_merge(
+                [
+                    'Numero demande',
+                    'Date de création',
+                    'Date de validation',
+                    'Type',
+                    'Statut',
+                    'Sujet',
+                    'Stock ou destruction',
+                    'Demandeur',
+                    'Point de collecte',
+                    'Commentaire',
+                    'Code barre',
+                    'Quantité',
+                ],
+                $freeFieldsHeader
+            );
+            $today = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $fileName = "export_demande_collecte".$today->format('d_m_Y').".csv";
+            return $CSVExportService->createBinaryResponseFromData(
+                $fileName,
+                $collectes,
+                $csvHeader,
+                function (Collecte $collecte) use ($freeFieldIds) {
+                    $rows = [];
+                    foreach ($collecte->getArticles() as $article) {
+                        $collecteData = [];
+                        $collecteData[] = $collecte->getNumero();
+                        $collecteData[] = $collecte->getDate()->format('d/m/Y h:i');
+                        $collecteData[] = $collecte->getValidationDate() ? $collecte->getValidationDate()->format('d/m/Y h:i') :" " ;
+                        $collecteData[] = $collecte->getType()->getLabel();
+                        $collecteData[] = $collecte->getStatut()->getNom();
+                        $collecteData[] = $collecte->getObjet();
+                        $collecteData[] = $collecte->isStock() ? "Mise en stock" : "Destruction";
+                        $collecteData[] = $collecte->getDemandeur()->getUsername();
+                        $collecteData[] = $collecte->getPointCollecte();
+                        $collecteData[] = $collecte->getCommentaire();
+                        $collecteData[] = $article->getBarCode();
+                        $collecteData[] = $article->getQuantite();
+
+                        foreach ($freeFieldIds as $freeFieldId) {
+                            $collecteData[] = $collecte['freefields'][$freeFieldId] ?? "";
+                        }
+                        $rows[] = $collecteData;
+                    }
+
+                    foreach ($collecte->getCollecteReferences() as $collecteReference) {
+                        $collecteData = [];
+                        $collecteData[] = $collecte->getNumero();
+                        $collecteData[] = $collecte->getDate()->format('d/m/Y h:i');
+                        $collecteData[] = $collecte->getValidationDate() ? $collecte->getValidationDate()->format('d/m/Y h:i') :" " ;
+                        $collecteData[] = $collecte->getType()->getLabel();
+                        $collecteData[] = $collecte->getStatut()->getNom();
+                        $collecteData[] = $collecte->getObjet();
+                        $collecteData[] = $collecte->getStockOrDestruct() ? "Mise en stock" : "Destruction";
+                        $collecteData[] = $collecte->getDemandeur()->getUsername();
+                        $collecteData[] = $collecte->getPointCollecte();
+                        $collecteData[] = $collecte->getCommentaire();
+                        $collecteData[] = $collecteReference->getReferenceArticle()->getBarCode();
+                        $collecteData[] = $collecteReference->getQuantite();
+
+                        foreach ($freeFieldIds as $freeFieldId) {
+                            $collecteData[] = $collecte['freefields'][$freeFieldId] ?? "";
+                        }
+                        $rows[] = $collecteData;
+                    }
+
+                    return $rows;
+                }
+            );
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
 }
