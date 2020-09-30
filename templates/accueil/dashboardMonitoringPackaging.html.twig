@@ -2,8 +2,8 @@
 
 
 <div class="row no-gutters">
-    <div class="col-10">
-        <div class="row no-gutters">
+    <div class="col-md-10 d-flex flex-column">
+        <div class="row no-gutters flex-fill">
             <div class="col mr-2">
                 <div class="dashboard-box-container third-row-height">
                     <div class="dashboard-box dashboard-stats-container text-center contribute-to-total" id="packaging1">
@@ -100,7 +100,7 @@
                 </div>
             </div>
         </div>
-        <div class="row no-gutters mt-2">
+        <div class="row no-gutters flex-fill mt-2">
             <div class="col mr-2">
                 <div class="dashboard-box-container third-row-height">
                     <div class="dashboard-box dashboard-stats-container text-center contribute-to-total" id="packaging5">
@@ -197,10 +197,9 @@
                 </div>
             </div>
         </div>
-        <div class="row no-gutters mt-2">
-            <div class="col-auto"
-                 style="width: calc(100% - (100% - 1612px) / 5 - 2 * 8px) !important">
-                <div class="dashboard-box-container {{ isDashboardExt ? 'third-height' : 'half-height' }}">
+        <div class="row no-gutters {{ isDashboardExt ? 'third-height' : 'half-height' }} mt-2">
+            <div class="col pr-2">
+                <div class="dashboard-box-container h-100">
                     <div class="dashboard-box">
                         <p class="title ">OF traités</p>
                         <div class="h-100">
@@ -211,20 +210,8 @@
             </div>
         </div>
     </div>
-    <div class="col-2">
+    <div class="col-md-2">
         <div class="row no-gutters">
-            <div class="dashboard-box-container fourth-row-height w-100">
-                <div class="dashboard-box dashboard-stats-container text-center" id="packagingTotal">
-                    <p class="text-center title mt-1">
-                        Nombre total d'OF à traiter<br/>(hors urgences)
-                    </p>
-                    <div class="align-items-center mb-2">
-                        <p class="dashboard-stats dashboard-stats-counter"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row no-gutters mt-2">
             <div class="dashboard-box-container multi-line-box w-100">
                 <div class="dashboard-box dashboard-stats-container text-center" id="packagingUrgence">
                     <p class="text-center title mt-1">
@@ -239,6 +226,18 @@
                     </p>
                     <div class="align-items-center">
                         <p class="dashboard-stats dashboard-stats-delay"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row no-gutters mt-2">
+            <div class="dashboard-box-container fourth-row-height w-100">
+                <div class="dashboard-box dashboard-stats-container text-center" id="packagingTotal">
+                    <p class="text-center title mt-1">
+                        Nombre total d'OF à traiter<br/>(hors urgences)
+                    </p>
+                    <div class="align-items-center mb-2">
+                        <p class="dashboard-stats dashboard-stats-counter"></p>
                     </div>
                 </div>
             </div>
