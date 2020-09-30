@@ -4,28 +4,45 @@ namespace App\Service;
 
 use DateTime;
 use DateTimeZone;
+use Exception;
 
 class UniqueNumberService
 {
-    public function createUniqueNumber(string $prefix, $lastNumber): string {
+
+    const DATE_COUNTER_FORMAT = 'YmdCCCC';
+
+    /**
+     * @param string $prefix
+     * @param string $format
+     * @param string|null $lastNumber
+     * @return string
+     * @throws Exception
+     */
+    public function createUniqueNumber(string $prefix,
+                                       string $format,
+                                       string $lastNumber = null): string {
 
         $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-        $dateStr = $date->format('Ymd');
 
-        if ($lastNumber) {
-            $lastCounter = (int) substr($lastNumber, -4, 4);
-            $currentCounter = ($lastCounter + 1);
-        } else {
-            $currentCounter = 1;
+        preg_match('/([^C]*)(C+)/', $format, $matches);
+        if (empty($matches)) {
+            throw new Exception('Invalid number format');
         }
 
-        $currentCounterStr = (
-        $currentCounter < 10 ? ('000' . $currentCounter) :
-            ($currentCounter < 100 ? ('00' . $currentCounter) :
-                ($currentCounter < 1000 ? ('0' . $currentCounter) :
-                    $currentCounter))
+        $dateFormat = $matches[1];
+        $counterFormat = $matches[2];
+        $counterLen = strlen($counterFormat);
+
+        $lastCounter = (
+            (!empty($lastNumber) && $counterLen >= strlen($lastNumber))
+                ? (int) substr($lastNumber, -$counterLen, $counterLen)
+                : 0
         );
 
-        return ($prefix .'-'. $dateStr . $currentCounterStr);
+        $currentCounterStr = sprintf("%0{$counterLen}u", $lastCounter + 1);
+        $dateStr = !empty($dateFormat) ? $date->format($dateFormat) : '';
+        $smartPrefix = !empty($prefix) ? ($prefix . '-') : '';
+
+        return ($smartPrefix . $dateStr . $currentCounterStr);
     }
 }

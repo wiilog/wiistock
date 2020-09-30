@@ -179,7 +179,7 @@ class HandlingController extends AbstractController
             $fileBag = $request->files->count() > 0 ? $request->files : null;
 
             $lastDispatchNumber = $handlingRepository->getLastHandlingNumberByPrefix($prefix . '-' . $dateStr);
-            $handlingNumber = $uniqueNumberService->createUniqueNumber($prefix, $lastDispatchNumber);
+            $handlingNumber = $uniqueNumberService->createUniqueNumber($prefix, UniqueNumberService::DATE_COUNTER_FORMAT, $lastDispatchNumber);
 
             /** @var Utilisateur $requester */
             $requester = $this->getUser();

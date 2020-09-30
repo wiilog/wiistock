@@ -1276,7 +1276,7 @@ class ReceptionController extends AbstractController
             $prefix = Litige::DISPUTE_RECEPTION_PREFIX;
 
             $lastDisputeNumber = $disputeRepository->getLastDisputeNumberByPrefixAndDate($prefix, $dateStr);
-            $disputeNumber = $uniqueNumberService->createUniqueNumber($prefix, $lastDisputeNumber);
+            $disputeNumber = $uniqueNumberService->createUniqueNumber($prefix, UniqueNumberService::DATE_COUNTER_FORMAT, $lastDisputeNumber);
 
             $litige
                 ->setStatus($statutRepository->find($post->get('statutLitige')))

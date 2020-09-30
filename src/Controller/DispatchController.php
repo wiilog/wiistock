@@ -267,7 +267,7 @@ class DispatchController extends AbstractController {
             $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
 
             $lastDispatchNumber = $dispatchRepository->getLastDispatchNumberByPrefix($prefix . '-' . $dateStr);
-            $number = $uniqueNumberService->createUniqueNumber($prefix, $lastDispatchNumber);
+            $number = $uniqueNumberService->createUniqueNumber($prefix, UniqueNumberService::DATE_COUNTER_FORMAT, $lastDispatchNumber);
 
             if ($startDate && $endDate && $startDate > $endDate) {
                 return new JsonResponse([
