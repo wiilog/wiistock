@@ -8,23 +8,46 @@ use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementTraca;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
+use Doctrine\ORM\Event\LifecycleEventArgs;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
+
 
 class TrackingMovementListener
 {
+    /**
+     * @param MouvementTraca $movementToDelete
+     * @param LifecycleEventArgs $lifecycleEventArgs
+     * @throws ORMException
+     * @throws OptimisticLockException
+     */
+    public function preRemove(MouvementTraca $movementToDelete,
+                              LifecycleEventArgs $lifecycleEventArgs) {
+        $entityManager = $lifecycleEventArgs->getEntityManager();
 
-    private $entityManager;
+        $firstDropsRecordIds = $movementToDelete->getFirstDropsRecords()
+            ->map(function (LocationClusterRecord $record) {
+                return $record->getId();
+            })
+            ->toArray();
 
-    public function __construct(EntityManagerInterface $entityManager) {
-        $this->entityManager = $entityManager;
+        $this->treatPackLinking($movementToDelete, $entityManager);
+        $this->treatFirstDropRecordLinking($movementToDelete, $entityManager);
+        $this->treatLastTrackingRecordLinking($firstDropsRecordIds, $movementToDelete, $entityManager);
+        $this->treatLocationClusterMeterLinking($movementToDelete, $entityManager);
     }
 
     /**
+     * @param EntityManager $entityManager
      * @param MouvementTraca $movementToDelete
-     * @throws Exception
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
-    public function preRemove(MouvementTraca $movementToDelete) {
+    public function treatPackLinking(MouvementTraca $movementToDelete,
+                                     EntityManager $entityManager): void {
+
         $pack = $movementToDelete->getPack();
 
         $trackingMovements = $pack->getTrackingMovements();
@@ -64,19 +87,33 @@ class TrackingMovementListener
         if ($lastTrackingToUpdate) {
             $pack->setLastTracking($newLastTracking);
         }
+        dump($pack->getId());
+        if ($pack->getLastTracking()) {
+            dump($pack->getLastTracking()->getId());
+        }
+        else {
+            dump('-');
+        }
 
-        $firstDropsRecordIds = $movementToDelete->getFirstDropsRecords()
-            ->map(function (LocationClusterRecord $record) {
-                return $record->getId();
-            })
-            ->toArray();
-        $this->treatFirstDropRecord($movementToDelete);
-        $this->treatLastTrackingRecord($firstDropsRecordIds, $movementToDelete);
+        if ($pack->getLastDrop()) {
+            dump($pack->getLastDrop()->getId());
+        }
+        else {
+            dump('-');
+        }
 
-        $this->treatLocationClusterMeter($movementToDelete);
+
+        $entityManager->flush($pack);
     }
 
-    private function treatFirstDropRecord(MouvementTraca $movementToDelete): void {
+    /**
+     * @param EntityManager $entityManager
+     * @param MouvementTraca $movementToDelete
+     * @throws ORMException
+     * @throws OptimisticLockException
+     */
+    private function treatFirstDropRecordLinking(MouvementTraca $movementToDelete,
+                                                 EntityManager $entityManager): void {
         $pack = $movementToDelete->getPack();
         $firstDropRecords = $movementToDelete->getFirstDropsRecords();
         /** @var LocationClusterRecord $firstDropRecords */
@@ -85,7 +122,7 @@ class TrackingMovementListener
             if (!$firstDropRecord->isActive()
                 || $movementToDelete === $firstDropRecord->getLastTracking()) {
                 $firstDropRecord->setFirstDrop(null);
-                $this->entityManager->remove($firstDropRecord);
+                $entityManager->remove($firstDropRecord);
             }
             else {
                 $replacedTracking = null;
@@ -103,13 +140,24 @@ class TrackingMovementListener
                 }
                 else {
                     $firstDropRecord->setFirstDrop(null);
-                    $this->entityManager->remove($firstDropRecord);
+                    $entityManager->remove($firstDropRecord);
                 }
             }
         }
+
+        $entityManager->flush($firstDropRecords->toArray());
     }
-    private function treatLastTrackingRecord(array $recordIdsToIgnore,
-                                             MouvementTraca $movementToDelete): void {
+
+    /**
+     * @param EntityManager $entityManager
+     * @param array $recordIdsToIgnore
+     * @param MouvementTraca $movementToDelete
+     * @throws ORMException
+     * @throws OptimisticLockException
+     */
+    private function treatLastTrackingRecordLinking(array $recordIdsToIgnore,
+                                                    MouvementTraca $movementToDelete,
+                                                    EntityManager $entityManager): void {
         $pack = $movementToDelete->getPack();
         $lastTrackingRecords = $movementToDelete->getLastTrackingRecords();
         /** @var LocationClusterRecord $record */
@@ -118,7 +166,7 @@ class TrackingMovementListener
                 && !in_array($record->getId(), $recordIdsToIgnore)) {
                 if (!$record->isActive()) {
                     $record->setLastTracking(null);
-                    $this->entityManager->remove($record);
+                    $entityManager->remove($record);
                 }
                 else {
                     $replacedTracking = null;
@@ -137,23 +185,35 @@ class TrackingMovementListener
                     }
                     else {
                         $record->setLastTracking(null);
-                        $this->entityManager->remove($record);
+                        $entityManager->remove($record);
                     }
                 }
             }
         }
+
+        $entityManager->flush($lastTrackingRecords->toArray());
     }
 
-    private function treatLocationClusterMeter(MouvementTraca $trackingMovement): void {
+    /**
+     * @param EntityManager $entityManager
+     * @param MouvementTraca $trackingMovement
+     * @throws ORMException
+     * @throws OptimisticLockException
+     */
+    private function treatLocationClusterMeterLinking(MouvementTraca $trackingMovement,
+                                                      EntityManager $entityManager): void {
         $location = $trackingMovement->getEmplacement();
         if ($trackingMovement->isDrop()
             && $location) {
             /** @var LocationCluster $clusters */
             foreach ($location->getClusters() as $clusters) {
+                $meters = $clusters->getMetersInto();
                 /** @var LocationClusterMeter $meter */
-                foreach ($clusters->getMetersInto() as $meter) {
+                foreach ($meters as $meter) {
                     $meter->decreaseDropCounter();
                 }
+
+                $entityManager->flush($meters->toArray());
             }
         }
     }
