@@ -55,11 +55,7 @@ $(function () {
             };
 
             tableMvt = initDataTable('tableMvts', config);
-
-            let modalColumnVisible = $('#modalColumnVisibleTrackingMovement');
-            let submitColumnVisible = $('#submitColumnVisibleTrackingMovement');
-            let urlColumnVisible = Routing.generate('save_column_visible_for_tracking_movement', true);
-            InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+            initPageModal(tableMvt);
         });
 });
 
@@ -80,50 +76,38 @@ $.fn.dataTable.ext.search.push(
     }
 );
 
-let modalNewMvtTraca = $("#modalNewMvtTraca");
-let submitNewMvtTraca = $("#submitNewMvtTraca");
-let urlNewMvtTraca = Routing.generate('mvt_traca_new', true);
-InitModal(
-    modalNewMvtTraca,
-    submitNewMvtTraca,
-    urlNewMvtTraca,
-    {
-        tables: [tableMvt],
-        keepModal: !Number($('#redirectAfterTrackingMovementCreation').val()),
-        success: ({success, mouvementTracaCounter}) => {
-            displayAlertModal(
-                undefined,
-                $('<div/>', {
-                    class: 'text-center',
-                    text: mouvementTracaCounter > 0
-                        ? (mouvementTracaCounter > 1
-                            ? 'Mouvements créés avec succès.'
-                            : 'Mouvement créé avec succès.')
-                        : 'Aucun mouvement créé.'
-                }),
-                [
-                    {
-                        class: 'btn btn-success m-0',
-                        text: 'Continuer',
-                        action: ($modal) => {
-                            $modal.modal('hide')
-                        }
-                    }
-                ],
-                success ? 'success' : 'error'
-            );
-        }
-    });
 
-let $modalEditMvtTraca = $("#modalEditMvtTraca");
-let $submitEditMvtTraca = $("#submitEditMvtTraca");
-let urlEditMvtTraca = Routing.generate('mvt_traca_edit', true);
-InitModal($modalEditMvtTraca, $submitEditMvtTraca, urlEditMvtTraca, {tables: [tableMvt]});
+function initPageModal(tableMvt) {
+    let modalColumnVisible = $('#modalColumnVisibleTrackingMovement');
+    let submitColumnVisible = $('#submitColumnVisibleTrackingMovement');
+    let urlColumnVisible = Routing.generate('save_column_visible_for_tracking_movement', true);
+    InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
 
-let $modalDeleteMvtTraca = $('#modalDeleteMvtTraca');
-let $submitDeleteMvtTraca = $('#submitDeleteMvtTraca');
-let urlDeleteArrivage = Routing.generate('mvt_traca_delete', true);
-InitModal($modalDeleteMvtTraca, $submitDeleteMvtTraca, urlDeleteArrivage, {tables: [tableMvt]});
+    let $modalEditMvtTraca = $("#modalEditMvtTraca");
+    let $submitEditMvtTraca = $("#submitEditMvtTraca");
+    let urlEditMvtTraca = Routing.generate('mvt_traca_edit', true);
+    InitModal($modalEditMvtTraca, $submitEditMvtTraca, urlEditMvtTraca, {tables: [tableMvt]});
+
+    let $modalDeleteMvtTraca = $('#modalDeleteMvtTraca');
+    let $submitDeleteMvtTraca = $('#submitDeleteMvtTraca');
+    let urlDeleteArrivage = Routing.generate('mvt_traca_delete', true);
+    InitModal($modalDeleteMvtTraca, $submitDeleteMvtTraca, urlDeleteArrivage, {tables: [tableMvt]});
+
+    let modalNewMvtTraca = $("#modalNewMvtTraca");
+    let submitNewMvtTraca = $("#submitNewMvtTraca");
+    let urlNewMvtTraca = Routing.generate('mvt_traca_new', true);
+    InitModal(
+        modalNewMvtTraca,
+        submitNewMvtTraca,
+        urlNewMvtTraca,
+        {
+            tables: [tableMvt],
+            keepModal: !Number($('#redirectAfterTrackingMovementCreation').val()),
+            success: ({success, mouvementTracaCounter}) => {
+                displayOnSuccessCreation(success, mouvementTracaCounter);
+            }
+        });
+}
 
 function initNewModal($modal) {
     if (!quillNew) {
@@ -191,5 +175,29 @@ function switchMvtCreationType($input) {
  */
 function clearURL() {
     window.history.pushState({}, document.title, `${window.location.pathname}`);
+}
+
+function displayOnSuccessCreation(success, mouvementTracaCounter) {
+    displayAlertModal(
+        undefined,
+        $('<div/>', {
+            class: 'text-center',
+            text: mouvementTracaCounter > 0
+                ? (mouvementTracaCounter > 1
+                    ? 'Mouvements créés avec succès.'
+                    : 'Mouvement créé avec succès.')
+                : 'Aucun mouvement créé.'
+        }),
+        [
+            {
+                class: 'btn btn-success m-0',
+                text: 'Continuer',
+                action: ($modal) => {
+                    $modal.modal('hide')
+                }
+            }
+        ],
+        success ? 'success' : 'error'
+    );
 }
 
