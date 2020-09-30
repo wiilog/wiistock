@@ -289,25 +289,20 @@ function reloadData() {
 }
 
 function updateRefreshDate() {
-    const treatDate = (graphsDate, metersDate) => {
-        const $graphsRefreshDate = $('.graphsRefreshDate');
-        const $metersRefreshDate = $('.metersRefreshDate');
+    const treatDate = (refreshDate) => {
+        const $refreshDate = $('.refreshDate');
 
-        $graphsRefreshDate.text(graphsDate);
-        $graphsRefreshDate.parent().removeClass('d-none');
-
-        $metersRefreshDate.text(metersDate);
-        $metersRefreshDate.parent().removeClass('d-none');
+        $refreshDate.text(refreshDate);
+        $refreshDate.parent().removeClass('d-none');
     };
     if (isDashboardExt()) {
-        const dateGraphs = $('#dashboard-refresh-date').data('date');
-        const dateMeters = $('#dashboard-meters-refresh-date').data('date');
-        treatDate(dateGraphs, dateMeters);
+        const refreshDate = $('#dashboard-refresh-date').data('date');
+        treatDate(refreshDate);
     }
     else {
         $.get(Routing.generate('last_refresh'), function (response) {
             if (response && response.success) {
-                treatDate(response.graphsDate, response.metersDate);
+                treatDate(response.refreshDate);
             }
         });
     }
