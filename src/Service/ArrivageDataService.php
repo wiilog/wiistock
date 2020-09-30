@@ -225,7 +225,8 @@ class ArrivageDataService
                         'arrival' => $arrival,
                         'emergencies' => $emergencies,
                         'isUrgentArrival' => $isUrgentArrival,
-                        'freeFields' => $freeFields
+                        'freeFields' => $freeFields,
+                        'urlSuffix' => $this->router->generate("arrivage_show", ["id" => $arrival->getId()])
                     ]
                 ),
                 $finalRecipents

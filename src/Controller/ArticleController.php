@@ -23,7 +23,6 @@ use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
 use App\Service\MouvementStockService;
-use App\Service\MouvementTracaService;
 use App\Service\PDFGeneratorService;
 use App\Service\ArticleDataService;
 use App\Service\PreparationsManagerService;
@@ -570,7 +569,6 @@ class ArticleController extends AbstractController
     /**
      * @Route("/supprimer", name="article_delete", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param MouvementTracaService $mouvementTracaService
      * @param MouvementStockService $mouvementStockService
      * @param PreparationsManagerService $preparationsManagerService
      * @param DemandeLivraisonService $demandeLivraisonService
@@ -579,7 +577,6 @@ class ArticleController extends AbstractController
      * @return Response
      */
     public function delete(Request $request,
-                           MouvementTracaService $mouvementTracaService,
                            MouvementStockService $mouvementStockService,
                            PreparationsManagerService $preparationsManagerService,
                            DemandeLivraisonService $demandeLivraisonService,
@@ -608,15 +605,13 @@ class ArticleController extends AbstractController
             // Delete mvt traca
             /** @var MouvementTraca $mouvementTraca */
             foreach ($article->getMouvementTracas()->toArray() as $mouvementTraca) {
-                $mouvementTracaService->manageMouvementTracaPreRemove($mouvementTraca);
-                $article->removeMouvementTraca($mouvementTraca);
                 $entityManager->remove($mouvementTraca);
             }
 
             // Delete mvt stock
             /** @var MouvementStock $mouvementStock */
             foreach ($article->getMouvements()->toArray() as $mouvementStock) {
-                $mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager, $mouvementTracaService);
+                $mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager);
                 $article->removeMouvement($mouvementStock);
                 $entityManager->remove($mouvementStock);
             }

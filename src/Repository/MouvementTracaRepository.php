@@ -3,15 +3,11 @@
 namespace App\Repository;
 
 use App\Entity\Pack;
-use App\Entity\Emplacement;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\Utilisateur;
 use DateTime;
-use DateTimeInterface;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DBALException;
-use Doctrine\DBAL\FetchMode;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -148,225 +144,6 @@ class MouvementTracaRepository extends EntityRepository
     }
 
     /**
-     * @param string $colis
-     * @return  MouvementTraca
-     */
-    public function getLastByColis($colis)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT mt
-			FROM App\Entity\MouvementTraca mt
-			WHERE mt.colis = :colis
-			ORDER BY mt.datetime DESC, mt.id DESC"
-        )->setParameter('colis', $colis);
-
-        $result = $query->execute();
-        return $result ? $result[0] : null;
-    }
-
-    /**
-     * @param string $colis
-     * @param DateTimeInterface $date
-     * @return  MouvementTraca
-     */
-    public function getByColisAndPriorToDate($colis, $date)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT mt
-			FROM App\Entity\MouvementTraca mt
-			WHERE mt.colis = :colis AND mt.datetime >= :date"
-        )->setParameters([
-            'colis' => $colis,
-            'date' => $date,
-        ]);
-
-        return $query->execute();
-    }
-
-    public function getColisById(array $ids)
-    {
-        $result = $this
-            ->createQueryBuilder('mouvementTraca')
-            ->select('mouvementTraca.colis')
-            ->where('mouvementTraca.id IN (:mouvementTracaIds)')
-            ->setParameter('mouvementTracaIds', $ids, Connection::PARAM_STR_ARRAY)
-            ->getQuery()
-            ->getResult();
-        return $result ? array_column($result, 'colis') : [];
-    }
-
-    /**
-     * Retourne les ids de mouvementTraca qui correspondent aux colis encours sur les emplacement donnés
-     * @param Emplacement[]|int[] $locations
-     * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
-     * @param string $field
-     * @param int|null $limit
-     * @return int[]
-     * @throws DBALException
-     */
-    public function getForPacksOnLocations(array $locations, array $onDateBracket = [], string $field = 'id', ?int $limit = null): array
-    {
-        $connection = $this->getEntityManager()->getConnection();
-        return !empty($locations)
-            ? $connection
-                ->executeQuery($this->createSQLQueryPacksOnLocation($locations, $field, $onDateBracket, $limit), [])
-                ->fetchAll(FetchMode::COLUMN)
-            : [];
-    }
-
-    /**
-     * Retourne les mouvementTraca qui correspondent aux colis encours sur les emplacement donnés
-     * @param Emplacement[]|int[] $locations
-     * @param int $limit
-     * @return array[]
-     * @throws DBALException
-     */
-    public function getLastOnLocations(array $locations, ?int $limit = null): array
-    {
-        $trackingIdsToGet = $this->getForPacksOnLocations($locations);
-
-        $queryBuilder = $this->createQueryBuilder('tracking')
-            ->addSelect('tracking.datetime AS lastTrackingDateTime')
-            ->addSelect('currentLocation.id AS currentLocationId')
-            ->addSelect('currentLocation.label AS currentLocationLabel')
-            ->addSelect('tracking.colis AS code')
-            ->join('tracking.emplacement', 'currentLocation')
-            ->where('tracking.id IN (:trackingIds)')
-            ->setParameter('trackingIds', $trackingIdsToGet, Connection::PARAM_STR_ARRAY)
-            ->orderBy('tracking.datetime', 'ASC');
-        if (isset($limit)) {
-            $queryBuilder
-                ->setMaxResults($limit);
-        }
-        return $queryBuilder
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
-     * On retourne les ids des mouvementTraca qui correspondent à l'arrivée d'un colis (étant sur le/les emplacement)
-     * sur un emplacement / groupement d'emplacement
-     * (premières prises ou déposes sur l'emplacement ou le groupement d'emplacement où est présent le colis)
-     * @param Emplacement[]|int[] $locations
-     * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
-     * @return int[]
-     * @throws DBALException
-     */
-    public function getFirstIdForPacksOnLocations(array $locations, array $onDateBracket = []): array
-    {
-        if (!empty($locations)) {
-            $locationIds = $this->getIdsFromLocations($locations);
-            $queryColisOnLocations = $this->createSQLQueryPacksOnLocation($locationIds, 'colis', $onDateBracket);
-            $locationIdsStr = implode(',', $locationIds);
-            $sqlQuery = "
-                  SELECT MIN(unique_packs.id) AS id
-                  FROM mouvement_traca AS unique_packs
-                  INNER JOIN (
-                      SELECT mouvement_traca.colis         AS colis,
-                             MIN(mouvement_traca.datetime) AS datetime
-                      FROM mouvement_traca
-                      WHERE mouvement_traca.emplacement_id IN (${locationIdsStr})
-                        AND mouvement_traca.colis          IN (${queryColisOnLocations})
-                      GROUP BY mouvement_traca.colis, mouvement_traca.datetime
-                  ) AS min_datetime_packs ON min_datetime_packs.colis = unique_packs.colis
-                                         AND min_datetime_packs.datetime = unique_packs.datetime
-                  GROUP BY unique_packs.colis
-            ";
-
-            $connection = $this->getEntityManager()->getConnection();
-            $queryResult = $connection
-                ->executeQuery($sqlQuery, [])
-                ->fetchAll(FetchMode::COLUMN);
-        } else {
-            $queryResult = [];
-        }
-
-        return $queryResult;
-    }
-
-    /**
-     * Retourne une chaîne SQL qui sélectionne les ids de moumvementTraca qui correspondent aux colis encours sur les emplacement donnés
-     * @param array $locations
-     * @param string $field
-     * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
-     * @param int|null $limit
-     * @return string
-     */
-    private function createSQLQueryPacksOnLocation(array $locations, string $field = 'id', array $onDateBracket = [], ?int $limit = null): string
-    {
-        $locationIds = implode(',', $this->getIdsFromLocations($locations));
-        $dropType = str_replace('\'', '\'\'', MouvementTraca::TYPE_DEPOSE);
-
-        $createInnerJoinIsDropFunction = function (string $aliasMouvementTraca) use ($dropType) {
-            return "INNER JOIN statut ON ${aliasMouvementTraca}.type_id = statut.id
-                                     AND statut.code = '${dropType}'";
-        };
-
-        $createLimitFunction = function (string $aliasMouvementTraca) use ($limit, $field) {
-            return "ORDER BY ${aliasMouvementTraca}.${field} DESC LIMIT " . $limit;
-        };
-        $limitAndOrderClause = '';
-        $innerJoinIsDrop = $createInnerJoinIsDropFunction('unique_packs_in_location');
-        if (isset($limit)) {
-            $limitAndOrderClause = $createLimitFunction('unique_packs_in_location');
-        }
-        if (!empty($onDateBracket)
-            && isset($onDateBracket['minDate'])
-            && isset($onDateBracket['maxDate'])) {
-            $minDate = $onDateBracket['minDate']->format('Y-m-d H:i:s');
-            $maxDate = $onDateBracket['maxDate']->format('Y-m-d H:i:s');
-            $locationsInDateBracketClause = "WHERE max_datetime_packs_local.emplacement_id IN (${locationIds})";
-            $locationsInDateBracketInnerJoin = $createInnerJoinIsDropFunction('max_datetime_packs_local');
-            $uniquePackInLocationClause = "AND unique_packs_in_location.datetime BETWEEN '${minDate}' AND '${maxDate}'";
-        } else {
-            $locationsInDateBracketClause = '';
-            $locationsInDateBracketInnerJoin = '';
-            $uniquePackInLocationClause = "AND unique_packs_in_location.emplacement_id IN (${locationIds})";
-        }
-        return "
-            SELECT unique_packs_in_location.${field}
-            FROM mouvement_traca AS unique_packs_in_location
-            ${innerJoinIsDrop}
-            WHERE unique_packs_in_location.id IN (
-                    SELECT MAX(unique_packs.id) AS id
-                    FROM mouvement_traca AS unique_packs
-                    INNER JOIN (
-                        SELECT max_datetime_packs_local.colis         AS colis,
-                               MAX(max_datetime_packs_local.datetime) AS datetime
-                        FROM mouvement_traca max_datetime_packs_local
-                        ${locationsInDateBracketInnerJoin}
-                        ${locationsInDateBracketClause}
-                        GROUP BY max_datetime_packs_local.colis) max_datetime_packs ON max_datetime_packs.colis = unique_packs.colis
-                                                                                   AND max_datetime_packs.datetime = unique_packs.datetime
-                    GROUP BY unique_packs.colis
-              )
-              ${uniquePackInLocationClause}
-              ${limitAndOrderClause}
-        ";
-    }
-
-    /**
-     * Return list of id form array of location
-     * @param Emplacement[]|int[] $locations
-     * @return array
-     */
-    private function getIdsFromLocations(array $locations): array
-    {
-        return array_map(
-            function ($location) {
-                return ($location instanceof Emplacement)
-                    ? $location->getId()
-                    : $location;
-            },
-            $locations
-        );
-    }
-
-    /**
      * @param array|null $params
      * @param array|null $filters
      * @return array
@@ -437,14 +214,14 @@ class MouvementTracaRepository extends EntityRepository
                         ->leftJoin('a1.articleFournisseur', 'af1')
                         ->leftJoin('af1.referenceArticle', 'afra1')
                         ->andWhere('(
-						m.colis LIKE :value OR
-						e2.label LIKE :value OR
-						s2.nom LIKE :value OR
-						afra1.reference LIKE :value OR
-						a1.label LIKE :value OR
-						mra1.reference LIKE :value OR
-						mra1.libelle LIKE :value OR
-						u2.username LIKE :value
+                            m.colis LIKE :value OR
+                            e2.label LIKE :value OR
+                            s2.nom LIKE :value OR
+                            afra1.reference LIKE :value OR
+                            a1.label LIKE :value OR
+                            mra1.reference LIKE :value OR
+                            mra1.libelle LIKE :value OR
+                            u2.username LIKE :value
 						)')
                         ->setParameter('value', '%' . $search . '%');
                 }
@@ -591,95 +368,6 @@ class MouvementTracaRepository extends EntityRepository
     }
 
     /**
-     * @param array $locationIds
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
-     * @return int
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function countDropsOnLocations(array $locationIds, DateTime $dateMin, DateTime $dateMax): int {
-        if (!empty($locationIds)) {
-            $queryBuilder = $this->createQueryBuilder('mouvementTraca')
-                ->select('COUNT(mouvementTraca)')
-                ->join('mouvementTraca.emplacement', 'location')
-                ->join('mouvementTraca.type', 'type')
-                ->where('location.id IN (:locationIds)')
-                ->andWhere('mouvementTraca.datetime >= :dateMin')
-                ->andWhere('mouvementTraca.datetime <= :dateMax')
-                ->andWhere('type.nom = :deposeNom')
-                ->setParameter('deposeNom', MouvementTraca::TYPE_DEPOSE)
-                ->setParameter('locationIds', $locationIds, Connection::PARAM_STR_ARRAY)
-                ->setParameter('dateMin', $dateMin)
-                ->setParameter('dateMax', $dateMax);
-            $count = $queryBuilder
-                ->getQuery()
-                ->getSingleScalarResult();
-        }
-        else {
-            $count = 0;
-        }
-
-        return $count;
-    }
-
-    /**
-     * @param array $fromIds
-     * @param array $intoIds
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
-     * @return int
-     * @throws DBALException
-     */
-    public function countMovementsFromInto(array $fromIds,
-                                           array $intoIds,
-                                           DateTime $dateMin,
-                                           DateTime $dateMax): int {
-        if (!empty($fromIds) && !empty($intoIds)) {
-            $fromIdsStr = implode(',', $fromIds);
-            $intoIdsStr = implode(',', $intoIds);
-            $dateMinStr = $dateMin->format('Y-m-d H:i:s');
-            $dateMaxStr = $dateMax->format('Y-m-d H:i:s');
-            $takingType = MouvementTraca::TYPE_PRISE;
-            $dropType = MouvementTraca::TYPE_DEPOSE;
-            $sqlQuery = (
-                "
-                    SELECT COUNT(DISTINCT(location_taking.id))
-                    FROM mouvement_traca AS location_taking
-                             INNER JOIN statut AS type_taking ON location_taking.type_id = type_taking.id
-                             INNER JOIN (
-                                    SELECT mouvement_traca.emplacement_id,
-                                           mouvement_traca.datetime,
-                                           mouvement_traca.colis,
-                                           mouvement_traca.id
-                                    FROM mouvement_traca
-                                             INNER JOIN statut AS type_drop ON mouvement_traca.type_id = type_drop.id
-                                    WHERE type_drop.nom = '${dropType}'
-                                      AND mouvement_traca.datetime >= '${dateMinStr}'
-                                      AND mouvement_traca.datetime <= '${dateMaxStr}'
-                                    ORDER BY mouvement_traca.datetime
-                            ) AS location_drop ON location_drop.emplacement_id IN (${intoIdsStr})
-                                AND location_drop.datetime >= location_taking.datetime
-                                AND location_drop.colis = location_taking.colis
-                    WHERE location_taking.emplacement_id IN (${fromIdsStr})
-                      AND location_taking.datetime <= '${dateMaxStr}'
-                      AND type_taking.nom = '${takingType}'
-                "
-            );
-            $connection = $this->getEntityManager()->getConnection();
-            $countResult = $connection
-                ->executeQuery($sqlQuery, [])
-                ->fetchAll(FetchMode::COLUMN);
-            $count = $countResult[0] ?? 0;
-        }
-        else {
-            $count = 0;
-        }
-
-        return $count;
-    }
-
-    /**
      * @param MouvementStock $mouvementStock
      * @return int
      * @throws NonUniqueResultException
@@ -695,17 +383,5 @@ class MouvementTracaRepository extends EntityRepository
             WHERE m.mouvementStock = :mouvementStock"
         )->setParameter('mouvementStock', $mouvementStock);
         return $query->getSingleScalarResult();
-    }
-
-    public function findMvtByArticles()
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT *
-            FROM App/entity/MouvementTraca ");
-            $result =  $query->getQuery()
-                            ->getSingleScalarResult();
-        return $result;
     }
 }

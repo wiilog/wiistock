@@ -8,6 +8,7 @@ use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\FiabilityByReference;
 use App\Entity\Handling;
+use App\Entity\LocationCluster;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -69,8 +70,7 @@ class AccueilController extends AbstractController
         $data['pageData'] = ($page === 'emballage')
             ? $dashboardService->getSimplifiedDataForPackagingDashboard($entityManager)
             : [];
-        $data['graphsRefreshDate'] = $dashboardService->getLastRefresh(Wiilock::DASHBOARD_GRAPH_FED_KEY);
-        $data['metersRefreshDate'] = $dashboardService->getLastRefresh(Wiilock::DASHBOARD_METER_FED_KEY);
+        $data['refreshDate'] = $dashboardService->getLastRefresh(Wiilock::DASHBOARD_FED_KEY);
         return $this->render('accueil/dashboardExt.html.twig', $data);
     }
 
@@ -242,8 +242,7 @@ class AccueilController extends AbstractController
     {
         return new JsonResponse([
             'success' => true,
-            'graphsDate' => $dashboardService->getLastRefresh(Wiilock::DASHBOARD_GRAPH_FED_KEY),
-            'metersDate' => $dashboardService->getLastRefresh(Wiilock::DASHBOARD_METER_FED_KEY),
+            'refreshDate' => $dashboardService->getLastRefresh(Wiilock::DASHBOARD_FED_KEY)
         ]);
     }
 
@@ -286,7 +285,6 @@ class AccueilController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param DashboardService $dashboardService
      * @return Response
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function getDailyPacksStatistics(EntityManagerInterface $entityManager, DashboardService $dashboardService): Response
@@ -338,7 +336,6 @@ class AccueilController extends AbstractController
      * @param int $graph
      *
      * @return Response
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function getEnCoursCountByNatureAndTimespan(EntityManagerInterface $entityManager,
@@ -354,7 +351,12 @@ class AccueilController extends AbstractController
             '24h-36h' => 5,
             '36h-48h' => 6,
         ];
-        $key = DashboardService::DASHBOARD_ADMIN . '-' . $graph;
+        $graphToCode = [
+            1 => LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1,
+            2 => LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2
+        ];
+
+        $key = $graphToCode[$graph];
         $data = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_ADMIN, $key);
         $orderedData = [];
         $orderedData['chartColors'] = $data['chartColors'] ?? [];
