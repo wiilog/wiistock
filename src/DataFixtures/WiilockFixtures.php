@@ -16,9 +16,19 @@ class WiilockFixtures extends Fixture implements FixtureGroupInterface
         $wiilockRepository = $manager->getRepository(Wiilock::class);
 
         $wiilocks = [
-            Wiilock::DASHBOARD_GRAPH_FED_KEY => false,
-            Wiilock::DASHBOARD_METER_FED_KEY => false
+            Wiilock::DASHBOARD_FED_KEY => false
         ];
+
+        $allLocks = $wiilockRepository->findAll();
+        foreach ($allLocks as $lock) {
+            $key = $lock->getLockKey();
+            if (!isset($wiilocks[$key])) {
+                $manager->remove($lock);
+                dump('Suppression du lock : ' . $key);
+            }
+        }
+
+        $manager->flush();
 
         foreach ($wiilocks as $key => $value) {
             $wiilock = $wiilockRepository->findOneBy([

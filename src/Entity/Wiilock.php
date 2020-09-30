@@ -10,8 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Wiilock
 {
 
-    public const DASHBOARD_GRAPH_FED_KEY = 'dashboard_is_being_fed';
-    public const DASHBOARD_METER_FED_KEY = 'dashboard_meters_are_being_fed';
+    public const DASHBOARD_FED_KEY = 'dashboard_is_being_fed';
 
     /**
      * @ORM\Id()

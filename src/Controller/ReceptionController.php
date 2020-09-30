@@ -527,8 +527,6 @@ class ReceptionController extends AbstractController
             }
 
             foreach ($reception->getMouvementsTraca() as $receptionMvtTraca) {
-                $mouvementTracaService->manageMouvementTracaPreRemove($receptionMvtTraca);
-                $entityManager->flush();
                 $entityManager->remove($receptionMvtTraca);
             }
             $entityManager->flush();
@@ -630,8 +628,6 @@ class ReceptionController extends AbstractController
             }
 
             foreach ($associatedMvts as $associatedMvt) {
-                $mouvementTracaService->manageMouvementTracaPreRemove($associatedMvt);
-                $entityManager->flush();
                 $entityManager->remove($associatedMvt);
             }
             $entityManager->flush();
