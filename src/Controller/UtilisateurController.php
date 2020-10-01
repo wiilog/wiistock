@@ -218,7 +218,7 @@ class UtilisateurController extends AbstractController
             $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
             $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
             $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
-            $roles = $entityManager->getRepository(Role::class)->findAllExceptNoAccess();
+            $roles = $entityManager->getRepository(Role::class)->findAll();
 
             return new JsonResponse([
             	'userDeliveryTypes' => $user->getDeliveryTypeIds(),

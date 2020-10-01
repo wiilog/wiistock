@@ -12,6 +12,7 @@ let tableUserConfig = {
         { "data": "Email", 'title': 'Email' },
         { "data": "Dropzone", 'title': 'Drop zone' },
         { "data": "Dernière connexion", 'title': 'Dernière connexion' },
+        { "data": "role", 'title': 'Rôle', orderable: false, className: 'noVis' },
     ],
     rowConfig: {
         needsRowClickAction: true
