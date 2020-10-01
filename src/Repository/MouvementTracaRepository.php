@@ -2,8 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\CategorieStatut;
-use App\Entity\Pack;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\Utilisateur;
@@ -12,7 +10,6 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\Query\Expr\Join;
 use Exception;
 
 

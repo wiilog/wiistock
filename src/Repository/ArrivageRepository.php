@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Arrivage;
 use App\Entity\Statut;
-use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityRepository;

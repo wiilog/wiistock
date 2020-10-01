@@ -2,7 +2,6 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;

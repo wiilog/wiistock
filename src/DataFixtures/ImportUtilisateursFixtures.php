@@ -2,14 +2,12 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Emplacement;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Service\PasswordService;
 use App\Service\UserService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 

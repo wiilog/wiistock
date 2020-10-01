@@ -9,7 +9,6 @@ use App\Entity\LocationClusterMeter;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementTraca;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
