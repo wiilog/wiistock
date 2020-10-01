@@ -475,8 +475,8 @@ class MouvementTracaService
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::MOUVEMENT_TRACA, $categorieCL);
 
         $columns = [
-            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true],
-            ['title' => 'Issu de', 'name' => 'origin'],
+            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
+            ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
             ['title' => 'Date', 'name' => 'date'],
             ['title' => 'colis.colis', 'name' => 'code', 'translated' => true],
             ['title' => 'Référence', 'name' => 'reference'],
@@ -492,6 +492,7 @@ class MouvementTracaService
                 return [
                     'title' => $column['title'],
                     'alwaysVisible' => $column['alwaysVisible'] ?? false,
+                    'orderable' => $column['orderable'] ?? true,
                     'data' => $column['name'],
                     'name' => $column['name'],
                     'translated' => $column['translated'] ?? false,

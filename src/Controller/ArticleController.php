@@ -370,6 +370,7 @@ class ArticleController extends AbstractController
                     "title" => 'Actions',
                     "data" => 'Actions',
                     'name' => 'Actions',
+                    'orderable' => false,
                     "class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
                 ],
                 [

@@ -42,10 +42,7 @@ $(function () {
                     return {
                         ...column,
                         class: column.title === 'Actions' ? 'noVis' : undefined,
-                        title: column.title === 'Actions' ? '' : column.title,
-                        orderable: (column.title === 'Actions' || column.title === 'Issu de')
-                            ? column.orderable = false
-                            : column.orderable
+                        title: column.title === 'Actions' ? '' : column.title
                     }
                 }),
                 hideColumnConfig: {

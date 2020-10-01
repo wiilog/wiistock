@@ -99,10 +99,6 @@ function startPicking($button) {
             $('#splittingContent').html(html);
             let tableSplittingArticlesConfig = {
                 'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'tous']],
-                // TODO : columnDefs Toujours utilisé ?
-                'columnDefs': [
-                    {'orderable': false, 'targets': [3]}
-                ],
                 domConfig: {
                     needsPaginationRemoval: true
                 }
