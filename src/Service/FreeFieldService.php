@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\FreeFieldEntity;
 use DateTime;
@@ -13,18 +12,6 @@ use Throwable;
 
 class FreeFieldService
 {
-
-    private $CSVExportService;
-    private $entityManager;
-
-    public function __construct(CSVExportService $CSVExportService,
-                                EntityManagerInterface $entityManager)
-    {
-        $this->CSVExportService = $CSVExportService;
-        $this->entityManager = $entityManager;
-    }
-
-
     public function serializeValue(array $valeurChampLibre): ?string
     {
         if (in_array($valeurChampLibre['typage'], [ChampLibre::TYPE_DATE, ChampLibre::TYPE_DATETIME])
@@ -45,7 +32,7 @@ class FreeFieldService
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param string[] $categoryType
+     * @param array $freeFieldCategoryLabels
      * @return array[
      *     'freeFieldIds' => int[],
      *     'freeFieldsHeader' => string[],
@@ -53,10 +40,10 @@ class FreeFieldService
      * ]
      */
     public function createExportArrayConfig(EntityManagerInterface $entityManager,
-                                            array $categoryType): array
+                                            array $freeFieldCategoryLabels): array
     {
         $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
-        $freeFields = $freeFieldsRepository->findByCategoryTypeLabels($categoryType);
+        $freeFields = $freeFieldsRepository->findByFreeFieldCategoryLabels($freeFieldCategoryLabels);
 
         $config = [
             'freeFieldIds' => [],

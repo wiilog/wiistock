@@ -659,7 +659,7 @@ class CollecteController extends AbstractController
         $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
-            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategoryType::DEMANDE_COLLECTE]);
+            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_COLLECTE]);
 
             $collecteRepository = $entityManager->getRepository(Collecte::class);
             $collectes = $collecteRepository->findByDates($dateTimeMin, $dateTimeMax);

@@ -111,6 +111,7 @@ class ArrivageRepository extends EntityRepository
             ->addSelect('arrivage.date')
             ->addSelect('arrivage.projectNumber AS projectNumber')
             ->addSelect('arrivage.businessUnit AS businessUnit')
+            ->addSelect('arrivage.freeFields AS freeFields')
             ->leftJoin('arrivage.destinataire', 'recipient')
             ->leftJoin('arrivage.fournisseur', 'fournisseur')
             ->leftJoin('arrivage.transporteur', 'transporteur')

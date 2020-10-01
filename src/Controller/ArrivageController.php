@@ -796,11 +796,13 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
+     * @param FreeFieldService $freeFieldService
      * @param CSVExportService $CSVExportService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function getArrivageCSV(Request $request,
+                                   FreeFieldService $freeFieldService,
                                    CSVExportService $CSVExportService,
                                    EntityManagerInterface $entityManager): Response
     {
@@ -818,25 +820,8 @@ class ArrivageController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $natureRepository = $entityManager->getRepository(Nature::class);
             $packRepository = $entityManager->getRepository(Pack::class);
-            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
-            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARRIVAGE);
-            $category = CategoryType::ARRIVAGE;
-            $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-
-            $freeFieldsIds = array_map(
-                function (array $cl) {
-                    return $cl['id'];
-                },
-                $freeFields
-            );
-            $freeFieldsHeader = array_map(
-                function (array $cl) {
-                    return $cl['label'];
-                },
-                $freeFields
-            );
+            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARRIVAGE]);
 
             $colisData = $packRepository->countColisByArrivageAndNature([
                 $dateTimeMin->format('Y-m-d H:i:s'),
@@ -865,13 +850,18 @@ class ArrivageController extends AbstractController
                 'numéro de projet',
                 'business unit'
             ];
-            $csvHeader = array_merge($csvHeader, $natureLabels, $freeFieldsHeader);
+
+            $csvHeader = array_merge(
+                $csvHeader,
+                $natureLabels,
+                $freeFieldsConfig['freeFieldsHeader']
+            );
 
             return $CSVExportService->createBinaryResponseFromData(
                 'export.csv',
                 $arrivals,
                 $csvHeader,
-                function ($arrival) use ($buyersByArrival, $natureLabels, $colisData, $freeFieldsIds) {
+                function ($arrival) use ($buyersByArrival, $natureLabels, $colisData, $freeFieldsConfig, $freeFieldService) {
                     $arrivalId = (int) $arrival['id'];
                     $row = [];
                     $row[] = $arrival['numeroArrivage'] ?: '';
@@ -900,9 +890,14 @@ class ArrivageController extends AbstractController
                             : 0;
                         $row[] = $count;
                     }
-                    foreach ($freeFieldsIds as $freeField) {
-                        $row[] = $mouvement['freeFields'][$freeField] ?? "";
+
+                    foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+                        $row[] = $freeFieldService->serializeValue([
+                            'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
+                            'valeur' => $arrival['freeFields'][$freeFieldId] ?? ''
+                        ]);
                     }
+
                     return [$row];
                 }
             );
