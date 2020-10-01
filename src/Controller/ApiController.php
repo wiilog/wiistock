@@ -340,14 +340,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     }
                                 }
                                 else { // MouvementTraca::TYPE_DEPOSE
-                                    $mouvementTracaPrises = $mouvementTracaRepository->findBy(
-                                        [
-                                            'colis' => $mvt['ref_article'],
-                                            'type' => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_PRISE),
-                                            'finished' => false
-                                        ],
-                                        ['datetime' => 'DESC']
-                                    );
+                                    $mouvementTracaPrises = $mouvementTracaRepository->findLastTakingNotFinished($mvt['ref_article']);
                                     /** @var MouvementTraca|null $mouvementTracaPrise */
                                     $mouvementTracaPrise = count($mouvementTracaPrises) > 0 ? $mouvementTracaPrises[0] : null;
                                     if (isset($mouvementTracaPrise)) {
