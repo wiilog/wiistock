@@ -218,6 +218,7 @@ class UtilisateurController extends AbstractController
             $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
             $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
             $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+            $roles = $entityManager->getRepository(Role::class)->findAllExceptNoAccess();
 
             return new JsonResponse([
             	'userDeliveryTypes' => $user->getDeliveryTypeIds(),
@@ -225,6 +226,7 @@ class UtilisateurController extends AbstractController
             	'userHandlingTypes' => $user->getHandlingTypeIds(),
 				'html' => $this->renderView('utilisateur/modalEditUserContent.html.twig', [
                     'user' => $user,
+                    'roles' => $roles,
                     'deliveryTypes' => $deliveryTypes,
                     'dispatchTypes' => $dispatchTypes,
                     'handlingTypes' => $handlingTypes
@@ -255,8 +257,10 @@ class UtilisateurController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $roleRepository = $entityManager->getRepository(Role::class);
 
             $utilisateur = $utilisateurRepository->find($data['id']);
+            $role = $roleRepository->find($data['role']);
 
             $result = $this->passwordService->checkPassword($data['password'],$data['password2']);
             if($result['response'] == false){
@@ -301,6 +305,7 @@ class UtilisateurController extends AbstractController
 			}
             $utilisateur
                 ->setSecondaryEmails(json_decode($data['secondaryEmails']))
+                ->setRole($role)
                 ->setStatus($data['status'])
                 ->setUsername($data['username'])
                 ->setAddress($data['address'])
