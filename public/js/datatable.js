@@ -196,9 +196,6 @@ function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, 
     if (needsColumnShow) {
         showColumns(table, response.json.visible);
     }
-    if (needsResize) {
-        resizeTable(table);
-    }
     if (needsEmplacementSearchOverride) {
         overrideSearchSpecifEmplacement($searchInput);
     }
@@ -295,12 +292,6 @@ function renderDtInfo($table) {
     $table
         .find('.dataTables_info')
         .addClass('pt-0');
-}
-
-function resizeTable(table) {
-    table
-        .columns.adjust()
-        .responsive.recalc();
 }
 
 function overrideSearchSpecifEmplacement($input) {

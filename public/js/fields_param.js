@@ -40,22 +40,33 @@ function displayErrorFields() {
     });
 }
 
-function switchDisplay($checkbox) {
-    const $modal = $checkbox.closest('.modal');
-    if (!$modal.find('[name="displayed-forms-create"]').prop('checked')
-        && !$modal.find('[name="displayed-forms-edit"]').prop('checked')) {
-        $('.checkbox').prop('checked', false);
+function switchDisplay($displayedCheckbox) {
+    let $requiredCheckbox;
+    if ($displayedCheckbox.attr('name') === 'displayed-forms-create') {
+        $requiredCheckbox = $('.checkbox[name="mustToCreate"]');
+    } else if ($displayedCheckbox.attr('name') === 'displayed-forms-edit') {
+        $requiredCheckbox = $('.checkbox[name="mustToModify"]');
+    }
+
+    if (!$displayedCheckbox.prop('checked')) {
+        $requiredCheckbox.prop('checked', false);
+    } else if (!$displayedCheckbox.prop('checked')) {
+        $requiredCheckbox.prop('checked', false);
     }
 }
 
-function switchDisplayByMust($checkbox) {
-    const $modal = $checkbox.closest('.modal');
-    if ($checkbox.attr('name') === 'mustToCreate'
-        && $modal.find('[name="displayed-forms-create"]').prop('checked')) {
-        $('.checkbox[name="displayed-forms-create"]').prop('checked', false);
-    } else if ($checkbox.attr('name') === 'mustToModify'
-        && $modal.find('[name="displayed-forms-edit"]').prop('checked')) {
-        $('.checkbox[name="displayed-forms-edit"]').prop('checked', false);
+function switchDisplayByMust($requiredCheckbox) {
+    let $displayedCheckbox;
+    if ($requiredCheckbox.attr('name') === 'mustToCreate') {
+        $displayedCheckbox = $('.checkbox[name="displayed-forms-create"]');
+    } else if ($requiredCheckbox.attr('name') === 'mustToModify') {
+        $displayedCheckbox = $('.checkbox[name="displayed-forms-edit"]');
+    }
+
+    if (!$displayedCheckbox.prop('checked')) {
+        $requiredCheckbox.prop('checked', false);
+    } else if (!$displayedCheckbox.prop('checked')) {
+        $requiredCheckbox.prop('checked', false);
     }
 }
 
