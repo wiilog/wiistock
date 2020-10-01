@@ -176,15 +176,13 @@
 </div>
 
 {% if arrivage.type is defined and arrivage.type is not null %}
-    <div class="row">
-        {% include 'champ_libre/freeFieldsViewing.html.twig' with {
-            freeFields: arrivage.type.champsLibres,
-            freeFieldValues: arrivage.freeFields,
-            colType: 'col-md-4 col-12',
-            requiredType: 'requiredEdit',
-            actionType: 'edit'
-        } %}
-    </div>
+    {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+        freeFields: arrivage.type.champsLibres,
+        freeFieldValues: arrivage.freeFields,
+        colType: 'col-md-4 col-12',
+        requiredType: 'requiredEdit',
+        actionType: 'edit'
+    } %}
 {% endif %}
 
 <div class="row">
