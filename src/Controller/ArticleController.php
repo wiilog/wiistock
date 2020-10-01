@@ -505,6 +505,7 @@ class ArticleController extends AbstractController
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
             $article = $this->articleDataService->newArticle($data);
+            $entityManager->flush();
 
             $quantity = $article->getQuantite();
             if ($quantity > 0) {

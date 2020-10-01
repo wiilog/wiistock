@@ -87,21 +87,6 @@ class TrackingMovementListener
         if ($lastTrackingToUpdate) {
             $pack->setLastTracking($newLastTracking);
         }
-        dump($pack->getId());
-        if ($pack->getLastTracking()) {
-            dump($pack->getLastTracking()->getId());
-        }
-        else {
-            dump('-');
-        }
-
-        if ($pack->getLastDrop()) {
-            dump($pack->getLastDrop()->getId());
-        }
-        else {
-            dump('-');
-        }
-
 
         $entityManager->flush($pack);
     }

@@ -221,6 +221,8 @@ class MouvementTracaService
         $uniqueIdForMobile = $options['uniqueIdForMobile'] ?? null;
         $natureId = $options['natureId'] ?? null;
 
+        $pack = $this->getPack($entityManager, $packOrCode, $quantity, $natureId);
+
         $tracking = new MouvementTraca();
         $tracking
             ->setQuantity($quantity)
@@ -233,7 +235,8 @@ class MouvementTracaService
             ->setMouvementStock($mouvementStock)
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
 
-        $this->manageTrackingPack($entityManager, $tracking, $packOrCode, $quantity, $natureId);
+        $pack->addTrackingMovement($tracking);
+
         $this->managePackLinksWithTracking($entityManager, $tracking);
         $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
         $this->manageTrackingFiles($tracking, $fileBag);
@@ -243,16 +246,15 @@ class MouvementTracaService
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param MouvementTraca $tracking
      * @param Pack|string $packOrCode
      * @param $quantity
      * @param $natureId
+     * @return Pack
      */
-    private function manageTrackingPack(EntityManagerInterface $entityManager,
-                                        MouvementTraca $tracking,
-                                        $packOrCode,
-                                        $quantity,
-                                        $natureId) {
+    private function getPack(EntityManagerInterface $entityManager,
+                             $packOrCode,
+                             $quantity,
+                             $natureId): Pack {
         $packRepository = $entityManager->getRepository(Pack::class);
 
         $codePack = $packOrCode instanceof Pack ? $packOrCode->getCode() : $packOrCode;
@@ -278,7 +280,7 @@ class MouvementTracaService
             }
         }
 
-        $pack->addTrackingMovement($tracking);
+        return $pack;
     }
 
     private function manageTrackingLinks(EntityManagerInterface $entityManager,
