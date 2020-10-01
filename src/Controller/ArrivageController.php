@@ -55,6 +55,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -798,12 +799,14 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param FreeFieldService $freeFieldService
      * @param CSVExportService $CSVExportService
+     * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function getArrivageCSV(Request $request,
                                    FreeFieldService $freeFieldService,
                                    CSVExportService $CSVExportService,
+                                   TranslatorInterface $translator,
                                    EntityManagerInterface $entityManager): Response
     {
         $dateMin = $request->query->get('dateMin');
@@ -856,9 +859,10 @@ class ArrivageController extends AbstractController
                 $natureLabels,
                 $freeFieldsConfig['freeFieldsHeader']
             );
+            $nowStr = date("d-m-Y H:i");
 
             return $CSVExportService->createBinaryResponseFromData(
-                'export.csv',
+                "Export - " . str_replace(["/", "\\"], "-", $translator->trans('arrivage.arrivage')) . " - " . $nowStr  . ".csv",
                 $arrivals,
                 $csvHeader,
                 function ($arrival) use ($buyersByArrival, $natureLabels, $colisData, $freeFieldsConfig, $freeFieldService) {
