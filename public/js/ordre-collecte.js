@@ -5,12 +5,6 @@ let tableCollecteConfig = {
     serverSide: true,
     processing: true,
     order: [[3, 'desc']],
-    columnDefs: [
-        {
-            orderable: false,
-            targets: 0
-        }
-    ],
     ajax: {
         'url': pathCollecte,
         'data': {
@@ -25,7 +19,7 @@ let tableCollecteConfig = {
         needsRowClickAction: true
     },
     columns: [
-        {"data": 'Actions', 'title': '', 'name': 'Actions', className: 'noVis'},
+        {"data": 'Actions', 'title': '', 'name': 'Actions', className: 'noVis', orderable: false},
         {"data": 'Numéro', 'title': 'Numéro', 'name': 'Numéro'},
         {"data": 'Statut', 'title': 'Statut', 'name': 'Statut'},
         {"data": 'Date', 'title': 'Date de création', 'name': 'Date'},

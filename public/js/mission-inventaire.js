@@ -25,14 +25,11 @@ let tableMisionsConfig = {
         needsRowClickAction: true,
     },
     columns:[
-        { "data": 'Actions', 'title' : '', className: 'noVis' },
+        { "data": 'Actions', 'title' : '', className: 'noVis', orderable: false },
         { "data": 'StartDate', 'title' : 'Date de début', 'name' : 'date' },
         { "data": 'EndDate', 'title' : 'Date de fin' },
-        { "data": 'Rate', 'title' : 'Taux d\'avancement' },
-    ],
-    columnDefs: [
-        {'orderable': false, 'targets': [0, 3]}
-    ],
+        { "data": 'Rate', 'title' : 'Taux d\'avancement', orderable: false },
+    ]
 };
 let tableMissions = initDataTable('tableMissionsInv', tableMisionsConfig);
 

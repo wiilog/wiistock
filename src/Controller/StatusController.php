@@ -141,7 +141,7 @@ class StatusController extends AbstractController {
             $drafts = $statusRepository->countDrafts($category, $type);
             $disputes = $statusRepository->countDisputes($category, $type);
 
-            if ($statusRepository->countSimilarLabels($category, $data['label'])) {
+            if ($statusRepository->countSimilarLabels($category, $data['label'], $data['type'])) {
                 $success = false;
                 $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
             } else if ($data['defaultForCategory'] && $defaults > 0) {
@@ -255,7 +255,7 @@ class StatusController extends AbstractController {
             $defaults = $statusRepository->countDefaults($category, $type, $status);
             $drafts = $statusRepository->countDrafts($category, $type, $status);
 
-            if ($statusRepository->countSimilarLabels($category, $data['label'], $status)) {
+            if ($statusRepository->countSimilarLabels($category, $data['label'], $data['type'], $status)) {
                 $success = false;
                 $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
             } else if ($data['defaultForCategory'] && $defaults > 0) {

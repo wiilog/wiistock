@@ -4,12 +4,7 @@
 namespace App\Service;
 
 use App\Entity\Dispatch;
-use App\Entity\PieceJointe;
-use App\Kernel;
-use DateTime;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;

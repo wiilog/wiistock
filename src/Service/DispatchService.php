@@ -137,7 +137,7 @@ class DispatchService {
         $rowCL = [];
         /** @var ChampLibre $freeField */
         foreach ($freeFields as $freeField) {
-            $rowCL[$freeField['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
+            $rowCL[$freeField['label']] = $this->freeFieldService->serializeValue([
                 'valeur' => $dispatch->getFreeFieldValue($freeField['id']),
                 "typage" => $freeField['typage'],
             ]);
@@ -513,7 +513,7 @@ class DispatchService {
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, $categorieCL);
 
         $columns = [
-            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true],
+            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
             ['title' => 'Numéro demande', 'name' => 'number'],
             ['title' => 'Transporteur', 'name' => 'carrier'],
             ['title' => 'Numéro de tracking transporteur', 'name' => 'carrierTrackingNumber'],
@@ -526,7 +526,7 @@ class DispatchService {
             ['title' => 'Destinataire', 'name' => 'receiver'],
             ['title' => 'acheminement.Emplacement prise', 'name' => 'locationFrom', 'translated' => true],
             ['title' => 'acheminement.Emplacement dépose', 'name' => 'locationTo', 'translated' => true],
-            ['title' => 'acheminement.Nb colis', 'name' => 'nbPacks', 'orderable' => false, 'translated' => true],
+            ['title' => 'acheminement.Nb colis', 'name' => 'nbPacks', 'translated' => true, 'orderable' => false],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Urgence', 'name' => 'emergency'],
             ['title' => 'Traité par', 'name' => 'treatedBy'],
@@ -537,6 +537,7 @@ class DispatchService {
                 return [
                     'title' => $column['title'],
                     'alwaysVisible' => $column['alwaysVisible'] ?? false,
+                    'orderable' => $column['orderable'] ?? true,
                     'data' => $column['name'],
                     'name' => $column['name'],
                     'translated' => $column['translated'] ?? false,

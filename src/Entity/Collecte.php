@@ -366,4 +366,27 @@ class Collecte extends FreeFieldEntity
             || ($demandeStatus->getNom() === Collecte::STATUT_INCOMPLETE)
         );
     }
+
+    public function serialize(): array
+    {
+        $freeFieldData = [];
+
+        foreach ($this->freeFields as $freeFieldId => $freeFieldValue) {
+            $freeFieldData[$freeFieldId] = $freeFieldValue;
+        }
+
+        return [
+            'numero' => $this->getNumero(),
+            'creationDate' => $this->getDate() ? $this->getDate()->format('d/m/Y h:i') : '',
+            'validationDate' => $this->getValidationDate() ? $this->getValidationDate()->format('d/m/Y h:i') : '',
+            'type' => $this->getType() ? $this->getType()->getLabel() : '',
+            'statut' => $this->getStatut() ? $this->getStatut()->getNom() : '',
+            'subject' => $this->getObjet(),
+            'destination' => $this->isStock() ? "Mise en stock" : "Destruction",
+            'requester' => $this->getDemandeur() ? $this->getDemandeur()->getUsername() : '',
+            'gatheringPoint' => $this->getPointCollecte() ? $this->getPointCollecte()->getLabel() : '',
+            'comment' => $this->getCommentaire() ? strip_tags($this->getCommentaire()) : '',
+            'freeFields' => $freeFieldData
+        ];
+    }
 }

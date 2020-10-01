@@ -133,7 +133,7 @@ class ArrivageDataService
         $rowCL = [];
         /** @var ChampLibre $freeField */
         foreach ($freeFields as $freeField) {
-            $rowCL[$freeField['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
+            $rowCL[$freeField['label']] = $this->freeFieldService->serializeValue([
                 'valeur' => $arrival->getFreeFieldValue($freeField['id']),
                 "typage" => $freeField['typage'],
             ]);
@@ -501,7 +501,7 @@ class ArrivageDataService
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, $categorieCL);
 
         $columns = [
-            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true],
+            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
             ['title' => 'Date', 'name' => 'date'],
             ['title' => 'arrivage.n° d\'arrivage',  'name' => 'arrivalNumber', 'translated' => true],
             ['title' => 'Transporteur', 'name' => 'carrier'],
@@ -527,6 +527,7 @@ class ArrivageDataService
                 return [
                     'title' => $column['title'],
                     'alwaysVisible' => $column['alwaysVisible'] ?? false,
+                    'orderable' => $column['orderable'] ?? true,
                     'data' => $column['name'],
                     'name' => $column['name'],
                     'translated' => $column['translated'] ?? false,
