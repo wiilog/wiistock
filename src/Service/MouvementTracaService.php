@@ -474,7 +474,7 @@ class MouvementTracaService
 
         $columns = [
             ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true],
-            ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
+            ['title' => 'Issu de', 'name' => 'origin'],
             ['title' => 'Date', 'name' => 'date'],
             ['title' => 'colis.colis', 'name' => 'code', 'translated' => true],
             ['title' => 'Référence', 'name' => 'reference'],

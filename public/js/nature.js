@@ -4,15 +4,9 @@ let tableNatureConfig = {
         "url": pathNature,
         "type": "POST"
     },
-    columnDefs: [
-        {
-            orderable: false,
-            targets: 0
-        }
-    ],
     order: [1, 'asc'],
     columns: [
-        {"data": 'Actions', 'title': '', className: 'noVis'},
+        {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'Label', 'title': 'Libellé'},
         {"data": 'Code', 'title': 'Code'},
         {"data": 'Quantité par défaut', 'title': 'Quantité par défaut'},

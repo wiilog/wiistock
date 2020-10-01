@@ -6,16 +6,10 @@ let tableTransporteurConfig = {
         "type": "POST"
     },
     columns: [
-        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
+        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false },
         { "data": 'Label', 'name': 'Label', 'title': 'Nom' },
         { "data": 'Code', 'name': 'Code', 'title': 'Code' },
         { "data": 'Nombre_chauffeurs', 'name': 'Nombre_chauffeurs', 'title': 'Nombre de chauffeurs' },
-    ],
-    columnDefs: [
-        {
-            "orderable" : false,
-            "targets" : 0
-        },
     ],
     rowConfig: {
         needsRowClickAction: true

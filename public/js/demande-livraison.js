@@ -76,7 +76,7 @@ function initPageDatatable() {
             needsRowClickAction: true,
         },
         columns: [
-            {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
+            {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'Date', 'name': 'Date', 'title': 'Date'},
             {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
             {"data": 'Numéro', 'name': 'Numéro', 'title': 'Numéro'},
@@ -87,10 +87,6 @@ function initPageDatatable() {
             {
                 type: "customDate",
                 targets: 1
-            },
-            {
-                orderable: false,
-                targets: 0
             }
         ],
     };

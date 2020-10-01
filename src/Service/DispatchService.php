@@ -531,7 +531,7 @@ class DispatchService {
             ['title' => 'Destinataire', 'name' => 'receiver'],
             ['title' => 'acheminement.Emplacement prise', 'name' => 'locationFrom', 'translated' => true],
             ['title' => 'acheminement.Emplacement dépose', 'name' => 'locationTo', 'translated' => true],
-            ['title' => 'acheminement.Nb colis', 'name' => 'nbPacks', 'orderable' => false, 'translated' => true],
+            ['title' => 'acheminement.Nb colis', 'name' => 'nbPacks', 'translated' => true],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Urgence', 'name' => 'emergency'],
             ['title' => 'Traité par', 'name' => 'treatedBy'],

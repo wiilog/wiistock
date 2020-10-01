@@ -121,15 +121,12 @@ function initTableRefArticle() {
                 return {
                     ...column,
                     class: column.title === 'Actions' ? 'noVis' : undefined,
-                    title: column.title === 'Actions' ? '' : column.title
+                    title: column.title === 'Actions' ? '' : column.title,
+                    orderable: column.title === 'Actions'
+                        ? column.orderable = false
+                        : column.orderable
                 }
             }),
-            columnDefs: [
-                {
-                    orderable: false,
-                    targets: 0
-                }
-            ],
             drawConfig: {
                 needsResize: true
             },
