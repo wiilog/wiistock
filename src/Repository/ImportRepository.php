@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Import;
+use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 
 /**
@@ -16,13 +17,12 @@ class ImportRepository extends EntityRepository
 	public function findByParamsAndFilters($params, $filters)
 	{
 		$qb = $this->createQueryBuilder('i')
-			->select('i')
             ->join('i.status', 's')
             ->where('s.nom != :draft')
             ->setParameter('draft', Import::STATUS_DRAFT)
             ->orderBy('i.createdAt', 'DESC');
 
-		$countTotal = count($qb->getQuery()->getResult());
+		$countTotal = QueryCounter::count($qb);
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -95,7 +95,7 @@ class ImportRepository extends EntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered = count($qb->getQuery()->getResult());
+		$countFiltered = QueryCounter::count($qb);
 
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

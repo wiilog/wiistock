@@ -9,6 +9,7 @@ use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryCategory;
+use App\Entity\InventoryFrequency;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
@@ -119,21 +120,20 @@ class ReferenceArticleController extends AbstractController
                                 SpecificService $specificService,
                                 Twig_Environment $templating,
                                 ArticleDataService $articleDataService,
-                                FiltreRefRepository $filtreRefRepository,
+                                EntityManagerInterface $manager,
                                 RefArticleDataService $refArticleDataService,
                                 UserService $userService,
-                                InventoryFrequencyRepository $inventoryFrequencyRepository,
                                 CSVExportService $CSVExportService,
                                 FreeFieldService $champLibreService)
     {
-        $this->filtreRefRepository = $filtreRefRepository;
+        $this->filtreRefRepository = $manager->getRepository(FiltreRef::class);
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
         $this->userService = $userService;
         $this->templating = $templating;
         $this->specificService = $specificService;
         $this->globalParamService = $globalParamService;
-        $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
+        $this->inventoryFrequencyRepository = $manager->getRepository(InventoryFrequency::class);
         $this->user = $tokenStorage->getToken()->getUser();
         $this->CSVExportService = $CSVExportService;
         $this->champLibreService = $champLibreService;

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Collecte;
 use App\Entity\Utilisateur;
+use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -71,29 +72,19 @@ class CollecteRepository extends EntityRepository
      * @throws NonUniqueResultException
      * @throws NoResultException
      */
-    public function countByUser($user)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(c)
-            FROM App\Entity\Collecte c
-            WHERE c.demandeur = :user"
-        )->setParameter('user', $user);
-
-        return $query->getSingleScalarResult();
+    public function countByUser($user) {
+        return $this->createQueryBuilder("c")
+            ->select("COUNT(c)")
+            ->where("c.demandeur = :user")
+            ->setParameter("user", $user)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
-    public function findByParamsAndFilters($params, $filters)
-    {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
+    public function findByParamsAndFilters($params, $filters) {
+        $qb = $this->createQueryBuilder("c");
 
-        $qb
-            ->select('c')
-            ->from('App\Entity\Collecte', 'c');
-
-        $countTotal = count($qb->getQuery()->getResult());
+        $countTotal =  QueryCounter::count($qb);
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -182,33 +173,27 @@ class CollecteRepository extends EntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered = count($qb->getQuery()->getResult());
+		$countFiltered =  QueryCounter::count($qb);
 
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
 		}
 
-		$query = $qb->getQuery();
-
 		return [
-		    'data' => $query ? $query->getResult() : null ,
+		    'data' => $qb->getQuery()->getResult(),
 			'count' => $countFiltered,
 			'total' => $countTotal
 		];
 	}
 
-	public function getIdAndLibelleBySearch($search)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT c.id, c.numero as text
-          FROM App\Entity\Collecte c
-          WHERE c.numero LIKE :search"
-		)->setParameter('search', '%' . $search . '%');
-
-		return $query->execute();
+	public function getIdAndLibelleBySearch($search) {
+	    return $this->createQueryBuilder("c")
+            ->select("c.id, c.numero AS text")
+            ->where("c.numero LIKE :search")
+            ->setParameter("search", "%$search%")
+            ->getQuery()
+            ->getArrayResult();
 	}
 
 }
