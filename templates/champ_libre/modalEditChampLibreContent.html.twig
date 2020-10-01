@@ -6,6 +6,8 @@
            value="{{ champLibre.label }}"
            required="true">
 </div>
+{% set categoryFFLabel = champLibre.categorieCL ? champLibre.categorieCL.label : '' %}
+{% if (constant('App\\Entity\\CategorieCL::ARTICLE') or constant('App\\Entity\\CategorieCL::REFERENCE_ARTICLE') == categoryFFLabel) %}
 <div class="form-group">
     <label for="categorieCL">S'applique à</label>
     <select name="categorieCL"
@@ -19,6 +21,7 @@
         {% endfor %}
     </select>
 </div>
+{% endif %}
 <div class="form-group">
     <label for="typage">Typage</label>
     <select class="form-control select2 data typageModif"

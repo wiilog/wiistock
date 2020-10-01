@@ -28,6 +28,8 @@
                            name="label" value=""
                            required="true">
                 </div>
+                {% set categoryLabel = type.category ? type.category.label : '' %}
+                {% if (constant('App\\Entity\\CategorieCL::ARTICLE') == categoryLabel) %}
                 <div class="form-group">
                     <label for="categorieCL">S'applique à*</label>
                     <select name="categorieCL"
@@ -40,6 +42,7 @@
                         {% endfor %}
                     </select>
                 </div>
+                {% endif %}
                 <div class="form-group">
                     <label for="typage">Typage*</label>
                     <select class="form-control data needed"

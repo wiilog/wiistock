@@ -11,7 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class CategoryType
 {
-//    const TYPE_ARTICLE = 'typeArticle';
     const RECEPTION = 'réception';
     const ARTICLE = 'article';
     const LITIGE = 'litige';
@@ -21,8 +20,6 @@ class CategoryType
     const DEMANDE_HANDLING = 'services';
     const ARRIVAGE = 'arrivage';
     const MOUVEMENT_TRACA = 'mouvement traca';
-//    const MOUVEMENT = 'mouvement';
-//    const ART_REFS = 'articles et références CEA';
 
     /**
      * @ORM\Id()
@@ -41,9 +38,15 @@ class CategoryType
      */
     private $types;
 
+    /**
+     * @ORM\OneToMany(targetEntity=CategorieCL::class, mappedBy="categoryType")
+     */
+    private $categorieCLs;
+
     public function __construct()
     {
         $this->types = new ArrayCollection();
+        $this->categorieCLs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -88,6 +91,37 @@ class CategoryType
             // set the owning side to null (unless already changed)
             if ($type->getCategory() === $this) {
                 $type->setCategory(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|CategorieCL[]
+     */
+    public function getCategorieCLs(): Collection
+    {
+        return $this->categorieCLs;
+    }
+
+    public function addCategorieCL(CategorieCL $categorieCL): self
+    {
+        if (!$this->categorieCLs->contains($categorieCL)) {
+            $this->categorieCLs[] = $categorieCL;
+            $categorieCL->setCategoryType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCategorieCL(CategorieCL $categorieCL): self
+    {
+        if ($this->categorieCLs->contains($categorieCL)) {
+            $this->categorieCLs->removeElement($categorieCL);
+            // set the owning side to null (unless already changed)
+            if ($categorieCL->getCategoryType() === $this) {
+                $categorieCL->setCategoryType(null);
             }
         }
 

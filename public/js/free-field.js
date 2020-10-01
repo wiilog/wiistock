@@ -1,43 +1,5 @@
 $('.select2').select2();
 
-//TYPE
-
-const urlApiType = Routing.generate('type_api', true);
-let typeTableConfig = {
-    ajax: {
-        "url": urlApiType,
-        "type": "POST"
-    },
-    columns: [
-        {"data": 'Actions', 'title': '', className: 'noVis'},
-        {"data": 'Label', 'title': 'Libellé'},
-        {"data": "S'applique", 'title': "S'applique à"},
-    ],
-    columnDefs: [
-        {
-            orderable: false,
-            targets: 0
-        }
-    ],
-    rowConfig: {
-        needsRowClickAction: true
-    },
-    order: [[2, "asc"]],
-};
-let tableType = initDataTable('tableType_id', typeTableConfig);
-
-let dataModalTypeDelete = $("#modalDeleteType");
-let ButtonSubmitTypeDelete = $("#submitDeleteType");
-let urlTypeDelete = Routing.generate('type_delete', true);
-InitModal(dataModalTypeDelete, ButtonSubmitTypeDelete, urlTypeDelete, {tables: [tableType]});
-
-let dataModalEditType = $("#modalEditType");
-let ButtonSubmitEditType = $("#submitEditType");
-let urlEditType = Routing.generate('type_edit', true);
-InitModal(dataModalEditType, ButtonSubmitEditType, urlEditType, {tables: [tableType]});
-
-
-//CHAMPS LIBRE
 const urlApiChampLibre = Routing.generate('champ_libre_api', {'id': $('#cl-type-id').val()}, true);
 let tableChampLibreConfig = {
     order: [1, 'asc'],
@@ -91,7 +53,7 @@ function defaultValueForTypage($select) {
     let existingElem = $select.data('elem');
 
     if (typage === 'booleen') {
-        let checked = existingValue == 1 ? "checked" : "";
+        let checked = existingValue === 1 ? "checked" : "";
         inputDefaultBlock =
             `<label class="switch">
                 <input type="checkbox" class="data checkbox"
@@ -121,13 +83,6 @@ function defaultValueForTypage($select) {
         `</div>`;
 
     valueDefault.html(defaultBlock);
-}
-
-function deleteType($button) {
-    let contentFirstDeleteTypeModal = $('#contentFirstDeleteTypeModal').html();
-    let $modalDeleteType = $('#modalDeleteType');
-    $modalDeleteType.find('.modal-body').html(contentFirstDeleteTypeModal);
-    deleteRow($button, $modalDeleteType, $('#submitDeleteType'));
 }
 
 function toggleCreationMandatory($switch) {
