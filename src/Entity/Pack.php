@@ -43,12 +43,14 @@ class Pack
     /**
      * @var MouvementTraca
      * @ORM\OneToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastDrop")
+     * @ORM\JoinColumn(nullable=true)
      */
     private $lastDrop;
 
     /**
      * @var MouvementTraca
      * @ORM\OneToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastTracking")
+     * @ORM\JoinColumn(nullable=true)
      */
     private $lastTracking;
 
@@ -186,12 +188,12 @@ class Pack
         return $this->lastTracking;
     }
 
-    public function setLastTracking(?MouvementTraca $lastDrop): self
+    public function setLastTracking(?MouvementTraca $lastTracking): self
     {
         if (isset($this->lastTracking)) {
             $this->lastTracking->setLinkedPackLastTracking(null);
         }
-        $this->lastTracking = $lastDrop;
+        $this->lastTracking = $lastTracking;
 
         if (isset($this->lastTracking)) {
             $this->lastTracking->setLinkedPackLastTracking($this);
