@@ -266,47 +266,42 @@ class DispatchService {
                 [
                     'label' => 'Transporteur',
                     'value' => $carrier ? $carrier->getLabel() : '',
-                    'show' => [ 'fieldName' => 'carrier' ]
+                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_CARRIER_DISPATCH ]
                 ],
                 [
                     'label' => 'Numéro de tracking transporteur',
                     'value' => $carrierTrackingNumber,
-                    'show' => [ 'fieldName' => 'trackingCarrierNumber' ]
+                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH ]
                 ],
                 [
                     'label' => 'Demandeur',
                     'value' => $requester ? $requester->getUsername() : ''
                 ],
-                [
-                    "label" => "Destinataire",
-                    "value" => $receiver ? $receiver->getUsername() : '',
-                    'show' => [ 'fieldName' => 'receiver' ]
-                ],
                 $receiverDetails,
                 [
                     'label' => 'Numéro de projet',
                     'value' => $projectNumber,
-                    'show' => [ 'fieldName' => 'projectNumber' ]
+                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_PROJECT_NUMBER ]
                 ],
                 [
                     'label' => 'Business Unit',
                     'value' => $dispatch->getBusinessUnit() ?? '',
-                    'show' => [ 'fieldName' => 'businessUnit' ]
+                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_BUSINESS_UNIT ]
                 ],
                 [
                     'label' => $this->translator->trans('acheminement.Numéro de commande'),
                     'value' => $commandNumber, 'title' => 'Numéro de commande',
-                    'show' => [ 'fieldName' => 'commandNumber' ]
+                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH ]
                 ],
                 [
                     'label' => $this->translator->trans('acheminement.Emplacement prise'),
                     'value' => $locationFrom ? $locationFrom->getLabel() : '', 'title' => 'Emplacement prise',
-                    'show' => [ 'fieldName' => 'locationFrom' ]
+                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_LOCATION_PICK ]
                 ],
                 [
                     'label' => $this->translator->trans('acheminement.Emplacement dépose'),
                     'value' => $locationTo ? $locationTo->getLabel() : '', 'title' => 'Emplacement dépose',
-                    'show' => [ 'fieldName' => 'locationTo' ]
+                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_LOCATION_DROP ]
                 ],
                 [
                     'label' => 'Date de création',
