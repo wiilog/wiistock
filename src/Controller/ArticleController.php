@@ -31,7 +31,6 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -86,8 +85,6 @@ class ArticleController extends AbstractController
      */
     private $globalParamService;
 
-    private $CSVExportService;
-
 	/**
 	 * @var ParametrageGlobalRepository
 	 */
@@ -104,7 +101,6 @@ class ArticleController extends AbstractController
                                 ReceptionRepository $receptionRepository,
                                 UserService $userService,
                                 ParametrageGlobalRepository $parametrageGlobalRepository,
-                                CSVExportService $CSVExportService,
                                 FreeFieldService $champLibreService )
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
@@ -113,7 +109,6 @@ class ArticleController extends AbstractController
         $this->articleDataService = $articleDataService;
         $this->userService = $userService;
         $this->templating = $templating;
-        $this->CSVExportService = $CSVExportService;
         $this->champLibreService = $champLibreService;
     }
 
@@ -505,6 +500,7 @@ class ArticleController extends AbstractController
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
             $article = $this->articleDataService->newArticle($data);
+            $entityManager->flush();
 
             $quantity = $article->getQuantite();
             if ($quantity > 0) {
@@ -948,32 +944,17 @@ class ArticleController extends AbstractController
     /**
      * @Route("/exporter-articles", name="export_all_arts", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
+     * @param FreeFieldService $freeFieldService
      * @param CSVExportService $CSVExportService
      * @return Response
-     * @throws Exception
      */
     public function exportAllArticles(EntityManagerInterface $entityManager,
-                                  CSVExportService $CSVExportService): Response
+                                      FreeFieldService $freeFieldService,
+                                      CSVExportService $CSVExportService): Response
     {
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $articleRepository = $entityManager->getRepository(Article::class);
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
-        $category = CategoryType::ARTICLE;
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE]);
 
-        $freeFieldsIds = array_map(
-            function (array $cl) {
-                return $cl['id'];
-            },
-            $freeFields
-        );
-        $freeFieldsHeader = array_map(
-            function (array $cl) {
-                return $cl['label'];
-            },
-            $freeFields
-        );
         $headers = array_merge(
             [
                 'reference',
@@ -986,7 +967,7 @@ class ArticleController extends AbstractController
                 'code barre',
                 'date dernier inventaire'
             ],
-            $freeFieldsHeader
+            $freeFieldsConfig['freeFieldsHeader']
         );
         $today = new DateTime();
         $globalTitle = 'export-articles-' . $today->format('d-m-Y H:i:s') . '.csv';
@@ -996,7 +977,7 @@ class ArticleController extends AbstractController
         $start = 0;
         do {
             $articles = $articleRepository->getAllWithLimits($start, $step);
-            $articlesExportFiles[] = $this->generateArtsCSVFile($CSVExportService, $articles, ($start === 0 ? $headers : null), $freeFieldsIds);
+            $articlesExportFiles[] = $this->generateArtsCSVFile($CSVExportService, $freeFieldService, $articles, ($start === 0 ? $headers : null), $freeFieldsConfig);
             $articles = null;
             $start += $step;
         } while ($start < $allArticlesCount);
@@ -1008,11 +989,15 @@ class ArticleController extends AbstractController
     }
 
 
-    private function generateArtsCSVFile(CSVExportService $CSVExportService, array $articles, ?array $headers, array $freeFields): string {
+    private function generateArtsCSVFile(CSVExportService $CSVExportService,
+                                         FreeFieldService $freeFieldService,
+                                         array $articles,
+                                         ?array $headers,
+                                         array $freeFieldsConfig): string {
         return $CSVExportService->createCsvFile(
             $articles,
             $headers,
-            function ($article) use ($freeFields) {
+            function ($article) use ($freeFieldsConfig, $freeFieldService) {
                 $articleArray = [
                     $article['reference'],
                     $article['label'],
@@ -1024,12 +1009,15 @@ class ArticleController extends AbstractController
                     $article['barCode'],
                     $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
                 ];
-                foreach ($freeFields as $freeField) {
-                    $articleArray[] = $article['freeFields'][$freeField] ?? "";
+
+                foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+                    $articleArray[] = $freeFieldService->serializeValue([
+                        'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
+                        'valeur' => $article['freeFields'][$freeFieldId] ?? ''
+                    ]);
                 }
-                return [
-                    $articleArray
-                ];
+
+                return [$articleArray];
             }
         );
     }

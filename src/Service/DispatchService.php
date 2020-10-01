@@ -137,7 +137,7 @@ class DispatchService {
         $rowCL = [];
         /** @var ChampLibre $freeField */
         foreach ($freeFields as $freeField) {
-            $rowCL[$freeField['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
+            $rowCL[$freeField['label']] = $this->freeFieldService->serializeValue([
                 'valeur' => $dispatch->getFreeFieldValue($freeField['id']),
                 "typage" => $freeField['typage'],
             ]);

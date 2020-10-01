@@ -9,7 +9,6 @@ use App\Entity\LocationClusterMeter;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementTraca;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
@@ -87,21 +86,6 @@ class TrackingMovementListener
         if ($lastTrackingToUpdate) {
             $pack->setLastTracking($newLastTracking);
         }
-        dump($pack->getId());
-        if ($pack->getLastTracking()) {
-            dump($pack->getLastTracking()->getId());
-        }
-        else {
-            dump('-');
-        }
-
-        if ($pack->getLastDrop()) {
-            dump($pack->getLastDrop()->getId());
-        }
-        else {
-            dump('-');
-        }
-
 
         $entityManager->flush($pack);
     }
