@@ -92,7 +92,7 @@
     {% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_EMERSON'))
         or hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::SHOW_CARRIER_FIELD')) %}
         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
-        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEditEdit') %}
+        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
             <div class="form-group col-md-4 col-12">
                 <label>Transporteur{{ required ? '*' }}</label>
@@ -182,7 +182,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEADLINE_DISPATCH') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
-        <div class="form-group col">
+        <div class="form-group col-md-8 col-12">
             <label>Echéance{{ required ? '*' }}</label>
             <div class="input-group w-100">
                 <div class="input-group-prepend">
