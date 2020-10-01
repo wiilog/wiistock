@@ -8,15 +8,15 @@ let $preparationId = $('#prepa-id');
 $(function () {
     const $locationSelect = $modalSubmitPreparation.find('select[name="location"]');
     initDateTimePicker();
-    initSelect2($('#statut'), 'Statuts');
+    Select2.init($('#statut'), 'Statuts');
 
     $(document).on('hidden.bs.modal','#modalSplitting', function () {
         $('.action-on-click-single').data('clicked', false);
     });
 
-    ajaxAutoDemandesInit($('.ajax-autocomplete-demande'));
-    ajaxAutoCompleteEmplacementInit($locationSelect);
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
+    Select2.demand($('.ajax-autocomplete-demande'));
+    Select2.location($locationSelect);
+    Select2.user('Opérateurs');
 
     let $filterDemand = $('.filters-container .filter-demand');
     $filterDemand.attr('name', 'demande');

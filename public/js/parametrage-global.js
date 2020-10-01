@@ -30,11 +30,11 @@ let urlEditDays = Routing.generate('days_edit', true);
 InitModal(modalEditDays, submitEditDays, urlEditDays, {tables: [tableDays]});
 
 $(function () {
-    initSelect2($('#locationArrivageDest'));
+    Select2.init($('#locationArrivageDest'));
     initFreeSelect2($('select[name="businessUnit"]'));
     initFreeSelect2($('select[name="dispatchEmergencies"]'));
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));
-    ajaxAutoCompleteTransporteurInit($('.ajax-autocomplete-transporteur'));
+    Select2.location($('.ajax-autocomplete-location'));
+    Select2.carrier($('.ajax-autocomplete-transporteur'));
     initDisplaySelect2('#receptionLocation', '#receptionLocationValue');
     $('#receptionLocation').on('change', editDefaultLocationValue);
 
@@ -79,7 +79,7 @@ $(function () {
     workFreeDaysTable = initDataTable('tableWorkFreeDays', tableNonWorkedDaysConfig);
 });
 
-function initSelect2ValuesForDashboard() {
+function initValuesForDashboard() {
     initDisplaySelect2Multiple('#locationToTreat', '#locationToTreatValue');
     initDisplaySelect2Multiple('#locationWaitingDock', '#locationWaitingDockValue');
     initDisplaySelect2Multiple('#locationWaitingAdmin', '#locationWaitingAdminValue');

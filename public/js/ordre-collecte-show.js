@@ -68,7 +68,7 @@ function openLocationModal() {
             ? $('<div/>', {
                 class: 'col-12',
                 html: $('<select/>', {
-                    class: 'needed form-control ajax-autocompleteEmplacement depositLocation w-100'
+                    class: 'needed form-control ajax-autocomplete-location depositLocation w-100'
                 })
             })
             : $('<span/>', {class: 'col-12', text: location});
@@ -83,7 +83,7 @@ function openLocationModal() {
         $tbody.append($newTr);
     });
     $('#modalFinishCollecte').modal('show');
-    ajaxAutoCompleteEmplacementInit($tbody.find('.ajax-autocompleteEmplacement'));
+    Select2.location($tbody.find('.ajax-autocomplete-location'));
 }
 
 function finishCollecte($button, withoutLocation = false) {

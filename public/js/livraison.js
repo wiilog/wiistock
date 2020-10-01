@@ -2,9 +2,9 @@ $('.select2').select2();
 
 $(function () {
     initDateTimePicker();
-    initSelect2($('#statut'), 'Statuts');
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
-    ajaxAutoDemandesInit($('.ajax-autocomplete-demande'));
+    Select2.init($('#statut'), 'Statuts');
+    Select2.user('Opérateurs');
+    Select2.demand($('.ajax-autocomplete-demande'));
 
     // cas d'un filtre par demande de collecte
     let $filterDemand = $('.filters-container .filter-demand');

@@ -333,7 +333,7 @@ let ajaxPlusDemandeContent = function (button, type) {
         }
 
         showDemande(button, type);
-        ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+        Select2.location($('.ajax-autocomplete-location-edit'));
         $('.list-multiple').select2();
     });
 }
@@ -349,7 +349,7 @@ let ajaxEditArticle = function ($select) {
             if (data) {
                 const $editChampLibre = $('.editChampLibre');
                 $editChampLibre.html(data);
-                ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+                Select2.location($('.ajax-autocomplete-location-edit'));
                 toggleRequiredChampsLibres($select.closest('.modal').find('#type'), 'edit');
                 $('#livraisonShow').find('#quantityToTake').removeClass('d-none').addClass('data');
                 modalFooter.removeClass('d-none');
@@ -369,9 +369,9 @@ function initNewReferenceArticleEditor(modal) {
         initEditor('.editor-container-new');
         editorNewReferenceArticleAlreadyDone = true;
     }
-    ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
-    ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+    Select2.supplier($('.ajax-autocompleteFournisseur'));
+    Select2.supplier($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
+    Select2.location($('.ajax-autocomplete-location'));
     clearModal(modal);
 }
 

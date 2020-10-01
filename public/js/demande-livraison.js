@@ -4,9 +4,9 @@ $(function () {
     $('.select2').select2();
 
     initDateTimePicker();
-    initSelect2($('#statut'), 'Statuts');
-    ajaxAutoRefArticleInit($('.ajax-autocomplete'));
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Utilisateurs');
+    Select2.init($('#statut'), 'Statuts');
+    Select2.articleReference($('.ajax-autocomplete'));
+    Select2.user('Utilisateurs');
 
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
@@ -36,7 +36,7 @@ function initNewLivraisonEditor(modal) {
         editorNewLivraisonAlreadyDone = true;
     }
     clearModal(modal);
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+    Select2.location($('.ajax-autocomplete-location'));
     initDisplaySelect2Multiple('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
 }
 

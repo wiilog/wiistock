@@ -47,7 +47,7 @@ function editRole(select) {
 
 $(function() {
     $('.select2').select2();
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+    Select2.location($('.ajax-autocomplete-location-edit'));
 })
 
 function editRowUser(button) {
@@ -63,7 +63,7 @@ function editRowUser(button) {
         modal.find('[name="deliveryTypes"]').val(data.userDeliveryTypes).select2();
         modal.find('[name="dispatchTypes"]').val(data.userDispatchTypes).select2();
         modal.find('[name="handlingTypes"]').val(data.userHandlingTypes).select2();
-        ajaxAutoCompleteEmplacementInit($('#dropzone'));
+        Select2.location($('#dropzone'));
         if (data.dropzone) {
             let newOption = new Option(data.dropzone.text, data.dropzone.id, true, true);
             modal.find('#dropzone').append(newOption).trigger('change');

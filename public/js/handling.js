@@ -42,9 +42,9 @@ let tableHandling = initDataTable('tableHandling_id', tableHandlingConfig);
 
 $(function() {
     initDateTimePicker();
-    initSelect2($('.filter-select2[name="statut"]'), 'Statuts');
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
-    initSelect2($('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
+    Select2.init($('.filter-select2[name="statut"]'), 'Statuts');
+    Select2.user('Demandeurs');
+    Select2.init($('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
 
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
@@ -91,7 +91,7 @@ function initNewHandlingEditor(modal) {
         initEditor('.editor-container-new');
         editorNewHandlingAlreadyDone = true;
     }
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+    Select2.location($('.ajax-autocomplete-location'));
     onTypeChange($(modal).find('select[name="type"]'));
 }
 

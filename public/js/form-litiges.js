@@ -1,7 +1,7 @@
 function openNewLitigeModal($button) {
     const modalSelector = $button.data('target');
     clearModal(modalSelector);
-    ajaxAutoArticlesReceptionInit($(modalSelector).find('.select2-autocomplete-articles'), $('#receptionId').val());
+    Select2.articleReception($(modalSelector).find('.select2-autocomplete-articles'), $('#receptionId').val());
     // we select default litige
     const $modal = $(modalSelector);
     const $selectStatusLitige = $modal.find('#statutLitige');

@@ -48,8 +48,8 @@ $(function() {
     InitModal($modalNewMvtStock, submitNewMvtStock, urlNewMvtStock, {tables: [tableMvt]});
 
     initDateTimePicker();
-    initSelect2($('#emplacement'), 'Emplacements');
-    initSelect2($('#statut'), 'Types');
+    Select2.init($('#emplacement'), 'Emplacements');
+    Select2.init($('#statut'), 'Types');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -58,9 +58,9 @@ $(function() {
         displayFiltersSup(data);
     }, 'json');
 
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacements", 3);
-    ajaxAutoRefArticleInit($modalNewMvtStock.find('.select2-autocomplete-ref-articles'));
+    Select2.user('Opérateurs');
+    Select2.location($('.ajax-autocomplete-emplacements'), {}, "Emplacements", 3);
+    Select2.articleReference($modalNewMvtStock.find('.select2-autocomplete-ref-articles'));
 });
 
 function newMvtStockArticleChosen($select) {
@@ -105,7 +105,7 @@ function newMvtStockArticleChosen($select) {
             $type.parent().addClass('needed').removeClass('d-none');
             $artMvt.removeClass('needed');
         }
-        ajaxAutoArticlesInit($selectArticles, selectedArticle.text, 0);
+        Select2.article($selectArticles, selectedArticle.text, 0);
     }
 }
 
@@ -165,7 +165,7 @@ function newMvtStockTypeChanged($select) {
     const $selectOption = $select.find('option:selected');
 
     if ($selectOption.data('needs-location')) {
-        ajaxAutoCompleteEmplacementInit($locationMvt);
+        Select2.location($locationMvt);
         $locationMvt.addClass('needed');
         $locationMvt.parents('.form-group').removeClass('d-none');
 

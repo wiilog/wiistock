@@ -8,11 +8,11 @@ $(function () {
         displayFiltersSup(data);
     }, 'json');
 
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateur');
+    Select2.user('Opérateur');
 
     initSearchDate(tableEntries);
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
-    ajaxAutoRefArticleInit($('.ajax-autocomplete-inv-entries'), null, 'reference', 'Référence article', 0);
+    Select2.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
+    Select2.articleReference($('.ajax-autocomplete-inv-entries'), null, 'reference', 'Référence article', 0);
 });
 
 let mission = $('#missionId').val();

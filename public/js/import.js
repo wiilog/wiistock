@@ -1,7 +1,7 @@
 $(function () {
     initDateTimePicker('#dateMin, #dateMax');
-    initSelect2($('#statut'), 'Statuts');
-    ajaxAutoUserInit($('.filters .ajax-autocomplete-user'), 'Utilisateurs');
+    Select2.init($('#statut'), 'Statuts');
+    Select2.user($('.filters .ajax-autocomplete-user'), 'Utilisateurs');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');

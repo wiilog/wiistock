@@ -6,7 +6,7 @@ let tableReception;
 $(function () {
     $('.select2').select2();
     initDateTimePicker();
-    initSelect2($('#statut'), 'Statuts');
+    Select2.init($('#statut'), 'Statuts');
     initOnTheFlyCopies($('.copyOnTheFly'));
 
     // RECEPTION
@@ -58,7 +58,7 @@ $(function () {
         displayFiltersSup(data);
     }, 'json');
 
-    ajaxAutoFournisseurInit($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
+    Select2.supplier($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 });
 
 function initNewReceptionEditor(modal) {
@@ -70,9 +70,9 @@ function initNewReceptionEditor(modal) {
         initEditorInModal(modal);
         editorNewReceptionAlreadyDone = true;
     }
-    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));
-    ajaxAutoCompleteTransporteurInit($modal.find('.ajax-autocomplete-transporteur'));
+    Select2.supplier($('.ajax-autocomplete-fournisseur'));
+    Select2.location($('.ajax-autocomplete-location'));
+    Select2.carrier($modal.find('.ajax-autocomplete-transporteur'));
     initDateTimePicker('#dateCommande, #dateAttendue');
 
     $('.date-cl').each(function() {

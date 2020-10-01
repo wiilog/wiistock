@@ -1,9 +1,9 @@
 $(function () {
     $('.select2').select2();
     initDateTimePicker();
-    initSelect2($('#statut'), 'Statuts');
-    ajaxAutoRefArticleInit($('.ajax-autocomplete'));
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Utilisateurs');
+    Select2.init($('#statut'), 'Statuts');
+    Select2.articleReference($('.ajax-autocomplete'));
+    Select2.user('Utilisateurs');
 
     let table = initPageDatatable();
     initPageModals(table);
@@ -50,7 +50,7 @@ function ajaxGetAndFillArticle($select) {
             $editNewArticle.html(data.modif);
             $modalFooter.removeClass('d-none');
             toggleRequiredChampsLibres($('#typeEdit'), 'edit');
-            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+            Select2.location($('.ajax-autocomplete-location-edit'));
 
             setMaxQuantity($select);
             registerNumberInputProtection($selection.find('input[type="number"]'));
@@ -111,7 +111,7 @@ function ajaxEditArticle (select) {
                 quantityToTake.find('input').attr('max', valMax);
             }
             quantityToTake.removeClass('d-none');
-            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+            Select2.location($('.ajax-autocomplete-location-edit'));
             $('.list-multiple').select2();
         }
     });

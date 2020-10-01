@@ -11,8 +11,8 @@ let arrivalsTable;
 $(function () {
     const $filtersContainer = $('.filters-container');
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
-    initSelect2($('#statut'), 'Statuts');
-    initSelect2($filtersContainer.find('[name="carriers"]'), 'Transporteurs');
+    Select2.init($('#statut'), 'Statuts');
+    Select2.init($filtersContainer.find('[name="carriers"]'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));
 
     initTableArrival().then((returnedArrivalsTable) => {
@@ -62,8 +62,8 @@ $(function () {
         initFilterDateToday();
     }, 'json');
     pageLength = Number($('#pageLengthForArrivage').val());
-    ajaxAutoUserInit($('.filters .ajax-autocomplete-user'), 'Destinataires');
-    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
+    Select2.user($('.filters .ajax-autocomplete-user'), 'Destinataires');
+    Select2.supplier($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
     $('select[name="tableArrivages_length"]').on('change', function () {
         let newValue = Number($(this).val());
         if (newValue && newValue !== pageLength) {
@@ -167,10 +167,10 @@ function initNewArrivageEditor(modal) {
         quillNew = initEditor(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;
     }
-    initSelect2($modal.find('.ajax-autocomplete-fournisseur'));
-    initSelect2($modal.find('.ajax-autocomplete-transporteur'));
-    initSelect2($modal.find('.ajax-autocomplete-chauffeur'));
-    initSelect2($modal.find('.ajax-autocomplete-user'), '', 1);
+    Select2.init($modal.find('.ajax-autocomplete-fournisseur'));
+    Select2.init($modal.find('.ajax-autocomplete-transporteur'));
+    Select2.init($modal.find('.ajax-autocomplete-chauffeur'));
+    Select2.init($modal.find('.ajax-autocomplete-user'), '', 1);
     $modal.find('.list-multiple').select2();
     initFreeSelect2($('.select2-free'));
 }

@@ -10,7 +10,7 @@ $(function () {
         displayFiltersSup(data);
     }, 'json');
 
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Utilisateurs');
+    Select2.user('Utilisateurs');
 });
 
 let pathRecep = Routing.generate('reception_traca_api', true);

@@ -4,57 +4,58 @@
 {% block titleLink path('collecte_index') %}
 
 {% block page_content %}
-<div class="m-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="zone-entete">
-                {% include "collecte/collecte-show-header.html.twig" with {
-                    modifiable: modifiable,
-                    collecte: collecte,
-                    showDetails: detailsConfig
-                } %}
+    <div class="m-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="zone-entete">
+                    {% include "collecte/collecte-show-header.html.twig" with {
+                        modifiable: modifiable,
+                        collecte: collecte,
+                        showDetails: detailsConfig
+                    } %}
+                </div>
             </div>
         </div>
-    </div>
-    <div class="mt-3 wii-page-card">
-        <div class="row mb-2">
-            <h5 class="col-auto h5">Liste des articles</h5>
-        </div>
-        {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-            <div class="row wii-page-card-header">
-                <div class="col-auto ml-auto">
-                    <div class="btn-group">
-                        <button type="button" data-toggle="modal" data-target="#modalNewArticle"
-                                onclick="clearDiv(), ajaxAutoRefArticleInit($('#reference'))"
-                                class="btn btn-primary btn-ripple split-button">
-                            <span class="fa fa-plus mr-2"></span>Ajouter article
-                        </button>
-                        <button type="button" class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
-                                data-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false">
-                            <span class="fa fa-angle-down"></span>
-                        </button>
-                        <div class="dropdown-menu dropdown-follow-gt pointer dropdown-menu-right">
-                            <a href="{{ path('reference_article_index') }}"
-                               data-toggle="modal"
-                               class="dropdown-item"
-                               title="Chercher une référence">
-                                <i class="fa fa-search mr-2"></i>
-                                Chercher une {{ 'reference.référence'|trans }}
-                            </a>
+        <div class="mt-3 wii-page-card">
+            <div class="row mb-2">
+                <h5 class="col-auto h5">Liste des articles</h5>
+            </div>
+            {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+                <div class="row wii-page-card-header">
+                    <div class="col-auto ml-auto">
+                        <div class="btn-group">
+                            <button type="button" data-toggle="modal" data-target="#modalNewArticle"
+                                    onclick="clearDiv(), Select2.articleReference($('#reference'))"
+                                    class="btn btn-primary btn-ripple split-button">
+                                <span class="fa fa-plus mr-2"></span>Ajouter article
+                            </button>
+                            <button type="button" class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                    data-toggle="dropdown"
+                                    aria-haspopup="true"
+                                    aria-expanded="false">
+                                <span class="fa fa-angle-down"></span>
+                            </button>
+                            <div class="dropdown-menu dropdown-follow-gt pointer dropdown-menu-right">
+                                <a href="{{ path('reference_article_index') }}"
+                                   data-toggle="modal"
+                                   class="dropdown-item"
+                                   title="Chercher une référence">
+                                    <i class="fa fa-search mr-2"></i>
+                                    Chercher une {{ 'reference.référence'|trans }}
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        {% endif %}
-        <div class="row">
-            <div class="col-12">
-                <table id="tableArticle_id" class="table"></table>
+            {% endif %}
+            <div class="row">
+                <div class="col-12">
+                    <table id="tableArticle_id" class="table"></table>
+                </div>
             </div>
         </div>
+        <button class="btn" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
     </div>
-    <button class="btn" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
 
     {% include "collecte/modalNewArticle.html.twig" %}
     {% include "collecte/modalDeleteArticle.html.twig" %}

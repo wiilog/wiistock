@@ -1,7 +1,7 @@
 $(function() {
     $('.select2').select2();
     initDateTimePicker();
-    initSelect2($('.filter-select2[name="natures"]'), 'Natures');
+    Select2.init($('.filter-select2[name="natures"]'), 'Natures');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -10,7 +10,7 @@ $(function() {
         displayFiltersSup(data);
     }, 'json');
 
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
+    Select2.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
 
     const packsTable = initDataTable('packsTable', {
         responsive: true,

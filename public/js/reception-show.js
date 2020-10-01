@@ -184,7 +184,7 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {}, recept
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        ajaxAutoArticlesReceptionInit(modal.find('.select2-autocomplete-articles'));
+        Select2.articleReception(modal.find('.select2-autocomplete-articles'));
         fillDemandeurField(modal);
         let values = [];
         data.colis.forEach(val => {
@@ -308,7 +308,7 @@ function initModalCondit(tableFromArticle) {
 function initNewArticleEditor(modal) {
     const $modal = $(modal);
     let $select2refs = $modal.find('[name="referenceArticle"]');
-    ajaxAutoRefArticleInit($select2refs);
+    Select2.articleReference($select2refs);
 
     if (!editorNewArticleAlreadyDone) {
         initEditorInModal(modal);
@@ -388,9 +388,9 @@ function initNewReferenceArticleEditor() {
         initEditor('.editor-container-new');
         editorNewReferenceArticleAlreadyDone = true;
     }
-    ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
-    ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+    Select2.supplier($('.ajax-autocompleteFournisseur'));
+    Select2.supplier($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
+    Select2.location($('.ajax-autocomplete-location'));
     let modalRefArticleNew = $("#new-ref-inner-body");
     let submitNewRefArticle = $("#submitNewRefArticleFromRecep");
     let urlRefArticleNew = Routing.generate('reference_article_new', true);
@@ -557,11 +557,11 @@ function initNewLigneReception($button) {
         initEditorInModal(modalNewLigneReception);
         editorNewLivraisonAlreadyDoneForDL = true;
     }
-    initSelect2($modalNewLigneReception.find('.ajax-autocompleteEmplacement'), '', 1, {route: 'get_emplacement'});
-    initSelect2($('.select2-type'));
-    initSelect2($modalNewLigneReception.find('.select2-user'), '', 1, {route: 'get_user'});
+    Select2.init($modalNewLigneReception.find('.ajax-autocomplete-location'), '', 1, {route: 'get_emplacement'});
+    Select2.init($('.select2-type'));
+    Select2.user($modalNewLigneReception.find('.select2-user'));
     initDisplaySelect2('#demandeurDL', '#currentUser');
-    initSelect2($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {
+    Select2.init($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {
         route: 'get_ref_article_reception',
         param: {reception: $('#receptionId').val()}
     });
@@ -751,7 +751,7 @@ function initConditionnementArticleFournisseurDefault() {
 
     if (referenceArticle) {
         resetDefaultArticleFournisseur(true);
-        initSelect2(
+        Select2.init(
             $selectArticleFournisseur,
             '',
             1,

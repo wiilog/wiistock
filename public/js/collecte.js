@@ -115,8 +115,8 @@ InitModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, {tables: [t
 
 $(function() {
     initDateTimePicker();
-    initSelect2($('#statut'), 'Statuts');
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
+    Select2.init($('#statut'), 'Statuts');
+    Select2.user('Demandeurs');
 
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
@@ -153,7 +153,7 @@ function ajaxGetCollecteArticle(select) {
             }
             $(modalNewArticle).find('.modal-footer').removeClass('d-none');
             toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
-            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+            Select2.location($('.ajax-autocomplete-location-edit'));
             initEditor(modalNewArticle + ' .editor-container-edit');
             $('.list-multiple').select2();
         }
@@ -183,7 +183,7 @@ function initNewCollecteEditor(modal) {
         initEditorInModal(modal);
         editorNewCollecteAlreadyDone = true;
     }
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
+    Select2.location($('.ajax-autocomplete-location'))
 }
 
 function validateCollecte(collecteId, $button) {
@@ -212,7 +212,7 @@ let ajaxEditArticle = function (select) {
 
     $.post(path, JSON.stringify(params), function(data) {
         $('#editNewArticle').html(data);
-        ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+        Select2.location($('.ajax-autocomplete-location-edit'));
         initEditor('.editor-container-edit');
     }, 'json');
 }

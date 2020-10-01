@@ -3,7 +3,7 @@ $(function () {
     let $modalDeleteDelivery = $('#modal-select-location');
 
     const $selectDeleteDeliveryLocation = $modalDeleteDelivery.find('select[name="location"]')
-    ajaxAutoCompleteEmplacementInit($selectDeleteDeliveryLocation);
+    Select2.location($selectDeleteDeliveryLocation);
 
     let pathArticle = Routing.generate('livraison_article_api', {id: deliveryId});
     let tableArticleConfig = {

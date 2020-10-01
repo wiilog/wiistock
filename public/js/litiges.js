@@ -15,12 +15,12 @@ let tableArticleLitige;
 
 $(function () {
     initDateTimePicker();
-    initSelect2($('#carriers'), 'Transporteurs');
-    initSelect2($('#statut'), 'Statuts');
-    initSelect2($('#litigeOrigin'), 'Origines');
-    ajaxAutoUserInit($('.ajax-autocomplete-user:eq(0)'), 'Acheteurs');
-    ajaxAutoUserInit($('.ajax-autocomplete-user:eq(1)'), 'Déclarant');
-    ajaxAutoDisputeNumberInit($('.ajax-autocomplete-dispute'),'Numéro de litige');
+    Select2.init($('#carriers'), 'Transporteurs');
+    Select2.init($('#statut'), 'Statuts');
+    Select2.init($('#litigeOrigin'), 'Origines');
+    Select2.user($('.ajax-autocomplete-user:eq(0)'), 'Acheteurs');
+    Select2.user($('.ajax-autocomplete-user:eq(1)'), 'Déclarant');
+    Select2.dispute($('.ajax-autocomplete-dispute'),'Numéro de litige');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -109,7 +109,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
         if (isArrivage) {
             $modal.find('#colisEditLitige').val(data.colis).select2();
         } else {
-            ajaxAutoArticlesReceptionInit($modal.find('.select2-autocomplete-articles'), arrivageOrReceptionId);
+            Select2.articleReception($modal.find('.select2-autocomplete-articles'), arrivageOrReceptionId);
 
             let values = [];
             data.colis.forEach(val => {

@@ -6,8 +6,8 @@ $(function () {
     $('#modalNewMvtTraca').find('.list-multiple').select2();
 
     initDateTimePicker();
-    initSelect2($('#statut'), 'Types');
-    initSelect2($('#emplacement'), 'Emplacements');
+    Select2.init($('#statut'), 'Types');
+    Select2.init($('#emplacement'), 'Emplacements');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -16,8 +16,8 @@ $(function () {
         displayFiltersSup(data);
     }, 'json');
 
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
+    Select2.user('Opérateurs');
+    Select2.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     initNewModal($('#modalNewMvtTraca'));
 
     $
@@ -115,17 +115,17 @@ function initNewModal($modal) {
     }
 
     const $operatorSelect = $modal.find('.ajax-autocomplete-user');
-    ajaxAutoUserInit($operatorSelect, 'Opérateur');
+    Select2.user($operatorSelect, 'Opérateur');
 
     // Init mouvement fields if already loaded
     const $moreMassMvtContainer = $modal.find('.form-mass-mvt-container');
     if ($moreMassMvtContainer.length > 0) {
-        const $emplacementPrise = $moreMassMvtContainer.find('.ajax-autocompleteEmplacement[name="emplacement-prise"]');
-        const $emplacementDepose = $moreMassMvtContainer.find('.ajax-autocompleteEmplacement[name="emplacement-depose"]');
+        const $emplacementPrise = $moreMassMvtContainer.find('.ajax-autocomplete-location[name="emplacement-prise"]');
+        const $emplacementDepose = $moreMassMvtContainer.find('.ajax-autocomplete-location[name="emplacement-depose"]');
         const $colis = $moreMassMvtContainer.find('.select2-free[name="colis"]');
-        ajaxAutoCompleteEmplacementInit($emplacementPrise, {autoSelect: true, $nextField: $colis});
+        Select2.location($emplacementPrise, {autoSelect: true, $nextField: $colis});
         initFreeSelect2($colis);
-        ajaxAutoCompleteEmplacementInit($emplacementDepose, {autoSelect: true});
+        Select2.location($emplacementDepose, {autoSelect: true});
     }
 }
 
@@ -147,7 +147,7 @@ function resetNewModal($modal) {
     $modal.find('.more-body-new-mvt-traca').empty();
 
     // focus emplacementPrise if mass mouvement form is already loaded
-    const $emplacementPrise = $modal.find('.ajax-autocompleteEmplacement[name="emplacement-prise"]');
+    const $emplacementPrise = $modal.find('.ajax-autocomplete-location[name="emplacement-prise"]');
     if ($modal.length > 0) {
         setTimeout(() => {
             $emplacementPrise.select2('open');
@@ -164,7 +164,7 @@ function switchMvtCreationType($input) {
             $modal.find('.more-body-new-mvt-traca').html(response.modalBody);
             $modal.find('.new-mvt-common-body').removeClass('d-none');
             $modal.find('.more-body-new-mvt-traca').removeClass('d-none');
-            ajaxAutoCompleteEmplacementInit($modal.find('.ajax-autocompleteEmplacement'));
+            Select2.location($modal.find('.ajax-autocomplete-location'));
             initFreeSelect2($modal.find('.select2-free'));
         }
     });
