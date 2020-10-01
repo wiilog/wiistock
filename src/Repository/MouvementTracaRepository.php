@@ -29,7 +29,7 @@ class MouvementTracaRepository extends EntityRepository
 
     private const DtToDbLabels = [
         'date' => 'datetime',
-        'colis' => 'colis',
+        'code' => 'code',
         'location' => 'emplacement',
         'type' => 'status',
         'reference' => 'reference',
@@ -37,30 +37,6 @@ class MouvementTracaRepository extends EntityRepository
         'operateur' => 'user',
         'quantity' => 'quantity'
     ];
-
-    public function getLastDropsGroupedByColis() {
-        $queryBuilder = $this->createQueryBuilder('mouvement');
-        $queryBuilderExpr = $queryBuilder->expr();
-        return $queryBuilder
-            ->select('mouvement.colis')
-            ->addSelect('mouvement.id')
-            ->addSelect(
-                $queryBuilderExpr->max('mouvement.datetime') . ' AS datetime'
-            )
-            ->addSelect('statut.nom')
-            ->join('mouvement.type', 'statut')
-            ->groupBy('mouvement.colis')
-            ->addGroupBy('mouvement.id')
-            ->having('statut.nom = :depose')
-            ->orderBy(
-                $queryBuilderExpr->max('mouvement.datetime'), 'desc'
-            )
-            ->setParameter('depose', MouvementTraca::TYPE_DEPOSE)
-            ->getQuery()
-            ->execute();
-    }
-
-
 
     /**
      * @param $uniqueId
@@ -110,7 +86,7 @@ class MouvementTracaRepository extends EntityRepository
         $queryBuilder = $this->createQueryBuilder('mouvementTraca')
             ->select('mouvementTraca.id')
             ->addSelect('mouvementTraca.datetime')
-            ->addSelect('mouvementTraca.colis')
+            ->addSelect('pack.code AS code')
             ->addSelect('mouvementTraca.quantity')
             ->addSelect('location.label as locationLabel')
             ->addSelect('type.nom as typeName')
@@ -130,8 +106,8 @@ class MouvementTracaRepository extends EntityRepository
             ->leftJoin('mouvementTraca.operateur', 'operator')
             ->leftJoin('mouvementTraca.arrivage', 'arrivage')
             ->leftJoin('mouvementTraca.reception', 'reception')
-            ->leftJoin(Pack::class, 'colis', Join::WITH, 'colis.code = mouvementTraca.colis')
-            ->leftJoin('colis.arrivage', 'arrivage2')
+            ->innerJoin('mouvementTraca.pack', 'pack')
+            ->leftJoin('pack.arrivage', 'arrivage2')
 
             ->setParameters([
                 'dateMin' => $dateMin,
@@ -158,6 +134,7 @@ class MouvementTracaRepository extends EntityRepository
             ->from('App\Entity\MouvementTraca', 'm');
 
         $countTotal = $this->countAll();
+
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
@@ -194,8 +171,9 @@ class MouvementTracaRepository extends EntityRepository
                     break;
                 case 'colis':
                     $qb
-                        ->andWhere('m.colis LIKE :colis')
-                        ->setParameter('colis', '%' . $filter['value'] . '%');
+                        ->leftJoin('m.pack', 'filter_pack')
+                        ->andWhere('filter_pack.code LIKE :filter_code')
+                        ->setParameter('filter_code', '%' . $filter['value'] . '%');
                     break;
            }
         }
@@ -213,17 +191,18 @@ class MouvementTracaRepository extends EntityRepository
                         ->leftJoin('m.article', 'a1')
                         ->leftJoin('a1.articleFournisseur', 'af1')
                         ->leftJoin('af1.referenceArticle', 'afra1')
+                        ->leftJoin('m.pack', 'search_pack')
                         ->andWhere('(
-                            m.colis LIKE :value OR
-                            e2.label LIKE :value OR
-                            s2.nom LIKE :value OR
-                            afra1.reference LIKE :value OR
-                            a1.label LIKE :value OR
-                            mra1.reference LIKE :value OR
-                            mra1.libelle LIKE :value OR
-                            u2.username LIKE :value
+                            search_pack.code LIKE :search_value OR
+                            e2.label LIKE :search_value OR
+                            s2.nom LIKE :search_value OR
+                            afra1.reference LIKE :search_value OR
+                            a1.label LIKE :search_value OR
+                            mra1.reference LIKE :search_value OR
+                            mra1.libelle LIKE :search_value OR
+                            u2.username LIKE :search_value
 						)')
-                        ->setParameter('value', '%' . $search . '%');
+                        ->setParameter('search_value', '%' . $search . '%');
                 }
             }
 
@@ -258,6 +237,10 @@ class MouvementTracaRepository extends EntityRepository
                         $qb
                             ->leftJoin('m.operateur', 'u3')
                             ->orderBy('u3.username', $order);
+                    }  else if ($column === 'code') {
+                        $qb
+                            ->leftJoin('m.pack', 'order_pack')
+                            ->orderBy('order_pack.code', $order);
                     } else {
                         $qb
                             ->orderBy('m.' . $column, $order);
@@ -303,7 +286,7 @@ class MouvementTracaRepository extends EntityRepository
                                                      string $type,
                                                      array $filterDemandeCollecteIds = []) {
         $queryBuilder = $this->createQueryBuilder('mouvementTraca')
-            ->select('mouvementTraca.colis AS ref_article')
+            ->select('pack.code AS ref_article')
             ->addSelect('mouvementTracaType.nom AS type')
             ->addSelect('mouvementTraca.quantity AS quantity')
             ->addSelect('mouvementTraca.freeFields')

@@ -544,23 +544,23 @@ class MouvementTracaController extends AbstractController
                 'export_mouvement_traca.csv',
                 $mouvements,
                 $csvHeader,
-                function ($mouvement) use ($attachmentsNameByMouvementTraca, $freeFieldsIds) {
+                function ($movement) use ($attachmentsNameByMouvementTraca, $freeFieldsIds) {
                     $row = [];
-                    $row[] = $mouvement['datetime'] ? $mouvement['datetime']->format('d/m/Y H:i') : '';
-                    $row[] = $mouvement['colis'];
-                    $row[] = $mouvement['locationLabel'] ?: '';
-                    $row[] = $mouvement['quantity'] ?: '';
-                    $row[] = $mouvement['typeName'] ?: '';
-                    $row[] = $mouvement['operatorUsername'] ?: '';
-                    $row[] = $mouvement['commentaire'] ? strip_tags($mouvement['commentaire']) : '';
-                    $row[] = $attachmentsNameByMouvementTraca[(int)$mouvement['id']] ?? '';
-                    $row[] = $mouvement['numeroArrivage'] ?: $mouvement['numeroReception'] ?: '';
-                    $row[] = $mouvement['numeroCommandeListArrivage'] && !empty($mouvement['numeroCommandeListArrivage'])
-                        ? implode(', ', $mouvement['numeroCommandeListArrivage'])
-                        : ($mouvement['referenceReception'] ?: '');
-                    $row[] = !empty($mouvement['isUrgent']) ? 'oui' : 'non';
+                    $row[] = $movement['datetime'] ? $movement['datetime']->format('d/m/Y H:i') : '';
+                    $row[] = $movement['code'];
+                    $row[] = $movement['locationLabel'] ?: '';
+                    $row[] = $movement['quantity'] ?: '';
+                    $row[] = $movement['typeName'] ?: '';
+                    $row[] = $movement['operatorUsername'] ?: '';
+                    $row[] = $movement['commentaire'] ? strip_tags($movement['commentaire']) : '';
+                    $row[] = $attachmentsNameByMouvementTraca[(int)$movement['id']] ?? '';
+                    $row[] = $movement['numeroArrivage'] ?: $movement['numeroReception'] ?: '';
+                    $row[] = $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
+                        ? implode(', ', $movement['numeroCommandeListArrivage'])
+                        : ($movement['referenceReception'] ?: '');
+                    $row[] = !empty($movement['isUrgent']) ? 'oui' : 'non';
                     foreach ($freeFieldsIds as $freeField) {
-                        $row[] = $mouvement['freeFields'][$freeField] ?? "";
+                        $row[] = $movement['freeFields'][$freeField] ?? "";
                     }
                     return [$row];
                 }

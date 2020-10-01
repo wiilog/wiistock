@@ -96,7 +96,7 @@ class MouvementTracaService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function dataRowMouvement($movement)
+    public function dataRowMouvement(MouvementTraca $movement)
     {
         if ($movement->getArrivage()) {
             $fromPath = 'arrivage_show';
@@ -136,10 +136,13 @@ class MouvementTracaService
             ]);
         }
 
+        $trackingPack = $movement->getPack();
+        $packCode = $trackingPack->getCode();
+
         $rows = [
             'id' => $movement->getId(),
             'date' => $movement->getDatetime() ? $movement->getDatetime()->format('d/m/Y H:i') : '',
-            'colis' => $movement->getColis(),
+            'code' => $packCode,
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', [
                 'from' => $originFrom,
                 'fromLabel' => $fromLabel,
@@ -218,11 +221,8 @@ class MouvementTracaService
         $uniqueIdForMobile = $options['uniqueIdForMobile'] ?? null;
         $natureId = $options['natureId'] ?? null;
 
-        $codePack = $packOrCode instanceof Pack ? $packOrCode->getCode() : $packOrCode;
-
         $tracking = new MouvementTraca();
         $tracking
-            ->setColis($codePack)
             ->setQuantity($quantity)
             ->setEmplacement($location)
             ->setOperateur($user)
@@ -476,7 +476,7 @@ class MouvementTracaService
             ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true],
             ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
             ['title' => 'Date', 'name' => 'date'],
-            ['title' => 'colis.colis', 'name' => 'colis', 'translated' => true],
+            ['title' => 'colis.colis', 'name' => 'code', 'translated' => true],
             ['title' => 'Référence', 'name' => 'reference'],
             ['title' => 'Libellé',  'name' => 'label'],
             ['title' => 'Quantité', 'name' => 'quantity'],
