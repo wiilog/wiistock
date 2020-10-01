@@ -1940,7 +1940,6 @@ class ReceptionController extends AbstractController {
                     ]
                 );
 
-                dump($createdMvt, $createdMvt->getPack(), $article->getBarCode());
                 $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                 $entityManager->persist($createdMvt);
 
