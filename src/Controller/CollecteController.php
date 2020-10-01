@@ -639,12 +639,17 @@ class CollecteController extends AbstractController
     /**
      * @Route("/csv", name="get_demandes_collectes_for_csv",options={"expose"=true}, methods="GET|POST" )
      * @param EntityManagerInterface $entityManager
+     * @param DemandeCollecteService $demandeCollecteService
      * @param Request $request
+     * @param FreeFieldService $freeFieldService
      * @param CSVExportService $CSVExportService
      * @return Response
+     * @throws Exception
      */
 	public function getDemandesCollecteCSV(EntityManagerInterface $entityManager,
+                                           DemandeCollecteService $demandeCollecteService,
                                            Request $request,
+                                           FreeFieldService $freeFieldService,
                                            CSVExportService $CSVExportService): Response
     {
         $dateMin = $request->query->get('dateMin');
@@ -654,22 +659,7 @@ class CollecteController extends AbstractController
         $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
-
-            $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
-            $freeFields = $freeFieldsRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_COLLECTE]);
-
-            $freeFieldIds = array_map(
-                function (ChampLibre $cl) {
-                    return $cl->getId();
-                },
-                $freeFields
-            );
-            $freeFieldsHeader = array_map(
-                function (ChampLibre $cl) {
-                    return $cl->getLabel();
-                },
-                $freeFields
-            );
+            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategoryType::DEMANDE_COLLECTE]);
 
             $collecteRepository = $entityManager->getRepository(Collecte::class);
             $collectes = $collecteRepository->findByDates($dateTimeMin, $dateTimeMax);
@@ -689,42 +679,32 @@ class CollecteController extends AbstractController
                     'Code barre',
                     'Quantité',
                 ],
-                $freeFieldsHeader
+                $freeFieldsConfig['freeFieldsHeader']
             );
             $today = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $fileName = "export_demande_collecte".$today->format('d_m_Y').".csv";
+            $fileName = "export_demande_collecte" . $today->format('d_m_Y') . ".csv";
             return $CSVExportService->createBinaryResponseFromData(
                 $fileName,
                 $collectes,
                 $csvHeader,
-                function (Collecte $collecte) use ($freeFieldIds) {
+                function (Collecte $collecte) use ($freeFieldsConfig, $freeFieldService, $demandeCollecteService) {
                     $rows = [];
                     foreach ($collecte->getArticles() as $article) {
-                        $collecteData = $collecte->serialize();
-                        $collecteData[] = $article->getBarCode();
-                        $collecteData[] = $article->getQuantite();
-
-                        foreach ($freeFieldIds as $freeFieldId) {
-                            $collecteData[] = $collecteData['freeFields'][$freeFieldId] ?? "";
-                        }
-
-                        unset($collecteData['freeFields']);
-
-                        $rows[] = $collecteData;
+                        $rows[] = $demandeCollecteService->serialiseExportRow($collecte, $freeFieldsConfig, $freeFieldService, function () use ($article) {
+                            return [
+                                $article->getBarCode(),
+                                $article->getQuantite()
+                            ];
+                        });
                     }
 
                     foreach ($collecte->getCollecteReferences() as $collecteReference) {
-                        $collecteData = $collecte->serialize();
-                        $collecteData[] = $collecteReference->getReferenceArticle()->getBarCode();
-                        $collecteData[] = $collecteReference->getQuantite();
-
-                        foreach ($freeFieldIds as $freeFieldId) {
-                            $collecteData[] = $collecteData['freeFields'][$freeFieldId] ?? "";
-                        }
-
-                        unset($collecteData['freeFields']);
-
-                        $rows[] = $collecteData;
+                        $rows[] = $demandeCollecteService->serialiseExportRow($collecte, $freeFieldsConfig, $freeFieldService, function () use ($collecteReference) {
+                            return [
+                                $collecteReference->getReferenceArticle() ? $collecteReference->getReferenceArticle()->getBarCode() : '',
+                                $collecteReference->getQuantite()
+                            ];
+                        });
                     }
 
                     return $rows;
