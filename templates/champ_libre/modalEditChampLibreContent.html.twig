@@ -45,6 +45,7 @@
     <label class="switch">
         <input class="checkbox data"
                type="checkbox"
+               onclick="toggleCreationMandatory($(this))"
                name="requiredCreate" {{ champLibre.requiredCreate ? 'checked': '' }}>
         <span class="slider round"></span>
     </label>

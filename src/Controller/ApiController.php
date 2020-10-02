@@ -340,14 +340,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     }
                                 }
                                 else { // MouvementTraca::TYPE_DEPOSE
-                                    $mouvementTracaPrises = $mouvementTracaRepository->findBy(
-                                        [
-                                            'colis' => $mvt['ref_article'],
-                                            'type' => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_PRISE),
-                                            'finished' => false
-                                        ],
-                                        ['datetime' => 'DESC']
-                                    );
+                                    $mouvementTracaPrises = $mouvementTracaRepository->findLastTakingNotFinished($mvt['ref_article']);
                                     /** @var MouvementTraca|null $mouvementTracaPrise */
                                     $mouvementTracaPrise = count($mouvementTracaPrises) > 0 ? $mouvementTracaPrises[0] : null;
                                     if (isset($mouvementTracaPrise)) {
@@ -503,11 +496,16 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             foreach ($mouvementsNomade as $index => $mvt) {
                 /** @var MouvementTraca $mouvementTracaPriseToFinish */
                 $mouvementTracaPriseToFinish = $mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
-                if (isset($mouvementTracaPriseToFinish) &&
-                    ($mouvementTracaPriseToFinish->getType()->getNom() === MouvementTraca::TYPE_PRISE) &&
-                    in_array($mouvementTracaPriseToFinish->getColis(), $finishMouvementTraca) &&
-                    !$mouvementTracaPriseToFinish->isFinished()) {
-                    $mouvementTracaPriseToFinish->setFinished((bool)$mvt['finished']);
+
+
+                if (isset($mouvementTracaPriseToFinish)) {
+                    $trackingPack = $mouvementTracaPriseToFinish->getPack();
+                    $packCode = $trackingPack->getCode();
+                    if (($mouvementTracaPriseToFinish->getType()->getNom() === MouvementTraca::TYPE_PRISE) &&
+                        in_array($packCode, $finishMouvementTraca) &&
+                        !$mouvementTracaPriseToFinish->isFinished()) {
+                        $mouvementTracaPriseToFinish->setFinished((bool)$mvt['finished']);
+                    }
                 }
             }
             $entityManager->flush();
@@ -1319,7 +1317,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param Utilisateur $user
      * @param UserService $userService
      * @param NatureService $natureService
-     * @param FreeFieldService $freeFieldService
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return array
@@ -1328,7 +1325,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     private function getDataArray(Utilisateur $user,
                                   UserService $userService,
                                   NatureService $natureService,
-                                  FreeFieldService $freeFieldService,
                                   Request $request,
                                   EntityManagerInterface $entityManager)
     {
@@ -1467,10 +1463,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             );
             $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
             $trackingFreeFields = array_map(
-                function (ChampLibre $freeField) use ($freeFieldService) {
-                    $serializedFreeField = $freeFieldService->serializeFreeField($freeField);
+                function (ChampLibre $freeField) {
                     return array_merge(
-                        $serializedFreeField,
+                        $freeField->serialize(),
                         ['type' => CategoryType::MOUVEMENT_TRACA]
                     );
                 },
@@ -1525,15 +1520,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param Request $request
      * @param UserService $userService
      * @param NatureService $natureService
-     * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function getData(Request $request,
                             UserService $userService,
                             NatureService $natureService,
-                            FreeFieldService $freeFieldService,
                             EntityManagerInterface $entityManager)
     {
         $apiKey = $request->request->get('apiKey');
@@ -1542,7 +1536,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
             $httpCode = Response::HTTP_OK;
             $dataResponse['success'] = true;
-            $dataResponse['data'] = $this->getDataArray($nomadUser, $userService, $natureService, $freeFieldService, $request, $entityManager);
+            $dataResponse['data'] = $this->getDataArray($nomadUser, $userService, $natureService, $request, $entityManager);
         } else {
             $httpCode = Response::HTTP_UNAUTHORIZED;
             $dataResponse['success'] = false;

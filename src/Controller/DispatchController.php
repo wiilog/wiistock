@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\CategorieCL;
 use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
@@ -987,6 +988,7 @@ class DispatchController extends AbstractController {
      * @return Response
      */
     public function getDispatchesCSV(Request $request,
+                                     FreeFieldService $freeFieldService,
                                      CSVExportService $CSVExportService,
                                      EntityManagerInterface $entityManager,
                                      TranslatorInterface $translator): Response
@@ -1001,24 +1003,10 @@ class DispatchController extends AbstractController {
         }
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
-            $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
-            $freeFields = $freeFieldsRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_DISPATCH]);
-
-            $freeFieldIds = array_map(
-                function (ChampLibre $cl) {
-                    return $cl->getId();
-                },
-                $freeFields
-            );
-            $freeFieldsHeader = array_map(
-                function (ChampLibre $cl) {
-                    return $cl->getLabel();
-                },
-                $freeFields
-            );
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-
             $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax);
+
+            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
 
             $csvHeader = array_merge(
                 [
@@ -1041,14 +1029,14 @@ class DispatchController extends AbstractController {
                     'Opérateur',
                     'Traité par'
                 ],
-                $freeFieldsHeader
+                $freeFieldsConfig['freeFieldsHeader']
             );
 
             return $CSVExportService->createBinaryResponseFromData(
                 'export_acheminements.csv',
                 $dispatches,
                 $csvHeader,
-                function ($dispatch) use ($freeFieldIds) {
+                function ($dispatch) use ($freeFieldsConfig, $freeFieldService) {
                     $row = [];
                     $row[] = $dispatch['number'] ?? '';
                     $row[] = $dispatch['creationDate'] ? $dispatch['creationDate']->format('d/m/Y H:i:s') : '';
@@ -1069,9 +1057,13 @@ class DispatchController extends AbstractController {
                     $row[] = $dispatch['operator'] ?? '';
                     $row[] = $dispatch['treatedBy'] ?? '';
 
-                    foreach ($freeFieldIds as $freeFieldId) {
-                        $row[] = $dispatch['freeFields'][$freeFieldId] ?? "";
+                    foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+                        $row[] = $freeFieldService->serializeValue([
+                            'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
+                            'valeur' => $dispatch['freeFields'][$freeFieldId] ?? ''
+                        ]);
                     }
+
                     return [$row];
                 }
             );

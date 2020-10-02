@@ -19,14 +19,13 @@ let tableAlerteConfig = {
         { "data": 'Date d\'alerte', 'title': 'Date d\'alerte' },
         { "data": "SeuilAlerte", 'title': "Seuil d'alerte" },
         { "data": 'SeuilSecurite', 'title': 'Seuil de sécurité' },
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Alerte'},
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Alerte', orderable: false},
     ],
     columnDefs: [
         {
             "type": "customDate",
             "targets": 4
-        },
-        { "orderable": false, "targets": 7 },
+        }
     ],
 };
 let tableAlerte = initDataTable('tableAlerte_id', tableAlerteConfig);

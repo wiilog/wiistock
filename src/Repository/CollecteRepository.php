@@ -211,4 +211,23 @@ class CollecteRepository extends EntityRepository
 		return $query->execute();
 	}
 
+	public function findByDates($dateMin, $dateMax)
+    {
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+
+        $queryBuilder = $this->createQueryBuilder('collecte')
+            ->select('collecte')
+
+            ->where('collecte.date BETWEEN :dateMin AND :dateMax')
+
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
 }

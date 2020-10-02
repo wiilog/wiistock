@@ -41,21 +41,22 @@ function displayErrorFields() {
 }
 
 function switchDisplay($checkbox) {
-    const $modal = $checkbox.closest('.modal');
-    if (!$modal.find('[name="displayed-forms-create"]').prop('checked')
-        && !$modal.find('[name="displayed-forms-edit"]').prop('checked')) {
-        $('.checkbox').prop('checked', false);
+    if ($checkbox.attr('name') === 'displayed-forms-create'
+        && !$checkbox.prop('checked')) {
+        $('.checkbox[name="mustToCreate"]').prop('checked', false);
+    } else if ($checkbox.attr('name') === 'displayed-forms-edit'
+        && !$checkbox.prop('checked')) {
+        $('.checkbox[name="mustToModify"]').prop('checked', false);
     }
 }
 
 function switchDisplayByMust($checkbox) {
-    const $modal = $checkbox.closest('.modal');
     if ($checkbox.attr('name') === 'mustToCreate'
-        && $modal.find('[name="displayed-forms-create"]').prop('checked')) {
-        $('.checkbox[name="displayed-forms-create"]').prop('checked', false);
+        && $checkbox.prop('checked')) {
+        $('.checkbox[name="displayed-forms-create"]').prop('checked', true);
     } else if ($checkbox.attr('name') === 'mustToModify'
-        && $modal.find('[name="displayed-forms-edit"]').prop('checked')) {
-        $('.checkbox[name="displayed-forms-edit"]').prop('checked', false);
+        && $checkbox.prop('checked')) {
+        $('.checkbox[name="displayed-forms-edit"]').prop('checked', true);
     }
 }
 

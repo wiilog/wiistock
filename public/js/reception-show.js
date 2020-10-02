@@ -262,7 +262,7 @@ function initDatatableConditionnement() {
         },
         order: [1, 'asc'],
         columns: [
-            {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
+            {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'Code barre', 'name': 'Code barre', 'title': 'Code article'},
             {"data": "Statut", 'name': 'Statut', 'title': 'Statut'},
             {"data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé'},
@@ -273,13 +273,7 @@ function initDatatableConditionnement() {
             'sType': 'natural',
             'bSortable': true,
             'aTargets': [1]
-        }],
-        columnDefs: [
-            {
-                orderable: false,
-                targets: 0
-            }
-        ]
+        }]
     };
     let tableFromArticle = initDataTable('tableArticleInner_id', tableFromArticleConfig);
 

@@ -189,7 +189,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEADLINE_DISPATCH') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
-                        <div class="form-group col">
+                        <div class="form-group col-md-8 col-12">
                             <label>Echéance{{ required ? '*' }}</label>
                             <div class="input-group w-100">
                                 <div class="input-group-prepend">
@@ -219,7 +219,7 @@
                         <span class="toggle-collapsible expanded">Champs libres</span>
                         <div class="collapsible expanded free-fields-container mb-2">
                             {% for type in typeChampsLibres %}
-                                <div class="row d-none" id="{{ type.typeId }}-new">
+                                <div class="d-none" id="{{ type.typeId }}-new">
                                     {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                                         freeFields: type.champsLibres,
                                         freeFieldValues: [],

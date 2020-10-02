@@ -20,7 +20,7 @@ $(function () {
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     initNewModal($('#modalNewMvtTraca'));
 
-    return $
+    $
         .post(Routing.generate('tracking_movement_api_columns'))
         .then((columns) => {
             let config = {
@@ -48,10 +48,7 @@ $(function () {
                 hideColumnConfig: {
                     columns,
                     tableFilter: 'tableMvts'
-                },
-                columnDefs: [
-                    { "orderable": false, "targets": 0 },
-                ],
+                }
             };
 
             tableMvt = initDataTable('tableMvts', config);

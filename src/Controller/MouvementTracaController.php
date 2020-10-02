@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
@@ -403,7 +404,6 @@ class MouvementTracaController extends AbstractController
      */
     public function edit(EntityManagerInterface $entityManager,
                          FreeFieldService $freeFieldService,
-                         MouvementTracaService $mouvementTracaService,
                          Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -413,14 +413,9 @@ class MouvementTracaController extends AbstractController
 
             $post = $request->request;
 
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
-            $date = DateTime::createFromFormat(DateTime::ATOM, $post->get('datetime') . ':00P', new \DateTimeZone('Europe/Paris'));
-            $type = $statutRepository->find($post->get('type'));
-            $location = $emplacementRepository->find($post->get('emplacement'));
             $operator = $utilisateurRepository->find($post->get('operator'));
             $quantity = $post->getInt('quantity') ?: 1;
 
@@ -433,22 +428,9 @@ class MouvementTracaController extends AbstractController
 
             /** @var MouvementTraca $mvt */
             $mvt = $mouvementTracaRepository->find($post->get('id'));
-            $mouvementTracaService->managePackLinksWithTracking(
-                $mvt,
-                $entityManager,
-                $type,
-                $post->get('colis'),
-                $quantity,
-                true
-            );
-
             $mvt
-                ->setDatetime($date)
                 ->setOperateur($operator)
-                ->setColis($post->get('colis'))
                 ->setQuantity($quantity)
-                ->setType($type)
-                ->setEmplacement($location)
                 ->setCommentaire($post->get('commentaire'));
 
             $entityManager->flush();
@@ -479,12 +461,10 @@ class MouvementTracaController extends AbstractController
     /**
      * @Route("/supprimer", name="mvt_traca_delete", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
-     * @param MouvementTracaService $mouvementTracaService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function delete(Request $request,
-                           MouvementTracaService $mouvementTracaService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -495,9 +475,6 @@ class MouvementTracaController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $mouvementTracaService->manageMouvementTracaPreRemove($mvt);
-            $entityManager->flush();
 
             $entityManager->remove($mvt);
             $entityManager->flush();
@@ -511,12 +488,14 @@ class MouvementTracaController extends AbstractController
      * @Route("/csv", name="get_mouvements_traca_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
      * @param CSVExportService $CSVExportService
+     * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
     public function getMouvementTracaCsv(Request $request,
                                          CSVExportService $CSVExportService,
+                                         FreeFieldService $freeFieldService,
                                          EntityManagerInterface $entityManager): Response
     {
         $dateMin = $request->query->get('dateMin');
@@ -529,23 +508,10 @@ class MouvementTracaController extends AbstractController
         }
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $freeFields = $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
-
-            $freeFieldsIds = array_map(
-                function (ChampLibre $cl) {
-                    return $cl->getId();
-                },
-                $freeFields
-            );
-            $freeFieldsHeader = array_map(
-                function (ChampLibre $cl) {
-                    return $cl->getLabel();
-                },
-                $freeFields
-            );
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
             $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+
+            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::MVT_TRACA]);
 
             $mouvements = $mouvementTracaRepository->getByDates($dateTimeMin, $dateTimeMax);
             $attachmentsNameByMouvementTraca = $pieceJointeRepository->getNameGroupByMouvements();
@@ -562,30 +528,35 @@ class MouvementTracaController extends AbstractController
                 'origine',
                 'numéro de commande',
                 'urgence'
-            ], $freeFieldsHeader);
+            ], $freeFieldsConfig['freeFieldsHeader']);
 
             return $CSVExportService->createBinaryResponseFromData(
                 'export_mouvement_traca.csv',
                 $mouvements,
                 $csvHeader,
-                function ($mouvement) use ($attachmentsNameByMouvementTraca, $freeFieldsIds) {
+                function ($movement) use ($attachmentsNameByMouvementTraca, $freeFieldsConfig, $freeFieldService) {
                     $row = [];
-                    $row[] = $mouvement['datetime'] ? $mouvement['datetime']->format('d/m/Y H:i') : '';
-                    $row[] = $mouvement['colis'];
-                    $row[] = $mouvement['locationLabel'] ?: '';
-                    $row[] = $mouvement['quantity'] ?: '';
-                    $row[] = $mouvement['typeName'] ?: '';
-                    $row[] = $mouvement['operatorUsername'] ?: '';
-                    $row[] = $mouvement['commentaire'] ? strip_tags($mouvement['commentaire']) : '';
-                    $row[] = $attachmentsNameByMouvementTraca[(int)$mouvement['id']] ?? '';
-                    $row[] = $mouvement['numeroArrivage'] ?: $mouvement['numeroReception'] ?: '';
-                    $row[] = $mouvement['numeroCommandeListArrivage'] && !empty($mouvement['numeroCommandeListArrivage'])
-                        ? implode(', ', $mouvement['numeroCommandeListArrivage'])
-                        : ($mouvement['referenceReception'] ?: '');
-                    $row[] = !empty($mouvement['isUrgent']) ? 'oui' : 'non';
-                    foreach ($freeFieldsIds as $freeField) {
-                        $row[] = $mouvement['freeFields'][$freeField] ?? "";
+                    $row[] = $movement['datetime'] ? $movement['datetime']->format('d/m/Y H:i') : '';
+                    $row[] = $movement['code'];
+                    $row[] = $movement['locationLabel'] ?: '';
+                    $row[] = $movement['quantity'] ?: '';
+                    $row[] = $movement['typeName'] ?: '';
+                    $row[] = $movement['operatorUsername'] ?: '';
+                    $row[] = $movement['commentaire'] ? strip_tags($movement['commentaire']) : '';
+                    $row[] = $attachmentsNameByMouvementTraca[(int)$movement['id']] ?? '';
+                    $row[] = $movement['numeroArrivage'] ?: $movement['numeroReception'] ?: '';
+                    $row[] = $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
+                        ? implode(', ', $movement['numeroCommandeListArrivage'])
+                        : ($movement['referenceReception'] ?: '');
+                    $row[] = !empty($movement['isUrgent']) ? 'oui' : 'non';
+
+                    foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+                        $row[] = $freeFieldService->serializeValue([
+                            'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
+                            'valeur' => $movement['freeFields'][$freeFieldId] ?? ''
+                        ]);
                     }
+
                     return [$row];
                 }
             );

@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -41,22 +42,22 @@ class Pack
 
     /**
      * @var MouvementTraca
-     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastDrops")
-     * @ORM\JoinColumn(name="last_drop_id", onDelete="SET NULL")
+     * @ORM\OneToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastDrop")
+     * @ORM\JoinColumn(nullable=true)
      */
     private $lastDrop;
 
     /**
      * @var MouvementTraca
-     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastTrackings")
-     * @ORM\JoinColumn(name="last_tracking_id", onDelete="SET NULL")
+     * @ORM\OneToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastTracking")
+     * @ORM\JoinColumn(nullable=true)
      */
     private $lastTracking;
 
     /**
      * @var Collection
      * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="pack", cascade={"remove"})
-     * @ORM\OrderBy({"datetime" = "DESC"})
+     * @ORM\OrderBy({"datetime" = "DESC", "id" = "DESC"})
      */
     private $trackingMovements;
 
@@ -85,10 +86,16 @@ class Pack
      */
     private $dispatchPacks;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="pack", orphanRemoval=true)
+     */
+    private $locationClusterRecords;
+
     public function __construct() {
         $this->litiges = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
         $this->dispatchPacks = new ArrayCollection();
+        $this->locationClusterRecords = new ArrayCollection();
         $this->quantity = 1;
     }
 
@@ -165,7 +172,13 @@ class Pack
 
     public function setLastDrop(?MouvementTraca $lastDrop): self
     {
+        if (isset($this->lastDrop)) {
+            $this->lastDrop->setLinkedPackLastDrop(null);
+        }
         $this->lastDrop = $lastDrop;
+        if (isset($this->lastDrop)) {
+            $this->lastDrop->setLinkedPackLastDrop($this);
+        }
 
         return $this;
     }
@@ -175,24 +188,40 @@ class Pack
         return $this->lastTracking;
     }
 
-    public function setLastTracking(?MouvementTraca $lastDrop): self
+    public function setLastTracking(?MouvementTraca $lastTracking): self
     {
-        $this->lastTracking = $lastDrop;
+        if (isset($this->lastTracking)) {
+            $this->lastTracking->setLinkedPackLastTracking(null);
+        }
+        $this->lastTracking = $lastTracking;
 
+        if (isset($this->lastTracking)) {
+            $this->lastTracking->setLinkedPackLastTracking($this);
+        }
         return $this;
     }
 
     /**
+     * @param string $order
      * @return Collection|MouvementTraca[]
      */
-    public function getTrackingMovements(): Collection {
-        return $this->trackingMovements;
+    public function getTrackingMovements(string $order = 'DESC'): Collection {
+        $criteria = Criteria::create()
+            ->orderBy([
+                'datetime' => $order,
+                'id' => $order
+            ]);
+        return $this->trackingMovements->matching($criteria);
     }
 
     public function addTrackingMovement(MouvementTraca $trackingMovement): self
     {
         if (!$this->trackingMovements->contains($trackingMovement)) {
-            $this->trackingMovements[] = $trackingMovement;
+            // push on top new movement
+            $trackingMovements = $this->trackingMovements->toArray();
+            array_unshift($trackingMovements, $trackingMovement);
+            $this->trackingMovements = new ArrayCollection($trackingMovements);
+
             $trackingMovement->setPack($this);
         }
 
@@ -275,6 +304,40 @@ class Pack
 
     public function setComment(?string $comment): self {
         $this->comment = $comment;
+        return $this;
+    }
+
+    /**
+     * @return ArrayCollection
+     */
+    public function getLocationClusterRecords(): ArrayCollection {
+        return $this->locationClusterRecords;
+    }
+
+    /**
+     * @param LocationClusterRecord $locationClusterRecord
+     * @return self
+     */
+    public function addLocationClusterRecord(LocationClusterRecord $locationClusterRecord): self {
+        if (!$this->locationClusterRecords->contains($locationClusterRecord)) {
+            $this->locationClusterRecords[] = $locationClusterRecord;
+            $locationClusterRecord->setPack($this);
+        }
+        return $this;
+    }
+
+    /**
+     * @param LocationClusterRecord $locationClusterRecord
+     * @return self
+     */
+    public function removeLocationClusterRecord(LocationClusterRecord $locationClusterRecord): self {
+        if ($this->locationClusterRecords->contains($locationClusterRecord)) {
+            $this->locationClusterRecords->removeElement($locationClusterRecord);
+            // set the owning side to null (unless already changed)
+            if ($locationClusterRecord->getPack() === $this) {
+                $locationClusterRecord->setPack(null);
+            }
+        }
         return $this;
     }
 

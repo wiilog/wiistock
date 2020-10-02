@@ -21,7 +21,20 @@
     }
 }
 
+.half-height {
+    height: 38vh;
+
+    .dashboard-ext & {
+        height: 41vh;
+    }
+}
+
+.third-height {
+    height: 31vh;
+}
+
 .dashboard-box-container {
+
     &.side-panels {
         height: 15vh;
 
@@ -38,10 +51,6 @@
         }
     }
 
-    &.third-height {
-        height: 31vh;
-    }
-
     &.third-row-height {
         height: 22vh;
 
@@ -50,19 +59,15 @@
         }
     }
 
+    &.multi-line-box {
+        height: 20vh;
+    }
+
     &.fourth-row-height {
         height: 15.5vh;
 
         &.dashboard-ext {
             height: 16vh;
-        }
-    }
-
-    &.half-height {
-        height: 38vh;
-
-        .dashboard-ext & {
-            height: 41vh;
         }
     }
 

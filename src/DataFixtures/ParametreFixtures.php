@@ -3,8 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\ChampLibre;
-use App\Entity\Arrivage;
-use App\Entity\CategorieStatut;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Parametre;
@@ -136,8 +134,6 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN => [],
 			ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => [],
 			ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => [],
-			ParametrageGlobal::DASHBOARD_LOCATIONS_1 => [],
-			ParametrageGlobal::DASHBOARD_LOCATIONS_2 => [],
 			ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => [],
 			ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => [],
             ParametrageGlobal::DASHBOARD_CARRIER_DOCK => [],
@@ -153,12 +149,12 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::DASHBOARD_PACKAGING_6 => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_7 => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_8 => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_9 => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_10 => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_RPA => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_KITTING => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE => [],
-            ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE => [],
-            ParametrageGlobal::DASHBOARD_PACKAGING_DSQR => [],
-            ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT => [],
-            ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE => []
         ];
 
 		foreach ($globalParameterLabels as $globalParameterLabel => $values) {
