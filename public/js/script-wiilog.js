@@ -460,7 +460,8 @@ function ajaxAutoDemandesInit(select) {
 function toggleRequiredChampsLibres($select, require, $freeFieldContainer = null) {
     const bloc = $freeFieldContainer
         ? $freeFieldContainer
-        : $select.parents('.modal')
+        : $select
+            .parents('.modal')
             .find('.free-fields-container');
 
     if (!$freeFieldContainer) {

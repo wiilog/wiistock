@@ -233,8 +233,6 @@ class ParamTypesController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $canDelete = !$typeRepository->isTypeUsed($typeId);
 
-
-
             $html = $canDelete
                 ? $this->renderView('types/modalDeleteTypeRight.html.twig')
                 : $this->renderView('types/modalDeleteTypeWrong.html.twig');
