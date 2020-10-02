@@ -146,7 +146,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Le colis {numéro} a bien été supprimé" => "Le colis {numéro} a bien été supprimé",
                 "Le colis {numéro} a bien été modifié" => "Le colis {numéro} a bien été modifié",
                 'Le colis n\'existe pas' => 'Le colis n\'existe pas',
-                'Le colis {numéro} a bien été ajouté' => 'Le colis {numéro} a bien été ajouté'
+                'Le colis {numéro} a bien été ajouté' => 'Le colis {numéro} a bien été ajouté',
+                "Ce colis est utilisé dans l'arrivage {arrivage}" => "Ce colis est utilisé dans l'arrivage {arrivage}",
+                "Ce colis est référencé dans un ou plusieurs mouvements de traçabilité" => "Ce colis est référencé dans un ou plusieurs mouvements de traçabilité",
+                "Ce colis est référencé dans un ou plusieurs acheminements" => "Ce colis est référencé dans un ou plusieurs acheminements",
+                "Ce colis est référencé dans un ou plusieurs litiges" => "Ce colis est référencé dans un ou plusieurs litiges",
             ],
             'services' => [
                 'Types de service' => 'Types de service',
