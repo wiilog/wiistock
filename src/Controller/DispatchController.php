@@ -504,8 +504,24 @@ class DispatchController extends AbstractController {
         $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
         $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
 
-        $locationTake = $post->get('prise') ? $emplacementRepository->find($post->get('prise')) : null;
-        $locationDrop = $post->get('depose') ?  $emplacementRepository->find($post->get('depose')) : null;
+        $type = $dispatch->getType();
+
+        $locationTake = $post->get('prise')
+            ? ($emplacementRepository->find($post->get('prise')) ?: $type->getPickLocation())
+            : $type->getPickLocation();
+        $locationDrop = $post->get('depose')
+            ? ($emplacementRepository->find($post->get('depose')) ?: $type->getDropLocation())
+            : $type->getDropLocation();
+
+        if (!$locationTake || !$locationDrop) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => (
+                    'Il n\'y a aucun emplacement de prise ou de dépose paramétré pour ce type.' .
+                    'Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.'
+                )
+            ]);
+        }
 
         if ($startDate && $endDate && $startDate > $endDate) {
             return new JsonResponse([
