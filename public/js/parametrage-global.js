@@ -31,6 +31,7 @@ InitModal(modalEditDays, submitEditDays, urlEditDays, {tables: [tableDays]});
 
 $(function () {
     initSelect2($('#locationArrivageDest'));
+    initSelect2($('#listNaturesColis'));
     initFreeSelect2($('select[name="businessUnit"]'));
     initFreeSelect2($('select[name="dispatchEmergencies"]'));
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));

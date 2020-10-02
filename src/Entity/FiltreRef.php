@@ -20,7 +20,7 @@ class FiltreRef
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ChampLibre", inversedBy="filters")
+     * @ORM\ManyToOne(targetEntity="FreeField", inversedBy="filters")
      * @ORM\JoinColumn(nullable=true)
      */
     private $champLibre;
@@ -53,12 +53,12 @@ class FiltreRef
         return $this->id;
     }
 
-    public function getChampLibre(): ?ChampLibre
+    public function getChampLibre(): ?FreeField
     {
         return $this->champLibre;
     }
 
-    public function setChampLibre(?ChampLibre $champLibre): self
+    public function setChampLibre(?FreeField $champLibre): self
     {
         $this->champLibre = $champLibre;
 

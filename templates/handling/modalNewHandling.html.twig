@@ -111,7 +111,7 @@
                         <div class="collapsible expanded free-fields-container mb-2">
                             {% for type in freeFieldsTypes %}
                                 <div class="d-none" id="{{ type.typeId }}-new">
-                                    {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+                                    {% include 'free_field/freeFieldsViewing.html.twig' with {
                                         freeFields: type.freeFields,
                                         freeFieldValues: [],
                                         colType: 'col-md-4 col-12',

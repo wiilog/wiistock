@@ -5,12 +5,13 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\FreeFieldRepository;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\ChampLibreRepository")
+ * @ORM\Entity(repositoryClass=FreeFieldRepository::class)
  */
-class ChampLibre
-{
+class FreeField {
+
     const TYPE_BOOL = 'booleen';
     const TYPE_TEXT = 'text';
     const TYPE_NUMBER = 'number';
@@ -20,42 +21,42 @@ class ChampLibre
     const TYPE_DATETIME = 'datetime';
     const TYPAGE = [
         [
-            'value' => ChampLibre::TYPE_BOOL,
+            'value' => FreeField::TYPE_BOOL,
             'label' => 'Oui/Non',
         ],
         [
-            'value' => ChampLibre::TYPE_DATE,
+            'value' => FreeField::TYPE_DATE,
             'label' => 'Date',
         ],
         [
-            'value' => ChampLibre::TYPE_DATETIME,
+            'value' => FreeField::TYPE_DATETIME,
             'label' => 'Date et heure',
         ],
         [
-            'value' => ChampLibre::TYPE_LIST,
+            'value' => FreeField::TYPE_LIST,
             'label' => 'Liste',
         ],
         [
-            'value' => ChampLibre::TYPE_LIST_MULTIPLE,
+            'value' => FreeField::TYPE_LIST_MULTIPLE,
             'label' => 'Liste multiple',
         ],
         [
-            'value' => ChampLibre::TYPE_NUMBER,
+            'value' => FreeField::TYPE_NUMBER,
             'label' => 'Nombre',
         ],
         [
-            'value' => ChampLibre::TYPE_TEXT,
+            'value' => FreeField::TYPE_TEXT,
             'label' => 'Texte',
         ],
     ];
     const TYPAGE_ARR = [
-        ChampLibre::TYPE_BOOL => 'Oui/Non',
-        ChampLibre::TYPE_DATE => 'Date',
-        ChampLibre::TYPE_DATETIME => 'Date et heure',
-        ChampLibre::TYPE_LIST => 'Liste',
-        ChampLibre::TYPE_NUMBER => 'Nombre',
-        ChampLibre::TYPE_TEXT => 'Texte',
-        ChampLibre::TYPE_LIST_MULTIPLE => 'Liste multiple'
+        FreeField::TYPE_BOOL => 'Oui/Non',
+        FreeField::TYPE_DATE => 'Date',
+        FreeField::TYPE_DATETIME => 'Date et heure',
+        FreeField::TYPE_LIST => 'Liste',
+        FreeField::TYPE_NUMBER => 'Nombre',
+        FreeField::TYPE_TEXT => 'Texte',
+        FreeField::TYPE_LIST_MULTIPLE => 'Liste multiple'
     ];
     const SPECIC_COLLINS_BL = 'BL';
 

@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
@@ -132,7 +132,7 @@ class ArticleController extends AbstractController
         }
 
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         /** @var Utilisateur $user */
@@ -270,8 +270,8 @@ class ArticleController extends AbstractController
             'id' => 0,
             'typage' => 'date'
         ];
-        $champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_TEXT);
-        $champsLTList = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_LIST);
+        $champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_TEXT);
+        $champsLTList = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_LIST);
         $champs = array_merge($champF, $champL);
         $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
         $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $this->getUser());
@@ -360,7 +360,7 @@ class ArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
             $currentUser = $this->getUser();
@@ -879,7 +879,7 @@ class ArticleController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
 
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
@@ -956,7 +956,7 @@ class ArticleController extends AbstractController
                                   CSVExportService $CSVExportService): Response
     {
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
         $category = CategoryType::ARTICLE;

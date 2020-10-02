@@ -3,8 +3,8 @@
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt pointer">
             <div class="d-none">
-                <div class="action-on-click" data-id='{{ idChampLibre }}' data-toggle='modal' data-target='#modalEditChampLibre'
-                     onclick="editRow($(this),  Routing.generate('champ_libre_api_edit', true), $('#modalEditChampLibre'), $('#submitEditChampLibre'), false, '', false, () => {defaultValueForTypage($('#modalEditChampLibre .typageModif'))})">
+                <div class="action-on-click" data-id='{{ idChampLibre }}' data-toggle='modal' data-target='#modalEditFreeField'
+                     onclick="editRow($(this),  Routing.generate('free_field_api_edit', true), $('#modalEditFreeField'), $('#submitEditChampLibre'), false, '', false, () => {defaultValueForTypage($('#modalEditFreeField .typageModif'))})">
                     <i class='fas fa-pencil-alt'></i>
                 </div>
             </div>

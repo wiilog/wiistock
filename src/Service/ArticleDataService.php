@@ -12,7 +12,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
@@ -232,7 +232,7 @@ class ArticleDataService
     public function getViewEditArticle($article,
                                        $isADemand = false)
     {
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
 
         $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
         $typeArticle = $refArticle->getType();
@@ -534,13 +534,13 @@ class ArticleDataService
     public function dataRowArticle($article, bool $fromReception = false)
     {
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
 
         $category = CategoryType::ARTICLE;
         $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $rowCL = [];
-        /** @var ChampLibre $champ */
+        /** @var FreeField $champ */
         foreach ($champs as $champ) {
             $rowCL[$champ['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
                 'valeur' => $article->getFreeFieldValue($champ['id']),
@@ -621,7 +621,7 @@ class ArticleDataService
         if (!isset($this->wantCLOnLabel)
             && !isset($this->clWantedOnLabel)
             && !isset($this->typeCLOnLabel)) {
-            $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
             $categoryCLRepository = $this->entityManager->getRepository(CategorieCL::class);
             $this->clWantedOnLabel = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS);
             $this->wantCLOnLabel = (bool) $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);

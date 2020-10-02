@@ -2,19 +2,19 @@
 
 namespace App\Repository;
 
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Type;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 
 /**
- * @method ChampLibre|null find($id, $lockMode = null, $lockVersion = null)
- * @method ChampLibre|null findOneBy(array $criteria, array $orderBy = null)
- * @method ChampLibre[]    findAll()
- * @method ChampLibre[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method FreeField|null find($id, $lockMode = null, $lockVersion = null)
+ * @method FreeField|null findOneBy(array $criteria, array $orderBy = null)
+ * @method FreeField[]    findAll()
+ * @method FreeField[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ChampLibreRepository extends EntityRepository
+class FreeFieldRepository extends EntityRepository
 {
 
     public function getByTypeAndRequiredCreate($type)
@@ -22,7 +22,7 @@ class ChampLibreRepository extends EntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c.label, c.id
-            FROM App\Entity\ChampLibre c
+            FROM App\Entity\FreeField c
             WHERE c.type = :type AND c.requiredCreate = TRUE"
         )->setParameter('type', $type);;
         return $query->getResult();
@@ -33,7 +33,7 @@ class ChampLibreRepository extends EntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c.label, c.id
-            FROM App\Entity\ChampLibre c
+            FROM App\Entity\FreeField c
             WHERE c.type = :type AND c.requiredEdit = TRUE"
         )->setParameter('type', $type);;
         return $query->getResult();
@@ -44,7 +44,7 @@ class ChampLibreRepository extends EntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c.label, c.id, c.typage
-            FROM App\Entity\ChampLibre c
+            FROM App\Entity\FreeField c
             "
         );
         return $query->getResult();
@@ -56,7 +56,7 @@ class ChampLibreRepository extends EntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT cl.label, cl.id, cl.typage
-            FROM App\Entity\ChampLibre cl
+            FROM App\Entity\FreeField cl
             JOIN cl.type t
             JOIN t.category cat
             WHERE cat.label = :category AND cl.categorieCL = :categorie
@@ -72,14 +72,14 @@ class ChampLibreRepository extends EntityRepository
 
 	/**
 	 * @param string $label
-	 * @return ChampLibre|null
+	 * @return FreeField|null
 	 * @throws NonUniqueResultException
 	 */
     public function findOneByLabel($label) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT cl
-            FROM App\Entity\ChampLibre cl
+            FROM App\Entity\FreeField cl
             WHERE cl.label LIKE :label
             "
         )->setParameter('label', $label);
@@ -92,7 +92,7 @@ class ChampLibreRepository extends EntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT cl.label, cl.id, cl.typage
-            FROM App\Entity\ChampLibre cl
+            FROM App\Entity\FreeField cl
             JOIN cl.type t
             JOIN t.category cat
             WHERE cat.label = :category AND cl.categorieCL = :categorie AND cl.typage = :text
@@ -112,7 +112,7 @@ class ChampLibreRepository extends EntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT(cl)
-            FROM App\Entity\ChampLibre cl
+            FROM App\Entity\FreeField cl
             WHERE cl.type = :typeId
            "
         )->setParameter('typeId', $typeId);
@@ -125,7 +125,7 @@ class ChampLibreRepository extends EntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             /** @lang DQL */
-			"DELETE FROM App\Entity\ChampLibre cl
+            "DELETE FROM App\Entity\FreeField cl
             WHERE cl.type = :typeId"
         )->setParameter('typeId', $typeId);
 
@@ -137,7 +137,7 @@ class ChampLibreRepository extends EntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT(cl)
-            FROM App\Entity\ChampLibre cl
+            FROM App\Entity\FreeField cl
             WHERE cl.label LIKE :label
            "
         )->setParameter('label', $label);
@@ -148,7 +148,7 @@ class ChampLibreRepository extends EntityRepository
     /**
      * @param Type|Type[] $types
      * @param string $categorieCLLabel
-     * @return ChampLibre[]
+     * @return FreeField[]
      */
 	public function findByTypeAndCategorieCLLabel($types, $categorieCLLabel)
 	{
@@ -157,8 +157,8 @@ class ChampLibreRepository extends EntityRepository
         }
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
-			"SELECT champLibre
-            FROM App\Entity\ChampLibre champLibre
+            "SELECT champLibre
+            FROM App\Entity\FreeField champLibre
             JOIN champLibre.categorieCL categorieChampLibre
             JOIN champLibre.type type
             WHERE type.id IN (:types)  AND categorieChampLibre.label = :categorieCLLabel "
@@ -179,7 +179,7 @@ class ChampLibreRepository extends EntityRepository
      * @param Type $type
      * @param string $categorieCLLabel
      * @param bool $creation
-     * @return ChampLibre[]
+     * @return FreeField[]
      */
 	public function getMandatoryByTypeAndCategorieCLLabel($type, $categorieCLLabel, $creation = true)
 	{
@@ -202,14 +202,14 @@ class ChampLibreRepository extends EntityRepository
 
 	/**
 	 * @param int|Type $typeId
-	 * @return ChampLibre[]
+	 * @return FreeField[]
 	 */
     public function findByType($typeId)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c
-            FROM App\Entity\ChampLibre c
+            FROM App\Entity\FreeField c
             WHERE c.type = :typeId"
         )->setParameter('typeId', $typeId);
 
@@ -218,14 +218,14 @@ class ChampLibreRepository extends EntityRepository
 
 	/**
 	 * @param string[] $categoryTypeLabels
-	 * @return ChampLibre[]
+	 * @return FreeField[]
 	 */
 	public function findByCategoryTypeLabels($categoryTypeLabels)
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
-			"SELECT c
-            FROM App\Entity\ChampLibre c
+            "SELECT c
+            FROM App\Entity\FreeField c
             JOIN c.type t
             JOIN t.category cat
             WHERE cat.label in (:categoryTypeLabels)"
@@ -237,7 +237,7 @@ class ChampLibreRepository extends EntityRepository
 	/**
 	 * @param string $categoryCL
 	 * @param string $label
-	 * @return ChampLibre|null
+	 * @return FreeField|null
 	 * @throws NonUniqueResultException
 	 */
 	public function findOneByCategoryCLAndLabel($categoryCL, $label)
@@ -245,8 +245,8 @@ class ChampLibreRepository extends EntityRepository
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
-			"SELECT cl
-            FROM App\Entity\ChampLibre cl
+            "SELECT cl
+            FROM App\Entity\FreeField cl
             JOIN cl.categorieCL ccl
             WHERE ccl.label = :categoryCL
             AND cl.label = :label"
@@ -261,7 +261,7 @@ class ChampLibreRepository extends EntityRepository
 	public function deleteByLabel($label){
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "DELETE FROM App\Entity\ChampLibre cl
+            "DELETE FROM App\Entity\FreeField cl
             WHERE cl.label LIKE " . $label);
 
         return $query->execute();
@@ -272,7 +272,7 @@ class ChampLibreRepository extends EntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c.id, c.elements
-	        FROM App\Entity\ChampLibre c
+	        FROM App\Entity\FreeField c
 	        WHERE c.label LIKE '%machine%'"
         );
         return $query->execute();
@@ -287,8 +287,8 @@ class ChampLibreRepository extends EntityRepository
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
-			"SELECT cl.label as value, cl.id as id
-			FROM App\Entity\ChampLibre cl
+            "SELECT cl.label as value, cl.id as id
+			FROM App\Entity\FreeField cl
 			JOIN cl.categorieCL cat
 			WHERE cat.label = :categoryCL")
 			->setParameter('categoryCL', $categoryCL);

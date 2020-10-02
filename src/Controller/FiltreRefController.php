@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\Type;
@@ -57,7 +57,7 @@ class FiltreRefController extends AbstractController
                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
             /** @var Utilisateur $user */
             $user = $this->getUser();
@@ -157,7 +157,7 @@ class FiltreRefController extends AbstractController
 
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $typeRepository = $entityManager->getRepository(Type::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
 			$value = $data['value'];
 			$multiple = false;
@@ -174,7 +174,7 @@ class FiltreRefController extends AbstractController
 					$options[] = $type->getLabel();
 				}
 			} else {
-				$cl = $champLibreRepository->find(intval($value)); /** @var $cl ChampLibre */
+				$cl = $champLibreRepository->find(intval($value)); /** @var $cl FreeField */
 				$options = $cl->getElements();
 				$multiple = true;
 			}

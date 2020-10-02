@@ -5,7 +5,7 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Dispatch;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -15,7 +15,7 @@ use App\Entity\MouvementTraca;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Repository\ChampLibreRepository;
+use App\Repository\FreeFieldRepository;
 use App\Repository\FieldsParamRepository;
 use App\Repository\StatutRepository;
 use DateTime;
@@ -88,7 +88,7 @@ class DispatchService {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->user);
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
@@ -128,14 +128,14 @@ class DispatchService {
         $url = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
 
         $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $freeFieldsRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
 
         $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
         $category = CategoryType::DEMANDE_DISPATCH;
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
 
         $rowCL = [];
-        /** @var ChampLibre $freeField */
+        /** @var FreeField $freeField */
         foreach ($freeFields as $freeField) {
             $rowCL[$freeField['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
                 'valeur' => $dispatch->getFreeFieldValue($freeField['id']),
@@ -171,7 +171,7 @@ class DispatchService {
     }
 
     public function getNewDispatchConfig(StatutRepository $statutRepository,
-                                         ChampLibreRepository $champLibreRepository,
+                                         FreeFieldRepository $champLibreRepository,
                                          FieldsParamRepository $fieldsParamRepository,
                                          array $types,
                                          ?Arrivage $arrival = null) {
@@ -510,7 +510,7 @@ class DispatchService {
     }
 
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         $columnsVisible = $currentUser->getColumnsVisibleForDispatch();

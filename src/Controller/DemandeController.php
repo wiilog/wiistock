@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\LigneArticle;
@@ -140,7 +140,7 @@ class DemandeController extends AbstractController
             }
 
             $typeRepository = $entityManager->getRepository(Type::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
 
             $demande = $demandeRepository->find($data['id']);
@@ -204,7 +204,7 @@ class DemandeController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
             // vérification des champs Libres obligatoires
             $requiredEdit = true;
@@ -290,7 +290,7 @@ class DemandeController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
@@ -650,7 +650,7 @@ class DemandeController extends AbstractController
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $demandeRepository = $entityManager->getRepository(Demande::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $articleRepository = $entityManager->getRepository(Article::class);
             $preparationRepository = $entityManager->getRepository(Preparation::class);

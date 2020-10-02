@@ -211,6 +211,10 @@ class SecuriteController extends AbstractController
             $user->setColumnsVisibleForDispatch(Utilisateur::COL_VISIBLE_DISPATCH_DEFAULT);
         }
 
+        if (empty($user->getColumnsVisibleForTrackingMovement())) {
+            $user->setColumnsVisibleForTrackingMovement(Utilisateur::COL_VISIBLE_TRACKING_MOVEMENT_DEFAULT);
+        }
+
         // remplit champ columnVisibles si vide
         if (empty($user->getColumnsVisibleForLitige())) {
             $user->setColumnsVisibleForLitige(Utilisateur::COL_VISIBLE_LIT_DEFAULT);

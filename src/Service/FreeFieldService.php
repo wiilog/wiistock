@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use App\Entity\CategorieCL;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\FreeFieldEntity;
 use DateTime;
 use DateTimeZone;
@@ -26,12 +26,12 @@ class FreeFieldService
 
     public function formatValeurChampLibreForDatatable(array $valeurChampLibre): ?string
     {
-        if (in_array($valeurChampLibre['typage'], [ChampLibre::TYPE_DATE, ChampLibre::TYPE_DATETIME])
+        if (in_array($valeurChampLibre['typage'], [FreeField::TYPE_DATE, FreeField::TYPE_DATETIME])
             && !empty($valeurChampLibre['valeur'])) {
             try {
                 $valeurChampLibre['valeur'] = str_replace('T', ' ', $valeurChampLibre['valeur']);
                 $champLibreDateTime = new DateTime($valeurChampLibre['valeur'], new DateTimeZone('Europe/Paris'));
-                $hourFormat = ($valeurChampLibre['typage'] === ChampLibre::TYPE_DATETIME) ? ' H:i' : '';
+                $hourFormat = ($valeurChampLibre['typage'] === FreeField::TYPE_DATETIME) ? ' H:i' : '';
                 $formattedValue = $champLibreDateTime->format("d/m/Y$hourFormat");
             } catch (Throwable $ignored) {
                 $formattedValue = $valeurChampLibre['valeur'];
@@ -47,7 +47,7 @@ class FreeFieldService
                                      array $data,
                                      EntityManagerInterface $entityManager)
     {
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $freeFields = [];
         $champsLibresKey = array_keys($data);
         foreach ($champsLibresKey as $champs) {
@@ -62,9 +62,9 @@ class FreeFieldService
             ->setFreeFields($freeFields);
     }
 
-    public function manageJSONFreeField(ChampLibre $champLibre, $value): string
+    public function manageJSONFreeField(FreeField $champLibre, $value): string
     {
-        $value = $champLibre->getTypage() === ChampLibre::TYPE_BOOL
+        $value = $champLibre->getTypage() === FreeField::TYPE_BOOL
             ? empty($value) || $value === "false"
                 ? "0"
                 : "1"
@@ -79,7 +79,7 @@ class FreeFieldService
                                             FreeFieldEntity $freeFieldEntity,
                                             ?string $categoryCLLabel,
                                             string $category) {
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository =  $entityManager->getRepository(CategorieCL::class);
 
         if (!empty($categoryCLLabel)) {
@@ -91,9 +91,9 @@ class FreeFieldService
         }
 
         $freeFields = array_reduce($freeFieldResult, function(array $acc, $freeField) {
-            $id = $freeField instanceof ChampLibre ? $freeField->getId() : $freeField['id'];
-            $label = $freeField instanceof ChampLibre ? $freeField->getLabel() : $freeField['label'];
-            $typage = $freeField instanceof ChampLibre ? $freeField->getTypage() : $freeField['typage'];
+            $id = $freeField instanceof FreeField ? $freeField->getId() : $freeField['id'];
+            $label = $freeField instanceof FreeField ? $freeField->getLabel() : $freeField['label'];
+            $typage = $freeField instanceof FreeField ? $freeField->getTypage() : $freeField['typage'];
 
             $acc[$id] = [
                 'label' => $label,
@@ -122,7 +122,7 @@ class FreeFieldService
     public function getFreeFieldLabelToId(EntityManagerInterface $entityManager,
                                           string $categoryCLLabel,
                                           string $category) {
-        $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
         $categorieCL = $categorieCLRepository->findOneByLabel($categoryCLLabel);
 
@@ -133,7 +133,7 @@ class FreeFieldService
         }, []);
     }
 
-    public function serializeFreeField(ChampLibre $freeField): array {
+    public function serializeFreeField(FreeField $freeField): array {
         return [
             'id' => $freeField->getId(),
             'label' => $freeField->getLabel(),

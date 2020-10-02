@@ -7,8 +7,8 @@
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                <a href="" data-toggle="modal" data-target="#modalNewChampLibre" class="btn btn-primary btn-ripple"
-                   onclick="clearModal('#modalNewChampLibre')">
+                <a href="" data-toggle="modal" data-target="#modalNewFreeField" class="btn btn-primary btn-ripple"
+                   onclick="clearModal('#modalNewFreeField')">
                     <span class="fa fa-plus mr-2"></span>Nouveau Champ Libre
                 </a>
             </div>
@@ -23,9 +23,9 @@
         <input id="cl-type-id" type="hidden" value="{{ type.id }}"/>
     </div>
 
-    {% include "champ_libre/modalNewChampLibre.html.twig" %}
-    {% include "champ_libre/modalDeleteChampLibre.html.twig" %}
-    {% include "champ_libre/modalEditChampLibre.html.twig" %}
+    {% include "free_field/modalNewFreeField.html.twig" %}
+    {% include "free_field/modalDeleteFreeField.html.twig" %}
+    {% include "free_field/modalEditFreeField.html.twig" %}
 
 {% endblock %}
 {% block javascripts %}

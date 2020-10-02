@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Collecte;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
@@ -91,7 +91,7 @@ class CollecteController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
 
@@ -447,7 +447,7 @@ class CollecteController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
             $typeRepository = $entityManager->getRepository(Type::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
 
             $collecte = $collecteRepository->find($data['id']);
@@ -509,7 +509,7 @@ class CollecteController extends AbstractController
             }
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
 
 			// vérification des champs Libres obligatoires

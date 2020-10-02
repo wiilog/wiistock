@@ -7,7 +7,7 @@ use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Dispatch;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
@@ -121,14 +121,14 @@ class MouvementTracaService
         }
 
         $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $freeFieldsRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
 
         $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::MVT_TRACA);
         $category = CategoryType::MOUVEMENT_TRACA;
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
 
         $rowCL = [];
-        /** @var ChampLibre $freeField */
+        /** @var FreeField $freeField */
         foreach ($freeFields as $freeField) {
             $rowCL[$freeField['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
                 'valeur' => $movement->getFreeFieldValue($freeField['id']),
@@ -465,7 +465,7 @@ class MouvementTracaService
     }
 
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         $columnsVisible = $currentUser->getColumnsVisibleForTrackingMovement();

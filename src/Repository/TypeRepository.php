@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Litige;
@@ -125,7 +125,7 @@ class TypeRepository extends EntityRepository
 
         $tableConfig = [
             ['class' => Article::class, 'where' => 'item.type = :id'],
-            ['class' => ChampLibre::class, 'where' => 'item.type = :id'],
+            ['class' => FreeField::class, 'where' => 'item.type = :id'],
             ['class' => Collecte::class, 'where' => 'item.type = :id'],
             ['class' => Demande::class, 'where' => 'item.type = :id'],
             ['class' => Litige::class, 'where' => 'item.type = :id'],

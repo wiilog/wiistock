@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryCategory;
@@ -153,7 +153,7 @@ class ReferenceArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
             $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
@@ -475,7 +475,7 @@ class ReferenceArticleController extends AbstractController
 
         $entityManager = $this->getDoctrine()->getManager();
 
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
@@ -586,8 +586,8 @@ class ReferenceArticleController extends AbstractController
         ];
 
         // champs pour recherche personnalisée (uniquement de type texte ou liste)
-		$champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_TEXT);
-		$champsLTList = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_LIST);
+		$champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_TEXT);
+		$champsLTList = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_LIST);
 
 		$champsFText[] = [
             'label' => 'Libellé',
@@ -1149,7 +1149,7 @@ class ReferenceArticleController extends AbstractController
                               CSVExportService $CSVExportService): Response
     {
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
         $category = CategoryType::ARTICLE;
@@ -1318,7 +1318,7 @@ class ReferenceArticleController extends AbstractController
                                 PDFGeneratorService $PDFGeneratorService): Response
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
 

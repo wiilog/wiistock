@@ -2,7 +2,7 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\DimensionsEtiquettes;
@@ -112,7 +112,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
                 'default' => true,
             ],
             ParametrageGlobal::CL_USED_IN_LABELS => [
-                'default' => ChampLibre::SPECIC_COLLINS_BL
+                'default' => FreeField::SPECIC_COLLINS_BL
             ],
             ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT => [
                 'default' => true,

@@ -1,6 +1,6 @@
 $('.select2').select2();
 
-const urlApiChampLibre = Routing.generate('champ_libre_api', {'id': $('#cl-type-id').val()}, true);
+const urlApiChampLibre = Routing.generate('free_field_api', {'id': $('#cl-type-id').val()}, true);
 let tableChampLibreConfig = {
     order: [1, 'asc'],
     ajax: {
@@ -24,20 +24,20 @@ let tableChampLibreConfig = {
 };
 let tableChampLibre = initDataTable('tableChamplibre_id', tableChampLibreConfig);
 
-let $modalNewChampLibre = $("#modalNewChampLibre");
+let $modalNewFreeField = $("#modalNewFreeField");
 let $submitChampLibreNew = $("#submitChampLibreNew");
-let urlChampLibreNew = Routing.generate('champ_libre_new', true);
-InitModal($modalNewChampLibre, $submitChampLibreNew, urlChampLibreNew, {tables: [tableChampLibre]});
+let urlChampLibreNew = Routing.generate('free_field_new', true);
+InitModal($modalNewFreeField, $submitChampLibreNew, urlChampLibreNew, {tables: [tableChampLibre]});
 
 let $modalDeleteChampLibre = $("#modalDeleteChampLibre");
 let $submitChampLibreDelete = $("#submitChampLibreDelete");
-let urlChampLibreDelete = Routing.generate('champ_libre_delete', true);
+let urlChampLibreDelete = Routing.generate('free_field_delete', true);
 InitModal($modalDeleteChampLibre, $submitChampLibreDelete, urlChampLibreDelete, {tables: [tableChampLibre]});
 
-let $modalEditChampLibre = $("#modalEditChampLibre");
+let $modalEditFreeField = $("#modalEditFreeField");
 let $submitEditChampLibre = $("#submitEditChampLibre");
-let urlEditChampLibre = Routing.generate('champ_libre_edit', true);
-InitModal($modalEditChampLibre, $submitEditChampLibre, urlEditChampLibre, {tables: [tableChampLibre]});
+let urlEditChampLibre = Routing.generate('free_field_edit', true);
+InitModal($modalEditFreeField, $submitEditChampLibre, urlEditChampLibre, {tables: [tableChampLibre]});
 
 function defaultValueForTypage($select) {
     const $modal = $select.closest('.modal');

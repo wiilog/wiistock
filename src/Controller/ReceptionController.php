@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\InventoryCategory;
@@ -328,7 +328,7 @@ class ReceptionController extends AbstractController
             }
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
@@ -474,7 +474,7 @@ class ReceptionController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         //TODO à modifier si plusieurs types possibles pour une réception
@@ -938,7 +938,7 @@ class ReceptionController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $listTypesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $typeChampLibreDL = [];
@@ -1063,7 +1063,7 @@ class ReceptionController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $reference = $request->query->get('reference');
@@ -1536,7 +1536,7 @@ class ReceptionController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
 
             $typeRepository = $entityManager->getRepository(Type::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
             $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
