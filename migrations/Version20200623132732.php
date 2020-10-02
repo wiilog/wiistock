@@ -42,7 +42,7 @@ final class Version20200623132732 extends AbstractMigration implements Container
         $mouvementTracaRepository = $em->getRepository(MouvementTraca::class);
         $packRepository = $em->getRepository(Pack::class);
 
-        $lastDropsGroupedByColis = $mouvementTracaRepository->getLastDropsGroupedByColis();
+//        $lastDropsGroupedByColis = $mouvementTracaRepository->getLastDropsGroupedByColis();
 
         dump('Starting colis creation/update -> ' . count($lastDropsGroupedByColis));
         $cpt = 0;

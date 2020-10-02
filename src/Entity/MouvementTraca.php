@@ -24,12 +24,6 @@ class MouvementTraca extends FreeFieldEntity
     private $id;
 
     /**
-     * TODO REMOVE
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $colis;
-
-    /**
      * @var Pack
      * @ORM\ManyToOne(targetEntity="App\Entity\Pack", inversedBy="trackingMovements")
      * @ORM\JoinColumn(nullable=false, name="pack_id")
@@ -53,6 +47,7 @@ class MouvementTraca extends FreeFieldEntity
     private $emplacement;
 
     /**
+     * @var Statut|null
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut")
      */
     private $type;
@@ -116,14 +111,27 @@ class MouvementTraca extends FreeFieldEntity
     private $article;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Pack", mappedBy="lastDrop")
+     * @var Pack|null
+     * @ORM\OneToOne (targetEntity="App\Entity\Pack", mappedBy="lastDrop")
      */
-    private $linkedPackLastDrops;
+    private $linkedPackLastDrop;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Pack", mappedBy="lastTracking")
+     * @var Pack|null
+     * @ORM\OneToOne(targetEntity="App\Entity\Pack", mappedBy="lastTracking")
      */
-    private $linkedPackLastTrackings;
+    private $linkedPackLastTracking;
+
+    /**
+     * @var ArrayCollection|null
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="firstDrop")
+     */
+    private $firstDropRecords;
+    /**
+     * @var ArrayCollection|null
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="lastTracking")
+     */
+    private $lastTrackingRecords;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="mouvementsTraca")
@@ -134,25 +142,13 @@ class MouvementTraca extends FreeFieldEntity
     {
         $this->quantity = 1;
         $this->attachements = new ArrayCollection();
-        $this->linkedPackLastDrops = new ArrayCollection();
-        $this->linkedPackLastTrackings = new ArrayCollection();
+        $this->firstDropRecords = new ArrayCollection();
+        $this->lastTrackingRecords = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getColis(): ?string
-    {
-        return $this->colis;
-    }
-
-    public function setColis(?string $colis): self
-    {
-        $this->colis = $colis;
-
-        return $this;
     }
 
     public function getUniqueIdForMobile(): ?string
@@ -236,6 +232,22 @@ class MouvementTraca extends FreeFieldEntity
     public function getType(): ?Statut
     {
         return $this->type;
+    }
+
+    public function isDrop(): bool
+    {
+        return (
+            $this->type
+            && $this->type->getNom() === self::TYPE_DEPOSE
+        );
+    }
+
+    public function isTaking(): bool
+    {
+        return (
+            $this->type
+            && $this->type->getNom() === self::TYPE_PRISE
+        );
     }
 
     public function setType(?Statut $type): self
@@ -345,41 +357,34 @@ class MouvementTraca extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|Pack[]
+     * @return Pack|null
      */
-    public function getLinkedPackLastTracking(): Collection
-    {
-        return $this->linkedPackLastTrackings;
+    public function getLinkedPackLastTracking(): ?Pack {
+        return $this->linkedPackLastTracking;
     }
 
     /**
-     * @return Collection|Pack[]
+     * @param Pack|null $linkedPackLastTracking
+     * @return MouvementTraca
      */
-    public function getLinkedPackLastDrops(): Collection
-    {
-        return $this->linkedPackLastDrops;
-    }
-
-    public function addLinkedPackLastDrop(Pack $linkedPackLastDrop): self
-    {
-        if (!$this->linkedPackLastDrops->contains($linkedPackLastDrop)) {
-            $this->linkedPackLastDrops[] = $linkedPackLastDrop;
-            $linkedPackLastDrop->setLastDrop($this);
-        }
-
+    public function setLinkedPackLastTracking(?Pack $linkedPackLastTracking): MouvementTraca {
+        $this->linkedPackLastTracking = $linkedPackLastTracking;
         return $this;
     }
 
-    public function removeLinkedPacksLastDrop(Pack $linkedPackLastDrop): self
-    {
-        if ($this->linkedPackLastDrops->contains($linkedPackLastDrop)) {
-            $this->linkedPackLastDrops->removeElement($linkedPackLastDrop);
-            // set the owning side to null (unless already changed)
-            if ($linkedPackLastDrop->getLastDrop() === $this) {
-                $linkedPackLastDrop->setLastDrop(null);
-            }
-        }
+    /**
+     * @return Pack|null
+     */
+    public function getLinkedPackLastDrop(): ?Pack {
+        return $this->linkedPackLastDrop;
+    }
 
+    /**
+     * @param Pack|null $linkedPackLastDrop
+     * @return MouvementTraca
+     */
+    public function setLinkedPackLastDrop(?Pack $linkedPackLastDrop): MouvementTraca {
+        $this->linkedPackLastDrop = $linkedPackLastDrop;
         return $this;
     }
 
@@ -418,6 +423,72 @@ class MouvementTraca extends FreeFieldEntity
      */
     public function setQuantity(int $quantity): self {
         $this->quantity = $quantity;
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getFirstDropsRecords(): ?Collection {
+        return $this->firstDropRecords;
+    }
+
+    /**
+     * @param LocationClusterRecord $recored
+     * @return $this
+     */
+    public function addFirstDropRecord(LocationClusterRecord $recored): self
+    {
+        if (!$this->firstDropRecords->contains($recored)) {
+            $this->firstDropRecords[] = $recored;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param LocationClusterRecord $record
+     * @return $this
+     */
+    public function removeFirstDropRecord(LocationClusterRecord $record): self
+    {
+        if ($this->firstDropRecords->contains($record)) {
+            $this->firstDropRecords->removeElement($record);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getLastTrackingRecords(): ?Collection {
+        return $this->lastTrackingRecords;
+    }
+
+    /**
+     * @param LocationClusterRecord $record
+     * @return $this
+     */
+    public function addLastTrackingRecord(LocationClusterRecord $record): self
+    {
+        if (!$this->lastTrackingRecords->contains($record)) {
+            $this->lastTrackingRecords[] = $record;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param LocationClusterRecord $record
+     * @return $this
+     */
+    public function removeLastTrackingRecord(LocationClusterRecord $record): self
+    {
+        if ($this->lastTrackingRecords->contains($record)) {
+            $this->lastTrackingRecords->removeElement($record);
+        }
+
         return $this;
     }
 }

@@ -504,4 +504,19 @@ class HandlingController extends AbstractController
             throw new NotFoundHttpException('404');
         }
     }
+
+
+    private function buildInfos(Handling $handling, &$data)
+    {
+        $data[] =
+            [
+                $handling->getCreationDate() ? $handling->getCreationDate()->format('d/m/Y H:i') : ' ',
+                $handling->getRequester()->getUsername(),
+                $handling->getSource(),
+                $handling->getDestination(),
+                $handling->getDesiredDate() ? $handling->getDesiredDate()->format('d/m/Y H:i') : ' ',
+                $handling->getValidationDate() ? $handling->getValidationDate()->format('d/m/Y H:i') : '',
+                $handling->getStatus() ? $handling->getStatus()->getNom() : '',
+            ];
+    }
 }

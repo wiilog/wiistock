@@ -4,9 +4,9 @@ imports:
 parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'
-    web_version: '3.10.11'
-    nomade_versions: '>=3.10.4'
-    nomade_apk: 'http://wiilog.fr/dl/wiistock/recette/app-3-10-4.apk'
+    web_version: '3.10.12'
+    nomade_versions: '>=3.10.12'
+    nomade_apk: 'http://wiilog.fr/dl/wiistock/recette/app-3-10-12.apk'
     client: '%env(APP_CLIENT)%'
     dashboardToken: '%env(APP_DASHBOARD_TOKEN)%'
     appLocale: '%env(APP_LOCALE)%'
@@ -71,3 +71,8 @@ services:
             - { name: doctrine.orm.entity_listener, event: postPersist, lazy: true, entity: App\Entity\Article }
             - { name: doctrine.orm.entity_listener, event: postUpdate, lazy: true, entity: App\Entity\Article }
             - { name: doctrine.orm.entity_listener, event: postRemove, lazy: true, entity: App\Entity\Article }
+
+    tracking_movement_listener:
+        class: App\EventListener\TrackingMovementListener
+        tags:
+            - { name: doctrine.orm.entity_listener, event: preRemove, lazy: true, entity: App\Entity\MouvementTraca }

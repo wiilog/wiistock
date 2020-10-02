@@ -503,11 +503,16 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             foreach ($mouvementsNomade as $index => $mvt) {
                 /** @var MouvementTraca $mouvementTracaPriseToFinish */
                 $mouvementTracaPriseToFinish = $mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
-                if (isset($mouvementTracaPriseToFinish) &&
-                    ($mouvementTracaPriseToFinish->getType()->getNom() === MouvementTraca::TYPE_PRISE) &&
-                    in_array($mouvementTracaPriseToFinish->getColis(), $finishMouvementTraca) &&
-                    !$mouvementTracaPriseToFinish->isFinished()) {
-                    $mouvementTracaPriseToFinish->setFinished((bool)$mvt['finished']);
+
+
+                if (isset($mouvementTracaPriseToFinish)) {
+                    $trackingPack = $mouvementTracaPriseToFinish->getPack();
+                    $packCode = $trackingPack->getCode();
+                    if (($mouvementTracaPriseToFinish->getType()->getNom() === MouvementTraca::TYPE_PRISE) &&
+                        in_array($packCode, $finishMouvementTraca) &&
+                        !$mouvementTracaPriseToFinish->isFinished()) {
+                        $mouvementTracaPriseToFinish->setFinished((bool)$mvt['finished']);
+                    }
                 }
             }
             $entityManager->flush();
