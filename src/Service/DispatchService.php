@@ -324,13 +324,12 @@ class DispatchService {
                     'value' => $treatmentDate ? $treatmentDate->format('d/m/Y H:i:s') : ''
                 ]
             ];
-
         $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DISPATCH);
-
         return array_merge(
             $configFiltered,
             $freeFieldArray,
-            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayed')
+            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsCreate')
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsEdit'))
                 ? [[
                 'label' => 'Commentaire',
                 'value' => $comment ?: '',
@@ -340,7 +339,8 @@ class DispatchService {
                 'isNeededNotEmpty' => true
             ]]
                 : [],
-            $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayed')
+            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'pièces-jointes', 'displayedFormsCreate')
+            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'pièces-jointes', 'displayedFormsEdit'))
                 ? [[
                 'label' => 'Pièces jointes',
                 'value' => $attachments->toArray(),

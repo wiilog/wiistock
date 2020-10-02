@@ -258,6 +258,13 @@ class PackController extends AbstractController {
             $pack = $packRepository->find($data['pack']);
             $packCode = $pack->getCode();
 
+            if ($pack->getLitiges()->count() > 0) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => 'Le ' . $translator->trans('colis.colis') . ' <strong>' . $packCode . '</strong> est lié à un litige, vous ne pouvez pas le supprimer.'
+                ]);
+            }
+
             $entityManager->remove($pack);
             $entityManager->flush();
 

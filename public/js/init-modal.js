@@ -675,7 +675,7 @@ function displayAttachements(files, $dropFrame, isMultiple = true) {
         if (!formatValid) {
             errorMsg.push('"' + file.name + '" : Le format de votre pièce jointe n\'est pas supporté. Le fichier doit avoir une extension.');
         } else if (!sizeValid) {
-            errorMsg.push('"' + file.name + '" : La taille du fichier ne doit pas dépasser 2 Mo.');
+            errorMsg.push('"' + file.name + '" : La taille du fichier ne doit pas dépasser 10 Mo.');
         } else {
             let fileName = file.name;
 

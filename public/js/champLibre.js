@@ -30,7 +30,6 @@ let ButtonSubmitEditType = $("#submitEditType");
 let urlEditType = Routing.generate('type_edit', true);
 InitModal(dataModalEditType, ButtonSubmitEditType, urlEditType, {tables: [tableType]});
 
-
 //CHAMPS LIBRE
 const urlApiChampLibre = Routing.generate('champ_libre_api', {'id': $('#cl-type-id').val()}, true);
 let tableChampLibreConfig = {
@@ -124,8 +123,11 @@ function deleteType($button) {
     deleteRow($button, $modalDeleteType, $('#submitDeleteType'));
 }
 
-function toggleCreationMandatory($switch) {
-    if(!$switch.is(':checked')) {
-        $('input[name="requiredCreate"]').prop('checked', 0);
+function toggleCreationMandatory($checkbox) {
+    if ($checkbox.attr('name') === 'displayedCreate'
+        && !$checkbox.prop('checked')) {
+        $('.checkbox[name="requiredCreate"]').prop('checked', false);
+    } else if ($checkbox.attr('name') === 'requiredCreate' && $checkbox.prop('checked')) {
+        $('.checkbox[name="displayedCreate"]').prop('checked', true);
     }
 }
