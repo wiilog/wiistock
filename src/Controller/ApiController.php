@@ -1520,15 +1520,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param Request $request
      * @param UserService $userService
      * @param NatureService $natureService
-     * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function getData(Request $request,
                             UserService $userService,
                             NatureService $natureService,
-                            FreeFieldService $freeFieldService,
                             EntityManagerInterface $entityManager)
     {
         $apiKey = $request->request->get('apiKey');
@@ -1537,7 +1536,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
             $httpCode = Response::HTTP_OK;
             $dataResponse['success'] = true;
-            $dataResponse['data'] = $this->getDataArray($nomadUser, $userService, $natureService, $freeFieldService, $request, $entityManager);
+            $dataResponse['data'] = $this->getDataArray($nomadUser, $userService, $natureService, $request, $entityManager);
         } else {
             $httpCode = Response::HTTP_UNAUTHORIZED;
             $dataResponse['success'] = false;
