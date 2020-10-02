@@ -7,7 +7,7 @@
            required="true">
 </div>
 {% set categoryFFLabel = champLibre.categorieCL ? champLibre.categorieCL.label : '' %}
-{% if (constant('App\\Entity\\CategorieCL::ARTICLE') or constant('App\\Entity\\CategorieCL::REFERENCE_ARTICLE') == categoryFFLabel) %}
+{% if constant('App\\Entity\\CategorieCL::ARTICLE') == categoryFFLabel or constant('App\\Entity\\CategorieCL::REFERENCE_ARTICLE') == categoryFFLabel %}
 <div class="form-group">
     <label for="categorieCL">S'applique à</label>
     <select name="categorieCL"

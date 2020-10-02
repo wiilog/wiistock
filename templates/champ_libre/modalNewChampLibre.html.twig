@@ -29,7 +29,7 @@
                            required="true">
                 </div>
                 {% set categoryLabel = type.category ? type.category.label : '' %}
-                {% if (constant('App\\Entity\\CategorieCL::ARTICLE') == categoryLabel) %}
+                {% if constant('App\\Entity\\CategorieCL::ARTICLE') == categoryLabel or constant('App\\Entity\\CategorieCL::REFERENCE_ARTICLE') == categoryLabel %}
                 <div class="form-group">
                     <label for="categorieCL">S'applique à*</label>
                     <select name="categorieCL"
