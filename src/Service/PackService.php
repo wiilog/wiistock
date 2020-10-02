@@ -16,7 +16,6 @@ use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Security;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;

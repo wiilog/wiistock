@@ -12,7 +12,7 @@ let tableUserConfig = {
         { "data": "Email", 'title': 'Email' },
         { "data": "Dropzone", 'title': 'Drop zone' },
         { "data": "Dernière connexion", 'title': 'Dernière connexion' },
-        { "data": "Rôle", 'title': 'Rôle', orderable: false, className: 'noVis' },
+        { "data": "role", 'title': 'Rôle', orderable: false, className: 'noVis' },
     ],
     rowConfig: {
         needsRowClickAction: true
@@ -35,15 +35,6 @@ let modalDeleteUser = $("#modalDeleteUser");
 let submitDeleteUser = $("#submitDeleteUser");
 let pathDeleteUser = Routing.generate('user_delete', true);
 InitModal(modalDeleteUser, submitDeleteUser, pathDeleteUser, {tables: [tableUser]});
-
-function editRole(select) {
-    let params = JSON.stringify({
-        'role': select.val(),
-        'userId': select.data('user-id')
-    });
-
-    $.post(Routing.generate('user_edit_role'), params, 'json');
-}
 
 $(function() {
     $('.select2').select2();

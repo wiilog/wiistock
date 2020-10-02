@@ -325,7 +325,7 @@ class RefArticleDataService
         $rowCL = [];
         /** @var ChampLibre $champ */
         foreach ($champs as $champ) {
-            $rowCL[strval($champ['label'])] = $this->freeFieldService->formatValeurChampLibreForDatatable([
+            $rowCL[strval($champ['label'])] = $this->freeFieldService->serializeValue([
                 'valeur' => $refArticle->getFreeFieldValue($champ['id']),
                 "typage" => $champ['typage'],
             ]);

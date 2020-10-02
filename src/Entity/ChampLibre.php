@@ -268,4 +268,15 @@ class ChampLibre
         return $this;
     }
 
+    public function serialize(): array {
+        return [
+            'id' => $this->getId(),
+            'label' => $this->getLabel(),
+            'elements' => $this->getElements(),
+            'typing' => $this->getTypage(),
+            'defaultValue' => $this->getDefaultValue(),
+            'required' => $this->getRequiredCreate()
+        ];
+    }
+
 }

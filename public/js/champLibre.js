@@ -9,15 +9,9 @@ let typeTableConfig = {
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', 'title': '', className: 'noVis'},
+        {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'Label', 'title': 'Libellé'},
         {"data": "S'applique", 'title': "S'applique à"},
-    ],
-    columnDefs: [
-        {
-            orderable: false,
-            targets: 0
-        }
     ],
     rowConfig: {
         needsRowClickAction: true

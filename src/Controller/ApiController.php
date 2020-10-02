@@ -1317,7 +1317,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param Utilisateur $user
      * @param UserService $userService
      * @param NatureService $natureService
-     * @param FreeFieldService $freeFieldService
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return array
@@ -1326,7 +1325,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     private function getDataArray(Utilisateur $user,
                                   UserService $userService,
                                   NatureService $natureService,
-                                  FreeFieldService $freeFieldService,
                                   Request $request,
                                   EntityManagerInterface $entityManager)
     {
@@ -1465,10 +1463,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             );
             $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
             $trackingFreeFields = array_map(
-                function (ChampLibre $freeField) use ($freeFieldService) {
-                    $serializedFreeField = $freeFieldService->serializeFreeField($freeField);
+                function (ChampLibre $freeField) {
                     return array_merge(
-                        $serializedFreeField,
+                        $freeField->serialize(),
                         ['type' => CategoryType::MOUVEMENT_TRACA]
                     );
                 },

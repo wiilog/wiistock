@@ -11,7 +11,7 @@ let tableFournisseurConfig = {
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', title: '', className: 'noVis'},
+        {"data": 'Actions', title: '', className: 'noVis', orderable: false},
         {"data": 'Nom', title: 'Nom'},
         {"data": 'Code de référence', title: 'Code de référence'},
     ],
@@ -20,13 +20,7 @@ let tableFournisseurConfig = {
     },
     drawConfig: {
         needsSearchOverride: true
-    },
-    columnDefs: [
-        {
-            "orderable": false,
-            "targets": 0
-        }
-    ]
+    }
 };
 let tableFournisseur = initDataTable('tableFournisseur_id', tableFournisseurConfig);
 

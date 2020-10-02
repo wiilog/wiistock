@@ -46,19 +46,13 @@ $(function () {
             needsSearchOverride: true,
         },
         columns: [
-            {"data": 'Actions', 'title': '', 'name': 'Actions', className: 'noVis'},
+            {"data": 'Actions', 'title': '', 'name': 'Actions', className: 'noVis', orderable: false},
             {"data": 'Numéro', 'title': 'Numéro', 'name': 'Numéro'},
             {"data": 'Statut', 'title': 'Statut', 'name': 'Statut'},
             {"data": 'Date', 'title': 'Date de création', 'name': 'Date'},
             {"data": 'Opérateur', 'title': 'Opérateur', 'name': 'Opérateur'},
             {"data": 'Type', 'title': 'Type', 'name': 'Type'},
-        ],
-        columnDefs: [
-            {
-                orderable: false,
-                targets: 0
-            }
-        ],
+        ]
     };
     initDataTable('tableLivraison_id', tableLiraisonConfig);
 });

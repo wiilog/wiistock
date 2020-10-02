@@ -233,4 +233,28 @@ class DemandeCollecteService
         $collecte->addArticle($article);
         return $article;
     }
+
+    public function serialiseExportRow(Collecte $collect,
+                                       array $freeFieldsConfig,
+                                       FreeFieldService $freeFieldService,
+                                       callable $getSpecificColumn) {
+
+        $collecteData = $collect->serialize();
+
+        $freeFieldsData = [];
+        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+            $freeFieldsData[] = $freeFieldService->serializeValue([
+                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
+                'valeur' => $collecteData['freeFields'][$freeFieldId] ?? ""
+            ]);
+        }
+
+        unset($collecteData['freeFields']);
+
+        return array_merge(
+            array_values($collecteData),
+            $getSpecificColumn(),
+            $freeFieldsData
+        );
+    }
 }

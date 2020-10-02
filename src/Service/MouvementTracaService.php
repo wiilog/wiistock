@@ -130,7 +130,7 @@ class MouvementTracaService
         $rowCL = [];
         /** @var ChampLibre $freeField */
         foreach ($freeFields as $freeField) {
-            $rowCL[$freeField['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
+            $rowCL[$freeField['label']] = $this->freeFieldService->serializeValue([
                 'valeur' => $movement->getFreeFieldValue($freeField['id']),
                 "typage" => $freeField['typage'],
             ]);
@@ -475,7 +475,7 @@ class MouvementTracaService
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::MOUVEMENT_TRACA, $categorieCL);
 
         $columns = [
-            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true],
+            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
             ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
             ['title' => 'Date', 'name' => 'date'],
             ['title' => 'colis.colis', 'name' => 'code', 'translated' => true],
@@ -492,6 +492,7 @@ class MouvementTracaService
                 return [
                     'title' => $column['title'],
                     'alwaysVisible' => $column['alwaysVisible'] ?? false,
+                    'orderable' => $column['orderable'] ?? true,
                     'data' => $column['name'],
                     'name' => $column['name'],
                     'translated' => $column['translated'] ?? false,

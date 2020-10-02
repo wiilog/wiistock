@@ -495,7 +495,7 @@ class ArticleDataService
         $rowCL = [];
         /** @var ChampLibre $champ */
         foreach ($champs as $champ) {
-            $rowCL[$champ['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
+            $rowCL[$champ['label']] = $this->freeFieldService->serializeValue([
                 'valeur' => $article->getFreeFieldValue($champ['id']),
                 "typage" => $champ['typage'],
             ]);
