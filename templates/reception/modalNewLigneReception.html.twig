@@ -44,7 +44,7 @@
                         <div class="col-4 form-group">
                             <label for="type">Type*</label>
                             <select class="select2-type data w-100 needed" name="type"
-                                    onchange="typeChoice($(this), '-new');toggleRequiredChampsLibres($(this),'create')">
+                                    onchange="onRequestTypeChange($(this))">
                                 <option>&nbsp;</option>
                                 {% for type in typeChampsLibres %}
                                     <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
