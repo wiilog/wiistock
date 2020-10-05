@@ -95,7 +95,7 @@
         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
             <div class="form-group col-md-4 col-12">
-                <label>Transporteur{{ required ? '*' }}</label>
+                <label title="Transporteur">{{ 'acheminement.Transporteur'|trans }}{{ required ? '*' }}</label>
                 <select class="form-control data ajax-autocomplete-transporteur-edit w-100 {{ required ? 'needed' }}"
                         title="Transporteur"
                         name="carrier">
@@ -111,7 +111,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
         <div class="form-group col-md-4 col-12">
-            <label>Numéro de tracking transporteur{{ required ? '*' }}</label>
+            <label title="Numéro de tracking transporteur">{{ 'acheminement.Numéro de tracking transporteur'|trans }}{{ required ? '*' }}</label>
             <input class="form-control data {{ required ? 'needed' }}"
                    title="Numéro de tracking transporteur"
                    name="transporterTrackingNumber"
@@ -150,7 +150,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
         <div class="form-group col-md-4 col-12">
-            <label for="project">Numéro de projet{{ required ? '*' }}</label>
+            <label for="project" title="Numéro de projet">{{ 'acheminement.Numéro de projet'|trans }}{{ required ? '*' }}</label>
             <input class="form-control data {{ required ? 'needed' }}"
                    title="Numéro de projet"
                    name="projectNumber"
@@ -162,7 +162,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
         <div class="form-group col-md-4 col-12">
-            <label for="project">Business Unit{{ required ? '*' }}</label>
+            <label title="Business unit">{{ 'acheminement.Business unit'|trans }}{{ required ? '*' }}</label>
             <select name="businessUnit"
                     class="form-control data {{ required ? 'needed' }}"
                     title="Business Unit">
