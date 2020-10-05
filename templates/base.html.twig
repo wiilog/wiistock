@@ -105,12 +105,13 @@
         <script src="{{ asset('js/Chart.min.js') }}"></script>
 
         {# scripts wiilog #}
+        <script src="{{ asset('js/select2.js') }}?{{ date().timestamp }}"></script>
         <script src="{{ asset('js/common.js') }}?{{ date().timestamp }}"></script>
         <script src="{{ asset('js/script-wiilog.js') }}?{{ date().timestamp }}"></script>
         <script src="{{ asset('js/init-modal.js') }}?{{ date().timestamp }}"></script>
         <script src="{{ asset('js/script-menu.js') }}?{{ date().timestamp }}"></script>
         <script src="{{ asset('js/datatable.js') }}?{{ date().timestamp }}"></script>
-        <script src="{{ asset('js/collapsible.js') }}"></script>
+        <script src="{{ asset('js/collapsible.js') }}?{{ date().timestamp }}"></script>
     {% endblock %}
 
 </body>
