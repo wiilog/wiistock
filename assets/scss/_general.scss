@@ -275,6 +275,10 @@ a {
     }
 }
 
+select.is-invalid {
+    background-image: none !important;
+}
+
 .label {
     color: $greyForm;
 }
