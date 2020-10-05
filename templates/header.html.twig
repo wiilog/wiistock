@@ -66,9 +66,13 @@
                             <a href="{{ path('handling_index', {'open-modal': 'new'}) }}" title="Service">
                                 {{ 'services.Service' | trans }}
                             </a>
-                            <a href="{{ path('article_index', {'open-modal': 'new'}) }}">
-                                Création d'article
-                            </a>
+                            {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}
+                                <div class="btn border-radius-light">
+                                    <a href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u" >
+                                        Demander la création d'un article
+                                    </a>
+                                </div>
+                            {% endif %}
                     </div>
                 </div>
 
