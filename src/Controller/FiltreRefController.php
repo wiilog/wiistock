@@ -41,9 +41,9 @@ class FiltreRefController extends AbstractController
 	 * @param FiltreRefRepository $filtreRefRepository
 	 * @param RefArticleDataService $refArticleDataService
 	 */
-    public function __construct(FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService)
+    public function __construct(EntityManagerInterface $manager, RefArticleDataService $refArticleDataService)
     {
-        $this->filtreRefRepository = $filtreRefRepository;
+        $this->filtreRefRepository = $manager->getRepository(FiltreRef::class);
         $this->refArticleDataService = $refArticleDataService;
     }
 

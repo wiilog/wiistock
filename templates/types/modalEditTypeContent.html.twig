@@ -1,11 +1,9 @@
 <form method="">
-    <div class="col-12 form-group required d-none">
-        <input type="text"
-               class="form-control data needed"
-               name="type"
-               required=""
-               value="{{ type.id }}">
-    </div>
+    <input type="hidden"
+           class="form-control data needed"
+           name="type"
+           required
+           value="{{ type.id }}">
 
     <div class="form-group">
         <label for="label">Catégorie</label>
@@ -58,7 +56,7 @@
     {% set needsHide = type.category.label != constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH') %}
     <div class="form-group {{ needsHide ? 'd-none' }} needs-default-locations">
         <label for="prise">Emplacement de prise par défaut</label>
-        <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block location-prise w-100" id="prise">
+        <select name="prise" class="form-control data ajax-autocomplete-location d-block location-prise w-100" id="prise">
             {% if type.pickLocation %}
                 <option value="{{ type.pickLocation.id }}">{{ type.pickLocation.label }}</option>
             {% endif %}
@@ -66,7 +64,7 @@
     </div>
     <div class="form-group {{ needsHide ? 'd-none' }} needs-default-locations">
         <label for="depose">Emplacement de dépose par défaut</label>
-        <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block location-prise w-100" id="depose">
+        <select name="depose" class="form-control data ajax-autocomplete-location d-block location-prise w-100" id="depose">
             {% if type.dropLocation %}
                 <option value="{{ type.dropLocation.id }}">{{ type.dropLocation.label }}</option>
             {% endif %}

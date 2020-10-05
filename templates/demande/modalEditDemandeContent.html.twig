@@ -7,7 +7,7 @@
 
 <div class="form-group w-100">
     <label for="destination">Destination</label>
-    <select name="destination" class="form-control ajax-autocompleteEmplacement-edit data ">
+    <select name="destination" class="form-control ajax-autocomplete-location-edit data ">
         {% if demande.destination is defined and demande.destination != null %}
             <option value="{{demande.destination.id}}" selected>{{demande.destination.label}}</option>
         {% endif %}

@@ -14,7 +14,7 @@
                                 class="btn btn-primary split-button btn-ripple"
                                 data-toggle="modal"
                                 data-target="#modalNewArticle"
-                                onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete'), 'article'), clearNewArticleContent($('#submitNewArticle'))">
+                                onclick="Select2.articleReference($('.ajax-autocomplete'), 'article'), clearNewArticleContent($('#submitNewArticle'))">
                             <span class="fa fa-plus mr-2"></span>
                             Nouvel article
                         </button>
@@ -104,5 +104,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/article.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/article.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
@@ -487,12 +488,14 @@ class MouvementTracaController extends AbstractController
      * @Route("/csv", name="get_mouvements_traca_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
      * @param CSVExportService $CSVExportService
+     * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
     public function getMouvementTracaCsv(Request $request,
                                          CSVExportService $CSVExportService,
+                                         FreeFieldService $freeFieldService,
                                          EntityManagerInterface $entityManager): Response
     {
         $dateMin = $request->query->get('dateMin');
@@ -505,23 +508,10 @@ class MouvementTracaController extends AbstractController
         }
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
-            $champLibreRepository = $entityManager->getRepository(FreeField::class);
-            $freeFields = $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
-
-            $freeFieldsIds = array_map(
-                function (FreeField $cl) {
-                    return $cl->getId();
-                },
-                $freeFields
-            );
-            $freeFieldsHeader = array_map(
-                function (FreeField $cl) {
-                    return $cl->getLabel();
-                },
-                $freeFields
-            );
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
             $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+
+            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::MVT_TRACA]);
 
             $mouvements = $mouvementTracaRepository->getByDates($dateTimeMin, $dateTimeMax);
             $attachmentsNameByMouvementTraca = $pieceJointeRepository->getNameGroupByMouvements();
@@ -538,13 +528,13 @@ class MouvementTracaController extends AbstractController
                 'origine',
                 'numéro de commande',
                 'urgence'
-            ], $freeFieldsHeader);
+            ], $freeFieldsConfig['freeFieldsHeader']);
 
             return $CSVExportService->createBinaryResponseFromData(
                 'export_mouvement_traca.csv',
                 $mouvements,
                 $csvHeader,
-                function ($movement) use ($attachmentsNameByMouvementTraca, $freeFieldsIds) {
+                function ($movement) use ($attachmentsNameByMouvementTraca, $freeFieldsConfig, $freeFieldService) {
                     $row = [];
                     $row[] = $movement['datetime'] ? $movement['datetime']->format('d/m/Y H:i') : '';
                     $row[] = $movement['code'];
@@ -559,9 +549,14 @@ class MouvementTracaController extends AbstractController
                         ? implode(', ', $movement['numeroCommandeListArrivage'])
                         : ($movement['referenceReception'] ?: '');
                     $row[] = !empty($movement['isUrgent']) ? 'oui' : 'non';
-                    foreach ($freeFieldsIds as $freeField) {
-                        $row[] = $movement['freeFields'][$freeField] ?? "";
+
+                    foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+                        $row[] = $freeFieldService->serializeValue([
+                            'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
+                            'valeur' => $movement['freeFields'][$freeFieldId] ?? ''
+                        ]);
                     }
+
                     return [$row];
                 }
             );

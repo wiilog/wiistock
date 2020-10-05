@@ -9,7 +9,6 @@ use App\Entity\LocationClusterMeter;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementTraca;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
@@ -37,6 +36,7 @@ class TrackingMovementListener
         $this->treatFirstDropRecordLinking($movementToDelete, $entityManager);
         $this->treatLastTrackingRecordLinking($firstDropsRecordIds, $movementToDelete, $entityManager);
         $this->treatLocationClusterMeterLinking($movementToDelete, $entityManager);
+        $movementToDelete->getPack()->removeTrackingMovement($movementToDelete);
     }
 
     /**
@@ -47,7 +47,6 @@ class TrackingMovementListener
      */
     public function treatPackLinking(MouvementTraca $movementToDelete,
                                      EntityManager $entityManager): void {
-
         $pack = $movementToDelete->getPack();
 
         $trackingMovements = $pack->getTrackingMovements();
@@ -63,6 +62,7 @@ class TrackingMovementListener
             $pack->getLastTracking()
             && $pack->getLastTracking()->getId() === $movementToDelete->getId()
         );
+
         foreach ($trackingMovements as $savedTrackingMovement) {
             if (($movementToDelete !== $savedTrackingMovement)
                 && (!isset($newLastTracking))) {
@@ -87,21 +87,6 @@ class TrackingMovementListener
         if ($lastTrackingToUpdate) {
             $pack->setLastTracking($newLastTracking);
         }
-        dump($pack->getId());
-        if ($pack->getLastTracking()) {
-            dump($pack->getLastTracking()->getId());
-        }
-        else {
-            dump('-');
-        }
-
-        if ($pack->getLastDrop()) {
-            dump($pack->getLastDrop()->getId());
-        }
-        else {
-            dump('-');
-        }
-
 
         $entityManager->flush($pack);
     }

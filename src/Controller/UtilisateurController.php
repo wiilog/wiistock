@@ -14,8 +14,6 @@ use App\Service\PasswordService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -134,6 +132,13 @@ class UtilisateurController extends AbstractController
 				]);
             }
 
+            if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "L'adresse email principale \"{$data['email']}\" n'est pas valide"
+                ]);
+            }
+
 			// unicité de l'username
             $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
 			if ($usernameAlreadyUsed > 0) {
@@ -144,13 +149,23 @@ class UtilisateurController extends AbstractController
 				]);
 			}
 
+            $secondaryEmails = json_decode($data['secondaryEmails']);
+            foreach($secondaryEmails as $email) {
+                if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "L'adresse email \"{$email}\" n'est pas valide"
+                    ]);
+                }
+            }
+
             $utilisateur = new Utilisateur();
             $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($entityManager);
             $role = $roleRepository->find($data['role']);
             $utilisateur
                 ->setUsername($data['username'])
                 ->setEmail($data['email'])
-                ->setSecondaryEmails(json_decode($data['secondaryEmails']))
+                ->setSecondaryEmails($secondaryEmails)
                 ->setPhone($data['phoneNumber'])
                 ->setRole($role)
 				->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
@@ -193,7 +208,10 @@ class UtilisateurController extends AbstractController
             $entityManager->persist($utilisateur);
             $entityManager->flush();
 
-			return new JsonResponse(['success' => true]);
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'L\'utilisateur <strong>' . $data['username'] . '</strong> a bien été créé.'
+            ]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -219,6 +237,7 @@ class UtilisateurController extends AbstractController
             $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
             $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
             $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+            $roles = $entityManager->getRepository(Role::class)->findAll();
 
             return new JsonResponse([
             	'userDeliveryTypes' => $user->getDeliveryTypeIds(),
@@ -226,6 +245,7 @@ class UtilisateurController extends AbstractController
             	'userHandlingTypes' => $user->getHandlingTypeIds(),
 				'html' => $this->renderView('utilisateur/modalEditUserContent.html.twig', [
                     'user' => $user,
+                    'roles' => $roles,
                     'deliveryTypes' => $deliveryTypes,
                     'dispatchTypes' => $dispatchTypes,
                     'handlingTypes' => $handlingTypes
@@ -256,8 +276,10 @@ class UtilisateurController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $roleRepository = $entityManager->getRepository(Role::class);
 
             $utilisateur = $utilisateurRepository->find($data['id']);
+            $role = $roleRepository->find($data['role']);
 
             $result = $this->passwordService->checkPassword($data['password'],$data['password2']);
             if($result['response'] == false){
@@ -278,6 +300,13 @@ class UtilisateurController extends AbstractController
 					'action' => 'edit'
 				]);
 			}
+
+            if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "L'adresse email principale \"{$data['email']}\" n'est pas valide"
+                ]);
+            }
 
 			// unicité de l'username
             $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
@@ -300,8 +329,20 @@ class UtilisateurController extends AbstractController
 						'action' => 'edit'
 				]);
 			}
+
+            $secondaryEmails = json_decode($data['secondaryEmails']);
+            foreach($secondaryEmails as $email) {
+                if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "L'adresse email \"{$email}\" n'est pas valide"
+                    ]);
+                }
+            }
+
             $utilisateur
-                ->setSecondaryEmails(json_decode($data['secondaryEmails']))
+                ->setSecondaryEmails($secondaryEmails)
+                ->setRole($role)
                 ->setStatus($data['status'])
                 ->setUsername($data['username'])
                 ->setAddress($data['address'])
@@ -375,7 +416,10 @@ class UtilisateurController extends AbstractController
             $entityManager->persist($utilisateur);
             $entityManager->flush();
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'L\'utilisateur <strong>' . $utilisateur->getUsername() . '</strong> a bien été modifié.'
+            ]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -430,9 +474,11 @@ class UtilisateurController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-	/**
-	 * @Route("/verification", name="user_check_delete", options={"expose"=true})
-	 */
+    /**
+     * @Route("/verification", name="user_check_delete", options={"expose"=true})
+     * @param Request $request
+     * @return Response
+     */
 	public function checkUserCanBeDeleted(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest() && $userId = json_decode($request->getContent(), true)) {
@@ -460,8 +506,6 @@ class UtilisateurController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
@@ -474,6 +518,7 @@ class UtilisateurController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $user = $utilisateurRepository->find($data['user']);
+            $username = $user->getUsername();
 
 			// on vérifie que l'utilisateur n'est plus utilisé
 			$isUserUsed = $this->userService->isUsedByDemandsOrOrders($user);
@@ -485,7 +530,10 @@ class UtilisateurController extends AbstractController
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($user);
 			$entityManager->flush();
-			return new JsonResponse(true);
+			return new JsonResponse([
+			    'success' => true,
+                'msg' => 'L\'utilisateur <strong>' . $username . '</strong> a bien été supprimé.'
+            ]);
 		}
         throw new NotFoundHttpException('404');
     }

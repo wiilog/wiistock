@@ -417,11 +417,13 @@ class HandlingController extends AbstractController
      * @Route("/infos", name="get_handlings_for_csv", options={"expose"=true}, methods={"GET","POST"})
      * @param Request $request
      * @param CSVExportService $CSVExportService
+     * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function getHandlingsIntels(Request $request,
                                        CSVExportService $CSVExportService,
+                                       FreeFieldService $freeFieldService,
                                        EntityManagerInterface $entityManager): Response
     {
         $dateMin = $request->query->get('dateMin');
@@ -434,26 +436,11 @@ class HandlingController extends AbstractController
         }
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
-            $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
             $handlingsRepository = $entityManager->getRepository(Handling::class);
 
-            $freeFields = $freeFieldsRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_HANDLING]);
+            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
             $handlings = $handlingsRepository->getByDates($dateTimeMin, $dateTimeMax);
             $currentDate = new DateTime('now');
-
-            $freeFieldIds = array_map(
-                function (FreeField $cl) {
-                    return $cl->getId();
-                },
-                $freeFields
-            );
-            $freeFieldsHeader = array_map(
-                function (FreeField $cl) {
-                    return $cl->getLabel();
-                },
-                $freeFields
-            );
-
             $csvHeader = array_merge(
                 [
                     'numéro de demande',
@@ -470,7 +457,7 @@ class HandlingController extends AbstractController
                     'urgence',
                     'traité par'
                 ],
-                $freeFieldsHeader
+                $freeFieldsConfig['freeFieldsHeader']
             );
 
             $globalTitle = 'export-services-' . $currentDate->format('d-m-Y') . '.csv';
@@ -478,7 +465,7 @@ class HandlingController extends AbstractController
                 $globalTitle,
                 $handlings,
                 $csvHeader,
-                function ($handling) use ($freeFieldIds) {
+                function ($handling) use ($freeFieldService, $freeFieldsConfig) {
                     $row = [];
                     $row[] = $handling['number'] ?? '';
                     $row[] = $handling['creationDate']->format('d/m/Y H:i:s') ?? '';
@@ -494,9 +481,13 @@ class HandlingController extends AbstractController
                     $row[] = $handling['emergency'] ?? '';
                     $row[] = $handling['treatedBy'] ?? '';
 
-                    foreach ($freeFieldIds as $freeFieldId) {
-                        $row[] = $handling['freeFields'][$freeFieldId] ?? "";
+                    foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+                        $row[] = $freeFieldService->serializeValue([
+                            'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
+                            'valeur' => $handling['freeFields'][$freeFieldId] ?? ''
+                        ]);
                     }
+
                     return [$row];
                 }
             );

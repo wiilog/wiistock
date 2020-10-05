@@ -9,6 +9,7 @@ use App\Repository\FiltreRefRepository;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
 
 
@@ -20,9 +21,9 @@ class PatchFiltreStatutArticleActifFixtures extends Fixture implements FixtureGr
      */
     private $filtreRefRepository;
 
-    public function __construct(FiltreRefRepository $filtreRefRepository)
+    public function __construct(EntityManagerInterface $manager)
     {
-        $this->filtreRefRepository = $filtreRefRepository;
+        $this->filtreRefRepository = $manager->getRepository(FiltreRef::class);
     }
 
     public function load(ObjectManager $manager)

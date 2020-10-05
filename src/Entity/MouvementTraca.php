@@ -400,13 +400,15 @@ class MouvementTraca extends FreeFieldEntity
         return $this;
     }
 
-    public function setPack(Pack $pack): self {
+    public function setPack(?Pack $pack): self {
         $this->pack = $pack;
-        $this->pack->setLastTracking($this);
+        if ($this->pack) {
+            $this->pack->setLastTracking($this);
+        }
         return $this;
     }
 
-    public function getPack(): Pack {
+    public function getPack(): ?Pack {
         return $this->pack;
     }
 

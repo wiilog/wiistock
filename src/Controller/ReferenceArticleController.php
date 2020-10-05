@@ -9,6 +9,7 @@ use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryCategory;
+use App\Entity\InventoryFrequency;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
@@ -111,32 +112,27 @@ class ReferenceArticleController extends AbstractController
      */
     private $user;
 
-    private $CSVExportService;
-    private $champLibreService;
-
     public function __construct(TokenStorageInterface $tokenStorage,
                                 GlobalParamService $globalParamService,
                                 SpecificService $specificService,
                                 Twig_Environment $templating,
                                 ArticleDataService $articleDataService,
-                                FiltreRefRepository $filtreRefRepository,
+                                EntityManagerInterface $manager,
                                 RefArticleDataService $refArticleDataService,
                                 UserService $userService,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository,
                                 CSVExportService $CSVExportService,
                                 FreeFieldService $champLibreService)
     {
-        $this->filtreRefRepository = $filtreRefRepository;
+        $this->filtreRefRepository = $manager->getRepository(FiltreRef::class);
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
         $this->userService = $userService;
         $this->templating = $templating;
         $this->specificService = $specificService;
         $this->globalParamService = $globalParamService;
-        $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
+        $this->inventoryFrequencyRepository = $manager->getRepository(InventoryFrequency::class);
         $this->user = $tokenStorage->getToken()->getUser();
-        $this->CSVExportService = $CSVExportService;
-        $this->champLibreService = $champLibreService;
     }
 
     /**
@@ -168,6 +164,7 @@ class ReferenceArticleController extends AbstractController
 					"title" => 'Actions',
 					"data" => 'Actions',
 					'name' => 'Actions',
+                    'orderable' => false,
 					"class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
 
 				],
@@ -1141,32 +1138,18 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/exporter-refs", name="export_all_refs", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
+     * @param FreeFieldService $freeFieldService
      * @param CSVExportService $CSVExportService
      * @return Response
-     * @throws Exception
      */
     public function exportAllRefs(EntityManagerInterface $entityManager,
-                              CSVExportService $CSVExportService): Response
+                                  FreeFieldService $freeFieldService,
+                                  CSVExportService $CSVExportService): Response
     {
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-        $category = CategoryType::ARTICLE;
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
-        $freeFieldsIds = array_map(
-            function (array $cl) {
-                return $cl['id'];
-            },
-            $freeFields
-        );
-        $freeFieldsHeader = array_map(
-            function (array $cl) {
-                return $cl['label'];
-            },
-            $freeFields
-        );
+        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::REFERENCE_ARTICLE]);
+
         $headers = array_merge(
             [
                 'reference',
@@ -1185,7 +1168,7 @@ class ReferenceArticleController extends AbstractController
                 'date dernier inventaire',
                 'synchronisation nomade'
             ],
-            $freeFieldsHeader
+            $freeFieldsConfig['freeFieldsHeader']
         );
         $today = new \DateTime();
         $globalTitle = 'export-references-' . $today->format('d-m-Y H:i:s') . '.csv';
@@ -1195,7 +1178,7 @@ class ReferenceArticleController extends AbstractController
         $start = 0;
         do {
             $references = $referenceArticleRepository->getAllWithLimits($start, $step);
-            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $references, ($start === 0 ? $headers : null), $freeFieldsIds);
+            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $freeFieldService, $references, ($start === 0 ? $headers : null), $freeFieldsConfig);
             $references = null;
             $start += $step;
         } while ($start < $allReferencesCount);
@@ -1206,11 +1189,15 @@ class ReferenceArticleController extends AbstractController
     }
 
 
-    private function generateRefsCSVFile(CSVExportService $CSVExportService, array $references, ?array $headers, array $freeFields): string {
+    private function generateRefsCSVFile(CSVExportService $CSVExportService,
+                                         FreeFieldService $freeFieldService,
+                                         array $references,
+                                         ?array $headers,
+                                         array $freeFieldsConfig): string {
         return $CSVExportService->createCsvFile(
             $references,
             $headers,
-            function ($reference) use ($freeFields) {
+            function ($reference) use ($freeFieldService, $freeFieldsConfig) {
                 $referenceArray = [
                     $reference['reference'],
                     $reference['libelle'],
@@ -1228,12 +1215,15 @@ class ReferenceArticleController extends AbstractController
                     $reference['dateLastInventory'] ? $reference['dateLastInventory']->format('d/m/Y H:i:s') : '',
                     $reference['needsMobileSync'],
                 ];
-                foreach ($freeFields as $freeField) {
-                    $referenceArray[] = $reference['freeFields'][$freeField] ?? "";
+
+                foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+                    $referenceArray[] = $freeFieldService->serializeValue([
+                        'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
+                        'valeur' => $reference['freeFields'][$freeFieldId] ?? ''
+                    ]);
                 }
-                return [
-                    $referenceArray
-                ];
+
+                return [$referenceArray];
             }
         );
     }
