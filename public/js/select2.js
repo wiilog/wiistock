@@ -154,8 +154,8 @@ class Select2 {
         let reception = receptionId ? receptionId : $('#receptionId').val();
         this.init(select, '', 1, {route: 'get_article_reception', param: {reception: reception}});
     }
-b
-    static supplier(select, placeholder = '', route = 'get_fournisseur') {
+
+    static provider(select, placeholder = '', route = 'get_fournisseur') {
         this.init(select, placeholder, 1, { route });
     }
 

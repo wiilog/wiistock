@@ -63,7 +63,7 @@ $(function () {
     }, 'json');
     pageLength = Number($('#pageLengthForArrivage').val());
     Select2.user($('.filters .ajax-autocomplete-user'), 'Destinataires');
-    Select2.supplier($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
+    Select2.provider($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
     $('select[name="tableArrivages_length"]').on('change', function () {
         let newValue = Number($(this).val());
         if (newValue && newValue !== pageLength) {

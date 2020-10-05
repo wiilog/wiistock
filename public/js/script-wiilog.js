@@ -99,7 +99,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         $modalBody.html(resp);
         modal.find('.select2').select2();
         initFreeSelect2(modal.find('.select2-free'));
-        Select2.supplier(modal.find('.ajax-autocomplete-fournisseur-edit'));
+        Select2.provider(modal.find('.ajax-autocomplete-fournisseur-edit'));
         Select2.frequency(modal.find('.ajax-autocomplete-frequency'));
         Select2.articleReference(modal.find('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
         Select2.location(modal.find('.ajax-autocomplete-location-edit'));

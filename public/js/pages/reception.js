@@ -58,7 +58,7 @@ $(function () {
         displayFiltersSup(data);
     }, 'json');
 
-    Select2.supplier($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
+    Select2.provider($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 });
 
 function initNewReceptionEditor(modal) {
@@ -70,7 +70,7 @@ function initNewReceptionEditor(modal) {
         initEditorInModal(modal);
         editorNewReceptionAlreadyDone = true;
     }
-    Select2.supplier($('.ajax-autocomplete-fournisseur'));
+    Select2.provider($('.ajax-autocomplete-fournisseur'));
     Select2.location($('.ajax-autocomplete-location'));
     Select2.carrier($modal.find('.ajax-autocomplete-transporteur'));
     initDateTimePicker('#dateCommande, #dateAttendue');
