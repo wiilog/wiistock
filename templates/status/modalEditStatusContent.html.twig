@@ -47,7 +47,7 @@
 
         <div class="mb-3 form-group col-12">
             <label for="state">État du statut*</label>
-            <select name="state" class="data form-control needed">
+            <select name="state" class="data form-control needed" onchange="statusStateChanged($(this))">
                 {% for state in states %}
                     <option value="{{ state.id }}"
                             class="{{
@@ -115,10 +115,13 @@
         </div>
 
         {% set showNeedMobileSync = (
-            status.categorie.nom == constant('App\\Entity\\CategorieStatut::DISPATCH')
+            (
+                status.categorie.nom == constant('App\\Entity\\CategorieStatut::DISPATCH') and
+                status.state == constant('App\\Entity\\Statut::NOT_TREATED')
+            )
             or status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING')
         ) %}
-        <div class="col-12 form-group {{ not showNeedMobileSync ? 'd-none' }}">
+        <div class="col-12 form-group nomad-sync {{ not showNeedMobileSync ? 'd-none' }}">
             <label>Synchronisation nomade ?</label>
             <label class="switch">
                 <input class="checkbox" type="checkbox" name="needsMobileSync" {{ status.needsMobileSync ? 'checked' }}/>
