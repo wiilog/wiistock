@@ -121,7 +121,7 @@ function initNewModal($modal) {
         const $emplacementDepose = $moreMassMvtContainer.find('.ajax-autocomplete-location[name="emplacement-depose"]');
         const $colis = $moreMassMvtContainer.find('.select2-free[name="colis"]');
         Select2.location($emplacementPrise, {autoSelect: true, $nextField: $colis});
-        initFreeSelect2($colis);
+        Select2.initFree($colis);
         Select2.location($emplacementDepose, {autoSelect: true});
     }
 }
@@ -162,7 +162,7 @@ function switchMvtCreationType($input) {
             $modal.find('.new-mvt-common-body').removeClass('d-none');
             $modal.find('.more-body-new-mvt-traca').removeClass('d-none');
             Select2.location($modal.find('.ajax-autocomplete-location'));
-            initFreeSelect2($modal.find('.select2-free'));
+            Select2.initFree($modal.find('.select2-free'));
         }
     });
 }

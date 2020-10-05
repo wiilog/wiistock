@@ -6,7 +6,7 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
@@ -93,7 +93,7 @@ class MouvementTracaController extends AbstractController
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $packFilter = $request->query->get('colis');
         if (!empty($packFilter)) {
@@ -378,7 +378,7 @@ class MouvementTracaController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
             $mvt = $mouvementTracaRepository->find($data['id']);
 

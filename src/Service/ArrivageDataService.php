@@ -5,7 +5,7 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\ParametrageGlobal;
@@ -75,7 +75,7 @@ class ArrivageDataService
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
         $supFilterRepository = $this->entityManager->getRepository(FiltreSup::class);
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->security->getUser();
@@ -124,14 +124,14 @@ class ArrivageDataService
         ]);
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
         $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $freeFieldsRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
         $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::ARRIVAGE);
 
         $category = CategoryType::ARRIVAGE;
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
 
         $rowCL = [];
-        /** @var ChampLibre $freeField */
+        /** @var FreeField $freeField */
         foreach ($freeFields as $freeField) {
             $rowCL[$freeField['label']] = $this->freeFieldService->serializeValue([
                 'valeur' => $arrival->getFreeFieldValue($freeField['id']),
@@ -493,7 +493,7 @@ class ArrivageDataService
                                            Utilisateur $currentUser): array {
 
 
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         $columnsVisible = $currentUser->getColumnsVisibleForArrivage();

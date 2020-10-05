@@ -194,4 +194,40 @@ class Select2 {
         this.init(select, 'Numéros de demande', 3, {route: 'get_demandes'});
     }
 
+    static initFree($selects) {
+        $selects.each(function () {
+            const $self = $(this);
+            $self.select2({
+                tags: true,
+                "language": {
+                    "noResults": function () {
+                        return 'Ajoutez des éléments';
+                    }
+                },
+            });
+            $self.next('.select2-container').find('.select2-selection').on('focus', () => {
+                $(this).closest(".select2-container").siblings('select:enabled').select2('open');
+            });
+        });
+    }
+
+    static initValues($select, $inputValue, forceInit = false) {
+        const data = $inputValue.data();
+        if (data && data.id && data.text) {
+            let idArr = data.id.toString().split(',');
+            let textArr = data.text.split(',');
+
+            for (let i = 0; i < idArr.length; i++) {
+                let option = new Option(textArr[i], idArr[i], true, true);
+                $select.append(option).trigger('change');
+            }
+        } else if (forceInit) {
+            $select.val(null).trigger('change');
+        }
+    }
+
+    static open($select2) {
+        $select2.select2('open');
+    }
+
 }

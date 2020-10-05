@@ -7,7 +7,7 @@ namespace App\Service;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
@@ -162,7 +162,7 @@ class DemandeLivraisonService
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
