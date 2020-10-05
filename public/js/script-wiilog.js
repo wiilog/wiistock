@@ -38,6 +38,19 @@ $(function () {
     });
 
     $('[data-toggle="popover"]').popover();
+
+    let $quickCreate = $('#quick-create');
+    $('[data-target="#quick-create"]')
+        .mouseenter(() => $quickCreate.fadeIn())
+        .mouseleave(() => $quickCreate.fadeOut());
+
+    let query = GetRequestQuery();
+    if(query["open-modal"] === "new") {
+        $('[data-modal-type="new"]').modal("show");
+
+        delete query["open-modal"];
+        SetRequestQuery(query);
+    }
 });
 
 //DELETE
@@ -1362,6 +1375,7 @@ function GetRequestQuery() {
             res[decodeURIComponent(name).toLowerCase()] = decodeURIComponent(value);
         }
     }
+
     return res;
 }
 

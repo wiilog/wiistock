@@ -48,6 +48,30 @@
                         </div>
                     </div>
                 {% endif %}
+
+                <div data-target="#quick-create">
+                    <div class="plus-btn">
+                        <span class="icon"></span>
+                    </div>
+                    <div id="quick-create" class="collapse indicators" style="display:none">
+                            <a href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
+                                Demande de collecte
+                            </a>
+                            <a href="{{ path('demande_index', {'open-modal': 'new'}) }}">
+                                Demande de livraison
+                            </a>
+                            <a href="{{ path('dispatch_index', {'open-modal': 'new'}) }}" title="Acheminement">
+                                {{ 'acheminement.Acheminement' | trans }}
+                            </a>
+                            <a href="{{ path('handling_index', {'open-modal': 'new'}) }}" title="Service">
+                                {{ 'services.Service' | trans }}
+                            </a>
+                            <a href="{{ path('article_index', {'open-modal': 'new'}) }}">
+                                Création d'article
+                            </a>
+                    </div>
+                </div>
+
                 {% if not isDashboardExt
                       and app.user is defined
                       and app.user
