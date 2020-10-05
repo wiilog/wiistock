@@ -41,16 +41,25 @@ $(function () {
 
     let $quickCreate = $('#quick-create');
     $('[data-target="#quick-create"]')
-        .mouseenter(() => $quickCreate.fadeIn())
-        .mouseleave(() => $quickCreate.fadeOut());
+        .click(() => {
+            if ($quickCreate.hasClass('d-none')) {
+                $quickCreate.removeClass('d-none');
+                $quickCreate.fadeIn();
+            } else {
+                $quickCreate.fadeOut(() => {
+                    $quickCreate.addClass('d-none');
+                });
+            }
+        });
 
-    let query = GetRequestQuery();
-    if(query["open-modal"] === "new") {
-        $('[data-modal-type="new"]').modal("show");
-
-        delete query["open-modal"];
-        SetRequestQuery(query);
-    }
+    setTimeout(() => {
+        let query = GetRequestQuery();
+        if(query["open-modal"] === "new") {
+            $('[data-modal-type="new"]').first().modal("show");
+            delete query["open-modal"];
+            SetRequestQuery(query);
+        }
+    }, 200);
 });
 
 //DELETE

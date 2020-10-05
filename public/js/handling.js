@@ -62,6 +62,11 @@ $(function() {
             displayFiltersSup(data);
         }, 'json');
     }
+
+    const $modalNewHandling = $('#modalNewHandling');
+    $modalNewHandling.on('show.bs.modal', function () {
+        initNewHandlingEditor("#modalNewHandling");
+    });
 });
 
 // filtres de recheches

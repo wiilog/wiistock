@@ -130,13 +130,20 @@ $(function() {
             displayFiltersSup(data);
         }, 'json');
     }
+
+    const $modalNewCollecte = $('#modalNewCollecte');
+    $modalNewCollecte.on('show.bs.modal', function () {
+        initNewCollecteEditor("#modalNewCollecte");
+        clearModal("#modalNewCollecte");
+    });
 });
+
 
 function ajaxGetCollecteArticle(select) {
     let $selection = $('#selection');
     let $editNewArticle = $('#editNewArticle');
     let modalNewArticle = '#modalNewArticle';
-    xhttp = new XMLHttpRequest();
+    let xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);

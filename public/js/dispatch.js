@@ -20,6 +20,11 @@ $(function() {
     $.post(path, params, function(data) {
         displayFiltersSup(data);
     }, 'json');
+
+    const $modalNewDispatch = $('#modalNewDispatch');
+    $modalNewDispatch.on('show.bs.modal', function () {
+        initNewDispatchEditor('#modalNewDispatch');
+    });
 });
 
 function initPage() {
