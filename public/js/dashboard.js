@@ -17,6 +17,7 @@ const DASHBOARD_ARRIVAL_NAME = 'arrivage';
 const DASHBOARD_DOCK_NAME = 'quai';
 const DASHBOARD_ADMIN_NAME = 'admin';
 const DASHBOARD_PACKAGING_NAME = 'emballage';
+const DASHBOARD_PENDING_REQUESTS_NAME = 'demandes';
 let displayedDashboards = [];
 const PAGE_CONFIGS = {
     [DASHBOARD_ARRIVAL_NAME]: {
@@ -47,7 +48,7 @@ $(function () {
         displayedDashboards.push($(this).data('name'));
     });
     if (!isDashboardExt()) {
-        const knownHash = ([DASHBOARD_ARRIVAL_NAME, DASHBOARD_DOCK_NAME, DASHBOARD_ADMIN_NAME, DASHBOARD_PACKAGING_NAME].indexOf(getUrlHash()) > -1);
+        const knownHash = ([DASHBOARD_ARRIVAL_NAME, DASHBOARD_DOCK_NAME, DASHBOARD_ADMIN_NAME, DASHBOARD_PACKAGING_NAME, DASHBOARD_PENDING_REQUESTS_NAME].indexOf(getUrlHash()) > -1);
         if (!knownHash) {
             window.location.hash = displayedDashboards.length > 0 ? displayedDashboards[0] : '';
         }
