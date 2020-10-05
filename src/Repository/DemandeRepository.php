@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Demande;
 use App\Entity\Utilisateur;
+use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -161,14 +162,9 @@ class DemandeRepository extends EntityRepository
 
 	public function findByParamsAndFilters($params, $filters, $receptionFilter)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
+        $qb = $this->createQueryBuilder("d");
 
-        $qb
-            ->select('d')
-            ->from('App\Entity\Demande', 'd');
-
-        $countTotal = count($qb->getQuery()->getResult());
+        $countTotal = QueryCounter::count($qb);
 
         if ($receptionFilter) {
             $qb
@@ -258,17 +254,15 @@ class DemandeRepository extends EntityRepository
         }
 
 		// compte éléments filtrés
-		$countFiltered = count($qb->getQuery()->getResult());
+		$countFiltered = QueryCounter::count($qb);
 
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
 		}
 
-		$query = $qb->getQuery();
-
         return [
-        	'data' => $query ? $query->getResult() : null ,
+        	'data' => $qb->getQuery()->getResult(),
             'count' => $countFiltered,
             'total' => $countTotal
         ];

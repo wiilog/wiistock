@@ -110,6 +110,7 @@ class Emplacement
 
     public function __construct()
     {
+        $this->clusters = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
         $this->demandes = new ArrayCollection();
@@ -122,7 +123,6 @@ class Emplacement
         $this->dispatchesTo = new ArrayCollection();
         $this->dropTypes = new ArrayCollection();
         $this->pickTypes = new ArrayCollection();
-        $this->clusters = new ArrayCollection();
     }
 
     public function getId(): ? int

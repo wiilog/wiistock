@@ -576,7 +576,6 @@ class ReceptionController extends AbstractController {
      */
     public function removeArticle(EntityManagerInterface $entityManager,
                                   ReceptionService $receptionService,
-                                  MouvementTracaService $mouvementTracaService,
                                   Request $request): Response {
         if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
@@ -618,7 +617,6 @@ class ReceptionController extends AbstractController {
             foreach($associatedMvts as $associatedMvt) {
                 $entityManager->remove($associatedMvt);
             }
-            $entityManager->flush();
 
             $entityManager->remove($ligneArticle);
             $entityManager->flush();
@@ -630,18 +628,20 @@ class ReceptionController extends AbstractController {
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
             $quantity = $ligneArticle->getQuantite();
-            $stockMovement = $this->mouvementStockService->createMouvementStock(
-                $currentUser,
-                null,
-                $quantity,
-                $reference,
-                MouvementStock::TYPE_SORTIE
-            );
+            if ($quantity) {
+                $stockMovement = $this->mouvementStockService->createMouvementStock(
+                    $currentUser,
+                    null,
+                    $quantity,
+                    $reference,
+                    MouvementStock::TYPE_SORTIE
+                );
 
-            $stockMovement->setReceptionOrder($reception);
-            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $this->mouvementStockService->finishMouvementStock($stockMovement, $date, $reception->getLocation());
-            $entityManager->persist($stockMovement);
+                $stockMovement->setReceptionOrder($reception);
+                $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+                $this->mouvementStockService->finishMouvementStock($stockMovement, $date, $reception->getLocation());
+                $entityManager->persist($stockMovement);
+            }
 
             $entityManager->flush();
             return new JsonResponse([

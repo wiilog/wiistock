@@ -173,7 +173,7 @@ class StatusController extends AbstractController {
                 $entityManager->flush();
 
                 $success = true;
-                $message = 'Le statut "' . $data['label'] . '" a bien été créé.';
+                $message = 'Le statut <strong>' . $data['label'] . '</strong> a bien été créé.';
             }
 
             return new JsonResponse([
@@ -282,7 +282,7 @@ class StatusController extends AbstractController {
                 $entityManager->flush();
 
                 $success = true;
-                $message = 'Le statut "' . $statusLabel . '" a bien été modifié.';
+                $message = 'Le statut <strong>' . $statusLabel . '</strong> a bien été modifié.';
             }
 
             return new JsonResponse([
@@ -342,6 +342,7 @@ class StatusController extends AbstractController {
             $statutRepository = $entityManager->getRepository(Statut::class);
 
             $status = $statutRepository->find($data['status']);
+            $statusLabel = $status->getNom();
             $statusIsUsed = $statutRepository->countUsedById($status->getId());
             if ($statusIsUsed) {
                 return new JsonResponse([
@@ -352,9 +353,11 @@ class StatusController extends AbstractController {
 
             $entityManager->remove($status);
             $entityManager->flush();
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'Le statut <strong>' . $statusLabel . '</strong> a bien été supprimé.'
+            ]);
         }
-
         throw new NotFoundHttpException('404');
     }
 

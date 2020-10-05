@@ -36,6 +36,7 @@ class TrackingMovementListener
         $this->treatFirstDropRecordLinking($movementToDelete, $entityManager);
         $this->treatLastTrackingRecordLinking($firstDropsRecordIds, $movementToDelete, $entityManager);
         $this->treatLocationClusterMeterLinking($movementToDelete, $entityManager);
+        $movementToDelete->getPack()->removeTrackingMovement($movementToDelete);
     }
 
     /**
@@ -46,7 +47,6 @@ class TrackingMovementListener
      */
     public function treatPackLinking(MouvementTraca $movementToDelete,
                                      EntityManager $entityManager): void {
-
         $pack = $movementToDelete->getPack();
 
         $trackingMovements = $pack->getTrackingMovements();
@@ -62,6 +62,7 @@ class TrackingMovementListener
             $pack->getLastTracking()
             && $pack->getLastTracking()->getId() === $movementToDelete->getId()
         );
+
         foreach ($trackingMovements as $savedTrackingMovement) {
             if (($movementToDelete !== $savedTrackingMovement)
                 && (!isset($newLastTracking))) {

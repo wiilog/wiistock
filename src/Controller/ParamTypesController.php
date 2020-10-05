@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Service\GlobalParamService;
 use App\Service\UserService;
@@ -231,9 +232,12 @@ class ParamTypesController extends AbstractController
             }
 
             $typeRepository = $entityManager->getRepository(Type::class);
-            $canDelete = !$typeRepository->isTypeUsed($typeId);
+            $statusRepository = $entityManager->getRepository(Statut::class);
 
-            $html = $canDelete
+            $canDelete = !$typeRepository->isTypeUsed($typeId);
+            $status = $statusRepository->findBy(['type' => $typeId]);
+
+            $html = $canDelete && !$status
                 ? $this->renderView('types/modalDeleteTypeRight.html.twig')
                 : $this->renderView('types/modalDeleteTypeWrong.html.twig');
 
