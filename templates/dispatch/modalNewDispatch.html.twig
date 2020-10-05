@@ -48,7 +48,7 @@
                             {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                                 {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                                 <div class="form-group">
-                                    <label>Transporteur{{ required ? '*' }}</label>
+                                    <label title="Transporteur">{{ 'acheminement.Transporteur'|trans }}{{ required ? '*' }}</label>
                                     <select class="form-control data ajax-autocomplete-transporteur w-100 {{ required ? 'needed' }}"
                                             title="Transporteur"
                                             name="carrier">
@@ -84,7 +84,7 @@
                             <div class="error-empty-status d-none">
                                 {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                                     array: [],
-                                    warningLabel: 'Aucun statut pour ce type.',
+                                    warningLabel: 'Aucun statut brouillon pour ce type.',
                                     redirectPath: path('status_param_index'),
                                     redirectLabel: 'Aller vers la création des statuts.'
                                 } %}
@@ -107,7 +107,7 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                             <div class="form-group">
-                                <label for="transporter-tracking-number">Numéro de tracking transporteur{{ required ? '*' }}</label>
+                                <label for="transporter-tracking-number" title="Numéro de tracking transporteur">{{ 'acheminement.Numéro de tracking transporteur'|trans }}{{ required ? '*' }}</label>
                                 <input class="form-control data {{ required ? 'needed' }}"
                                        title="Numéro de tracking transporteur"
                                        name="carrierTrackingNumber">
@@ -119,7 +119,7 @@
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                             {% set projectNumberValue = arrival ? arrival.projectNumber %}
                             <div class="form-group">
-                                <label for="project">Numéro de projet{{ required ? '*' }}</label>
+                                <label for="project" title="Numéro de projet">{{ 'acheminement.Numéro de projet'|trans }}{{ required ? '*' }}</label>
                                 <input title="Numéro de projet"
                                        class="project form-control data {{ required ? 'needed' }} needs-default"
                                        name="projectNumber"
@@ -170,7 +170,7 @@
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                             {% set businessUnitValue = arrival ? arrival.businessUnit %}
                             <div class="form-group">
-                                <label>Business Unit{{ required ? '*' }}</label>
+                                <label title="Business unit">{{ 'acheminement.Business unit'|trans }}{{ required ? '*' }}</label>
                                 <select name="businessUnit"
                                         class="form-control data {{ required ? 'needed' }} needs-default"
                                         title="Business Unit"

@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
+use App\Entity\FiltreRef;
 use App\Entity\FiltreSup;
 use App\Entity\InventoryCategory;
 use App\Entity\LigneArticle;
@@ -78,13 +79,12 @@ class RefArticleDataService
                                 UserService $userService,
                                 FreeFieldService $champLibreService,
                                 EntityManagerInterface $entityManager,
-                                FiltreRefRepository $filtreRefRepository,
                                 Twig_Environment $templating,
                                 TokenStorageInterface $tokenStorage,
                                 ArticleFournisseurService $articleFournisseurService,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
-        $this->filtreRefRepository = $filtreRefRepository;
+        $this->filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
         $this->freeFieldService = $champLibreService;
         $this->templating = $templating;
         $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;

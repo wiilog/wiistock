@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\FiltreRef;
 use App\Entity\ReferenceArticle;
 use App\Entity\ChampLibre;
 use App\Entity\Type;
@@ -29,12 +30,8 @@ class TypeController extends AbstractController
      */
     private $filtreRefRepository;
 
-	/**
-	 * TypeController constructor.
-	 * @param FiltreRefRepository $filtreRefRepository
-	 */
-    public function __construct(FiltreRefRepository $filtreRefRepository) {
-        $this->filtreRefRepository = $filtreRefRepository;
+    public function __construct(EntityManagerInterface $manager) {
+        $this->filtreRefRepository = $manager->getRepository(FiltreRef::class);
     }
 
     /**

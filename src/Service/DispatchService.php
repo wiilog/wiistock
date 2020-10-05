@@ -264,12 +264,14 @@ class DispatchService {
                     'value' => $type ? $type->getLabel() : ''
                 ],
                 [
-                    'label' => 'Transporteur',
+                    'label' => $this->translator->trans('acheminement.Transporteur'),
+                    'title' => 'Transporteur',
                     'value' => $carrier ? $carrier->getLabel() : '',
                     'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_CARRIER_DISPATCH ]
                 ],
                 [
-                    'label' => 'Numéro de tracking transporteur',
+                    'label' => $this->translator->trans('acheminement.Numéro de tracking transporteur'),
+                    'title' => 'Numéro de tracking transporteur',
                     'value' => $carrierTrackingNumber,
                     'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH ]
                 ],
@@ -279,18 +281,21 @@ class DispatchService {
                 ],
                 $receiverDetails,
                 [
-                    'label' => 'Numéro de projet',
+                    'label' => $this->translator->trans('acheminement.Numéro de projet'),
+                    'title' => 'Numéro de projet',
                     'value' => $projectNumber,
                     'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_PROJECT_NUMBER ]
                 ],
                 [
-                    'label' => 'Business Unit',
+                    'label' => $this->translator->trans('acheminement.Business unit'),
+                    'title' => 'Business unit',
                     'value' => $dispatch->getBusinessUnit() ?? '',
                     'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_BUSINESS_UNIT ]
                 ],
                 [
                     'label' => $this->translator->trans('acheminement.Numéro de commande'),
-                    'value' => $commandNumber, 'title' => 'Numéro de commande',
+                    'value' => $commandNumber,
+                    'title' => 'Numéro de commande',
                     'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH ]
                 ],
                 [
@@ -515,8 +520,8 @@ class DispatchService {
         $columns = [
             ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
             ['title' => 'Numéro demande', 'name' => 'number'],
-            ['title' => 'Transporteur', 'name' => 'carrier'],
-            ['title' => 'Numéro de tracking transporteur', 'name' => 'carrierTrackingNumber'],
+            ['title' => 'acheminement.Transporteur', 'name' => 'carrier', 'translated' => true],
+            ['title' => 'acheminement.Numéro de tracking transporteur', 'name' => 'carrierTrackingNumber', 'translated' => true],
             ['title' => 'acheminement.Numéro de commande', 'name' => 'commandNumber', 'translated' => true],
             ['title' => 'Date de création',  'name' => 'creationDate'],
             ['title' => 'Date de validation', 'name' => 'validationDate'],

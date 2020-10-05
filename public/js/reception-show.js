@@ -592,8 +592,15 @@ function initNewLigneReception($button) {
         }
     });
 
+    const $select = $modalNewLigneReception.find('.demande-form [name="type"]');
     toggleRequiredChampsLibres($select, 'create');
     typeChoice($select, '-new')
+}
+
+function onRequestTypeChange($select) {
+    const $freeFieldContainer = $modalNewLigneReception.find('.demande-form .free-fields-container');
+    toggleRequiredChampsLibres($select, 'create', $freeFieldContainer);
+    typeChoice($select, '-new', $freeFieldContainer);
 }
 
 

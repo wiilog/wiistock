@@ -9,6 +9,7 @@ use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Helper\QueryCounter;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -870,7 +871,7 @@ class ReferenceArticleRepository extends EntityRepository
     {
         $qb = $this->getDataAlert();
 
-        $countTotal = count($qb->getQuery()->getResult());
+        $countTotal = QueryCounter::count($qb, "ra");
 
         foreach ($filters as $filter) {
             switch ($filter['field']) {
@@ -893,7 +894,7 @@ class ReferenceArticleRepository extends EntityRepository
                 }
             }
 
-            $countFiltered = count($qb->getQuery()->getResult());
+            $countFiltered = QueryCounter::count($qb, "ra");
 
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
@@ -930,10 +931,8 @@ class ReferenceArticleRepository extends EntityRepository
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
 
-        $query = $qb->getQuery();
-
         return [
-            'data' => $query ? $query->getResult() : null,
+            'data' => $qb->getQuery()->getResult(),
             'count' => $countFiltered,
             'total' => $countTotal
         ];
@@ -1016,11 +1015,11 @@ class ReferenceArticleRepository extends EntityRepository
         return $reservedQuantity;
     }
 
-    public function countAlert()
-    {
-        $qb = $this->getDataAlert();
-
-        return count($qb->getQuery()->getResult());
+    public function countAlert() {
+        return $this->getDataAlert()
+        ->select("COUNT(ra.id)")
+        ->getQuery()
+        ->getSingleScalarResult();
     }
 
     public function getDataAlert()

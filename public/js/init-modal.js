@@ -267,22 +267,24 @@ function processInputsForm($modal, isAttachmentForm) {
     const saveData = ($input, name, val) => {
         const $parent = $input.closest('[data-multiple-key]');
 
-        if ($parent && $parent.length > 0) {
-            const multipleKey = $parent.data('multiple-key');
-            const objectIndex = $parent.data('multiple-object-index');
-            const multipleValue = data[multipleKey]
-                ? (isAttachmentForm
-                    ? JSON.parse(data[multipleKey])
-                    : data[multipleKey])
-                : {};
-            multipleValue[objectIndex] = (multipleValue[objectIndex] || {});
-            multipleValue[objectIndex][name] = val;
+        if (name) {
+            if ($parent && $parent.length > 0) {
+                const multipleKey = $parent.data('multiple-key');
+                const objectIndex = $parent.data('multiple-object-index');
+                const multipleValue = data[multipleKey]
+                    ? (isAttachmentForm
+                        ? JSON.parse(data[multipleKey])
+                        : data[multipleKey])
+                    : {};
+                multipleValue[objectIndex] = (multipleValue[objectIndex] || {});
+                multipleValue[objectIndex][name] = val;
 
-            data[multipleKey] = isAttachmentForm
-                ? JSON.stringify(multipleValue)
-                : multipleValue;
-        } else {
-            data[name] = val;
+                data[multipleKey] = isAttachmentForm
+                    ? JSON.stringify(multipleValue)
+                    : multipleValue;
+            } else {
+                data[name] = val;
+            }
         }
     };
 
