@@ -42,6 +42,11 @@ class CategorieCL
      */
     private $champsLibres;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=CategoryType::class, inversedBy="categorieCLs")
+     */
+    private $categoryType;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -114,6 +119,18 @@ class CategorieCL
                 $champsLibre->setCategorieCL(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCategoryType(): ?CategoryType
+    {
+        return $this->categoryType;
+    }
+
+    public function setCategoryType(?CategoryType $categoryType): self
+    {
+        $this->categoryType = $categoryType;
 
         return $this;
     }

@@ -1,7 +1,7 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Paramétrage | Champs libres | {{ type.category.label|upper }} / type {{ type.label|upper }}{% endblock %}
-{% block titleLink path('champ_libre_index') %}
+{% block title %}Paramétrage | Types | Champs libres | {{ type.category.label|capitalize }} - {{ type.label|capitalize }}{% endblock %}
+{% block titleLink path('types_index') %}
 
 {% block page_content %}
     <div class="m-4 wii-page-card">
@@ -30,5 +30,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/champLibre.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/free-field.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}
