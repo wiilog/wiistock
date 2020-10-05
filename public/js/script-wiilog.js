@@ -249,16 +249,6 @@ function updateQuantityDisplay($elem) {
     }
 }
 
-function initFilterDateToday() {
-    let $todayMinDate = $('#dateMin');
-    let $todayMaxDate = $('#dateMax');
-    if ($todayMinDate.val() === '' && $todayMaxDate.val() === '') {
-        let today = moment().format('DD/MM/YYYY');
-        $todayMinDate.val(today);
-        $todayMaxDate.val(today);
-    }
-}
-
 function toggleRequiredChampsLibres($select, require, $freeFieldContainer = null) {
     const bloc = $freeFieldContainer
         ? $freeFieldContainer
