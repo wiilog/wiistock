@@ -111,3 +111,13 @@ function hideOptionOnChange($modal, forceClear = true) {
         $fields.find('.field-needed').addClass('needed');
     }
 }
+
+function statusStateChanged($select) {
+    const selectedEntityIsDispatch = $('select[name="category"]').find('option:selected').data('is-dispatch');
+    const selectedStatusNeedsNomadSync = $select.find('option:selected').data('needs-nomad-sync');
+    if (selectedEntityIsDispatch && !selectedStatusNeedsNomadSync) {
+        $('.nomad-sync').addClass('d-none');
+    } else {
+        $('.nomad-sync').removeClass('d-none');
+    }
+}
