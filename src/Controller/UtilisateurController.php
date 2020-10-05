@@ -14,8 +14,6 @@ use App\Service\PasswordService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -192,7 +190,10 @@ class UtilisateurController extends AbstractController
             $entityManager->persist($utilisateur);
             $entityManager->flush();
 
-			return new JsonResponse(['success' => true]);
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'L\'utilisateur <strong>' . $data['username'] . '</strong> a bien été créé.'
+            ]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -379,7 +380,10 @@ class UtilisateurController extends AbstractController
             $entityManager->persist($utilisateur);
             $entityManager->flush();
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'L\'utilisateur <strong>' . $utilisateur->getUsername() . '</strong> a bien été modifié.'
+            ]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -434,9 +438,11 @@ class UtilisateurController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-	/**
-	 * @Route("/verification", name="user_check_delete", options={"expose"=true})
-	 */
+    /**
+     * @Route("/verification", name="user_check_delete", options={"expose"=true})
+     * @param Request $request
+     * @return Response
+     */
 	public function checkUserCanBeDeleted(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest() && $userId = json_decode($request->getContent(), true)) {
@@ -464,8 +470,6 @@ class UtilisateurController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
@@ -478,6 +482,7 @@ class UtilisateurController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $user = $utilisateurRepository->find($data['user']);
+            $username = $user->getUsername();
 
 			// on vérifie que l'utilisateur n'est plus utilisé
 			$isUserUsed = $this->userService->isUsedByDemandsOrOrders($user);
@@ -489,7 +494,10 @@ class UtilisateurController extends AbstractController
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($user);
 			$entityManager->flush();
-			return new JsonResponse(true);
+			return new JsonResponse([
+			    'success' => true,
+                'msg' => 'L\'utilisateur <strong>' . $username . '</strong> a bien été supprimé.'
+            ]);
 		}
         throw new NotFoundHttpException('404');
     }
