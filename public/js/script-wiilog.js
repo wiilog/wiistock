@@ -38,6 +38,28 @@ $(function () {
     });
 
     $('[data-toggle="popover"]').popover();
+
+    let $quickCreate = $('#quick-create');
+    $('[data-target="#quick-create"]')
+        .click(() => {
+            if ($quickCreate.hasClass('d-none')) {
+                $quickCreate.removeClass('d-none');
+                $quickCreate.fadeIn();
+            } else {
+                $quickCreate.fadeOut(() => {
+                    $quickCreate.addClass('d-none');
+                });
+            }
+        });
+
+    setTimeout(() => {
+        let query = GetRequestQuery();
+        if(query["open-modal"] === "new") {
+            $('[data-modal-type="new"]').first().modal("show");
+            delete query["open-modal"];
+            SetRequestQuery(query);
+        }
+    }, 200);
 });
 
 //DELETE
@@ -1173,6 +1195,7 @@ function GetRequestQuery() {
             res[decodeURIComponent(name).toLowerCase()] = decodeURIComponent(value);
         }
     }
+
     return res;
 }
 

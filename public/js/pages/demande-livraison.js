@@ -28,6 +28,11 @@ $(function () {
 
     let table = initPageDatatable();
     initPageModals(table);
+
+    const $modalNewDemande = $('#modalNewDemande');
+    $modalNewDemande.on('show.bs.modal', function () {
+        initNewLivraisonEditor('#modalNewDemande');
+    });
 });
 
 function initNewLivraisonEditor(modal) {
