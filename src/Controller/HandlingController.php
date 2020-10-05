@@ -6,7 +6,7 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\FieldsParam;
 use App\Entity\Menu;
 use App\Entity\Handling;
@@ -102,7 +102,7 @@ class HandlingController extends AbstractController
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);

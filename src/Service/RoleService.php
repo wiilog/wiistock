@@ -82,6 +82,10 @@ class RoleService
             'params' => $params,
             'dashboards' => [
                 [
+                    "id" => 'demandes',
+                    'label' => "Demandes en cours"
+                ],
+                [
                     "id" => 'arrivage',
                     'label' => "Dashboard Réception Arrivage"
                 ],
@@ -96,7 +100,7 @@ class RoleService
                 [
                     "id" => 'emballage',
                     'label' => "Dashboard Monitoring Emballage"
-                ],
+                ]
             ]
         ];
     }

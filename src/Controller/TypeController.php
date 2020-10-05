@@ -7,9 +7,6 @@ use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
-use App\Entity\FiltreRef;
-use App\Entity\ReferenceArticle;
-use App\Entity\ChampLibre;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Service\GlobalParamService;
@@ -22,7 +19,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Repository\FiltreRefRepository;
 
 /**
  * Class TypeController

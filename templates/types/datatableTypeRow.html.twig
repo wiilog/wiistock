@@ -18,7 +18,7 @@
                 </div>
             </div>
             {% if type.category.label is not constant('App\\Entity\\CategoryType::LITIGE') %}
-                <a href="{{ path('champs_libre_show', {id: type.id}) }}" class="dropdown-item">
+                <a href="{{ path('champs_libre_show', {type: type.id}) }}" class="dropdown-item">
                     <i class='fas fa-cog mr-2'></i>Gérer les champs libres
                 </a>
             {% endif %}

@@ -28,6 +28,11 @@ $(function () {
 
     let table = initPageDatatable();
     initPageModals(table);
+
+    const $modalNewDemande = $('#modalNewDemande');
+    $modalNewDemande.on('show.bs.modal', function () {
+        initNewLivraisonEditor('#modalNewDemande');
+    });
 });
 
 function initNewLivraisonEditor(modal) {
@@ -37,7 +42,7 @@ function initNewLivraisonEditor(modal) {
     }
     clearModal(modal);
     Select2.location($('.ajax-autocomplete-location'));
-    initDisplaySelect2Multiple('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
+    Select2.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
 }
 
 function callbackSaveFilter() {
