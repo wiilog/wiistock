@@ -294,7 +294,8 @@ class DispatchService {
                 ],
                 [
                     'label' => $this->translator->trans('acheminement.Numéro de commande'),
-                    'value' => $commandNumber, 'title' => 'Numéro de commande',
+                    'value' => $commandNumber,
+                    'title' => 'Numéro de commande',
                     'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH ]
                 ],
                 [
