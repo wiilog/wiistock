@@ -4,6 +4,7 @@
 namespace App\Service;
 
 
+use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -12,6 +13,7 @@ use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\LigneArticlePreparation;
+use App\Entity\Menu;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
@@ -69,6 +71,8 @@ class DemandeLivraisonService
     private $translator;
     private $preparationsManager;
     private $freeFieldService;
+    private $userService;
+    private $appURL;
 
     public function __construct(ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
@@ -81,6 +85,8 @@ class DemandeLivraisonService
                                 TranslatorInterface $translator,
                                 MailerService $mailerService,
                                 RefArticleDataService $refArticleDataService,
+                                UserService $userService,
+                                string $appURL,
                                 Twig_Environment $templating)
     {
         $this->receptionRepository = $receptionRepository;
@@ -94,7 +100,9 @@ class DemandeLivraisonService
         $this->translator = $translator;
         $this->mailerService = $mailerService;
         $this->refArticleDataService = $refArticleDataService;
+        $this->userService =$userService;
         $this->freeFieldService = $freeFieldService;
+        $this->appURL = $appURL;
     }
 
     public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null)
@@ -147,6 +155,64 @@ class DemandeLivraisonService
                 ),
             ];
         return $row;
+    }
+
+    public function parseRequestForCard(Demande $demande) {
+
+        $onClickAction = "showBSAlert('Vous n'avez pas les droits d'accéder à la page d'état actuel de la demande de livraison.', 'danger');";
+
+        $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR);
+        $hasRightToSeePrepaOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA);
+        $hasRightToSeeDeliveryOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR);
+
+        $demandeStatut = $demande->getStatut() ? $demande->getStatut()->getNom() : '';
+        $demandeType = $demande->getType() ? $demande->getType()->getLabel() : '';
+
+        if ($demandeStatut === Demande::STATUT_BROUILLON && $hasRightToSeeRequest) {
+            $onClickAction  = 'window.location.href = "' . $this->appURL . $this->router->generate('demande_show', ['id' => $demande->getId()]) . '"';
+        } else if ($demandeStatut === Demande::STATUT_A_TRAITER && $hasRightToSeePrepaOrders && !$demande->getPreparations()->isEmpty()) {
+            $onClickAction  = 'window.location.href = "' . $this->appURL . $this->router->generate('preparation_index', ['demandId' => $demande->getId()]) . '"';
+        } else if (
+            (
+                $demandeStatut === Demande::STATUT_LIVRE_INCOMPLETE ||
+                $demandeStatut === Demande::STATUT_INCOMPLETE ||
+                $demandeStatut === Demande::STATUT_PREPARE
+            )
+            && $hasRightToSeeDeliveryOrders && !$demande->getLivraisons()->isEmpty()
+        ) {
+            $onClickAction  = 'window.location.href = "' . $this->appURL . $this->router->generate('livraison_index', ['demandId' => $demande->getId()]) . '"';
+        }
+
+        $bodyTitle = ($demande->getArticles()->count() + $demande->getLigneArticle()->count()) . ' articles/références - ' . $demandeType;
+
+        return [
+            'requestOnClick' => $onClickAction,
+            'estimatedFinishTime' => 'Date de livraison non déterminée',
+            'requestStatus' => $demandeStatut,
+            'requestBodyTitle' => $bodyTitle,
+            'requestLocation' => $demande->getDestination() ? $demande->getDestination()->getLabel() : 'Non défini',
+            'requestNumber' => $demande->getNumero(),
+            'requestDate' => $demande->getDate() ? $demande->getDate()->format('d/m/Y H:i') : 'Non défini',
+            'requestUser' => $demande->getUtilisateur() ? $demande->getUtilisateur()->getUsername() : 'Non défini',
+            'cardColor' => $demandeStatut === Demande::STATUT_BROUILLON ? 'lightGrey' : 'white',
+            'bodyColor' => $demandeStatut === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
+            'topRightIcon' => 'fa-box',
+            'progress' => (
+                $demandeStatut === Demande::STATUT_BROUILLON
+                    ? '0'
+                    : (
+                        $demandeStatut === Demande::STATUT_PREPARE || $demandeStatut === Demande::STATUT_INCOMPLETE
+                            ? '50'
+                            : (
+                                $demandeStatut === Demande::STATUT_A_TRAITER
+                                    ? '25'
+                                    : '75'
+                            )
+                    )
+            ),
+            'progressBarColor' => '#2ec2ab',
+            'progressBarBGColor' => $demandeStatut === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
+        ];
     }
 
     /**

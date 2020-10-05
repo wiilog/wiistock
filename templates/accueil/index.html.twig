@@ -35,7 +35,12 @@
                          data-name="{{ dashboard }}">
                         <div class="col-12">
                             {% if dashboard == 'demandes' %}
-                                {% include'accueil/dashboardPendingRequests.html.twig' %}
+                                {%
+                                    include'accueil/dashboardPendingRequests.html.twig' with
+                                    {
+                                        deliveries: pendingDeliveries
+                                    }
+                                %}
                             {% elseif dashboard == 'arrivage' %}
                                 {% include 'accueil/dashboardArrival.html.twig' %}
                             {% elseif dashboard == 'quai' %}

@@ -46,6 +46,9 @@ services:
     App\Service\TranslationService:
         arguments:
             $appLocale: '%appLocale%'
+    App\Service\DemandeLivraisonService:
+        arguments:
+            $appURL: '%env(APP_URL)%'
     App\Twig\BarcodeExtension:
         arguments:
             $barcodeGenerator: '@sgk_barcode.generator'

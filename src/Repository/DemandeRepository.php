@@ -10,6 +10,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Demande|null find($id, $lockMode = null, $lockVersion = null)
@@ -38,6 +39,27 @@ class DemandeRepository extends EntityRepository
         )->setParameters(['user' => $user, 'status' => $status]);
 
         return $query->execute();
+    }
+
+    public function findByStatutArrayAndUser(array $statuts, Utilisateur $utilisateur) {
+        $queryBuilder = $this->createQueryBuilder('demande');
+        $queryBuilderExpr = $queryBuilder->expr();
+        return $queryBuilder
+            ->select('demande')
+            ->innerJoin('demande.statut', 'statut')
+            ->where(
+                $queryBuilderExpr->andX(
+                    $queryBuilderExpr->in('statut.nom', ':statuts'),
+                    $queryBuilderExpr->eq('demande.utilisateur', ':user')
+                )
+            )
+            ->setParameters([
+                'statuts' => $statuts,
+                'user' => $utilisateur
+            ])
+            ->orderBy('demande.date', 'DESC')
+            ->getQuery()
+            ->execute();
     }
 
     public function findByStatutAndUser($statut, $user)
