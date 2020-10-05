@@ -134,6 +134,13 @@ class UtilisateurController extends AbstractController
 				]);
             }
 
+            if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "L'adresse email principale \"{$data['email']}\" n'est pas valide"
+                ]);
+            }
+
 			// unicité de l'username
             $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
 			if ($usernameAlreadyUsed > 0) {
@@ -144,13 +151,23 @@ class UtilisateurController extends AbstractController
 				]);
 			}
 
+            $secondaryEmails = json_decode($data['secondaryEmails']);
+            foreach($secondaryEmails as $email) {
+                if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "L'adresse email \"{$email}\" n'est pas valide"
+                    ]);
+                }
+            }
+
             $utilisateur = new Utilisateur();
             $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($entityManager);
             $role = $roleRepository->find($data['role']);
             $utilisateur
                 ->setUsername($data['username'])
                 ->setEmail($data['email'])
-                ->setSecondaryEmails(json_decode($data['secondaryEmails']))
+                ->setSecondaryEmails($secondaryEmails)
                 ->setPhone($data['phoneNumber'])
                 ->setRole($role)
 				->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
@@ -282,6 +299,13 @@ class UtilisateurController extends AbstractController
 				]);
 			}
 
+            if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "L'adresse email principale \"{$data['email']}\" n'est pas valide"
+                ]);
+            }
+
 			// unicité de l'username
             $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
 
@@ -303,8 +327,19 @@ class UtilisateurController extends AbstractController
 						'action' => 'edit'
 				]);
 			}
+
+            $secondaryEmails = json_decode($data['secondaryEmails']);
+            foreach($secondaryEmails as $email) {
+                if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "L'adresse email \"{$email}\" n'est pas valide"
+                    ]);
+                }
+            }
+
             $utilisateur
-                ->setSecondaryEmails(json_decode($data['secondaryEmails']))
+                ->setSecondaryEmails($secondaryEmails)
                 ->setRole($role)
                 ->setStatus($data['status'])
                 ->setUsername($data['username'])

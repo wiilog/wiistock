@@ -130,6 +130,15 @@ class SecuriteController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+            if(!filter_var($user->getEmail(), FILTER_VALIDATE_EMAIL)) {
+                $this->addFlash("danger", "Votre adresse email n'est pas valide");
+
+                return $this->render('securite/register.html.twig', [
+                    'controller_name' => 'SecuriteController',
+                    'form' => $form->createView(),
+                ]);
+            }
+
             $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($entityManager);
             $password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
             $user
