@@ -20,7 +20,7 @@
                                 data-toggle="modal"
                                 data-target="#modalAddToMission"
                                 class="btn btn-primary btn-ripple split-button"
-                                onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete-refArticle'), 'reference', 'barCode'), ajaxAutoArticlesInit($('.ajax-autocomplete-article'))">
+                                onclick="Select2.articleReference($('.ajax-autocomplete-refArticle'), 'reference', 'barCode'), Select2.article($('.ajax-autocomplete-article'))">
                             <span class="fa fa-plus mr-2"></span>Ajouter des références ou des articles
                         </button>
                         <button type="button"
@@ -81,5 +81,5 @@
 {% endblock %}
     {% block javascripts %}
         {{ parent() }}
-        <script src="{{ asset('js/mission-inventaire-show.js') }}?{{ date().timestamp }}"></script>
+        <script src="{{ asset('js/pages/mission-inventaire-show.js') }}?{{ date().timestamp }}"></script>
     {% endblock %}

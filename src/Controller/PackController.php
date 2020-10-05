@@ -258,6 +258,31 @@ class PackController extends AbstractController {
             $pack = $packRepository->find($data['pack']);
             $packCode = $pack->getCode();
 
+            if(!$pack->getTrackingMovements()->isEmpty()) {
+                $msg = $translator->trans("colis.Ce colis est référencé dans un ou plusieurs mouvements de traçabilité");
+            }
+
+            if(!$pack->getDispatchPacks()->isEmpty()) {
+                $msg = $translator->trans("colis.Ce colis est référencé dans un ou plusieurs acheminements");
+            }
+
+            if(!$pack->getLitiges()->isEmpty()) {
+                $msg = $translator->trans("colis.Ce colis est référencé dans un ou plusieurs litiges");
+            }
+
+            if($pack->getArrivage()) {
+                $msg = $translator->trans('colis.Ce colis est utilisé dans l\'arrivage {arrivage}', [
+                    "{arrivage}" => $pack->getArrivage()->getNumeroArrivage()
+                ]);
+            }
+
+            if(isset($msg)) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => $msg
+                ]);
+            }
+
             $entityManager->remove($pack);
             $entityManager->flush();
 

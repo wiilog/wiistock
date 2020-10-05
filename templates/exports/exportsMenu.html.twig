@@ -32,7 +32,3 @@
         <hr>
     </div>
 {% endblock %}
-{% block javascripts %}
-    {{ parent() }}
-    <script src="{{ asset('js/script-wiilog.js') }}?{{ date().timestamp }}"></script>
-{% endblock %}

@@ -4,8 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Arrivage;
 use App\Entity\Statut;
-use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
+use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -111,6 +111,7 @@ class ArrivageRepository extends EntityRepository
             ->addSelect('arrivage.date')
             ->addSelect('arrivage.projectNumber AS projectNumber')
             ->addSelect('arrivage.businessUnit AS businessUnit')
+            ->addSelect('arrivage.freeFields AS freeFields')
             ->leftJoin('arrivage.destinataire', 'recipient')
             ->leftJoin('arrivage.fournisseur', 'fournisseur')
             ->leftJoin('arrivage.transporteur', 'transporteur')
@@ -250,12 +251,7 @@ class ArrivageRepository extends EntityRepository
      */
     public function findByParamsAndFilters($params, $filters, $userId, $freeFieldLabelsToIds)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
-
-        $qb
-            ->select('a')
-            ->from('App\Entity\Arrivage', 'a');
+        $qb = $this->createQueryBuilder("a");
 
         // filtre arrivages de l'utilisateur
         if ($userId) {
@@ -265,9 +261,7 @@ class ArrivageRepository extends EntityRepository
                 ->setParameter('userId', $userId);
         }
 
-        $countTotal = $qb->select("COUNT(a)")
-            ->getQuery()
-            ->getSingleScalarResult();
+        $total = QueryCounter::count($qb);
 
         // filtres sup
         $needsDefaultDateFilter = true;
@@ -469,25 +463,17 @@ class ArrivageRepository extends EntityRepository
                 ->setParameter('dateMax', $nowToString . " 23:59:59");
         }
 
-        $countFiltered = $qb
-            ->select('COUNT(a)')
-            ->getQuery()
-            ->getSingleScalarResult();
+        $filtered = QueryCounter::count($qb);
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
 
-        $arrivages = $qb
-            ->select('a')
-            ->getQuery()
-            ->getResult();
-
         return [
-            'data' => $arrivages ?? null,
-            'count' => $countFiltered,
-            'total' => $countTotal
+            'data' => $qb->getQuery()->getResult(),
+            'count' => $filtered,
+            'total' => $total
         ];
     }
 

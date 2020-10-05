@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Fournisseur;
 use App\Entity\Urgence;
+use App\Helper\QueryCounter;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\Connection;
@@ -155,14 +156,9 @@ class UrgenceRepository extends EntityRepository
 
     public function findByParamsAndFilters($params, $filters)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
+        $qb = $this->createQueryBuilder("u");
 
-        $qb
-            ->select('u')
-            ->from('App\Entity\Urgence', 'u');
-
-        $countTotal = count($qb->getQuery()->getResult());
+        $countTotal = QueryCounter::count($qb);
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -240,7 +236,7 @@ class UrgenceRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = count($qb->getQuery()->getResult());
+        $countFiltered = QueryCounter::count($qb);
 
         if ($params) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

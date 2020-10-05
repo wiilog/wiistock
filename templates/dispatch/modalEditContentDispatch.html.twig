@@ -43,7 +43,7 @@
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
         <div class="form-group col-md-4 col-12">
             <label for="prise" title="Emplacement de prise">{{ 'acheminement.Emplacement prise'|trans }}{{ required ? '*' }}</label>
-            <select name="prise" class="form-control data ajax-autocompleteEmplacement-edit d-block {{ required ? 'needed' }} location-prise"
+            <select name="prise" class="form-control data ajax-autocomplete-location-edit d-block {{ required ? 'needed' }} location-prise"
                     id="prise">
                 {% if dispatch.locationFrom %}
                     <option value="{{ dispatch.locationFrom.id }}">{{ dispatch.locationFrom.label }}</option>
@@ -57,7 +57,7 @@
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
         <div class="form-group col-md-4 col-12">
             <label for="depose" title="Emplacement de dépose">{{ 'acheminement.Emplacement dépose'|trans }}{{ required ? '*' }}</label>
-            <select name="depose" class="form-control data ajax-autocompleteEmplacement-edit {{ required ? 'needed' }} location-depose"
+            <select name="depose" class="form-control data ajax-autocomplete-location-edit {{ required ? 'needed' }} location-depose"
                     id="depose">
                 {% if dispatch.locationTo %}
                     <option value="{{ dispatch.locationTo.id }}">{{ dispatch.locationTo.label }}</option>
@@ -92,10 +92,10 @@
     {% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_EMERSON'))
         or hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::SHOW_CARRIER_FIELD')) %}
         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
-        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEditEdit') %}
+        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
             <div class="form-group col-md-4 col-12">
-                <label>Transporteur{{ required ? '*' }}</label>
+                <label title="Transporteur">{{ 'acheminement.Transporteur'|trans }}{{ required ? '*' }}</label>
                 <select class="form-control data ajax-autocomplete-transporteur-edit w-100 {{ required ? 'needed' }}"
                         title="Transporteur"
                         name="carrier">
@@ -111,7 +111,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
         <div class="form-group col-md-4 col-12">
-            <label>Numéro de tracking transporteur{{ required ? '*' }}</label>
+            <label title="Numéro de tracking transporteur">{{ 'acheminement.Numéro de tracking transporteur'|trans }}{{ required ? '*' }}</label>
             <input class="form-control data {{ required ? 'needed' }}"
                    title="Numéro de tracking transporteur"
                    name="transporterTrackingNumber"
@@ -150,7 +150,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
         <div class="form-group col-md-4 col-12">
-            <label for="project">Numéro de projet{{ required ? '*' }}</label>
+            <label for="project" title="Numéro de projet">{{ 'acheminement.Numéro de projet'|trans }}{{ required ? '*' }}</label>
             <input class="form-control data {{ required ? 'needed' }}"
                    title="Numéro de projet"
                    name="projectNumber"
@@ -162,7 +162,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
         <div class="form-group col-md-4 col-12">
-            <label for="project">Business Unit{{ required ? '*' }}</label>
+            <label title="Business unit">{{ 'acheminement.Business unit'|trans }}{{ required ? '*' }}</label>
             <select name="businessUnit"
                     class="form-control data {{ required ? 'needed' }}"
                     title="Business Unit">
@@ -182,7 +182,7 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEADLINE_DISPATCH') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
-        <div class="form-group col">
+        <div class="form-group col-md-8 col-12">
             <label>Echéance{{ required ? '*' }}</label>
             <div class="input-group w-100">
                 <div class="input-group-prepend">

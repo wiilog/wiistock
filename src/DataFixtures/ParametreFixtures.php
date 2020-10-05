@@ -3,8 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\ChampLibre;
-use App\Entity\Arrivage;
-use App\Entity\CategorieStatut;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Parametre;

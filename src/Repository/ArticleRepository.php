@@ -11,6 +11,7 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 
+use App\Helper\QueryCounter;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -422,16 +423,11 @@ class ArticleRepository extends EntityRepository
      * @throws ORMException
      * @throws OptimisticLockException
      */
-    public function findByParamsAndFilters($params = null, $filters, $user, array $freeFields)
+    public function findByParamsAndFilters($params, $filters, $user, array $freeFields)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
+        $qb = $this->createQueryBuilder("a");
 
-        $qb
-            ->select('a')
-            ->from('App\Entity\Article', 'a');
-
-        $countQuery = $countTotal = count($qb->getQuery()->getResult());
+        $countQuery = $countTotal = QueryCounter::count($qb);
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -459,18 +455,13 @@ class ArticleRepository extends EntityRepository
 					$searchForArticle = $user->getRechercheForArticle();
 					if (empty($searchForArticle)) {
 						$searchForArticle = Utilisateur::SEARCH_DEFAULT;
-						$user->setRechercheForArticle($searchForArticle);
-						$em->flush();
 					}
 
                     foreach ($searchForArticle as $key => $searchField) {
                         switch ($searchField) {
                             case 'Type':
-                                $subqb = $em->createQueryBuilder();
-                                $subqb
+                                $subqb = $this->createQueryBuilder("a")
                                     ->select('a.id')
-                                    ->from('App\Entity\Article', 'a');
-                                $subqb
                                     ->leftJoin('a.type', 't_search')
                                     ->andWhere('t_search.label LIKE :valueSearch')
                                     ->setParameter('valueSearch', '%' . $searchValue . '%');
@@ -481,11 +472,8 @@ class ArticleRepository extends EntityRepository
                                 break;
 
                             case 'Statut':
-                                $subqb = $em->createQueryBuilder();
-                                $subqb
+                                $subqb = $this->createQueryBuilder("a")
                                     ->select('a.id')
-                                    ->from('App\Entity\Article', 'a');
-                                $subqb
                                     ->leftJoin('a.statut', 's_search')
                                     ->andWhere('s_search.nom LIKE :valueSearch')
                                     ->setParameter('valueSearch', '%' . $searchValue . '%');
@@ -495,11 +483,8 @@ class ArticleRepository extends EntityRepository
                                 }
                                 break;
                             case 'Emplacement':
-                                $subqb = $em->createQueryBuilder();
-                                $subqb
+                                $subqb = $this->createQueryBuilder("a")
                                     ->select('a.id')
-                                    ->from('App\Entity\Article', 'a');
-                                $subqb
                                     ->leftJoin('a.emplacement', 'e_search')
                                     ->andWhere('e_search.label LIKE :valueSearch')
                                     ->setParameter('valueSearch', '%' . $searchValue . '%');
@@ -509,11 +494,8 @@ class ArticleRepository extends EntityRepository
                                 }
                                 break;
                             case 'Référence article':
-                                $subqb = $em->createQueryBuilder();
-                                $subqb
+                                $subqb = $this->createQueryBuilder("a")
                                     ->select('a.id')
-                                    ->from('App\Entity\Article', 'a');
-                                $subqb
                                     ->leftJoin('a.articleFournisseur', 'afa')
                                     ->leftJoin('afa.referenceArticle', 'ra')
                                     ->andWhere('ra.reference LIKE :valueSearch')
@@ -524,7 +506,7 @@ class ArticleRepository extends EntityRepository
                                 }
                                 break;
                             default:
-                                $metadatas = $em->getClassMetadata(Article::class);
+                                $metadatas = $this->_em->getClassMetadata(Article::class);
                                 $field = !empty(self::linkChampLibreLabelToField[$searchField]) ? self::linkChampLibreLabelToField[$searchField]['field'] : '';
                                 if ($field !== '' && in_array($field, $metadatas->getFieldNames())) {
                                     $query[] = 'a.' . $field . ' LIKE :valueSearch';
@@ -549,15 +531,15 @@ class ArticleRepository extends EntityRepository
                     foreach ($ids as $id) {
                         $query[] = 'a.id  = ' . $id;
                     }
+
                     if (!empty($query)) {
-                        $qb
-                            ->andWhere(
-                                implode(' OR ', $query)
-                            );
+                        $qb->andWhere(implode(' OR ', $query));
                     }
                 }
-				$countQuery = count($qb->getQuery()->getResult());
+
+				$countQuery =  QueryCounter::count($qb);
 			}
+
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
@@ -628,7 +610,8 @@ class ArticleRepository extends EntityRepository
             'data' => $query ? $query->getResult() : null,
             'allArticleDataTable' => $allArticleDataTable ? $allArticleDataTable->getResult() : null,
             'count' => $countQuery,
-            'total' => $countTotal];
+            'total' => $countTotal
+        ];
     }
 
     public function countActiveArticles()

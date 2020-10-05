@@ -12,19 +12,7 @@ use Throwable;
 
 class FreeFieldService
 {
-
-    private $CSVExportService;
-    private $entityManager;
-
-    public function __construct(CSVExportService $CSVExportService,
-                                EntityManagerInterface $entityManager)
-    {
-        $this->CSVExportService = $CSVExportService;
-        $this->entityManager = $entityManager;
-    }
-
-
-    public function formatValeurChampLibreForDatatable(array $valeurChampLibre): ?string
+    public function serializeValue(array $valeurChampLibre): ?string
     {
         if (in_array($valeurChampLibre['typage'], [ChampLibre::TYPE_DATE, ChampLibre::TYPE_DATETIME])
             && !empty($valeurChampLibre['valeur'])) {
@@ -40,6 +28,36 @@ class FreeFieldService
             $formattedValue = $valeurChampLibre['valeur'];
         }
         return $formattedValue;
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param array $freeFieldCategoryLabels
+     * @return array[
+     *     'freeFieldIds' => int[],
+     *     'freeFieldsHeader' => string[],
+     *     'freeFieldsIdToTyping' => array[int][string]
+     * ]
+     */
+    public function createExportArrayConfig(EntityManagerInterface $entityManager,
+                                            array $freeFieldCategoryLabels): array
+    {
+        $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+        $freeFields = $freeFieldsRepository->findByFreeFieldCategoryLabels($freeFieldCategoryLabels);
+
+        $config = [
+            'freeFieldIds' => [],
+            'freeFieldsHeader' => [],
+            'freeFieldsIdToTyping' => []
+        ];
+
+        foreach ($freeFields as $freeField) {
+            $config['freeFieldIds'][] = $freeField->getId();
+            $config['freeFieldsHeader'][] = $freeField->getLabel();
+            $config['freeFieldsIdToTyping'][$freeField->getId()] = $freeField->getTypage();
+        }
+
+        return $config;
     }
 
 
@@ -108,7 +126,7 @@ class FreeFieldService
             if ($freeFieldValue && isset($freeFields[$freeFieldId])) {
                 $detailsChampLibres[] = [
                     'label' => $freeFields[$freeFieldId]['label'],
-                    'value' => $this->formatValeurChampLibreForDatatable([
+                    'value' => $this->serializeValue([
                         'valeur' => $freeFieldValue,
                         'typage' => $freeFields[$freeFieldId]['typage']
                     ])
@@ -131,17 +149,6 @@ class FreeFieldService
             $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
             return $accumulator;
         }, []);
-    }
-
-    public function serializeFreeField(ChampLibre $freeField): array {
-        return [
-            'id' => $freeField->getId(),
-            'label' => $freeField->getLabel(),
-            'elements' => $freeField->getElements(),
-            'typing' => $freeField->getTypage(),
-            'defaultValue' => $freeField->getDefaultValue(),
-            'required' => $freeField->getRequiredCreate()
-        ];
     }
 
 }

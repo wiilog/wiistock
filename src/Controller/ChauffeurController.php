@@ -124,7 +124,9 @@ class ChauffeurController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'Le chauffeur ' . $data['nom'] . ' ' . $data['prenom'] . ' a bien été créé.'
+                'msg' => 'Le chauffeur ' . $data['nom'] . ' ' . $data['prenom'] . ' a bien été créé.',
+                'id' => $chauffeur->getId(),
+                'text' => $data['nom']
             ]);
         }
         throw new NotFoundHttpException('404 not found');

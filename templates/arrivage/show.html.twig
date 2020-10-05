@@ -123,8 +123,8 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/arrivage-common.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/show-arrivage.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/dispatch-common.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/form-litiges.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/arrivage-common.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/show-arrivage.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/dispatch-common.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/form-litiges.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

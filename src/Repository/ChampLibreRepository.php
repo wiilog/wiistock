@@ -234,6 +234,20 @@ class ChampLibreRepository extends EntityRepository
 		return $query->execute();
 	}
 
+    /**
+     * @param string[] $categoryCLLabels
+     * @return ChampLibre[]
+     */
+	public function findByFreeFieldCategoryLabels(array $categoryCLLabels)
+	{
+		return $this->createQueryBuilder('freeField')
+            ->join('freeField.categorieCL', 'categorieCL')
+            ->where('categorieCL.label IN (:categoryCLLabels)')
+            ->setParameter('categoryCLLabels', $categoryCLLabels, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->getResult();
+	}
+
 	/**
 	 * @param string $categoryCL
 	 * @param string $label

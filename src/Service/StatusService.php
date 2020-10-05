@@ -2,8 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Arrivage;
-use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
