@@ -7,7 +7,7 @@ use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\Menu;
@@ -85,7 +85,7 @@ class DispatchController extends AbstractController {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
 
@@ -244,8 +244,6 @@ class DispatchController extends AbstractController {
             $fileBag = $request->files->count() > 0 ? $request->files : null;
 
             $type = $typeRepository->find($post->get('type'));
-
-
 
             $locationTake = $post->get('prise')
                 ? ($emplacementRepository->find($post->get('prise')) ?: $type->getPickLocation())

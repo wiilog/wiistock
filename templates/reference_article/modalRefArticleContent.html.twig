@@ -203,7 +203,7 @@
 <!-- CHAMPS LIBRES -->
 <span class="toggle-collapsible expanded">Champs libres</span>
 <div class="collapsible expanded free-fields-container">
-    {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+    {% include 'free_field/freeFieldsViewing.html.twig' with {
         freeFields: freeFieldsGroupedByTypes[articleRef.type.id] is defined ? freeFieldsGroupedByTypes[articleRef.type.id] : [],
         freeFieldValues: articleRef.freeFields,
         colType: 'col-md-4 col-12',

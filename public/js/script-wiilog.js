@@ -38,6 +38,28 @@ $(function () {
     });
 
     $('[data-toggle="popover"]').popover();
+
+    let $quickCreate = $('#quick-create');
+    $('[data-target="#quick-create"]')
+        .click(() => {
+            if ($quickCreate.hasClass('d-none')) {
+                $quickCreate.removeClass('d-none');
+                $quickCreate.fadeIn();
+            } else {
+                $quickCreate.fadeOut(() => {
+                    $quickCreate.addClass('d-none');
+                });
+            }
+        });
+
+    setTimeout(() => {
+        let query = GetRequestQuery();
+        if(query["open-modal"] === "new") {
+            $('[data-modal-type="new"]').first().modal("show");
+            delete query["open-modal"];
+            SetRequestQuery(query);
+        }
+    }, 200);
 });
 
 //DELETE
@@ -98,7 +120,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         const $modalBody = modal.find('.modal-body');
         $modalBody.html(resp);
         modal.find('.select2').select2();
-        initFreeSelect2(modal.find('.select2-free'));
+        Select2.initFree(modal.find('.select2-free'));
         Select2.provider(modal.find('.ajax-autocomplete-fournisseur-edit'));
         Select2.frequency(modal.find('.ajax-autocomplete-frequency'));
         Select2.articleReference(modal.find('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
@@ -122,13 +144,6 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         afterLoadingEditModal(modal);
     }, 'json');
 
-}
-
-function newModal(path, modal) {
-    $.post(path, function (resp) {
-        modal.find('.modal-body').html(resp);
-        initFreeSelect2(modal.find($('.select2-free')));
-    }, 'json');
 }
 
 function setMaxQuantityEdit(select) {
@@ -241,30 +256,6 @@ function initFilterDateToday() {
         let today = moment().format('DD/MM/YYYY');
         $todayMinDate.val(today);
         $todayMaxDate.val(today);
-    }
-}
-
-function initDisplaySelect2(select, inputValue, forceInit = false) {
-    let data = $(inputValue).data();
-    const $select = $(select);
-    if (data.id && data.text) {
-        let option = new Option(data.text, data.id, true, true);
-        $select.append(option).trigger('change');
-    } else if (forceInit) {
-        $select.val(null).trigger('change');
-    }
-}
-
-function initDisplaySelect2Multiple(select, inputValues) {
-    let data = $(inputValues).data();
-    if (data.id && data.text) {
-        let idArr = data.id.toString().split(',');
-        let textArr = data.text.split(',');
-
-        for (let i = 0; i < idArr.length; i++) {
-            let option = new Option(textArr[i], idArr[i], true, true);
-            $(select).append(option).trigger('change');
-        }
     }
 }
 
@@ -1001,28 +992,6 @@ function initOnTheFlyCopies($elems) {
     });
 }
 
-function initFreeSelect2($selects) {
-    $selects.each(function () {
-        const $self = $(this);
-        $self.select2({
-            tags: true,
-            "language": {
-                "noResults": function () {
-                    return 'Ajoutez des éléments';
-                }
-            },
-        });
-        $self.next('.select2-container').find('.select2-selection').on('focus', () => {
-            $(this).closest(".select2-container").siblings('select:enabled').select2('open');
-        });
-    });
-}
-
-
-function openSelect2($select2) {
-    $select2.select2('open');
-}
-
 function saveExportFile(routeName, needsDateFilters = true) {
     const $spinner = $('#spinner');
     loadSpinner($spinner);
@@ -1173,6 +1142,7 @@ function GetRequestQuery() {
             res[decodeURIComponent(name).toLowerCase()] = decodeURIComponent(value);
         }
     }
+
     return res;
 }
 

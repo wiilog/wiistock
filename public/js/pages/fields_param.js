@@ -1,5 +1,5 @@
 $(function () {
-    initFreeSelect2($('select.select2-free'));
+    Select2.initFree($('select.select2-free'));
 
     $('.table').each(function () {
         const $table = $(this);

@@ -31,11 +31,12 @@ InitModal(modalEditDays, submitEditDays, urlEditDays, {tables: [tableDays]});
 
 $(function () {
     Select2.init($('#locationArrivageDest'));
-    initFreeSelect2($('select[name="businessUnit"]'));
-    initFreeSelect2($('select[name="dispatchEmergencies"]'));
+    Select2.init($('#listNaturesColis'));
+    Select2.initFree($('select[name="businessUnit"]'));
+    Select2.initFree($('select[name="dispatchEmergencies"]'));
     Select2.location($('.ajax-autocomplete-location'));
     Select2.carrier($('.ajax-autocomplete-transporteur'));
-    initDisplaySelect2('#receptionLocation', '#receptionLocationValue');
+    Select2.initValues($('#receptionLocation'), $('#receptionLocationValue'));
     $('#receptionLocation').on('change', editDefaultLocationValue);
 
     updateImagePreview('#preview-label-logo', '#upload-label-logo');
@@ -80,35 +81,35 @@ $(function () {
 });
 
 function initValuesForDashboard() {
-    initDisplaySelect2Multiple('#locationToTreat', '#locationToTreatValue');
-    initDisplaySelect2Multiple('#locationWaitingDock', '#locationWaitingDockValue');
-    initDisplaySelect2Multiple('#locationWaitingAdmin', '#locationWaitingAdminValue');
-    initDisplaySelect2Multiple('#locationAvailable', '#locationAvailableValue');
-    initDisplaySelect2Multiple('#locationDropZone', '#locationDropZoneValue');
-    initDisplaySelect2Multiple('#locationLitiges', '#locationLitigesValue');
-    initDisplaySelect2Multiple('#locationUrgences', '#locationUrgencesValue');
-    initDisplaySelect2Multiple('#locationsFirstGraph', '#locationsFirstGraphValue');
-    initDisplaySelect2Multiple('#locationsSecondGraph', '#locationsSecondGraphValue');
-    initDisplaySelect2Multiple('#locationArrivageDest', '#locationArrivageDestValue');
-    initDisplaySelect2Multiple('#locationDemandeLivraison','#locationDemandeLivraisonValue');
-    initDisplaySelect2Multiple('#packaging1','#packagingLocation1');
-    initDisplaySelect2Multiple('#packaging2','#packagingLocation2');
-    initDisplaySelect2Multiple('#packaging3','#packagingLocation3');
-    initDisplaySelect2Multiple('#packaging4','#packagingLocation4');
-    initDisplaySelect2Multiple('#packaging5','#packagingLocation5');
-    initDisplaySelect2Multiple('#packaging6','#packagingLocation6');
-    initDisplaySelect2Multiple('#packaging7','#packagingLocation7');
-    initDisplaySelect2Multiple('#packaging8','#packagingLocation8');
-    initDisplaySelect2Multiple('#packaging9','#packagingLocation9');
-    initDisplaySelect2Multiple('#packaging10','#packagingLocation10');
-    initDisplaySelect2Multiple('#packagingRPA','#packagingLocationRPA');
-    initDisplaySelect2Multiple('#packagingLitige','#packagingLocationLitige');
-    initDisplaySelect2Multiple('#packagingKitting', '#packagingLocationKitting');
-    initDisplaySelect2Multiple('#packagingUrgence','#packagingLocationUrgence');
-    initDisplaySelect2Multiple('#packagingDSQR','#packagingLocationDSQR');
-    initDisplaySelect2Multiple('#packagingDestinationGT','#packagingLocationDestinationGT');
-    initDisplaySelect2Multiple('#packagingOrigineGT','#packagingLocationOrigineGT');
-    initDisplaySelect2Multiple('#carrierDock', '#carrierDockValue');
+    Select2.initValues($('#locationToTreat'), $('#locationToTreatValue'));
+    Select2.initValues($('#locationWaitingDock'), $( '#locationWaitingDockValue'));
+    Select2.initValues($('#locationWaitingAdmin'), $( '#locationWaitingAdminValue'));
+    Select2.initValues($('#locationAvailable'), $( '#locationAvailableValue'));
+    Select2.initValues($('#locationDropZone'), $( '#locationDropZoneValue'));
+    Select2.initValues($('#locationLitiges'), $( '#locationLitigesValue'));
+    Select2.initValues($('#locationUrgences'), $( '#locationUrgencesValue'));
+    Select2.initValues($('#locationsFirstGraph'), $( '#locationsFirstGraphValue'));
+    Select2.initValues($('#locationsSecondGraph'), $( '#locationsSecondGraphValue'));
+    Select2.initValues($('#locationArrivageDest'), $( '#locationArrivageDestValue'));
+    Select2.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
+    Select2.initValues($('#packaging1'), $('#packagingLocation1'));
+    Select2.initValues($('#packaging2'), $('#packagingLocation2'));
+    Select2.initValues($('#packaging3'), $('#packagingLocation3'));
+    Select2.initValues($('#packaging4'), $('#packagingLocation4'));
+    Select2.initValues($('#packaging5'), $('#packagingLocation5'));
+    Select2.initValues($('#packaging6'), $('#packagingLocation6'));
+    Select2.initValues($('#packaging7'), $('#packagingLocation7'));
+    Select2.initValues($('#packaging8'), $('#packagingLocation8'));
+    Select2.initValues($('#packaging9'), $('#packagingLocation9'));
+    Select2.initValues($('#packaging10'), $('#packagingLocation10'));
+    Select2.initValues($('#packagingRPA'), $('#packagingLocationRPA'));
+    Select2.initValues($('#packagingLitige'), $('#packagingLocationLitige'));
+    Select2.initValues($('#packagingKitting'), $( '#packagingLocationKitting'));
+    Select2.initValues($('#packagingUrgence'), $('#packagingLocationUrgence'));
+    Select2.initValues($('#packagingDSQR'), $('#packagingLocationDSQR'));
+    Select2.initValues($('#packagingDestinationGT'), $('#packagingLocationDestinationGT'));
+    Select2.initValues($('#packagingOrigineGT'), $('#packagingLocationOrigineGT'));
+    Select2.initValues($('#carrierDock'), $( '#carrierDockValue'));
 }
 
 function updateToggledParam(switchButton) {

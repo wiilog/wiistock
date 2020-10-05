@@ -1,5 +1,9 @@
 <!-- Modal -->
-<form method="" class="modal fade" id="modalNewCollecte" role="dialog" aria-labelledby="dataModalCenterTitle"
+<form method="" class="modal fade" id="modalNewCollecte"
+      data-modal-type="new"
+      role="dialog"
+      data-callback="initNewCollecteModal()"
+      aria-labelledby="dataModalCenterTitle"
       aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -52,7 +56,7 @@
                 <div class="collapsible expanded free-fields-container mb-2">
                     {% for type in typeChampsLibres %}
                         <div class="d-none" id="{{ type.typeId }}-new">
-                            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+                            {% include 'free_field/freeFieldsViewing.html.twig' with {
                                 freeFields: type.champsLibres,
                                 freeFieldValues: [],
                                 colType: 'col-12',

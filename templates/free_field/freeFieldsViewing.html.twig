@@ -4,38 +4,38 @@
             {% set entityValue = freeFieldValues[freeField.id] is defined
                 ? freeFieldValues[freeField.id]
                 : ( freeField.defaultValue is defined
-                    ? freeField.defaultValue
-                    : '')
+                ? freeField.defaultValue
+                : '')
             %}
             {% if (actionType == 'new' and freeField.displayedCreate) or actionType == 'edit' %}
-            <div class="{{ colType is defined ? colType }} my-2">
-                <div class="row form-group">
-                    <div class="col-12">
-                        <label for="input">
-                            {{ freeField.label }}
-                            {{ attribute(freeField, requiredType) ? '*' : '' }}
-                        </label>
-                    </div>
-                    <div class="col-12">
-                        {% if freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
-                            <div class="wii-switch {{ attribute(freeField, requiredType) ? 'needed' }}" data-title="{{ freeField.label }}">
-                                {% set entityValue = freeFieldValues[freeField.id] is defined
-                                    ? freeFieldValues[freeField.id]
-                                    : ( freeField.defaultValue is defined
-                                    ? freeField.defaultValue
-                                    : "0") %}
+                <div class="{{ colType is defined ? colType }} my-2">
+                    <div class="row form-group">
+                        <div class="col-12">
+                            <label for="input">
+                                {{ freeField.label }}
+                                {{ attribute(freeField, requiredType) ? '*' : '' }}
+                            </label>
+                        </div>
+                        <div class="col-12">
+                            {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
+                                <div class="wii-switch {{ attribute(freeField, requiredType) ? 'needed' }}" data-title="{{ freeField.label }}">
+                                    {% set entityValue = freeFieldValues[freeField.id] is defined
+                                        ? freeFieldValues[freeField.id]
+                                        : ( freeField.defaultValue is defined
+                                        ? freeField.defaultValue
+                                        : "0") %}
 
                                     <input type="radio" name="{{ freeField.id }}" value="1" content="Oui" {{ entityValue == 1 ? 'checked' }}>
                                     <input type="radio" name="{{ freeField.id }}" value="0" content="Non" {{ entityValue == 0 ? 'checked' }}>
                                 </div>
-                            {% elseif  freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_NUMBER') %}
+                            {% elseif  freeField.typage == constant('App\\Entity\\FreeField::TYPE_NUMBER') %}
                                 <input type="number" id="{{ freeField.id ~ actionType }}"
                                        class="form-control data needs-default {{ attribute(freeField, requiredType) ? 'needed' }}"
                                        data-init="{{ entityValue }}"
                                        value="{{ entityValue }}"
                                        name="{{ freeField.id }}">
 
-                            {% elseif  freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST') %}
+                            {% elseif  freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST') %}
                                 <select class="form-control data {{ attribute(freeField, requiredType) ? 'needed' : '' }} w-100"
                                         id="{{ freeField.id ~ actionType }}"
                                         name="{{ freeField.id }}">
@@ -47,7 +47,7 @@
                                     {% endfor %}
                                 </select>
 
-                            {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST_MULTIPLE') %}
+                            {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
                                 <select id="{{ freeField.id ~ actionType }}"
                                         class="form-control data list-multiple  {{ attribute(freeField, requiredType) ? 'needed' : '' }} w-100"
                                         name="{{ freeField.id }}" multiple="multiple">
@@ -57,20 +57,20 @@
                                         <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
                                     {% endfor %}
                                 </select>
-                            {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_TEXT') %}
+                            {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_TEXT') %}
                                 <input type="text" id="{{ freeField.id ~ actionType }}"
                                        class="form-control needs-default data {{ (attribute(freeField, requiredType)) ? 'needed' : '' }}"
                                        value="{{ entityValue }}"
                                        data-init="{{ entityValue }}"
                                        name="{{ freeField.id }}">
 
-                            {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_DATETIME') %}
+                            {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATETIME') %}
                                 <input type="datetime-local" name="{{ freeField.id }}" id="{{ freeField.id ~ actionType }}"
                                        class="form-control needs-default data {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
                                        data-init="{{ entityValue }}"
                                        value="{{ entityValue ? ((entityValue | replace({'/': '-'}) ) | date('Y-m-d\\TH:i')) : '' }}">
 
-                            {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_DATE') %}
+                            {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
                                 <input
                                     type="date"
                                     class="form-control data needs-default {{ attribute(freeField, requiredType) ? 'needed' : '' }}"

@@ -26,8 +26,16 @@ $backgroundBodyColorLight: #2E5492;
 $backgroundBodyColorDark: #1B1464;
 
 $bodyColor: #383838;
+$bodyColor: #383838;
 
 // breakpoints
 $breakpointSmallScreen: 800px;
 
-$wiiStockTextColors: (grey: $greyDashboard, black: $blackDashboard, blue: $backgroundBodyColorDark, white: $white, primary: $blueGT);
+$wiiStockTextColors: (
+    grey: $greyDashboard,
+    black: $blackDashboard,
+    blue: $backgroundBodyColorDark,
+    white: $white,
+    primary: $blueGT,
+    lightGrey: #ededf1
+);

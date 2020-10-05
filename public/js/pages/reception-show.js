@@ -325,7 +325,7 @@ function initNewArticleEditor(modal) {
     $quantiteAR.val(0);
 
     setTimeout(() => {
-        openSelect2($select2refs);
+        Select2.open($select2refs);
     }, 400);
 }
 
@@ -540,7 +540,7 @@ function demandeurChanged($select) {
         }
         $locationInput.data('id', idEmp);
         $locationInput.data('text', textEmp);
-        initDisplaySelect2('#locationDemandeLivraison', '#locationDemandeLivraisonValue', true);
+        Select2.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'), true);
         $locationInput.data('id', originalValues.id);
         $locationInput.data('text', originalValues.text);
     }
@@ -554,13 +554,13 @@ function initNewLigneReception($button) {
     Select2.init($modalNewLigneReception.find('.ajax-autocomplete-location'), '', 1, {route: 'get_emplacement'});
     Select2.init($('.select2-type'));
     Select2.user($modalNewLigneReception.find('.select2-user'));
-    initDisplaySelect2('#demandeurDL', '#currentUser');
+    Select2.initValues($('#demandeurDL'), $( '#currentUser'));
     Select2.init($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {
         route: 'get_ref_article_reception',
         param: {reception: $('#receptionId').val()}
     });
     if ($('#locationDemandeLivraison').length > 0) {
-        initDisplaySelect2('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
+        Select2.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
     }
 
     let urlNewLigneReception = Routing.generate(

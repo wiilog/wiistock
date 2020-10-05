@@ -7,7 +7,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
@@ -1338,7 +1338,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $livraisonRepository = $entityManager->getRepository(Livraison::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $translationsRepository = $entityManager->getRepository(Translation::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
@@ -1463,7 +1463,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             );
             $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
             $trackingFreeFields = array_map(
-                function (ChampLibre $freeField) {
+                function (FreeField $freeField) {
                     return array_merge(
                         $freeField->serialize(),
                         ['type' => CategoryType::MOUVEMENT_TRACA]

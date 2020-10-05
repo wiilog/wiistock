@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 
 use App\Entity\Collecte;
 use App\Entity\Demande;
@@ -27,9 +27,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 /**
  * @Route("/type")
  */
-class ChampLibreController extends AbstractController
-{
-
+class FreeFieldController extends AbstractController {
 
     const CATEGORY_CL_TO_CLASSNAMES = [
         CategorieCL::RECEPTION => Reception::class,
@@ -43,7 +41,7 @@ class ChampLibreController extends AbstractController
     ];
 
     /**
-     * @Route("/api/{id}", name="champ_libre_api", options={"expose"=true}, methods={"POST"})
+     * @Route("/api/{id}", name="free_field_api", options={"expose"=true}, methods={"POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param $id
@@ -55,34 +53,34 @@ class ChampLibreController extends AbstractController
                         $id): Response
     {
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $champsLibres = $champLibreRepository->findByType($id);
             $rows = [];
             foreach ($champsLibres as $champLibre) {
 
-                if ($champLibre->getTypage() === ChampLibre::TYPE_BOOL) {
+                if ($champLibre->getTypage() === FreeField::TYPE_BOOL) {
                     $typageCLFr = 'Oui/Non';
-                } elseif ($champLibre->getTypage() === ChampLibre::TYPE_NUMBER) {
+                } elseif ($champLibre->getTypage() === FreeField::TYPE_NUMBER) {
                     $typageCLFr = 'Nombre';
-                } elseif ($champLibre->getTypage() === ChampLibre::TYPE_TEXT) {
+                } elseif ($champLibre->getTypage() === FreeField::TYPE_TEXT) {
                     $typageCLFr = 'Texte';
-                } elseif ($champLibre->getTypage() === ChampLibre::TYPE_LIST) {
+                } elseif ($champLibre->getTypage() === FreeField::TYPE_LIST) {
                     $typageCLFr = 'Liste';
-                } elseif ($champLibre->getTypage() === ChampLibre::TYPE_DATE) {
+                } elseif ($champLibre->getTypage() === FreeField::TYPE_DATE) {
                     $typageCLFr = 'Date';
-                } elseif ($champLibre->getTypage() === ChampLibre::TYPE_DATETIME) {
+                } elseif ($champLibre->getTypage() === FreeField::TYPE_DATETIME) {
                     $typageCLFr = 'Date et heure';
-                } elseif ($champLibre->getTypage() === ChampLibre::TYPE_LIST_MULTIPLE) {
+                } elseif ($champLibre->getTypage() === FreeField::TYPE_LIST_MULTIPLE) {
                     $typageCLFr = 'Liste multiple';
                 } else {
                     $typageCLFr = '';
                 }
 
                 $defaultValue = $champLibre->getDefaultValue();
-                if ($champLibre->getTypage() == ChampLibre::TYPE_BOOL) {
+                if ($champLibre->getTypage() == FreeField::TYPE_BOOL) {
                     $defaultValue = $champLibre->getDefaultValue() ? 'oui' : 'non';
-                } else if ($champLibre->getTypage() === ChampLibre::TYPE_DATETIME
-                    || $champLibre->getTypage() === ChampLibre::TYPE_DATE) {
+                } else if ($champLibre->getTypage() === FreeField::TYPE_DATETIME
+                    || $champLibre->getTypage() === FreeField::TYPE_DATE) {
                     $defaultValueDate = new DateTime(str_replace('/', '-', $defaultValue));
                     $defaultValue = $defaultValueDate->format('d/m/Y H:i');
                 }
@@ -97,8 +95,8 @@ class ChampLibreController extends AbstractController
                         'Obligatoire à la création' => ($champLibre->getRequiredCreate() ? "oui" : "non"),
                         'Obligatoire à la modification' => ($champLibre->getRequiredEdit() ? "oui" : "non"),
                         'Valeur par défaut' => $defaultValue,
-                        'Elements' => $champLibre->getTypage() == ChampLibre::TYPE_LIST || $champLibre->getTypage() == ChampLibre::TYPE_LIST_MULTIPLE ? $this->renderView('champ_libre/champLibreElems.html.twig', ['elems' => $champLibre->getElements()]) : '',
-                        'Actions' => $this->renderView('champ_libre/datatableChampLibreRow.html.twig', ['idChampLibre' => $champLibre->getId()]),
+                        'Elements' => $champLibre->getTypage() == FreeField::TYPE_LIST || $champLibre->getTypage() == FreeField::TYPE_LIST_MULTIPLE ? $this->renderView('free_field/freeFieldElems.html.twig', ['elems' => $champLibre->getElements()]) : '',
+                        'Actions' => $this->renderView('free_field/datatableFreeFieldRow.html.twig', ['idChampLibre' => $champLibre->getId()]),
                     ];
             }
             $data['data'] = $rows;
@@ -109,34 +107,32 @@ class ChampLibreController extends AbstractController
     }
 
     /**
-     * @Route("/voir/{id}/champs-libres", name="champs_libre_show", methods={"GET","POST"})
+     * @Route("/voir/{type}/champs-libres", name="champs_libre_show", methods={"GET","POST"})
      * @param EntityManagerInterface $entityManager
-     * @param $id
+     * @param Type $type
      * @return Response
      */
-    public function show(EntityManagerInterface $entityManager,
-                         $id): Response {
+    public function show(EntityManagerInterface $entityManager, Type $type): Response {
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-        $typages = ChampLibre::TYPAGE;
-        return $this->render('champ_libre/show.html.twig', [
-            'type' => $entityManager->find(Type::class, $id),
+        $typages = FreeField::TYPAGE;
+
+        return $this->render('free_field/show.html.twig', [
+            'type' => $type,
             'categoriesCL' => $categorieCLRepository->findByLabel([CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE]),
             'typages' => $typages,
         ]);
     }
 
     /**
-     * @Route("/new", name="champ_libre_new", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @Route("/new", name="free_field_new", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function new(Request $request,
-                        EntityManagerInterface $entityManager): Response
-    {
+    public function new(Request $request, EntityManagerInterface $entityManager): Response {
         $data = json_decode($request->getContent(), true);
 
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
@@ -144,7 +140,7 @@ class ChampLibreController extends AbstractController
 		$champLibreExist = $champLibreRepository->countByLabel($data['label']);
 		if (!$champLibreExist) {
 			$type = $typeRepository->find($data['type']);
-			$champLibre = new ChampLibre();
+			$champLibre = new FreeField();
 			$champLibre
 				->setlabel($data['label'])
 				->setRequiredCreate($data['displayedCreate'] ? $data['requiredCreate'] : false)
@@ -161,7 +157,7 @@ class ChampLibreController extends AbstractController
                 ]));
             }
 
-			if (in_array($champLibre->getTypage(), [ChampLibre::TYPE_LIST, ChampLibre::TYPE_LIST_MULTIPLE])) {
+			if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
 				$champLibre
 					->setElements(array_filter(explode(';', $data['elem'])))
 					->setDefaultValue(null);
@@ -186,23 +182,21 @@ class ChampLibreController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="champ_libre_api_edit", options={"expose"=true},  methods="GET|POST")
+     * @Route("/api-modifier", name="free_field_api_edit", options={"expose"=true},  methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function editApi(Request $request,
-                            EntityManagerInterface $entityManager): Response
-    {
+    public function editApi(Request $request, EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
             $champLibre = $champLibreRepository->find($data['id']);
-            $typages = ChampLibre::TYPAGE;
+            $typages = FreeField::TYPAGE;
 
-            $json = $this->renderView('champ_libre/modalEditChampLibreContent.html.twig', [
+            $json = $this->renderView('free_field/modalEditFreeFieldContent.html.twig', [
                 'champLibre' => $champLibre,
-                'typageCL' => ChampLibre::TYPAGE_ARR[$champLibre->getTypage()],
+                'typageCL' => FreeField::TYPAGE_ARR[$champLibre->getTypage()],
                 'categoriesCL' => $categorieCLRepository->findByLabel([CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE]),
                 'typages' => $typages,
             ]);
@@ -213,30 +207,31 @@ class ChampLibreController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="champ_libre_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/modifier", name="free_field_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function edit(Request $request,
-                         EntityManagerInterface $entityManager): Response
-    {
+    public function edit(Request $request, EntityManagerInterface $entityManager): Response {
         $data = json_decode($request->getContent(), true);
 
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
-		$categorieCL = $categorieCLRepository->find($data['categorieCL']);
 		$champLibre = $champLibreRepository->find($data['champLibre']);
+
+        if(isset($data['categorieCL'])) {
+            $categorieCL = $categorieCLRepository->find($data['categorieCL']);
+            $champLibre->setCategorieCL($categorieCL);
+        }
 
 		$champLibre
 			->setLabel($data['label'])
-			->setCategorieCL($categorieCL)
 			->setRequiredCreate($data['displayedCreate'] ? $data['requiredCreate'] : false)
 			->setRequiredEdit($data['requiredEdit'])
 			->setDisplayedCreate($data['displayedCreate'])
 			->setTypage($data['typage']);
-		if (in_array($champLibre->getTypage(), [ChampLibre::TYPE_LIST, ChampLibre::TYPE_LIST_MULTIPLE])) {
+		if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
 			$champLibre
 				->setElements(array_filter(explode(';', $data['elem'])))
 				->setDefaultValue(null);
@@ -254,17 +249,15 @@ class ChampLibreController extends AbstractController
     }
 
     /**
-     * @Route("/delete", name="champ_libre_delete",options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @Route("/delete", name="free_field_delete",options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function delete(Request $request,
-                           EntityManagerInterface $entityManager): Response
-    {
+    public function delete(Request $request, EntityManagerInterface $entityManager): Response {
         $data = json_decode($request->getContent(), true);
 
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
 		$champLibre = $champLibreRepository->find($data['champLibre']);
@@ -304,7 +297,7 @@ class ChampLibreController extends AbstractController
                                                 EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $typeRepository = $entityManager->getRepository(Type::class);
 
             if (array_key_exists('create', $data)) {

@@ -49,4 +49,7 @@
     .text-wii-#{$name} {
         color: $color;
     }
+    .bg-#{$name} {
+        background-color: $color;
+    }
 }
