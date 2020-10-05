@@ -64,6 +64,7 @@
                    data-dispatch-id='{{ dispatch.id }}'
                    onclick="openDeliveryNoteModal($(this))"
                    id="generateDeliveryNoteButton"
+                   title="Générer un bon de livraison"
                    class="dropdown-item">
                     <i class="fa fa-print"></i>
                     {{ 'acheminement.Générer un bon de livraison' | trans }}
@@ -73,6 +74,7 @@
                 <a type="button"
                    data-dispatch-id='{{ dispatch.id }}'
                    onclick="openWaybillModal($(this))"
+                   title="Générer une lettre de voiture"
                    class="dropdown-item">
                     <i class="fa fa-print"></i>
                     {{ 'acheminement.Générer une lettre de voiture' | trans }}
@@ -80,6 +82,7 @@
             {% endif %}
             {% if hasRightToGenerateDispatchBill %}
                 <a class="dropdown-item"
+                   title="Générer un bon d'acheminement"
                    onclick="runDispatchPrint()">
                     <i class="fas fa-print"></i>
                     {{ 'acheminement.Générer un bon d\'acheminement'|trans }}
