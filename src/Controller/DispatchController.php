@@ -88,7 +88,6 @@ class DispatchController extends AbstractController {
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -998,6 +997,7 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/csv", name="get_dispatches_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
+     * @param FreeFieldService $freeFieldService
      * @param CSVExportService $CSVExportService
      * @param EntityManagerInterface $entityManager
      * @param TranslatorInterface $translator
@@ -1506,5 +1506,30 @@ class DispatchController extends AbstractController {
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
 
         return $response;
+    }
+
+    /**
+     * @Route("/{dispatch}/rollback-draft", name="rollback_draft", methods="GET")
+     * @param EntityManagerInterface $entityManager
+     * @param Dispatch $dispatch
+     * @return Response
+     */
+    public function rollbackToDraftStatus(EntityManagerInterface $entityManager,
+                                          Dispatch $dispatch): Response {
+
+        $dispatchType = $dispatch->getType();
+        $statusRepository = $entityManager->getRepository(Statut::class);
+
+        $draftStatus = $statusRepository->findOneBy([
+            'type' => $dispatchType,
+            'state' => 0
+        ]);
+
+        $dispatch->setStatut($draftStatus);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('dispatch_show', [
+            'id' => $dispatch->getId()
+        ]);
     }
 }
