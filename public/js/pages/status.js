@@ -111,3 +111,14 @@ function hideOptionOnChange($modal, forceClear = true) {
         $fields.find('.field-needed').addClass('needed');
     }
 }
+
+function statusStateChanged($select) {
+    const $modal = $select.parents('.modal');
+    const selectedEntityIsDispatch = $modal.find('select[name="category"]').find('option:selected').data('is-dispatch');
+    const selectedStatusNeedsNomadSync = $select.find('option:selected').data('needs-nomad-sync');
+    if (selectedEntityIsDispatch && !selectedStatusNeedsNomadSync) {
+        $modal.find('.nomad-sync').addClass('d-none');
+    } else {
+        $modal.find('.nomad-sync').removeClass('d-none');
+    }
+}
