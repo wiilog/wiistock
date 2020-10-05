@@ -273,10 +273,6 @@ a {
     .select2-selection {
         border: 1px solid red !important;
     }
-
-    &:not(.select2-container):not(.wii-switch) {
-        padding-right: 2.25rem;
-    }
 }
 
 .label {
