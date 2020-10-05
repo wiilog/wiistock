@@ -6,17 +6,11 @@ let tableChauffeurConfig = {
     },
     order: [[1, 'desc']],
     columns: [
-        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
+        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false },
         { "data": 'Nom', 'name': 'Nom', 'title': 'Nom' },
         { "data": 'Prénom', 'name': 'Prénom', 'title': 'Prénom' },
         { "data": 'DocumentID', 'name': 'DocumentID', 'title': 'DocumentID' },
         { "data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur'},
-    ],
-    columnDefs: [
-        {
-            "orderable" : false,
-            "targets" : 0
-        },
     ],
     rowConfig: {
         needsRowClickAction: true,

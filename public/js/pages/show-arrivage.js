@@ -90,20 +90,14 @@ let tableColisConfig = {
         needsRowClickAction: true
     },
     columns: [
-        {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis'},
+        {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: true},
         {"data": 'nature', 'name': 'nature', 'title': 'natures.nature', translated: true},
         {"data": 'code', 'name': 'code', 'title': 'Code'},
         {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
         {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
         {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
     ],
-    order: [[2, 'asc']],
-    columnDefs: [
-        {
-            orderable: false,
-            targets: 0
-        }
-    ]
+    order: [[2, 'asc']]
 };
 let tableColis = initDataTable('tableColis', tableColisConfig);
 

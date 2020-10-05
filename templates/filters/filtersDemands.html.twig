@@ -16,7 +16,7 @@
         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
             {% include 'filters/filter_item/filterEmergencyMultiple.html.twig' %}
         {% endif %}
-    {% else %}
+    {% elseif emergency is defined and emergency %}
         {% include 'filters/filter_item/filterEmergency.html.twig' %}
     {% endif %}
 {% endblock %}

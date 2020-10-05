@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
 use App\Entity\Utilisateur;
+use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -98,16 +99,11 @@ class LivraisonRepository extends EntityRepository
 	 */
 	public function findByParamsAndFilters($params, $filters)
 	{
-		$em = $this->getEntityManager();
-		$qb = $em->createQueryBuilder();
-
-		$qb
-			->select('livraison')
-			->from('App\Entity\Livraison', 'livraison')
+		$qb = $this->createQueryBuilder("livraison")
             ->join('livraison.preparation', 'preparation')
             ->join('preparation.demande', 'demande');
 
-		$countTotal = count($qb->getQuery()->getResult());
+		$countTotal = QueryCounter::count($qb);
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -197,17 +193,15 @@ class LivraisonRepository extends EntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered = count($qb->getQuery()->getResult());
+		$countFiltered = QueryCounter::count($qb);
 
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
 		}
 
-		$query = $qb->getQuery();
-
 		return [
-			'data' => $query ? $query->getResult() : null ,
+			'data' => $qb->getQuery()->getResult(),
 			'count' => $countFiltered,
 			'total' => $countTotal
 		];

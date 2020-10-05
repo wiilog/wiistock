@@ -158,7 +158,7 @@ function initPageDatatable() {
             "type": "POST"
         },
         columns: [
-            {"data": 'Actions', 'title': '', className: 'noVis'},
+            {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'Référence', 'title': 'Référence'},
             {"data": 'Libellé', 'title': 'Libellé'},
             {"data": 'Emplacement', 'title': 'Emplacement'},
@@ -166,13 +166,7 @@ function initPageDatatable() {
         ],
         rowConfig: {
             needsRowClickAction: true,
-        },
-        columnDefs: [
-            {
-                orderable: false,
-                targets: 0
-            }
-        ],
+        }
     };
     return initDataTable('table-lignes', tableArticleConfig);
 }

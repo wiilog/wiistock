@@ -8,7 +8,7 @@ let tableArticleConfig = {
     },
     order: [1, 'asc'],
     columns: [
-        { "data": 'Actions', 'title': '', 'orderable': false, className: 'noVis' },
+        { "data": 'Actions', 'title': '', orderable: false, className: 'noVis' },
         { "data": 'Référence', 'title': 'Référence' },
         { "data": 'Libellé', 'title': 'Libellé' },
         { "data": 'Emplacement', 'title': 'Emplacement' },

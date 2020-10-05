@@ -17,9 +17,9 @@ $(function() {
             needsSearchOverride: true,
         },
         columns: [
-            {"data": 'actions', 'name': 'Actions', 'title': ''},
+            {"data": 'actions', 'name': 'Actions', 'title': '', orderable: false},
             {"data": 'date', 'name': 'date', 'title': 'Date'},
-            {"data": 'from', 'name': 'from', 'title': 'Issu de', className: 'noVis'},
+            {"data": 'from', 'name': 'from', 'title': 'Issu de', className: 'noVis', orderable: false},
             {"data": "barCode", 'name': 'barCode', 'title': 'Code barre'},
             {"data": "refArticle", 'name': 'refArticle', 'title': 'Référence article'},
             {"data": "quantite", 'name': 'quantite', 'title': 'Quantité'},
@@ -28,12 +28,6 @@ $(function() {
             {"data": 'type', 'name': 'type', 'title': 'Type'},
             {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
         ],
-        columnDefs: [
-            {
-                orderable: false,
-                targets: [0, 2]
-            }
-        ]
     };
 
     let tableMvt = initDataTable('tableMvts', tableMvtStockConfig);

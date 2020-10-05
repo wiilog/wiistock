@@ -55,18 +55,12 @@ let tableConfig = {
         needsRowClickAction: true
     },
     columns: [
-        {"data": 'Actions', 'title': '', 'name': 'Actions', className: 'noVis'},
+        {"data": 'Actions', 'title': '', 'name': 'Actions', className: 'noVis', orderable: false},
         {"data": 'Numéro', 'title': 'Numéro', 'name': 'Numéro'},
         {"data": 'Statut', 'title': 'Statut', 'name': 'Statut'},
         {"data": 'Date', 'title': 'Date de création', 'name': 'Date'},
         {"data": 'Opérateur', 'title': 'Opérateur', 'name': 'Opérateur'},
         {"data": 'Type', 'title': 'Type', 'name': 'Type'},
-    ],
-    columnDefs: [
-        {
-            orderable: false,
-            targets: 0
-        }
     ],
 };
 let table = initDataTable('table_id', tableConfig);
@@ -76,7 +70,7 @@ let pathArticle = Routing.generate('preparation_article_api', {'preparation': $p
 let tableArticleConfig = {
     ajax: pathArticle,
     columns: [
-        {"data": 'Actions', 'title': '', className: 'noVis'},
+        {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},
@@ -90,10 +84,7 @@ let tableArticleConfig = {
         color: 'success',
         dataToCheck: 'active'
     },
-    order: [[1, "asc"]],
-    columnDefs: [
-        {'orderable': false, 'targets': [0]}
-    ]
+    order: [[1, "asc"]]
 };
 
 let tableArticle = initDataTable('tableArticle_id', tableArticleConfig);
@@ -108,9 +99,6 @@ function startPicking($button) {
             $('#splittingContent').html(html);
             let tableSplittingArticlesConfig = {
                 'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'tous']],
-                'columnDefs': [
-                    {'orderable': false, 'targets': [3]}
-                ],
                 domConfig: {
                     needsPaginationRemoval: true
                 }

@@ -142,7 +142,7 @@ class FieldsParamController extends AbstractController
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $field = $fieldsParamRepository->find($data['field']);
 
-            $fieldName = $field->getFieldCode();
+            $fieldName = $field->getFieldLabel();
             $fieldEntity = $field->getEntityCode();
 
             if (!$field->getFieldRequiredHidden()) {

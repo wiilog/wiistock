@@ -98,12 +98,6 @@ function initTableArrival() {
                         title: column.title === 'Actions' ? '' : column.title
                     }
                 }),
-                columnDefs: [
-                    {
-                        orderable: false,
-                        targets: 0
-                    }
-                ],
                 drawConfig: {
                     needsResize: true
                 },

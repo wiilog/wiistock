@@ -48,10 +48,7 @@ $(function () {
                 hideColumnConfig: {
                     columns,
                     tableFilter: 'tableMvts'
-                },
-                columnDefs: [
-                    { "orderable": false, "targets": 0 },
-                ],
+                }
             };
 
             tableMvt = initDataTable('tableMvts', config);

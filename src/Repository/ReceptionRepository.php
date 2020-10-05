@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Reception;
 use App\Entity\Utilisateur;
+use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -140,14 +141,10 @@ class ReceptionRepository extends ServiceEntityRepository
 
     public function findByParamAndFilters($params, $filters)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
+        $qb = $this->createQueryBuilder("r");
 
-        $qb
-            ->select('r')
-            ->from('App\Entity\Reception', 'r');
+        $countTotal = QueryCounter::count($qb);
 
-        $countTotal = count($qb->getQuery()->getResult());
         // filtres sup
         foreach ($filters as $filter) {
             switch($filter['field']) {
@@ -222,7 +219,7 @@ class ReceptionRepository extends ServiceEntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = count($qb->getQuery()->getResult());
+        $countFiltered = QueryCounter::count($qb);
 
         if ($params) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

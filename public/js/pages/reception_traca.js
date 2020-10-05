@@ -41,14 +41,8 @@ let tableRecepConfig = {
         "url": pathRecep,
         "type": "POST"
     },
-    "columnDefs": [
-        {
-            orderable: false,
-            targets: 0
-        }
-    ],
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': '', className: ['noVis']},
+        {"data": 'Actions', 'name': 'Actions', 'title': '', className: ['noVis'], orderable: false},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "Arrivage", 'name': 'Arrivage', 'title': 'arrivage.arrivage', translated: true},
         {"data": 'Réception', 'name': 'Réception', 'title': 'réception.réception', translated: true},

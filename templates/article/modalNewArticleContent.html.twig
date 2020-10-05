@@ -78,14 +78,12 @@
 
 <span class="toggle-collapsible expanded">Champs libres</span>
 <div class="collapsible expanded free-fields-container">
-    <div class="row">
-        {% include 'champ_libre/freeFieldsViewing.html.twig' with {
-            freeFields: champsLibres,
-            freeFieldValues: [],
-            colType: 'col-md-4 col-12',
-            requiredType: 'requiredCreate',
-            actionType: 'new'
-        } %}
-    </div>
+    {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+        freeFields: champsLibres,
+        freeFieldValues: [],
+        colType: 'col-md-4 col-12',
+        requiredType: 'requiredCreate',
+        actionType: 'new'
+    } %}
 </div>
 

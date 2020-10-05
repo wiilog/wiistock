@@ -451,6 +451,8 @@ class PreparationsManagerService
                             $newArticle[$clId] = $valeurChampLibre;
                         }
                         $insertedArticle = $this->articleDataService->newArticle($newArticle);
+                        $this->entityManager->flush();
+
                         if ($selected) {
                             if ($article->getQuantitePrelevee() !== $article->getQuantiteAPrelever()) {
                                 $insertedArticle->setQuantiteAPrelever($article->getQuantiteAPrelever() - $article->getQuantitePrelevee());

@@ -53,7 +53,7 @@
     {% block javascripts %}
         <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
         <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
-        <script src="{{ asset('js/translations/translations.' ~ app_locale ~ '.js') }}"></script>
+        <script src="{{ asset('js/translations/translations.' ~ app_locale ~ '.js') }}?{{ date().timestamp }}"></script>
         <script src="{{ asset('js/translations.js') }}"></script>
 
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

@@ -33,10 +33,7 @@ let tableHandlingConfig = {
         { "data": 'status', 'name': 'status', 'title': 'Statut' },
         { "data": 'emergency', 'name': 'emergency', 'title': 'Urgence' },
         { "data": 'treatedBy', 'name': 'treatedBy', 'title': 'Traité par' },
-    ],
-    columnDefs: [
-        { "orderable": false, "targets": 0 },
-    ],
+    ]
 };
 let tableHandling = initDataTable('tableHandling_id', tableHandlingConfig);
 

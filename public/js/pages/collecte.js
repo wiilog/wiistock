@@ -5,12 +5,6 @@ let collecteTableConfig = {
     processing: true,
     serverSide: true,
     order: [[1, 'desc']],
-    columnDefs: [
-        {
-            "orderable": false,
-            "targets": [0]
-        }
-    ],
     ajax: {
         "url": pathCollecte,
         "type": "POST",
@@ -25,7 +19,7 @@ let collecteTableConfig = {
         needsSearchOverride: true,
     },
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
+        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'Création', 'name': 'Création', 'title': 'Création'},
         {"data": 'Validation', 'name': 'Validation', 'title': 'Validation'},
         {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
