@@ -236,7 +236,7 @@ class FreeFieldRepository extends EntityRepository
 
     /**
      * @param string[] $categoryCLLabels
-     * @return ChampLibre[]
+     * @return FreeField[]
      */
 	public function findByFreeFieldCategoryLabels(array $categoryCLLabels)
 	{

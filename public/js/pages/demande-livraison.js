@@ -37,7 +37,7 @@ function initNewLivraisonEditor(modal) {
     }
     clearModal(modal);
     Select2.location($('.ajax-autocomplete-location'));
-    initDisplaySelect2Multiple('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
+    Select2.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
 }
 
 function callbackSaveFilter() {

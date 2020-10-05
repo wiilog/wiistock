@@ -205,7 +205,7 @@ function editRowArrivage(button) {
         modal.find('#acheteursEdit').val(data.acheteurs).select2();
         modal.find('.list-multiple').select2();
         initDateTimePicker('.date-cl');
-        initFreeSelect2($('.select2-free'));
+        Select2.initFree($('.select2-free'));
     }, 'json');
 
     modal.find(submit).attr('value', id);

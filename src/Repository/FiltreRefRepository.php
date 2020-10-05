@@ -4,9 +4,7 @@ namespace App\Repository;
 
 use App\Entity\FiltreRef;
 use App\Entity\Utilisateur;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method FiltreRef|null find($id, $lockMode = null, $lockVersion = null)
