@@ -28,8 +28,8 @@ class ReferenceArticleRepository extends EntityRepository
         'Label' => 'libelle',
         'Libellé' => 'libelle',
         'Référence' => 'reference',
-        'SeuilAlerte' => 'limitWarning',
-        'SeuilSecurite' => 'limitSecurity',
+        'Seuil d\'alerte' => 'limitWarning',
+        'Seuil de sécurité' => 'limitSecurity',
         'Urgence' => 'isUrgent',
         'Type' => 'Type',
         'Quantité disponible' => 'quantiteDisponible',
@@ -42,7 +42,7 @@ class ReferenceArticleRepository extends EntityRepository
         'Date d\'alerte' => 'dateEmergencyTriggered',
         'typeQuantite' => 'typeQuantite',
         'Dernier inventaire' => 'dateLastInventory',
-        'Synchronisation nomade' => 'needsMobileSync'
+        'Synchronisation nomade' => 'needsMobileSync',
     ];
 
     public function getIdAndLibelle()
@@ -418,7 +418,7 @@ class ReferenceArticleRepository extends EntityRepository
                 if (!empty($order)) {
                     $orderData = $params->get('columns')[$params->get('order')[0]['column']]['data'];
                     $column = self::DtToDbLabels[$orderData] ?? $orderData;
-
+dump($orderData, $column);
                     switch ($column) {
                         case 'Actions':
                             break;

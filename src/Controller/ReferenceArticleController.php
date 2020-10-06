@@ -250,7 +250,7 @@ class ReferenceArticleController extends AbstractController
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
-					"title" => ucfirst(mb_strtolower($champ['label'])),
+					"title" => $champ['label'],
 					"data" => $champ['label'],
 					'name' => $champ['label'],
 					"class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
