@@ -15,40 +15,40 @@ class AverageTimeService
     const SECONDS_IN_HOUR = 3600;
     const SECONDS_IN_MINUTE = 60;
 
-    public function updateAverageRequestTime(Type $requestType,
+    public function addRequestTime(Type $requestType,
                                              EntityManagerInterface $entityManager,
                                              DateInterval $dateInterval) {
         $averageRequestTimeRepository = $entityManager->getRepository(AverageRequestTime::class);
 
-        $currentAverageRequestTime = $averageRequestTimeRepository->findOneBy([
+        $averageRequestTime = $averageRequestTimeRepository->findOneBy([
             'type' => $requestType
         ]);
 
-        if (!$currentAverageRequestTime) {
-            $currentAverageRequestTime = new AverageRequestTime();
-            $currentAverageRequestTime
+        if (!$averageRequestTime) {
+            $averageRequestTime = new AverageRequestTime();
+            $averageRequestTime
                 ->setType($requestType)
                 ->setTotal(1)
                 ->setAverage($dateInterval);
             $entityManager
-                ->persist($currentAverageRequestTime);
+                ->persist($averageRequestTime);
         } else {
-            $currentAverageRequestTimeTotal = $currentAverageRequestTime->getTotal();
-            $currentAverageRequestTimeAverage = $currentAverageRequestTime->getAverage();
+            $total = $averageRequestTime->getTotal();
+            $average = $averageRequestTime->getAverage();
 
-            $currentAverageToInt = $this->dateIntervalToSeconds($currentAverageRequestTimeAverage);
+            $averageToInt = $this->dateIntervalToSeconds($average);
             $dateDiffToAddToInt = $this->dateIntervalToSeconds($dateInterval);
 
             $newAverageToInt =
                 (
-                    ($currentAverageToInt * $currentAverageRequestTimeTotal) +
+                    ($averageToInt * $total) +
                     $dateDiffToAddToInt
-                ) / ($currentAverageRequestTimeTotal + 1);
+                ) / ($total + 1);
 
             $newAverageToDateInterval = $this->secondsToDateInterval($newAverageToInt);
-            $currentAverageRequestTime
+            $averageRequestTime
                 ->setAverage($newAverageToDateInterval)
-                ->setTotal($currentAverageRequestTimeTotal + 1);
+                ->setTotal($total + 1);
         }
     }
 
@@ -63,13 +63,13 @@ class AverageTimeService
 
     private function secondsToDateInterval(int $seconds): DateInterval {
 
-        $days = ($seconds / self::SECONDS_IN_DAY);
+        $days = floor($seconds / self::SECONDS_IN_DAY);
         $remainingSeconds = ($seconds % self::SECONDS_IN_DAY);
 
-        $hours = ($remainingSeconds / self::SECONDS_IN_HOUR);
+        $hours = floor($remainingSeconds / self::SECONDS_IN_HOUR);
         $remainingSeconds = ($seconds % self::SECONDS_IN_HOUR);
 
-        $minutes = ($remainingSeconds / self::SECONDS_IN_MINUTE);
+        $minutes = floor($remainingSeconds / self::SECONDS_IN_MINUTE);
         $remainingSeconds = ($seconds % self::SECONDS_IN_MINUTE);
 
         $dateInterval = new DateInterval('P0Y');
