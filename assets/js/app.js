@@ -11,13 +11,18 @@ import Snow from 'quill/themes/snow';
 
 import Trans from './translations';
 
+import '../scss/app.scss';
+
+///////////////// Main
+
 importJquery();
 importMoment();
 importQuill();
 importRouting();
 importWiistock();
 
-import '../scss/app.scss';
+///////////////// Functions
+
 
 function importJquery() {
     global.$ = global.jQuery = $;

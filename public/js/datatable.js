@@ -259,7 +259,14 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             console.log('An error has been reported by DataTables: ', message, e, dtId);
         })
         .DataTable({
-            autoWidth: true,
+    fixedColumns:   {
+
+        heightMatch: 'auto'
+
+    },
+
+
+    autoWidth: true,
             scrollX: true,
             language: {
                 url: "/js/i18n/dataTableLanguage.json",

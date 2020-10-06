@@ -1,4 +1,6 @@
 .dataTables_wrapper .dataTables_paginate .paginate_button {
+    @extend .btn;
+    @extend .btn-sm;
     color: $blueGT !important;
 
     &.current {
