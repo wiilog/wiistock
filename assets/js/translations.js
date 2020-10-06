@@ -1,4 +1,4 @@
-class Trans {
+export default class Trans {
     static original(key) {
         if(TRANSLATIONS[key]) {
             return TRANSLATIONS[key].original;

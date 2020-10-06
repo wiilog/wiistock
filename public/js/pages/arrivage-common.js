@@ -11,7 +11,7 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
         }
         const buttonConfigs = [
             {
-                class: 'btn btn-success m-0 btn-action-on-hide',
+                class: 'btn btn-primary m-0 btn-action-on-hide',
                 text: (modalType === 'yes-no-question' ? 'Oui' : 'Continuer'),
                 action: ($modal) => {
                     if (modalType === 'yes-no-question') {

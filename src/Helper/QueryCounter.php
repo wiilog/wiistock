@@ -32,9 +32,9 @@ class QueryCounter {
             throw new RuntimeException("Unable to deduce select, provide the selected table");
         }
 
-        $count = $query->select("COUNT($alias)")
+        $count = $query->addSelect("COUNT($alias) AS __query_count")
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleResult()["__query_count"];
 
         $query->resetDQLPart("select");
         foreach($original as $select) {
