@@ -28,7 +28,7 @@ let tableHandlingConfig = {
         { "data": 'type', 'name': 'type', 'title': 'Type' },
         { "data": 'requester', 'name': 'requester', 'title': 'Demandeur' },
         { "data": 'subject', 'name': 'subject', 'title': 'Objet' },
-        { "data": 'desiredDate', 'name': 'desiredDate', 'title': 'Date souhaitée' },
+        { "data": 'desiredDate', 'name': 'desiredDate', 'title': 'Date attendue' },
         { "data": 'validationDate', 'name': 'validationDate', 'title': 'Date de réalisation' },
         { "data": 'status', 'name': 'status', 'title': 'Statut' },
         { "data": 'emergency', 'name': 'emergency', 'title': 'Urgence' },
