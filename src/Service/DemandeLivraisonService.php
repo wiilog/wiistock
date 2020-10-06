@@ -161,96 +161,92 @@ class DemandeLivraisonService
 
     /**
      * @param Demande $demande
-     * @param AverageTimeService $averageTimeService
-     * @param AverageRequestTimeRepository $averageRequestTimeRepository
+     * @param DateService $dateService
+     * @param array $averageRequestTimesByType
      * @return array
      * @throws Exception
      */
     public function parseRequestForCard(Demande $demande,
-                                        AverageTimeService $averageTimeService,
-                                        AverageRequestTimeRepository $averageRequestTimeRepository) {
-
-        $onClickAction = "showBSAlert('Vous n'avez pas les droits d'accéder à la page d'état actuel de la demande de livraison.', 'danger');";
-
+                                        DateService $dateService,
+                                        array $averageRequestTimesByType) {
         $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR);
         $hasRightToSeePrepaOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA);
         $hasRightToSeeDeliveryOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR);
         $hasRightToSeeReception = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE);
 
-        $demandeStatut = $demande->getStatut() ? $demande->getStatut()->getNom() : '';
+        $requestStatus = $demande->getStatut() ? $demande->getStatut()->getNom() : '';
         $demandeType = $demande->getType() ? $demande->getType()->getLabel() : '';
 
-        if ($demandeStatut === Demande::STATUT_BROUILLON && $hasRightToSeeRequest) {
-            $onClickAction  = 'window.location.href = "' . $this->appURL . $this->router->generate('demande_show', ['id' => $demande->getId()]) . '"';
-        } else if ($demandeStatut === Demande::STATUT_A_TRAITER && $hasRightToSeePrepaOrders && !$demande->getPreparations()->isEmpty()) {
-            $onClickAction  = 'window.location.href = "' . $this->appURL . $this->router->generate('preparation_index', ['demandId' => $demande->getId()]) . '"';
+        if ($requestStatus === Demande::STATUT_BROUILLON && $hasRightToSeeRequest) {
+            $href = $this->router->generate('demande_show', ['id' => $demande->getId()]);
+        } else if ($requestStatus === Demande::STATUT_A_TRAITER && $hasRightToSeePrepaOrders && !$demande->getPreparations()->isEmpty()) {
+            $href = $this->router->generate('preparation_index', ['demandId' => $demande->getId()]);
         } else if (
             (
-                $demandeStatut === Demande::STATUT_LIVRE_INCOMPLETE ||
-                $demandeStatut === Demande::STATUT_INCOMPLETE ||
-                $demandeStatut === Demande::STATUT_PREPARE
+                $requestStatus === Demande::STATUT_LIVRE_INCOMPLETE ||
+                $requestStatus === Demande::STATUT_INCOMPLETE ||
+                $requestStatus === Demande::STATUT_PREPARE
             )
             && $hasRightToSeeDeliveryOrders && !$demande->getLivraisons()->isEmpty()
         ) {
-            $onClickAction  = 'window.location.href = "' . $this->appURL . $this->router->generate('livraison_index', ['demandId' => $demande->getId()]) . '"';
+            $href = $this->router->generate('livraison_index', ['demandId' => $demande->getId()]);
         } else if ($demande->getReception() && $hasRightToSeeReception) {
-            $onClickAction  = 'window.location.href = "' . $this->appURL . $this->router->generate('reception_show', ['id' => $demande->getReception()->getId()]) . '"';
+            $href = $this->router->generate('reception_show', ['id' => $demande->getReception()->getId()]);
         }
 
-        $bodyTitle = ($demande->getArticles()->count() + $demande->getLigneArticle()->count()) . ' articles/références - ' . $demandeType;
+        $articlesCounter = ($demande->getArticles()->count() + $demande->getLigneArticle()->count());
+        $articlePlural = $articlesCounter > 1 ? 's' : '';
+        $bodyTitle = $articlesCounter . ' article' . $articlePlural . ' - ' . $demandeType;
 
-        $averageTime = $averageRequestTimeRepository->findOneBy([
-            'type' => $demande->getType()
-        ]);
+        $typeId = $demande->getType() ? $demande->getType()->getId() : null;
+        $averageTime = $averageRequestTimesByType[$typeId] ?? null;
 
         $deliveryDateEstimated = 'Date de livraison non estimée';
 
         if (isset($averageTime)) {
             $requestDate = new DateTime($demande->getDate()->format(DATE_ATOM));
-            $expectedDate = date_add($requestDate, $averageTimeService->secondsToDateInterval($averageTime->getAverage()));
+            $expectedDate = date_add($requestDate, $dateService->secondsToDateInterval($averageTime->getAverage()));
             $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
             $today = new DateTime();
             if ($expectedDate < $today) {
                 $deliveryDateEstimated = $today->format('d/m/Y');
             }
-
         }
 
-        $requestDate = $demande->getDate()
+        $requestDate = $demande->getDate();
+        $requestDateStr = $requestDate
             ? (
-                $demande->getDate()->format('d ') .
-                AverageTimeService::ENG_TO_FR_MONTHS[$demande->getDate()->format('M')] .
-                $demande->getDate()->format(' (H:i)')
+                $requestDate->format('d ')
+                . DateService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
+                . $requestDate->format(' (H\hi)')
             )
             : 'Non défini';
 
+        $statusesToProgress = [
+            Demande::STATUT_BROUILLON => 0,
+            Demande::STATUT_A_TRAITER => 25,
+            Demande::STATUT_PREPARE => 50,
+            Demande::STATUT_INCOMPLETE => 50,
+            Demande::STATUT_LIVRE_INCOMPLETE => 75,
+            Demande::STATUT_LIVRE => 100
+        ];
+
         return [
-            'requestOnClick' => $onClickAction,
+            'href' => $href ?? null,
+            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la demande de livraison',
             'estimatedFinishTime' => $deliveryDateEstimated,
-            'requestStatus' => $demandeStatut,
+            'requestStatus' => $requestStatus,
             'requestBodyTitle' => $bodyTitle,
             'requestLocation' => $demande->getDestination() ? $demande->getDestination()->getLabel() : 'Non défini',
             'requestNumber' => $demande->getNumero(),
-            'requestDate' => $requestDate,
+            'requestDate' => $requestDateStr,
             'requestUser' => $demande->getUtilisateur() ? $demande->getUtilisateur()->getUsername() : 'Non défini',
-            'cardColor' => $demandeStatut === Demande::STATUT_BROUILLON ? 'lightGrey' : 'white',
-            'bodyColor' => $demandeStatut === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
+            'cardColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'lightGrey' : 'white',
+            'bodyColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
             'topRightIcon' => 'fa-box',
-            'progress' => (
-                $demandeStatut === Demande::STATUT_BROUILLON
-                    ? '0'
-                    : (
-                        $demandeStatut === Demande::STATUT_PREPARE || $demandeStatut === Demande::STATUT_INCOMPLETE
-                            ? '50'
-                            : (
-                                $demandeStatut === Demande::STATUT_A_TRAITER
-                                    ? '25'
-                                    : '75'
-                            )
-                    )
-            ),
+            'progress' => $statusesToProgress[$requestStatus],
             'progressBarColor' => '#2ec2ab',
-            'progressBarBGColor' => $demandeStatut === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
+            'progressBarBGColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
         ];
     }
 

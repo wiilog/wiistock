@@ -1,8 +1,13 @@
-<div class="card wii-card pointer p-3 m-2 shadow-sm bg-{{ cardColor }}" onclick="{{ requestOnClick }}">
+{% set href = href is defined ? href %}
+{% set errorMessage = errorMessage is defined ? errorMessage %}
+
+<a class="card wii-card pointer p-3 my-2 shadow-sm bg-{{ cardColor }}"
+   href="{{ href }}"
+   {% if not href and errorMessage %}onclick="showBSAlert('{{errorMessage | escape('js')}}', 'danger'); event.preventDefault()"{% endif %}>
     <div class="wii-card-header">
         <div class="row">
             <div class="col-10 mb-2">
-                <p class="mb-2">Heure de traitement estimée</p>
+                <p class="mb-2 small">Heure de traitement estimée</p>
                 <strong>{{ estimatedFinishTime }}</strong>
             </div>
             <div class="col-2 d-flex justify-content-end">
@@ -24,31 +29,30 @@
             </div>
         </div>
     </div>
-    <div class="wii-card-body p-4 bg-{{ bodyColor }}">
+    <div class="wii-card-body p-2 bg-{{ bodyColor }}">
         <div class="row">
-            <div class="col-12 d-flex justify-content-center">
-                <strong class="title">{{ requestBodyTitle }}</strong>
+            <div class="col-12 card-title text-center">
+                <strong>{{ requestBodyTitle }}</strong>
             </div>
-            <div class="col-12 d-flex justify-content-center mt-2">
-                <strong class="title">
-                    <i class="fa fa-map-marker-alt mr-2"></i>
-                </strong>
-                <strong>{{ requestLocation }}</strong>
+            <div class="col-12">
+                <div class="w-100 d-inline-flex justify-content-center">
+                    <strong class="card-title m-0 mr-2">
+                        <i class="fa fa-map-marker-alt "></i>
+                    </strong>
+                    <strong class="ellipsis">{{ requestLocation }}</strong>
+                </div>
             </div>
         </div>
     </div>
     <div class="wii-card-footer">
-        <div class="row">
-            <div class="col-8">
-                <strong>
-                    {{ requestNumber }} - {{ requestDate }}
-                </strong>
+        <div class="row align-items-end">
+            <div class="col-6 text-left ellipsis">
+                <span class="bold">{{ requestNumber }}</span><br/>
+                <span class="text-secondary">{{ requestDate }}</span>
             </div>
-            <div class="col-4 d-flex justify-content-end">
-                <strong>
-                    {{ requestUser }}
-                </strong>
+            <div class="col-6 text-right ellipsis">
+                <span class="bold">{{ requestUser }}</span>
             </div>
         </div>
     </div>
-</div>
+</a>

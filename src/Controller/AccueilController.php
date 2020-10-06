@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Article;
+use App\Entity\AverageRequestTime;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Demande;
@@ -12,9 +13,10 @@ use App\Entity\LocationCluster;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Utilisateur;
 use App\Entity\Wiilock;
 use App\Repository\AverageRequestTimeRepository;
-use App\Service\AverageTimeService;
+use App\Service\DateService;
 use App\Service\DashboardService;
 use App\Service\DemandeLivraisonService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -38,7 +40,7 @@ class AccueilController extends AbstractController
      * @Route("/accueil", name="accueil", methods={"GET"})
      * @param EntityManagerInterface $entityManager
      * @param AverageRequestTimeRepository $averageRequestTimeRepository
-     * @param AverageTimeService $averageTimeService
+     * @param DateService $dateService
      * @param DemandeLivraisonService $demandeLivraisonService
      * @return Response
      * @throws NoResultException
@@ -46,10 +48,10 @@ class AccueilController extends AbstractController
      */
     public function index(EntityManagerInterface $entityManager,
                           AverageRequestTimeRepository $averageRequestTimeRepository,
-                          AverageTimeService $averageTimeService,
+                          DateService $dateService,
                           DemandeLivraisonService $demandeLivraisonService): Response
     {
-        $data = $this->getDashboardData($entityManager, $demandeLivraisonService, $averageRequestTimeRepository, $averageTimeService);
+        $data = $this->getDashboardData($entityManager, $demandeLivraisonService, $averageRequestTimeRepository, $dateService);
         return $this->render('accueil/index.html.twig', $data);
     }
 
@@ -87,7 +89,7 @@ class AccueilController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param DemandeLivraisonService|null $demandeLivraisonService
      * @param AverageRequestTimeRepository|null $averageRequestTimeRepository
-     * @param AverageTimeService|null $averageTimeService
+     * @param DateService|null $dateService
      * @param bool $isDashboardExt
      * @return array
      * @throws NoResultException
@@ -97,7 +99,7 @@ class AccueilController extends AbstractController
     private function getDashboardData(EntityManagerInterface $entityManager,
                                       DemandeLivraisonService $demandeLivraisonService = null,
                                       AverageRequestTimeRepository $averageRequestTimeRepository = null,
-                                      AverageTimeService $averageTimeService = null,
+                                      DateService $dateService = null,
                                       bool $isDashboardExt = false)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -151,21 +153,36 @@ class AccueilController extends AbstractController
         $listStatutDemandeP = $statutRepository->getIdByCategorieNameAndStatusesNames(Demande::CATEGORIE, [Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE]);
         $nbrDemandeLivraisonP = $demandeRepository->countByStatusesId($listStatutDemandeP);
 
-        $pendingDeliveries = $demandeRepository->findByStatutArrayAndUser(
-            [
-                Demande::STATUT_A_TRAITER,
-                Demande::STATUT_BROUILLON,
-                Demande::STATUT_INCOMPLETE,
-                Demande::STATUT_LIVRE_INCOMPLETE,
-                Demande::STATUT_PREPARE
-            ],
-            $this->getUser()
-        );
 
         if ($demandeLivraisonService) {
-            $pendingDeliveries = array_map(function (Demande $demande) use ($demandeLivraisonService, $averageRequestTimeRepository, $averageTimeService) {
-                return $demandeLivraisonService->parseRequestForCard($demande, $averageTimeService, $averageRequestTimeRepository);
-            }, $pendingDeliveries);
+            /** @var array[int => AverageRequestTime] $averageRequestTimesByType */
+            $averageRequestTimesByType = array_reduce(
+                $averageRequestTimeRepository->findAll(),
+                function (array $carry, AverageRequestTime $averageRequestTime) {
+                    $typeId = $averageRequestTime->getType() ? $averageRequestTime->getType()->getId() : null;
+                    if ($typeId) {
+                        $carry[$typeId] = $averageRequestTime;
+                    }
+                    return $carry;
+                },
+                []
+            );
+
+
+
+
+            /** @var Utilisateur $loggedUser */
+            $loggedUser = $this->getUser();
+            $pendingDeliveries = $demandeRepository->findRequestToTreatByUser($loggedUser);
+            $pendingDeliveries = array_map(
+                function (Demande $demande) use ($demandeLivraisonService, $dateService, $averageRequestTimesByType) {
+                    return $demandeLivraisonService->parseRequestForCard($demande, $dateService, $averageRequestTimesByType);
+                },
+                $pendingDeliveries
+            );
+        }
+        else {
+            $pendingDeliveries = [];
         }
 
         $handlingCounterToTreat = $handlingRepository->countHandlingToTreat();

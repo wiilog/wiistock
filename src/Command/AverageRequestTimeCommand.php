@@ -1,37 +1,34 @@
 <?php
 /**
- * Commande Cron exécutée toute les minutes tous les jours de 7h a 19h excepté le dimanche :
+ * Commande Cron exécutée tous les jours à 20h :
  *
  */
-// */1 6-18 * * 1-6
+// 0 20 * * 1-6
 namespace App\Command;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Demande;
 use App\Entity\Type;
-use App\Service\AverageTimeService;
-use App\Service\DashboardService;
+use App\Service\DateService;
 use DateTime;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\ORMException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Throwable;
+
 
 class AverageRequestTimeCommand extends Command
 {
-    protected static $defaultName = 'app:feed:average:demands';
+    protected static $defaultName = 'app:feed:average:requests';
 
-    private $em;
-    private $averageRequestTimeService;
+    private $entityManager;
+    private $dateService;
 
-    public function __construct(EntityManagerInterface $entityManager, AverageTimeService $averageTimeService)
+    public function __construct(EntityManagerInterface $entityManager, DateService $dateService)
     {
         parent::__construct(self::$defaultName);
-        $this->em = $entityManager;
-        $this->averageRequestTimeService = $averageTimeService;
+        $this->entityManager = $entityManager;
+        $this->dateService = $dateService;
     }
 
     protected function configure()
@@ -43,72 +40,55 @@ class AverageRequestTimeCommand extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int|void
-     * @throws ORMException
-     * @throws Throwable
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
 
-        $demandeRepository = $this->getEntityManager()->getRepository(Demande::class);
-        $averageTimeRepository = $this->getEntityManager()->getRepository(AverageRequestTime::class);
-        $typeRepository = $this->getEntityManager()->getRepository(Type::class);
+        $demandeRepository = $this->entityManager->getRepository(Demande::class);
+        $typeRepository = $this->entityManager->getRepository(Type::class);
 
+        // TODO array_merge with collect and handling
         $requests = $demandeRepository->getTreatingTimesWithType();
 
-        $timeForType = [];
-        $avgsForType = [];
+        $typeMeters = [];
         foreach ($requests as $request) {
             $treatingDate = DateTime::createFromFormat('Y-m-d H:i:s', $request['treatingDate']);
             $creationDate = DateTime::createFromFormat('Y-m-d H:i:s', $request['creationDate']);
             $typeId = $request['typeId'];
 
-            if (!isset($timeForType[$typeId])) {
-                $timeForType[$typeId] = [];
+            if (!isset($typeMeters[$typeId])) {
+                $typeMeters[$typeId] = [
+                    'total' => 0,
+                    'count' => 0
+                ];
             }
-            $timeForType[$typeId][] = $treatingDate->diff($creationDate);
+
+            $intervalDiff = $treatingDate->diff($creationDate);
+            $typeMeters[$typeId]['total'] += $this->dateService->dateIntervalToSeconds($intervalDiff);
+            $typeMeters[$typeId]['count']++;
         }
 
-        foreach ($timeForType as $type => $times) {
-            $average = 0;
-            foreach ($times as $time) {
-                $average += $this->averageRequestTimeService->dateIntervalToSeconds($time);
-            }
-            $average = (int)floor($average / count($times));
-            $avgsForType[$type] = [
-                'average' => $average,
-                'total' => count($times)
-            ];
-        }
+        $typeIdToTypeEntity = [];
 
-        foreach ($avgsForType as $typeId => $avgForType) {
-            $type = $typeRepository->find($typeId);
+        foreach ($typeMeters as $typeId => $total) {
+            $average = (int)floor($total['total'] / $total['count']);
 
-            $averageTime = $averageTimeRepository->findOneBy([
-                'type' => $typeId
-            ]);
+            $type = $typeIdToTypeEntity[$typeId] ?? $typeRepository->find($typeId);
+
+            $averageTime = $type->getAverageRequestTime();
 
             if (!$averageTime) {
                 $averageTime = new AverageRequestTime();
                 $averageTime
                     ->setType($type);
-                $this->getEntityManager()->persist($averageTime);
+                $this->entityManager->persist($averageTime);
             }
 
             $averageTime
-                ->setAverage($avgForType['average'])
-                ->setTotal($avgForType['total']);
+                ->setAverage($average)
+                ->setTotal($total['count']);
         }
-        $this->getEntityManager()->flush();
-    }
 
-    /**
-     * @return EntityManagerInterface
-     * @throws ORMException
-     */
-    private function getEntityManager(): EntityManagerInterface
-    {
-        return $this->em->isOpen()
-            ? $this->em
-            : EntityManager::Create($this->em->getConnection(), $this->em->getConfiguration());
+        $this->entityManager->flush();
     }
 }

@@ -42,21 +42,27 @@ class DemandeRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findByStatutArrayAndUser(array $statuts, Utilisateur $utilisateur) {
+    public function findRequestToTreatByUser(Utilisateur $requester) {
         $queryBuilder = $this->createQueryBuilder('demande');
         $queryBuilderExpr = $queryBuilder->expr();
         return $queryBuilder
             ->select('demande')
-            ->innerJoin('demande.statut', 'statut')
+            ->innerJoin('demande.statut', 'status')
             ->where(
                 $queryBuilderExpr->andX(
-                    $queryBuilderExpr->in('statut.nom', ':statuts'),
-                    $queryBuilderExpr->eq('demande.utilisateur', ':user')
+                    $queryBuilderExpr->in('status.nom', ':statusNames'),
+                    $queryBuilderExpr->eq('demande.utilisateur', ':requester')
                 )
             )
             ->setParameters([
-                'statuts' => $statuts,
-                'user' => $utilisateur
+                'statusNames' => [
+                    Demande::STATUT_A_TRAITER,
+                    Demande::STATUT_BROUILLON,
+                    Demande::STATUT_INCOMPLETE,
+                    Demande::STATUT_LIVRE_INCOMPLETE,
+                    Demande::STATUT_PREPARE
+                ],
+                'requester' => $requester
             ])
             ->orderBy('demande.date', 'DESC')
             ->getQuery()
@@ -70,10 +76,10 @@ class DemandeRepository extends EntityRepository
         $queryBuilder = $this->createQueryBuilder('demande');
         $queryBuilderExpr = $queryBuilder->expr();
         $query = $queryBuilder
-            ->select($queryBuilderExpr->max('demande.date') . ' as creationDate')
+            ->select($queryBuilderExpr->min('demande.date') . ' AS creationDate')
             ->addSelect('type.id as typeId')
             ->addSelect(
-                $queryBuilderExpr->max('livraison.dateFin') . ' as treatingDate'
+                $queryBuilderExpr->max('livraison.dateFin') . ' AS treatingDate'
             )
             ->join('demande.type', 'type')
             ->join('demande.statut', 'statut')

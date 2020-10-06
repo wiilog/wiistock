@@ -2,24 +2,20 @@
 
 namespace App\Service;
 
-use App\Entity\AverageRequestTime;
-use App\Entity\Type;
 use DateInterval;
-use Doctrine\ORM\EntityManagerInterface;
-use DoctrineExtensions\Query\Mysql\Date;
 
-class AverageTimeService
+class DateService
 {
 
     const ENG_TO_FR_MONTHS = [
-        'Jan' => 'Jan.',
-        'Feb' => 'Fév.',
-        'Mar' => 'Mar.',
+        'Jan' => 'Janv.',
+        'Feb' => 'Févr.',
+        'Mar' => 'Mars',
         'Apr' => 'Avr.',
-        'May' => 'Mai.',
-        'Jun' => 'Juin.',
+        'May' => 'Mai',
+        'Jun' => 'Juin',
         'Jul' => 'Juil.',
-        'Aug' => 'Aout.',
+        'Aug' => 'Août',
         'Sep' => 'Sept.',
         'Oct' => 'Oct.',
         'Nov' => 'Nov.',
