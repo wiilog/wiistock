@@ -7,7 +7,7 @@ use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Dispatch;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
@@ -96,7 +96,7 @@ class MouvementTracaService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function dataRowMouvement($movement)
+    public function dataRowMouvement(MouvementTraca $movement)
     {
         if ($movement->getArrivage()) {
             $fromPath = 'arrivage_show';
@@ -121,25 +121,28 @@ class MouvementTracaService
         }
 
         $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $freeFieldsRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
 
         $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::MVT_TRACA);
         $category = CategoryType::MOUVEMENT_TRACA;
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
 
         $rowCL = [];
-        /** @var ChampLibre $freeField */
+        /** @var FreeField $freeField */
         foreach ($freeFields as $freeField) {
-            $rowCL[$freeField['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
+            $rowCL[$freeField['label']] = $this->freeFieldService->serializeValue([
                 'valeur' => $movement->getFreeFieldValue($freeField['id']),
                 "typage" => $freeField['typage'],
             ]);
         }
 
+        $trackingPack = $movement->getPack();
+        $packCode = $trackingPack->getCode();
+
         $rows = [
             'id' => $movement->getId(),
             'date' => $movement->getDatetime() ? $movement->getDatetime()->format('d/m/Y H:i') : '',
-            'colis' => $movement->getColis(),
+            'code' => $packCode,
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', [
                 'from' => $originFrom,
                 'fromLabel' => $fromLabel,
@@ -218,11 +221,10 @@ class MouvementTracaService
         $uniqueIdForMobile = $options['uniqueIdForMobile'] ?? null;
         $natureId = $options['natureId'] ?? null;
 
-        $codePack = $packOrCode instanceof Pack ? $packOrCode->getCode() : $packOrCode;
+        $pack = $this->getPack($entityManager, $packOrCode, $quantity, $natureId);
 
         $tracking = new MouvementTraca();
         $tracking
-            ->setColis($codePack)
             ->setQuantity($quantity)
             ->setEmplacement($location)
             ->setOperateur($user)
@@ -233,7 +235,8 @@ class MouvementTracaService
             ->setMouvementStock($mouvementStock)
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
 
-        $this->manageTrackingPack($entityManager, $tracking, $packOrCode, $quantity, $natureId);
+        $pack->addTrackingMovement($tracking);
+
         $this->managePackLinksWithTracking($entityManager, $tracking);
         $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
         $this->manageTrackingFiles($tracking, $fileBag);
@@ -243,16 +246,15 @@ class MouvementTracaService
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param MouvementTraca $tracking
      * @param Pack|string $packOrCode
      * @param $quantity
      * @param $natureId
+     * @return Pack
      */
-    private function manageTrackingPack(EntityManagerInterface $entityManager,
-                                        MouvementTraca $tracking,
-                                        $packOrCode,
-                                        $quantity,
-                                        $natureId) {
+    private function getPack(EntityManagerInterface $entityManager,
+                             $packOrCode,
+                             $quantity,
+                             $natureId): Pack {
         $packRepository = $entityManager->getRepository(Pack::class);
 
         $codePack = $packOrCode instanceof Pack ? $packOrCode->getCode() : $packOrCode;
@@ -278,7 +280,7 @@ class MouvementTracaService
             }
         }
 
-        $pack->addTrackingMovement($tracking);
+        return $pack;
     }
 
     private function manageTrackingLinks(EntityManagerInterface $entityManager,
@@ -465,7 +467,7 @@ class MouvementTracaService
     }
 
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         $columnsVisible = $currentUser->getColumnsVisibleForTrackingMovement();
@@ -473,10 +475,10 @@ class MouvementTracaService
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::MOUVEMENT_TRACA, $categorieCL);
 
         $columns = [
-            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true],
+            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
             ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
             ['title' => 'Date', 'name' => 'date'],
-            ['title' => 'colis.colis', 'name' => 'colis', 'translated' => true],
+            ['title' => 'mouvement de traçabilité.Colis', 'name' => 'code', 'translated' => true],
             ['title' => 'Référence', 'name' => 'reference'],
             ['title' => 'Libellé',  'name' => 'label'],
             ['title' => 'Quantité', 'name' => 'quantity'],
@@ -490,6 +492,7 @@ class MouvementTracaService
                 return [
                     'title' => $column['title'],
                     'alwaysVisible' => $column['alwaysVisible'] ?? false,
+                    'orderable' => $column['orderable'] ?? true,
                     'data' => $column['name'],
                     'name' => $column['name'],
                     'translated' => $column['translated'] ?? false,

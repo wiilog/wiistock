@@ -1,5 +1,9 @@
 <!-- Modal -->
-<form method="" class="modal fade" id="modalNewCollecte" role="dialog" aria-labelledby="dataModalCenterTitle"
+<form method="" class="modal fade" id="modalNewCollecte"
+      data-modal-type="new"
+      role="dialog"
+      data-callback="initNewCollecteModal()"
+      aria-labelledby="dataModalCenterTitle"
       aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -23,7 +27,7 @@
                 </div>
                 <div class="form-group w-100 ">
                     <label for="Pcollecte">Point de collecte*</label>
-                    <select class="ajax-autocompleteEmplacement form-control data needed" name="emplacement">
+                    <select class="ajax-autocomplete-location form-control data needed" name="emplacement">
                     </select>
                 </div>
 
@@ -51,11 +55,11 @@
                 <span class="toggle-collapsible expanded">Champs libres</span>
                 <div class="collapsible expanded free-fields-container mb-2">
                     {% for type in typeChampsLibres %}
-                        <div class="d-none row" id="{{ type.typeId }}-new">
-                            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+                        <div class="d-none" id="{{ type.typeId }}-new">
+                            {% include 'free_field/freeFieldsViewing.html.twig' with {
                                 freeFields: type.champsLibres,
                                 freeFieldValues: [],
-                                colType: 'col-md-4 col-12',
+                                colType: 'col-12',
                                 requiredType: 'requiredCreate',
                                 actionType: 'new'
                             } %}

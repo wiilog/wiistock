@@ -267,22 +267,24 @@ function processInputsForm($modal, isAttachmentForm) {
     const saveData = ($input, name, val) => {
         const $parent = $input.closest('[data-multiple-key]');
 
-        if ($parent && $parent.length > 0) {
-            const multipleKey = $parent.data('multiple-key');
-            const objectIndex = $parent.data('multiple-object-index');
-            const multipleValue = data[multipleKey]
-                ? (isAttachmentForm
-                    ? JSON.parse(data[multipleKey])
-                    : data[multipleKey])
-                : {};
-            multipleValue[objectIndex] = (multipleValue[objectIndex] || {});
-            multipleValue[objectIndex][name] = val;
+        if (name) {
+            if ($parent && $parent.length > 0) {
+                const multipleKey = $parent.data('multiple-key');
+                const objectIndex = $parent.data('multiple-object-index');
+                const multipleValue = data[multipleKey]
+                    ? (isAttachmentForm
+                        ? JSON.parse(data[multipleKey])
+                        : data[multipleKey])
+                    : {};
+                multipleValue[objectIndex] = (multipleValue[objectIndex] || {});
+                multipleValue[objectIndex][name] = val;
 
-            data[multipleKey] = isAttachmentForm
-                ? JSON.stringify(multipleValue)
-                : multipleValue;
-        } else {
-            data[name] = val;
+                data[multipleKey] = isAttachmentForm
+                    ? JSON.stringify(multipleValue)
+                    : multipleValue;
+            } else {
+                data[name] = val;
+            }
         }
     };
 
@@ -675,7 +677,7 @@ function displayAttachements(files, $dropFrame, isMultiple = true) {
         if (!formatValid) {
             errorMsg.push('"' + file.name + '" : Le format de votre pièce jointe n\'est pas supporté. Le fichier doit avoir une extension.');
         } else if (!sizeValid) {
-            errorMsg.push('"' + file.name + '" : La taille du fichier ne doit pas dépasser 2 Mo.');
+            errorMsg.push('"' + file.name + '" : La taille du fichier ne doit pas dépasser 10 Mo.');
         } else {
             let fileName = file.name;
 

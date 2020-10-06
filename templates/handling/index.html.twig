@@ -8,6 +8,7 @@
         page: 'PAGE_HAND',
         tableSelector: '#tableHandling_id',
         callback: 'callbackSaveFilter',
+        emergency: true
     } %}
 {% endblock %}
 
@@ -19,8 +20,7 @@
                     <div class="btn-group">
                         <div class="btn btn-primary btn-ripple split-button"
                              data-toggle="modal"
-                             data-target="#modalNewHandling"
-                             onclick='initNewHandlingEditor("#modalNewHandling")'>
+                             data-target="#modalNewHandling">
                             <span class="fa fa-plus mr-2"></span>Nouvelle demande
                         </div>
                         <button type="button"
@@ -43,8 +43,7 @@
                         </div>
                     {% endif %}
                     {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-                        <a href="" data-toggle="modal" data-target="#modalNewHandling" class="btn btn-primary btn-ripple"
-                           onclick='initNewHandlingEditor("#modalNewHandling")'>
+                        <a href="" data-toggle="modal" data-target="#modalNewHandling" class="btn btn-primary btn-ripple">
                             <span class="fa fa-plus mr-2"></span>Nouvelle demande
                         </a>
                     {% endif %}
@@ -64,5 +63,5 @@
 
     {% block javascripts %}
         {{ parent() }}
-        <script src="{{ asset('js/handling.js') }}?{{ date().timestamp }}"></script>
+        <script src="{{ asset('js/pages/handling.js') }}?{{ date().timestamp }}"></script>
     {% endblock %}

@@ -48,6 +48,34 @@
                         </div>
                     </div>
                 {% endif %}
+
+                <div data-target="#quick-create">
+                    <div class="plus-btn">
+                        <span class="icon"></span>
+                    </div>
+                    <div id="quick-create" class="collapse indicators d-none">
+                            <a href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
+                                Demande de collecte
+                            </a>
+                            <a href="{{ path('demande_index', {'open-modal': 'new'}) }}">
+                                Demande de livraison
+                            </a>
+                            <a href="{{ path('dispatch_index', {'open-modal': 'new'}) }}" title="Acheminement">
+                                {{ 'acheminement.Acheminement' | trans }}
+                            </a>
+                            <a href="{{ path('handling_index', {'open-modal': 'new'}) }}" title="Service">
+                                {{ 'services.Service' | trans }}
+                            </a>
+                            {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}
+                                <div class="btn border-radius-light">
+                                    <a href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u" >
+                                        Demander la création d'un article
+                                    </a>
+                                </div>
+                            {% endif %}
+                    </div>
+                </div>
+
                 {% if not isDashboardExt
                       and app.user is defined
                       and app.user

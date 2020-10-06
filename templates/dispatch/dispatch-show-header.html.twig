@@ -1,5 +1,6 @@
 {% extends 'utils/show-header.html.twig' %}
 
+{% block showTitleTooltip ('Acheminement' ~ ' n°' ~ dispatch.number) %}
 {% block showTitle ('acheminement.Acheminement'|trans ~ ' n°' ~ dispatch.number) %}
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
@@ -58,13 +59,23 @@
             <span class="fa fa-angle-down"></span>
         </button>
         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+            {% if hasRightEdit %}
+                {% if dispatch.statut.notTreated and not dispatch.statut.draft %}
+                    <a class="dropdown-item"
+                       href="{{ path('rollback_draft', {'dispatch': dispatch.id}) }}">
+                        <i class="fas fa-undo-alt mr-2"></i>
+                        Retour au statut brouillon
+                    </a>
+                {% endif %}
+            {% endif %}
             {% if hasRightToGenerateDeliveryNote %}
                 <a type="button"
                    data-dispatch-id='{{ dispatch.id }}'
                    onclick="openDeliveryNoteModal($(this))"
                    id="generateDeliveryNoteButton"
+                   title="Générer un bon de livraison"
                    class="dropdown-item">
-                    <i class="fa fa-print"></i>
+                    <i class="fa fa-print mr-2"></i>
                     {{ 'acheminement.Générer un bon de livraison' | trans }}
                 </a>
             {% endif %}
@@ -72,15 +83,17 @@
                 <a type="button"
                    data-dispatch-id='{{ dispatch.id }}'
                    onclick="openWaybillModal($(this))"
+                   title="Générer une lettre de voiture"
                    class="dropdown-item">
-                    <i class="fa fa-print"></i>
+                    <i class="fa fa-print mr-2"></i>
                     {{ 'acheminement.Générer une lettre de voiture' | trans }}
                 </a>
             {% endif %}
             {% if hasRightToGenerateDispatchBill %}
                 <a class="dropdown-item"
+                   title="Générer un bon d'acheminement"
                    onclick="runDispatchPrint()">
-                    <i class="fas fa-print"></i>
+                    <i class="fas fa-print mr-2"></i>
                     {{ 'acheminement.Générer un bon d\'acheminement'|trans }}
                 </a>
             {% endif %}
@@ -91,14 +104,14 @@
                    data-toggle='modal'
                    onclick="editRow($(this), Routing.generate('dispatch_edit_api', true), $('#modalEditDispatch'), $('#submitEditDispatch'), true, '#modalEditDispatch .editor-container-edit')"
                    class="dropdown-item">
-                    <i class="fa fa-pen"></i>
+                    <i class="fa fa-pen mr-2"></i>
                     Modifier
                 </a>
             {% endif %}
             {% if hasRightDelete %}
                 <a href="" data-id='{{ dispatch.id }}' data-target='#modalDeleteDispatch' data-toggle='modal'
                    class="dropdown-item">
-                    <i class="fa fa-trash"></i>
+                    <i class="fa fa-trash mr-2"></i>
                     Supprimer
                 </a>
             {% endif %}

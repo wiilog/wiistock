@@ -24,12 +24,6 @@ class MouvementTraca extends FreeFieldEntity
     private $id;
 
     /**
-     * TODO REMOVE
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $colis;
-
-    /**
      * @var Pack
      * @ORM\ManyToOne(targetEntity="App\Entity\Pack", inversedBy="trackingMovements")
      * @ORM\JoinColumn(nullable=false, name="pack_id")
@@ -155,18 +149,6 @@ class MouvementTraca extends FreeFieldEntity
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getColis(): ?string
-    {
-        return $this->colis;
-    }
-
-    public function setColis(?string $colis): self
-    {
-        $this->colis = $colis;
-
-        return $this;
     }
 
     public function getUniqueIdForMobile(): ?string
@@ -418,13 +400,15 @@ class MouvementTraca extends FreeFieldEntity
         return $this;
     }
 
-    public function setPack(Pack $pack): self {
+    public function setPack(?Pack $pack): self {
         $this->pack = $pack;
-        $this->pack->setLastTracking($this);
+        if ($this->pack) {
+            $this->pack->setLastTracking($this);
+        }
         return $this;
     }
 
-    public function getPack(): Pack {
+    public function getPack(): ?Pack {
         return $this->pack;
     }
 

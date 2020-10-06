@@ -4,8 +4,7 @@ namespace App\Repository;
 
 use App\Entity\FiltreRef;
 use App\Entity\Utilisateur;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method FiltreRef|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,12 +12,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method FiltreRef[]    findAll()
  * @method FiltreRef[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class FiltreRefRepository extends ServiceEntityRepository
+class FiltreRefRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, FiltreRef::class);
-    }
 
     public function countByChampAndUser($field, $userId)
     {

@@ -85,19 +85,19 @@
         </div>
 
         <div class="col-5 offset-1">
-            <div class="form-group w-fit-content">
-                <label for="natureColis"><span title="Nature de colis">{{ 'natures.Nature de colis' | trans }}</span> 1er graphe</label>
-                <select id="natureColis" class="form-control data">
+            <div class="form-group w-450px">
+                <label for="natureColis" class="d-block"><span title="Nature de colis">{{ 'natures.Nature de colis' | trans }}</span> 1er graphe</label>
+                <select id="natureColis" class="form-control d-block data w-100">
                     {% for nature in natures %}
                         {% set selected = nature.id == existingNatureId ? 'selected' : '' %}
                         <option value="{{ nature.id }}" {{ selected }}>{{ nature.label }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="form-group w-211px">
+            <div class="form-group w-450px">
                 <div>
                     <label for="listNaturesColis" class="d-block"><span title="Natures de colis">{{ 'natures.Natures de colis' | trans }}</span> 2è graphe</label>
-                    <select id="listNaturesColis" class="form-control d-block select2 data" multiple>
+                    <select id="listNaturesColis" class="form-control d-block select2 data w-100" multiple>
                         {% for nature in natures %}
                             {% set selected = nature.id in existingListNaturesId ? 'selected' : '' %}
                             <option value="{{ nature.id }}" {{ selected }}>{{ nature.label }}</option>

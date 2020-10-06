@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\LigneArticle;
@@ -140,7 +140,7 @@ class DemandeController extends AbstractController
             }
 
             $typeRepository = $entityManager->getRepository(Type::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
 
             $demande = $demandeRepository->find($data['id']);
@@ -204,7 +204,7 @@ class DemandeController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
             // vérification des champs Libres obligatoires
             $requiredEdit = true;
@@ -290,7 +290,7 @@ class DemandeController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
@@ -631,12 +631,13 @@ class DemandeController extends AbstractController
      * @Route("/csv", name="get_demandes_csv", options={"expose"=true}, methods={"GET"} )
      * @param EntityManagerInterface $entityManager
      * @param Request $request
+     * @param FreeFieldService $freeFieldService
      * @param CSVExportService $CSVExportService
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function getDemandesCSV(EntityManagerInterface $entityManager,
                                    Request $request,
+                                   FreeFieldService $freeFieldService,
                                    CSVExportService $CSVExportService): Response
     {
         $dateMin = $request->query->get('dateMin');
@@ -650,52 +651,38 @@ class DemandeController extends AbstractController
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $demandeRepository = $entityManager->getRepository(Demande::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
             $articleRepository = $entityManager->getRepository(Article::class);
             $preparationRepository = $entityManager->getRepository(Preparation::class);
             $livraisonRepository = $entityManager->getRepository(Livraison::class);
             $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
-            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
             $demandes = $demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
 
-            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_LIVRAISON);
-            $category = CategoryType::DEMANDE_LIVRAISON;
-            $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_LIVRAISON]);
 
             // en-têtes champs fixes
-            $headers = [
-                'demandeur',
-                'statut',
-                'destination',
-                'commentaire',
-                'date demande',
-                'date validation',
-                'numéro',
-                'type demande',
-                'code(s) préparation(s)',
-                'code(s) livraison(s)',
-                'référence article',
-                'libellé article',
-                'code-barre article',
-                'code-barre référence',
-                'quantité disponible',
-                'quantité à prélever'
-            ];
+            $headers = array_merge(
+                [
+                    'demandeur',
+                    'statut',
+                    'destination',
+                    'commentaire',
+                    'date demande',
+                    'date validation',
+                    'numéro',
+                    'type demande',
+                    'code(s) préparation(s)',
+                    'code(s) livraison(s)',
+                    'référence article',
+                    'libellé article',
+                    'code-barre article',
+                    'code-barre référence',
+                    'quantité disponible',
+                    'quantité à prélever'
+                ],
+                $freeFieldsConfig['freeFieldsHeader']
+            );
 
-            $freeFieldsIds = [];
-
-            // en-têtes champs libres DL
-            foreach ($freeFields as $freeField) {
-                $headers[] = $freeField['label'];
-                $freeFieldsIds[] = $freeField['id'];
-            }
-
-            $data = [];
-            $data[] = $headers;
-
-            $listTypesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
             $firstDates = $preparationRepository->getFirstDatePreparationGroupByDemande($demandes);
             $prepartionOrders = $preparationRepository->getNumeroPrepaGroupByDemande($demandes);
             $livraisonOrders = $livraisonRepository->getNumeroLivraisonGroupByDemande($demandes);
@@ -703,23 +690,20 @@ class DemandeController extends AbstractController
             $articles = $articleRepository->findByDemandes($demandes, true);
             $ligneArticles = $ligneArticleRepository->findByDemandes($demandes, true);
 
-            $listChampsLibresDL = [];
-            foreach ($listTypesDL as $type) {
-                $listChampsLibresDL = array_merge($listChampsLibresDL, $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON));
-            }
             $nowStr = date("d-m-Y H:i");
             return $CSVExportService->createBinaryResponseFromData(
                 "dem-livr $nowStr.csv",
                 $demandes,
                 $headers,
                 function (Demande $demande)
-                use ($listChampsLibresDL,
-                     $firstDates,
-                     $prepartionOrders,
-                     $livraisonOrders,
-                     $articles,
-                     $ligneArticles,
-                     $freeFieldsIds
+                use (
+                    $firstDates,
+                    $prepartionOrders,
+                    $livraisonOrders,
+                    $articles,
+                    $ligneArticles,
+                    $freeFieldsConfig,
+                    $freeFieldService
                 ) {
                     $rows = [];
                     $demandeId = $demande->getId();
@@ -743,8 +727,13 @@ class DemandeController extends AbstractController
                             $demandeData[] = $articleRef ? $articleRef->getBarCode() : '';
                             $demandeData[] = $availableQuantity;
                             $demandeData[] = $ligneArticle->getQuantite();
-                            foreach ($freeFieldsIds as $freeField) {
-                                $demandeData[] = $demande->getFreeFields()[$freeField] ?? "";
+
+                            $freeFields = $demande->getFreeFields();
+                            foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+                                $demandeData[] = $freeFieldService->serializeValue([
+                                    'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
+                                    'valeur' => $freeFields[$freeFieldId] ?? ''
+                                ]);
                             }
                             $rows[] = $demandeData;
                         }
@@ -762,8 +751,12 @@ class DemandeController extends AbstractController
                             $demandeData[] = '';
                             $demandeData[] = $article->getQuantite();
                             $demandeData[] = $article->getQuantiteAPrelever();
-                            foreach ($freeFieldsIds as $freeField) {
-                                $demandeData[] = $demande->getFreeFields()[$freeField] ?? "";
+                            $freeFields = $demande->getFreeFields();
+                            foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+                                $demandeData[] = $freeFieldService->serializeValue([
+                                    'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
+                                    'valeur' => $freeFields[$freeFieldId] ?? ''
+                                ]);
                             }
                             $rows[] = $demandeData;
                         }

@@ -6,7 +6,7 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\FieldsParam;
 use App\Entity\Menu;
 use App\Entity\Handling;
@@ -103,7 +103,7 @@ class HandlingController extends AbstractController
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
@@ -428,11 +428,13 @@ class HandlingController extends AbstractController
      * @Route("/infos", name="get_handlings_for_csv", options={"expose"=true}, methods={"GET","POST"})
      * @param Request $request
      * @param CSVExportService $CSVExportService
+     * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function getHandlingsIntels(Request $request,
                                        CSVExportService $CSVExportService,
+                                       FreeFieldService $freeFieldService,
                                        EntityManagerInterface $entityManager): Response
     {
         $dateMin = $request->query->get('dateMin');
@@ -445,26 +447,11 @@ class HandlingController extends AbstractController
         }
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
-            $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
             $handlingsRepository = $entityManager->getRepository(Handling::class);
 
-            $freeFields = $freeFieldsRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_HANDLING]);
+            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
             $handlings = $handlingsRepository->getByDates($dateTimeMin, $dateTimeMax);
             $currentDate = new DateTime('now');
-
-            $freeFieldIds = array_map(
-                function (ChampLibre $cl) {
-                    return $cl->getId();
-                },
-                $freeFields
-            );
-            $freeFieldsHeader = array_map(
-                function (ChampLibre $cl) {
-                    return $cl->getLabel();
-                },
-                $freeFields
-            );
-
             $csvHeader = array_merge(
                 [
                     'numéro de demande',
@@ -481,7 +468,7 @@ class HandlingController extends AbstractController
                     'urgence',
                     'traité par'
                 ],
-                $freeFieldsHeader
+                $freeFieldsConfig['freeFieldsHeader']
             );
 
             $globalTitle = 'export-services-' . $currentDate->format('d-m-Y') . '.csv';
@@ -489,7 +476,7 @@ class HandlingController extends AbstractController
                 $globalTitle,
                 $handlings,
                 $csvHeader,
-                function ($handling) use ($freeFieldIds) {
+                function ($handling) use ($freeFieldService, $freeFieldsConfig) {
                     $row = [];
                     $row[] = $handling['number'] ?? '';
                     $row[] = $handling['creationDate']->format('d/m/Y H:i:s') ?? '';
@@ -505,14 +492,33 @@ class HandlingController extends AbstractController
                     $row[] = $handling['emergency'] ?? '';
                     $row[] = $handling['treatedBy'] ?? '';
 
-                    foreach ($freeFieldIds as $freeFieldId) {
-                        $row[] = $handling['freeFields'][$freeFieldId] ?? "";
+                    foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+                        $row[] = $freeFieldService->serializeValue([
+                            'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
+                            'valeur' => $handling['freeFields'][$freeFieldId] ?? ''
+                        ]);
                     }
+
                     return [$row];
                 }
             );
         } else {
             throw new NotFoundHttpException('404');
         }
+    }
+
+
+    private function buildInfos(Handling $handling, &$data)
+    {
+        $data[] =
+            [
+                $handling->getCreationDate() ? $handling->getCreationDate()->format('d/m/Y H:i') : ' ',
+                $handling->getRequester()->getUsername(),
+                $handling->getSource(),
+                $handling->getDestination(),
+                $handling->getDesiredDate() ? $handling->getDesiredDate()->format('d/m/Y H:i') : ' ',
+                $handling->getValidationDate() ? $handling->getValidationDate()->format('d/m/Y H:i') : '',
+                $handling->getStatus() ? $handling->getStatus()->getNom() : '',
+            ];
     }
 }

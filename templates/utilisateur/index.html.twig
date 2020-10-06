@@ -23,10 +23,9 @@
     {% include "utilisateur/modalDeleteUser.html.twig" %}
     {% include "utilisateur/modalNewUser.html.twig" %}
     {% include "utilisateur/modalEditUser.html.twig" %}
-
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/utilisateur.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/utilisateur.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

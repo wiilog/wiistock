@@ -4,8 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Arrivage;
 use App\Entity\Statut;
-use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
+use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -111,6 +111,7 @@ class ArrivageRepository extends EntityRepository
             ->addSelect('arrivage.date')
             ->addSelect('arrivage.projectNumber AS projectNumber')
             ->addSelect('arrivage.businessUnit AS businessUnit')
+            ->addSelect('arrivage.freeFields AS freeFields')
             ->leftJoin('arrivage.destinataire', 'recipient')
             ->leftJoin('arrivage.fournisseur', 'fournisseur')
             ->leftJoin('arrivage.transporteur', 'transporteur')
@@ -245,17 +246,14 @@ class ArrivageRepository extends EntityRepository
      * @param array|null $params
      * @param array|null $filters
      * @param int|null $userId
+     * @param $freeFieldLabelsToIds
      * @return array
-     * @throws Exception
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function findByParamsAndFilters($params, $filters, $userId, $freeFieldLabelsToIds)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
-
-        $qb
-            ->select('a')
-            ->from('App\Entity\Arrivage', 'a');
+        $qb = $this->createQueryBuilder("a");
 
         // filtre arrivages de l'utilisateur
         if ($userId) {
@@ -265,12 +263,9 @@ class ArrivageRepository extends EntityRepository
                 ->setParameter('userId', $userId);
         }
 
-        $countTotal = $qb->select("COUNT(a)")
-            ->getQuery()
-            ->getSingleScalarResult();
+        $total = QueryCounter::count($qb);
 
         // filtres sup
-        $needsDefaultDateFilter = true;
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statut':
@@ -302,18 +297,12 @@ class ArrivageRepository extends EntityRepository
                         ->setParameter('transporteurId', $value);
                     break;
                 case 'dateMin':
-                    $needsDefaultDateFilter = false;
-                    $dateForFilter = new DateTime(str_replace('/', '-', $filter['value']));
-                    $dateForFilterString = $dateForFilter->format('Y-m-d');
                     $qb->andWhere('a.date >= :dateMin')
-                        ->setParameter('dateMin', $dateForFilterString . " 00:00:00");
+                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
                     break;
                 case 'dateMax':
-                    $needsDefaultDateFilter = false;
-                    $dateForFilter = new DateTime(str_replace('/', '-', $filter['value']));
-                    $dateForFilterString = $dateForFilter->format('Y-m-d');
                     $qb->andWhere('a.date <= :dateMax')
-                        ->setParameter('dateMax', $dateForFilterString . " 23:59:59");
+                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
                 case 'emergency':
                     $qb
@@ -345,9 +334,6 @@ class ArrivageRepository extends EntityRepository
 		$orderStatut = null;
 		//Filter search
         if (!empty($params)) {
-            if (!empty($params->get('clicked'))) {
-                if ($params->get('clicked') === 'true' && $needsDefaultDateFilter) $needsDefaultDateFilter = false;
-            }
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
@@ -460,34 +446,18 @@ class ArrivageRepository extends EntityRepository
                 }
             }
         }
-        if ($needsDefaultDateFilter) {
-            $now = new DateTime('now', New \DateTimeZone('Europe/Paris'));
-            $nowToString = $now->format('Y-m-d');
-            $qb->andWhere('a.date >= :dateMin')
-                ->setParameter('dateMin', $nowToString . " 00:00:00");
-            $qb->andWhere('a.date <= :dateMax')
-                ->setParameter('dateMax', $nowToString . " 23:59:59");
-        }
 
-        $countFiltered = $qb
-            ->select('COUNT(a)')
-            ->getQuery()
-            ->getSingleScalarResult();
+        $filtered = QueryCounter::count($qb);
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
 
-        $arrivages = $qb
-            ->select('a')
-            ->getQuery()
-            ->getResult();
-
         return [
-            'data' => $arrivages ?? null,
-            'count' => $countFiltered,
-            'total' => $countTotal
+            'data' => $qb->getQuery()->getResult(),
+            'count' => $filtered,
+            'total' => $total
         ];
     }
 

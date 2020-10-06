@@ -19,15 +19,15 @@ final class Version20200924144412 extends AbstractMigration {
     public function up(Schema $schema): void {
         $existingArrivalBusinessUnits = $this->connection
             ->executeQuery("SELECT `value` FROM parametrage_global WHERE label = 'ARRIVAL_BUSINESS_UNIT_VALUES'")
-            ->fetchColumn(0) ?? json_encode([]);
+            ->fetchColumn(0) ?: json_encode([]);
 
         $existingDispatchBusinessUnits = $this->connection
             ->executeQuery("SELECT `value` FROM parametrage_global WHERE label = 'DISPATCH_BUSINESS_UNIT_VALUES'")
-            ->fetchColumn(0) ?? json_encode([]);
+            ->fetchColumn(0) ?: json_encode([]);
 
         $emergencies =  $this->connection
             ->executeQuery("SELECT `value` FROM parametrage_global WHERE label = 'DISPATCH EMERGENCIES'")
-            ->fetchColumn(0) ?? json_encode(["24h"]);
+            ->fetchColumn(0) ?: json_encode(["24h"]);
 
         $this->addSql("ALTER TABLE fields_param ADD elements JSON DEFAULT NULL");
         $this->addSql("UPDATE fields_param SET elements = '{$existingArrivalBusinessUnits}' WHERE entity_code = 'arrivage' AND field_code = 'businessUnit'");

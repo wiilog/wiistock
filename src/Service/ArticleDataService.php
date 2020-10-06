@@ -12,7 +12,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
@@ -232,7 +232,7 @@ class ArticleDataService
     public function getViewEditArticle($article,
                                        $isADemand = false)
     {
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
 
         $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
         $typeArticle = $refArticle->getType();
@@ -320,16 +320,14 @@ class ArticleDataService
      * @throws Twig_Error_Syntax
      * @throws Exception
      */
-    public function newArticle($data, Demande $demande = null, Reception $reception = null)
-    {
+    public function newArticle($data, Demande $demande = null) {
         $entityManager = $this->entityManager;
 
-        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-        $articleRepository = $this->entityManager->getRepository(Article::class);
-        $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
-        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
-        $receptionReferenceArticleRepository = $this->entityManager->getRepository(ReceptionReferenceArticle::class);
-        $statutRepository = $this->entityManager->getRepository(Statut::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $statusLabel = (!isset($data['statut']) || ($data['statut'] === Article::STATUT_ACTIF)) ? Article::STATUT_ACTIF : Article::STATUT_INACTIF;
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $statusLabel);
@@ -365,7 +363,6 @@ class ArticleDataService
         		$entityManager->persist($location);
 			}
         	$location->setIsActive(true);
-        	$entityManager->flush();
 		}
 
         $quantity = max((int)$data['quantite'], 0); // protection contre quantités négatives
@@ -395,50 +392,6 @@ class ArticleDataService
             }
         }
 
-        // optionnel : ajout dans une réception
-        if ($reception) {
-            $noCommande = isset($data['noCommande']) ? $data['noCommande'] : null;
-            $rra = $receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $refArticle->getId());
-            $toInsert->setReceptionReferenceArticle($rra);
-            $entityManager->flush();
-            // gestion des urgences
-            if ($refArticle->getIsUrgent()) {
-                $mailContent = $this->templating->render('mails/contents/mailArticleUrgentReceived.html.twig', [
-                    'article' => $toInsert,
-                    'title' => 'Votre article urgent a bien été réceptionné.',
-                ]);
-                $destinataires = '';
-                $userThatTriggeredEmergency = $refArticle->getUserThatTriggeredEmergency();
-                if ($userThatTriggeredEmergency) {
-                    if ($demande && $demande->getUtilisateur()) {
-                        $destinataires = array_merge(
-                            $userThatTriggeredEmergency->getMainAndSecondaryEmails(),
-                            $demande->getUtilisateur()->getMainAndSecondaryEmails()
-                        );
-                    } else {
-                        $destinataires = $userThatTriggeredEmergency->getMainAndSecondaryEmails();
-                    }
-                } else {
-                    if ($demande && $demande->getUtilisateur()) {
-                        $destinataires = $demande->getUtilisateur()->getMainAndSecondaryEmails();
-                    }
-                }
-
-                if (!empty($destinataires)) {
-                    // on envoie un mail aux demandeurs
-                    $this->mailerService->sendMail(
-                        'FOLLOW GT // Article urgent réceptionné', $mailContent,
-                        $destinataires
-                    );
-                }
-                // on retire l'urgence
-                $refArticle
-                    ->setIsUrgent(false)
-                    ->setUserThatTriggeredEmergency(null)
-                    ->setEmergencyComment('');
-            }
-        }
-        $entityManager->flush();
         return $toInsert;
     }
 
@@ -534,15 +487,15 @@ class ArticleDataService
     public function dataRowArticle($article, bool $fromReception = false)
     {
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
 
         $category = CategoryType::ARTICLE;
         $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $rowCL = [];
-        /** @var ChampLibre $champ */
+        /** @var FreeField $champ */
         foreach ($champs as $champ) {
-            $rowCL[$champ['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
+            $rowCL[$champ['label']] = $this->freeFieldService->serializeValue([
                 'valeur' => $article->getFreeFieldValue($champ['id']),
                 "typage" => $champ['typage'],
             ]);
@@ -621,7 +574,7 @@ class ArticleDataService
         if (!isset($this->wantCLOnLabel)
             && !isset($this->clWantedOnLabel)
             && !isset($this->typeCLOnLabel)) {
-            $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
             $categoryCLRepository = $this->entityManager->getRepository(CategorieCL::class);
             $this->clWantedOnLabel = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS);
             $this->wantCLOnLabel = (bool) $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);

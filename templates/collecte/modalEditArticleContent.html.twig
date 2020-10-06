@@ -2,7 +2,7 @@
 <div class="form-group w-100 mb-3">
     <label for="reference">Référence</label>
     <select disabled class="ajax-autocomplete data form-control" value='{{collecteRef.referenceArticle.reference}}' id='referenceEdit'
-            name='referenceArticle' onclick="ajaxAutoRefArticleInit($(this))">
+            name='referenceArticle' onclick="Select2.articleReference($(this))">
         <option class="refAjax" value="{{collecteRef.referenceArticle.id}}">{{collecteRef.referenceArticle.reference}}</option>
     </select>
 </div>

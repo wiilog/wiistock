@@ -4,7 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Type;
 
@@ -33,7 +33,7 @@ class PatchCollinsFixtures extends Fixture implements FixtureGroupInterface
 			// spécifique collins champ libre 'BL' (numéro BL d'un article, à afficher sur étiquette)
 
 			$typeRepository = $manager->getRepository(Type::class);
-			$champLibreRepository = $manager->getRepository(ChampLibre::class);
+			$champLibreRepository = $manager->getRepository(FreeField::class);
 			$categorieCLRepository = $manager->getRepository(CategorieCL::class);
 			$parametrageGlobalRepository = $manager->getRepository(ParametrageGlobal::class);
             $champLibreWanted = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS);
@@ -42,12 +42,12 @@ class PatchCollinsFixtures extends Fixture implements FixtureGroupInterface
 
 			$cl = $champLibreRepository->findOneByCategoryCLAndLabel(CategorieCL::ARTICLE, $champLibreWanted);
 			if (empty($cl)) {
-				$cl = new ChampLibre();
+				$cl = new FreeField();
 				$cl
 					->setLabel($champLibreWanted)
 					->setType($type)
 					->setCategorieCL($categorieCL)
-					->setTypage(ChampLibre::TYPE_TEXT);
+					->setTypage(FreeField::TYPE_TEXT);
 				$manager->persist($cl);
 				$manager->flush();
 

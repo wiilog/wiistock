@@ -150,8 +150,8 @@
                 <span class="toggle-collapsible expanded">Champs libres</span>
                 <div class="collapsible expanded free-fields-container">
                     {% for type in typeChampLibres %}
-                        <div class="row" id="{{ type.typeId }}-new">
-                            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+                        <div id="{{ type.typeId }}-new">
+                            {% include 'free_field/freeFieldsViewing.html.twig' with {
                                 freeFields: type.champsLibres,
                                 freeFieldValues: [],
                                 colType: 'col-md-4 col-12',

@@ -1,0 +1,53 @@
+<div class="card wii-card col-3 pointer p-3 m-2 bg-{{ cardColor }}" onclick="{{ requestOnClick }}">
+    <div class="wii-card-header">
+        <div class="row">
+            <div class="col-10 mb-2">
+                <p>Heure de livraison estimée</p>
+                <strong>{{ estimatedFinishTime }}</strong>
+            </div>
+            <div class="col-2 d-flex justify-content-end">
+                <i class="fa {{ topRightIcon }} wii-card-icon"></i>
+            </div>
+            <div class="col-12 mb-2">
+                <div class="progress bg-{{ progressBarBGColor }}">
+                    <div class="progress-bar"
+                         role="progressbar"
+                         style="width: {{ progress }}%; background-color: {{ progressBarColor }}"
+                         aria-valuenow="{{ progress }}"
+                         aria-valuemin="0"
+                         aria-valuemax="100"></div>
+                </div>
+            </div>
+            <div class="col-12">
+                <p>{{ requestStatus }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="wii-card-body p-4 bg-{{ bodyColor }}">
+        <div class="row">
+            <div class="col-12 d-flex justify-content-center">
+                <strong class="title">{{ requestBodyTitle }}</strong>
+            </div>
+            <div class="col-12 d-flex justify-content-center mt-2">
+                <strong class="title">
+                    <i class="fa fa-map-marker-alt mr-2"></i>
+                </strong>
+                <strong>{{ requestLocation }}</strong>
+            </div>
+        </div>
+    </div>
+    <div class="wii-card-footer">
+        <div class="row">
+            <div class="col-8">
+                <strong>
+                    {{ requestNumber }} - {{ requestDate }}
+                </strong>
+            </div>
+            <div class="col-4 d-flex justify-content-end">
+                <strong>
+                    {{ requestUser }}
+                </strong>
+            </div>
+        </div>
+    </div>
+</div>
