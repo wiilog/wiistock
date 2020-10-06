@@ -175,6 +175,7 @@ class DemandeLivraisonService
         $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR);
         $hasRightToSeePrepaOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA);
         $hasRightToSeeDeliveryOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR);
+        $hasRightToSeeReception = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE);
 
         $demandeStatut = $demande->getStatut() ? $demande->getStatut()->getNom() : '';
         $demandeType = $demande->getType() ? $demande->getType()->getLabel() : '';
@@ -192,6 +193,8 @@ class DemandeLivraisonService
             && $hasRightToSeeDeliveryOrders && !$demande->getLivraisons()->isEmpty()
         ) {
             $onClickAction  = 'window.location.href = "' . $this->appURL . $this->router->generate('livraison_index', ['demandId' => $demande->getId()]) . '"';
+        } else if ($demande->getReception() && $hasRightToSeeReception) {
+            $onClickAction  = 'window.location.href = "' . $this->appURL . $this->router->generate('reception_show', ['id' => $demande->getReception()->getId()]) . '"';
         }
 
         $bodyTitle = ($demande->getArticles()->count() + $demande->getLigneArticle()->count()) . ' articles/références - ' . $demandeType;
