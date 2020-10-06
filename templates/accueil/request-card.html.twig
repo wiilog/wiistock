@@ -9,13 +9,14 @@
                 <i class="fa {{ topRightIcon }} wii-card-icon"></i>
             </div>
             <div class="col-12 mb-2">
-                <div class="progress bg-{{ progressBarBGColor }}">
+                <div class="progress bg-{{ progressBarBGColor }}" style="height: 7px;">
                     <div class="progress-bar"
                          role="progressbar"
-                         style="width: {{ progress }}%; background-color: {{ progressBarColor }}"
+                         style="width: {{ progress }}%; background-color: {{ progressBarColor }};"
                          aria-valuenow="{{ progress }}"
                          aria-valuemin="0"
-                         aria-valuemax="100"></div>
+                         aria-valuemax="100">
+                    </div>
                 </div>
             </div>
             <div class="col-12">

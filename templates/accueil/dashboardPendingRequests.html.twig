@@ -6,23 +6,7 @@
             <div class="row">
                 {% for delivery in deliveries %}
                     <div class="col-3">
-                        {% include 'accueil/request-card.html.twig' with
-                            {
-                                requestOnClick: delivery.requestOnClick,
-                                estimatedFinishTime: delivery.estimatedFinishTime,
-                                requestStatus: delivery.requestStatus,
-                                requestBodyTitle: delivery.requestBodyTitle,
-                                requestLocation: delivery.requestLocation,
-                                requestNumber: delivery.requestNumber,
-                                requestDate: delivery.requestDate,
-                                requestUser: delivery.requestUser,
-                                cardColor: delivery.cardColor,
-                                bodyColor: delivery.bodyColor,
-                                topRightIcon: delivery.topRightIcon,
-                                progress: delivery.progress,
-                                progressBarColor:delivery.progressBarColor,
-                                progressBarBGColor: delivery.progressBarBGColor,
-                            } %}
+                        {% include 'accueil/request-card.html.twig' with delivery %}
                     </div>
                 {% endfor %}
             </div>

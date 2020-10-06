@@ -20,12 +20,14 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Repository\AverageRequestTimeRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\NonUniqueResultException;
+use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
@@ -157,7 +159,16 @@ class DemandeLivraisonService
         return $row;
     }
 
-    public function parseRequestForCard(Demande $demande) {
+    /**
+     * @param Demande $demande
+     * @param AverageTimeService $averageTimeService
+     * @param AverageRequestTimeRepository $averageRequestTimeRepository
+     * @return array
+     * @throws Exception
+     */
+    public function parseRequestForCard(Demande $demande,
+                                        AverageTimeService $averageTimeService,
+                                        AverageRequestTimeRepository $averageRequestTimeRepository) {
 
         $onClickAction = "showBSAlert('Vous n'avez pas les droits d'accéder à la page d'état actuel de la demande de livraison.', 'danger');";
 
@@ -185,9 +196,26 @@ class DemandeLivraisonService
 
         $bodyTitle = ($demande->getArticles()->count() + $demande->getLigneArticle()->count()) . ' articles/références - ' . $demandeType;
 
+        $averageTime = $averageRequestTimeRepository->findOneBy([
+            'type' => $demande->getType()
+        ]);
+
+        $deliveryDateEstimated = 'Date de livraison non estimée';
+
+        if (isset($averageTime)) {
+            $requestDate = new DateTime($demande->getDate()->format(DATE_ATOM));
+            $expectedDate = date_add($requestDate, $averageTimeService->secondsToDateInterval($averageTime->getAverage()));
+            $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
+            $today = new DateTime();
+            if ($expectedDate < $today) {
+                $deliveryDateEstimated = $today->format('d/m/Y');
+            }
+
+        }
+
         return [
             'requestOnClick' => $onClickAction,
-            'estimatedFinishTime' => 'Date de livraison non déterminée',
+            'estimatedFinishTime' => $deliveryDateEstimated,
             'requestStatus' => $demandeStatut,
             'requestBodyTitle' => $bodyTitle,
             'requestLocation' => $demande->getDestination() ? $demande->getDestination()->getLabel() : 'Non défini',
