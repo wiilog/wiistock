@@ -60,5 +60,6 @@
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('dashboard') }}
     <script src="{{ asset('js/pages/dashboard.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

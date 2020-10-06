@@ -1,5 +1,5 @@
 <div class="modal fade" id="modalColumnVisible" tabindex="-1" role="dialog"
-     aria-hidden="true" data-keyboard="false" data-backdrop="static">
+     aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -30,7 +30,7 @@
                                 <div class="checkbox d-inline-block pointer" onclick="toggleInputRadioOnRow(this)">
                                     <input class="form-check-input {{ checked == 'checked' ? 'data' : '' }}"
                                            name="{{ champ.label }}"
-                                           onclick="showOrHideColumn($(this), pageTables[0], $('#tableRefArticle_id_wrapper'))" type="checkbox"
+                                           onclick="showOrHideColumn($(this), pageTables[0])" type="checkbox"
                                            id="column_visible_input{{ loop.index }}" {{ checked }}
                                            data-column="{{ i }}" data-name="{{ champ.label }}">
                                     <label for="column_visible_input{{ loop.index }}" class="pointer"></label>
@@ -45,7 +45,7 @@
 
             </div>
             <div class="modal-footer">
-                <div class="btn" data-dismiss="modal">Fermer</div>
+                <div class="btn btn-secondary btn-secondary" data-dismiss="modal">Fermer</div>
                 <div class="btn btn-primary" id="submitColumnVisible">Enregistrer</div>
             </div>
         </div>

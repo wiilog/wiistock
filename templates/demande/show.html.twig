@@ -4,7 +4,7 @@
 {% block titleLink path('demande_index') %}
 
 {% block page_content %}
-    <button class="btn" id="negativStock" data-target='#modalNegativStock' data-toggle='modal' hidden></button>
+    <button class="btn btn-secondary" id="negativStock" data-target='#modalNegativStock' data-toggle='modal' hidden></button>
     <div class="m-4">
         <div class="row">
             <div class="col-12">
@@ -72,7 +72,7 @@
             </div>
         </div>
     </div>
-    <button class="btn" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
+    <button class="btn btn-secondary" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
 
     {% include 'demande/modalDeleteArticle.html.twig' %}
     {% include 'demande/modalDeleteDemande.html.twig' %}

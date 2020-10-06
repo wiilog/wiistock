@@ -144,6 +144,11 @@ class Type
      */
     private $pickLocation;
 
+    /**
+     * @ORM\OneToOne(targetEntity=AverageRequestTime::class, mappedBy="type", cascade={"persist", "remove"})
+     */
+    private $averageRequestTime;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -705,6 +710,23 @@ class Type
     public function setPickLocation(?Emplacement $pickLocation): self
     {
         $this->pickLocation = $pickLocation;
+
+        return $this;
+    }
+
+    public function getAverageRequestTime(): ?AverageRequestTime
+    {
+        return $this->averageRequestTime;
+    }
+
+    public function setAverageRequestTime(AverageRequestTime $averageRequestTime): self
+    {
+        $this->averageRequestTime = $averageRequestTime;
+
+        // set the owning side of the relation if necessary
+        if ($averageRequestTime->getType() !== $this) {
+            $averageRequestTime->setType($this);
+        }
 
         return $this;
     }

@@ -1,5 +1,5 @@
 <div class="modal fade" id="modalColumnVisibleLitige" tabindex="-1" role="dialog"
-     aria-hidden="true" data-keyboard="false" data-backdrop="static">
+     aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -29,7 +29,7 @@
                                     {% set checked = (champ.key  in columnsVisibles ? 'checked' : '') %}
                                     <input class="visible-column-litige-input form-check-input {{ checked == 'checked' ? 'data' : '' }}"
                                            name="{{ champ.key }}"
-                                           onclick="showOrHideColumn($(this), tableLitiges, $('#tableLitiges_id_wrapper'))"
+                                           onclick="showOrHideColumn($(this), tableLitiges)"
                                            type="checkbox"
                                            id="column_visible_litige_input_{{ champ.key }}"
                                             {{ checked }}
@@ -44,7 +44,7 @@
                 </table>
             </div>
             <div class="modal-footer">
-                <div class="btn" data-dismiss="modal">Fermer</div>
+                <div class="btn btn-secondary" data-dismiss="modal">Fermer</div>
                 <div class="btn btn-primary"
                      id="submitColumnVisibleLitige">
                     Enregistrer

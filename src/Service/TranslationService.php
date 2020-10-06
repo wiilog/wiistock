@@ -34,7 +34,7 @@ class TranslationService {
     public function generateTranslationsFile() {
         $projectDir = $this->kernel->getProjectDir();
         $translationYAML = $projectDir . '/translations/messages.' . $this->appLocale . '.yaml';
-        $translationJS = $projectDir . '/public/js/translations/translations.' . $this->appLocale . '.js';
+        $translationJS = $projectDir . '/public/generated/translations.json';
 
         $translationRepository = $this->entityManager->getRepository(Translation::class);
 
@@ -80,9 +80,8 @@ class TranslationService {
             },
             []
         );
-        $translationsStr = json_encode($translationsArray);
-        $output = "const TRANSLATIONS = $translationsStr;";
-        file_put_contents($directory, $output);
+
+        file_put_contents($directory, json_encode($translationsArray));
     }
 
     /**

@@ -17,10 +17,8 @@ $(function () {
 
     initTableArrival().then((returnedArrivalsTable) => {
         arrivalsTable = returnedArrivalsTable;
-        let $modalColumnVisible = $('#modalColumnVisibleArrivage');
-        let $submitColumnVisible = $('#submitColumnVisibleArrivage');
         let urlColumnVisible = Routing.generate('save_column_visible_for_arrivage', true);
-        InitModal($modalColumnVisible, $submitColumnVisible, urlColumnVisible, {tables: [arrivalsTable]});
+        InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible, {tables: [arrivalsTable]});
 
         let $modalNewArrivage = $("#modalNewArrivage");
         let submitNewArrivage = $("#submitNewArrivage");
@@ -59,7 +57,6 @@ $(function () {
     let params = JSON.stringify(PAGE_ARRIVAGE);
     $.post(path, params, function (data) {
         displayFiltersSup(data);
-        initFilterDateToday();
     }, 'json');
     pageLength = Number($('#pageLengthForArrivage').val());
     Select2.user($('.filters .ajax-autocomplete-user'), 'Destinataires');
@@ -131,9 +128,6 @@ function initTableArrival() {
 }
 
 function resizeTable(arrivalsTable) {
-    arrivalsTable
-        .columns.adjust()
-        .responsive.recalc();
 }
 
 function listColis(elem) {

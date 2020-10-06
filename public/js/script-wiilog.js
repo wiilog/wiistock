@@ -215,8 +215,7 @@ function initEditor(div) {
             formats: [
                 'header',
                 'bold', 'italic', 'underline', 'strike', 'blockquote',
-                'list', 'bullet', 'indent',
-                'link', 'image'
+                'list', 'bullet', 'indent', 'link', 'image'
             ],
             theme: 'snow'
         });
@@ -246,16 +245,6 @@ function updateQuantityDisplay($elem) {
     } else if (typeQuantite == 'article') {
         $modalBody.find('.reference').addClass('d-none');
         $modalBody.find('.article').removeClass('d-none');
-    }
-}
-
-function initFilterDateToday() {
-    let $todayMinDate = $('#dateMin');
-    let $todayMaxDate = $('#dateMax');
-    if ($todayMinDate.val() === '' && $todayMaxDate.val() === '') {
-        let today = moment().format('DD/MM/YYYY');
-        $todayMinDate.val(today);
-        $todayMaxDate.val(today);
     }
 }
 
