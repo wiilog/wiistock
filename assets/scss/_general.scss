@@ -273,10 +273,10 @@ a {
     .select2-selection {
         border: 1px solid red !important;
     }
+}
 
-    &:not(.select2-container):not(.wii-switch) {
-        padding-right: 2.25rem;
-    }
+select.is-invalid {
+    background-image: none !important;
 }
 
 .label {
@@ -344,4 +344,26 @@ a {
 
 .bg-primary-followgt {
     background-image: linear-gradient(15.7deg, $backgroundBodyColorLight, $backgroundBodyColorDark);
+}
+
+#quick-create {
+    width: auto;
+    background: #FFF;
+    box-shadow: 1px 1px 4px #333;
+    padding: 8px 6px;
+    border-radius: 4px;
+
+    & > a {
+        display: block;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.8rem;
+
+        &:hover {
+            @extend .bg-primary-followgt;
+
+            border-radius: 5px;
+            color: white;
+            cursor: pointer !important;
+        }
+    }
 }

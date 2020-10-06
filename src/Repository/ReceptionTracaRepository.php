@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\ReceptionTraca;
+use App\Helper\QueryCounter;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -56,14 +57,9 @@ class ReceptionTracaRepository extends ServiceEntityRepository
      */
     public function findByParamsAndFilters($params, $filters)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
+        $qb = $this->createQueryBuilder("r");
 
-        $qb
-            ->select('r')
-            ->from('App\Entity\ReceptionTraca', 'r');
-
-        $countTotal = count($qb->getQuery()->getResult());
+        $countTotal = QueryCounter::count($qb);
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -141,7 +137,7 @@ class ReceptionTracaRepository extends ServiceEntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = count($qb->getQuery()->getResult());
+        $countFiltered = QueryCounter::count($qb);
 
         if ($params) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

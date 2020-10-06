@@ -7,7 +7,7 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Fournisseur;
 use App\Entity\Import;
 use App\Entity\Menu;
@@ -184,7 +184,7 @@ class ImportController extends AbstractController
                     }
 
                     if (isset($categoryCL)) {
-                        $champsLibres = $em->getRepository(ChampLibre::class)->getLabelAndIdByCategory($categoryCL);
+                        $champsLibres = $em->getRepository(FreeField::class)->getLabelAndIdByCategory($categoryCL);
 
                         foreach ($champsLibres as $champLibre) {
                             $fields[$champLibre['id']] = $champLibre['value'];

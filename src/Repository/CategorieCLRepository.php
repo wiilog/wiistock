@@ -26,4 +26,21 @@ class CategorieCLRepository extends EntityRepository
         return $query->getOneOrNullResult();
     }
 
+    public function findByLabel(array $labels) {
+        $qb = $this->createQueryBuilder('categorie_cl');
+
+        $qb->select('categorie_cl');
+        $exprBuilder = $qb->expr();
+        $OROperands = [];
+
+        foreach ($labels as $index => $label) {
+            $OROperands[] = "categorie_cl.label = :label$index";
+            $qb->setParameter("label$index", $label);
+        }
+        $qb->andWhere('(' . $exprBuilder->orX(...$OROperands) . ')');
+
+        return $qb
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -61,6 +61,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             ],
             'acheminement' => [
                 'Numéro de commande' => 'Numéro de commande',
+                'Numéro de tracking transporteur' => 'Numéro de tracking transporteur',
                 'Acheminements' => 'Acheminements',
                 'Acheminement' => 'Acheminement',
                 'acheminement' => 'acheminement',
@@ -68,6 +69,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Modifier un acheminement' => 'Modifier un acheminement',
                 'Emplacement prise' => 'Emplacement prise',
                 'Emplacement dépose' => 'Emplacement dépose',
+                'Transporteur' => 'Transporteur',
                 'Nb colis' => 'Nb colis',
                 'demande d\'acheminement' => 'demande d\'acheminement',
                 'Colis à acheminer' => 'Colis à acheminer',
@@ -92,7 +94,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Générer une lettre de voiture' => 'Générer une lettre de voiture',
                 "La lettre de voiture n'existe pas pour cet acheminement" => "La lettre de voiture n'existe pas pour cet acheminement",
                 "Le bon de livraison n'existe pas pour cet acheminement" => "Le bon de livraison n'existe pas pour cet acheminement",
-                "Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée" => "Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée"
+                "Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée" => "Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée",
+                'Business unit' => 'Business unit',
+                'Numéro de projet' => 'Numéro de projet'
             ],
             'réception' => [
                 'réceptions' => 'réceptions',
@@ -146,7 +150,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Le colis {numéro} a bien été supprimé" => "Le colis {numéro} a bien été supprimé",
                 "Le colis {numéro} a bien été modifié" => "Le colis {numéro} a bien été modifié",
                 'Le colis n\'existe pas' => 'Le colis n\'existe pas',
-                'Le colis {numéro} a bien été ajouté' => 'Le colis {numéro} a bien été ajouté'
+                'Le colis {numéro} a bien été ajouté' => 'Le colis {numéro} a bien été ajouté',
+                "Ce colis est utilisé dans l'arrivage {arrivage}" => "Ce colis est utilisé dans l'arrivage {arrivage}",
+                "Ce colis est référencé dans un ou plusieurs mouvements de traçabilité" => "Ce colis est référencé dans un ou plusieurs mouvements de traçabilité",
+                "Ce colis est référencé dans un ou plusieurs acheminements" => "Ce colis est référencé dans un ou plusieurs acheminements",
+                "Ce colis est référencé dans un ou plusieurs litiges" => "Ce colis est référencé dans un ou plusieurs litiges",
             ],
             'services' => [
                 'Types de service' => 'Types de service',

@@ -7,7 +7,7 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Chauffeur;
 use App\Entity\Pack;
 use App\Entity\FieldsParam;
@@ -55,6 +55,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -142,7 +143,7 @@ class ArrivageController extends AbstractController
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
@@ -796,12 +797,16 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
+     * @param FreeFieldService $freeFieldService
      * @param CSVExportService $CSVExportService
+     * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function getArrivageCSV(Request $request,
+                                   FreeFieldService $freeFieldService,
                                    CSVExportService $CSVExportService,
+                                   TranslatorInterface $translator,
                                    EntityManagerInterface $entityManager): Response
     {
         $dateMin = $request->query->get('dateMin');
@@ -818,25 +823,8 @@ class ArrivageController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $natureRepository = $entityManager->getRepository(Nature::class);
             $packRepository = $entityManager->getRepository(Pack::class);
-            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
-            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARRIVAGE);
-            $category = CategoryType::ARRIVAGE;
-            $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-
-            $freeFieldsIds = array_map(
-                function (array $cl) {
-                    return $cl['id'];
-                },
-                $freeFields
-            );
-            $freeFieldsHeader = array_map(
-                function (array $cl) {
-                    return $cl['label'];
-                },
-                $freeFields
-            );
+            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARRIVAGE]);
 
             $colisData = $packRepository->countColisByArrivageAndNature([
                 $dateTimeMin->format('Y-m-d H:i:s'),
@@ -865,13 +853,19 @@ class ArrivageController extends AbstractController
                 'numéro de projet',
                 'business unit'
             ];
-            $csvHeader = array_merge($csvHeader, $natureLabels, $freeFieldsHeader);
+
+            $csvHeader = array_merge(
+                $csvHeader,
+                $natureLabels,
+                $freeFieldsConfig['freeFieldsHeader']
+            );
+            $nowStr = date("d-m-Y H:i");
 
             return $CSVExportService->createBinaryResponseFromData(
-                'export.csv',
+                "Export - " . str_replace(["/", "\\"], "-", $translator->trans('arrivage.arrivage')) . " - " . $nowStr  . ".csv",
                 $arrivals,
                 $csvHeader,
-                function ($arrival) use ($buyersByArrival, $natureLabels, $colisData, $freeFieldsIds) {
+                function ($arrival) use ($buyersByArrival, $natureLabels, $colisData, $freeFieldsConfig, $freeFieldService) {
                     $arrivalId = (int) $arrival['id'];
                     $row = [];
                     $row[] = $arrival['numeroArrivage'] ?: '';
@@ -900,9 +894,14 @@ class ArrivageController extends AbstractController
                             : 0;
                         $row[] = $count;
                     }
-                    foreach ($freeFieldsIds as $freeField) {
-                        $row[] = $mouvement['freeFields'][$freeField] ?? "";
+
+                    foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+                        $row[] = $freeFieldService->serializeValue([
+                            'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
+                            'valeur' => $arrival['freeFields'][$freeFieldId] ?? ''
+                        ]);
                     }
+
                     return [$row];
                 }
             );
@@ -944,7 +943,7 @@ class ArrivageController extends AbstractController
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $usersRepository = $entityManager->getRepository(Utilisateur::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();

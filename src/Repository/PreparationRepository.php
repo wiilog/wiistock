@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\FiltreSup;
 use App\Entity\Preparation;
 use App\Entity\Utilisateur;
+use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -107,14 +108,9 @@ class PreparationRepository extends EntityRepository
 	 */
 	public function findByParamsAndFilters($params, $filters)
 	{
-		$em = $this->getEntityManager();
-		$qb = $em->createQueryBuilder();
+		$qb = $this->createQueryBuilder("p");
 
-		$qb
-			->select('p')
-			->from('App\Entity\Preparation', 'p');
-
-		$countTotal = count($qb->getQuery()->getResult());
+		$countTotal = QueryCounter::count($qb);
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -208,7 +204,7 @@ class PreparationRepository extends EntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered = count($qb->getQuery()->getResult());
+		$countFiltered = QueryCounter::count($qb);
 
 		if ($params) {
 			if (!empty($params->get('start'))) {
@@ -219,10 +215,8 @@ class PreparationRepository extends EntityRepository
             }
 		}
 
-		$query = $qb->getQuery();
-
 		return [
-			'data' => $query ? $query->getResult() : null ,
+			'data' => $qb->getQuery()->getResult(),
 			'count' => $countFiltered,
 			'total' => $countTotal
 		];

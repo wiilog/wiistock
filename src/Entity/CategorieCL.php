@@ -38,9 +38,14 @@ class CategorieCL
     private $label;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ChampLibre", mappedBy="categorieCL")
+     * @ORM\OneToMany(targetEntity="FreeField", mappedBy="categorieCL")
      */
     private $champsLibres;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=CategoryType::class, inversedBy="categorieCLs")
+     */
+    private $categoryType;
 
     public function __construct()
     {
@@ -65,14 +70,14 @@ class CategorieCL
     }
 
     /**
-     * @return Collection|ChampLibre[]
+     * @return Collection|FreeField[]
      */
     public function getChampsLibres(): Collection
     {
         return $this->champsLibres;
     }
 
-    public function addChampLibre(ChampLibre $champLibre): self
+    public function addChampLibre(FreeField $champLibre): self
     {
         if (!$this->champsLibres->contains($champLibre)) {
             $this->champsLibres[] = $champLibre;
@@ -82,7 +87,7 @@ class CategorieCL
         return $this;
     }
 
-    public function removeChampLibre(ChampLibre $champLibre): self
+    public function removeChampLibre(FreeField $champLibre): self
     {
         if ($this->champsLibres->contains($champLibre)) {
             $this->champsLibres->removeElement($champLibre);
@@ -95,7 +100,7 @@ class CategorieCL
         return $this;
     }
 
-    public function addChampsLibre(ChampLibre $champsLibre): self
+    public function addChampsLibre(FreeField $champsLibre): self
     {
         if (!$this->champsLibres->contains($champsLibre)) {
             $this->champsLibres[] = $champsLibre;
@@ -105,7 +110,7 @@ class CategorieCL
         return $this;
     }
 
-    public function removeChampsLibre(ChampLibre $champsLibre): self
+    public function removeChampsLibre(FreeField $champsLibre): self
     {
         if ($this->champsLibres->contains($champsLibre)) {
             $this->champsLibres->removeElement($champsLibre);
@@ -114,6 +119,18 @@ class CategorieCL
                 $champsLibre->setCategorieCL(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCategoryType(): ?CategoryType
+    {
+        return $this->categoryType;
+    }
+
+    public function setCategoryType(?CategoryType $categoryType): self
+    {
+        $this->categoryType = $categoryType;
 
         return $this;
     }

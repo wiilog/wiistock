@@ -3,14 +3,15 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Collecte;
 use App\Entity\Demande;
+use App\Entity\Dispatch;
+use App\Entity\Handling;
 use App\Entity\Litige;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
-use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 
@@ -125,25 +126,20 @@ class TypeRepository extends EntityRepository
 
         $tableConfig = [
             ['class' => Article::class, 'where' => 'item.type = :id'],
-            ['class' => ChampLibre::class, 'where' => 'item.type = :id'],
+            ['class' => FreeField::class, 'where' => 'item.type = :id'],
             ['class' => Collecte::class, 'where' => 'item.type = :id'],
             ['class' => Demande::class, 'where' => 'item.type = :id'],
             ['class' => Litige::class, 'where' => 'item.type = :id'],
             ['class' => Reception::class, 'where' => 'item.type = :id'],
             ['class' => ReferenceArticle::class, 'where' => 'item.type = :id'],
-            ['class' => Utilisateur::class, 'where' => 'deliveryType = :id', 'join' => ['item.deliveryTypes', 'deliveryType']],
-            ['class' => Utilisateur::class, 'where' => 'dispatchType = :id', 'join' => ['item.dispatchTypes', 'dispatchType']],
-            ['class' => Utilisateur::class, 'where' => 'handlingType = :id', 'join' => ['item.handlingTypes', 'handlingType']]
+            ['class' => Handling::class, 'where' => 'item.type = :id'],
+            ['class' => Dispatch::class, 'where' => 'item.type = :id']
         ];
 
         $resultsCount = array_map(function (array $table) use ($entityManager, $typeId) {
             $queryBuilder = $entityManager->createQueryBuilder()
                 ->select('COUNT(item)')
                 ->from($table['class'], 'item');
-
-            if (isset($table['join'])) {
-                $queryBuilder->join($table['join'][0], $table['join'][1]);
-            }
 
             return $queryBuilder
                 ->where($table['where'])

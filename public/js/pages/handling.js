@@ -1,0 +1,123 @@
+$('.select2').select2();
+
+let pathHandling = Routing.generate('handling_api', true);
+let tableHandlingConfig = {
+    serverSide: true,
+    processing: true,
+    order: [[2, 'desc']],
+    rowConfig: {
+        needsRowClickAction: true,
+        needsColor: true,
+        color: 'danger',
+        dataToCheck: 'emergency'
+    },
+    drawConfig: {
+        needsSearchOverride: true,
+    },
+    ajax: {
+        "url": pathHandling,
+        "type": "POST",
+        'data' : {
+            'filterStatus': $('#filterStatus').val()
+        },
+    },
+    columns: [
+        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
+        { "data": 'number', 'name': 'number', 'title': 'Numéro de demande' },
+        { "data": 'creationDate', 'name': 'creationDate', 'title': 'Date demande' },
+        { "data": 'type', 'name': 'type', 'title': 'Type' },
+        { "data": 'requester', 'name': 'requester', 'title': 'Demandeur' },
+        { "data": 'subject', 'name': 'subject', 'title': 'Objet' },
+        { "data": 'desiredDate', 'name': 'desiredDate', 'title': 'Date souhaitée' },
+        { "data": 'validationDate', 'name': 'validationDate', 'title': 'Date de réalisation' },
+        { "data": 'status', 'name': 'status', 'title': 'Statut' },
+        { "data": 'emergency', 'name': 'emergency', 'title': 'Urgence' },
+        { "data": 'treatedBy', 'name': 'treatedBy', 'title': 'Traité par' },
+    ]
+};
+let tableHandling = initDataTable('tableHandling_id', tableHandlingConfig);
+
+$(function() {
+    initDateTimePicker();
+    Select2.init($('.filter-select2[name="statut"]'), 'Statuts');
+    Select2.user('Demandeurs');
+    Select2.init($('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
+
+    // applique les filtres si pré-remplis
+    let val = $('#filterStatus').val();
+
+
+    if (val && val.length > 0) {
+        let valuesStr = val.split(',');
+        let valuesInt = [];
+        valuesStr.forEach((value) => {
+            valuesInt.push(parseInt(value));
+        })
+        $('#statut').val(valuesInt).select2();
+    } else {
+        // sinon, filtres enregistrés en base pour chaque utilisateur
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_HAND);
+        $.post(path, params, function (data) {
+            displayFiltersSup(data);
+        }, 'json');
+    }
+
+    const $modalNewHandling = $('#modalNewHandling');
+    $modalNewHandling.on('show.bs.modal', function () {
+        initNewHandlingEditor("#modalNewHandling");
+    });
+});
+
+// filtres de recheches
+
+let $modalNewHandling = $("#modalNewHandling");
+let $submitNewHandling = $("#submitNewHandling");
+let urlNewHandling = Routing.generate('handling_new', true);
+InitModal($modalNewHandling, $submitNewHandling, urlNewHandling, {tables: [tableHandling]});
+
+let $modalModifyHandling = $('#modalEditHandling');
+let $submitModifyHandling = $('#submitEditHandling');
+let urlModifyHandling = Routing.generate('handling_edit', true);
+InitModal($modalModifyHandling, $submitModifyHandling, urlModifyHandling, {tables: [tableHandling]});
+
+let $modalDeleteHandling = $('#modalDeleteHandling');
+let $submitDeleteHandling = $('#submitDeleteHandling');
+let urlDeleteHandling = Routing.generate('handling_delete', true);
+InitModal($modalDeleteHandling, $submitDeleteHandling, urlDeleteHandling, {tables: [tableHandling]});
+
+//initialisation editeur de texte une seule fois
+let editorNewHandlingAlreadyDone = false;
+function initNewHandlingEditor(modal) {
+    if (!editorNewHandlingAlreadyDone) {
+        initEditor('.editor-container-new');
+        editorNewHandlingAlreadyDone = true;
+    }
+    Select2.location($('.ajax-autocomplete-location'));
+    onTypeChange($(modal).find('select[name="type"]'));
+}
+
+function changeStatus(button) {
+    let sel = $(button).data('title');
+    let tog = $(button).data('toggle');
+    let $statusHandling = $("#statusHandling");
+
+    if ($(button).hasClass('not-active')) {
+        if ($statusHandling.val() === "0") {
+            $statusHandling.val("1");
+        } else {
+            $statusHandling.val("0");
+        }
+    }
+
+    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
+    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
+}
+
+function callbackSaveFilter() {
+    // supprime le filtre de l'url
+    let str = window.location.href.split('/');
+    if (str[5]) {
+        window.location.href = Routing.generate('handling_index');
+    }
+}

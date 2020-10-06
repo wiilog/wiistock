@@ -141,7 +141,7 @@ class StatusController extends AbstractController {
             $drafts = $statusRepository->countDrafts($category, $type);
             $disputes = $statusRepository->countDisputes($category, $type);
 
-            if ($statusRepository->countSimilarLabels($category, $data['label'])) {
+            if ($statusRepository->countSimilarLabels($category, $data['label'], $data['type'])) {
                 $success = false;
                 $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
             } else if ($data['defaultForCategory'] && $defaults > 0) {
@@ -173,7 +173,7 @@ class StatusController extends AbstractController {
                 $entityManager->flush();
 
                 $success = true;
-                $message = 'Le statut "' . $data['label'] . '" a bien été créé.';
+                $message = 'Le statut <strong>' . $data['label'] . '</strong> a bien été créé.';
             }
 
             return new JsonResponse([
@@ -255,7 +255,7 @@ class StatusController extends AbstractController {
             $defaults = $statusRepository->countDefaults($category, $type, $status);
             $drafts = $statusRepository->countDrafts($category, $type, $status);
 
-            if ($statusRepository->countSimilarLabels($category, $data['label'], $status)) {
+            if ($statusRepository->countSimilarLabels($category, $data['label'], $data['type'], $status)) {
                 $success = false;
                 $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
             } else if ($data['defaultForCategory'] && $defaults > 0) {
@@ -282,7 +282,7 @@ class StatusController extends AbstractController {
                 $entityManager->flush();
 
                 $success = true;
-                $message = 'Le statut "' . $statusLabel . '" a bien été modifié.';
+                $message = 'Le statut <strong>' . $statusLabel . '</strong> a bien été modifié.';
             }
 
             return new JsonResponse([
@@ -342,6 +342,7 @@ class StatusController extends AbstractController {
             $statutRepository = $entityManager->getRepository(Statut::class);
 
             $status = $statutRepository->find($data['status']);
+            $statusLabel = $status->getNom();
             $statusIsUsed = $statutRepository->countUsedById($status->getId());
             if ($statusIsUsed) {
                 return new JsonResponse([
@@ -352,9 +353,11 @@ class StatusController extends AbstractController {
 
             $entityManager->remove($status);
             $entityManager->flush();
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'Le statut <strong>' . $statusLabel . '</strong> a bien été supprimé.'
+            ]);
         }
-
         throw new NotFoundHttpException('404');
     }
 

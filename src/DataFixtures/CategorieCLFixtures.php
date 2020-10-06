@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\CategoryType;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -21,26 +22,34 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
         $categorieCLRepository = $manager->getRepository(CategorieCL::class);
+        $categorieTypeRepository = $manager->getRepository(CategoryType::class);
+
         $categoriesNames = [
-            CategorieCL::REFERENCE_ARTICLE,
-            CategorieCL::ARTICLE,
-            CategorieCL::AUCUNE,
-            CategorieCL::RECEPTION,
-            CategorieCL::DEMANDE_LIVRAISON,
-            CategorieCL::DEMANDE_DISPATCH,
-            CategorieCL::DEMANDE_HANDLING,
-			CategorieCL::DEMANDE_COLLECTE,
-            CategorieCL::ARRIVAGE,
-			CategorieCL::MVT_TRACA
+            CategorieCL::REFERENCE_ARTICLE => CategoryType::ARTICLE,
+            CategorieCL::ARTICLE => CategoryType::ARTICLE,
+            CategorieCL::AUCUNE => '',
+            CategorieCL::RECEPTION => CategoryType::RECEPTION,
+            CategorieCL::DEMANDE_LIVRAISON => CategoryType::DEMANDE_LIVRAISON,
+            CategorieCL::DEMANDE_DISPATCH => CategoryType::DEMANDE_DISPATCH,
+            CategorieCL::DEMANDE_HANDLING => CategoryType::DEMANDE_HANDLING,
+			CategorieCL::DEMANDE_COLLECTE => CategoryType::DEMANDE_COLLECTE,
+            CategorieCL::ARRIVAGE => CategoryType::ARRIVAGE,
+			CategorieCL::MVT_TRACA => CategoryType::MOUVEMENT_TRACA
         ];
-        foreach ($categoriesNames as $categorieName) {
-            $categorie = $categorieCLRepository->findOneByLabel($categorieName);
+        foreach ($categoriesNames as $index => $categorieName) {
+            $categorie = $categorieCLRepository->findOneByLabel($index);
+            $categorieType = $categorieTypeRepository->findOneBy(['label' => $categorieName]);
 
             if (empty($categorie)) {
                 $categorie = new CategorieCL();
-                $categorie->setLabel($categorieName);
+                $categorie->setLabel($index);
                 $manager->persist($categorie);
-                dump("création de la catégorie " . $categorieName);
+                dump("Création de la catégorie " . $index);
+            }
+
+            if (!$categorie->getCategoryType()) {
+                $categorie->setCategoryType($categorieType);
+                dump('Liaison categorieCL ' . $index . ' à categorieType ' . $categorieName);
             }
         }
         $manager->flush();

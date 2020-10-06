@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\DaysWorked;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\Emplacement;
@@ -77,7 +77,7 @@ class ParametrageGlobalController extends AbstractController
         $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $dimensionsEtiquettesRepository = $entityManager->getRepository(DimensionsEtiquettes::class);
-        $champsLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champsLibreRepository = $entityManager->getRepository(FreeField::class);
         $categoryCLRepository = $entityManager->getRepository(CategorieCL::class);
         $translationRepository = $entityManager->getRepository(Translation::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
@@ -916,6 +916,13 @@ class ParametrageGlobalController extends AbstractController
         $locationClusterRepository = $entityManager->getRepository(LocationCluster::class);
 
         $cluster = $locationClusterRepository->findOneBy(['code' => $clusterCode]);
+
+        if(!$cluster) {
+            $cluster = new LocationCluster();
+            $cluster->setCode($clusterCode);
+            $entityManager->persist($cluster);
+        }
+
         /** @var Emplacement $locationInCluster */
         foreach ($cluster->getLocations() as $locationInCluster) {
             $locationId = (string) $locationInCluster->getId();

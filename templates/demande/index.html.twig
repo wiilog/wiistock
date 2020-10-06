@@ -41,8 +41,7 @@
                     {% if hasRightCreate and hasRightExport %}
                         <div class="btn-group">
                             <div class="btn btn-primary btn-ripple split-button"
-                                 data-toggle="modal" data-target="#modalNewDemande"
-                                 onclick='initNewLivraisonEditor("#modalNewDemande")'>
+                                 data-toggle="modal" data-target="#modalNewDemande">
                                 <span class="fa fa-plus mr-2"></span>Nouvelle demande
                             </div>
                             <button type="button"
@@ -62,8 +61,7 @@
                         {% if hasRightCreate %}
                             <div class="btn btn-primary btn-ripple"
                                  data-toggle="modal"
-                                 data-target="#modalNewDemande"
-                                 onclick='initNewLivraisonEditor("#modalNewDemande")'>
+                                 data-target="#modalNewDemande">
                                 <span class="fa fa-plus mr-2"></span>Nouvelle demande
                             </div>
                         {% endif %}
@@ -97,5 +95,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/demande-livraison.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/demande-livraison.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

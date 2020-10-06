@@ -7,7 +7,7 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
@@ -986,7 +986,7 @@ class ImportService
      */
     private function checkAndSetChampsLibres($colChampsLibres, $refOrArt, $isNewEntity, $row)
     {
-        $champLibreRepository = $this->em->getRepository(ChampLibre::class);
+        $champLibreRepository = $this->em->getRepository(FreeField::class);
         $missingCL = [];
 
         $categoryCL = $refOrArt instanceof ReferenceArticle ? CategorieCL::REFERENCE_ARTICLE : CategorieCL::ARTICLE;
@@ -1013,23 +1013,23 @@ class ImportService
         $freeFieldsToInsert = [];
 
         foreach ($colChampsLibres as $clId => $col) {
-            /** @var ChampLibre $champLibre */
+            /** @var FreeField $champLibre */
             $champLibre = $champLibreRepository->find($clId);
 
             switch ($champLibre->getTypage()) {
-                case ChampLibre::TYPE_BOOL:
+                case FreeField::TYPE_BOOL:
                     $value = in_array($row[$col], ['Oui', 'oui', 1, '1']);
                     break;
-                case ChampLibre::TYPE_DATE:
+                case FreeField::TYPE_DATE:
                     $value = $this->checkDate($row[$col], 'd/m/Y', 'Y-m-d', 'jj/mm/AAAA', $champLibre);
                     break;
-                case ChampLibre::TYPE_DATETIME:
+                case FreeField::TYPE_DATETIME:
                     $value = $this->checkDate($row[$col], 'd/m/Y H:i', 'Y-m-d\TH:i', 'jj/mm/AAAA HH:MM', $champLibre);
                     break;
-                case ChampLibre::TYPE_LIST:
+                case FreeField::TYPE_LIST:
                     $value = $this->checkList($row[$col], $champLibre, false);
                     break;
-                case ChampLibre::TYPE_LIST_MULTIPLE:
+                case FreeField::TYPE_LIST_MULTIPLE:
                     $value = $this->checkList($row[$col], $champLibre, true);
                     break;
                 default:
@@ -1047,11 +1047,11 @@ class ImportService
      * @param string $format
      * @param string $outputFormat
      * @param string $errorFormat
-     * @param ChampLibre $champLibre
+     * @param FreeField $champLibre
      * @return string
      * @throws ImportException
      */
-    private function checkDate(string $dateString, string $format, string $outputFormat, string $errorFormat, ChampLibre $champLibre): ?string
+    private function checkDate(string $dateString, string $format, string $outputFormat, string $errorFormat, FreeField $champLibre): ?string
     {
         $response = null;
         if ($dateString !== "") {
@@ -1071,12 +1071,12 @@ class ImportService
 
     /**
      * @param string $element
-     * @param ChampLibre $champLibre
+     * @param FreeField $champLibre
      * @param bool $isMultiple
      * @return string
      * @throws ImportException
      */
-    private function checkList(string $element, ChampLibre $champLibre, bool $isMultiple): ?string
+    private function checkList(string $element, FreeField $champLibre, bool $isMultiple): ?string
     {
         $response = null;
         if ($element !== "") {

@@ -25,7 +25,7 @@
                     <div class="row">
                         <div class="col-4 form-group">
                             <label for="destination">Destination*</label>
-                            <select name="destination" class="data ajax-autocompleteEmplacement w-100 needed" id="locationDemandeLivraison"
+                            <select name="destination" class="data ajax-autocomplete-location w-100 needed" id="locationDemandeLivraison"
                                     data-is-prefilled="{{ livraisonLocation is not empty }}">
                                 <option></option>
                             </select>
@@ -44,7 +44,7 @@
                         <div class="col-4 form-group">
                             <label for="type">Type*</label>
                             <select class="select2-type data w-100 needed" name="type"
-                                    onchange="typeChoice($(this), '-new');toggleRequiredChampsLibres($(this),'create')">
+                                    onchange="onRequestTypeChange($(this))">
                                 <option>&nbsp;</option>
                                 {% for type in typeChampsLibres %}
                                     <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
@@ -57,8 +57,8 @@
                     <span class="toggle-collapsible expanded">Champs libres</span>
                     <div class="collapsible expanded free-fields-container mb-2">
                         {% for type in typeChampsLibres %}
-                            <div class="d-none row" id="{{ type.typeId }}-new">
-                                {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+                            <div class="d-none" id="{{ type.typeId }}-new">
+                                {% include 'free_field/freeFieldsViewing.html.twig' with {
                                     freeFields: type.champsLibres,
                                     freeFieldValues: [],
                                     colType: 'col-md-4 col-12',

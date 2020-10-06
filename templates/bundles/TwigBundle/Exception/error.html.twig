@@ -1,21 +1,20 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}Erreur{% endblock %}
+{% block pageContainerClass 'd-flex justify-content-center align-items-center h-100' %}
+{% block title %}Erreur interne{% endblock %}
 
-{% block body %}
-    <div id="app">
-        <div class="error-wrapper">
-            {# <h1 class="glitch" data-text="ERROR 500">ERROR 500</h1> #}
-            <h1 id="error-name" class="glitch-2">ERREUR 500</h1>
-            <div class="sub">ERREUR INTERNE DU SERVEUR</div>
-            <div class="em">L'application est en erreur, nous en sommes désolés.<br/> Si cela se reproduit, contactez l'équipe technique <strong>Wiilog</strong> au 07 72 32 19 03.</div>
-            <a href="{{ path('check_last_login') }}">Retour</a>
-        </div>
+{% block page_content %}
+    <div class="text-center">
+        <i class="fas fa-question-circle fa-7x"></i>
+        <h1 class="main-title">Une erreur est survenue</h1>
+
+        <strong>Erreur 500</strong>
+        <p>Une erreur est survenue au sein de l'application lors de votre dernière action.</p>
+        <p>
+            <em>Si le problème se reproduit, n'hésitez pas à contacter l'équipe technique <strong>Wiilog</strong> au 07 72 32 19 03.</em>
+        </p>
+        <p class="mt-3 btn btn-primary">
+            <a href="{{ path('accueil') }}">Retour à l'accueil</a>
+        </p>
     </div>
-{% endblock %}
-
-
-{% block javascripts %}
-    <script type="text/javascript">
-    </script>
 {% endblock %}

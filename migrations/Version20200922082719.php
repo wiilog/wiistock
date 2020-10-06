@@ -6,13 +6,9 @@ namespace DoctrineMigrations;
 
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ParametrageGlobal;
 use App\Entity\Statut;
-use App\Service\SpecificService;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
 /**
  * Auto-generated Migration: Please modify to your needs!

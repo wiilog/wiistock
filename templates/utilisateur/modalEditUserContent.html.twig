@@ -6,6 +6,19 @@
         <input type="text" class="form-control data needed" name="user" required="" value="{{ user.id }}">
     </div>
     <div class="col-12 form-group">
+        <label for="username">Role*</label>
+        <select name="role" class="form-control data needed">
+            {% if user.role == null %}
+                <option value="0" selected disabled>Aucun rôle</option>
+            {% else %}
+                {% for role in roles %}
+                    {% set selected = role.id == user.role.id ? 'selected' : '' %}
+                    <option value="{{ role.id }}" {{ selected }}>{{ role.label }}</option>
+                {% endfor %}
+            {% endif %}
+        </select>
+    </div>
+    <div class="col-12 form-group">
         <label for="username">Nom d'utilisateur*</label>
         <input type="text" class="form-control data needed" name="username" required="" value="{{ user.username }}">
     </div>
@@ -84,7 +97,7 @@
     </div>
     <div class="col-12 form-group w-100">
         <label for="dropzone">Dropzone</label>
-        <select name="dropzone" class="form-control data ajax-autocompleteEmplacement-edit" id="dropzone">
+        <select name="dropzone" class="form-control data ajax-autocomplete-location-edit" id="dropzone">
         </select>
     </div>
     <div class="col-12 form-group">

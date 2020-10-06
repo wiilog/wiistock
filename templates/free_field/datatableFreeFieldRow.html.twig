@@ -1,0 +1,18 @@
+<div class="d-flex">
+    <div class="dropdown dropright">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            <div class="d-none">
+                <div class="action-on-click" data-id='{{ idChampLibre }}' data-toggle='modal' data-target='#modalEditFreeField'
+                     onclick="editRow($(this),  Routing.generate('free_field_api_edit', true), $('#modalEditFreeField'), $('#submitEditChampLibre'), false, '', false, () => {defaultValueForTypage($('#modalEditFreeField .typageModif'))})">
+                    <i class='fas fa-pencil-alt'></i>
+                </div>
+            </div>
+            <div class="dropdown-item"
+                 onclick="deleteRow($(this), $('#modalDeleteChampLibre'), $('#submitChampLibreDelete'))"
+                 data-id={{ idChampLibre }} data-target='#modalDeleteChampLibre' data-toggle='modal'>
+                <i class='fas fa-trash mr-2'></i>Supprimer
+            </div>
+        </div>
+    </div>
+</div>

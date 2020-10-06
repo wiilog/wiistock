@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\Pack;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\Utilisateur;
@@ -11,7 +10,6 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\Query\Expr\Join;
 use Exception;
 
 
@@ -366,5 +364,19 @@ class MouvementTracaRepository extends EntityRepository
             WHERE m.mouvementStock = :mouvementStock"
         )->setParameter('mouvementStock', $mouvementStock);
         return $query->getSingleScalarResult();
+    }
+
+    public function findLastTakingNotFinished(string $code) {
+        return $this->createQueryBuilder('movement')
+            ->join('movement.pack', 'pack')
+            ->join('movement.type', 'type')
+            ->where('pack.code = :code')
+            ->andWhere('type.code = :takingCode')
+            ->andWhere('movement.finished = false')
+            ->orderBy('movement.datetime', 'DESC')
+            ->setParameter('takingCode', MouvementTraca::TYPE_PRISE)
+            ->setParameter('code', $code)
+            ->getQuery()
+            ->getResult();
     }
 }

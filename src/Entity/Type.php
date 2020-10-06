@@ -55,7 +55,7 @@ class Type
     private $description;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ChampLibre", mappedBy="type")
+     * @ORM\OneToMany(targetEntity="FreeField", mappedBy="type")
      */
     private $champsLibres;
 
@@ -144,6 +144,11 @@ class Type
      */
     private $pickLocation;
 
+    /**
+     * @ORM\OneToOne(targetEntity=AverageRequestTime::class, mappedBy="type", cascade={"persist", "remove"})
+     */
+    private $averageRequestTime;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -180,14 +185,14 @@ class Type
     }
 
     /**
-     * @return Collection|ChampLibre[]
+     * @return Collection|FreeField[]
      */
     public function getChampsLibres(): Collection
     {
         return $this->champsLibres;
     }
 
-    public function addChampLibre(ChampLibre $champLibre): self
+    public function addChampLibre(FreeField $champLibre): self
     {
         if (!$this->champsLibres->contains($champLibre)) {
             $this->champsLibres[] = $champLibre;
@@ -197,7 +202,7 @@ class Type
         return $this;
     }
 
-    public function removeChampLibre(ChampLibre $champLibre): self
+    public function removeChampLibre(FreeField $champLibre): self
     {
         if ($this->champsLibres->contains($champLibre)) {
             $this->champsLibres->removeElement($champLibre);
@@ -442,7 +447,7 @@ class Type
         return $this;
     }
 
-    public function addChampsLibre(ChampLibre $champsLibre): self
+    public function addChampsLibre(FreeField $champsLibre): self
     {
         if (!$this->champsLibres->contains($champsLibre)) {
             $this->champsLibres[] = $champsLibre;
@@ -452,7 +457,7 @@ class Type
         return $this;
     }
 
-    public function removeChampsLibre(ChampLibre $champsLibre): self
+    public function removeChampsLibre(FreeField $champsLibre): self
     {
         if ($this->champsLibres->contains($champsLibre)) {
             $this->champsLibres->removeElement($champsLibre);
@@ -705,6 +710,23 @@ class Type
     public function setPickLocation(?Emplacement $pickLocation): self
     {
         $this->pickLocation = $pickLocation;
+
+        return $this;
+    }
+
+    public function getAverageRequestTime(): ?AverageRequestTime
+    {
+        return $this->averageRequestTime;
+    }
+
+    public function setAverageRequestTime(AverageRequestTime $averageRequestTime): self
+    {
+        $this->averageRequestTime = $averageRequestTime;
+
+        // set the owning side of the relation if necessary
+        if ($averageRequestTime->getType() !== $this) {
+            $averageRequestTime->setType($this);
+        }
 
         return $this;
     }

@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryCategory;
@@ -29,8 +29,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Twig\Environment as Twig_Environment;
-use App\Repository\FiltreRefRepository;
-use App\Repository\InventoryFrequencyRepository;
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
@@ -67,11 +65,6 @@ class ReferenceArticleController extends AbstractController
     const MAX_CSV_FILE_LENGTH = 5000;
 
     /**
-     * @var FiltreRefRepository
-     */
-    private $filtreRefRepository;
-
-    /**
      * @var RefArticleDataService
      */
     private $refArticleDataService;
@@ -102,41 +95,25 @@ class ReferenceArticleController extends AbstractController
     private $globalParamService;
 
     /**
-     * @var InventoryFrequencyRepository
-     */
-    private $inventoryFrequencyRepository;
-
-    /**
      * @var object|string
      */
     private $user;
-
-    private $CSVExportService;
-    private $champLibreService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 GlobalParamService $globalParamService,
                                 SpecificService $specificService,
                                 Twig_Environment $templating,
                                 ArticleDataService $articleDataService,
-                                FiltreRefRepository $filtreRefRepository,
                                 RefArticleDataService $refArticleDataService,
-                                UserService $userService,
-                                InventoryFrequencyRepository $inventoryFrequencyRepository,
-                                CSVExportService $CSVExportService,
-                                FreeFieldService $champLibreService)
+                                UserService $userService)
     {
-        $this->filtreRefRepository = $filtreRefRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
         $this->userService = $userService;
         $this->templating = $templating;
         $this->specificService = $specificService;
         $this->globalParamService = $globalParamService;
-        $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->user = $tokenStorage->getToken()->getUser();
-        $this->CSVExportService = $CSVExportService;
-        $this->champLibreService = $champLibreService;
     }
 
     /**
@@ -153,7 +130,7 @@ class ReferenceArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
             $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
@@ -168,6 +145,7 @@ class ReferenceArticleController extends AbstractController
 					"title" => 'Actions',
 					"data" => 'Actions',
 					'name' => 'Actions',
+                    'orderable' => false,
 					"class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
 
 				],
@@ -475,10 +453,10 @@ class ReferenceArticleController extends AbstractController
 
         $entityManager = $this->getDoctrine()->getManager();
 
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+        $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         $typeQuantite = [
@@ -586,8 +564,8 @@ class ReferenceArticleController extends AbstractController
         ];
 
         // champs pour recherche personnalisée (uniquement de type texte ou liste)
-		$champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_TEXT);
-		$champsLTList = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_LIST);
+		$champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_TEXT);
+		$champsLTList = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_LIST);
 
 		$champsFText[] = [
             'label' => 'Libellé',
@@ -652,7 +630,7 @@ class ReferenceArticleController extends AbstractController
             ];
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
-        $filter = $this->filtreRefRepository->findOneByUserAndChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT);
+        $filter = $filtreRefRepository->findOneByUserAndChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT);
 
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
@@ -663,7 +641,7 @@ class ReferenceArticleController extends AbstractController
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'typeQuantite' => $typeQuantite,
-            'filters' => $this->filtreRefRepository->findByUserExceptChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT),
+            'filters' => $filtreRefRepository->findByUserExceptChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT),
             'categories' => $inventoryCategories,
             'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF
         ]);
@@ -1141,32 +1119,18 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/exporter-refs", name="export_all_refs", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
+     * @param FreeFieldService $freeFieldService
      * @param CSVExportService $CSVExportService
      * @return Response
-     * @throws Exception
      */
     public function exportAllRefs(EntityManagerInterface $entityManager,
-                              CSVExportService $CSVExportService): Response
+                                  FreeFieldService $freeFieldService,
+                                  CSVExportService $CSVExportService): Response
     {
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-        $category = CategoryType::ARTICLE;
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
-        $freeFieldsIds = array_map(
-            function (array $cl) {
-                return $cl['id'];
-            },
-            $freeFields
-        );
-        $freeFieldsHeader = array_map(
-            function (array $cl) {
-                return $cl['label'];
-            },
-            $freeFields
-        );
+        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::REFERENCE_ARTICLE]);
+
         $headers = array_merge(
             [
                 'reference',
@@ -1185,7 +1149,7 @@ class ReferenceArticleController extends AbstractController
                 'date dernier inventaire',
                 'synchronisation nomade'
             ],
-            $freeFieldsHeader
+            $freeFieldsConfig['freeFieldsHeader']
         );
         $today = new \DateTime();
         $globalTitle = 'export-references-' . $today->format('d-m-Y H:i:s') . '.csv';
@@ -1195,7 +1159,7 @@ class ReferenceArticleController extends AbstractController
         $start = 0;
         do {
             $references = $referenceArticleRepository->getAllWithLimits($start, $step);
-            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $references, ($start === 0 ? $headers : null), $freeFieldsIds);
+            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $freeFieldService, $references, ($start === 0 ? $headers : null), $freeFieldsConfig);
             $references = null;
             $start += $step;
         } while ($start < $allReferencesCount);
@@ -1206,11 +1170,15 @@ class ReferenceArticleController extends AbstractController
     }
 
 
-    private function generateRefsCSVFile(CSVExportService $CSVExportService, array $references, ?array $headers, array $freeFields): string {
+    private function generateRefsCSVFile(CSVExportService $CSVExportService,
+                                         FreeFieldService $freeFieldService,
+                                         array $references,
+                                         ?array $headers,
+                                         array $freeFieldsConfig): string {
         return $CSVExportService->createCsvFile(
             $references,
             $headers,
-            function ($reference) use ($freeFields) {
+            function ($reference) use ($freeFieldService, $freeFieldsConfig) {
                 $referenceArray = [
                     $reference['reference'],
                     $reference['libelle'],
@@ -1228,12 +1196,15 @@ class ReferenceArticleController extends AbstractController
                     $reference['dateLastInventory'] ? $reference['dateLastInventory']->format('d/m/Y H:i:s') : '',
                     $reference['needsMobileSync'],
                 ];
-                foreach ($freeFields as $freeField) {
-                    $referenceArray[] = $reference['freeFields'][$freeField] ?? "";
+
+                foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+                    $referenceArray[] = $freeFieldService->serializeValue([
+                        'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
+                        'valeur' => $reference['freeFields'][$freeFieldId] ?? ''
+                    ]);
                 }
-                return [
-                    $referenceArray
-                ];
+
+                return [$referenceArray];
             }
         );
     }
@@ -1318,8 +1289,9 @@ class ReferenceArticleController extends AbstractController
                                 PDFGeneratorService $PDFGeneratorService): Response
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+        $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
 
         $category = CategoryType::ARTICLE;
@@ -1329,7 +1301,7 @@ class ReferenceArticleController extends AbstractController
             return $accumulator;
         }, []);
         $userId = $this->user->getId();
-        $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
+        $filters = $filtreRefRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $this->user, $champs);
         $refs = $queryResult['data'];
         $refs = array_map(function($refArticle) {
@@ -1367,7 +1339,6 @@ class ReferenceArticleController extends AbstractController
      * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
@@ -1386,15 +1357,22 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/show-actif-inactif", name="reference_article_actif_inactif", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function displayActifOrInactif(Request $request) : Response
+    public function displayActifOrInactif(Request $request,
+                                          EntityManagerInterface $entityManager) : Response
     {
         if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)){
 
+            /** @var Utilisateur $user */
             $user = $this->getUser();
             $statutArticle = $data['donnees'];
 
-            $filter = $this->filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::CHAMP_FIXE_STATUT);
+            $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
+
+            $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::CHAMP_FIXE_STATUT);
 
             $em = $this->getDoctrine()->getManager();
             if($filter == null){

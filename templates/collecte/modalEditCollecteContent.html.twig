@@ -36,7 +36,7 @@
 <div class="form-group row">
     <label class="col-12" for="Pcollecte">Point de collecte</label>
     <div class="col-12">
-        <select class="pointCollecte form-control ajax-autocompleteEmplacement-edit data w-100" name="Pcollecte">
+        <select class="pointCollecte form-control ajax-autocomplete-location-edit data w-100" name="Pcollecte">
             <option value="{{ collecte.pointCollecte.id }}">{{ collecte.pointCollecte.label }}</option>
         </select>
     </div>
@@ -67,7 +67,7 @@
 <!-- CHAMPS LIBRES -->
 <span class="toggle-collapsible expanded">Champs libres</span>
 <div class="collapsible expanded free-fields-container mb-2">
-    {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+    {% include 'free_field/freeFieldsViewing.html.twig' with {
         freeFields: freeFieldsGroupedByTypes[collecte.type.id] is defined ? freeFieldsGroupedByTypes[collecte.type.id] : [],
         freeFieldValues: collecte.freeFields,
         colType: 'col-md-4 col-12',

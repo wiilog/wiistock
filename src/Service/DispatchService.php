@@ -5,7 +5,7 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Dispatch;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -15,7 +15,7 @@ use App\Entity\MouvementTraca;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Repository\ChampLibreRepository;
+use App\Repository\FreeFieldRepository;
 use App\Repository\FieldsParamRepository;
 use App\Repository\StatutRepository;
 use DateTime;
@@ -88,7 +88,7 @@ class DispatchService {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->user);
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
@@ -128,16 +128,16 @@ class DispatchService {
         $url = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
 
         $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $freeFieldsRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
 
         $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
         $category = CategoryType::DEMANDE_DISPATCH;
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
 
         $rowCL = [];
-        /** @var ChampLibre $freeField */
+        /** @var FreeField $freeField */
         foreach ($freeFields as $freeField) {
-            $rowCL[$freeField['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
+            $rowCL[$freeField['label']] = $this->freeFieldService->serializeValue([
                 'valeur' => $dispatch->getFreeFieldValue($freeField['id']),
                 "typage" => $freeField['typage'],
             ]);
@@ -171,7 +171,7 @@ class DispatchService {
     }
 
     public function getNewDispatchConfig(StatutRepository $statutRepository,
-                                         ChampLibreRepository $champLibreRepository,
+                                         FreeFieldRepository $champLibreRepository,
                                          FieldsParamRepository $fieldsParamRepository,
                                          array $types,
                                          ?Arrivage $arrival = null) {
@@ -264,49 +264,49 @@ class DispatchService {
                     'value' => $type ? $type->getLabel() : ''
                 ],
                 [
-                    'label' => 'Transporteur',
+                    'label' => $this->translator->trans('acheminement.Transporteur'),
+                    'title' => 'Transporteur',
                     'value' => $carrier ? $carrier->getLabel() : '',
-                    'show' => [ 'fieldName' => 'carrier' ]
+                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_CARRIER_DISPATCH ]
                 ],
                 [
-                    'label' => 'Numéro de tracking transporteur',
+                    'label' => $this->translator->trans('acheminement.Numéro de tracking transporteur'),
+                    'title' => 'Numéro de tracking transporteur',
                     'value' => $carrierTrackingNumber,
-                    'show' => [ 'fieldName' => 'trackingCarrierNumber' ]
+                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH ]
                 ],
                 [
                     'label' => 'Demandeur',
                     'value' => $requester ? $requester->getUsername() : ''
                 ],
-                [
-                    "label" => "Destinataire",
-                    "value" => $receiver ? $receiver->getUsername() : '',
-                    'show' => [ 'fieldName' => 'receiver' ]
-                ],
                 $receiverDetails,
                 [
-                    'label' => 'Numéro de projet',
+                    'label' => $this->translator->trans('acheminement.Numéro de projet'),
+                    'title' => 'Numéro de projet',
                     'value' => $projectNumber,
-                    'show' => [ 'fieldName' => 'projectNumber' ]
+                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_PROJECT_NUMBER ]
                 ],
                 [
-                    'label' => 'Business Unit',
+                    'label' => $this->translator->trans('acheminement.Business unit'),
+                    'title' => 'Business unit',
                     'value' => $dispatch->getBusinessUnit() ?? '',
-                    'show' => [ 'fieldName' => 'businessUnit' ]
+                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_BUSINESS_UNIT ]
                 ],
                 [
                     'label' => $this->translator->trans('acheminement.Numéro de commande'),
-                    'value' => $commandNumber, 'title' => 'Numéro de commande',
-                    'show' => [ 'fieldName' => 'commandNumber' ]
+                    'value' => $commandNumber,
+                    'title' => 'Numéro de commande',
+                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH ]
                 ],
                 [
                     'label' => $this->translator->trans('acheminement.Emplacement prise'),
                     'value' => $locationFrom ? $locationFrom->getLabel() : '', 'title' => 'Emplacement prise',
-                    'show' => [ 'fieldName' => 'locationFrom' ]
+                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_LOCATION_PICK ]
                 ],
                 [
                     'label' => $this->translator->trans('acheminement.Emplacement dépose'),
                     'value' => $locationTo ? $locationTo->getLabel() : '', 'title' => 'Emplacement dépose',
-                    'show' => [ 'fieldName' => 'locationTo' ]
+                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_LOCATION_DROP ]
                 ],
                 [
                     'label' => 'Date de création',
@@ -329,13 +329,12 @@ class DispatchService {
                     'value' => $treatmentDate ? $treatmentDate->format('d/m/Y H:i:s') : ''
                 ]
             ];
-
         $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DISPATCH);
-
         return array_merge(
             $configFiltered,
             $freeFieldArray,
-            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayed')
+            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsCreate')
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsEdit'))
                 ? [[
                 'label' => 'Commentaire',
                 'value' => $comment ?: '',
@@ -345,7 +344,8 @@ class DispatchService {
                 'isNeededNotEmpty' => true
             ]]
                 : [],
-            $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayed')
+            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'pièces-jointes', 'displayedFormsCreate')
+            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'pièces-jointes', 'displayedFormsEdit'))
                 ? [[
                 'label' => 'Pièces jointes',
                 'value' => $attachments->toArray(),
@@ -510,7 +510,7 @@ class DispatchService {
     }
 
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         $columnsVisible = $currentUser->getColumnsVisibleForDispatch();
@@ -518,10 +518,10 @@ class DispatchService {
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, $categorieCL);
 
         $columns = [
-            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true],
+            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
             ['title' => 'Numéro demande', 'name' => 'number'],
-            ['title' => 'Transporteur', 'name' => 'carrier'],
-            ['title' => 'Numéro de tracking transporteur', 'name' => 'carrierTrackingNumber'],
+            ['title' => 'acheminement.Transporteur', 'name' => 'carrier', 'translated' => true],
+            ['title' => 'acheminement.Numéro de tracking transporteur', 'name' => 'carrierTrackingNumber', 'translated' => true],
             ['title' => 'acheminement.Numéro de commande', 'name' => 'commandNumber', 'translated' => true],
             ['title' => 'Date de création',  'name' => 'creationDate'],
             ['title' => 'Date de validation', 'name' => 'validationDate'],
@@ -531,7 +531,7 @@ class DispatchService {
             ['title' => 'Destinataire', 'name' => 'receiver'],
             ['title' => 'acheminement.Emplacement prise', 'name' => 'locationFrom', 'translated' => true],
             ['title' => 'acheminement.Emplacement dépose', 'name' => 'locationTo', 'translated' => true],
-            ['title' => 'acheminement.Nb colis', 'name' => 'nbPacks', 'orderable' => false, 'translated' => true],
+            ['title' => 'acheminement.Nb colis', 'name' => 'nbPacks', 'translated' => true, 'orderable' => false],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Urgence', 'name' => 'emergency'],
             ['title' => 'Traité par', 'name' => 'treatedBy'],
@@ -542,6 +542,7 @@ class DispatchService {
                 return [
                     'title' => $column['title'],
                     'alwaysVisible' => $column['alwaysVisible'] ?? false,
+                    'orderable' => $column['orderable'] ?? true,
                     'data' => $column['name'],
                     'name' => $column['name'],
                     'translated' => $column['translated'] ?? false,

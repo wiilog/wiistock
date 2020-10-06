@@ -4,14 +4,12 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\Emplacement;
 use App\Entity\Menu;
 
 use App\Repository\InventoryEntryRepository;
 
 use App\Service\InventoryEntryService;
 use DateTime;
-use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;

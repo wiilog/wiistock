@@ -109,7 +109,7 @@
         <div class="input-group w-100">
             <label for="emplacement">Emplacement*</label>
             <select name="emplacement" id="emplacement"
-                    class="form-control w-100 data needed ajax-autocompleteEmplacement">
+                    class="form-control w-100 data needed ajax-autocomplete-location">
             </select>
         </div>
     </div>
@@ -139,8 +139,8 @@
 <span class="toggle-collapsible expanded">Champs libres</span>
 <div class="collapsible expanded free-fields-container">
     {% for type in typeChampsLibres %}
-        <div class="d-none row" id="{{ type.typeId }}-new">
-            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+        <div class="d-none" id="{{ type.typeId }}-new">
+            {% include 'free_field/freeFieldsViewing.html.twig' with {
                 freeFields: type.champsLibres,
                 freeFieldValues: [],
                 colType: 'col-md-4 col-12',
