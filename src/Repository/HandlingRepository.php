@@ -306,18 +306,18 @@ class HandlingRepository extends EntityRepository
 
     /**
      * @param $prefix
+     * @param $date
      * @return mixed|null
      */
-    public function getLastHandlingNumberByPrefix($prefix)
-    {
-        $queryBuilder = $this->createQueryBuilder('handling');
-        $queryBuilder
-            ->select('handling.number')
+    public function getLastNumberByPrefixAndDate($prefix, $date) {
+        $qb = $this->createQueryBuilder('handling');
+
+        $qb->select('handling.number')
             ->where('handling.number LIKE :value')
             ->orderBy('handling.creationDate', 'DESC')
-            ->setParameter('value', $prefix . '%');
+            ->setParameter('value', $prefix . '-' . $date . '%');
 
-        $result = $queryBuilder
+        $result = $qb
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;

@@ -164,13 +164,11 @@ class HandlingController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
-            $handlingRepository = $entityManager->getRepository(Handling::class);
 
             $post = $request->request;
 
             $handling = new Handling();
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $dateStr = $date->format('Ymd');
             $prefix = Handling::PREFIX_NUMBER;
 
             $status = $statutRepository->find($post->get('status'));
@@ -178,8 +176,7 @@ class HandlingController extends AbstractController
             $desiredDate = $post->get('desired-date') ? new DateTime($post->get('desired-date')) : null;
             $fileBag = $request->files->count() > 0 ? $request->files : null;
 
-            $lastDispatchNumber = $handlingRepository->getLastHandlingNumberByPrefix($prefix . '-' . $dateStr);
-            $handlingNumber = $uniqueNumberService->createUniqueNumber($prefix, UniqueNumberService::DATE_COUNTER_FORMAT, $lastDispatchNumber);
+            $handlingNumber = $uniqueNumberService->createUniqueNumber($prefix, UniqueNumberService::DATE_COUNTER_FORMAT, Handling::class);
 
             /** @var Utilisateur $requester */
             $requester = $this->getUser();

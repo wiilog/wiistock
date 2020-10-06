@@ -2,8 +2,12 @@
 
 namespace App\Service;
 
+use App\Entity\Statut;
 use DateTime;
 use DateTimeZone;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\Entity;
 use Exception;
 
 class UniqueNumberService
@@ -11,18 +15,29 @@ class UniqueNumberService
 
     const DATE_COUNTER_FORMAT = 'YmdCCCC';
 
+    private $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
+
+
     /**
-     * @param string $prefix
-     * @param string $format
-     * @param string|null $lastNumber
+     * @param string $prefix - Prefix of the entity unique number => Available in choosen entity
+     * @param string $format - Format of the entity unique number => Available in UniqueNumberService
+     * @param Entity $entity - Choosen entity to generate unique number => Format Entity::class
      * @return string
      * @throws Exception
      */
     public function createUniqueNumber(string $prefix,
                                        string $format,
-                                       string $lastNumber = null): string {
+                                       Entity $entity): string {
 
         $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $dateStr = $date->format('Ymd');
+        $entityRepository = $this->entityManager->getRepository($entity);
+        $lastNumber = $entityRepository->getLastNumberByPrefixAndDate($prefix, $dateStr);
 
         preg_match('/([^C]*)(C+)/', $format, $matches);
         if (empty($matches)) {
@@ -34,7 +49,7 @@ class UniqueNumberService
         $counterLen = strlen($counterFormat);
 
         $lastCounter = (
-            (!empty($lastNumber) && $counterLen >= strlen($lastNumber))
+            (!empty($lastNumber) && $counterLen <= strlen($lastNumber)) // TODO calculer la longueur du compteur d'un numéro unique
                 ? (int) substr($lastNumber, -$counterLen, $counterLen)
                 : 0
         );

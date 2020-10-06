@@ -6,6 +6,7 @@ use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\QueryBuilder;
 use Exception;
 
@@ -492,19 +493,23 @@ class LitigeRepository extends EntityRepository
 		return array_column($result, 'reference');
 	}
 
-    public function getLastDisputeNumberByPrefixAndDate($prefix, $date)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            'SELECT l.numeroLitige as disputeNumber
-			FROM App\Entity\Litige l
-			WHERE l.numeroLitige LIKE :value
-			ORDER BY l.creationDate DESC'
-        )->setParameter('value', $prefix . '-' . $date . '%');
+    /**
+     * @param $prefix
+     * @param $date
+     * @return mixed|null
+     */
+    public function getLastNumberByPrefixAndDate($prefix, $date) {
+        $qb = $this->createQueryBuilder('dispute');
 
-        $result = $query->execute();
-        return $result ? $result[0]['disputeNumber'] : null;
+        $qb->select('dispute.numeroLitige')
+            ->where('dispute.numeroLitige LIKE :value')
+            ->orderBy('dispute.creationDate', 'DESC')
+            ->setParameter('value', $prefix . '-' . $date . '%');
+
+        $result = $qb
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['numeroLitige'] : null;
     }
 
     public function getIdAndDisputeNumberBySearch($search)

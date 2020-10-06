@@ -238,13 +238,11 @@ class DispatchController extends AbstractController {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $transporterRepository = $entityManager->getRepository(Transporteur::class);
             $packRepository = $entityManager->getRepository(Pack::class);
-            $dispatchRepository = $entityManager->getRepository(Dispatch::class);
 
             $printDeliveryNote = $request->query->get('printDeliveryNote');
 
             $dispatch = new Dispatch();
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $dateStr = $date->format('Ymd');
             $prefix = Dispatch::PREFIX_NUMBER;
 
             $fileBag = $request->files->count() > 0 ? $request->files : null;
@@ -283,8 +281,6 @@ class DispatchController extends AbstractController {
             $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
             $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
 
-            $lastDispatchNumber = $dispatchRepository->getLastDispatchNumberByPrefix($prefix . '-' . $dateStr);
-            $number = $uniqueNumberService->createUniqueNumber($prefix, UniqueNumberService::DATE_COUNTER_FORMAT, $lastDispatchNumber);
 
             if ($startDate && $endDate && $startDate > $endDate) {
                 return new JsonResponse([
@@ -293,6 +289,7 @@ class DispatchController extends AbstractController {
                 ]);
             }
 
+            $dispatchNumber = $uniqueNumberService->createUniqueNumber($prefix, UniqueNumberService::DATE_COUNTER_FORMAT, Dispatch::class);
             $dispatch
                 ->setCreationDate($date)
                 ->setStatut($statutRepository->find($post->get('status')))
@@ -301,7 +298,7 @@ class DispatchController extends AbstractController {
                 ->setLocationFrom($locationTake)
                 ->setLocationTo($locationDrop)
                 ->setBusinessUnit($businessUnit)
-                ->setNumber($number);
+                ->setNumber($dispatchNumber);
 
             if (!empty($comment)) {
                 $dispatch->setCommentaire($comment);

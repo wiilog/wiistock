@@ -1248,16 +1248,13 @@ class ReceptionController extends AbstractController {
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $disputeRepository = $entityManager->getRepository(Litige::class);
 
             $litige = new Litige();
 
             $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $dateStr = $now->format('Ymd');
             $prefix = Litige::DISPUTE_RECEPTION_PREFIX;
 
-            $lastDisputeNumber = $disputeRepository->getLastDisputeNumberByPrefixAndDate($prefix, $dateStr);
-            $disputeNumber = $uniqueNumberService->createUniqueNumber($prefix, UniqueNumberService::DATE_COUNTER_FORMAT, $lastDisputeNumber);
+            $disputeNumber = $uniqueNumberService->createUniqueNumber($prefix, UniqueNumberService::DATE_COUNTER_FORMAT, Litige::class);
 
             $litige
                 ->setStatus($statutRepository->find($post->get('statutLitige')))
