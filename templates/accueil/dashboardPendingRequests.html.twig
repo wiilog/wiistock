@@ -1,28 +1,12 @@
 <input type="hidden" class="page-title" value="Dashboard | DEMANDES EN COURS"/>
 <div class="row m-4">
     <div class="dashboard-box-container w-100">
-        <div class="dashboard-box fourth-row-height w-100 p-3">
-            <p class="title">Demandes de livraisons en cours</p>
+        <div class="dashboard-box pending-requests fourth-row-height w-100 p-3" style="background-color: #f5f6fb">
+            <strong class="title m-3">Demandes de livraisons en cours</strong>
             <div class="row">
                 {% for delivery in deliveries %}
                     <div class="col-3">
-                        {% include 'accueil/request-card.html.twig' with
-                            {
-                                requestOnClick: delivery.requestOnClick,
-                                estimatedFinishTime: delivery.estimatedFinishTime,
-                                requestStatus: delivery.requestStatus,
-                                requestBodyTitle: delivery.requestBodyTitle,
-                                requestLocation: delivery.requestLocation,
-                                requestNumber: delivery.requestNumber,
-                                requestDate: delivery.requestDate,
-                                requestUser: delivery.requestUser,
-                                cardColor: delivery.cardColor,
-                                bodyColor: delivery.bodyColor,
-                                topRightIcon: delivery.topRightIcon,
-                                progress: delivery.progress,
-                                progressBarColor:delivery.progressBarColor,
-                                progressBarBGColor: delivery.progressBarBGColor,
-                            } %}
+                        {% include 'accueil/request-card.html.twig' with delivery %}
                     </div>
                 {% endfor %}
             </div>

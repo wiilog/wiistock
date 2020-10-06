@@ -13,6 +13,8 @@ use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Wiilock;
+use App\Repository\AverageRequestTimeRepository;
+use App\Service\AverageTimeService;
 use App\Service\DashboardService;
 use App\Service\DemandeLivraisonService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -35,14 +37,19 @@ class AccueilController extends AbstractController
     /**
      * @Route("/accueil", name="accueil", methods={"GET"})
      * @param EntityManagerInterface $entityManager
+     * @param AverageRequestTimeRepository $averageRequestTimeRepository
+     * @param AverageTimeService $averageTimeService
      * @param DemandeLivraisonService $demandeLivraisonService
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function index(EntityManagerInterface $entityManager, DemandeLivraisonService $demandeLivraisonService): Response
+    public function index(EntityManagerInterface $entityManager,
+                          AverageRequestTimeRepository $averageRequestTimeRepository,
+                          AverageTimeService $averageTimeService,
+                          DemandeLivraisonService $demandeLivraisonService): Response
     {
-        $data = $this->getDashboardData($entityManager, $demandeLivraisonService);
+        $data = $this->getDashboardData($entityManager, $demandeLivraisonService, $averageRequestTimeRepository, $averageTimeService);
         return $this->render('accueil/index.html.twig', $data);
     }
 
@@ -67,7 +74,7 @@ class AccueilController extends AbstractController
                                  DashboardService $dashboardService,
                                  string $page): Response
     {
-        $data = $this->getDashboardData($entityManager, null, true);
+        $data = $this->getDashboardData($entityManager, null, null, null,true);
         $data['page'] = $page;
         $data['pageData'] = ($page === 'emballage')
             ? $dashboardService->getSimplifiedDataForPackagingDashboard($entityManager)
@@ -79,13 +86,18 @@ class AccueilController extends AbstractController
     /**
      * @param EntityManagerInterface $entityManager
      * @param DemandeLivraisonService|null $demandeLivraisonService
+     * @param AverageRequestTimeRepository|null $averageRequestTimeRepository
+     * @param AverageTimeService|null $averageTimeService
      * @param bool $isDashboardExt
      * @return array
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     private function getDashboardData(EntityManagerInterface $entityManager,
                                       DemandeLivraisonService $demandeLivraisonService = null,
+                                      AverageRequestTimeRepository $averageRequestTimeRepository = null,
+                                      AverageTimeService $averageTimeService = null,
                                       bool $isDashboardExt = false)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -151,8 +163,8 @@ class AccueilController extends AbstractController
         );
 
         if ($demandeLivraisonService) {
-            $pendingDeliveries = array_map(function (Demande $demande) use ($demandeLivraisonService) {
-                return $demandeLivraisonService->parseRequestForCard($demande);
+            $pendingDeliveries = array_map(function (Demande $demande) use ($demandeLivraisonService, $averageRequestTimeRepository, $averageTimeService) {
+                return $demandeLivraisonService->parseRequestForCard($demande, $averageTimeService, $averageRequestTimeRepository);
             }, $pendingDeliveries);
         }
 

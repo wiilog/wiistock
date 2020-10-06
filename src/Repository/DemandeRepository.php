@@ -10,6 +10,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use DoctrineExtensions\Query\Mysql\Date;
 use function Doctrine\ORM\QueryBuilder;
 
 /**
@@ -60,6 +61,34 @@ class DemandeRepository extends EntityRepository
             ->orderBy('demande.date', 'DESC')
             ->getQuery()
             ->execute();
+    }
+
+    public function getTreatingTimesWithType() {
+        $nowDate = new DateTime();
+        $datePrior3Months = clone $nowDate;
+        $datePrior3Months = date_modify($datePrior3Months, '-3 month');
+        $queryBuilder = $this->createQueryBuilder('demande');
+        $queryBuilderExpr = $queryBuilder->expr();
+        $query = $queryBuilder
+            ->select($queryBuilderExpr->max('demande.date') . ' as creationDate')
+            ->addSelect('type.id as typeId')
+            ->addSelect(
+                $queryBuilderExpr->max('livraison.dateFin') . ' as treatingDate'
+            )
+            ->join('demande.type', 'type')
+            ->join('demande.statut', 'statut')
+            ->join('demande.preparations', 'preparations')
+            ->join('preparations.livraison', 'livraison')
+            ->where('statut.nom LIKE :statutTreated')
+            ->andWhere('demande.date BETWEEN :prior AND :now')
+            ->groupBy('demande.id')
+            ->setParameters([
+                'prior' => $datePrior3Months,
+                'now' => $nowDate,
+                'statutTreated' => Demande::STATUT_LIVRE,
+            ])
+            ->getQuery();
+        return $query->execute();
     }
 
     public function findByStatutAndUser($statut, $user)

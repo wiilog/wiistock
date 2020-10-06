@@ -11,49 +11,26 @@ use DoctrineExtensions\Query\Mysql\Date;
 class AverageTimeService
 {
 
+    const ENG_TO_FR_MONTHS = [
+        'Jan' => 'Jan.',
+        'Feb' => 'Fév.',
+        'Mar' => 'Mar.',
+        'Apr' => 'Avr.',
+        'May' => 'Mai.',
+        'Jun' => 'Juin.',
+        'Jul' => 'Juil.',
+        'Aug' => 'Aout.',
+        'Sep' => 'Sept.',
+        'Oct' => 'Oct.',
+        'Nov' => 'Nov.',
+        'Dec' => 'Déc.',
+    ];
+
     const SECONDS_IN_DAY = 86400;
     const SECONDS_IN_HOUR = 3600;
     const SECONDS_IN_MINUTE = 60;
 
-    public function addRequestTime(Type $requestType,
-                                             EntityManagerInterface $entityManager,
-                                             DateInterval $dateInterval) {
-        $averageRequestTimeRepository = $entityManager->getRepository(AverageRequestTime::class);
-
-        $averageRequestTime = $averageRequestTimeRepository->findOneBy([
-            'type' => $requestType
-        ]);
-
-        if (!$averageRequestTime) {
-            $averageRequestTime = new AverageRequestTime();
-            $averageRequestTime
-                ->setType($requestType)
-                ->setTotal(1)
-                ->setAverage($dateInterval);
-            $entityManager
-                ->persist($averageRequestTime);
-        } else {
-            $total = $averageRequestTime->getTotal();
-            $average = $averageRequestTime->getAverage();
-
-            $averageToInt = $this->dateIntervalToSeconds($average);
-            $dateDiffToAddToInt = $this->dateIntervalToSeconds($dateInterval);
-
-            $newAverageToInt =
-                (
-                    ($averageToInt * $total) +
-                    $dateDiffToAddToInt
-                ) / ($total + 1);
-
-            $newAverageToDateInterval = $this->secondsToDateInterval($newAverageToInt);
-            $averageRequestTime
-                ->setAverage($newAverageToDateInterval)
-                ->setTotal($total + 1);
-        }
-    }
-
-
-    private function dateIntervalToSeconds(DateInterval $dateInterval): int {
+    public function dateIntervalToSeconds(DateInterval $dateInterval): int {
         return
             ($dateInterval->d * self::SECONDS_IN_DAY) +
             ($dateInterval->h * self::SECONDS_IN_HOUR) +
@@ -61,15 +38,15 @@ class AverageTimeService
             ($dateInterval->s);
     }
 
-    private function secondsToDateInterval(int $seconds): DateInterval {
+    public function secondsToDateInterval(int $seconds): DateInterval {
 
-        $days = floor($seconds / self::SECONDS_IN_DAY);
+        $days = (int)floor($seconds / self::SECONDS_IN_DAY);
         $remainingSeconds = ($seconds % self::SECONDS_IN_DAY);
 
-        $hours = floor($remainingSeconds / self::SECONDS_IN_HOUR);
+        $hours = (int)floor($remainingSeconds / self::SECONDS_IN_HOUR);
         $remainingSeconds = ($seconds % self::SECONDS_IN_HOUR);
 
-        $minutes = floor($remainingSeconds / self::SECONDS_IN_MINUTE);
+        $minutes = (int)floor($remainingSeconds / self::SECONDS_IN_MINUTE);
         $remainingSeconds = ($seconds % self::SECONDS_IN_MINUTE);
 
         $dateInterval = new DateInterval('P0Y');
