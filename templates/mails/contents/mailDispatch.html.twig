@@ -88,6 +88,14 @@
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
                 Opérateur
             </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Poids (kg)
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Volume (m3)
+            </th>
         </tr>
         </thead>
         <tbody>
@@ -129,6 +137,14 @@
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
                         {{ packLastTracking ? packLastTracking.operateur.username : '-' }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ dispatchPack.pack.weight ?? '-' }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ dispatchPack.pack.volume ?? '-' }}
                     </td>
                 </tr>
             {% endfor %}
