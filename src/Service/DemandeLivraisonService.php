@@ -213,6 +213,14 @@ class DemandeLivraisonService
 
         }
 
+        $requestDate = $demande->getDate()
+            ? (
+                $demande->getDate()->format('d ') .
+                AverageTimeService::ENG_TO_FR_MONTHS[$demande->getDate()->format('M')] .
+                $demande->getDate()->format(' (H:i)')
+            )
+            : 'Non défini';
+
         return [
             'requestOnClick' => $onClickAction,
             'estimatedFinishTime' => $deliveryDateEstimated,
@@ -220,7 +228,7 @@ class DemandeLivraisonService
             'requestBodyTitle' => $bodyTitle,
             'requestLocation' => $demande->getDestination() ? $demande->getDestination()->getLabel() : 'Non défini',
             'requestNumber' => $demande->getNumero(),
-            'requestDate' => $demande->getDate() ? $demande->getDate()->format('d/m/Y H:i') : 'Non défini',
+            'requestDate' => $requestDate,
             'requestUser' => $demande->getUtilisateur() ? $demande->getUtilisateur()->getUsername() : 'Non défini',
             'cardColor' => $demandeStatut === Demande::STATUT_BROUILLON ? 'lightGrey' : 'white',
             'bodyColor' => $demandeStatut === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',

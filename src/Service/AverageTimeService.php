@@ -11,6 +11,21 @@ use DoctrineExtensions\Query\Mysql\Date;
 class AverageTimeService
 {
 
+    const ENG_TO_FR_MONTHS = [
+        'Jan' => 'Jan.',
+        'Feb' => 'Fév.',
+        'Mar' => 'Mar.',
+        'Apr' => 'Avr.',
+        'May' => 'Mai.',
+        'Jun' => 'Juin.',
+        'Jul' => 'Juil.',
+        'Aug' => 'Aout.',
+        'Sep' => 'Sept.',
+        'Oct' => 'Oct.',
+        'Nov' => 'Nov.',
+        'Dec' => 'Déc.',
+    ];
+
     const SECONDS_IN_DAY = 86400;
     const SECONDS_IN_HOUR = 3600;
     const SECONDS_IN_MINUTE = 60;
