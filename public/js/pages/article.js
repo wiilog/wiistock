@@ -86,15 +86,6 @@ function init() {
     let submitColumnVisible = $('#submitColumnVisible');
     let urlColumnVisible = Routing.generate('save_column_visible_for_article', true);
     InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
-
-    tableArticle.on('responsive-resize', function () {
-        resizeTable();
-    });
-}
-function resizeTable() {
-    tableArticle
-        .columns.adjust()
-        .responsive.recalc();
 }
 
 function initNewArticleEditor(modal) {

@@ -4,35 +4,10 @@
     border-left-color: $color !important;
 }
 
-// boutons de type Annuler, Retour
-.btn {
-    text-decoration: none;
-    background-color: $grey;
-    color: $white;
-
-    &:hover {
-        background-color: $white;
-        color: $grey;
-        border-color: $grey;
-
-        .spinner-border {
-            @include setColorLoader($grey);
-        }
-    }
-
-    &:focus {
-        box-shadow: none;
-    }
-}
-
 // boutons de type Ajouter, Modifier...
 // + boutons de type Valider, Enregistrer
 .btn-primary,
-.btn-primary.dropdown-toggle,
-.btn-success {
-    background-color: $blueGT;
-    border-color: $blueGT;
-
+.btn-primary.dropdown-toggle{
     &:hover,
     &:focus,
     &:active,
@@ -47,22 +22,6 @@
 
         .spinner-border {
             @include setColorLoader($white);
-        }
-    }
-}
-
-// boutons de type Supprimer
-.btn-danger {
-    background-color: $red;
-    border-color: $red;
-
-    &:hover {
-        background-color: $white;
-        color: $red;
-        border-color: $red;
-
-        .spinner-border {
-            @include setColorLoader($red);
         }
     }
 }
@@ -94,50 +53,6 @@
 
 button:focus {
     outline: 0 !important;
-}
-
-.btn-check {
-    background: white !important;
-    border-color: $greyDark !important;
-
-    i {
-        color: $greyDark;
-    }
-
-    &:hover {
-        background: $greenDark !important;
-        border-color: $greenDark !important;
-
-        i {
-            color: white;
-        }
-    }
-
-    &.active {
-        background: $greenDark !important;
-        border-color: $greenDark !important;
-
-        i {
-            color: white;
-        }
-    }
-}
-
-.btn-check-reverse {
-    background: $greenDark !important;
-
-    i {
-        color: white;
-    }
-
-    &:hover {
-        background: white !important;
-        border-color: $greenDark !important;
-
-        i {
-            color: $greenDark;
-        }
-    }
 }
 
 .btn-ripple {

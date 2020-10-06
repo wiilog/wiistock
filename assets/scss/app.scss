@@ -1,4 +1,42 @@
 @import "variables";
+
+// Import des librairies
+$fa-font-path: '~@fortawesome/fontawesome-free/webfonts';
+@import '~@fortawesome/fontawesome-free/scss/fontawesome';
+@import '~@fortawesome/fontawesome-free/scss/solid';
+@import '~@fortawesome/fontawesome-free/scss/regular';
+@import '~@fortawesome/fontawesome-free/scss/brands';
+@import "~bootstrap/scss/bootstrap";
+@import "~select2/src/scss/core";
+@import "~quill/dist/quill.core.css";
+@import "~quill/dist/quill.snow.css";
+@import "~datatables.net-dt/css/jquery.dataTables.css";
+@import "~datatables.net-buttons-dt/css/buttons.dataTables.css";
+
+.checkbox input[type="checkbox"]:checked + label:after {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    content: $fa-var-apple;
+}
+
+.dataTables_wrapper.no-footer .dataTables_scrollBody {
+    border: none;
+}
+
+.search-input {
+    display: block;
+    width: 100%;
+    height: 34px;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1.42857143;
+    color: #555;
+    background-color: #fff;
+    background-image: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
 @import "collapsible";
 @import "customFont";
 @import "reset";

@@ -35,5 +35,5 @@ yarn-error.log
 /deployment/pass*
 /SnoreToast.lnk
 /assets/scss/_customFont.scss
-/public/js/translations
+/public/generated
 ###< wiistock ###

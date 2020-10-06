@@ -187,7 +187,7 @@ function displayOnSuccessCreation(success, mouvementTracaCounter) {
         }),
         [
             {
-                class: 'btn btn-success m-0',
+                class: 'btn btn-primary m-0',
                 text: 'Continuer',
                 action: ($modal) => {
                     $modal.modal('hide')

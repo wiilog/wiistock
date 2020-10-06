@@ -17,10 +17,8 @@ $(function () {
 
     initTableArrival().then((returnedArrivalsTable) => {
         arrivalsTable = returnedArrivalsTable;
-        let $modalColumnVisible = $('#modalColumnVisibleArrivage');
-        let $submitColumnVisible = $('#submitColumnVisibleArrivage');
         let urlColumnVisible = Routing.generate('save_column_visible_for_arrivage', true);
-        InitModal($modalColumnVisible, $submitColumnVisible, urlColumnVisible, {tables: [arrivalsTable]});
+        InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible, {tables: [arrivalsTable]});
 
         let $modalNewArrivage = $("#modalNewArrivage");
         let submitNewArrivage = $("#submitNewArrivage");
@@ -130,9 +128,6 @@ function initTableArrival() {
 }
 
 function resizeTable(arrivalsTable) {
-    arrivalsTable
-        .columns.adjust()
-        .responsive.recalc();
 }
 
 function listColis(elem) {
