@@ -17,7 +17,9 @@
                        class="dropdown-item">
                         <i class="fa fa-pen mr-2"></i>Modifier
                     </a>
-                {% if handling.status.treated != 1 %}
+            {% endif %}
+            {% if handling.status.treated != 1 %}
+                {% if (hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_UNPROCESSED_HANDLING'))) %}
                     <div class="dropdown-item" data-id='{{ handling.id }}' data-target='#modalDeleteHandling' data-toggle='modal'
                          onclick="deleteRow($(this), $('#modalDeleteHandling'), $('#submitDeleteHandling'))">
                         <i class='fas fa-trash mr-2'></i>Supprimer
