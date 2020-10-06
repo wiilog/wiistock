@@ -478,7 +478,7 @@ class MouvementTracaService
             ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
             ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
             ['title' => 'Date', 'name' => 'date'],
-            ['title' => 'colis.colis', 'name' => 'code', 'translated' => true],
+            ['title' => 'mouvement de traçabilité.Colis', 'name' => 'code', 'translated' => true],
             ['title' => 'Référence', 'name' => 'reference'],
             ['title' => 'Libellé',  'name' => 'label'],
             ['title' => 'Quantité', 'name' => 'quantity'],

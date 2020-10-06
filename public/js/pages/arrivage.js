@@ -59,7 +59,6 @@ $(function () {
     let params = JSON.stringify(PAGE_ARRIVAGE);
     $.post(path, params, function (data) {
         displayFiltersSup(data);
-        initFilterDateToday();
     }, 'json');
     pageLength = Number($('#pageLengthForArrivage').val());
     Select2.user($('.filters .ajax-autocomplete-user'), 'Destinataires');
