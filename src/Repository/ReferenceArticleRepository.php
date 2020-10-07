@@ -665,7 +665,8 @@ class ReferenceArticleRepository extends EntityRepository
                          ocr.quantite as quantity,
                          1 as is_ref,
                          oc.id as id_collecte,
-                         ra.barCode
+                         ra.barCode,
+                         ra.libelle as reference_label
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
 			JOIN ra.ordreCollecteReferences ocr
