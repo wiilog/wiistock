@@ -17,8 +17,8 @@ let tableAlerteConfig = {
         { "data": 'typeQuantite', 'title': 'Type quantité' },
         { "data": 'Type', 'title': 'Type' },
         { "data": 'Date d\'alerte', 'title': 'Date d\'alerte' },
-        { "data": "SeuilAlerte", 'title': "Seuil d'alerte" },
-        { "data": 'SeuilSecurite', 'title': 'Seuil de sécurité' },
+        { "data": "limitWarning", 'title': "Seuil d'alerte" },
+        { "data": 'limitSecurity', 'title': 'Seuil de sécurité' },
         { "data": 'Actions', 'name': 'Actions', 'title': 'Alerte', orderable: false},
     ],
     columnDefs: [
