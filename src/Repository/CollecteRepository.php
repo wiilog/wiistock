@@ -3,8 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\Collecte;
+use App\Entity\Demande;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -214,5 +216,53 @@ class CollecteRepository extends EntityRepository
         return $queryBuilder
             ->getQuery()
             ->getResult();
+    }
+
+    public function getTreatingTimesWithType() {
+        $nowDate = new DateTime();
+        $datePrior3Months = (clone $nowDate)->modify('-3 month');
+        $queryBuilder = $this->createQueryBuilder('request');
+        $queryBuilderExpr = $queryBuilder->expr();
+        $query = $queryBuilder
+            ->select('type.id AS typeId')
+            ->addSelect($queryBuilderExpr->min('request.validationDate') . ' AS validationDate')
+            ->addSelect($queryBuilderExpr->max('collect_order.date') . ' AS treatingDate')
+            ->join('request.ordreCollecte', 'collect_order')
+            ->join('request.statut', 'status')
+            ->join('request.type', 'type')
+            ->where('status.nom LIKE :treatedStatus')
+            ->andHaving($queryBuilderExpr->min('request.validationDate') . ' BETWEEN :start AND :end')
+            ->groupBy('request.id')
+            ->setParameters([
+                'start' => $datePrior3Months,
+                'end' => $nowDate,
+                'treatedStatus' => Collecte::STATUT_COLLECTE
+            ])
+            ->getQuery();
+        return $query->execute();
+    }
+
+    public function findRequestToTreatByUser(Utilisateur $requester) {
+        $queryBuilder = $this->createQueryBuilder('request');
+        $queryBuilderExpr = $queryBuilder->expr();
+        return $queryBuilder
+            ->innerJoin('request.statut', 'status')
+            ->where(
+                $queryBuilderExpr->andX(
+                    $queryBuilderExpr->in('status.nom', ':statusNames'),
+                    $queryBuilderExpr->eq('request.demandeur', ':requester')
+                )
+            )
+            ->setParameters([
+                'statusNames' => [
+                    Collecte::STATUT_BROUILLON,
+                    Collecte::STATUT_A_TRAITER,
+                    Collecte::STATUT_INCOMPLETE
+                ],
+                'requester' => $requester
+            ])
+            ->orderBy('request.validationDate', 'DESC')
+            ->getQuery()
+            ->execute();
     }
 }

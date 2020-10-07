@@ -18,6 +18,7 @@ use App\Entity\Wiilock;
 use App\Repository\AverageRequestTimeRepository;
 use App\Service\DateService;
 use App\Service\DashboardService;
+use App\Service\DemandeCollecteService;
 use App\Service\DemandeLivraisonService;
 use App\Service\HandlingService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -42,6 +43,7 @@ class AccueilController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param AverageRequestTimeRepository $averageRequestTimeRepository
      * @param DateService $dateService
+     * @param DemandeCollecteService $demandeCollecteService
      * @param DemandeLivraisonService $demandeLivraisonService
      * @param HandlingService $handlingService
      * @return Response
@@ -51,10 +53,11 @@ class AccueilController extends AbstractController
     public function index(EntityManagerInterface $entityManager,
                           AverageRequestTimeRepository $averageRequestTimeRepository,
                           DateService $dateService,
-                          DemandeLivraisonService $demandeLivraisonService,
-                          HandlingService $handlingService): Response
+                          DemandeCollecteService $demandeCollecteService,
+                          HandlingService $handlingService,
+                          DemandeLivraisonService $demandeLivraisonService): Response
     {
-        $data = $this->getDashboardData($entityManager, false, $demandeLivraisonService, $handlingService, $averageRequestTimeRepository, $dateService);
+        $data = $this->getDashboardData($entityManager, false, $demandeLivraisonService, $demandeCollecteService, $handlingService, $averageRequestTimeRepository, $dateService);
         return $this->render('accueil/index.html.twig', $data);
     }
 
@@ -92,6 +95,7 @@ class AccueilController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param DemandeLivraisonService|null $demandeLivraisonService
      * @param HandlingService|null $handlingService
+     * @param DemandeCollecteService|null $demandeCollecteService
      * @param AverageRequestTimeRepository|null $averageRequestTimeRepository
      * @param DateService|null $dateService
      * @param bool $isDashboardExt
@@ -103,6 +107,7 @@ class AccueilController extends AbstractController
                                       bool $isDashboardExt,
                                       DemandeLivraisonService $demandeLivraisonService = null,
                                       HandlingService $handlingService = null,
+                                      DemandeCollecteService $demandeCollecteService = null,
                                       AverageRequestTimeRepository $averageRequestTimeRepository = null,
                                       DateService $dateService = null)
     {
@@ -158,7 +163,7 @@ class AccueilController extends AbstractController
         $nbrDemandeLivraisonP = $demandeRepository->countByStatusesId($listStatutDemandeP);
 
 
-        if ($demandeLivraisonService && $handlingService) {
+        if ($demandeLivraisonService && $demandeCollecteService && $handlingService) {
             /** @var array[int => AverageRequestTime] $averageRequestTimesByType */
             $averageRequestTimesByType = array_reduce(
                 $averageRequestTimeRepository->findAll(),
@@ -172,30 +177,34 @@ class AccueilController extends AbstractController
                 []
             );
 
-
-
-
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
-            $pendingDeliveries = $demandeRepository->findRequestToTreatByUser($loggedUser);
+
             $pendingDeliveries = array_map(
                 function (Demande $demande) use ($demandeLivraisonService, $dateService, $averageRequestTimesByType) {
                     return $demandeLivraisonService->parseRequestForCard($demande, $dateService, $averageRequestTimesByType);
                 },
-                $pendingDeliveries
+                $demandeRepository->findRequestToTreatByUser($loggedUser)
             );
 
-            $pendingHandlings = $handlingRepository->findRequestToTreatByUser($loggedUser);
+            $pendingCollects = array_map(
+                function (Collecte $demande) use ($demandeCollecteService, $dateService, $averageRequestTimesByType) {
+                    return $demandeCollecteService->parseRequestForCard($demande, $dateService, $averageRequestTimesByType);
+                },
+                $collecteRepository->findRequestToTreatByUser($loggedUser)
+            );
+
             $pendingHandlings = array_map(
                 function (Handling $handling) use ($handlingService, $dateService, $averageRequestTimesByType) {
                     return $handlingService->parseRequestForCard($handling, $dateService, $averageRequestTimesByType);
                 },
-                $pendingHandlings
+                $handlingRepository->findRequestToTreatByUser($loggedUser)
             );
         }
         else {
             $pendingDeliveries = [];
             $pendingHandlings = [];
+            $pendingCollects = [];
         }
 
         $handlingCounterToTreat = $handlingRepository->countHandlingToTreat();
@@ -215,6 +224,7 @@ class AccueilController extends AbstractController
             'nbrFiabiliteReferenceOfThisMonth' => $nbrFiabiliteReferenceOfThisMonth,
             'pendingDeliveries' => $pendingDeliveries,
             'pendingHandlings' => $pendingHandlings,
+            'pendingCollects' => $pendingCollects,
             'status' => [
                 'DLtoTreat' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_A_TRAITER),
                 'DLincomplete' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_INCOMPLETE),

@@ -1,12 +1,12 @@
 <input type="hidden" class="page-title" value="Dashboard | DEMANDES EN COURS"/>
 
-{% if deliveries %}
+{% if pendingDeliveries and pendingDeliveries is not empty %}
     <div class="row m-4">
         <div class="dashboard-box-container w-100">
             <div class="dashboard-box pending-requests fourth-row-height w-100 p-3" style="background-color: #f5f6fb">
                 <strong class="title m-3">Demandes de livraisons en cours</strong>
                 <div class="row">
-                    {% for delivery in deliveries %}
+                    {% for delivery in pendingDeliveries %}
                         <div class="col-12 col-lg-4 col-xl-3">
                             {% include 'accueil/request-card.html.twig' with delivery %}
                         </div>
@@ -17,7 +17,24 @@
     </div>
 {% endif %}
 
-{% if handlings %}
+{% if pendingCollects and pendingCollects is not empty %}
+    <div class="row m-4">
+        <div class="dashboard-box-container w-100">
+            <div class="dashboard-box pending-requests fourth-row-height w-100 p-3" style="background-color: #f5f6fb">
+                <strong class="title m-3">Demandes de collecte en cours</strong>
+                <div class="row">
+                    {% for collects in pendingCollects %}
+                        <div class="col-12 col-lg-4 col-xl-3">
+                            {% include 'accueil/request-card.html.twig' with collects %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+{% if handlings and handlings is not empty %}
     <div class="row m-4">
         <div class="dashboard-box-container w-100">
             <div class="dashboard-box pending-requests fourth-row-height w-100 p-3" style="background-color: #f5f6fb">
