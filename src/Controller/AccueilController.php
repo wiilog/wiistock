@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Article;
+use App\Entity\AverageRequestTime;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Demande;
@@ -12,8 +13,15 @@ use App\Entity\LocationCluster;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Utilisateur;
 use App\Entity\Wiilock;
+use App\Helper\Stream;
+use App\Repository\AverageRequestTimeRepository;
+use App\Service\DateService;
 use App\Service\DashboardService;
+use App\Service\DemandeCollecteService;
+use App\Service\DemandeLivraisonService;
+use App\Service\HandlingService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -34,13 +42,30 @@ class AccueilController extends AbstractController
     /**
      * @Route("/accueil", name="accueil", methods={"GET"})
      * @param EntityManagerInterface $entityManager
+     * @param AverageRequestTimeRepository $averageRequestTimeRepository
+     * @param DateService $dateService
+     * @param DemandeCollecteService $demandeCollecteService
+     * @param DemandeLivraisonService $demandeLivraisonService
+     * @param HandlingService $handlingService
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(EntityManagerInterface $entityManager,
+                          AverageRequestTimeRepository $averageRequestTimeRepository,
+                          DateService $dateService,
+                          DemandeCollecteService $demandeCollecteService,
+                          HandlingService $handlingService,
+                          DemandeLivraisonService $demandeLivraisonService): Response
     {
-        $data = $this->getDashboardData($entityManager);
+        $data = $this->getDashboardData(
+            $entityManager,
+            false,
+            $demandeLivraisonService,
+            $handlingService,
+            $demandeCollecteService,
+            $averageRequestTimeRepository,
+            $dateService);
         return $this->render('accueil/index.html.twig', $data);
     }
 
@@ -76,13 +101,24 @@ class AccueilController extends AbstractController
 
     /**
      * @param EntityManagerInterface $entityManager
+     * @param DemandeLivraisonService|null $demandeLivraisonService
+     * @param HandlingService|null $handlingService
+     * @param DemandeCollecteService|null $demandeCollecteService
+     * @param AverageRequestTimeRepository|null $averageRequestTimeRepository
+     * @param DateService|null $dateService
      * @param bool $isDashboardExt
      * @return array
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     private function getDashboardData(EntityManagerInterface $entityManager,
-                                      bool $isDashboardExt = false)
+                                      bool $isDashboardExt,
+                                      DemandeLivraisonService $demandeLivraisonService = null,
+                                      HandlingService $handlingService = null,
+                                      DemandeCollecteService $demandeCollecteService = null,
+                                      AverageRequestTimeRepository $averageRequestTimeRepository = null,
+                                      DateService $dateService = null)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -135,7 +171,42 @@ class AccueilController extends AbstractController
         $listStatutDemandeP = $statutRepository->getIdByCategorieNameAndStatusesNames(Demande::CATEGORIE, [Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE]);
         $nbrDemandeLivraisonP = $demandeRepository->countByStatusesId($listStatutDemandeP);
 
+
+        if ($demandeLivraisonService) {
+            $averageRequestTimesByType = Stream::from($averageRequestTimeRepository->findAll())
+                ->reduce(function (array $carry, AverageRequestTime $averageRequestTime) {
+                    $typeId = $averageRequestTime->getType() ? $averageRequestTime->getType()->getId() : null;
+                    if ($typeId) {
+                        $carry[$typeId] = $averageRequestTime;
+                    }
+                    return $carry;
+                }, []);
+
+            /** @var Utilisateur $loggedUser */
+            $loggedUser = $this->getUser();
+            $pendingDeliveries = Stream::from($demandeRepository->findRequestToTreatByUser($loggedUser))
+                ->map(function (Demande $demande) use ($demandeLivraisonService, $dateService, $averageRequestTimesByType) {
+                    return $demandeLivraisonService->parseRequestForCard($demande, $dateService, $averageRequestTimesByType);
+                })
+                ->toArray();
+            $pendingCollects = Stream::from($collecteRepository->findRequestToTreatByUser($loggedUser))
+                ->map(function (Collecte $collecte) use ($demandeCollecteService, $dateService, $averageRequestTimesByType) {
+                    return $demandeCollecteService->parseRequestForCard($collecte, $dateService, $averageRequestTimesByType);
+                })
+                ->toArray();
+            $pendingHandlings = Stream::from($handlingRepository->findRequestToTreatByUser($loggedUser))
+                ->map(function (Handling $handling) use ($handlingService, $dateService, $averageRequestTimesByType) {
+                    return $handlingService->parseRequestForCard($handling, $dateService, $averageRequestTimesByType);
+                })
+                ->toArray();
+        } else {
+            $pendingDeliveries = [];
+            $pendingHandlings = [];
+            $pendingCollects = [];
+        }
+
         $handlingCounterToTreat = $handlingRepository->countHandlingToTreat();
+
         return [
             'nbAlerts' => $nbAlerts,
             'visibleDashboards' => $isDashboardExt
@@ -149,6 +220,9 @@ class AccueilController extends AbstractController
             'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
             'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,
             'nbrFiabiliteReferenceOfThisMonth' => $nbrFiabiliteReferenceOfThisMonth,
+            'pendingDeliveries' => $pendingDeliveries,
+            'pendingHandlings' => $pendingHandlings,
+            'pendingCollects' => $pendingCollects,
             'status' => [
                 'DLtoTreat' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_A_TRAITER),
                 'DLincomplete' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_INCOMPLETE),

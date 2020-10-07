@@ -82,6 +82,12 @@
         background: $white;
         padding: 0.5rem;
 
+        &.pending-requests {
+            background: $mainGrey;
+            height: initial !important;
+            box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+        }
+
         &.dashboard-box-list {
             .title {
                 margin-bottom: 1.5rem;
@@ -93,14 +99,13 @@
         }
 
         .title {
+            @extend .h5;
             line-height: 0.7;
-            font-size: 1vw;
             margin-bottom: 0.3rem;
             padding: 0;
             color: $blackDashboard;
 
             .dashboard-ext & {
-                font-size: 2.2vh;
                 font-weight: bold;
             }
         }

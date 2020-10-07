@@ -4,6 +4,7 @@
 namespace App\Service;
 
 
+use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -12,18 +13,21 @@ use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\LigneArticlePreparation;
+use App\Entity\Menu;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Repository\AverageRequestTimeRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\NonUniqueResultException;
+use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
@@ -69,6 +73,8 @@ class DemandeLivraisonService
     private $translator;
     private $preparationsManager;
     private $freeFieldService;
+    private $userService;
+    private $appURL;
 
     public function __construct(ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
@@ -81,6 +87,8 @@ class DemandeLivraisonService
                                 TranslatorInterface $translator,
                                 MailerService $mailerService,
                                 RefArticleDataService $refArticleDataService,
+                                UserService $userService,
+                                string $appURL,
                                 Twig_Environment $templating)
     {
         $this->receptionRepository = $receptionRepository;
@@ -94,7 +102,9 @@ class DemandeLivraisonService
         $this->translator = $translator;
         $this->mailerService = $mailerService;
         $this->refArticleDataService = $refArticleDataService;
+        $this->userService =$userService;
         $this->freeFieldService = $freeFieldService;
+        $this->appURL = $appURL;
     }
 
     public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null)
@@ -147,6 +157,97 @@ class DemandeLivraisonService
                 ),
             ];
         return $row;
+    }
+
+    /**
+     * @param Demande $demande
+     * @param DateService $dateService
+     * @param array $averageRequestTimesByType
+     * @return array
+     * @throws Exception
+     */
+    public function parseRequestForCard(Demande $demande,
+                                        DateService $dateService,
+                                        array $averageRequestTimesByType) {
+        $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR);
+        $hasRightToSeePrepaOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA);
+        $hasRightToSeeDeliveryOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR);
+        $hasRightToSeeReception = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE);
+
+        $requestStatus = $demande->getStatut() ? $demande->getStatut()->getNom() : '';
+        $demandeType = $demande->getType() ? $demande->getType()->getLabel() : '';
+
+        if ($requestStatus === Demande::STATUT_BROUILLON && $hasRightToSeeRequest) {
+            $href = $this->router->generate('demande_show', ['id' => $demande->getId()]);
+        } else if ($requestStatus === Demande::STATUT_A_TRAITER && $hasRightToSeePrepaOrders && !$demande->getPreparations()->isEmpty()) {
+            $href = $this->router->generate('preparation_index', ['demandId' => $demande->getId()]);
+        } else if (
+            (
+                $requestStatus === Demande::STATUT_LIVRE_INCOMPLETE ||
+                $requestStatus === Demande::STATUT_INCOMPLETE ||
+                $requestStatus === Demande::STATUT_PREPARE
+            )
+            && $hasRightToSeeDeliveryOrders && !$demande->getLivraisons()->isEmpty()
+        ) {
+            $href = $this->router->generate('livraison_index', ['demandId' => $demande->getId()]);
+        } else if ($demande->getReception() && $hasRightToSeeReception) {
+            $href = $this->router->generate('reception_show', ['id' => $demande->getReception()->getId()]);
+        }
+
+        $articlesCounter = ($demande->getArticles()->count() + $demande->getLigneArticle()->count());
+        $articlePlural = $articlesCounter > 1 ? 's' : '';
+        $bodyTitle = $articlesCounter . ' article' . $articlePlural . ' - ' . $demandeType;
+
+        $typeId = $demande->getType() ? $demande->getType()->getId() : null;
+        $averageTime = $averageRequestTimesByType[$typeId] ?? null;
+
+        $deliveryDateEstimated = 'Date de livraison non estimée';
+
+        if (isset($averageTime)) {
+            $expectedDate = (clone $demande->getDate())
+                ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
+            $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
+            $today = new DateTime();
+            if ($expectedDate < $today) {
+                $deliveryDateEstimated = $today->format('d/m/Y');
+            }
+        }
+
+        $requestDate = $demande->getDate();
+        $requestDateStr = $requestDate
+            ? (
+                $requestDate->format('d ')
+                . DateService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
+                . $requestDate->format(' (H\hi)')
+            )
+            : 'Non défini';
+
+        $statusesToProgress = [
+            Demande::STATUT_BROUILLON => 0,
+            Demande::STATUT_A_TRAITER => 25,
+            Demande::STATUT_PREPARE => 50,
+            Demande::STATUT_INCOMPLETE => 50,
+            Demande::STATUT_LIVRE_INCOMPLETE => 75,
+            Demande::STATUT_LIVRE => 100
+        ];
+
+        return [
+            'href' => $href ?? null,
+            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la demande de livraison',
+            'estimatedFinishTime' => $deliveryDateEstimated,
+            'requestStatus' => $requestStatus,
+            'requestBodyTitle' => $bodyTitle,
+            'requestLocation' => $demande->getDestination() ? $demande->getDestination()->getLabel() : 'Non défini',
+            'requestNumber' => $demande->getNumero(),
+            'requestDate' => $requestDateStr,
+            'requestUser' => $demande->getUtilisateur() ? $demande->getUtilisateur()->getUsername() : 'Non défini',
+            'cardColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'lightGrey' : 'white',
+            'bodyColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
+            'topRightIcon' => 'fa-box',
+            'progress' => $statusesToProgress[$requestStatus] ?? 0,
+            'progressBarColor' => '#2ec2ab',
+            'progressBarBGColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
+        ];
     }
 
     /**

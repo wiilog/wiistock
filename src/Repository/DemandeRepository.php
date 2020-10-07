@@ -10,6 +10,8 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use DoctrineExtensions\Query\Mysql\Date;
+use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Demande|null find($id, $lockMode = null, $lockVersion = null)
@@ -37,6 +39,63 @@ class DemandeRepository extends EntityRepository
             WHERE s.nom <> :status AND d.utilisateur = :user"
         )->setParameters(['user' => $user, 'status' => $status]);
 
+        return $query->execute();
+    }
+
+    public function findRequestToTreatByUser(Utilisateur $requester) {
+        $queryBuilder = $this->createQueryBuilder('demande');
+        $queryBuilderExpr = $queryBuilder->expr();
+        return $queryBuilder
+            ->select('demande')
+            ->innerJoin('demande.statut', 'status')
+            ->where(
+                $queryBuilderExpr->andX(
+                    $queryBuilderExpr->in('status.nom', ':statusNames'),
+                    $queryBuilderExpr->eq('demande.utilisateur', ':requester')
+                )
+            )
+            ->setParameters([
+                'statusNames' => [
+                    Demande::STATUT_A_TRAITER,
+                    Demande::STATUT_BROUILLON,
+                    Demande::STATUT_INCOMPLETE,
+                    Demande::STATUT_LIVRE_INCOMPLETE,
+                    Demande::STATUT_PREPARE
+                ],
+                'requester' => $requester
+            ])
+            ->orderBy('demande.date', 'DESC')
+            ->getQuery()
+            ->execute();
+    }
+
+    /**
+     * @return int|mixed|string
+     */
+    public function getTreatingTimesWithType() {
+        $nowDate = new DateTime();
+        $datePrior3Months = (clone $nowDate)->modify('-3 month');
+        $queryBuilder = $this->createQueryBuilder('demande');
+        $queryBuilderExpr = $queryBuilder->expr();
+        $query = $queryBuilder
+            ->select($queryBuilderExpr->min('preparation.date') . ' AS validationDate')
+            ->addSelect('type.id as typeId')
+            ->addSelect(
+                $queryBuilderExpr->max('livraison.dateFin') . ' AS treatingDate'
+            )
+            ->join('demande.type', 'type')
+            ->join('demande.statut', 'statut')
+            ->join('demande.preparations', 'preparation')
+            ->join('preparation.livraison', 'livraison')
+            ->where('statut.nom LIKE :statutTreated')
+            ->andHaving($queryBuilderExpr->min('preparation.date') . ' BETWEEN :start AND :end')
+            ->groupBy('demande.id')
+            ->setParameters([
+                'start' => $datePrior3Months,
+                'end' => $nowDate,
+                'statutTreated' => Demande::STATUT_LIVRE,
+            ])
+            ->getQuery();
         return $query->execute();
     }
 
