@@ -88,11 +88,11 @@ class DemandeRepository extends EntityRepository
             ->join('demande.preparations', 'preparation')
             ->join('preparation.livraison', 'livraison')
             ->where('statut.nom LIKE :statutTreated')
-            ->andWhere('demande.date BETWEEN :prior AND :now')
+            ->andHaving($queryBuilderExpr->min('preparation.date') . ' BETWEEN :start AND :end')
             ->groupBy('demande.id')
             ->setParameters([
-                'prior' => $datePrior3Months,
-                'now' => $nowDate,
+                'start' => $datePrior3Months,
+                'end' => $nowDate,
                 'statutTreated' => Demande::STATUT_LIVRE,
             ])
             ->getQuery();
