@@ -7,6 +7,7 @@
 namespace App\Command;
 
 use App\Entity\AverageRequestTime;
+use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Type;
 use App\Service\DateService;
@@ -45,10 +46,14 @@ class AverageRequestTimeCommand extends Command
     {
 
         $demandeRepository = $this->entityManager->getRepository(Demande::class);
+        $collecteRepository = $this->entityManager->getRepository(Collecte::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
 
         // TODO array_merge with collect and handling
-        $requests = $demandeRepository->getTreatingTimesWithType();
+        $requests = array_merge(
+            $demandeRepository->getTreatingTimesWithType(),
+            $collecteRepository->getTreatingTimesWithType()
+        );
 
         $typeMeters = [];
         foreach ($requests as $request) {

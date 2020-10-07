@@ -204,8 +204,8 @@ class DemandeLivraisonService
         $deliveryDateEstimated = 'Date de livraison non estimée';
 
         if (isset($averageTime)) {
-            $requestDate = new DateTime($demande->getDate()->format(DATE_ATOM));
-            $expectedDate = date_add($requestDate, $dateService->secondsToDateInterval($averageTime->getAverage()));
+            $expectedDate = (clone $demande->getDate())
+                ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
             $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
             $today = new DateTime();
             if ($expectedDate < $today) {
@@ -244,7 +244,7 @@ class DemandeLivraisonService
             'cardColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'lightGrey' : 'white',
             'bodyColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
             'topRightIcon' => 'fa-box',
-            'progress' => $statusesToProgress[$requestStatus],
+            'progress' => $statusesToProgress[$requestStatus] ?? 0,
             'progressBarColor' => '#2ec2ab',
             'progressBarBGColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
         ];
