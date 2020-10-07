@@ -54,8 +54,12 @@ function extendsDateSort(name) {
 function initActionOnRow(row) {
     if ($(row).find('.action-on-click').get(0)) {
         $(row).addClass('pointer');
-        $(row).find('td:not(.noVis)').click(function () {
-            $(row).find('.action-on-click').get(0).click();
+        $(row).find('td:not(.noVis)').mousedown(function (e) {
+            if (e && (e.which === 1 || e.which === 2)) {
+                let $anchor = $(row).find('.action-on-click');
+                const click = new MouseEvent( "click", {"button": 1, "which": e.which});
+                $anchor[0].dispatchEvent(click);
+            }
         })
     }
 }
