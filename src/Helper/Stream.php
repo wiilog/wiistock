@@ -40,7 +40,7 @@ class Stream implements Countable
      */
     public function filter(Closure $closure): Stream
     {
-        if ($this->elements) {
+        if (isset($this->elements)) {
             $this->elements = array_filter($this->elements, $closure);
         } else {
             throw new Error($this::INVALID_STREAM);
@@ -54,7 +54,7 @@ class Stream implements Countable
      */
     public function map(Closure $closure): Stream
     {
-        if ($this->elements) {
+        if (isset($this->elements)) {
             $this->elements = array_map($closure, $this->elements);
         } else {
             throw new Error($this::INVALID_STREAM);
@@ -69,7 +69,7 @@ class Stream implements Countable
      */
     public function reduce(Closure $closure, $carry)
     {
-        if ($this->elements) {
+        if (isset($this->elements)) {
             return array_reduce($this->elements, $closure, $carry);
         } else {
             throw new Error($this::INVALID_STREAM);
@@ -82,7 +82,7 @@ class Stream implements Countable
      */
     public function each(Closure $closure)
     {
-        if ($this->elements) {
+        if (isset($this->elements)) {
             return array_walk($this->elements, $closure);
         } else {
             throw new Error($this::INVALID_STREAM);
