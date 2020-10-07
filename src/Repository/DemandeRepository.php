@@ -69,22 +69,24 @@ class DemandeRepository extends EntityRepository
             ->execute();
     }
 
+    /**
+     * @return int|mixed|string
+     */
     public function getTreatingTimesWithType() {
         $nowDate = new DateTime();
-        $datePrior3Months = clone $nowDate;
-        $datePrior3Months = date_modify($datePrior3Months, '-3 month');
+        $datePrior3Months = (clone $nowDate)->modify('-3 month');
         $queryBuilder = $this->createQueryBuilder('demande');
         $queryBuilderExpr = $queryBuilder->expr();
         $query = $queryBuilder
-            ->select($queryBuilderExpr->min('demande.date') . ' AS creationDate')
+            ->select($queryBuilderExpr->min('preparation.date') . ' AS validationDate')
             ->addSelect('type.id as typeId')
             ->addSelect(
                 $queryBuilderExpr->max('livraison.dateFin') . ' AS treatingDate'
             )
             ->join('demande.type', 'type')
             ->join('demande.statut', 'statut')
-            ->join('demande.preparations', 'preparations')
-            ->join('preparations.livraison', 'livraison')
+            ->join('demande.preparations', 'preparation')
+            ->join('preparation.livraison', 'livraison')
             ->where('statut.nom LIKE :statutTreated')
             ->andWhere('demande.date BETWEEN :prior AND :now')
             ->groupBy('demande.id')

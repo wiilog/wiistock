@@ -53,7 +53,7 @@ class AverageRequestTimeCommand extends Command
         $typeMeters = [];
         foreach ($requests as $request) {
             $treatingDate = DateTime::createFromFormat('Y-m-d H:i:s', $request['treatingDate']);
-            $creationDate = DateTime::createFromFormat('Y-m-d H:i:s', $request['creationDate']);
+            $validationDate = DateTime::createFromFormat('Y-m-d H:i:s', $request['validationDate']);
             $typeId = $request['typeId'];
 
             if (!isset($typeMeters[$typeId])) {
@@ -63,7 +63,7 @@ class AverageRequestTimeCommand extends Command
                 ];
             }
 
-            $intervalDiff = $treatingDate->diff($creationDate);
+            $intervalDiff = $treatingDate->diff($validationDate);
             $typeMeters[$typeId]['total'] += $this->dateService->dateIntervalToSeconds($intervalDiff);
             $typeMeters[$typeId]['count']++;
         }
