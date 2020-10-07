@@ -59,6 +59,7 @@ class AverageRequestTimeCommand extends Command
 
         $typeMeters = [];
         foreach ($requests as $request) {
+
             $validationDate = $request['validationDate'] instanceof \DateTimeInterface
                 ? $request['validationDate']
                 : DateTime::createFromFormat('Y-m-d H:i:s', $request['validationDate']);
