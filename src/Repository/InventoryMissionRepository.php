@@ -161,7 +161,11 @@ class InventoryMissionRepository extends ServiceEntityRepository
 	 */
     public function findRefByMissionAndParamsAndFilters($mission, $params = null, $filters = [])
     {
-        $qb = $this->createQueryBuilder("ra")
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
+        $qb
+            ->select('ra')
+            ->from('App\Entity\ReferenceArticle', 'ra')
             ->join('ra.inventoryMissions', 'm')
 			->leftJoin('ra.inventoryEntries', 'ie')
             ->where('m = :mission')
