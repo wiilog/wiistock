@@ -1285,25 +1285,14 @@ class DispatchController extends AbstractController {
      * @param Dispatch $dispatch
      * @return JsonResponse
      */
-    public function checkWaybill(TranslatorInterface $translator, Dispatch $dispatch) {
-
-        $invalidPacks = array_filter($dispatch->getDispatchPacks()->toArray(), function(DispatchPack $pack) {
-            return !$pack->getPack()->getWeight() || !$pack->getPack()->getVolume();
-        });
-
+    public function checkWaybill(TranslatorInterface $translator, Dispatch $dispatch)
+    {
         if ($dispatch->getDispatchPacks()->count() === 0) {
             return new JsonResponse([
                 'success' => false,
                 'msg' => $translator->trans('acheminement.Des colis sont nécessaires pour générer une lettre de voiture') . '.'
             ]);
-        }
-        else if ($invalidPacks) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => $translator->trans("acheminement.Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée") . '.'
-            ]);
-        }
-        else {
+        } else {
             return new JsonResponse([
                 "success" => true,
             ]);
