@@ -111,16 +111,16 @@ class Reception extends FreeFieldEntity
     private $emergencyTriggered;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="reception")
+     * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="reception")
      */
-    private $mouvementsTraca;
+    private $trackingMovements;
 
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->demandes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
-        $this->mouvementsTraca = new ArrayCollection();
+        $this->trackingMovements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -397,30 +397,30 @@ class Reception extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|MouvementTraca[]
+     * @return Collection|TrackingMovement[]
      */
-    public function getMouvementsTraca(): Collection
+    public function getTrackingMovements(): Collection
     {
-        return $this->mouvementsTraca;
+        return $this->trackingMovements;
     }
 
-    public function addMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self
     {
-        if (!$this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca[] = $mouvementsTraca;
-            $mouvementsTraca->setReception($this);
+        if (!$this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements[] = $trackingMovement;
+            $trackingMovement->setReception($this);
         }
 
         return $this;
     }
 
-    public function removeMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self
     {
-        if ($this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca->removeElement($mouvementsTraca);
+        if ($this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements->removeElement($trackingMovement);
             // set the owning side to null (unless already changed)
-            if ($mouvementsTraca->getReception() === $this) {
-                $mouvementsTraca->setReception(null);
+            if ($trackingMovement->getReception() === $this) {
+                $trackingMovement->setReception(null);
             }
         }
 

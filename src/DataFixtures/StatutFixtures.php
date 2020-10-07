@@ -9,7 +9,7 @@ use App\Entity\Demande;
 use App\Entity\Import;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\Reception;
@@ -87,9 +87,9 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Reception::STATUT_ANOMALIE
 			],
 			CategorieStatut::MVT_TRACA => [
-				MouvementTraca::TYPE_PRISE,
-                MouvementTraca::TYPE_DEPOSE,
-                MouvementTraca::TYPE_PRISE_DEPOSE,
+				TrackingMovement::TYPE_PRISE,
+                TrackingMovement::TYPE_DEPOSE,
+                TrackingMovement::TYPE_PRISE_DEPOSE,
 			],
 			CategorieStatut::MVT_STOCK => [
 				MouvementStock::TYPE_ENTREE,

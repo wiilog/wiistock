@@ -43,11 +43,11 @@ class PieceJointe
     private $litige;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="attachements")
+     * @ORM\ManyToOne(targetEntity=TrackingMovement::class, inversedBy="attachements")
      * @ORM\JoinColumn(name="mvt_traca_id", referencedColumnName="id", onDelete="CASCADE")
      * @ORM\JoinColumn(nullable=true)
      */
-    private $mouvementTraca;
+    private $trackingMovement;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Import", mappedBy="csvFile")
@@ -148,14 +148,14 @@ class PieceJointe
         return $this;
     }
 
-    public function getMouvementTraca(): ?MouvementTraca
+    public function getTrackingMovement(): ?TrackingMovement
     {
-        return $this->mouvementTraca;
+        return $this->trackingMovement;
     }
 
-    public function setMouvementTraca(?MouvementTraca $mouvementTraca): self
+    public function setTrackingMovement(?TrackingMovement $trackingMovement): self
     {
-        $this->mouvementTraca = $mouvementTraca;
+        $this->trackingMovement = $trackingMovement;
 
         return $this;
     }

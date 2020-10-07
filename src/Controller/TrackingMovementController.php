@@ -10,7 +10,7 @@ use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 
@@ -21,7 +21,7 @@ use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\FilterSupService;
 use App\Service\FreeFieldService;
-use App\Service\MouvementTracaService;
+use App\Service\TrackingMovementService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
@@ -42,7 +42,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 /**
  * @Route("/mouvement-traca")
  */
-class MouvementTracaController extends AbstractController
+class TrackingMovementController extends AbstractController
 {
 
     /**
@@ -56,36 +56,30 @@ class MouvementTracaController extends AbstractController
     private $attachmentService;
 
     /**
-     * @var MouvementTracaService
-     */
-    private $mouvementTracaService;
-
-    /**
-     * MouvementTracaController constructor.
-     * @param MouvementTracaService $mouvementTracaService
+     * TrackingMovementController constructor.
      * @param AttachmentService $attachmentService
      * @param UserService $userService
      */
-    public function __construct(MouvementTracaService $mouvementTracaService,
-                                AttachmentService $attachmentService,
+    public function __construct(AttachmentService $attachmentService,
                                 UserService $userService)
     {
         $this->userService = $userService;
         $this->attachmentService = $attachmentService;
-        $this->mouvementTracaService = $mouvementTracaService;
     }
 
     /**
      * @Route("/", name="mvt_traca_index", options={"expose"=true})
+     * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param FilterSupService $filterSupService
-     * @param Request $request
+     * @param TrackingMovementService $trackingMovementService
      * @return RedirectResponse|Response
      * @throws NonUniqueResultException
      */
-    public function index(Request $request, EntityManagerInterface $entityManager,
+    public function index(Request $request,
+                          EntityManagerInterface $entityManager,
                           FilterSupService $filterSupService,
-                          MouvementTracaService $service) {
+                          TrackingMovementService $trackingMovementService) {
         if(!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -106,7 +100,7 @@ class MouvementTracaController extends AbstractController
             $entityManager->flush();
         }
 
-        $fields = $service->getVisibleColumnsConfig($entityManager, $this->getUser());
+        $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $this->getUser());
 
         $redirectAfterTrackingMovementCreation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
 
@@ -128,10 +122,10 @@ class MouvementTracaController extends AbstractController
      * @Route("/api-columns", name="tracking_movement_api_columns", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param MouvementTracaService $service
+     * @param TrackingMovementService $trackingMovementService
      * @return Response
      */
-    public function apiColumns(Request $request, EntityManagerInterface $entityManager, MouvementTracaService $service): Response {
+    public function apiColumns(Request $request, EntityManagerInterface $entityManager, TrackingMovementService $trackingMovementService): Response {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
                 return $this->redirectToRoute('access_denied');
@@ -140,7 +134,7 @@ class MouvementTracaController extends AbstractController
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
 
-            $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser);
+            $columns = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
             return $this->json($columns);
         }
@@ -179,7 +173,7 @@ class MouvementTracaController extends AbstractController
     /**
      * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param MouvementTracaService $mouvementTracaService
+     * @param TrackingMovementService $trackingMovementService
      * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
      * @param TranslatorInterface $translator
@@ -187,7 +181,7 @@ class MouvementTracaController extends AbstractController
      * @throws Exception
      */
     public function new(Request $request,
-                        MouvementTracaService $mouvementTracaService,
+                        TrackingMovementService $trackingMovementService,
                         FreeFieldService $freeFieldService,
                         EntityManagerInterface $entityManager,
                         TranslatorInterface $translator): Response
@@ -234,7 +228,7 @@ class MouvementTracaController extends AbstractController
 
             if (empty($post->get('is-mass'))) {
                 $emplacement = $emplacementRepository->find($post->get('emplacement'));
-                $createdMvt = $mouvementTracaService->createTrackingMovement(
+                $createdMvt = $trackingMovementService->createTrackingMovement(
                     $colisStr,
                     $emplacement,
                     $operator,
@@ -252,13 +246,13 @@ class MouvementTracaController extends AbstractController
                 $movementTypeName = $movementType ? $movementType->getNom() : null;
 
                 // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
-                if ($movementTypeName === MouvementTraca::TYPE_DEPOSE && !$emplacement->ableToBeDropOff($createdMvt->getPack())) {
+                if ($movementTypeName === TrackingMovement::TYPE_DEPOSE && !$emplacement->ableToBeDropOff($createdMvt->getPack())) {
                     return new JsonResponse([
                         'success' => false,
                         'msg' => $this->errorWithDropOff($colisStr, $emplacement, $packTranslation, $natureTranslation)
                     ]);
                 }
-                $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                 $entityManager->persist($createdMvt);
                 $createdMouvements[] = $createdMvt;
             }
@@ -267,33 +261,33 @@ class MouvementTracaController extends AbstractController
                 $emplacementPrise = $emplacementRepository->find($post->get('emplacement-prise'));
                 $emplacementDepose = $emplacementRepository->find($post->get('emplacement-depose'));
                 foreach ($colisArray as $colis) {
-                    $createdMvt = $this->mouvementTracaService->createTrackingMovement(
+                    $createdMvt = $trackingMovementService->createTrackingMovement(
                         isset($codeToPack[$colis]) ? $codeToPack[$colis] : $colis,
                         $emplacementPrise,
                         $operator,
                         $date,
                         $fromNomade,
                         true,
-                        MouvementTraca::TYPE_PRISE,
+                        TrackingMovement::TYPE_PRISE,
                         [
                             'commentaire' => $commentaire,
                             'quantity' => $quantity
                         ]
                     );
 
-                    $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                    $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
                     $createdPack = $createdMvt->getPack();
 
-                    $createdMvt = $this->mouvementTracaService->createTrackingMovement(
+                    $createdMvt = $trackingMovementService->createTrackingMovement(
                         $createdPack,
                         $emplacementDepose,
                         $operator,
                         $date,
                         $fromNomade,
                         true,
-                        MouvementTraca::TYPE_DEPOSE,
+                        TrackingMovement::TYPE_DEPOSE,
                         [
                             'commentaire' => $commentaire,
                             'quantity' => $quantity
@@ -308,7 +302,7 @@ class MouvementTracaController extends AbstractController
                         ]);
                     }
 
-                    $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                    $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
                     $codeToPack[$colis] = $createdPack;
@@ -336,7 +330,7 @@ class MouvementTracaController extends AbstractController
 
             return new JsonResponse([
                 'success' => $countCreatedMouvements > 0,
-                'mouvementTracaCounter' => $countCreatedMouvements
+                'trackingMovementsCounter' => $countCreatedMouvements
             ]);
         }
         throw new NotFoundHttpException('404 not found');
@@ -345,17 +339,18 @@ class MouvementTracaController extends AbstractController
     /**
      * @Route("/api", name="tracking_movement_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param TrackingMovementService $trackingMovementService
      * @return Response
      * @throws Exception
      */
-    public function api(Request $request): Response
+    public function api(Request $request, TrackingMovementService $trackingMovementService): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $data = $this->mouvementTracaService->getDataForDatatable($request->request);
+            $data = $trackingMovementService->getDataForDatatable($request->request);
 
             return new JsonResponse($data);
         }
@@ -377,15 +372,15 @@ class MouvementTracaController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+            $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
-            $mvt = $mouvementTracaRepository->find($data['id']);
+            $trackingMovement = $trackingMovementRepository->find($data['id']);
 
             $json = $this->renderView('mouvement_traca/modalEditMvtTracaContent.html.twig', [
-                'mvt' => $mvt,
+                'mvt' => $trackingMovement,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-                'attachments' => $mvt->getAttachments(),
+                'attachments' => $trackingMovement->getAttachments(),
                 'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             ]);
 
@@ -397,7 +392,6 @@ class MouvementTracaController extends AbstractController
     /**
      * @Route("/modifier", name="mvt_traca_edit", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
-     * @param MouvementTracaService $mouvementTracaService
      * @param FreeFieldService $freeFieldService
      * @param Request $request
      * @return Response
@@ -414,7 +408,7 @@ class MouvementTracaController extends AbstractController
             $post = $request->request;
 
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+            $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
             $operator = $utilisateurRepository->find($post->get('operator'));
             $quantity = $post->getInt('quantity') ?: 1;
@@ -426,8 +420,8 @@ class MouvementTracaController extends AbstractController
                 ]);
             }
 
-            /** @var MouvementTraca $mvt */
-            $mvt = $mouvementTracaRepository->find($post->get('id'));
+            /** @var TrackingMovement $mvt */
+            $mvt = $trackingMovementRepository->find($post->get('id'));
             $mvt
                 ->setOperateur($operator)
                 ->setQuantity($quantity)
@@ -468,15 +462,15 @@ class MouvementTracaController extends AbstractController
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-            /** @var MouvementTraca $mvt */
-            $mvt = $mouvementTracaRepository->find($data['mvt']);
+            $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+            /** @var TrackingMovement $trackingMovement */
+            $trackingMovement = $trackingMovementRepository->find($data['mvt']);
 
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $entityManager->remove($mvt);
+            $entityManager->remove($trackingMovement);
             $entityManager->flush();
             return new JsonResponse();
         }
@@ -493,10 +487,10 @@ class MouvementTracaController extends AbstractController
      * @return Response
      * @throws Exception
      */
-    public function getMouvementTracaCsv(Request $request,
-                                         CSVExportService $CSVExportService,
-                                         FreeFieldService $freeFieldService,
-                                         EntityManagerInterface $entityManager): Response
+    public function getTrackingMovementCSV(Request $request,
+                                           CSVExportService $CSVExportService,
+                                           FreeFieldService $freeFieldService,
+                                           EntityManagerInterface $entityManager): Response
     {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -508,13 +502,13 @@ class MouvementTracaController extends AbstractController
         }
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
-            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+            $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
             $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::MVT_TRACA]);
 
-            $mouvements = $mouvementTracaRepository->getByDates($dateTimeMin, $dateTimeMax);
-            $attachmentsNameByMouvementTraca = $pieceJointeRepository->getNameGroupByMouvements();
+            $trackingMovements = $trackingMovementRepository->getByDates($dateTimeMin, $dateTimeMax);
+            $attachmentsNameByTracking = $pieceJointeRepository->getNameGroupByMovements();
 
             $csvHeader = array_merge([
                 'date',
@@ -532,9 +526,9 @@ class MouvementTracaController extends AbstractController
 
             return $CSVExportService->createBinaryResponseFromData(
                 'export_mouvement_traca.csv',
-                $mouvements,
+                $trackingMovements,
                 $csvHeader,
-                function ($movement) use ($attachmentsNameByMouvementTraca, $freeFieldsConfig, $freeFieldService) {
+                function ($movement) use ($attachmentsNameByTracking, $freeFieldsConfig, $freeFieldService) {
                     $row = [];
                     $row[] = $movement['datetime'] ? $movement['datetime']->format('d/m/Y H:i') : '';
                     $row[] = $movement['code'];
@@ -543,7 +537,7 @@ class MouvementTracaController extends AbstractController
                     $row[] = $movement['typeName'] ?: '';
                     $row[] = $movement['operatorUsername'] ?: '';
                     $row[] = $movement['commentaire'] ? strip_tags($movement['commentaire']) : '';
-                    $row[] = $attachmentsNameByMouvementTraca[(int)$movement['id']] ?? '';
+                    $row[] = $attachmentsNameByTracking[(int)$movement['id']] ?? '';
                     $row[] = $movement['numeroArrivage'] ?: $movement['numeroReception'] ?: '';
                     $row[] = $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
                         ? implode(', ', $movement['numeroCommandeListArrivage'])
@@ -580,13 +574,13 @@ class MouvementTracaController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+            $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
-            $mouvementTraca = $mouvementTracaRepository->find($data);
+            $trackingMovement = $trackingMovementRepository->find($data);
             $json = $this->renderView('mouvement_traca/modalShowMvtTracaContent.html.twig', [
-                'mvt' => $mouvementTraca,
+                'mvt' => $trackingMovement,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-                'attachments' => $mouvementTraca->getAttachments()
+                'attachments' => $trackingMovement->getAttachments()
             ]);
             return new JsonResponse($json);
         }
@@ -621,8 +615,9 @@ class MouvementTracaController extends AbstractController
                 $appropriateType = $statutRepository->find($typeId);
                 $fileToRender = 'mouvement_traca/' . (
                     $appropriateType
-                        ? $appropriateType->getNom() === MouvementTraca::TYPE_PRISE_DEPOSE ? 'newMassMvtTraca.html.twig'
-                        : 'newSingleMvtTraca.html.twig'
+                        ? ($appropriateType->getNom() === TrackingMovement::TYPE_PRISE_DEPOSE
+                            ? 'newMassMvtTraca.html.twig'
+                            : 'newSingleMvtTraca.html.twig')
                         : 'newSingleMvtTraca.html.twig');
             }
             return new JsonResponse([
@@ -633,17 +628,17 @@ class MouvementTracaController extends AbstractController
     }
 
     /**
-     * @param MouvementTraca $mouvementTraca
+     * @param TrackingMovement $trackingMovement
      * @param AttachmentService $attachmentService
      * @param FileBag|array $files
      * @param EntityManagerInterface $entityManager
      */
-    private function persistAttachments(MouvementTraca $mouvementTraca, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager)
+    private function persistAttachments(TrackingMovement $trackingMovement, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager)
     {
         $attachments = $attachmentService->createAttachements($files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
-            $mouvementTraca->addAttachment($attachment);
+            $trackingMovement->addAttachment($attachment);
         }
     }
 }

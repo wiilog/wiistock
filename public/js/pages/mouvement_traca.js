@@ -100,8 +100,8 @@ function initPageModal(tableMvt) {
         {
             tables: [tableMvt],
             keepModal: !Number($('#redirectAfterTrackingMovementCreation').val()),
-            success: ({success, mouvementTracaCounter}) => {
-                displayOnSuccessCreation(success, mouvementTracaCounter);
+            success: ({success, trackingMovementsCounter}) => {
+                displayOnSuccessCreation(success, trackingMovementsCounter);
             }
         });
 }
@@ -174,13 +174,13 @@ function clearURL() {
     window.history.pushState({}, document.title, `${window.location.pathname}`);
 }
 
-function displayOnSuccessCreation(success, mouvementTracaCounter) {
+function displayOnSuccessCreation(success, trackingMovementsCounter) {
     displayAlertModal(
         undefined,
         $('<div/>', {
             class: 'text-center',
-            text: mouvementTracaCounter > 0
-                ? (mouvementTracaCounter > 1
+            text: trackingMovementsCounter > 0
+                ? (trackingMovementsCounter > 1
                     ? 'Mouvements créés avec succès.'
                     : 'Mouvement créé avec succès.')
                 : 'Aucun mouvement créé.'

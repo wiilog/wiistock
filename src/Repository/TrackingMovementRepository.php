@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\MouvementStock;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\DBAL\Connection;
@@ -14,12 +14,12 @@ use Exception;
 
 
 /**
- * @method MouvementTraca|null find($id, $lockMode = null, $lockVersion = null)
- * @method MouvementTraca|null findOneBy(array $criteria, array $orderBy = null)
- * @method MouvementTraca[]    findAll()
- * @method MouvementTraca[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method TrackingMovement|null find($id, $lockMode = null, $lockVersion = null)
+ * @method TrackingMovement|null findOneBy(array $criteria, array $orderBy = null)
+ * @method TrackingMovement[]    findAll()
+ * @method TrackingMovement[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class MouvementTracaRepository extends EntityRepository
+class TrackingMovementRepository extends EntityRepository
 {
 
     public const MOUVEMENT_TRACA_DEFAULT = 'tracking';
@@ -38,7 +38,7 @@ class MouvementTracaRepository extends EntityRepository
 
     /**
      * @param $uniqueId
-     * @return MouvementTraca
+     * @return TrackingMovement
      * @throws NonUniqueResultException
      */
     public function findOneByUniqueIdForMobile($uniqueId)
@@ -47,7 +47,7 @@ class MouvementTracaRepository extends EntityRepository
         $query = $em->createQuery(
         /** @lang DQL */
             'SELECT mvt
-                FROM App\Entity\MouvementTraca mvt
+                FROM App\Entity\TrackingMovement mvt
                 WHERE mvt.uniqueIdForMobile = :uniqueId'
         )->setParameter('uniqueId', $uniqueId);
         return $query->getOneOrNullResult();
@@ -64,7 +64,7 @@ class MouvementTracaRepository extends EntityRepository
         $query = $em->createQuery(
         /** @lang DQL */
             "SELECT COUNT(m)
-            FROM App\Entity\MouvementTraca m"
+            FROM App\Entity\TrackingMovement m"
         );
         return $query->getSingleScalarResult();
     }
@@ -72,7 +72,7 @@ class MouvementTracaRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @return MouvementTraca[]
+     * @return TrackingMovement[]
      * @throws Exception
      */
     public function getByDates(DateTime $dateMin,
@@ -81,30 +81,30 @@ class MouvementTracaRepository extends EntityRepository
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
-        $queryBuilder = $this->createQueryBuilder('mouvementTraca')
-            ->select('mouvementTraca.id')
-            ->addSelect('mouvementTraca.datetime')
+        $queryBuilder = $this->createQueryBuilder('tracking')
+            ->select('tracking.id')
+            ->addSelect('tracking.datetime')
             ->addSelect('pack.code AS code')
-            ->addSelect('mouvementTraca.quantity')
+            ->addSelect('tracking.quantity')
             ->addSelect('location.label as locationLabel')
             ->addSelect('type.nom as typeName')
             ->addSelect('operator.username as operatorUsername')
-            ->addSelect('mouvementTraca.commentaire')
+            ->addSelect('tracking.commentaire')
             ->addSelect('arrivage.numeroArrivage')
             ->addSelect('arrivage.numeroCommandeList AS numeroCommandeListArrivage')
             ->addSelect('arrivage2.isUrgent')
             ->addSelect('reception.numeroReception')
             ->addSelect('reception.reference AS referenceReception')
-            ->addSelect('mouvementTraca.freeFields')
+            ->addSelect('tracking.freeFields')
 
-            ->andWhere('mouvementTraca.datetime BETWEEN :dateMin AND :dateMax')
+            ->andWhere('tracking.datetime BETWEEN :dateMin AND :dateMax')
 
-            ->leftJoin('mouvementTraca.emplacement', 'location')
-            ->leftJoin('mouvementTraca.type', 'type')
-            ->leftJoin('mouvementTraca.operateur', 'operator')
-            ->leftJoin('mouvementTraca.arrivage', 'arrivage')
-            ->leftJoin('mouvementTraca.reception', 'reception')
-            ->innerJoin('mouvementTraca.pack', 'pack')
+            ->leftJoin('tracking.emplacement', 'location')
+            ->leftJoin('tracking.type', 'type')
+            ->leftJoin('tracking.operateur', 'operator')
+            ->leftJoin('tracking.arrivage', 'arrivage')
+            ->leftJoin('tracking.reception', 'reception')
+            ->innerJoin('tracking.pack', 'pack')
             ->leftJoin('pack.arrivage', 'arrivage2')
 
             ->setParameters([
@@ -125,11 +125,7 @@ class MouvementTracaRepository extends EntityRepository
      */
     public function findByParamsAndFilters($params, $filters)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
-
-        $qb
-            ->from('App\Entity\MouvementTraca', 'm');
+        $qb = $this->createQueryBuilder('m');
 
         $countTotal = $this->countAll();
 
@@ -278,22 +274,22 @@ class MouvementTracaRepository extends EntityRepository
      * @param Utilisateur $operator
      * @param string $type self::MOUVEMENT_TRACA_STOCK | self::MOUVEMENT_TRACA_DEFAULT
      * @param array $filterDemandeCollecteIds
-     * @return MouvementTraca[]
+     * @return TrackingMovement[]
      */
     public function getTakingByOperatorAndNotDeposed(Utilisateur $operator,
                                                      string $type,
                                                      array $filterDemandeCollecteIds = []) {
-        $queryBuilder = $this->createQueryBuilder('mouvementTraca')
+        $queryBuilder = $this->createQueryBuilder('tracking')
             ->select('pack.code AS ref_article')
-            ->addSelect('mouvementTracaType.nom AS type')
-            ->addSelect('mouvementTraca.quantity AS quantity')
-            ->addSelect('mouvementTraca.freeFields')
+            ->addSelect('trackingType.nom AS type')
+            ->addSelect('tracking.quantity AS quantity')
+            ->addSelect('tracking.freeFields')
             ->addSelect('operator.username AS operateur')
             ->addSelect('location.label AS ref_emplacement')
-            ->addSelect('mouvementTraca.uniqueIdForMobile AS date')
+            ->addSelect('tracking.uniqueIdForMobile AS date')
             ->addSelect('nature.id AS nature_id')
-            ->addSelect('(CASE WHEN mouvementTraca.finished = 1 THEN 1 ELSE 0 END) AS finished')
-            ->addSelect('(CASE WHEN mouvementTraca.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock');
+            ->addSelect('(CASE WHEN tracking.finished = 1 THEN 1 ELSE 0 END) AS finished')
+            ->addSelect('(CASE WHEN tracking.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock');
 
         $typeCondition = ($type === self::MOUVEMENT_TRACA_STOCK)
             ? 'mouvementStock.id IS NOT NULL'
@@ -303,18 +299,18 @@ class MouvementTracaRepository extends EntityRepository
         }
 
         $queryBuilder
-            ->join('mouvementTraca.type', 'mouvementTracaType')
-            ->join('mouvementTraca.operateur', 'operator')
-            ->join('mouvementTraca.emplacement', 'location')
-            ->leftJoin('mouvementTraca.pack', 'pack')
+            ->join('tracking.type', 'trackingType')
+            ->join('tracking.operateur', 'operator')
+            ->join('tracking.emplacement', 'location')
+            ->leftJoin('tracking.pack', 'pack')
             ->leftJoin('pack.nature', 'nature')
-            ->leftJoin('mouvementTraca.mouvementStock', 'mouvementStock')
+            ->leftJoin('tracking.mouvementStock', 'mouvementStock')
             ->where('operator = :operator')
-            ->andWhere('mouvementTracaType.nom LIKE :priseType')
-            ->andWhere('mouvementTraca.finished = :finished')
+            ->andWhere('trackingType.nom LIKE :priseType')
+            ->andWhere('tracking.finished = :finished')
             ->andWhere($typeCondition)
             ->setParameter('operator', $operator)
-            ->setParameter('priseType', MouvementTraca::TYPE_PRISE)
+            ->setParameter('priseType', TrackingMovement::TYPE_PRISE)
             ->setParameter('finished', false);
 
         if (!empty($filterDemandeCollecteIds)) {
@@ -341,7 +337,7 @@ class MouvementTracaRepository extends EntityRepository
         $query = $em->createQuery(
         /** @lang DQL */
             "SELECT COUNT(m)
-            FROM App\Entity\MouvementTraca m
+            FROM App\Entity\TrackingMovement m
             JOIN m.emplacement e
             WHERE e.id = :emplacementId"
         )->setParameter('emplacementId', $emplacementId);
@@ -360,7 +356,7 @@ class MouvementTracaRepository extends EntityRepository
         $query = $em->createQuery(
         /** @lang DQL */
             "SELECT COUNT(m)
-            FROM App\Entity\MouvementTraca m
+            FROM App\Entity\TrackingMovement m
             WHERE m.mouvementStock = :mouvementStock"
         )->setParameter('mouvementStock', $mouvementStock);
         return $query->getSingleScalarResult();
@@ -374,7 +370,7 @@ class MouvementTracaRepository extends EntityRepository
             ->andWhere('type.code = :takingCode')
             ->andWhere('movement.finished = false')
             ->orderBy('movement.datetime', 'DESC')
-            ->setParameter('takingCode', MouvementTraca::TYPE_PRISE)
+            ->setParameter('takingCode', TrackingMovement::TYPE_PRISE)
             ->setParameter('code', $code)
             ->getQuery()
             ->getResult();

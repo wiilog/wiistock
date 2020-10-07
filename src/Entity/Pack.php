@@ -41,22 +41,22 @@ class Pack
     private $nature;
 
     /**
-     * @var MouvementTraca
-     * @ORM\OneToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastDrop")
+     * @var TrackingMovement
+     * @ORM\OneToOne(targetEntity=TrackingMovement::class, inversedBy="linkedPackLastDrop")
      * @ORM\JoinColumn(nullable=true)
      */
     private $lastDrop;
 
     /**
-     * @var MouvementTraca
-     * @ORM\OneToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastTracking")
+     * @var TrackingMovement
+     * @ORM\OneToOne(targetEntity=TrackingMovement::class, inversedBy="linkedPackLastTracking")
      * @ORM\JoinColumn(nullable=true)
      */
     private $lastTracking;
 
     /**
      * @var Collection
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="pack", cascade={"remove"})
+     * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="pack", cascade={"remove"})
      * @ORM\OrderBy({"datetime" = "DESC", "id" = "DESC"})
      */
     private $trackingMovements;
@@ -165,12 +165,12 @@ class Pack
         return $this;
     }
 
-    public function getLastDrop(): ?MouvementTraca
+    public function getLastDrop(): ?TrackingMovement
     {
         return $this->lastDrop;
     }
 
-    public function setLastDrop(?MouvementTraca $lastDrop): self
+    public function setLastDrop(?TrackingMovement $lastDrop): self
     {
         if (isset($this->lastDrop)) {
             $this->lastDrop->setLinkedPackLastDrop(null);
@@ -183,12 +183,12 @@ class Pack
         return $this;
     }
 
-    public function getLastTracking(): ?MouvementTraca
+    public function getLastTracking(): ?TrackingMovement
     {
         return $this->lastTracking;
     }
 
-    public function setLastTracking(?MouvementTraca $lastTracking): self
+    public function setLastTracking(?TrackingMovement $lastTracking): self
     {
         if (isset($this->lastTracking)) {
             $this->lastTracking->setLinkedPackLastTracking(null);
@@ -203,7 +203,7 @@ class Pack
 
     /**
      * @param string $order
-     * @return Collection|MouvementTraca[]
+     * @return Collection|TrackingMovement[]
      */
     public function getTrackingMovements(string $order = 'DESC'): Collection {
         $criteria = Criteria::create()
@@ -214,7 +214,7 @@ class Pack
         return $this->trackingMovements->matching($criteria);
     }
 
-    public function addTrackingMovement(MouvementTraca $trackingMovement): self
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self
     {
         if (!$this->trackingMovements->contains($trackingMovement)) {
             // push on top new movement
@@ -228,7 +228,7 @@ class Pack
         return $this;
     }
 
-    public function removeTrackingMovement(MouvementTraca $trackingMovement): self
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self
     {
         if ($this->trackingMovements->contains($trackingMovement)) {
             $this->trackingMovements->removeElement($trackingMovement);

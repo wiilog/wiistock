@@ -8,9 +8,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\MouvementTracaRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\TrackingMovementRepository")
  */
-class MouvementTraca extends FreeFieldEntity
+class TrackingMovement extends FreeFieldEntity
 {
 
     const TYPE_PRISE = 'prise';
@@ -70,7 +70,7 @@ class MouvementTraca extends FreeFieldEntity
 	private $commentaire;
 
 	/**
-	 * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="mouvementTraca")
+	 * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="trackingMovement")
 	 */
 	private $attachements;
 
@@ -86,12 +86,12 @@ class MouvementTraca extends FreeFieldEntity
     private $quantity;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="mouvementsTraca")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="trackingMovements")
      */
     private $reception;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="mouvementsTraca")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="trackingMovements")
      */
     private $arrivage;
 
@@ -101,12 +101,12 @@ class MouvementTraca extends FreeFieldEntity
     private $dispatch;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="mouvementTracas")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="trackingMovements")
      */
     private $referenceArticle;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Article", inversedBy="mouvementTracas")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Article", inversedBy="trackingMovements")
      */
     private $article;
 
@@ -134,7 +134,7 @@ class MouvementTraca extends FreeFieldEntity
     private $lastTrackingRecords;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="mouvementsTraca")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="trackingMovements")
      */
     private $receptionReferenceArticle;
 
@@ -198,7 +198,7 @@ class MouvementTraca extends FreeFieldEntity
     {
         if (!$this->attachements->contains($attachment)) {
             $this->attachements[] = $attachment;
-            $attachment->setMouvementTraca($this);
+            $attachment->setTrackingMovement($this);
         }
 
         return $this;
@@ -209,8 +209,8 @@ class MouvementTraca extends FreeFieldEntity
         if ($this->attachements->contains($attachement)) {
             $this->attachements->removeElement($attachement);
             // set the owning side to null (unless already changed)
-            if ($attachement->getMouvementTraca() === $this) {
-                $attachement->setMouvementTraca(null);
+            if ($attachement->getTrackingMovement() === $this) {
+                $attachement->setTrackingMovement(null);
             }
         }
 
@@ -324,7 +324,7 @@ class MouvementTraca extends FreeFieldEntity
 
     /**
      * @param mixed $dispatch
-     * @return MouvementTraca
+     * @return TrackingMovement
      */
     public function setDispatch($dispatch): self
     {
@@ -365,9 +365,9 @@ class MouvementTraca extends FreeFieldEntity
 
     /**
      * @param Pack|null $linkedPackLastTracking
-     * @return MouvementTraca
+     * @return TrackingMovement
      */
-    public function setLinkedPackLastTracking(?Pack $linkedPackLastTracking): MouvementTraca {
+    public function setLinkedPackLastTracking(?Pack $linkedPackLastTracking): TrackingMovement {
         $this->linkedPackLastTracking = $linkedPackLastTracking;
         return $this;
     }
@@ -381,9 +381,9 @@ class MouvementTraca extends FreeFieldEntity
 
     /**
      * @param Pack|null $linkedPackLastDrop
-     * @return MouvementTraca
+     * @return TrackingMovement
      */
-    public function setLinkedPackLastDrop(?Pack $linkedPackLastDrop): MouvementTraca {
+    public function setLinkedPackLastDrop(?Pack $linkedPackLastDrop): TrackingMovement {
         $this->linkedPackLastDrop = $linkedPackLastDrop;
         return $this;
     }

@@ -11,7 +11,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -53,7 +53,7 @@ class DispatchService {
     private $freeFieldService;
     private $translator;
     private $mailerService;
-    private $mouvementTracaService;
+    private $trackingMovementService;
     private $fieldsParamService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
@@ -62,11 +62,11 @@ class DispatchService {
                                 Twig_Environment $templating,
                                 FreeFieldService $champLibreService,
                                 TranslatorInterface $translator,
-                                MouvementTracaService $mouvementTracaService,
+                                TrackingMovementService $trackingMovementService,
                                 MailerService $mailerService,
                                 FieldsParamService $fieldsParamService) {
         $this->templating = $templating;
-        $this->mouvementTracaService = $mouvementTracaService;
+        $this->trackingMovementService = $trackingMovementService;
         $this->entityManager = $entityManager;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
@@ -478,25 +478,25 @@ class DispatchService {
         foreach ($dispatchPacks as $dispatchPack) {
             $pack = $dispatchPack->getPack();
 
-            $trackingTaking = $this->mouvementTracaService->createTrackingMovement(
+            $trackingTaking = $this->trackingMovementService->createTrackingMovement(
                 $pack,
                 $takingLocation,
                 $loggedUser,
                 $date,
                 $fromNomade,
                 true,
-                MouvementTraca::TYPE_PRISE,
+                TrackingMovement::TYPE_PRISE,
                 ['quantity' => $dispatchPack->getQuantity(), 'from' => $dispatch]
             );
 
-            $trackingDrop = $this->mouvementTracaService->createTrackingMovement(
+            $trackingDrop = $this->trackingMovementService->createTrackingMovement(
                 $pack,
                 $dropLocation,
                 $loggedUser,
                 $date,
                 $fromNomade,
                 true,
-                MouvementTraca::TYPE_DEPOSE,
+                TrackingMovement::TYPE_DEPOSE,
                 ['quantity' => $dispatchPack->getQuantity(), 'from' => $dispatch]
             );
 

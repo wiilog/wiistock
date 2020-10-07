@@ -6,7 +6,7 @@ use App\Entity\Dispatch;
 use App\Entity\Arrivage;
 use App\Entity\Handling;
 use App\Entity\Litige;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\PieceJointe;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -79,7 +79,7 @@ class AttachmentService
 
 	/**
 	 * @param PieceJointe $attachment
-	 * @param Arrivage|Litige|Dispatch|MouvementTraca|Handling $entity
+	 * @param Arrivage|Litige|Dispatch|TrackingMovement|Handling $entity
 	 */
 	public function removeAndDeleteAttachment(PieceJointe $attachment, $entity)
 	{

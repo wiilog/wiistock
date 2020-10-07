@@ -106,9 +106,9 @@ class Arrivage extends FreeFieldEntity
     private $urgences;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="arrivage")
+     * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="arrivage")
      */
-    private $mouvementsTraca;
+    private $trackingMovements;
 
 	/**
 	 * @ORM\Column(type="boolean", nullable=true)
@@ -140,7 +140,7 @@ class Arrivage extends FreeFieldEntity
         $this->packs = new ArrayCollection();
         $this->attachements = new ArrayCollection();
         $this->urgences = new ArrayCollection();
-        $this->mouvementsTraca = new ArrayCollection();
+        $this->trackingMovements = new ArrayCollection();
         $this->numeroCommandeList = [];
     }
 
@@ -495,30 +495,30 @@ class Arrivage extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|MouvementTraca[]
+     * @return Collection|TrackingMovement[]
      */
-    public function getMouvementsTraca(): Collection
+    public function getTrackingMovements(): Collection
     {
-        return $this->mouvementsTraca;
+        return $this->trackingMovements;
     }
 
-    public function addMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self
     {
-        if (!$this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca[] = $mouvementsTraca;
-            $mouvementsTraca->setArrivage($this);
+        if (!$this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements[] = $trackingMovement;
+            $trackingMovement->setArrivage($this);
         }
 
         return $this;
     }
 
-    public function removeMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self
     {
-        if ($this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca->removeElement($mouvementsTraca);
+        if ($this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements->removeElement($trackingMovement);
             // set the owning side to null (unless already changed)
-            if ($mouvementsTraca->getArrivage() === $this) {
-                $mouvementsTraca->setArrivage(null);
+            if ($trackingMovement->getArrivage() === $this) {
+                $trackingMovement->setArrivage(null);
             }
         }
 

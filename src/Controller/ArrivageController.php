@@ -27,7 +27,7 @@ use App\Repository\TransporteurRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\DispatchService;
-use App\Service\MouvementTracaService;
+use App\Service\TrackingMovementService;
 use App\Service\PackService;
 use App\Service\CSVExportService;
 use App\Service\DashboardService;
@@ -601,14 +601,14 @@ class ArrivageController extends AbstractController
      * @Route("/supprimer", name="arrivage_delete", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param MouvementTracaService $mouvementTracaService
+     * @param TrackingMovementService $trackingMovementService
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
-                           MouvementTracaService $mouvementTracaService): Response
+                           TrackingMovementService $trackingMovementService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -638,8 +638,8 @@ class ArrivageController extends AbstractController
                     $urgence->setLastArrival(null);
                 }
 
-                foreach ($arrivage->getMouvementsTraca() as $mouvementTraca) {
-                    $entityManager->remove($mouvementTraca);
+                foreach ($arrivage->getTrackingMovements() as $trackingMovement) {
+                    $entityManager->remove($trackingMovement);
                 }
 
                 $entityManager->remove($arrivage);

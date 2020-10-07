@@ -38,26 +38,26 @@ class PieceJointeRepository extends EntityRepository
 		return $query->getResult();
 	}
 
-	public function getNameGroupByMouvements() {
+	public function getNameGroupByMovements() {
         $queryBuilder = $this->createQueryBuilder('attachment')
-            ->select('mouvementTraca.id AS mouvementTracaId')
+            ->select('trackingMovement.id AS trackingMovementId')
             ->addSelect('attachment.originalName')
-            ->join('attachment.mouvementTraca', 'mouvementTraca');
+            ->join('attachment.trackingMovement', 'trackingMovement');
 
         $result = $queryBuilder
             ->getQuery()
             ->getResult();
 
         return array_reduce($result, function ($acc, $attachment) {
-            $mouvementTracaId = (int) $attachment['mouvementTracaId'];
-            if (empty($acc[$mouvementTracaId])) {
-                $acc[$mouvementTracaId] = '';
+            $trackingMovementId = (int) $attachment['trackingMovementId'];
+            if (empty($acc[$trackingMovementId])) {
+                $acc[$trackingMovementId] = '';
             }
             else {
-                $acc[$mouvementTracaId] .= ', ';
+                $acc[$trackingMovementId] .= ', ';
             }
 
-            $acc[$mouvementTracaId] .= $attachment['originalName'];
+            $acc[$trackingMovementId] .= $attachment['originalName'];
             return $acc;
         }, []);
     }
