@@ -43,9 +43,8 @@ $(function () {
     updateImagePreview('#preview-delivery-note-logo', '#upload-delivery-note-logo');
     updateImagePreview('#preview-waybill-logo', '#upload-waybill-logo');
 
-    $('.image-upload').change(() => fileToImagePreview($(this)));
     // config tableau de bord : emplacements
-    initSelect2ValuesForDashboard();
+    initValuesForDashboard();
     $('#locationArrivageDest').on('change', editArrivageDestination);
     $('#locationDemandeLivraison').on('change', function() {
         editDemandeLivraisonDestination($(this));
