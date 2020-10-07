@@ -1,7 +1,15 @@
 <input type="hidden" class="page-title" value="Dashboard | DEMANDES EN COURS"/>
-<div class="row">
-    <div class="col-12">
-        <div class="row">
+<div class="row m-4">
+    <div class="dashboard-box-container w-100">
+        <div class="dashboard-box pending-requests fourth-row-height w-100 p-3" style="background-color: #f5f6fb">
+            <strong class="title m-3">Demandes de livraisons en cours</strong>
+            <div class="row">
+                {% for delivery in deliveries %}
+                    <div class="col-12 col-lg-4 col-xl-3">
+                        {% include 'accueil/request-card.html.twig' with delivery %}
+                    </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>
