@@ -319,8 +319,6 @@ class HandlingController extends AbstractController
             $handling->setTreatedByHandling($currentUser);
         }
 
-        $average->addRequestTime($handling->getType(), $entityManager, $handling->getValidationDate()->diff($handling->getCreationDate()));
-
         $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
 
         $listAttachmentIdToKeep = $post->get('files') ?? [];

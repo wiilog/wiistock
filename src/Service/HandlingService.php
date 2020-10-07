@@ -5,6 +5,7 @@ namespace App\Service;
 
 
 use App\Entity\Action;
+use App\Entity\Demande;
 use App\Entity\FiltreSup;
 use App\Entity\Handling;
 use App\Entity\Menu;
@@ -217,13 +218,11 @@ class HandlingService
             )
             : 'Non défini';
 
-        if($state == Statut::DRAFT) {
-            $progress = 25;
-        } else if($state == Statut::NOT_TREATED) {
-            $progress = 50;
-        }if($state == Statut::TREATED) {
-            $progress = 100;
-        }
+        $statusesToProgress = [
+            Statut::DRAFT => 0,
+            Statut::NOT_TREATED => 50,
+            Statut::TREATED => 100
+        ];
 
         return [
             'href' => $href ?? null,
@@ -238,7 +237,7 @@ class HandlingService
             'cardColor' => 'white',
             'bodyColor' => 'lightGrey',
             'topRightIcon' => 'fa-box',
-            'progress' =>  $progress,
+            'progress' =>  $statusesToProgress[$state] ?? 0,
             'progressBarColor' => '#2ec2ab',
             'progressBarBGColor' => 'lightGrey',
         ];

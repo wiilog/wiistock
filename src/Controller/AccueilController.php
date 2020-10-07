@@ -43,6 +43,7 @@ class AccueilController extends AbstractController
      * @param AverageRequestTimeRepository $averageRequestTimeRepository
      * @param DateService $dateService
      * @param DemandeLivraisonService $demandeLivraisonService
+     * @param HandlingService $handlingService
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
@@ -53,7 +54,7 @@ class AccueilController extends AbstractController
                           DemandeLivraisonService $demandeLivraisonService,
                           HandlingService $handlingService): Response
     {
-        $data = $this->getDashboardData($entityManager, $demandeLivraisonService, $handlingService, $averageRequestTimeRepository, $dateService);
+        $data = $this->getDashboardData($entityManager, false, $demandeLivraisonService, $handlingService, $averageRequestTimeRepository, $dateService);
         return $this->render('accueil/index.html.twig', $data);
     }
 
@@ -78,7 +79,7 @@ class AccueilController extends AbstractController
                                  DashboardService $dashboardService,
                                  string $page): Response
     {
-        $data = $this->getDashboardData($entityManager, null, null, null,true);
+        $data = $this->getDashboardData($entityManager, true);
         $data['page'] = $page;
         $data['pageData'] = ($page === 'emballage')
             ? $dashboardService->getSimplifiedDataForPackagingDashboard($entityManager)
@@ -99,11 +100,11 @@ class AccueilController extends AbstractController
      * @throws NonUniqueResultException
      */
     private function getDashboardData(EntityManagerInterface $entityManager,
+                                      bool $isDashboardExt,
                                       DemandeLivraisonService $demandeLivraisonService = null,
                                       HandlingService $handlingService = null,
                                       AverageRequestTimeRepository $averageRequestTimeRepository = null,
-                                      DateService $dateService = null,
-                                      bool $isDashboardExt = false)
+                                      DateService $dateService = null)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);

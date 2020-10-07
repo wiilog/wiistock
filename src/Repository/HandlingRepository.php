@@ -304,20 +304,6 @@ class HandlingRepository extends EntityRepository
         ];
     }
 
-    public function findUntreatedByType($requester = null) {
-	    $qb = $this->createQueryBuilder("h")
-            ->join("h.status", "s")
-            ->andWhere("s.code = :code")
-            ->setParameter("code", Statut::NOT_TREATED);
-
-	    if($requester) {
-	        $qb->andWhere("h.requester = :requester")
-                ->setParameter("requester", $requester);
-        }
-
-	    return $qb->getQuery()->getResult();
-    }
-
     public function findRequestToTreatByUser(Utilisateur $requester) {
         return $this->createQueryBuilder("h")
             ->select("h")

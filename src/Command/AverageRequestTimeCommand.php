@@ -49,11 +49,10 @@ class AverageRequestTimeCommand extends Command
         $handlingRepository = $this->entityManager->getRepository(Handling::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
 
-        // TODO array_merge with collect
-        $deliveries = $demandeRepository->getTreatingTimesWithType();
-        $handlings = $handlingRepository->getTreatingTimesWithType();
-
-        $requests = array_merge($deliveries, $handlings);
+        $requests = array_merge(
+            $demandeRepository->getTreatingTimesWithType(),
+            $handlingRepository->getTreatingTimesWithType()
+        );
 
         $typeMeters = [];
         foreach ($requests as $request) {
