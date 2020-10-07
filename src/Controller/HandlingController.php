@@ -17,6 +17,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Service\AttachmentService;
+use App\Service\AverageTimeService;
 use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
@@ -281,8 +282,7 @@ class HandlingController extends AbstractController
                          FreeFieldService $freeFieldService,
                          TranslatorInterface $translator,
                          AttachmentService $attachmentService,
-                         HandlingService $handlingService): Response
-    {
+                         HandlingService $handlingService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
 
@@ -318,6 +318,8 @@ class HandlingController extends AbstractController
             $handling->setValidationDate($date);
             $handling->setTreatedByHandling($currentUser);
         }
+
+        $average->addRequestTime($handling->getType(), $entityManager, $handling->getValidationDate()->diff($handling->getCreationDate()));
 
         $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
 
@@ -496,18 +498,4 @@ class HandlingController extends AbstractController
         }
     }
 
-
-    private function buildInfos(Handling $handling, &$data)
-    {
-        $data[] =
-            [
-                $handling->getCreationDate() ? $handling->getCreationDate()->format('d/m/Y H:i') : ' ',
-                $handling->getRequester()->getUsername(),
-                $handling->getSource(),
-                $handling->getDestination(),
-                $handling->getDesiredDate() ? $handling->getDesiredDate()->format('d/m/Y H:i') : ' ',
-                $handling->getValidationDate() ? $handling->getValidationDate()->format('d/m/Y H:i') : '',
-                $handling->getStatus() ? $handling->getStatus()->getNom() : '',
-            ];
-    }
 }

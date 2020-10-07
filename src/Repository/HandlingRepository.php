@@ -304,6 +304,52 @@ class HandlingRepository extends EntityRepository
         ];
     }
 
+    public function findUntreatedByType($requester = null) {
+	    $qb = $this->createQueryBuilder("h")
+            ->join("h.status", "s")
+            ->andWhere("s.code = :code")
+            ->setParameter("code", Statut::NOT_TREATED);
+
+	    if($requester) {
+	        $qb->andWhere("h.requester = :requester")
+                ->setParameter("requester", $requester);
+        }
+
+	    return $qb->getQuery()->getResult();
+    }
+
+    public function findRequestToTreatByUser(Utilisateur $requester) {
+        return $this->createQueryBuilder("h")
+            ->select("h")
+            ->innerJoin("h.status", "s")
+            ->where("s.state = " . Statut::NOT_TREATED)
+            ->andWhere("h.requester = :requester")
+            ->setParameter("requester", $requester)
+            ->orderBy("h.desiredDate", "DESC")
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getTreatingTimesWithType() {
+        $now = new DateTime();
+
+        $datePrior3Months = clone $now;
+        $datePrior3Months->modify("-3 month");
+
+        return $this->createQueryBuilder("h")
+            ->select("t.id as typeId")
+            ->addSelect("h.creationDate AS validationDate")
+            ->addSelect("h.validationDate AS treatingDate")
+            ->join("h.type", "t")
+            ->join("h.status", "s")
+            ->where("s.state = " . Statut::TREATED)
+            ->andWhere("h.creationDate BETWEEN :prior AND :now")
+            ->setParameter("prior", $datePrior3Months)
+            ->setParameter("now", $now)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
     /**
      * @param $prefix
      * @return mixed|null
