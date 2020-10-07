@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Article;
+use App\Entity\AverageRequestTime;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Demande;
@@ -12,8 +13,12 @@ use App\Entity\LocationCluster;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Utilisateur;
 use App\Entity\Wiilock;
+use App\Repository\AverageRequestTimeRepository;
+use App\Service\DateService;
 use App\Service\DashboardService;
+use App\Service\DemandeLivraisonService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -34,13 +39,19 @@ class AccueilController extends AbstractController
     /**
      * @Route("/accueil", name="accueil", methods={"GET"})
      * @param EntityManagerInterface $entityManager
+     * @param AverageRequestTimeRepository $averageRequestTimeRepository
+     * @param DateService $dateService
+     * @param DemandeLivraisonService $demandeLivraisonService
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(EntityManagerInterface $entityManager,
+                          AverageRequestTimeRepository $averageRequestTimeRepository,
+                          DateService $dateService,
+                          DemandeLivraisonService $demandeLivraisonService): Response
     {
-        $data = $this->getDashboardData($entityManager);
+        $data = $this->getDashboardData($entityManager, $demandeLivraisonService, $averageRequestTimeRepository, $dateService);
         return $this->render('accueil/index.html.twig', $data);
     }
 
@@ -65,7 +76,7 @@ class AccueilController extends AbstractController
                                  DashboardService $dashboardService,
                                  string $page): Response
     {
-        $data = $this->getDashboardData($entityManager, true);
+        $data = $this->getDashboardData($entityManager, null, null, null,true);
         $data['page'] = $page;
         $data['pageData'] = ($page === 'emballage')
             ? $dashboardService->getSimplifiedDataForPackagingDashboard($entityManager)
@@ -76,12 +87,19 @@ class AccueilController extends AbstractController
 
     /**
      * @param EntityManagerInterface $entityManager
+     * @param DemandeLivraisonService|null $demandeLivraisonService
+     * @param AverageRequestTimeRepository|null $averageRequestTimeRepository
+     * @param DateService|null $dateService
      * @param bool $isDashboardExt
      * @return array
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     private function getDashboardData(EntityManagerInterface $entityManager,
+                                      DemandeLivraisonService $demandeLivraisonService = null,
+                                      AverageRequestTimeRepository $averageRequestTimeRepository = null,
+                                      DateService $dateService = null,
                                       bool $isDashboardExt = false)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -135,6 +153,38 @@ class AccueilController extends AbstractController
         $listStatutDemandeP = $statutRepository->getIdByCategorieNameAndStatusesNames(Demande::CATEGORIE, [Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE]);
         $nbrDemandeLivraisonP = $demandeRepository->countByStatusesId($listStatutDemandeP);
 
+
+        if ($demandeLivraisonService) {
+            /** @var array[int => AverageRequestTime] $averageRequestTimesByType */
+            $averageRequestTimesByType = array_reduce(
+                $averageRequestTimeRepository->findAll(),
+                function (array $carry, AverageRequestTime $averageRequestTime) {
+                    $typeId = $averageRequestTime->getType() ? $averageRequestTime->getType()->getId() : null;
+                    if ($typeId) {
+                        $carry[$typeId] = $averageRequestTime;
+                    }
+                    return $carry;
+                },
+                []
+            );
+
+
+
+
+            /** @var Utilisateur $loggedUser */
+            $loggedUser = $this->getUser();
+            $pendingDeliveries = $demandeRepository->findRequestToTreatByUser($loggedUser);
+            $pendingDeliveries = array_map(
+                function (Demande $demande) use ($demandeLivraisonService, $dateService, $averageRequestTimesByType) {
+                    return $demandeLivraisonService->parseRequestForCard($demande, $dateService, $averageRequestTimesByType);
+                },
+                $pendingDeliveries
+            );
+        }
+        else {
+            $pendingDeliveries = [];
+        }
+
         $handlingCounterToTreat = $handlingRepository->countHandlingToTreat();
         return [
             'nbAlerts' => $nbAlerts,
@@ -149,6 +199,7 @@ class AccueilController extends AbstractController
             'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
             'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,
             'nbrFiabiliteReferenceOfThisMonth' => $nbrFiabiliteReferenceOfThisMonth,
+            'pendingDeliveries' => $pendingDeliveries,
             'status' => [
                 'DLtoTreat' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_A_TRAITER),
                 'DLincomplete' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_INCOMPLETE),
