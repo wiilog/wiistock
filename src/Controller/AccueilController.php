@@ -15,6 +15,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\Wiilock;
+use App\Helper\Stream;
 use App\Repository\AverageRequestTimeRepository;
 use App\Service\DateService;
 use App\Service\DashboardService;
@@ -155,33 +156,24 @@ class AccueilController extends AbstractController
 
 
         if ($demandeLivraisonService) {
-            /** @var array[int => AverageRequestTime] $averageRequestTimesByType */
-            $averageRequestTimesByType = array_reduce(
-                $averageRequestTimeRepository->findAll(),
-                function (array $carry, AverageRequestTime $averageRequestTime) {
+            $averageRequestTimesByType = Stream::from($averageRequestTimeRepository->findAll())
+                ->reduce(function (array $carry, AverageRequestTime $averageRequestTime) {
                     $typeId = $averageRequestTime->getType() ? $averageRequestTime->getType()->getId() : null;
                     if ($typeId) {
                         $carry[$typeId] = $averageRequestTime;
                     }
                     return $carry;
-                },
-                []
-            );
-
-
-
+                }, []);
 
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
             $pendingDeliveries = $demandeRepository->findRequestToTreatByUser($loggedUser);
-            $pendingDeliveries = array_map(
-                function (Demande $demande) use ($demandeLivraisonService, $dateService, $averageRequestTimesByType) {
+            $pendingDeliveries = Stream::from($pendingDeliveries)
+                ->map(function (Demande $demande) use ($demandeLivraisonService, $dateService, $averageRequestTimesByType) {
                     return $demandeLivraisonService->parseRequestForCard($demande, $dateService, $averageRequestTimesByType);
-                },
-                $pendingDeliveries
-            );
-        }
-        else {
+                })
+                ->toArray();
+        } else {
             $pendingDeliveries = [];
         }
 
