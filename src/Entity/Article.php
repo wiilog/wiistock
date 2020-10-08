@@ -155,9 +155,9 @@ class Article extends FreeFieldEntity
     private $preparation;
 
     /**
-     * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="article")
+     * @ORM\OneToMany(targetEntity=Pack::class, mappedBy="article")
      */
-    private $trackingMovements;
+    private $trackingPacks;
 
 
     public function __construct()
@@ -168,7 +168,7 @@ class Article extends FreeFieldEntity
         $this->inventoryMissions = new ArrayCollection();
         $this->litiges = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
-        $this->trackingMovements = new ArrayCollection();
+        $this->trackingPacks = new ArrayCollection();
 
         $this->quantite = 0;
     }
@@ -552,30 +552,27 @@ class Article extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|TrackingMovement[]
+     * @return Collection|Pack[]
      */
-    public function getTrackingMovements(): Collection
-    {
-        return $this->trackingMovements;
+    public function getTrackingPacks(): Collection {
+        return $this->trackingPacks;
     }
 
-    public function addTrackingMovement(TrackingMovement $trackingMovement): self
-    {
-        if (!$this->trackingMovements->contains($trackingMovement)) {
-            $this->trackingMovements[] = $trackingMovement;
-            $trackingMovement->setArticle($this);
+    public function addTrackingPack(Pack $pack): self {
+        if (!$this->trackingPacks->contains($pack)) {
+            $this->trackingPacks[] = $pack;
+            $pack->setArticle($this);
         }
 
         return $this;
     }
 
-    public function removeTrackingMovement(TrackingMovement $trackingMovement): self
-    {
-        if ($this->trackingMovements->contains($trackingMovement)) {
-            $this->trackingMovements->removeElement($trackingMovement);
+    public function removeTrackingPack(Pack $pack): self {
+        if ($this->trackingPacks->contains($pack)) {
+            $this->trackingPacks->removeElement($pack);
             // set the owning side to null (unless already changed)
-            if ($trackingMovement->getArticle() === $this) {
-                $trackingMovement->setArticle(null);
+            if ($pack->getArticle() === $this) {
+                $pack->setArticle(null);
             }
         }
 

@@ -183,9 +183,9 @@ class ReferenceArticle extends FreeFieldEntity
     private $userThatTriggeredEmergency;
 
     /**
-     * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="referenceArticle")
+     * @ORM\OneToMany(targetEntity=Pack::class, mappedBy="referenceArticle")
      */
-    private $trackingMovements;
+    private $trackingPacks;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
@@ -204,7 +204,7 @@ class ReferenceArticle extends FreeFieldEntity
         $this->inventoryMissions = new ArrayCollection();
         $this->ordreCollecteReferences = new ArrayCollection();
         $this->ligneArticlePreparations = new ArrayCollection();
-        $this->trackingMovements = new ArrayCollection();
+        $this->trackingPacks = new ArrayCollection();
 
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
@@ -788,30 +788,30 @@ class ReferenceArticle extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|TrackingMovement[]
+     * @return Collection|Pack[]
      */
-    public function getTrackingMovements(): Collection
+    public function getTrackingPacks(): Collection
     {
-        return $this->trackingMovements;
+        return $this->trackingPacks;
     }
 
-    public function addTrackingMovement(TrackingMovement $trackingMovement): self
+    public function addTrackingPack(Pack $pack): self
     {
-        if (!$this->trackingMovements->contains($trackingMovement)) {
-            $this->trackingMovements[] = $trackingMovement;
-            $trackingMovement->setReferenceArticle($this);
+        if (!$this->trackingPacks->contains($pack)) {
+            $this->trackingPacks[] = $pack;
+            $pack->setReferenceArticle($this);
         }
 
         return $this;
     }
 
-    public function removeTrackingMovement(TrackingMovement $trackingMovement): self
+    public function removeTrackingPack(Pack $pack): self
     {
-        if ($this->trackingMovements->contains($trackingMovement)) {
-            $this->trackingMovements->removeElement($trackingMovement);
+        if ($this->trackingPacks->contains($pack)) {
+            $this->trackingPacks->removeElement($pack);
             // set the owning side to null (unless already changed)
-            if ($trackingMovement->getReferenceArticle() === $this) {
-                $trackingMovement->setReferenceArticle(null);
+            if ($pack->getReferenceArticle() === $this) {
+                $pack->setReferenceArticle(null);
             }
         }
 

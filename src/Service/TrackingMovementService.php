@@ -294,15 +294,19 @@ class TrackingMovementService
         $pack = $tracking->getPack();
         $packCode = $pack ? $pack->getCode() : null;
 
-        $refOrArticle = (
-            $referenceArticleRepository->findOneBy(['barCode' => $packCode])
-            ?: $articleRepository->findOneBy(['barCode' => $packCode])
-        );
+        $alreadyLinkedArticle = $pack->getArticle();
+        $alreadyLinkedReferenceArticle = $pack->getReferenceArticle();
+        if (!isset($alreadyLinkedArticle) && !isset($alreadyLinkedReferenceArticle)) {
+            $refOrArticle = (
+                $referenceArticleRepository->findOneBy(['barCode' => $packCode])
+                ?: $articleRepository->findOneBy(['barCode' => $packCode])
+            );
 
-        if ($refOrArticle instanceof ReferenceArticle) {
-            $tracking->setReferenceArticle($refOrArticle);
-        } else if ($refOrArticle instanceof Article) {
-            $tracking->setArticle($refOrArticle);
+            if ($refOrArticle instanceof ReferenceArticle) {
+                $pack->setReferenceArticle($refOrArticle);
+            } else if ($refOrArticle instanceof Article) {
+                $pack->setArticle($refOrArticle);
+            }
         }
 
         if (isset($from)) {

@@ -91,6 +91,18 @@ class Pack
      */
     private $locationClusterRecords;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Article", inversedBy="trackingPacks")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $article;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="trackingPacks")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $referenceArticle;
+
     public function __construct() {
         $this->litiges = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -338,6 +350,24 @@ class Pack
                 $locationClusterRecord->setPack(null);
             }
         }
+        return $this;
+    }
+
+    public function getArticle(): ?Article {
+        return $this->article;
+    }
+
+    public function setArticle(?Article $article): self {
+        $this->article = $article;
+        return $this;
+    }
+
+    public function getReferenceArticle(): ?ReferenceArticle {
+        return $this->referenceArticle;
+    }
+
+    public function setReferenceArticle(?ReferenceArticle $referenceArticle): self {
+        $this->referenceArticle = $referenceArticle;
         return $this;
     }
 

@@ -101,16 +101,6 @@ class TrackingMovement extends FreeFieldEntity
     private $dispatch;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="trackingMovements")
-     */
-    private $referenceArticle;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Article", inversedBy="trackingMovements")
-     */
-    private $article;
-
-    /**
      * @var Pack|null
      * @ORM\OneToOne (targetEntity="App\Entity\Pack", mappedBy="lastDrop")
      */
@@ -332,28 +322,16 @@ class TrackingMovement extends FreeFieldEntity
         return $this;
     }
 
-    public function getReferenceArticle(): ?ReferenceArticle
-    {
-        return $this->referenceArticle;
+    public function getReferenceArticle(): ?ReferenceArticle {
+        return isset($this->pack)
+            ? $this->pack->getReferenceArticle()
+            : null;
     }
 
-    public function setReferenceArticle(?ReferenceArticle $referenceArticle): self
-    {
-        $this->referenceArticle = $referenceArticle;
-
-        return $this;
-    }
-
-    public function getArticle(): ?Article
-    {
-        return $this->article;
-    }
-
-    public function setArticle(?Article $article): self
-    {
-        $this->article = $article;
-
-        return $this;
+    public function getArticle(): ?Article {
+        return isset($this->pack)
+            ? $this->pack->getArticle()
+            : null;
     }
 
     /**
