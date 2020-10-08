@@ -201,15 +201,20 @@ class DemandeLivraisonService
         $typeId = $demande->getType() ? $demande->getType()->getId() : null;
         $averageTime = $averageRequestTimesByType[$typeId] ?? null;
 
-        $deliveryDateEstimated = 'Date de livraison non estimée';
+        $deliveryDateEstimated = 'Non estimée';
+        $estimatedFinishTimeLabel = 'Date de livraison non estimée';
+        $today = new DateTime();
 
         if (isset($averageTime)) {
             $expectedDate = (clone $demande->getDate())
                 ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
-            $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
-            $today = new DateTime();
-            if ($expectedDate < $today) {
-                $deliveryDateEstimated = $today->format('d/m/Y');
+            if ($expectedDate >= $today) {
+                $estimatedFinishTimeLabel = 'Date et heure de livraison prévue';
+                $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
+                if ($expectedDate->format('d/m/Y') === $today->format('d/m/Y')) {
+                    $estimatedFinishTimeLabel = 'Heure de livraison estimée';
+                    $deliveryDateEstimated = $expectedDate->format('H:i');
+                }
             }
         }
 
@@ -235,6 +240,7 @@ class DemandeLivraisonService
             'href' => $href ?? null,
             'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la demande de livraison',
             'estimatedFinishTime' => $deliveryDateEstimated,
+            'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
             'requestStatus' => $requestStatus,
             'requestBodyTitle' => $bodyTitle,
             'requestLocation' => $demande->getDestination() ? $demande->getDestination()->getLabel() : 'Non défini',

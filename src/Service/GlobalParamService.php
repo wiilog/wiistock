@@ -272,7 +272,6 @@ Class GlobalParamService
 		foreach ($clusterCodes as $clusterCode) {
             $locationCluster = $locationClusterRepository->findOneBy(['code' => $clusterCode]);
             $resp[$clusterCode] = ['id' => '', 'text' => ''];
-dump($clusterCode, $locationCluster);
             if($locationCluster) {
                 /** @var Emplacement $location */
                 foreach($locationCluster->getLocations() as $location) {

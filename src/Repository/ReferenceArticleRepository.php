@@ -419,7 +419,6 @@ class ReferenceArticleRepository extends EntityRepository
                 if (!empty($order)) {
                     $orderData = $params->get('columns')[$params->get('order')[0]['column']]['data'];
                     $column = self::DtToDbLabels[$orderData] ?? $orderData;
-dump($orderData, $column);
                     switch ($column) {
                         case 'Actions':
                             break;
@@ -670,7 +669,8 @@ dump($orderData, $column);
                          ocr.quantite as quantity,
                          1 as is_ref,
                          oc.id as id_collecte,
-                         ra.barCode
+                         ra.barCode,
+                         ra.libelle as reference_label
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
 			JOIN ra.ordreCollecteReferences ocr
