@@ -20,7 +20,7 @@ class CacheClearCommand extends SymfonyCacheClearCommand {
 
     protected function configure() {
         parent::configure();
-        $this->setName("cache:clear");
+        $this->setName(self::$defaultName);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
