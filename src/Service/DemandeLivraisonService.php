@@ -252,6 +252,7 @@ class DemandeLivraisonService
             'topRightIcon' => 'fa-box',
             'progress' => $statusesToProgress[$requestStatus] ?? 0,
             'progressBarColor' => '#2ec2ab',
+            'emergencyText' => '',
             'progressBarBGColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
         ];
     }
