@@ -426,7 +426,7 @@ class ArrivageRepository extends EntityRepository
                             ->leftJoin('a.packs', 'col2')
                             ->orderBy('nbum', $order)
                             ->groupBy('col2.arrivage, a');
-                    } else if ($column === 'statut') {
+                    } else if ($column === 'status') {
                         $qb
                             ->leftJoin('a.statut', 'order_status')
                             ->orderBy('order_status.nom', $order);
