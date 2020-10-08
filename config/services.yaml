@@ -13,6 +13,7 @@ parameters:
 
     # default value for env variabledi
     env(APP_FORBIDDEN_PHONES): ''
+    env(APP_LAST_CACHE_CLEAR): ''
 
     #menu_config added via menu.yaml
 
@@ -58,6 +59,9 @@ services:
     App\Twig\MenuExtension:
         arguments:
             $menuConfig: '%menu_config%'
+
+    App\Command\CacheClearCommand:
+        arguments: ['@kernel', '@cache_clearer', '@filesystem']
 
     wiistock.specific_service:
         class: App\Service\SpecificService

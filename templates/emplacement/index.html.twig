@@ -72,5 +72,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/emplacement.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/emplacement.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

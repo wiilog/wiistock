@@ -40,6 +40,6 @@
         moment.locale('fr');
     </script>
 
-    <script src="{{ asset('js/common.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/pages/dashboard.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/common.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/dashboard.js')}}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

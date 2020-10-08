@@ -30,5 +30,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/free-field.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/free-field.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}
