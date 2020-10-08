@@ -785,3 +785,10 @@ function resetDefaultArticleFournisseur(show = false) {
         $selectArticleFournisseurFormGroup.addClass('d-none');
     }
 }
+
+function toggleRequiredChampsFixes(button) {
+    let $modal = button.closest('.modal');
+    clearErrorMsg(button);
+    clearInvalidInputs($modal);
+    displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'), button);
+}
