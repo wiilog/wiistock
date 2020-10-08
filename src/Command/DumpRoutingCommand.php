@@ -17,7 +17,7 @@ class DumpRoutingCommand extends DumpCommand {
 
     protected function configure() {
         parent::configure();
-        $this->setName(self::$defaultName);
+        $this->setName("dump:routing");
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
@@ -28,10 +28,10 @@ class DumpRoutingCommand extends DumpCommand {
         $input->setOption("target", $target);
 
         $code = parent::execute($input, $output);
-        if($code) {
+        if($code === 0) {
             $output = json_decode(file_get_contents($target));
-            $output["scheme"] = $url[0];
-            $output["host"] = $url[1];
+            $output->scheme = $url[0];
+            $output->host = $url[1];
 
             file_put_contents($target, json_encode($output));
         }
