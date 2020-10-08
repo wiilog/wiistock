@@ -804,7 +804,8 @@ class ArticleRepository extends EntityRepository
 			 a.label,
 			 a.quantite as quantity,
 			 0 as is_ref, oc.id as id_collecte,
-			 a.barCode
+			 a.barCode,
+			 ra.libelle as reference_label
 			FROM App\Entity\Article a
 			JOIN a.articleFournisseur artf
 			JOIN artf.referenceArticle ra
