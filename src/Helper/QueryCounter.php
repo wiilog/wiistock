@@ -32,16 +32,13 @@ class QueryCounter {
             throw new RuntimeException("Unable to deduce select, provide the selected table");
         }
 
-        $count = $query->addSelect("COUNT($alias) AS __query_count")
+        $countQuery = clone $query;
+
+        return $countQuery
+            ->resetDQLPart('orderBy')
+            ->select("COUNT($alias) AS __query_count")
             ->getQuery()
             ->getSingleResult()["__query_count"];
-
-        $query->resetDQLPart("select");
-        foreach($original as $select) {
-            $query->addSelect($select->getParts());
-        }
-
-        return $count;
     }
 
 }
