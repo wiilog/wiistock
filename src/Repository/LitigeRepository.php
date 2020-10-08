@@ -246,10 +246,10 @@ class LitigeRepository extends EntityRepository
 			->leftJoin('a.fournisseur', 'aFourn')
 			// litiges sur réceptions
             ->addSelect('r.numeroReception')
-            ->addSelect('r.reference')
+            ->addSelect('r.orderNumber')
             ->addSelect('r.id as receptionId')
             ->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
-            ->addSelect('(CASE WHEN a.numeroCommandeList IS NOT NULL THEN a.numeroCommandeList ELSE r.reference END) as numCommandeBl')
+            ->addSelect('(CASE WHEN a.numeroCommandeList IS NOT NULL THEN a.numeroCommandeList ELSE r.orderNumber END) as numCommandeBl')
             ->leftJoin('l.articles', 'art')
 			->leftJoin('art.receptionReferenceArticle', 'rra')
 			->leftJoin('rra.referenceArticle', 'ra')
@@ -341,7 +341,7 @@ class LitigeRepository extends EntityRepository
 						declarant.email LIKE :value OR
 						a.numeroArrivage LIKE :value OR
 						r.numeroReception LIKE :value OR
-						r.reference LIKE :value OR
+						r.orderNumber LIKE :value OR
                         rra.commande LIKE :value OR
 						ach.username LIKE :value OR
 						ach.email LIKE :value OR
