@@ -78,6 +78,7 @@ class FreeFieldService
         }
         $entity
             ->setFreeFields($freeFields);
+        dump($freeFields);
     }
 
     public function manageJSONFreeField(FreeField $champLibre, $value): string
@@ -86,8 +87,8 @@ class FreeFieldService
             ? empty($value) || $value === "false"
                 ? "0"
                 : "1"
-            : (is_array($value)
-                ? implode(';', $value)
+            : ($champLibre->getTypage() === FreeField::TYPE_LIST_MULTIPLE
+                ? implode(';', json_decode($value))
                 : $value);
 
         return strval($value);
