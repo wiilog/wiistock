@@ -1,7 +1,7 @@
 .wii-card {
     border-radius: 10px;
     border: 0 solid black;
-    transition: transform .2s;
+    transition: transform .35s;
 
     .wii-card-body {
         border-radius: 5px;
@@ -18,5 +18,9 @@
 
     &:hover {
         transform: scale(1.025);
+    }
+
+    &:active {
+        transform: scale(1.075);
     }
 }
