@@ -197,15 +197,22 @@ class HandlingService
         $typeId = $handling->getType() ? $handling->getType()->getId() : null;
         $averageTime = $averageRequestTimesByType[$typeId] ?? null;
 
-        $deliveryDateEstimated = 'Date de fin non estimée';
+        $deliveryDateEstimated = 'Non estimée';
+        $estimatedFinishTimeLabel = 'Date de traitement non estimée';
 
-        if($averageTime) {
-            $requestDate = new DateTime($handling->getCreationDate()->format(DATE_ATOM));
-            $expectedDate = date_add($requestDate, $dateService->secondsToDateInterval($averageTime->getAverage()));
-            $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
+        if (isset($averageTime)) {
             $today = new DateTime();
-            if ($expectedDate < $today) {
-                $deliveryDateEstimated = $today->format('d/m/Y');
+            $expectedDate = (clone $handling->getCreationDate())
+                ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
+            if ($expectedDate >= $today) {
+                $estimatedFinishTimeLabel = 'Date et heure de traitement prévue';
+                $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
+                if ($expectedDate->format('d/m/Y') === $today->format('d/m/Y')) {
+                    $estimatedFinishTimeLabel = 'Heure de traitement estimée';
+                    $deliveryDateEstimated = $expectedDate->format('H:i');
+                } else {
+
+                }
             }
         }
 
@@ -228,6 +235,7 @@ class HandlingService
             'href' => $href ?? null,
             'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la demande de livraison',
             'estimatedFinishTime' => $deliveryDateEstimated,
+            'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
             'requestStatus' => $requestStatus,
             'requestBodyTitle' => $handling->getSubject(),
             'requestLocation' => $handling->getDestination() ?: 'Non défini',
