@@ -45,6 +45,7 @@ function importRouting() {
     const routes = require('../../public/generated/routes.json');
     const host = require('../../public/generated/host.json');
     routes["host"] = host["host"];
+    routes["scheme"] = "https";
 
     Routing.setRoutingData(routes);
 
