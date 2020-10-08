@@ -257,7 +257,7 @@ class LitigeRepository extends EntityRepository
 			->leftJoin('rra.reception', 'r')
 			->leftJoin('r.fournisseur', 'rFourn');
 
-        $countTotalResult = QueryCounter::count($qb, 'l');
+        $countTotal = QueryCounter::count($qb, 'litige');
 
         // filtres sup
 		foreach ($filters as $filter) {
@@ -406,15 +406,8 @@ class LitigeRepository extends EntityRepository
 		}
 
         // compte éléments filtrés
-        $countFilteredResult = QueryCounter::count($qb, 'l');
+        $countFiltered = QueryCounter::count($qb, 'litige');
 
-        $countFiltered = (!empty($countFilteredResult) && !empty($countFilteredResult[0]))
-            ? intval($countFilteredResult[0]['count'])
-            : 0;
-
-        $countTotal = (!empty($countTotalResult) && !empty($countTotalResult[0]))
-            ? intval($countTotalResult[0]['count'])
-            : 0;
         $litiges = $this->distinctLitige($qb->getQuery()->getResult());
         $length = $params && !empty($params->get('length'))
             ? $params->get('length')

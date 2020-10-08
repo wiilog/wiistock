@@ -263,7 +263,7 @@ class ArrivageRepository extends EntityRepository
                 ->setParameter('userId', $userId);
         }
 
-        $total = QueryCounter::count($qb);
+        $total = QueryCounter::count($qb, 'a');
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -447,7 +447,7 @@ class ArrivageRepository extends EntityRepository
             }
         }
 
-        $filtered = QueryCounter::count($qb);
+        $filtered = QueryCounter::count($qb, 'a');
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

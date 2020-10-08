@@ -59,7 +59,7 @@ class ReceptionTracaRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder("r");
 
-        $countTotal = QueryCounter::count($qb);
+        $countTotal = QueryCounter::count($qb, 'r');
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -137,7 +137,7 @@ class ReceptionTracaRepository extends ServiceEntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = QueryCounter::count($qb);
+        $countFiltered = QueryCounter::count($qb, 'r');
 
         if ($params) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

@@ -22,7 +22,7 @@ class ImportRepository extends EntityRepository
             ->setParameter('draft', Import::STATUS_DRAFT)
             ->orderBy('i.createdAt', 'DESC');
 
-		$countTotal = QueryCounter::count($qb);
+		$countTotal = QueryCounter::count($qb, 'i');
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -95,7 +95,7 @@ class ImportRepository extends EntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered = QueryCounter::count($qb);
+		$countFiltered = QueryCounter::count($qb, 'i');
 
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

@@ -103,7 +103,7 @@ class LivraisonRepository extends EntityRepository
             ->join('livraison.preparation', 'preparation')
             ->join('preparation.demande', 'demande');
 
-		$countTotal = QueryCounter::count($qb);
+		$countTotal = QueryCounter::count($qb, 'livraison');
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -155,12 +155,12 @@ class LivraisonRepository extends EntityRepository
 						->leftJoin('livraison.statut', 's2')
 						->leftJoin('livraison.utilisateur', 'u2')
 						->leftJoin('demande.type', 't2')
-						->andWhere('
-						livraison.numero LIKE :value
-						OR s2.nom LIKE :value
-						OR u2.username LIKE :value
-						OR t2.label LIKE :value
-						')
+						->andWhere('(
+                            livraison.numero LIKE :value
+                            OR s2.nom LIKE :value
+                            OR u2.username LIKE :value
+                            OR t2.label LIKE :value
+						)')
 						->setParameter('value', '%' . $search . '%');
 				}
 			}
@@ -193,7 +193,7 @@ class LivraisonRepository extends EntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered = QueryCounter::count($qb);
+		$countFiltered = QueryCounter::count($qb, 'livraison');
 
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
