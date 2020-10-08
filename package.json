@@ -10,7 +10,7 @@
     "license": "UNLICENSED",
     "private": true,
     "scripts": {
-        "generate-routes": "php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json",
+        "generate-routes": "php bin/console fos:js-routing:dump",
         "generate-custom-font": "php bin/console app:update:custom-font",
         "dev-server": "yarn generate-routes && yarn generate-custom-font && encore dev-server",
         "build:dev": "yarn generate-routes && yarn generate-custom-font && yarn build:only:dev",
