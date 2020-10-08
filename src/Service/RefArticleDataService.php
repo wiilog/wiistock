@@ -156,6 +156,7 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $refArticle
      * @param bool $isADemand
+     * @param bool $preloadCategories
      * @return string
      * @throws LoaderError
      * @throws RuntimeError
@@ -346,8 +347,8 @@ class RefArticleDataService
             "Code barre" => $refArticle->getBarCode() ?? 'Non défini',
             "Commentaire" => $refArticle->getCommentaire() ?? '',
             "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
-            "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "Non défini",
-            "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "Non défini",
+            "limitSecurity" => $refArticle->getLimitSecurity() ?? "Non défini",
+            "limitWarning" => $refArticle->getLimitWarning() ?? "Non défini",
             "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
             'Urgence' => $refArticle->getIsUrgent() ? 'Oui' : 'Non',
             'Synchronisation nomade' => $refArticle->getNeedsMobileSync() ? 'Oui' : 'Non',
@@ -451,9 +452,7 @@ class RefArticleDataService
             $counter = sprintf('%08u', $highestCounter + 1);
         }
 
-        $newBarcode = ReferenceArticle::BARCODE_PREFIX . $dateCode . $counter;
-
-        return $newBarcode;
+        return ReferenceArticle::BARCODE_PREFIX . $dateCode . $counter;
     }
 
     public function getAlerteDataByParams($params, $user)
@@ -494,8 +493,8 @@ class RefArticleDataService
             'typeQuantite' => $referenceArticle['typeQuantite'],
             'Type' => $referenceArticle['type'],
             'Date d\'alerte' => $referenceArticle['dateEmergencyTriggered']->format('d/m/Y H:i'),
-            'SeuilSecurite' => (($referenceArticle['limitSecurity'] || $referenceArticle['limitSecurity'] == '0') ? $referenceArticle['limitSecurity'] : 'Non défini'),
-            'SeuilAlerte' => (($referenceArticle['limitWarning'] || $referenceArticle['limitWarning'] == '0') ? $referenceArticle['limitWarning'] : 'Non défini'),
+            'limitSecurity' => (($referenceArticle['limitSecurity'] || $referenceArticle['limitSecurity'] == '0') ? $referenceArticle['limitSecurity'] : 'Non défini'),
+            'limitWarning' => (($referenceArticle['limitWarning'] || $referenceArticle['limitWarning'] == '0') ? $referenceArticle['limitWarning'] : 'Non défini'),
             'Actions' => $this->templating->render('alerte_reference/datatableAlerteRow.html.twig', [
                 'quantite' => $quantity,
                 'seuilSecu' => $referenceArticle['limitSecurity'],

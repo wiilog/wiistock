@@ -37,9 +37,7 @@ use App\Service\ArticleDataService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -213,13 +211,13 @@ class ReferenceArticleController extends AbstractController
                 ],
 				[
 					"title" => 'Seuil d\'alerte',
-					"data" => 'Seuil d\'alerte',
+					"data" => 'limitWarning',
 					'name' => 'Seuil d\'alerte',
 					"class" => (in_array('Seuil d\'alerte', $columnsVisible) ? 'display' : 'hide'),
 				],
 				[
 					"title" => 'Seuil de sécurité',
-					"data" => 'Seuil de sécurité',
+					"data" => 'limitSecurity',
 					'name' => 'Seuil de sécurité',
 					"class" => (in_array('Seuil de sécurité', $columnsVisible) ? 'display' : 'hide'),
 				],
@@ -250,7 +248,7 @@ class ReferenceArticleController extends AbstractController
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
-					"title" => ucfirst(mb_strtolower($champ['label'])),
+					"title" => $champ['label'],
 					"data" => $champ['label'],
 					'name' => $champ['label'],
 					"class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
@@ -266,7 +264,6 @@ class ReferenceArticleController extends AbstractController
      * @Route("/api", name="ref_article_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @return Response
-     * @throws DBALException
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
@@ -293,6 +290,7 @@ class ReferenceArticleController extends AbstractController
      * @param ArticleFournisseurService $articleFournisseurService
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function new(Request $request,
                         FreeFieldService $champLibreService,
@@ -331,7 +329,7 @@ class ReferenceArticleController extends AbstractController
                 $emplacement = $emplacementRepository->find($data['emplacement']);
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
-            };
+            }
 
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
 
@@ -630,7 +628,10 @@ class ReferenceArticleController extends AbstractController
             ];
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
-        $filter = $filtreRefRepository->findOneByUserAndChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT);
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $filter = $filtreRefRepository->findOneByUserAndChampFixe($currentUser, FiltreRef::CHAMP_FIXE_STATUT);
 
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
@@ -682,9 +683,7 @@ class ReferenceArticleController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $champLibreService
      * @return Response
-     * @throws DBALException
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -710,7 +709,9 @@ class ReferenceArticleController extends AbstractController
             }
             if ($refArticle) {
                 try {
-                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser(), $champLibreService);
+                    /** @var Utilisateur $currentUser */
+                    $currentUser = $this->getUser();
+                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $currentUser, $champLibreService);
                 }
                 catch (ArticleNotAvailableException $exception) {
                     $response = [
@@ -909,6 +910,7 @@ class ReferenceArticleController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function plusDemande(EntityManagerInterface $entityManager,
                                 Request $request,
@@ -924,13 +926,17 @@ class ReferenceArticleController extends AbstractController
             $refArticle = (isset($data['refArticle']) ? $referenceArticleRepository->find($data['refArticle']) : '');
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $statusName = $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : '';
+
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
 				if (array_key_exists('livraison', $data) && $data['livraison']) {
 				    $demande = $demandeRepository->find($data['livraison']);
                     $success = $this->refArticleDataService->addRefToDemand(
                         $data,
                         $refArticle,
-                        $this->getUser(),
+                        $currentUser,
                         false,
                         $entityManager,
                         $demande,
@@ -1067,6 +1073,8 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/colonne-visible", name="save_column_visible", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function saveColumnVisible(Request $request): Response
     {
@@ -1151,7 +1159,7 @@ class ReferenceArticleController extends AbstractController
             ],
             $freeFieldsConfig['freeFieldsHeader']
         );
-        $today = new \DateTime();
+        $today = new DateTime();
         $globalTitle = 'export-references-' . $today->format('d-m-Y H:i:s') . '.csv';
         $referencesExportFiles = [];
         $allReferencesCount = intval($referenceArticleRepository->countAll());
@@ -1475,8 +1483,6 @@ class ReferenceArticleController extends AbstractController
      * @param ReferenceArticle $referenceArticle
      * @param RefArticleDataService $refArticleDataService
      * @return JsonResponse
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      * @throws Exception
      */
     public function updateQuantity(EntityManagerInterface $entityManager,

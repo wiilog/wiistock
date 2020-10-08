@@ -131,7 +131,8 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 Action::DELETE => [
                     Action::DELETE_DRAFT_DISPATCH,
                     Action::DELETE_UNPROCESSED_DISPATCH,
-                    Action::DELETE_PROCESSED_DISPATCH
+                    Action::DELETE_PROCESSED_DISPATCH,
+                    Action::DELETE_UNPROCESSED_HANDLING
                 ],
                 Action::EDIT => [
                     Action::EDIT_DRAFT_DISPATCH,

@@ -9,6 +9,7 @@ namespace App\Command;
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
 use App\Entity\Demande;
+use App\Entity\Handling;
 use App\Entity\Type;
 use App\Service\DateService;
 use DateTime;
@@ -47,18 +48,26 @@ class AverageRequestTimeCommand extends Command
 
         $demandeRepository = $this->entityManager->getRepository(Demande::class);
         $collecteRepository = $this->entityManager->getRepository(Collecte::class);
+        $handlingRepository = $this->entityManager->getRepository(Handling::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
 
-        // TODO array_merge with collect and handling
         $requests = array_merge(
             $demandeRepository->getTreatingTimesWithType(),
+            $handlingRepository->getTreatingTimesWithType(),
             $collecteRepository->getTreatingTimesWithType()
         );
 
         $typeMeters = [];
         foreach ($requests as $request) {
-            $treatingDate = DateTime::createFromFormat('Y-m-d H:i:s', $request['treatingDate']);
-            $validationDate = DateTime::createFromFormat('Y-m-d H:i:s', $request['validationDate']);
+
+            $validationDate = $request['validationDate'] instanceof \DateTimeInterface
+                ? $request['validationDate']
+                : DateTime::createFromFormat('Y-m-d H:i:s', $request['validationDate']);
+
+            $treatingDate = $request['treatingDate'] instanceof \DateTimeInterface
+                ? $request['treatingDate']
+                : DateTime::createFromFormat('Y-m-d H:i:s', $request['treatingDate']);
+
             $typeId = $request['typeId'];
 
             if (!isset($typeMeters[$typeId])) {

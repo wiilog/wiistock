@@ -28,8 +28,8 @@ class ReferenceArticleRepository extends EntityRepository
         'Label' => 'libelle',
         'Libellé' => 'libelle',
         'Référence' => 'reference',
-        'SeuilAlerte' => 'limitWarning',
-        'SeuilSecurite' => 'limitSecurity',
+        'limitWarning' => 'limitWarning',
+        'limitSecurity' => 'limitSecurity',
         'Urgence' => 'isUrgent',
         'Type' => 'Type',
         'Quantité disponible' => 'quantiteDisponible',
@@ -42,7 +42,7 @@ class ReferenceArticleRepository extends EntityRepository
         'Date d\'alerte' => 'dateEmergencyTriggered',
         'typeQuantite' => 'typeQuantite',
         'Dernier inventaire' => 'dateLastInventory',
-        'Synchronisation nomade' => 'needsMobileSync'
+        'Synchronisation nomade' => 'needsMobileSync',
     ];
 
     public function getIdAndLibelle()
@@ -221,8 +221,8 @@ class ReferenceArticleRepository extends EntityRepository
             'Quantité disponible' => ['field' => 'quantiteDisponible', 'typage' => 'text'],
             'Commentaire d\'urgence' => ['field' => 'emergencyComment', 'typage' => 'text'],
             'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'text'],
-            'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
-            'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
+            'limitWarning' => ['field' => 'Seuil d\'alerte', 'typage' => 'number'],
+            'limitSecurity' => ['field' => 'Seuil de securité', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
             'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
         ];
@@ -418,7 +418,7 @@ class ReferenceArticleRepository extends EntityRepository
                 if (!empty($order)) {
                     $orderData = $params->get('columns')[$params->get('order')[0]['column']]['data'];
                     $column = self::DtToDbLabels[$orderData] ?? $orderData;
-
+dump($orderData, $column);
                     switch ($column) {
                         case 'Actions':
                             break;

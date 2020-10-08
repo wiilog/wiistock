@@ -37,6 +37,7 @@
                             {% if dashboard == 'demandes' %}
                                 {% include'accueil/dashboardPendingRequests.html.twig' with { requests: {
                                     pendingDeliveries: pendingDeliveries,
+                                    pendingHandlings: pendingHandlings,
                                     pendingCollects: pendingCollects
                                 } } %}
                             {% elseif dashboard == 'arrivage' %}
