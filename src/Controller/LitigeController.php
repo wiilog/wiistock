@@ -27,6 +27,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -102,6 +103,7 @@ class LitigeController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
+        /** @var Utilisateur $user */
         $user = $this->getUser();
         $fieldsInTab = [
             ["key" => 'disputeNumber', 'label' => 'Numéro du litige'],
@@ -134,14 +136,19 @@ class LitigeController extends AbstractController
 		]);
     }
 
-	/**
-	 * @Route("/api", name="litige_api", options={"expose"=true}, methods="GET|POST")
-	 */
+    /**
+     * @Route("/api", name="litige_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return JsonResponse|RedirectResponse
+     * @throws Exception
+     */
     public function api(Request $request) {
 		if ($request->isXmlHttpRequest()) {
 			if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
 				return $this->redirectToRoute('access_denied');
 			}
+
+			/** @var Utilisateur $user */
             $user = $this->getUser();
 			$data = $this->litigeService->getDataForDatatable($request->request);
             $columnVisible = $user->getColumnsVisibleForLitige();
@@ -286,7 +293,7 @@ class LitigeController extends AbstractController
                     $litigeData[] = $qteArticle;
                     $litigeData[] = (isset($reception) ? $reception->getNumeroReception() : '');
 
-                    $litigeData[] = (isset($reception) ? $reception->getReference() : null); // n° commande reception
+                    $litigeData[] = (isset($reception) ? $reception->getOrderNumber() : null);
 
                     $declarant = $litige->getDeclarant() ? $litige->getDeclarant()->getUsername() : '';
                     $litigeData[] = $declarant;
@@ -354,11 +361,12 @@ class LitigeController extends AbstractController
 		}
 	}
 
-	/**
-	 * @Route("/histo/{litige}", name="histo_litige_api", options={"expose"=true}, methods="GET|POST")
-	 * @param Litige $litige
-	 * @return Response
-	 */
+    /**
+     * @Route("/histo/{litige}", name="histo_litige_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param Litige $litige
+     * @return Response
+     */
 	public function apiHistoricLitige(Request $request, Litige $litige): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -392,10 +400,13 @@ class LitigeController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = (json_decode($request->getContent(), true) ?? [])) {
             $em = $this->getDoctrine()->getManager();
+
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
             $litigeHisto = new LitigeHistoric();
             $litigeHisto
                 ->setLitige($litige)
-                ->setUser($this->getUser())
+                ->setUser($currentUser)
                 ->setDate(new DateTime('now'))
                 ->setComment($data);
             $em->persist($litigeHisto);
@@ -406,9 +417,11 @@ class LitigeController extends AbstractController
         return new JsonResponse(false);
     }
 
-	/**
-	 * @Route("/modifier", name="litige_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-	 */
+    /**
+     * @Route("/modifier", name="litige_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @return Response
+     */
 	public function editLitige(Request $request): Response
 	{
         if (!$this->userService->hasRightFunction(Menu::QUALI, Action::EDIT)) {

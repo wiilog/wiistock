@@ -50,8 +50,8 @@
         <div class="form-group col-6">
             <label for="numeroCommande">Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'mustToModify') ? '*' : '' }}</label>
             <input type="text" class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'mustToModify') ? 'needed' : '' }}"
-                   name="numeroCommande" id='numeroCommande'
-                   value="{{ reception.reference }}">
+                   name="orderNumber" id='numeroCommande'
+                   value="{{ reception.orderNumber }}">
         </div>
     {% endif %}
     {% if fieldsParam|isFieldRequired('emplacement', 'displayedFormsEdit') %}

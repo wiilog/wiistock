@@ -269,7 +269,10 @@ class ArticleController extends AbstractController
         $champsLTList = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_LIST);
         $champs = array_merge($champF, $champL);
         $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
-        $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $this->getUser());
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $currentUser);
 
         return $this->render('article/index.html.twig', [
             'champsSearch' => $champsSearch,
@@ -294,6 +297,7 @@ class ArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
 
+            /** @var Utilisateur $user */
             $user = $this->getUser();
 
             $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
@@ -589,6 +593,7 @@ class ArticleController extends AbstractController
 
             /** @var Article $article */
             $article = $articleRepository->find($data['article']);
+            $articleBarCode = $article->getBarCode();
 
             $receptionReferenceArticle = $article->getReceptionReferenceArticle();
             if (isset($receptionReferenceArticle)) {
@@ -643,7 +648,11 @@ class ArticleController extends AbstractController
             $entityManager->flush();
 
             $response['delete'] = $rows;
-            return new JsonResponse($response);
+            return new JsonResponse([
+                'delete' => $rows,
+                'success' => true,
+                'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> a bien été supprimé.'
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -801,7 +810,9 @@ class ArticleController extends AbstractController
             $refArticle = $referenceArticleRepository->find($refArticle);
 
             if ($refArticle) {
-                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $this->getUser());
+                /** @var Utilisateur $currentUser */
+                $currentUser = $this->getUser();
+                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $currentUser);
             } else {
                 $json = false; //TODO gérer erreur retour
             }
