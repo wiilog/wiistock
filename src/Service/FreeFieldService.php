@@ -78,7 +78,6 @@ class FreeFieldService
         }
         $entity
             ->setFreeFields($freeFields);
-        dump($freeFields);
     }
 
     public function manageJSONFreeField(FreeField $champLibre, $value): string
