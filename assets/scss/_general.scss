@@ -342,12 +342,16 @@ select.is-invalid {
     background-image: linear-gradient(15.7deg, $backgroundBodyColorLight, $backgroundBodyColorDark);
 }
 
+.dataTables_processing {
+    background: rgba(255, 255, 255, 0.5) !important;
+    height: 60px !important;
+}
+
 #quick-create {
-    width: auto;
     background: #FFF;
     box-shadow: 1px 1px 4px #333;
     padding: 8px 6px;
-    border-radius: 4px;
+    border-radius: 50%;
 
     & > a {
         display: block;
@@ -364,7 +368,18 @@ select.is-invalid {
     }
 }
 
-.dataTables_processing {
-    background: rgba(255, 255, 255, 0.5) !important;
-    height: 60px !important;
+@mixin icon-button {
+    display: inline-block;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+
+    .icon {
+        background-color: $white;
+        width: 20px;
+        height: 20px;
+        display: block;
+        -webkit-mask: url("../../public/svg/plusblanc.svg") no-repeat center;
+        mask: url("../../public/svg/plusblanc.svg") no-repeat center;
+    }
 }

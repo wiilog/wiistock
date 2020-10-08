@@ -51,6 +51,7 @@
                 <span class="text-secondary">{{ requestDate }}</span>
             </div>
             <div class="col-6 text-right ellipsis">
+                <div class="profile-picture" style="background-color: #EEE">{{ app.user.username | first | upper }}</div>
                 <span class="bold">{{ requestUser }}</span>
             </div>
         </div>

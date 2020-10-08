@@ -50,7 +50,7 @@
                 {% endif %}
 
                 <div data-target="#quick-create">
-                    <div class="plus-btn">
+                    <div class="quick-plus">
                         <span class="icon"></span>
                     </div>
                     <div id="quick-create" class="collapse indicators d-none">
@@ -80,7 +80,8 @@
                       and app.user is defined
                       and app.user
                       and app.user.username is defined %}
-                    <div class="text-white col-auto h6 my-0 ml-auto">
+                    <div class="user">
+                        <div class="profile-picture">{{ app.user.username | first | upper }}</div>
                         <span>{{app.user.username}}</span>
                     </div>
                     <nav id="main-nav" class="text-white col-auto dropdown dropleft">
