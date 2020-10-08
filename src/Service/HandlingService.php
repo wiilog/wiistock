@@ -191,7 +191,7 @@ class HandlingService
         $state = $handling->getStatus() ? $handling->getStatus()->getState() : null;
 
         if ($hasRightHandling) {
-            $href = $this->router->generate('handling_index');
+            $href = $this->router->generate('handling_index') . '?open-modal=edit&modal-edit-id=' . $handling->getId();
         }
 
         $typeId = $handling->getType() ? $handling->getType()->getId() : null;

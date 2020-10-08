@@ -3,20 +3,13 @@
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt pointer ">
             {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-                <div class="d-none">
-                    <div class="btn btn-col-action action-on-click" data-id='{{ handling.id }}' data-target='#modalEditHandling' data-toggle='modal'
-                         onclick="editRow($(this), Routing.generate('handling_edit_api', true), $('#modalEditHandling'), $('#submitEditHandling'), true, '#modalEditHandling #editor-container-edit')">
-                        <i class='fas fa-pencil-alt'></i>
-                    </div>
-                </div>
-                    <a href="#"
-                       data-id='{{ handling.id }}'
-                       data-target='#modalEditHandling'
-                       data-toggle='modal'
-                       onclick="editRow($(this), Routing.generate('handling_edit_api', true), $('#modalEditHandling'), $('#submitEditHandling'), true, '#modalEditHandling #editor-container-edit')"
-                       class="dropdown-item">
-                        <i class="fa fa-pen mr-2"></i>Modifier
-                    </a>
+                <a data-id="{{ handling.id }}"
+                   data-target='#modalEditHandling'
+                   data-toggle='modal'
+                   onclick="editRow($(this), Routing.generate('handling_edit_api', true), $('#modalEditHandling'), $('#submitEditHandling'), true, '#modalEditHandling #editor-container-edit')"
+                   class="dropdown-item action-on-click pointer">
+                    <i class="fa fa-pen mr-2"></i>Modifier
+                </a>
             {% endif %}
             {% if handling.status.treated != 1 %}
                 {% if (hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_UNPROCESSED_HANDLING'))) %}

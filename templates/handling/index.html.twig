@@ -13,6 +13,12 @@
 {% endblock %}
 
 {% block page_content %}
+    <input type="hidden"
+           data-id=""
+           data-target='#modalEditHandling'
+           data-toggle='modal'
+           onclick="editRow($(this), Routing.generate('handling_edit_api', true), $('#modalEditHandling'), $('#submitEditHandling'), true, '#modalEditHandling #editor-container-edit')"
+           class="d-none open-modal-edit"/>
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
@@ -61,7 +67,7 @@
     {% include "handling/modalNewHandling.html.twig" with modalNewConfig %}
 {% endblock %}
 
-    {% block javascripts %}
-        {{ parent() }}
-        <script src="{{ asset('js/pages/handling.js') }}?{{ app_last_cache_clear }}"></script>
-    {% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/pages/handling.js') }}?{{ app_last_cache_clear }}"></script>
+{% endblock %}
