@@ -28,5 +28,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/nature.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/nature.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

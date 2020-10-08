@@ -67,5 +67,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/parametrage-global.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/parametrage-global.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

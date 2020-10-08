@@ -123,6 +123,6 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/form-reference-article.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/pages/referenceArticle.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/form-reference-article.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/referenceArticle.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

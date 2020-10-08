@@ -251,19 +251,7 @@
 }
 
 .plus-btn {
-    display: inline-block;
-    padding: 8px;
-    border-radius: 5px;
-    cursor: pointer;
-
-    .icon {
-        background-color: $white;
-        width: 20px;
-        height: 20px;
-        display: block;
-        -webkit-mask: url("../../public/svg/plusblanc.svg") no-repeat center;
-        mask: url("../../public/svg/plusblanc.svg") no-repeat center;
-    }
+    @include icon-button;
 
     &:hover {
         background-color: $white;

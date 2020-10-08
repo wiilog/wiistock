@@ -17,7 +17,6 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Service\AttachmentService;
-use App\Service\AverageTimeService;
 use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
