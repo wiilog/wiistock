@@ -41,8 +41,7 @@ class ArticleRepository extends EntityRepository
         'Actions' => 'Actions',
         'Code barre' => 'barCode',
         'Dernier inventaire' => 'dateLastInventory',
-        'Prix unitaire' => 'prixUnitaire',
-        'Commentaire' => 'commentaire'
+        'Prix unitaire' => 'prixUnitaire'
     ];
 
     private const linkChampLibreLabelToField = [
@@ -572,6 +571,10 @@ class ArticleRepository extends EntityRepository
                             $qb
                                 ->leftJoin('a.statut', 's_sort')
                                 ->orderBy('s_sort.nom', $order);
+                            break;
+                        case 'prixUnitaire':
+                            $qb
+                                ->orderBy('a.prixUnitaire', $order);
                             break;
                         case 'dateFinReception':
                             $expr = $qb->expr();

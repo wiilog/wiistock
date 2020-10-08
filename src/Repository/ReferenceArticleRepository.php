@@ -43,7 +43,6 @@ class ReferenceArticleRepository extends EntityRepository
         'typeQuantite' => 'typeQuantite',
         'Dernier inventaire' => 'dateLastInventory',
         'Synchronisation nomade' => 'needsMobileSync',
-        'Commentaire' => 'commentaire',
         'Prix unitaire' => 'prixUnitaire',
     ];
 
@@ -444,6 +443,10 @@ dump($orderData, $column);
                             $qb
                                 ->leftJoin('ra.statut', 's')
                                 ->orderBy('s.nom', $order);
+                            break;
+                        case 'prixUnitaire':
+                            $qb
+                                ->orderBy('ra.prixUnitaire', $order);
                             break;
                         default:
                             if (property_exists(ReferenceArticle::class, $column)) {

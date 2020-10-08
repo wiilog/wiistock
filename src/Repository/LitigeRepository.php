@@ -250,7 +250,7 @@ class LitigeRepository extends EntityRepository
             ->addSelect('r.id as receptionId')
             ->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
             ->addSelect('(CASE WHEN a.numeroCommandeList IS NOT NULL THEN a.numeroCommandeList ELSE r.orderNumber END) as numCommandeBl')
-            ->leftJoin('l.articles', 'art')
+            ->leftJoin('litige.articles', 'art')
 			->leftJoin('art.receptionReferenceArticle', 'rra')
 			->leftJoin('rra.referenceArticle', 'ra')
 			->leftJoin('rra.reception', 'r')
