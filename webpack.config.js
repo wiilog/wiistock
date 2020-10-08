@@ -43,26 +43,6 @@ Encore
     })
 
     // enables Sass/SCSS support
-    .enableSassLoader()
-    .disableImagesLoader()
-    .addRule({
-        test: /\.(svg|png|jpg|jpeg|gif|ico)/,
-        exclude: /node_modules\/quill\/assets\/icons\/(.*)\.svg$/,
-        use: [{
-            loader: 'file-loader',
-            options: {
-                filename: 'images/[name].[hash:8].[ext]',
-                publicPath: '/build/'
-            }
-        }]
-    })
-
-    .addLoader({
-        test: /node_modules\/quill\/assets\/icons\/(.*)\.svg$/,
-        loader: 'html-loader',
-        options: {
-            minimize: true
-        }
-    });
+    .enableSassLoader();
 
 module.exports = Encore.getWebpackConfig();
