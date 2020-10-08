@@ -92,7 +92,7 @@ class ReceptionService
                 "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
                 "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
                 "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
-                "Numéro de commande" => ($reception->getReference() ? $reception->getReference() : ''),
+                "Numéro de commande" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
                 'Actions' => $this->templating->render(
                     'reception/datatableReceptionRow.html.twig',
                     ['reception' => $reception]
@@ -113,7 +113,7 @@ class ReceptionService
         $dateAttendue = $reception->getDateAttendue();
         $dateEndReception = $reception->getDateFinReception();
         $creationDate = $reception->getDate();
-        $reference = $reception->getReference();
+        $orderNumber = $reception->getOrderNumber();
         $comment = $reception->getCommentaire();
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
@@ -156,7 +156,7 @@ class ReceptionService
             ],
             [
                 'label' => 'Numéro de commande',
-                'value' => $reference ?: '',
+                'value' => $orderNumber ?: '',
                 'show' => [ 'fieldName' => 'numCommande' ]
             ],
             [

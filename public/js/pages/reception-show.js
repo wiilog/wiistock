@@ -685,7 +685,6 @@ function createHandlerAddLigneArticleResponse($modal) {
                 showBSAlert(data.msg, 'danger');
             }
         } else {
-            showBSAlert('La référence a été ajoutée à la réception', 'success');
             $modal.find('.close').click();
             clearModal($modal);
         }

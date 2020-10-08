@@ -24,7 +24,7 @@ class ReceptionRepository extends ServiceEntityRepository
         'Date' => 'date',
         'DateFin' => 'dateFinReception',
         'Numéro de commande' => 'numeroReception',
-        'Référence' => 'reference',
+        'orderNumber' => 'orderNumber',
         'Commentaire' => 'commentaire',
         'Statut' => 'statut',
         'Fournisseur' => 'fournisseur',
@@ -95,7 +95,7 @@ class ReceptionRepository extends ServiceEntityRepository
             ->addSelect('article.id AS articleId')
             ->addSelect('referenceArticle.id AS referenceArticleId')
             ->addSelect('reception.numeroReception')
-            ->addSelect('reception.reference')
+            ->addSelect('reception.orderNumber')
             ->addSelect('provider.nom AS providerName')
             ->addSelect('user.username AS userUsername')
             ->addSelect('status.nom AS statusName')
@@ -187,7 +187,7 @@ class ReceptionRepository extends ServiceEntityRepository
 						->leftJoin('r.fournisseur', 'f2')
                         ->andWhere('r.date LIKE :value
                         OR r.numeroReception LIKE :value
-                        OR r.reference LIKE :value
+                        OR r.orderNumber LIKE :value
                         OR r.commentaire lIKE :value
                         OR s2.nom LIKE :value
                         OR f2.nom LIKE :value')
