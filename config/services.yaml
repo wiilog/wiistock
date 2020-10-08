@@ -63,6 +63,9 @@ services:
     App\Command\CacheClearCommand:
         arguments: ['@kernel', '@cache_clearer', '@filesystem']
 
+    App\Command\DumpRoutingCommand:
+        arguments: ['@kernel', '@fos_js_routing.extractor', '@serializer']
+
     wiistock.specific_service:
         class: App\Service\SpecificService
         public: true

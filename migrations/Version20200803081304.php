@@ -34,9 +34,6 @@ final class Version20200803081304 extends AbstractMigration
         )->fetchAll();
 
         foreach ($allPacks as $index => $pack) {
-            if ($index % 500 === 0) {
-                dump('500 de plus!');
-            }
             $packId = $pack['id'];
             $packCode = $pack['code'];
             $this
