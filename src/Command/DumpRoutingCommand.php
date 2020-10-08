@@ -17,7 +17,7 @@ class DumpRoutingCommand extends DumpCommand {
 
     protected function configure() {
         parent::configure();
-        $this->setName("dump:routing");
+        $this->setName(self::$defaultName);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
