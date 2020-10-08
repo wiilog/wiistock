@@ -418,7 +418,6 @@ class ReferenceArticleRepository extends EntityRepository
                 if (!empty($order)) {
                     $orderData = $params->get('columns')[$params->get('order')[0]['column']]['data'];
                     $column = self::DtToDbLabels[$orderData] ?? $orderData;
-dump($orderData, $column);
                     switch ($column) {
                         case 'Actions':
                             break;
