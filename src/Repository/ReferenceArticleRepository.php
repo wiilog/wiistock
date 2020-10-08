@@ -43,6 +43,8 @@ class ReferenceArticleRepository extends EntityRepository
         'typeQuantite' => 'typeQuantite',
         'Dernier inventaire' => 'dateLastInventory',
         'Synchronisation nomade' => 'needsMobileSync',
+        'Commentaire' => 'commentaire',
+        'Prix unitaire' => 'prixUnitaire',
     ];
 
     public function getIdAndLibelle()

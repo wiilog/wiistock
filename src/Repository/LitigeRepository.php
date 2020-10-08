@@ -37,9 +37,9 @@ class LitigeRepository extends EntityRepository
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
-			"SELECT l
-			FROM App\Entity\Litige l
-			JOIN l.status s
+			"SELECT litige
+			FROM App\Entity\Litige litige
+			JOIN litige.status s
 			WHERE s.sendNotifToBuyer = 1"
 		);
 
@@ -86,23 +86,23 @@ class LitigeRepository extends EntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			/** @lang DQL */
-			"SELECT DISTINCT(l.id) as id,
-                         l.creationDate,
-                         l.updateDate,
+			"SELECT DISTINCT(litige.id) as id,
+                         litige.creationDate,
+                         litige.updateDate,
                          tr.label as carrier,
                          f.nom as provider,
                          a.numeroArrivage,
                          t.label as type,
                          a.id as arrivageId,
                          s.nom status
-			FROM App\Entity\Litige l
-			LEFT JOIN l.packs c
-			JOIN l.type t
+			FROM App\Entity\Litige litige
+			LEFT JOIN litige.packs c
+			JOIN litige.type t
 			LEFT JOIN c.arrivage a
 			LEFT JOIN a.fournisseur f
 			LEFT JOIN a.chauffeur ch
 			LEFT JOIN a.transporteur tr
-			LEFT JOIN l.status s
+			LEFT JOIN litige.status s
 			");
 
 		return $query->execute();
@@ -183,9 +183,9 @@ class LitigeRepository extends EntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
         /** @lang DQL */
-            'SELECT DISTINCT l
-            FROM App\Entity\Litige l
-            INNER JOIN l.packs pack
+            'SELECT DISTINCT litige
+            FROM App\Entity\Litige litige
+            INNER JOIN litige.packs pack
             INNER JOIN pack.arrivage a
             WHERE a.id = :arrivage'
         )->setParameter('arrivage', $arrivage);
@@ -198,9 +198,9 @@ class LitigeRepository extends EntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
         /** @lang DQL */
-            'SELECT DISTINCT l
-            FROM App\Entity\Litige l
-            INNER JOIN l.articles a
+            'SELECT DISTINCT litige
+            FROM App\Entity\Litige litige
+            INNER JOIN litige.articles a
             INNER JOIN a.receptionReferenceArticle rra
             INNER JOIN rra.reception r
             WHERE r.id = :reception'
@@ -221,28 +221,28 @@ class LitigeRepository extends EntityRepository
 		$qb = $em->createQueryBuilder();
 
 		$qb
-			->select('distinct(l.id) as id')
-            ->addSelect('l.numeroLitige AS disputeNumber')
-            ->addSelect('l.creationDate')
-            ->addSelect('l.emergencyTriggered')
-            ->addSelect('l.updateDate')
+			->select('distinct(litige.id) as id')
+            ->addSelect('litige.numeroLitige AS disputeNumber')
+            ->addSelect('litige.creationDate')
+            ->addSelect('litige.emergencyTriggered')
+            ->addSelect('litige.updateDate')
             ->addSelect('t.label as type')
             ->addSelect('s.nom as status')
-			->from('App\Entity\Litige', 'l')
-			->leftJoin('l.type', 't')
-			->leftJoin('l.status', 's')
-			->leftJoin('l.litigeHistorics', 'lh')
+			->from('App\Entity\Litige', 'litige')
+			->leftJoin('litige.type', 't')
+			->leftJoin('litige.status', 's')
+			->leftJoin('litige.litigeHistorics', 'lh')
 			// litiges sur arrivage
             ->addSelect('declarant.username as declarantUsername')
-            ->addSelect('ach.username as achUsername')
+            ->addSelect('buyers.username as achUsername')
             ->addSelect('a.numeroArrivage')
             ->addSelect('a.id as arrivageId')
-            ->leftJoin('l.packs', 'c')
+            ->leftJoin('litige.packs', 'c')
             ->leftJoin('c.arrivage', 'a')
 			->leftJoin('a.chauffeur', 'ch')
             ->leftJoin('a.acheteurs', 'ach')
-            ->leftJoin('l.buyers', 'buyers')
-            ->leftJoin('l.declarant', 'declarant')
+            ->leftJoin('litige.buyers', 'buyers')
+            ->leftJoin('litige.declarant', 'declarant')
 			->leftJoin('a.fournisseur', 'aFourn')
 			// litiges sur réceptions
             ->addSelect('r.numeroReception')
@@ -250,7 +250,7 @@ class LitigeRepository extends EntityRepository
             ->addSelect('r.id as receptionId')
             ->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
             ->addSelect('(CASE WHEN a.numeroCommandeList IS NOT NULL THEN a.numeroCommandeList ELSE r.reference END) as numCommandeBl')
-            ->leftJoin('l.articles', 'art')
+            ->leftJoin('litige.articles', 'art')
 			->leftJoin('art.receptionReferenceArticle', 'rra')
 			->leftJoin('rra.referenceArticle', 'ra')
 			->leftJoin('rra.reception', 'r')
@@ -287,25 +287,25 @@ class LitigeRepository extends EntityRepository
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);
 					$qb
-						->leftJoin('l.buyers', 'b')
+						->leftJoin('litige.buyers', 'b')
 						->andWhere("ach.id in (:userId) OR b.id in (:userId)")
 						->setParameter('userId', $value);
 					break;
                 case 'declarants':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->leftJoin('l.declarant', 'd')
+                        ->leftJoin('litige.declarant', 'd')
                         ->andWhere("d.id in (:userIdDeclarant)")
                         ->setParameter('userIdDeclarant', $value);
                     break;
 				case 'dateMin':
 					$qb
-						->andWhere('l.creationDate >= :dateMin')
+						->andWhere('litige.creationDate >= :dateMin')
 						->setParameter('dateMin', $filter['value']. " 00:00:00");
 					break;
 				case 'dateMax':
 					$qb
-						->andWhere('l.creationDate <= :dateMax')
+						->andWhere('litige.creationDate <= :dateMax')
 						->setParameter('dateMax', $filter['value'] . " 23:59:59");
 					break;
 				case 'litigeOrigin':
@@ -317,13 +317,13 @@ class LitigeRepository extends EntityRepository
 					break;
 				case 'emergency':
 					$qb
-						->andWhere('l.emergencyTriggered = :isUrgent')
+						->andWhere('litige.emergencyTriggered = :isUrgent')
 						->setParameter('isUrgent', $filter['value']);
 					break;
                 case 'disputeNumber':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->andWhere('l.id in (:disputeNumber)')
+                        ->andWhere('litige.id in (:disputeNumber)')
                         ->setParameter('disputeNumber', $value);
                     break;
 			}
@@ -352,7 +352,7 @@ class LitigeRepository extends EntityRepository
 						rFourn.nom LIKE :value OR
 						ra.reference LIKE :value OR
 						a.numeroCommandeList LIKE :value OR
-						l.numeroLitige LIKE :value
+						litige.numeroLitige LIKE :value
 						)')
 						->setParameter('value', '%' . $search . '%');
 				}
@@ -392,10 +392,10 @@ class LitigeRepository extends EntityRepository
                                 ->addOrderBy('numCommandeBl', $order);
                         } else if ($column === 'disputeNumber') {
                             $qb
-                                ->addOrderBy('l.numeroLitige', $order);
+                                ->addOrderBy('litige.numeroLitige', $order);
                         } else {
                             $qb
-                                ->addOrderBy('l.' . $column, $order);
+                                ->addOrderBy('litige.' . $column, $order);
                         }
                     }
                 }
@@ -405,7 +405,7 @@ class LitigeRepository extends EntityRepository
         // compte éléments filtrés
 		$queryCountFiltered = clone $qb;
         $countFilteredResult = $queryCountFiltered
-            ->select('COUNT(DISTINCT l.id) AS count')
+            ->addSelect('COUNT(DISTINCT litige.id) AS count')
             ->getQuery()
             ->getResult();
 
@@ -413,8 +413,8 @@ class LitigeRepository extends EntityRepository
             ? intval($countFilteredResult[0]['count'])
             : 0;
 
-        $countTotalResult = $this->createQueryBuilder('l')
-            ->select('COUNT(l.id) AS count')
+        $countTotalResult = $this->createQueryBuilder('litige')
+            ->addSelect('COUNT(litige.id) AS count')
             ->getQuery()
             ->getResult();
 
@@ -464,8 +464,8 @@ class LitigeRepository extends EntityRepository
 			"SELECT rra.commande
 			FROM App\Entity\ReceptionReferenceArticle rra
 			JOIN rra.articles a
-			JOIN a.litiges l
-            WHERE l.id = :litigeId")
+			JOIN a.litiges litige
+            WHERE litige.id = :litigeId")
 			->setParameter('litigeId', $litigeId);
 
 		$result = $query->execute();
@@ -484,8 +484,8 @@ class LitigeRepository extends EntityRepository
 			FROM App\Entity\ReceptionReferenceArticle rra
 			JOIN rra.articles a
 			JOIN rra.referenceArticle ra
-			JOIN a.litiges l
-            WHERE l.id = :litigeId")
+			JOIN a.litiges litige
+            WHERE litige.id = :litigeId")
 			->setParameter('litigeId', $litigeId);
 
 		$result = $query->execute();
@@ -497,10 +497,10 @@ class LitigeRepository extends EntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
         /** @lang DQL */
-            'SELECT l.numeroLitige as numeroLitige
-			FROM App\Entity\Litige l
-			WHERE l.numeroLitige LIKE :value
-			ORDER BY l.creationDate DESC'
+            'SELECT litige.numeroLitige as numeroLitige
+			FROM App\Entity\Litige litige
+			WHERE litige.numeroLitige LIKE :value
+			ORDER BY litige.creationDate DESC'
         )->setParameter('value', $prefixe . $date . '%');
 
         $result = $query->execute();
@@ -511,9 +511,9 @@ class LitigeRepository extends EntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT l.id, l.numeroLitige as text
-          FROM App\Entity\Litige l
-          WHERE l.numeroLitige LIKE :search"
+            "SELECT litige.id, litige.numeroLitige as text
+          FROM App\Entity\Litige litige
+          WHERE litige.numeroLitige LIKE :search"
         )->setParameter('search', '%' . $search . '%');
 
         return $query->execute();

@@ -41,6 +41,8 @@ class ArticleRepository extends EntityRepository
         'Actions' => 'Actions',
         'Code barre' => 'barCode',
         'Dernier inventaire' => 'dateLastInventory',
+        'Prix unitaire' => 'prixUnitaire',
+        'Commentaire' => 'commentaire'
     ];
 
     private const linkChampLibreLabelToField = [
