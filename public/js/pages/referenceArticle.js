@@ -418,13 +418,6 @@ function initRequiredChampsFixes(button) {
     }, 'json');
 }
 
-function toggleRequiredChampsFixes(button) {
-    let $modal = button.closest('.modal');
-    clearErrorMsg(button);
-    clearInvalidInputs($modal);
-    displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'), button);
-}
-
 function redirectToDemande($modal) {
     return () => {
         let livraisonId = $modal.find('.data[name="livraison"]').val();

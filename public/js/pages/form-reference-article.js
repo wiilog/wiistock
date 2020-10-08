@@ -105,3 +105,10 @@ function loadAndDisplayLabels($select) {
     }
     }
 }
+
+function toggleRequiredChampsFixes(button) {
+    let $modal = button.closest('.modal');
+    clearErrorMsg(button);
+    clearInvalidInputs($modal);
+    displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'), button);
+}
