@@ -310,9 +310,7 @@ class TrackingMovementService
         }
 
         if (isset($from)) {
-            if ($from instanceof Arrivage) {
-                $tracking->setArrivage($from);
-            } else if ($from instanceof Reception) {
+            if ($from instanceof Reception) {
                 $tracking->setReception($from);
             } else if ($from instanceof Dispatch) {
                 $tracking->setDispatch($from);

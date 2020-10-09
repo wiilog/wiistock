@@ -105,11 +105,6 @@ class Arrivage extends FreeFieldEntity
      */
     private $urgences;
 
-    /**
-     * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="arrivage")
-     */
-    private $trackingMovements;
-
 	/**
 	 * @ORM\Column(type="boolean", nullable=true)
 	 */
@@ -490,37 +485,6 @@ class Arrivage extends FreeFieldEntity
     public function setStatut(?Statut $statut): self
     {
         $this->statut = $statut;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|TrackingMovement[]
-     */
-    public function getTrackingMovements(): Collection
-    {
-        return $this->trackingMovements;
-    }
-
-    public function addTrackingMovement(TrackingMovement $trackingMovement): self
-    {
-        if (!$this->trackingMovements->contains($trackingMovement)) {
-            $this->trackingMovements[] = $trackingMovement;
-            $trackingMovement->setArrivage($this);
-        }
-
-        return $this;
-    }
-
-    public function removeTrackingMovement(TrackingMovement $trackingMovement): self
-    {
-        if ($this->trackingMovements->contains($trackingMovement)) {
-            $this->trackingMovements->removeElement($trackingMovement);
-            // set the owning side to null (unless already changed)
-            if ($trackingMovement->getArrivage() === $this) {
-                $trackingMovement->setArrivage(null);
-            }
-        }
 
         return $this;
     }

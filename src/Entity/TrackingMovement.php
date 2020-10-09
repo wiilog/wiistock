@@ -91,11 +91,6 @@ class TrackingMovement extends FreeFieldEntity
     private $reception;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="trackingMovements")
-     */
-    private $arrivage;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Dispatch", inversedBy="trackingMovements")
      */
     private $dispatch;
@@ -297,7 +292,9 @@ class TrackingMovement extends FreeFieldEntity
 
     public function getArrivage(): ?Arrivage
     {
-        return $this->arrivage;
+        return isset($this->pack)
+            ? $this->pack->getArrivage()
+            : null;
     }
 
     public function setArrivage(?Arrivage $arrivage): self
