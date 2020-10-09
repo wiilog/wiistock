@@ -55,6 +55,6 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/form-litiges.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/pages/litiges.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/form-litiges.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/litiges.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

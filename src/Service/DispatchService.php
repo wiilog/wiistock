@@ -344,8 +344,8 @@ class DispatchService {
                 'isNeededNotEmpty' => true
             ]]
                 : [],
-            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'pièces-jointes', 'displayedFormsCreate')
-            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'pièces-jointes', 'displayedFormsEdit'))
+            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'attachments', 'displayedFormsCreate')
+            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachments', 'displayedFormsEdit'))
                 ? [[
                 'label' => 'Pièces jointes',
                 'value' => $attachments->toArray(),

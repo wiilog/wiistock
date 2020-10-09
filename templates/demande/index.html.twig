@@ -95,5 +95,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/demande-livraison.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/demande-livraison.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

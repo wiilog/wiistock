@@ -43,6 +43,7 @@ class ReferenceArticleRepository extends EntityRepository
         'typeQuantite' => 'typeQuantite',
         'Dernier inventaire' => 'dateLastInventory',
         'Synchronisation nomade' => 'needsMobileSync',
+        'Prix unitaire' => 'prixUnitaire',
     ];
 
     public function getIdAndLibelle()
@@ -418,7 +419,6 @@ class ReferenceArticleRepository extends EntityRepository
                 if (!empty($order)) {
                     $orderData = $params->get('columns')[$params->get('order')[0]['column']]['data'];
                     $column = self::DtToDbLabels[$orderData] ?? $orderData;
-dump($orderData, $column);
                     switch ($column) {
                         case 'Actions':
                             break;
@@ -442,6 +442,10 @@ dump($orderData, $column);
                             $qb
                                 ->leftJoin('ra.statut', 's')
                                 ->orderBy('s.nom', $order);
+                            break;
+                        case 'prixUnitaire':
+                            $qb
+                                ->orderBy('ra.prixUnitaire', $order);
                             break;
                         default:
                             if (property_exists(ReferenceArticle::class, $column)) {
@@ -665,7 +669,8 @@ dump($orderData, $column);
                          ocr.quantite as quantity,
                          1 as is_ref,
                          oc.id as id_collecte,
-                         ra.barCode
+                         ra.barCode,
+                         ra.libelle as reference_label
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
 			JOIN ra.ordreCollecteReferences ocr

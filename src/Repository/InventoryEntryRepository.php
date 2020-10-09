@@ -324,7 +324,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered = QueryCounter::count($qb);
+		$countFiltered = QueryCounter::count($qb, 'ie');
 
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

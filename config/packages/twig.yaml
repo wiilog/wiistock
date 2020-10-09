@@ -10,3 +10,4 @@ twig:
         app_locale: '%env(APP_LOCALE)%'
         app_url: '%env(APP_URL)%'
         app_forbidden_phones: '%env(APP_FORBIDDEN_PHONES)%'
+        app_last_cache_clear: '%env(APP_LAST_CACHE_CLEAR)%'

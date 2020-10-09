@@ -88,5 +88,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/demande-livraison-show.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/demande-livraison-show.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

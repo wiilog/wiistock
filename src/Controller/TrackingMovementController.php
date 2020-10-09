@@ -25,6 +25,7 @@ use App\Service\TrackingMovementService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -38,6 +39,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Throwable;
 
 /**
  * @Route("/mouvement-traca")
@@ -100,7 +102,9 @@ class TrackingMovementController extends AbstractController
             $entityManager->flush();
         }
 
-        $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $this->getUser());
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
         $redirectAfterTrackingMovementCreation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
 
@@ -109,7 +113,7 @@ class TrackingMovementController extends AbstractController
             'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true),
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             'fields' => $fields,
-            'visibleColumns' => $this->getUser()->getColumnsVisibleForTrackingMovement(),
+            'visibleColumns' => $currentUser->getColumnsVisibleForTrackingMovement(),
         ]);
     }
 
@@ -125,7 +129,9 @@ class TrackingMovementController extends AbstractController
      * @param TrackingMovementService $trackingMovementService
      * @return Response
      */
-    public function apiColumns(Request $request, EntityManagerInterface $entityManager, TrackingMovementService $trackingMovementService): Response {
+    public function apiColumns(Request $request,
+                               EntityManagerInterface $entityManager,
+                               TrackingMovementService $trackingMovementService): Response {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
                 return $this->redirectToRoute('access_denied');
@@ -219,7 +225,7 @@ class TrackingMovementController extends AbstractController
                 ]);
             }
 
-            $date = new DateTime($post->get('datetime') ?: 'now', new \DateTimeZone('Europe/Paris'));
+            $date = new DateTime($post->get('datetime') ?: 'now', new DateTimeZone('Europe/Paris'));
             $fromNomade = false;
             $fileBag = $request->files->count() > 0 ? $request->files : null;
 
@@ -498,7 +504,7 @@ class TrackingMovementController extends AbstractController
         try {
             $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
             $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
         }
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
@@ -541,7 +547,7 @@ class TrackingMovementController extends AbstractController
                     $row[] = $movement['numeroArrivage'] ?: $movement['numeroReception'] ?: '';
                     $row[] = $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
                         ? implode(', ', $movement['numeroCommandeListArrivage'])
-                        : ($movement['referenceReception'] ?: '');
+                        : ($movement['orderNumber'] ?: '');
                     $row[] = !empty($movement['isUrgent']) ? 'oui' : 'non';
 
                     foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
