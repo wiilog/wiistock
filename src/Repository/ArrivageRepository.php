@@ -337,6 +337,7 @@ class ArrivageRepository extends EntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
+                    $searchValue = '%' . $search . '%';
                     $qb
                         ->leftJoin('a.transporteur', 't3')
                         ->leftJoin('a.chauffeur', 'ch3')
@@ -360,8 +361,9 @@ class ArrivageRepository extends EntityRepository
                             OR a.businessUnit LIKE :value
                             OR a.projectNumber LIKE :value
                             OR DATE_FORMAT(a.date, '%e/%m/%Y') LIKE :value
+                            OR JSON_SEARCH(a.freeFields, 'one', '$searchValue') IS NOT NULL
                         )")
-                        ->setParameter('value', '%' . $search . '%');
+                        ->setParameter('value', $searchValue);
                 }
             }
 

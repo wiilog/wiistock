@@ -96,7 +96,8 @@ function initTableArrival() {
                     }
                 }),
                 drawConfig: {
-                    needsResize: true
+                    needsResize: true,
+                    needsSearchOverride: true,
                 },
                 rowConfig: {
                     needsColor: true,
