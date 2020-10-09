@@ -8,11 +8,11 @@
 <div class="main-header">
     <div class="col-12">
         <div class="row align-items-center {{ withOnlyLogo ? 'justify-content-center' }}">
-                <div class="d-flex">
-                    <a class="position-relative" href="{{ path('accueil') }}">
-                        <img src="{{ asset('img/followGTwhite.svg') }}" alt="Follow GT" class="w-100"/>
-                        <span class="web-version small">{{ web_version }}</span>
-                    </a>
+            <div class="d-flex">
+                <a class="position-relative" href="{{ path('accueil') }}">
+                    <img src="{{ asset('img/followGTwhite.svg') }}" alt="Follow GT" class="w-100"/>
+                    <span class="web-version small">{{ web_version }}</span>
+                </a>
             </div>
 
             {% if not withOnlyLogo %}
@@ -28,7 +28,7 @@
                                                 {% if titleLink is not empty %}<a href="{{ titleLink }}" class="header-title-link"><span>{% endif %}
                                                 {% for titlePart in titleSplit[:(titleSplit|length - 1)] %}
                                                     {{ (titlePart | trim) | raw }}
-                                                    {{ not loop.last ? '|'}}
+                                                    {{ not loop.last ? '|' }}
                                                 {% endfor %}
                                                 {% if titleLink is not empty %}</span></a>{% endif %}
                                                 {% if titleSplit|length > 1 %}<span>|</span>{% endif %}
@@ -52,35 +52,41 @@
                         <span class="icon"></span>
                     </div>
                     <div id="quick-create" class="collapse indicators d-none">
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
                             <a href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
                                 Demande de collecte
                             </a>
+                        {% endif %}
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
                             <a href="{{ path('demande_index', {'open-modal': 'new'}) }}">
                                 Demande de livraison
                             </a>
+                        {% endif %}
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
                             <a href="{{ path('dispatch_index', {'open-modal': 'new'}) }}" title="Acheminement">
                                 {{ 'acheminement.Acheminement' | trans }}
                             </a>
+                        {% endif %}
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
                             <a href="{{ path('handling_index', {'open-modal': 'new'}) }}" title="Service">
                                 {{ 'services.Service' | trans }}
                             </a>
-                            {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}
-                                <div class="btn border-radius-light">
-                                    <a href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u" >
-                                        Demander la création d'un article
-                                    </a>
-                                </div>
-                            {% endif %}
+                        {% endif %}
+                        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}
+                            <a href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u">
+                                Demander la création d'un article
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
 
                 {% if not isDashboardExt
-                      and app.user is defined
-                      and app.user
-                      and app.user.username is defined %}
+                    and app.user is defined
+                    and app.user
+                    and app.user.username is defined %}
                     <div class="user">
                         <div class="profile-picture">{{ app.user.username | first | upper }}</div>
-                        <span>{{app.user.username}}</span>
+                        <span>{{ app.user.username }}</span>
                     </div>
                     <nav id="main-nav" class="text-white col-auto dropdown dropleft">
                         <div class="menu-button rounded pointer"
