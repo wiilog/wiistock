@@ -63,6 +63,11 @@ services:
         class: App\Service\SpecificService
         public: true
 
+    App\EventListener\ExceptionListener:
+        class: App\EventListener\ExceptionListener
+        tags:
+            - { name: kernel.event_listener, event: kernel.exception }
+
     ref_article_listener:
         class: App\EventListener\RefArticleQuantityNotifier
         tags:
