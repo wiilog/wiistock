@@ -52,22 +52,22 @@
                         <span class="icon"></span>
                     </div>
                     <div id="quick-create" class="collapse indicators d-none">
-                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL'), constant('App\\Entity\\Action::CREATE')) %}
                             <a href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
                                 Demande de collecte
                             </a>
                         {% endif %}
-                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR'), constant('App\\Entity\\Action::CREATE')) %}
                             <a href="{{ path('demande_index', {'open-modal': 'new'}) }}">
                                 Demande de livraison
                             </a>
                         {% endif %}
-                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_ACHE'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
                             <a href="{{ path('dispatch_index', {'open-modal': 'new'}) }}" title="Acheminement">
                                 {{ 'acheminement.Acheminement' | trans }}
                             </a>
                         {% endif %}
-                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_HAND'), constant('App\\Entity\\Action::CREATE')) %}
                             <a href="{{ path('handling_index', {'open-modal': 'new'}) }}" title="Service">
                                 {{ 'services.Service' | trans }}
                             </a>
