@@ -2005,6 +2005,7 @@ class ReceptionController extends AbstractController {
                         'demande' => $demande,
                         'fournisseur' => $reception->getFournisseur(),
                         'isReception' => true,
+                        'reception' => $reception,
                         'title' => 'Une ' . $translator->trans('réception.réception')
                             . ' '
                             . $reception->getNumeroReception()
