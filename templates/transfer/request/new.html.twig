@@ -1,0 +1,21 @@
+<div class="modal fade {{ new_modal_open is defined and new_modal_open ? 'auto-open' }}" tabindex="-1" role="dialog"
+     id="modalNewTransfer" data-modal-type="new">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            {{ form_start(new_transfer) }}
+            <div class="modal-header">
+                <h5 class="modal-title">Demande de transfert</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                {{ form_widget(new_transfer) }}
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Créer la demande</button>
+            </div>
+            {{ form_end(new_transfer) }}
+        </div>
+    </div>
+</div>

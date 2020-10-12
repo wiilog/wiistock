@@ -1,0 +1,66 @@
+{% extends 'utils/show-header.html.twig' %}
+
+{% block showTitle ('Demande de transfert n°' ~ transfer.number) %}
+
+{% block showActions %}
+    <div class="btn-group">
+        {% if modifiable %}
+            {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+            {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+
+            {% if hasRightEdit %}
+                <button type="button"
+                        onclick="validateTransfer({{ transfer.id }}, $(this))"
+                        class="btn btn-primary btn-ripple split-button">
+                    <i class="fa fa-check mr-2 button-icon"></i>
+                    Valider
+                </button>
+            {% endif %}
+            <button type="button"
+                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false">
+                <span class="fa fa-angle-down"></span>
+            </button>
+            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                {% if hasRightEdit %}
+                    <a data-id='{{ transfer.id }}'
+                       data-target='#modalEditTransferRequest'
+                       data-toggle='modal'
+                       class="dropdown-item">
+                        <i class="fa fa-pen mr-2"></i>Modifier
+                    </a>
+                {% endif %}
+                {% if hasRightDelete %}
+                    <a href="" onclick="deleteRow($(this), $('#modalDeleteTransferRequest'), $('#submitDeleteTransferRequest'))"
+                       data-id='{{ transfer.id }}' data-target='#modalDeleteTransferRequest' data-toggle='modal'
+                       class="dropdown-item">
+                        <i class="fa fa-trash mr-2"></i>Supprimer</a>
+                {% endif %}
+            </div>
+        {% else %}
+            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')) %}
+                <button type="button"
+                        class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false">
+                    <span class="fa fa-angle-down"></span>
+                </button>
+                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+{#                    TODO: Transfer order show #}
+{#                    {% if transfer.transferOrder %}#}
+{#                        <a href="{{ path('transfer_order_show', {'id': transfer.transferOrder.id }) }}"#}
+{#                           class="dropdown-item">#}
+{#                            <i class="mr-2 fas fa-external-link-alt"></i>Aller vers l'ordre de transfert#}
+{#                        </a>#}
+{#                    {% endif %}#}
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endblock %}
+
+
+

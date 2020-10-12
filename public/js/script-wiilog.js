@@ -1,3 +1,5 @@
+const PAGE_TRANSFER_REQUEST = 'rtransfer';
+const PAGE_TRANSFER_ORDER = 'otransfer';
 const PAGE_DEM_COLLECTE = 'dcollecte';
 const PAGE_DEM_LIVRAISON = 'dlivraison';
 const PAGE_HAND = 'handling';
@@ -52,13 +54,14 @@ $(function () {
             }
         });
 
+    $('.modal.auto-open').modal('show');
+
     setTimeout(() => {
         let query = GetRequestQuery();
         const openModalNew = 'new';
         const openModalEdit = 'edit';
-        console.log(query)
-        if (query["open-modal"] === openModalNew
-            || query["open-modal"] === openModalEdit) {
+
+        if (query["open-modal"] === openModalNew || query["open-modal"] === openModalEdit) {
             if (query["open-modal"] === openModalNew) {
                 $('[data-modal-type="new"]').first().modal("show");
             }
