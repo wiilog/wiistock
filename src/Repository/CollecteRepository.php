@@ -88,7 +88,7 @@ class CollecteRepository extends EntityRepository
     public function findByParamsAndFilters($params, $filters) {
         $qb = $this->createQueryBuilder("c");
 
-        $countTotal =  QueryCounter::count($qb);
+        $countTotal =  QueryCounter::count($qb, 'c');
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -177,7 +177,7 @@ class CollecteRepository extends EntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered =  QueryCounter::count($qb);
+		$countFiltered =  QueryCounter::count($qb, 'c');
 
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

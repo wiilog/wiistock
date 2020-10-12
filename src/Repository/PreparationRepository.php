@@ -110,7 +110,7 @@ class PreparationRepository extends EntityRepository
 	{
 		$qb = $this->createQueryBuilder("p");
 
-		$countTotal = QueryCounter::count($qb);
+		$countTotal = QueryCounter::count($qb, 'p');
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -204,7 +204,7 @@ class PreparationRepository extends EntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered = QueryCounter::count($qb);
+		$countFiltered = QueryCounter::count($qb, 'p');
 
 		if ($params) {
 			if (!empty($params->get('start'))) {

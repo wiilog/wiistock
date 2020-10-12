@@ -229,7 +229,7 @@ class DemandeRepository extends EntityRepository
     {
         $qb = $this->createQueryBuilder("d");
 
-        $countTotal = QueryCounter::count($qb);
+        $countTotal = QueryCounter::count($qb, 'd');
 
         if ($receptionFilter) {
             $qb
@@ -319,7 +319,7 @@ class DemandeRepository extends EntityRepository
         }
 
 		// compte éléments filtrés
-		$countFiltered = QueryCounter::count($qb);
+		$countFiltered = QueryCounter::count($qb, 'd');
 
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

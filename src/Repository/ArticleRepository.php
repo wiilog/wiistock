@@ -428,7 +428,7 @@ class ArticleRepository extends EntityRepository
     {
         $qb = $this->createQueryBuilder("a");
 
-        $countQuery = $countTotal = QueryCounter::count($qb);
+        $countQuery = $countTotal = QueryCounter::count($qb, 'a');
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -538,7 +538,7 @@ class ArticleRepository extends EntityRepository
                     }
                 }
 
-				$countQuery =  QueryCounter::count($qb);
+				$countQuery =  QueryCounter::count($qb, 'a');
 			}
 
             if (!empty($params->get('order'))) {

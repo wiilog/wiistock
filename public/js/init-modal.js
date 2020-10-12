@@ -72,7 +72,6 @@ function SubmitAction($modal,
     clearFormErrors($modal);
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
     const {success, errorMessages, $isInvalidElements, data} = processForm($modal, isAttachmentForm, validator);
-
     if (success) {
         const smartData = isAttachmentForm
             ? createFormData(data)
@@ -282,6 +281,8 @@ function processInputsForm($modal, isAttachmentForm) {
                 data[multipleKey] = isAttachmentForm
                     ? JSON.stringify(multipleValue)
                     : multipleValue;
+            } else if ($input.hasClass('list-multiple')) {
+                data[name] = JSON.stringify(val);
             } else {
                 data[name] = val;
             }

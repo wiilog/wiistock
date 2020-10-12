@@ -191,7 +191,7 @@ class HandlingService
         $state = $handling->getStatus() ? $handling->getStatus()->getState() : null;
 
         if ($hasRightHandling) {
-            $href = $this->router->generate('handling_index');
+            $href = $this->router->generate('handling_index') . '?open-modal=edit&modal-edit-id=' . $handling->getId();
         }
 
         $typeId = $handling->getType() ? $handling->getType()->getId() : null;
@@ -244,7 +244,8 @@ class HandlingService
             'requestUser' => $handling->getRequester() ? $handling->getRequester()->getUsername() : 'Non défini',
             'cardColor' => 'white',
             'bodyColor' => 'lightGrey',
-            'topRightIcon' => 'fa-box',
+            'topRightIcon' => $handling->getEmergency() ? 'fa-exclamation-triangle red' : 'fa-box',
+            'emergencyText' => $handling->getEmergency() ?? '',
             'progress' =>  $statusesToProgress[$state] ?? 0,
             'progressBarColor' => '#2ec2ab',
             'progressBarBGColor' => 'lightGrey',

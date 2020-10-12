@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
+use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -256,7 +257,9 @@ class LitigeRepository extends EntityRepository
 			->leftJoin('rra.reception', 'r')
 			->leftJoin('r.fournisseur', 'rFourn');
 
-		// filtres sup
+        $countTotal = QueryCounter::count($qb, 'litige');
+
+        // filtres sup
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
 				//TODO à remettre en place en requêtant sur arrivages + réceptions
@@ -403,24 +406,8 @@ class LitigeRepository extends EntityRepository
 		}
 
         // compte éléments filtrés
-		$queryCountFiltered = clone $qb;
-        $countFilteredResult = $queryCountFiltered
-            ->addSelect('COUNT(DISTINCT litige.id) AS count')
-            ->getQuery()
-            ->getResult();
+        $countFiltered = QueryCounter::count($qb, 'litige');
 
-        $countFiltered = (!empty($countFilteredResult) && !empty($countFilteredResult[0]))
-            ? intval($countFilteredResult[0]['count'])
-            : 0;
-
-        $countTotalResult = $this->createQueryBuilder('litige')
-            ->addSelect('COUNT(litige.id) AS count')
-            ->getQuery()
-            ->getResult();
-
-        $countTotal = (!empty($countTotalResult) && !empty($countTotalResult[0]))
-            ? intval($countTotalResult[0]['count'])
-            : 0;
         $litiges = $this->distinctLitige($qb->getQuery()->getResult());
         $length = $params && !empty($params->get('length'))
             ? $params->get('length')

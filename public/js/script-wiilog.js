@@ -54,8 +54,20 @@ $(function () {
 
     setTimeout(() => {
         let query = GetRequestQuery();
-        if(query["open-modal"] === "new") {
-            $('[data-modal-type="new"]').first().modal("show");
+        const openModalNew = 'new';
+        const openModalEdit = 'edit';
+        console.log(query)
+        if (query["open-modal"] === openModalNew
+            || query["open-modal"] === openModalEdit) {
+            if (query["open-modal"] === openModalNew) {
+                $('[data-modal-type="new"]').first().modal("show");
+            }
+            else { // edit
+                const $openModal = $(`.open-modal-edit`);
+                $openModal.data('id', query['modal-edit-id']);
+                $openModal.trigger('click');
+                delete query['modal-edit-id'];
+            }
             delete query["open-modal"];
             SetRequestQuery(query);
         }
