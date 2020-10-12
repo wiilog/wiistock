@@ -199,6 +199,17 @@ class ReceptionController extends AbstractController {
                     ->setTransporteur($transporteur);
             }
 
+            if(!empty($data['storageLocation'])) {
+                $storageLocation = $emplacementRepository->find(intval($data['storageLocation']));
+                $reception
+                    ->setStorageLocation($storageLocation);
+            }
+
+            if(!empty($data['emergency'])) {
+                $reception
+                    ->setManualUrgent($data['emergency']);
+            }
+
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
 
@@ -280,6 +291,12 @@ class ReceptionController extends AbstractController {
 
             $location = !empty($data['location']) ? $emplacementRepository->find($data['location']) : null;
             $reception->setLocation($location);
+
+            $storageLocation = !empty($data['storageLocation']) ? $emplacementRepository->find($data['storageLocation']) : null;
+            $reception->setStorageLocation($storageLocation);
+
+            $emergency = !empty($data['emergency']) ? $data['emergency'] : null;
+            $reception->setManualUrgent($emergency);
 
             $reception
                 ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
@@ -721,7 +738,7 @@ class ReceptionController extends AbstractController {
                 $entityManager->flush();
 
                 if($refArticle->getIsUrgent()) {
-                    $reception->setEmergencyTriggered(true);
+                    $reception->setUrgentArticles(true);
                     $receptionReferenceArticle->setEmergencyTriggered(true);
                     $receptionReferenceArticle->setEmergencyComment($refArticle->getEmergencyComment());
                 }
@@ -1765,6 +1782,8 @@ class ReceptionController extends AbstractController {
                 'commentaire',
                 'quantité à recevoir',
                 'quantité reçue',
+                'emplacement de stockage',
+                'urgent',
                 'référence',
                 'libellé',
                 'quantité stock',
@@ -1772,9 +1791,10 @@ class ReceptionController extends AbstractController {
                 'code-barre reference',
                 'code-barre article',
             ];
+            $nowStr = date("d-m-Y_H:i");
 
             return $CSVExportService->createBinaryResponseFromData(
-                'export.csv',
+                "export-" . str_replace(["/", "\\"], "-", $translator->trans('réception.réception')) . "-" . $nowStr  . ".csv",
                 $receptions,
                 $csvHeader,
                 function($reception) {
@@ -1827,7 +1847,9 @@ class ReceptionController extends AbstractController {
             $reception['dateFinReception'] ? $reception['dateFinReception']->format('d/m/Y H:i') : '',
             $reception['commentaire'] ? strip_tags($reception['commentaire']) : '',
             $reception['receptionRefArticleQuantiteAR'] ?: '',
-            $reception['receptionRefArticleQuantite'] ?: ''
+            $reception['receptionRefArticleQuantite'] ?: '',
+            $reception['storageLocation'] ?: '',
+            $reception['emergency'] ? 'oui' : 'non'
         ];
     }
 
@@ -1967,7 +1989,7 @@ class ReceptionController extends AbstractController {
             foreach($emergencies as $article) {
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
 
-                $mailContent = $this->render('mails/contents/mailArticleUrgentReceived.html.twig', [
+                $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
                     'article' => $article,
                     'title' => 'Votre article urgent a bien été réceptionné.',
                 ]);

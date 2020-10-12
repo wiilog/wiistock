@@ -98,6 +98,17 @@
                     {% endif %}
                 </div>
 
+                <div class="row">
+                    {% if fieldsParam|isFieldRequired('storageLocation', 'displayedFormsCreate') %}
+                        <div class="form-group col-6 w-100">
+                            <label>Emplacement de stockage{{ fieldsParam|isFieldRequired('storageLocation', 'mustToCreate') ? '*' : '' }}</label>
+                            <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'mustToCreate') ? 'needed' : '' }}"
+                                    name="storageLocation">
+                            </select>
+                        </div>
+                    {% endif %}
+                </div>
+
                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                     <div class="row new-on-fly-form-container">
                         <div class="row col-6 formulaire fly-form">
@@ -164,13 +175,24 @@
 
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('anomalie', 'displayedFormsCreate') %}
-                        <div class="form-group col-6 pt-4">
+                        <div class="form-group col-3 pt-4">
                             <label>Anomalie</label>
                             <label class="switch">
                                 <input class="checkbox" type="checkbox" name="anomalie">
                                 <span class="slider round"></span>
                             </label>
                         </div>
+                    {% endif %}
+                    {% if fieldsParam|isFieldRequired('manualUrgent', 'displayedFormsCreate') %}
+                    <div class="form-group col-3 mt-4">
+                        <label>Urgence ?{{ fieldsParam|isFieldRequired('manualUrgent', 'mustToCreate') ? '*' : '' }}</label>
+                        <label class="switch">
+                            <input class="checkbox {{ fieldsParam|isFieldRequired('manualUrgent', 'mustToCreate') ? 'needed' : '' }}"
+                                   type="checkbox"
+                                   name="emergency">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
                     {% endif %}
                 </div>
             </div>

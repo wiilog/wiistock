@@ -56,7 +56,6 @@ $(function () {
         let query = GetRequestQuery();
         const openModalNew = 'new';
         const openModalEdit = 'edit';
-        console.log(query)
         if (query["open-modal"] === openModalNew
             || query["open-modal"] === openModalEdit) {
             if (query["open-modal"] === openModalNew) {

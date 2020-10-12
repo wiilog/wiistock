@@ -82,3 +82,10 @@
         {% endif %}
     </div>
 {% endblock %}
+
+{% block showUrgence %}
+    {% if reception.manualUrgent %}
+        <i class="fa fa-exclamation-triangle mr-2"></i>
+        <span title="Cette réception est urgente">{{ 'réception.Cette réception est urgente'|trans }}</span>
+    {% endif %}
+{% endblock %}

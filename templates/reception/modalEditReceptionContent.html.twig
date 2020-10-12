@@ -109,6 +109,21 @@
     {% endif %}
 </div>
 
+<div class="row">
+    {% if fieldsParam|isFieldRequired('storageLocation', 'displayedFormsEdit') %}
+        <div class="form-group col-6 w-100">
+            <label>Emplacement de stockage{{ fieldsParam|isFieldRequired('storageLocation', 'mustToModify') ? '*' : '' }}</label>
+            <select
+                class="ajax-autocomplete-location-edit data form-control {{ fieldsParam|isFieldRequired('storageLocation', 'mustToModify') ? 'needed' : '' }}"
+                name="storageLocation">
+                {% if reception.storageLocation != null %}
+                    <option value="{{ reception.storageLocation.id }}">{{ reception.storageLocation.label }}</option>
+                {% endif %}
+            </select>
+        </div>
+    {% endif %}
+</div>
+
 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
     <div class="row new-on-fly-form-container align-items-start align-items-start">
         <div class="row col-6 formulaire fly-form">
@@ -169,6 +184,17 @@
              value="{{ reception.commentaire }}"> {{ reception.commentaire|raw }}
         </div>
     </div>
+{% endif %}
+
+{% if fieldsParam|isFieldRequired('manualUrgent', 'displayedFormsEdit') %}
+<div class="form-group col-4 mt-4">
+    <label>Urgence ?{{ fieldsParam|isFieldRequired('manualUrgent', 'mustToModify') ? '*' : '' }}</label>
+    <label class="switch">
+        <input class="checkbox {{ fieldsParam|isFieldRequired('manualUrgent', 'mustToModify') ? 'needed' : '' }}"
+               type="checkbox" name="emergency" {{ reception.manualUrgent ? 'checked': ''}}>
+        <span class="slider round"></span>
+    </label>
+</div>
 {% endif %}
 
 <!-- CHAMPS LIBRES -->

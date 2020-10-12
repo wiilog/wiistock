@@ -112,7 +112,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'articles' => 'articles',
                 "l'article" => "l'article",
                 "d'article" => "d'article",
-                "d'articles" => "d'articles"
+                "d'articles" => "d'articles",
+                'Cette réception est urgente' => 'Cette réception est urgente'
             ],
             'urgences' => [
                 'urgence' => 'urgence',

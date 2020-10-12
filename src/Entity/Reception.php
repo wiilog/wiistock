@@ -107,14 +107,24 @@ class Reception extends FreeFieldEntity
 	private $location;
 
     /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement")
+     */
+    private $storageLocation;
+
+    /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $emergencyTriggered;
+    private $urgentArticles;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="reception")
      */
     private $mouvementsTraca;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $manualUrgent;
 
     public function __construct()
     {
@@ -385,14 +395,35 @@ class Reception extends FreeFieldEntity
         return $this;
     }
 
-    public function getEmergencyTriggered(): ?bool
+    public function getStorageLocation(): ?Emplacement
     {
-        return $this->emergencyTriggered;
+        return $this->storageLocation;
     }
 
-    public function setEmergencyTriggered(?bool $emergencyTriggered): self
+    public function setStorageLocation(?Emplacement $storageLocation): self
     {
-        $this->emergencyTriggered = $emergencyTriggered;
+        $this->storageLocation = $storageLocation;
+
+        return $this;
+    }
+
+    public function isManualUrgent(): ?bool {
+        return $this->manualUrgent;
+    }
+
+    public function setManualUrgent(?bool $manualUrgent): self {
+        $this->manualUrgent = $manualUrgent;
+        return $this;
+    }
+
+    public function hasUrgentArticles(): ?bool
+    {
+        return $this->urgentArticles;
+    }
+
+    public function setUrgentArticles(?bool $urgentArticles): self
+    {
+        $this->urgentArticles = $urgentArticles;
 
         return $this;
     }
