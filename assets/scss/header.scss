@@ -139,22 +139,16 @@
 }
 
 .quick-plus {
+    @extend .btn;
     @include icon-button;
+    @include button-variant(#2EC2AB, #2EC2AB);
 
     display: flex;
     height: 36px;
     width: 36px;
     align-items: center;
     justify-content: center;
-    margin: 2px 5px 2px 0;
-    background-color: #2EC2AB;
     border-radius: 50%;
-    box-shadow: 0px 0px 5px 0px rgba(255,255,255,1);
-
-    &:hover {
-        background-color: rgba(255, 255, 255, 0.2);
-        color: white;
-    }
 }
 
 #quick-menu {
