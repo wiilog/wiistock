@@ -38,7 +38,12 @@ $icons: (
     "search": "../../public/svg/search.svg",
     "stock": "../../public/svg/stock.svg",
     "traca": "../../public/svg/traca.svg",
-    "trash": "../../public/svg/trash.svg"
+    "trash": "../../public/svg/trash.svg",
+    "delivery": "../../public/svg/delivery.svg",
+    "import": "../../public/svg/import.svg",
+    "handling": "../../public/svg/handling.svg",
+    "add": "../../public/svg/add.svg",
+    "way": "../../public/svg/way.svg",
 );
 
 @each $iconName, $iconPath in $icons {

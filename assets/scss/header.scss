@@ -157,6 +157,43 @@
     }
 }
 
+#quick-menu {
+
+    .quick-menu-title {
+        color: #2EC2AB;
+        font-weight: 100;
+        font-size: 0.8rem;
+        height: 40px;
+        padding-top: 12px;
+    }
+
+    .quick-menu-icon {
+        background-color: $black;
+        width: 15px;
+        height: 15px;
+        display: inline-block;
+    }
+
+    & > a {
+        display: block;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.8rem;
+        height: 35px;
+        font-weight: 100;
+
+        &:hover {
+            background: #2EC2AB;
+            color: white;
+            cursor: pointer !important;
+
+            & > span:first-of-type {
+                background-color: white;
+            }
+        }
+    }
+}
+
+
 .user {
     background-color: rgba(255, 255, 255, 0.1);
     height: 40px;
