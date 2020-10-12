@@ -7,11 +7,11 @@
     <div class="wii-card-header">
         <div class="row">
             <div class="col-10 mb-2">
-                <p class="mb-2 small">Heure de traitement estimée</p>
+                <p class="mb-2 small">{{ estimatedFinishTimeLabel }}</p>
                 <strong>{{ estimatedFinishTime }}</strong>
             </div>
             <div class="col-2 d-flex justify-content-end">
-                <i class="fa {{ topRightIcon }} wii-card-icon"></i>
+                {{ emergencyText }}<i class="ml-2 fa {{ topRightIcon }} wii-card-icon"></i>
             </div>
             <div class="col-12 mb-2">
                 <div class="progress bg-{{ progressBarBGColor }}" style="height: 7px;">

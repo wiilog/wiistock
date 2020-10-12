@@ -9,18 +9,18 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
             </div>
-            <div class="modal-body modal-input container-fluid">
+            <div class="modal-body modal-input">
                 <form class="row">
-                    <label for="reference" class="col-2 mt-2" title="référence">
+                    <label for="reference" class="col-12 mt-2" title="référence">
                         {{ 'reference.référence'|trans }}*
                     </label>
-                    <div class="form-group col-10 d-flex w-100">
-                        <select class="ajax-autocomplete data form-control needed"
+                    <div class="form-group col-12">
+                        <select class="ajax-autocomplete data w-100 form-control needed"
                             onchange="ajaxGetAndFillArticle($(this))" id="reference"
                             name="referenceArticle">
                         </select>
                     </div>
-                    <div id='selection' class="col-12 clear p-0">
+                    <div id='selection' class="col-12 clear">
 
                     </div>
                     <div id='editNewArticle' class="col-12 clear">

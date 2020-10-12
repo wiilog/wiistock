@@ -158,7 +158,7 @@ class UrgenceRepository extends EntityRepository
     {
         $qb = $this->createQueryBuilder("u");
 
-        $countTotal = QueryCounter::count($qb);
+        $countTotal = QueryCounter::count($qb, 'u');
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -189,7 +189,7 @@ class UrgenceRepository extends EntityRepository
                         ->leftJoin('u.provider', 'p_search')
                         ->leftJoin('u.carrier', 'c_search')
                         ->leftJoin('u.lastArrival', 'a_search' )
-                        ->andWhere($exprBuilder->orX(
+                        ->andWhere('(' . $exprBuilder->orX(
                             'u.commande LIKE :value',
                             'u.postNb LIKE :value',
                             'u.trackingNb LIKE :value',
@@ -197,7 +197,7 @@ class UrgenceRepository extends EntityRepository
                             'p_search.nom LIKE :value',
                             'c_search.label LIKE :value',
                             'a_search.numeroArrivage LIKE :value'
-                        ))
+                        ) . ')')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -236,7 +236,7 @@ class UrgenceRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = QueryCounter::count($qb);
+        $countFiltered = QueryCounter::count($qb, 'u');
 
         if ($params) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

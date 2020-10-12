@@ -263,7 +263,7 @@ class ArrivageRepository extends EntityRepository
                 ->setParameter('userId', $userId);
         }
 
-        $total = QueryCounter::count($qb);
+        $total = QueryCounter::count($qb, 'a');
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -337,6 +337,7 @@ class ArrivageRepository extends EntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
+                    $searchValue = '%' . $search . '%';
                     $qb
                         ->leftJoin('a.transporteur', 't3')
                         ->leftJoin('a.chauffeur', 'ch3')
@@ -360,8 +361,9 @@ class ArrivageRepository extends EntityRepository
                             OR a.businessUnit LIKE :value
                             OR a.projectNumber LIKE :value
                             OR DATE_FORMAT(a.date, '%e/%m/%Y') LIKE :value
+                            OR JSON_SEARCH(a.freeFields, 'one', '$searchValue') IS NOT NULL
                         )")
-                        ->setParameter('value', '%' . $search . '%');
+                        ->setParameter('value', $searchValue);
                 }
             }
 
@@ -426,7 +428,7 @@ class ArrivageRepository extends EntityRepository
                             ->leftJoin('a.packs', 'col2')
                             ->orderBy('nbum', $order)
                             ->groupBy('col2.arrivage, a');
-                    } else if ($column === 'statut') {
+                    } else if ($column === 'status') {
                         $qb
                             ->leftJoin('a.statut', 'order_status')
                             ->orderBy('order_status.nom', $order);
@@ -447,7 +449,7 @@ class ArrivageRepository extends EntityRepository
             }
         }
 
-        $filtered = QueryCounter::count($qb);
+        $filtered = QueryCounter::count($qb, 'a');
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

@@ -8,11 +8,11 @@
 <div class="main-header">
     <div class="col-12">
         <div class="row align-items-center {{ withOnlyLogo ? 'justify-content-center' }}">
-                <div class="d-flex">
-                    <a class="position-relative" href="{{ path('accueil') }}">
-                        <img src="{{ asset('img/followGTwhite.svg') }}" alt="Follow GT" class="w-100"/>
-                        <span class="web-version small">{{ web_version }}</span>
-                    </a>
+            <div class="d-flex">
+                <a class="position-relative" href="{{ path('accueil') }}">
+                    <img src="{{ asset('img/followGTwhite.svg') }}" alt="Follow GT" class="w-100"/>
+                    <span class="web-version small">{{ web_version }}</span>
+                </a>
             </div>
 
             {% if not withOnlyLogo %}
@@ -28,7 +28,7 @@
                                                 {% if titleLink is not empty %}<a href="{{ titleLink }}" class="header-title-link"><span>{% endif %}
                                                 {% for titlePart in titleSplit[:(titleSplit|length - 1)] %}
                                                     {{ (titlePart | trim) | raw }}
-                                                    {{ not loop.last ? '|'}}
+                                                    {{ not loop.last ? '|' }}
                                                 {% endfor %}
                                                 {% if titleLink is not empty %}</span></a>{% endif %}
                                                 {% if titleSplit|length > 1 %}<span>|</span>{% endif %}
@@ -53,38 +53,47 @@
                     </div>
                     <div id="quick-create" class="collapse indicators d-none mt-3">
                         <p class="mx-3">Nouvelle demande</p>
-                        <a class="d-flex align-items-center" href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
-                            <span class="icon-delivery mx-2"></span>
-                            <span class="flex-fill">Livraison</span>
-                        </a>
-                        <a class="d-flex align-items-center" href="{{ path('demande_index', {'open-modal': 'new'}) }}">
-                            <span class="icon-collect mx-2"></span>
-                            <span class="flex-fill">Collecte</span>
-                        </a>
-                        <a class="d-flex align-items-center" href="{{ path('handling_index', {'open-modal': 'new'}) }}" title="Service">
-                            <span class="icon-handling mx-2"></span>
-                            <span class="flex-fill">{{ 'services.Service' | trans }}</span>
-                        </a>
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR'), constant('App\\Entity\\Action::CREATE')) %}
+                            <a class="d-flex align-items-center" href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
+                                <span class="icon-delivery mx-2"></span>
+                                <span class="flex-fill">Livraison</span>
+                            </a>
+                        {% endif %}
+
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL'), constant('App\\Entity\\Action::CREATE')) %}
+                            <a class="d-flex align-items-center" href="{{ path('demande_index', {'open-modal': 'new'}) }}">
+                                <span class="icon-collect mx-2"></span>
+                                <span class="flex-fill">Collecte</span>
+                            </a>
+                        {% endif %}
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_HAND'), constant('App\\Entity\\Action::CREATE')) %}
+                            <a class="d-flex align-items-center" href="{{ path('handling_index', {'open-modal': 'new'}) }}" title="Service">
+                                <span class="icon-handling mx-2"></span>
+                                <span class="flex-fill">{{ 'services.Service' | trans }}</span>
+                            </a>
+                        {% endif %}
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_HAND'), constant('App\\Entity\\Action::CREATE')) %}
+                            <a class="d-flex align-items-center" href="{{ path('dispatch_index', {'open-modal': 'new'}) }}" title="Acheminement">
+                                <span class="icon-dispatch mx-2"></span>
+                                <span class="flex-fill">{{ 'acheminement.Acheminement' | trans }}</span>
+                            </a>
+                        {% endif %}
                         {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}
                             <a class="d-flex align-items-center" href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u" >
                                 <span class="icon-create-article mx-2"></span>
                                 <span class="flex-fill">Créer un article</span>
                             </a>
                         {% endif %}
-                        <a class="d-flex align-items-center" href="{{ path('dispatch_index', {'open-modal': 'new'}) }}" title="Acheminement">
-                            <span class="icon-dispatch mx-2"></span>
-                            <span class="flex-fill">{{ 'acheminement.Acheminement' | trans }}</span>
-                        </a>
                     </div>
                 </div>
 
                 {% if not isDashboardExt
-                      and app.user is defined
-                      and app.user
-                      and app.user.username is defined %}
+                    and app.user is defined
+                    and app.user
+                    and app.user.username is defined %}
                     <div class="user">
                         <div class="profile-picture">{{ app.user.username | first | upper }}</div>
-                        <span>{{app.user.username}}</span>
+                        <span>{{ app.user.username }}</span>
                     </div>
                     <nav id="main-nav" class="text-white col-auto dropdown dropleft">
                         <div class="menu-button rounded pointer"

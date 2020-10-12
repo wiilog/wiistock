@@ -40,8 +40,10 @@ final class Version20201007121012 extends AbstractMigration
             ->addSql("
                  UPDATE
                     ordre_collecte
-                INNER JOIN collecte c on ordre_collecte.demande_collecte_id = c.id
-                SET ordre_collecte.date = c.validation_date
+                 INNER JOIN collecte c on ordre_collecte.demande_collecte_id = c.id
+                 SET ordre_collecte.date = c.validation_date
+                 WHERE c.validation_date IS NOT NULL
+
             ");
 
         $this
