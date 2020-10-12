@@ -26,6 +26,8 @@ class CategorieStatut
     const LITIGE_ARR = 'litige arrivage';
     const LITIGE_RECEPT = 'litige reception';
     const DISPATCH = 'acheminement';
+    const TRANSFER_REQUEST = 'demande de transfert';
+    const TRANSFER_ORDER = 'ordre de transfert';
     const IMPORT = 'import';
 
     /**

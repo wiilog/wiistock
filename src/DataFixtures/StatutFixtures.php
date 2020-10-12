@@ -15,6 +15,8 @@ use App\Entity\Preparation;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TransferOrder;
+use App\Entity\TransferRequest;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -102,6 +104,16 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
             CategorieStatut::LITIGE_ARR => [],
             CategorieStatut::LITIGE_RECEPT => [],
             CategorieStatut::DISPATCH => [],
+            CategorieStatut::TRANSFER_REQUEST => [
+                TransferRequest::DRAFT,
+                TransferRequest::TO_TREAT,
+                TransferRequest::TREATED,
+            ],
+            CategorieStatut::TRANSFER_ORDER => [
+                TransferOrder::DRAFT,
+                TransferOrder::TO_TREAT,
+                TransferOrder::TREATED,
+            ],
 			CategorieStatut::IMPORT => [
 				Import::STATUS_PLANNED,
 				Import::STATUS_FINISHED,
