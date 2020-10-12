@@ -83,22 +83,21 @@ class ReceptionService
      */
     public function dataRowReception(Reception $reception)
     {
-        return
-            [
-                'id' => ($reception->getId()),
-                "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
-                "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y H:i'),
-                "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : ''),
-                "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
-                "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
-                "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
-                "Numéro de commande" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
-                'Actions' => $this->templating->render(
-                    'reception/datatableReceptionRow.html.twig',
-                    ['reception' => $reception]
-                ),
-                'urgence' => $reception->getEmergencyTriggered()
-            ];
+        return [
+            'id' => ($reception->getId()),
+            "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
+            "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y H:i'),
+            "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : ''),
+            "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
+            "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
+            "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
+            "Numéro de commande" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
+            'Actions' => $this->templating->render(
+                'reception/datatableReceptionRow.html.twig',
+                ['reception' => $reception]
+            ),
+            'urgence' => $reception->getEmergencyTriggered()
+        ];
     }
 
     public function createHeaderDetailsConfig(Reception $reception): array {
