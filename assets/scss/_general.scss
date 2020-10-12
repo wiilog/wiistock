@@ -347,27 +347,6 @@ select.is-invalid {
     height: 60px !important;
 }
 
-#quick-create {
-    background: #FFF;
-    box-shadow: 1px 1px 4px #333;
-    padding: 8px 6px;
-    border-radius: 4px;
-
-    & > a {
-        display: block;
-        padding: 0.2rem 0.5rem;
-        font-size: 0.8rem;
-
-        &:hover {
-            @extend .bg-primary-followgt;
-
-            border-radius: 5px;
-            color: white;
-            cursor: pointer !important;
-        }
-    }
-}
-
 @mixin icon-button {
     display: inline-block;
     padding: 8px;
