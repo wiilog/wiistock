@@ -350,20 +350,77 @@ select.is-invalid {
 #quick-create {
     background: #FFF;
     box-shadow: 1px 1px 4px #333;
-    padding: 8px 6px;
     border-radius: 4px;
+    width: 150px;
+
+    p {
+        color: #2EC2AB;
+        font-weight: 100;
+        font-size: 0.8rem;
+        height: 40px;
+        padding-top: 12px;
+    }
+
+    .icon-delivery {
+        -webkit-mask: url("../../public/svg/delivery.svg") no-repeat center;
+        mask: url("../../public/svg/delivery.svg") no-repeat center;
+        background-color: black;
+        width: 15px;
+        height: 15px;
+        display: inline-block;
+    }
+
+    .icon-collect {
+        -webkit-mask: url("../../public/svg/import.svg") no-repeat center;
+        mask: url("../../public/svg/import.svg") no-repeat center;
+        background-color: black;
+        width: 15px;
+        height: 15px;
+        display: inline-block;
+    }
+
+    .icon-handling {
+        -webkit-mask: url("../../public/svg/manutention.svg") no-repeat center;
+        mask: url("../../public/svg/manutention.svg") no-repeat center;
+        background-color: black;
+        width: 15px;
+        height: 15px;
+        display: inline-block;
+    }
+
+    .icon-create-article {
+        -webkit-mask: url("../../public/svg/add.svg") no-repeat center;
+        mask: url("../../public/svg/add.svg") no-repeat center;
+        background-color: black;
+        width: 15px;
+        height: 15px;
+        display: inline-block;
+    }
+
+    .icon-dispatch {
+        -webkit-mask: url("../../public/svg/way.svg") no-repeat center;
+        mask: url("../../public/svg/way.svg") no-repeat center;
+        background-color: black;
+        width: 15px;
+        height: 15px;
+        display: inline-block;
+    }
 
     & > a {
         display: block;
         padding: 0.2rem 0.5rem;
         font-size: 0.8rem;
+        height: 35px;
+        font-weight: 100;
 
         &:hover {
-            @extend .bg-primary-followgt;
-
-            border-radius: 5px;
+            background: #2EC2AB;
             color: white;
             cursor: pointer !important;
+
+            & > span:first-of-type {
+                background-color: white;
+            }
         }
     }
 }
