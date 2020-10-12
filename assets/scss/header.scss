@@ -152,6 +152,9 @@
 }
 
 #quick-menu {
+    $itemMinHeight: 35px;
+    $iconMinSize: 15px;
+    $itemYPadding: 0.2rem;
 
     .quick-menu-title {
         color: #2EC2AB;
@@ -163,16 +166,17 @@
 
     .quick-menu-icon {
         background-color: $black;
-        width: 15px;
-        height: 15px;
+        min-width: $iconMinSize;
+        min-height: $iconMinSize;
+        margin-top: calc((#{$itemMinHeight} - #{$iconMinSize} - #{$itemYPadding * 2}) / 2);
         display: inline-block;
     }
 
     & > a {
         display: block;
-        padding: 0.2rem 0.5rem;
+        padding: $itemYPadding 0.5rem;
         font-size: 0.8rem;
-        height: 35px;
+        min-height: $itemMinHeight;
         font-weight: 100;
 
         &:hover {
