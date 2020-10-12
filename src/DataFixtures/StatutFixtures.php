@@ -22,6 +22,7 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class StatutFixtures extends Fixture implements FixtureGroupInterface
@@ -39,6 +40,8 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
+        $output = new ConsoleOutput();
+
         $statutRepository = $manager->getRepository(Statut::class);
         $categorieStatutRepository = $manager->getRepository(CategorieStatut::class);
 
@@ -137,7 +140,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 
         foreach ($statutsASupprimer as $statutASupprimer) {
             $manager->remove($statutASupprimer);
-            dump("suppression du statut " . $statutASupprimer->getNom() . ' (catégorie ' . CategorieStatut::ARRIVAGE . ')');
+            $output->writeln("Suppression du statut \"" . $statutASupprimer->getNom() . "\" de la catégorie \"" . CategorieStatut::ARRIVAGE . "\"");
         }
 
     	foreach ($categoriesStatus as $categoryName => $statuses) {
@@ -149,7 +152,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				$categorie = new CategorieStatut();
 				$categorie->setNom($categoryName);
 				$manager->persist($categorie);
-				dump("création de la catégorie " . $categoryName);
+				$output->writeln("Création de la catégorie \"" . $categoryName . "\"");
 			}
 			$this->addReference('statut-' . $categoryName, $categorie);
 
@@ -164,7 +167,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 						->setCode($statusLabel)
 						->setCategorie($this->getReference('statut-' . $categoryName));
 					$manager->persist($statut);
-					dump("création du statut " . $statusLabel);
+					$output->writeln("Création du statut \"" . $statusLabel . "\" dans la catégorie \"" . $statut->getCategorie()->getNom() . "\"");
 				}
 			}
 		}

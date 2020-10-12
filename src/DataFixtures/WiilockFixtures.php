@@ -6,13 +6,15 @@ use App\Entity\Wiilock;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
-
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 class WiilockFixtures extends Fixture implements FixtureGroupInterface
 {
 
     public function load(ObjectManager $manager)
     {
+        $output = new ConsoleOutput();
+
         $wiilockRepository = $manager->getRepository(Wiilock::class);
 
         $wiilocks = [
@@ -24,7 +26,7 @@ class WiilockFixtures extends Fixture implements FixtureGroupInterface
             $key = $lock->getLockKey();
             if (!isset($wiilocks[$key])) {
                 $manager->remove($lock);
-                dump('Suppression du lock : ' . $key);
+                $output->writeln('Suppression du lock "' . $key . '"');
             }
         }
 
@@ -35,7 +37,7 @@ class WiilockFixtures extends Fixture implements FixtureGroupInterface
                 'lockKey' => $key
             ]);
             if (empty($wiilock)) {
-                dump('Création du lock : ' . $key);
+                $output->writeln('Création du lock "' . $key . '"');
                 $wiilock = new Wiilock();
                 $wiilock
                     ->setValue($value)

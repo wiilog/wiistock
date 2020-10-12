@@ -7,11 +7,14 @@ use App\Entity\Type;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 class TypeFixtures extends Fixture implements FixtureGroupInterface
 {
     public function load(ObjectManager $manager)
     {
+        $output = new ConsoleOutput();
+
     	$categoriesTypes = [
             CategoryType::DEMANDE_DISPATCH => [Type::LABEL_STANDARD],
             CategoryType::DEMANDE_HANDLING => [Type::LABEL_STANDARD],
@@ -42,7 +45,7 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
 				$categorie = new CategoryType();
 				$categorie->setLabel($categoryName);
 				$manager->persist($categorie);
-				dump("création de la catégorie " . $categoryName);
+                $output->writeln("Création de la catégorie \"" . $categoryName . "\"");
 			}
 			$this->addReference('type-' . $categoryName, $categorie);
 
@@ -58,7 +61,7 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
                             ->setCategory($this->getReference('type-' . $categoryName))
                             ->setLabel($typeName);
                         $manager->persist($type);
-                        dump("création du type " . $typeName);
+                        $output->writeln("Création du type \"" . $typeName . "\" dans la catégorie \"" . $type->getCategory()->getLabel() . "\"");
                     }
                 }
 			}
