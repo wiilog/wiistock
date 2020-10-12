@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Utilisateur;
@@ -10,6 +11,7 @@ use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Join;
 
 /**
  * @method Collecte|null find($id, $lockMode = null, $lockVersion = null)
@@ -243,10 +245,17 @@ class CollecteRepository extends EntityRepository
     }
 
     public function findRequestToTreatByUser(Utilisateur $requester) {
+        $statuses = [
+            Collecte::STATUT_BROUILLON,
+            Collecte::STATUT_A_TRAITER,
+            Collecte::STATUT_INCOMPLETE,
+        ];
+
         $queryBuilder = $this->createQueryBuilder('request');
         $queryBuilderExpr = $queryBuilder->expr();
         return $queryBuilder
             ->innerJoin('request.statut', 'status')
+            ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = request.type')
             ->where(
                 $queryBuilderExpr->andX(
                     $queryBuilderExpr->in('status.nom', ':statusNames'),
@@ -254,14 +263,11 @@ class CollecteRepository extends EntityRepository
                 )
             )
             ->setParameters([
-                'statusNames' => [
-                    Collecte::STATUT_BROUILLON,
-                    Collecte::STATUT_A_TRAITER,
-                    Collecte::STATUT_INCOMPLETE
-                ],
-                'requester' => $requester
+                'statusNames' => $statuses,
+                'requester' => $requester,
             ])
-            ->orderBy('request.validationDate', 'DESC')
+            ->addOrderBy(sprintf("FIELD(status.nom, '%s', '%s', '%s')", ...$statuses), 'DESC')
+            ->addOrderBy("DATE_ADD(request.validationDate, art.average, 'second')", 'ASC')
             ->getQuery()
             ->execute();
     }

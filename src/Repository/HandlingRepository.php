@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\AverageRequestTime;
 use App\Entity\Handling;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -9,6 +10,7 @@ use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Join;
 
 /**
  * @method Handling|null find($id, $lockMode = null, $lockVersion = null)
@@ -308,10 +310,12 @@ class HandlingRepository extends EntityRepository
         return $this->createQueryBuilder("h")
             ->select("h")
             ->innerJoin("h.status", "s")
+            ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = h.type')
             ->where("s.state = " . Statut::NOT_TREATED)
             ->andWhere("h.requester = :requester")
             ->setParameter("requester", $requester)
-            ->orderBy("h.desiredDate", "DESC")
+            ->addOrderBy('s.state', 'ASC')
+            ->addOrderBy("DATE_ADD(h.creationDate, art.average, 'second')", 'ASC')
             ->getQuery()
             ->getResult();
     }
