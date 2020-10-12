@@ -56,6 +56,11 @@ class TransferRequest {
     private $creationDate;
 
     /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $validationDate;
+
+    /**
      * @ORM\OneToOne(targetEntity=TransferOrder::class, mappedBy="request", cascade={"persist", "remove"})
      */
     private $transferOrder;
@@ -106,6 +111,15 @@ class TransferRequest {
 
     public function setComment(?string $comment): self {
         $this->comment = $comment;
+        return $this;
+    }
+
+    public function getValidationDate(): ?DateTimeInterface {
+        return $this->validationDate;
+    }
+
+    public function setValidationDate(DateTimeInterface $validationDate): self {
+        $this->validationDate = $validationDate;
         return $this;
     }
 
