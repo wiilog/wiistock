@@ -6,7 +6,7 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\FieldsParam;
 use App\Entity\Menu;
 use App\Entity\Handling;
@@ -102,7 +102,7 @@ class HandlingController extends AbstractController
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
@@ -281,8 +281,7 @@ class HandlingController extends AbstractController
                          FreeFieldService $freeFieldService,
                          TranslatorInterface $translator,
                          AttachmentService $attachmentService,
-                         HandlingService $handlingService): Response
-    {
+                         HandlingService $handlingService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
 
@@ -496,18 +495,4 @@ class HandlingController extends AbstractController
         }
     }
 
-
-    private function buildInfos(Handling $handling, &$data)
-    {
-        $data[] =
-            [
-                $handling->getCreationDate() ? $handling->getCreationDate()->format('d/m/Y H:i') : ' ',
-                $handling->getRequester()->getUsername(),
-                $handling->getSource(),
-                $handling->getDestination(),
-                $handling->getDesiredDate() ? $handling->getDesiredDate()->format('d/m/Y H:i') : ' ',
-                $handling->getValidationDate() ? $handling->getValidationDate()->format('d/m/Y H:i') : '',
-                $handling->getStatus() ? $handling->getStatus()->getNom() : '',
-            ];
-    }
 }

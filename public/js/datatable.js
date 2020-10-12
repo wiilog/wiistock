@@ -54,28 +54,38 @@ function extendsDateSort(name) {
 function initActionOnRow(row) {
     if ($(row).find('.action-on-click').get(0)) {
         $(row).addClass('pointer');
-        $(row).find('td:not(.noVis)').click(function () {
-            $(row).find('.action-on-click').get(0).click();
-        })
+        $(row).on('mouseup', 'td:not(.noVis)', function (event) {
+            const highlightedText = window.getSelection
+                ? window.getSelection().toString()
+                : undefined;
+
+            if (!highlightedText) {
+                const {which} = event || {};
+                let $anchor = $(row).find('.action-on-click');
+                const href = $anchor.attr('href');
+                if (href) {
+                    if (which === 1) {
+                        window.location.href = href;
+                    } else if (which === 2) {
+                        window.open(href, '_blank');
+                    }
+                } else {
+                    if (which === 1) {
+                        $anchor.trigger('click');
+                    }
+                }
+            }
+        });
     }
 }
 
-function initActionOnCell(cell) {
-    $(cell).click(function () {
-        $cell.parent('tr').find('.action-on-click').get(0).click();
-    });
-}
-
-
-function showOrHideColumn(check, concernedTable, concernedTableColumns) {
+function showOrHideColumn(check, concernedTable) {
     let columnName = check.data('name');
 
     let column = concernedTable.column(columnName + ':name');
     column.visible(!column.visible());
-    concernedTableColumns.find('th, td').removeClass('hide');
-    concernedTableColumns.find('th, td').addClass('display');
     check.toggleClass('data');
-    initActionOnCell(column);
+    // initActionOnCell(column);
 }
 
 function manageArticleAndRefSearch($input, $printButton) {
@@ -112,8 +122,8 @@ function manageArticleAndRefSearch($input, $printButton) {
 }
 
 function toggleInputRadioOnRow(tr) {
-    const $row = $(tr);
-    $row.find('input[type="checkbox"]').trigger('click');
+    const $checkbox = $(tr).find('input[type="checkbox"]');
+    $checkbox.prop('checked', !$checkbox.is(':checked')).change();
 }
 
 function createDatatableDomFooter({information, length, pagination}) {
@@ -180,7 +190,9 @@ function overrideSearch($input, table, callback = null) {
             }
         }
     });
-    $input.attr('placeholder', 'entrée pour valider');
+
+    $input.addClass('form-control');
+    $input.attr('placeholder', 'Entrée pour valider');
 }
 
 function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $tableDom}) {
@@ -195,9 +207,6 @@ function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, 
     }
     if (needsColumnShow) {
         showColumns(table, response.json.visible);
-    }
-    if (needsResize) {
-        resizeTable(table);
     }
     if (needsEmplacementSearchOverride) {
         overrideSearchSpecifEmplacement($searchInput);
@@ -262,7 +271,14 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             console.log('An error has been reported by DataTables: ', message, e, dtId);
         })
         .DataTable({
-            autoWidth: true,
+    fixedColumns:   {
+
+        heightMatch: 'auto'
+
+    },
+
+
+    autoWidth: true,
             scrollX: true,
             language: {
                 url: "/js/i18n/dataTableLanguage.json",
@@ -297,12 +313,6 @@ function renderDtInfo($table) {
         .addClass('pt-0');
 }
 
-function resizeTable(table) {
-    table
-        .columns.adjust()
-        .responsive.recalc();
-}
-
 function overrideSearchSpecifEmplacement($input) {
     $input.off();
     $input.on('keyup', function (e) {
@@ -334,6 +344,8 @@ function overrideSearchSpecifEmplacement($input) {
             managePrintButtonTooltip(true, $printButton);
         }
     });
+
+    $input.addClass('form-control');
     $input.attr('placeholder', 'entrée pour valider');
 }
 

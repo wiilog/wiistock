@@ -272,19 +272,21 @@ Class GlobalParamService
 		foreach ($clusterCodes as $clusterCode) {
             $locationCluster = $locationClusterRepository->findOneBy(['code' => $clusterCode]);
             $resp[$clusterCode] = ['id' => '', 'text' => ''];
-            /** @var Emplacement $location */
-            foreach ($locationCluster->getLocations() as $location) {
-                $id = $location->getId();
-                $text = $location->getLabel();
-                if (!empty($resp[$clusterCode]['id'])) {
-                    $resp[$clusterCode]['id'] .= ',';
-                }
-                if (!empty($resp[$clusterCode]['text'])) {
-                    $resp[$clusterCode]['text'] .= ',';
-                }
+            if($locationCluster) {
+                /** @var Emplacement $location */
+                foreach($locationCluster->getLocations() as $location) {
+                    $id = $location->getId();
+                    $text = $location->getLabel();
+                    if(!empty($resp[$clusterCode]['id'])) {
+                        $resp[$clusterCode]['id'] .= ',';
+                    }
+                    if(!empty($resp[$clusterCode]['text'])) {
+                        $resp[$clusterCode]['text'] .= ',';
+                    }
 
-                $resp[$clusterCode]['id'] .= $id;
-                $resp[$clusterCode]['text'] .= $text;
+                    $resp[$clusterCode]['id'] .= $id;
+                    $resp[$clusterCode]['text'] .= $text;
+                }
             }
         }
 

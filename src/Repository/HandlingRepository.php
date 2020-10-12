@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\AverageRequestTime;
 use App\Entity\Handling;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -9,6 +10,7 @@ use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Join;
 
 /**
  * @method Handling|null find($id, $lockMode = null, $lockVersion = null)
@@ -302,6 +304,40 @@ class HandlingRepository extends EntityRepository
             'count' => $countFiltered,
             'total' => $countTotal
         ];
+    }
+
+    public function findRequestToTreatByUser(Utilisateur $requester) {
+        return $this->createQueryBuilder("h")
+            ->select("h")
+            ->innerJoin("h.status", "s")
+            ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = h.type')
+            ->where("s.state = " . Statut::NOT_TREATED)
+            ->andWhere("h.requester = :requester")
+            ->setParameter("requester", $requester)
+            ->addOrderBy('s.state', 'ASC')
+            ->addOrderBy("DATE_ADD(h.creationDate, art.average, 'second')", 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getTreatingTimesWithType() {
+        $now = new DateTime();
+
+        $datePrior3Months = clone $now;
+        $datePrior3Months->modify("-3 month");
+
+        return $this->createQueryBuilder("h")
+            ->select("t.id as typeId")
+            ->addSelect("h.creationDate AS validationDate")
+            ->addSelect("h.validationDate AS treatingDate")
+            ->join("h.type", "t")
+            ->join("h.status", "s")
+            ->where("s.state = " . Statut::TREATED)
+            ->andWhere("h.creationDate BETWEEN :prior AND :now")
+            ->setParameter("prior", $datePrior3Months)
+            ->setParameter("now", $now)
+            ->getQuery()
+            ->getArrayResult();
     }
 
     /**

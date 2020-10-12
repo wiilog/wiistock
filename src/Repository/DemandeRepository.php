@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\AverageRequestTime;
 use App\Entity\Demande;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
@@ -10,6 +11,9 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Join;
+use DoctrineExtensions\Query\Mysql\Date;
+use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Demande|null find($id, $lockMode = null, $lockVersion = null)
@@ -37,6 +41,67 @@ class DemandeRepository extends EntityRepository
             WHERE s.nom <> :status AND d.utilisateur = :user"
         )->setParameters(['user' => $user, 'status' => $status]);
 
+        return $query->execute();
+    }
+
+    public function findRequestToTreatByUser(Utilisateur $requester) {
+        $statuses = [
+            Demande::STATUT_BROUILLON,
+            Demande::STATUT_A_TRAITER,
+            Demande::STATUT_INCOMPLETE,
+            Demande::STATUT_PREPARE,
+            Demande::STATUT_LIVRE_INCOMPLETE,
+        ];
+
+        $queryBuilder = $this->createQueryBuilder('demande');
+        $queryBuilderExpr = $queryBuilder->expr();
+        return $queryBuilder
+            ->select('demande')
+            ->innerJoin('demande.statut', 'status')
+            ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = demande.type')
+            ->where(
+                $queryBuilderExpr->andX(
+                    $queryBuilderExpr->in('status.nom', ':statusNames'),
+                    $queryBuilderExpr->eq('demande.utilisateur', ':requester')
+                )
+            )
+            ->setParameters([
+                'statusNames' => $statuses,
+                'requester' => $requester,
+            ])
+            ->addOrderBy(sprintf("FIELD(status.nom, '%s', '%s', '%s', '%s', '%s')", ...$statuses), 'DESC')
+            ->addOrderBy("DATE_ADD(demande.date, art.average, 'second')", 'ASC')
+            ->getQuery()
+            ->execute();
+    }
+
+    /**
+     * @return int|mixed|string
+     */
+    public function getTreatingTimesWithType() {
+        $nowDate = new DateTime();
+        $datePrior3Months = (clone $nowDate)->modify('-3 month');
+        $queryBuilder = $this->createQueryBuilder('demande');
+        $queryBuilderExpr = $queryBuilder->expr();
+        $query = $queryBuilder
+            ->select($queryBuilderExpr->min('preparation.date') . ' AS validationDate')
+            ->addSelect('type.id as typeId')
+            ->addSelect(
+                $queryBuilderExpr->max('livraison.dateFin') . ' AS treatingDate'
+            )
+            ->join('demande.type', 'type')
+            ->join('demande.statut', 'statut')
+            ->join('demande.preparations', 'preparation')
+            ->join('preparation.livraison', 'livraison')
+            ->where('statut.nom LIKE :statutTreated')
+            ->andHaving($queryBuilderExpr->min('preparation.date') . ' BETWEEN :start AND :end')
+            ->groupBy('demande.id')
+            ->setParameters([
+                'start' => $datePrior3Months,
+                'end' => $nowDate,
+                'statutTreated' => Demande::STATUT_LIVRE,
+            ])
+            ->getQuery();
         return $query->execute();
     }
 
@@ -164,7 +229,7 @@ class DemandeRepository extends EntityRepository
     {
         $qb = $this->createQueryBuilder("d");
 
-        $countTotal = QueryCounter::count($qb);
+        $countTotal = QueryCounter::count($qb, 'd');
 
         if ($receptionFilter) {
             $qb
@@ -254,7 +319,7 @@ class DemandeRepository extends EntityRepository
         }
 
 		// compte éléments filtrés
-		$countFiltered = QueryCounter::count($qb);
+		$countFiltered = QueryCounter::count($qb, 'd');
 
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

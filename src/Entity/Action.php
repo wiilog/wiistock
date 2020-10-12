@@ -52,6 +52,7 @@ class Action
     const EDIT_PROCESSED_DISPATCH = 'modifier acheminements traités';
     const DELETE_DRAFT_DISPATCH = 'supprimer acheminements brouillons';
     const DELETE_UNPROCESSED_DISPATCH = 'supprimer acheminements à traiter';
+    const DELETE_UNPROCESSED_HANDLING = 'supprimer services à traiter';
     const SHOW_CARRIER_FIELD = 'afficher le champ transporteur';
     const GENERATE_DELIVERY_NOTE = 'générer un bon de livraison';
     const GENERATE_WAY_BILL = 'générer une lettre de voiture';

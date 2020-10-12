@@ -246,8 +246,10 @@ class ArrivageRepository extends EntityRepository
      * @param array|null $params
      * @param array|null $filters
      * @param int|null $userId
+     * @param $freeFieldLabelsToIds
      * @return array
-     * @throws Exception
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function findByParamsAndFilters($params, $filters, $userId, $freeFieldLabelsToIds)
     {
@@ -261,10 +263,9 @@ class ArrivageRepository extends EntityRepository
                 ->setParameter('userId', $userId);
         }
 
-        $total = QueryCounter::count($qb);
+        $total = QueryCounter::count($qb, 'a');
 
         // filtres sup
-        $needsDefaultDateFilter = true;
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statut':
@@ -296,18 +297,12 @@ class ArrivageRepository extends EntityRepository
                         ->setParameter('transporteurId', $value);
                     break;
                 case 'dateMin':
-                    $needsDefaultDateFilter = false;
-                    $dateForFilter = new DateTime(str_replace('/', '-', $filter['value']));
-                    $dateForFilterString = $dateForFilter->format('Y-m-d');
                     $qb->andWhere('a.date >= :dateMin')
-                        ->setParameter('dateMin', $dateForFilterString . " 00:00:00");
+                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
                     break;
                 case 'dateMax':
-                    $needsDefaultDateFilter = false;
-                    $dateForFilter = new DateTime(str_replace('/', '-', $filter['value']));
-                    $dateForFilterString = $dateForFilter->format('Y-m-d');
                     $qb->andWhere('a.date <= :dateMax')
-                        ->setParameter('dateMax', $dateForFilterString . " 23:59:59");
+                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
                 case 'emergency':
                     $qb
@@ -339,12 +334,10 @@ class ArrivageRepository extends EntityRepository
 		$orderStatut = null;
 		//Filter search
         if (!empty($params)) {
-            if (!empty($params->get('clicked'))) {
-                if ($params->get('clicked') === 'true' && $needsDefaultDateFilter) $needsDefaultDateFilter = false;
-            }
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
+                    $searchValue = '%' . $search . '%';
                     $qb
                         ->leftJoin('a.transporteur', 't3')
                         ->leftJoin('a.chauffeur', 'ch3')
@@ -368,8 +361,9 @@ class ArrivageRepository extends EntityRepository
                             OR a.businessUnit LIKE :value
                             OR a.projectNumber LIKE :value
                             OR DATE_FORMAT(a.date, '%e/%m/%Y') LIKE :value
+                            OR JSON_SEARCH(a.freeFields, 'one', '$searchValue') IS NOT NULL
                         )")
-                        ->setParameter('value', '%' . $search . '%');
+                        ->setParameter('value', $searchValue);
                 }
             }
 
@@ -434,7 +428,7 @@ class ArrivageRepository extends EntityRepository
                             ->leftJoin('a.packs', 'col2')
                             ->orderBy('nbum', $order)
                             ->groupBy('col2.arrivage, a');
-                    } else if ($column === 'statut') {
+                    } else if ($column === 'status') {
                         $qb
                             ->leftJoin('a.statut', 'order_status')
                             ->orderBy('order_status.nom', $order);
@@ -454,16 +448,8 @@ class ArrivageRepository extends EntityRepository
                 }
             }
         }
-        if ($needsDefaultDateFilter) {
-            $now = new DateTime('now', New \DateTimeZone('Europe/Paris'));
-            $nowToString = $now->format('Y-m-d');
-            $qb->andWhere('a.date >= :dateMin')
-                ->setParameter('dateMin', $nowToString . " 00:00:00");
-            $qb->andWhere('a.date <= :dateMax')
-                ->setParameter('dateMax', $nowToString . " 23:59:59");
-        }
 
-        $filtered = QueryCounter::count($qb);
+        $filtered = QueryCounter::count($qb, 'a');
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

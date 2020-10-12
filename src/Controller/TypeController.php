@@ -1,74 +1,64 @@
 <?php
 
+
 namespace App\Controller;
 
-use App\Entity\Article;
+use App\Entity\Action;
 use App\Entity\CategoryType;
-use App\Entity\FiltreRef;
-use App\Entity\ReferenceArticle;
-use App\Entity\ChampLibre;
+use App\Entity\Emplacement;
+use App\Entity\Menu;
+use App\Entity\Statut;
 use App\Entity\Type;
+use App\Service\GlobalParamService;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Repository\FiltreRefRepository;
 
 /**
  * Class TypeController
  * @package App\Controller
- * @Route("/type")
+ * @Route("/types")
  */
 class TypeController extends AbstractController
 {
-
     /**
-     * @var FiltreRefRepository
+     * @var UserService
      */
-    private $filtreRefRepository;
+    private $userService;
 
-    public function __construct(EntityManagerInterface $manager) {
-        $this->filtreRefRepository = $manager->getRepository(FiltreRef::class);
-    }
-
-    /**
-     * @Route("/", name="type_show_select", options={"expose"=true}, methods={"GET","POST"})
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function showSelectInput(EntityManagerInterface $entityManager,
-                                    Request $request)
+    public function __construct(UserService $userService)
     {
-        if ($request->isXmlHttpRequest() && $value = json_decode($request->getContent(), true)) {
-
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-
-            $isType = true;
-            if (is_numeric($value['value'])) {
-                $cl = $champLibreRepository->find(intval($value['value']));
-                $options = $cl->getElements();
-                $isType = false;
-            }
-            else {
-                $options = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
-            }
-
-            $view = $this->renderView('type/inputSelectTypes.html.twig', [
-                'options' => $options,
-                'isType' => $isType
-            ]);
-            return new JsonResponse($view);
-        }
-        throw new NotFoundHttpException("404");
+        $this->userService = $userService;
     }
 
     /**
-     * @Route("/api", name="type_api", options={"expose"=true}, methods={"POST"})
+     * @Route("/", name="types_index")
+     * @param EntityManagerInterface $entityManager
+     * @return RedirectResponse|Response
+     */
+    public function index(EntityManagerInterface $entityManager)
+    {
+        if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_TYPE)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+
+        $categories = $categoryTypeRepository->findAll();
+
+        return $this->render('types/index.html.twig', [
+            'categories' => $categories,
+        ]);
+    }
+
+    /**
+     * @Route("/api", name="types_param_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -76,24 +66,30 @@ class TypeController extends AbstractController
     public function api(Request $request,
                         EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-        {
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_TYPE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $typeRepository = $entityManager->getRepository(Type::class);
             $types = $typeRepository->findAll();
-
             $rows = [];
             foreach ($types as $type) {
-                $url = $this->generateUrl('champs_libre_show', ['id' => $type->getId()]);
-                $rows[] =
-                    [
-                        'id' => ($type->getId() ? $type->getId() : "Non défini"),
-                        'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
-                        "S'applique" => ($type->getCategory() ? $type->getCategory()->getLabel() : 'Non défini'),
-                        'Actions' =>  $this->renderView('champ_libre/datatableTypeRow.html.twig', [
-                            'urlChampLibre' => $url,
-                            'idType' => $type->getId()
-                        ]),
-                    ];
+                $url['edit'] = $this->generateUrl('types_api_edit', ['id' => $type->getId()]);
+
+                $rows[] = [
+                    'Label' => $type->getLabel(),
+                    'Categorie' => $type->getCategory() ? $type->getCategory()->getLabel() : '',
+                    'Description' => $type->getDescription(),
+                    'sendMail' => $type->getCategory() && ($type->getCategory()->getLabel() === CategoryType::DEMANDE_LIVRAISON)
+                        ? ($type->getSendMail() ? 'Oui' : 'Non')
+                        : '',
+                    'Actions' => $this->renderView('types/datatableTypeRow.html.twig', [
+                        'url' => $url,
+                        'typeId' => $type->getId(),
+                        'type' => $type
+                    ]),
+                ];
             }
             $data['data'] = $rows;
             return new JsonResponse($data);
@@ -102,113 +98,179 @@ class TypeController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="type_delete", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/creer", name="types_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param GlobalParamService $globalParamService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function delete(Request $request,
-                           EntityManagerInterface $entityManager): Response
+    public function new(Request $request,
+                        GlobalParamService $globalParamService,
+                        EntityManagerInterface $entityManager): Response
     {
-        if ($data = json_decode($request->getContent(), true)) {
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $em = $this->getDoctrine()->getManager();
+
             $typeRepository = $entityManager->getRepository(Type::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $articleRepository = $entityManager->getRepository(Article::class);
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
-            $type = $typeRepository->find(intval($data['type']));
-            // si on a confirmé la suppression, on supprime les enregistrements liés
-            if (isset($data['force'])) {
-                $referenceArticleRepository->setTypeIdNull($type);
-                $articleRepository->setTypeIdNull($type);
-                foreach ($champLibreRepository->findByType($type) as $cl) {
-                    $this->filtreRefRepository->deleteByChampLibre($cl);
-                }
-                $champLibreRepository->deleteByType($type);
-                $entityManager->flush();
+            // on vérifie que le label n'est pas déjà utilisé
+            $labelExist = $typeRepository->countByLabelAndCategory($data['label'], $data['category']);
+
+
+            if (!$labelExist) {
+                $type = new Type();
+
+                $globalParamService->treatTypeCreationOrEdition($type, $categoryTypeRepository, $emplacementRepository, $data);
+
+                $em->persist($type);
+                $em->flush();
+
+				return new JsonResponse([
+					'success' => true,
+					'msg' => 'Le type <strong>' . $data['label'] . '</strong> a bien été créé.'
+				]);
+            } else {
+				return new JsonResponse([
+					'success' => false,
+					'msg' => 'Le type <strong>' . $data['label'] . '</strong> existe déjà pour cette catégorie. Veuillez en choisir un autre.'
+				]);
             }
-
-            else {
-
-                // sinon on vérifie qu'il n'est pas lié par des contraintes de clé étrangère
-                $articlesRefExist = $referenceArticleRepository->countByType($type);
-                $articlesExist = $articleRepository->countByType($type);
-                $champsLibresExist = $champLibreRepository->countByType($type);
-                $filters = 0;
-
-                foreach ($champLibreRepository->findByType($type) as $cl) {
-                    $filters += $this->filtreRefRepository->countByChampLibre($cl);
-                }
-
-                if ((int)$champsLibresExist + (int)$articlesExist + (int)$articlesRefExist > 0) {
-                    return new JsonResponse([
-                        'success' => true,
-                        'nextModal' => $this->renderView('champ_libre/modalDeleteTypeConfirm.html.twig', [
-                            'champLibreFilter' => $filters !== 0
-                        ])
-                    ]);
-                }
-            }
-
-            if ($type !== null) $entityManager->remove($type);
-            $entityManager->flush();
-
-            return new JsonResponse([
-                'success' => true,
-                'msg' => 'Le type <strong>' . $type->getLabel() . ' </strong> a bien été supprimé.'
-            ]);
         }
         throw new NotFoundHttpException("404");
     }
 
     /**
-     * @Route("/api-modifier", name="type_api_edit", options={"expose"=true},  methods="GET|POST")
+     * @Route("/api-modifier", name="types_api_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function editApi(Request $request,
+    public function apiEdit(Request $request,
                             EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $typeRepository = $entityManager->getRepository(Type::class);
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $type = $entityManager->find(Type::class, $data['id']);
             $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
 
-            $type = $typeRepository->find($data['id']);
-            $json = $this->renderView('champ_libre/modalEditTypeContent.html.twig', [
+            $categories = $categoryTypeRepository->findAll();
+
+            $json = $this->renderView('types/modalEditTypeContent.html.twig', [
                 'type' => $type,
-                'category' => $categoryTypeRepository->getNoOne($type->getCategory()->getId())
+                'categories' => $categories,
             ]);
+
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
     }
 
     /**
-     * @Route("/modifier", name="type_edit", options={"expose"=true},  methods="GET|POST")
+     * @Route("/modifier", name="types_edit",  options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param GlobalParamService $globalParamService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function edit(Request $request,
+                         GlobalParamService $globalParamService,
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
-            $category = $categoryTypeRepository->find($data['category']);
             $type = $typeRepository->find($data['type']);
-            $type
-                ->setLabel($data['label'])
-                ->setCategory($category);
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
+            $typeLabel = $type->getLabel();
+
+            // on vérifie que le label n'est pas déjà utilisé
+            $labelExist = $typeRepository->countByLabelDiff($data['label'], $typeLabel, $data['category']);
+
+            if (!$labelExist) {
+                $globalParamService->treatTypeCreationOrEdition($type, $categoryTypeRepository, $emplacementRepository, $data);
+
+                $entityManager->persist($type);
+                $entityManager->flush();
+
+                return new JsonResponse([
+                	'success' => true,
+					'msg' => 'Le type <strong>' . $typeLabel . '</strong> a bien été modifié.'
+				]);
+            } else {
+                return new JsonResponse([
+                	'success' => false,
+					'msg' => 'Le type <strong>' . $typeLabel . '</strong> existe déjà pour cette catégorie. Veuillez en choisir un autre.'
+				]);
+            }
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/verification", name="types_check_delete", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function checkTypeCanBeDeleted(Request $request,
+                                          EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest() && $typeId = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $statusRepository = $entityManager->getRepository(Statut::class);
+            $canDelete = !$typeRepository->isTypeUsed($typeId);
+            $statuses = $statusRepository->findBy(['type' => $typeId]);
+
+            $html = $canDelete && empty($statuses)
+                ? $this->renderView('types/modalDeleteTypeRight.html.twig')
+                : $this->renderView('types/modalDeleteTypeWrong.html.twig');
+
+            return new JsonResponse(['delete' => $canDelete, 'html' => $html]);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/supprimer", name="types_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function delete(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $type = $entityManager->find(Type::class, $data['type']);
+            $typeLabel = $type->getLabel();
+
+            $entityManager->remove($type);
+            $entityManager->flush();
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'Le type <strong>' . $type->getLabel() . '</strong> a bien été modifié.'
+                'msg' => 'Le type <strong>' . $typeLabel . '</strong> a bien été supprimé.'
             ]);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 }

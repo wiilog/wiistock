@@ -256,7 +256,6 @@ class PreparationsManagerService
      * @param string $article
      * @param Preparation $preparation
      * @param bool $isSelectedByArticle
-     * @throws NonUniqueResultException
      */
     public function createMouvementLivraison(int $quantity,
                                              Utilisateur $userNomade,
@@ -298,12 +297,16 @@ class PreparationsManagerService
                 ? $article
                 : $articleRepository->findOneByReference($article);
             if ($article) {
+                /** @var MouvementStock $stockMovement */
+                $stockMovement = !$isSelectedByArticle
+                    ? $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId())
+                    : null;
                 // si c'est un article sélectionné par l'utilisateur :
                 // on prend la quantité donnée dans le mouvement
                 // sinon on prend la quantité spécifiée dans le mouvement de transfert (créé dans beginPrepa)
-                $mouvementQuantity = ($isSelectedByArticle
+                $mouvementQuantity = ($isSelectedByArticle || !isset($stockMovement))
                     ? $quantity
-                    : $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId())->getQuantity());
+                    : $stockMovement->getQuantity();
 
                 $mouvement
                     ->setArticle($article)
@@ -423,6 +426,7 @@ class PreparationsManagerService
         $articles = $preparation->getArticles();
         foreach ($articles as $article) {
             $mouvementAlreadySaved = $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId());
+
             if (!$mouvementAlreadySaved) {
                 $quantitePrelevee = $article->getQuantitePrelevee();
                 $selected = !(empty($quantitePrelevee));

@@ -1,6 +1,10 @@
 .carousel {
     height: 100%;
 
+    .carousel-indicators {
+        z-index: 10000;
+    }
+
     .carousel-indicators li {
         width: 10px;
         height: 10px;

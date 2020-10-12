@@ -3,13 +3,17 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
+use App\Entity\Demande;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\Menu;
+use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -46,9 +50,11 @@ class DemandeCollecteService
     private $articleFournisseurService;
     private $articleDataService;
     private $mouvementStockService;
+    private $userService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
+                                UserService $userService,
                                 StringService $stringService,
                                 FreeFieldService $champLibreService,
                                 ArticleFournisseurService $articleFournisseurService,
@@ -66,6 +72,7 @@ class DemandeCollecteService
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
         $this->mouvementStockService = $mouvementStockService;
+        $this->userService = $userService;
     }
 
     /**
@@ -256,5 +263,96 @@ class DemandeCollecteService
             $getSpecificColumn(),
             $freeFieldsData
         );
+    }
+
+    /**
+     * @param Collecte $request
+     * @param DateService $dateService
+     * @param array $averageRequestTimesByType
+     * @return array
+     * @throws Exception
+     */
+    public function parseRequestForCard(Collecte $request,
+                                        DateService $dateService,
+                                        array $averageRequestTimesByType) {
+        $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL);
+        $hasRightToSeeOrder = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL);
+
+        $requestStatus = $request->getStatut() ? $request->getStatut()->getNom() : '';
+        $requestType = $request->getType() ? $request->getType()->getLabel() : '';
+        $typeId = $request->getType() ? $request->getType()->getId() : null;
+
+        /** @var OrdreCollecte $order */
+        $order = $request->getOrdresCollecte()->last();
+
+        if ($requestStatus === Collecte::STATUT_BROUILLON && $hasRightToSeeRequest) {
+            $href = $this->router->generate('collecte_show', ['id' => $request->getId()]);
+        } else if (in_array($requestStatus, [Collecte::STATUT_INCOMPLETE, Collecte::STATUT_A_TRAITER])
+                   && $hasRightToSeeOrder
+                   && $order) {
+            $href = $this->router->generate('ordre_collecte_show', ['id' => $order->getId()]);
+        }
+
+        $articlesCounter = $order
+            ? ($order->getArticles()->count() + $order->getOrdreCollecteReferences()->count())
+            : ($request->getArticles()->count() + $request->getCollecteReferences()->count());
+
+        $articlePlural = $articlesCounter > 1 ? 's' : '';
+        $bodyTitle = $articlesCounter . ' article' . $articlePlural . ' - ' . $requestType;
+
+        $averageTime = $averageRequestTimesByType[$typeId] ?? null;
+
+        $deliveryDateEstimated = 'Non estimée';
+        $estimatedFinishTimeLabel = 'Date de collecte non estimée';
+        $today = new DateTime();
+
+        if (isset($averageTime)) {
+            $expectedDate = (clone $request->getDate())
+                ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
+            if ($expectedDate >= $today) {
+                $estimatedFinishTimeLabel = 'Date et heure de collecte prévue';
+                $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
+                if ($expectedDate->format('d/m/Y') === $today->format('d/m/Y')) {
+                    $estimatedFinishTimeLabel = 'Heure de collecte estimée';
+                    $deliveryDateEstimated = $expectedDate->format('H:i');
+                }
+            }
+        }
+
+        $requestDate = $request->getDate();
+        $requestDateStr = $requestDate
+            ? (
+                $requestDate->format('d ')
+                . DateService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
+                . $requestDate->format(' (H\hi)')
+            )
+            : 'Non défini';
+
+        $statusesToProgress = [
+            Collecte::STATUT_BROUILLON => 0,
+            Collecte::STATUT_A_TRAITER => 50,
+            Collecte::STATUT_INCOMPLETE => 75,
+            Collecte::STATUT_COLLECTE => 100
+        ];
+
+        return [
+            'href' => $href ?? null,
+            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la collecte',
+            'estimatedFinishTime' => $deliveryDateEstimated,
+            'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
+            'requestStatus' => $requestStatus,
+            'requestBodyTitle' => $bodyTitle,
+            'requestLocation' => $request->getPointCollecte() ? $request->getPointCollecte()->getLabel() : 'Non défini',
+            'requestNumber' => $request->getNumero(),
+            'requestDate' => $requestDateStr,
+            'requestUser' => $request->getDemandeur() ? $request->getDemandeur()->getUsername() : 'Non défini',
+            'cardColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'lightGrey' : 'white',
+            'bodyColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'white' : 'lightGrey',
+            'topRightIcon' => 'fa-box',
+            'emergencyText' => '',
+            'progress' => $statusesToProgress[$requestStatus] ?? 0,
+            'progressBarColor' => '#2ec2ab',
+            'progressBarBGColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'white' : 'lightGrey',
+        ];
     }
 }

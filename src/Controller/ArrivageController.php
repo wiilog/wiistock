@@ -7,7 +7,7 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Chauffeur;
 use App\Entity\Pack;
 use App\Entity\FieldsParam;
@@ -143,7 +143,7 @@ class ArrivageController extends AbstractController
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
@@ -943,7 +943,7 @@ class ArrivageController extends AbstractController
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $usersRepository = $entityManager->getRepository(Utilisateur::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();

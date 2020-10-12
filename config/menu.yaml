@@ -184,11 +184,6 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_UTIL
-                -   label: 'Champs libres'
-                    path: 'champ_libre_index'
-                    rights:
-                        menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_CL
                 -   label: 'Export de données'
                     path: 'exports_params'
                     rights:
@@ -199,8 +194,8 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_INVE
-                -   label: 'Types'
-                    path: 'types_param_index'
+                -   label: 'Types & Champs libres'
+                    path: 'types_index'
                     rights:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_TYPE

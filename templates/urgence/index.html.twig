@@ -54,5 +54,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/urgence.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/urgence.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

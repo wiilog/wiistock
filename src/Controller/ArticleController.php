@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
@@ -127,7 +127,7 @@ class ArticleController extends AbstractController
         }
 
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         /** @var Utilisateur $user */
@@ -265,11 +265,14 @@ class ArticleController extends AbstractController
             'id' => 0,
             'typage' => 'date'
         ];
-        $champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_TEXT);
-        $champsLTList = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_LIST);
+        $champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_TEXT);
+        $champsLTList = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_LIST);
         $champs = array_merge($champF, $champL);
         $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
-        $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $this->getUser());
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $currentUser);
 
         return $this->render('article/index.html.twig', [
             'champsSearch' => $champsSearch,
@@ -294,6 +297,7 @@ class ArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
 
+            /** @var Utilisateur $user */
             $user = $this->getUser();
 
             $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
@@ -355,7 +359,7 @@ class ArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
             $currentUser = $this->getUser();
@@ -589,6 +593,7 @@ class ArticleController extends AbstractController
 
             /** @var Article $article */
             $article = $articleRepository->find($data['article']);
+            $articleBarCode = $article->getBarCode();
 
             $receptionReferenceArticle = $article->getReceptionReferenceArticle();
             if (isset($receptionReferenceArticle)) {
@@ -643,7 +648,11 @@ class ArticleController extends AbstractController
             $entityManager->flush();
 
             $response['delete'] = $rows;
-            return new JsonResponse($response);
+            return new JsonResponse([
+                'delete' => $rows,
+                'success' => true,
+                'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> a bien été supprimé.'
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -801,7 +810,9 @@ class ArticleController extends AbstractController
             $refArticle = $referenceArticleRepository->find($refArticle);
 
             if ($refArticle) {
-                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $this->getUser());
+                /** @var Utilisateur $currentUser */
+                $currentUser = $this->getUser();
+                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $currentUser);
             } else {
                 $json = false; //TODO gérer erreur retour
             }
@@ -876,7 +887,7 @@ class ArticleController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
 
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $refArticle = $referenceArticleRepository->find($data['referenceArticle']);

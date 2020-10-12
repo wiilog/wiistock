@@ -1,5 +1,9 @@
 <!-- Modal -->
-<form method="" class="modal fade" id="modalNewCollecte" role="dialog" aria-labelledby="dataModalCenterTitle"
+<form method="" class="modal fade" id="modalNewCollecte"
+      data-modal-type="new"
+      role="dialog"
+      data-callback="initNewCollecteModal()"
+      aria-labelledby="dataModalCenterTitle"
       aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -23,7 +27,7 @@
                 </div>
                 <div class="form-group w-100 ">
                     <label for="Pcollecte">Point de collecte*</label>
-                    <select class="ajax-autocompleteEmplacement form-control data needed" name="emplacement">
+                    <select class="ajax-autocomplete-location form-control data needed" name="emplacement">
                     </select>
                 </div>
 
@@ -52,7 +56,7 @@
                 <div class="collapsible expanded free-fields-container mb-2">
                     {% for type in typeChampsLibres %}
                         <div class="d-none" id="{{ type.typeId }}-new">
-                            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+                            {% include 'free_field/freeFieldsViewing.html.twig' with {
                                 freeFields: type.champsLibres,
                                 freeFieldValues: [],
                                 colType: 'col-12',
@@ -72,8 +76,8 @@
             </div>
             <div class="error-msg"></div>
             <div class="modal-footer">
-                <div type="div" class="btn" data-dismiss="modal">Annuler</div>
-                <div id="submitNewCollecte" type="div" class="btn btn-success">Enregistrer</div>
+                <div type="div" class="btn btn-secondary" data-dismiss="modal">Annuler</div>
+                <div id="submitNewCollecte" type="div" class="btn btn-primary">Enregistrer</div>
             </div>
         </div>
     </div>

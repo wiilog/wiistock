@@ -4,8 +4,12 @@
 namespace App\Service;
 
 
+use App\Entity\Action;
+use App\Entity\Demande;
 use App\Entity\FiltreSup;
 use App\Entity\Handling;
+use App\Entity\Menu;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use DateTime;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -34,11 +38,13 @@ class HandlingService
      */
     private $user;
 
+    private $userService;
     private $entityManager;
     private $mailerService;
     private $translator;
 
     public function __construct(TokenStorageInterface $tokenStorage,
+                                UserService $userService,
                                 RouterInterface $router,
                                 MailerService $mailerService,
                                 EntityManagerInterface $entityManager,
@@ -47,6 +53,7 @@ class HandlingService
     {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
+        $this->userService = $userService;
         $this->mailerService = $mailerService;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
@@ -169,4 +176,80 @@ class HandlingService
 
         return (Handling::PREFIX_NUMBER . $dateStr . $currentCounterStr);
     }
+
+    /**
+     * @param Handling $handling
+     * @param DateService $dateService
+     * @param array $averageRequestTimesByType
+     * @return array
+     * @throws \Exception
+     */
+    public function parseRequestForCard(Handling $handling, DateService $dateService, array $averageRequestTimesByType) {
+        $hasRightHandling = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND);
+
+        $requestStatus = $handling->getStatus() ? $handling->getStatus()->getNom() : '';
+        $state = $handling->getStatus() ? $handling->getStatus()->getState() : null;
+
+        if ($hasRightHandling) {
+            $href = $this->router->generate('handling_index') . '?open-modal=edit&modal-edit-id=' . $handling->getId();
+        }
+
+        $typeId = $handling->getType() ? $handling->getType()->getId() : null;
+        $averageTime = $averageRequestTimesByType[$typeId] ?? null;
+
+        $deliveryDateEstimated = 'Non estimée';
+        $estimatedFinishTimeLabel = 'Date de traitement non estimée';
+
+        if (isset($averageTime)) {
+            $today = new DateTime();
+            $expectedDate = (clone $handling->getCreationDate())
+                ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
+            if ($expectedDate >= $today) {
+                $estimatedFinishTimeLabel = 'Date et heure de traitement prévue';
+                $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
+                if ($expectedDate->format('d/m/Y') === $today->format('d/m/Y')) {
+                    $estimatedFinishTimeLabel = 'Heure de traitement estimée';
+                    $deliveryDateEstimated = $expectedDate->format('H:i');
+                } else {
+
+                }
+            }
+        }
+
+        $requestDate = $handling->getCreationDate();
+        $requestDateStr = $requestDate
+            ? (
+                $requestDate->format('d ')
+                . DateService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
+                . $requestDate->format(' (H\hi)')
+            )
+            : 'Non défini';
+
+        $statusesToProgress = [
+            Statut::DRAFT => 0,
+            Statut::NOT_TREATED => 50,
+            Statut::TREATED => 100
+        ];
+
+        return [
+            'href' => $href ?? null,
+            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la demande de livraison',
+            'estimatedFinishTime' => $deliveryDateEstimated,
+            'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
+            'requestStatus' => $requestStatus,
+            'requestBodyTitle' => $handling->getSubject(),
+            'requestLocation' => $handling->getDestination() ?: 'Non défini',
+            'requestNumber' => $handling->getNumber(),
+            'requestDate' => $requestDateStr,
+            'requestUser' => $handling->getRequester() ? $handling->getRequester()->getUsername() : 'Non défini',
+            'cardColor' => 'white',
+            'bodyColor' => 'lightGrey',
+            'topRightIcon' => $handling->getEmergency() ? 'fa-exclamation-triangle red' : 'fa-box',
+            'emergencyText' => $handling->getEmergency() ?? '',
+            'progress' =>  $statusesToProgress[$state] ?? 0,
+            'progressBarColor' => '#2ec2ab',
+            'progressBarBGColor' => 'lightGrey',
+        ];
+    }
+
 }

@@ -65,8 +65,7 @@
                             {% endif %}
                             <a class="dropdown-item pointer"
                                data-toggle="modal"
-                               data-target="#modalColumnVisibleTrackingMovement"
-                               href="#">
+                               data-target="#modalColumnVisibleTrackingMovement">
                                 <i class="fa fa-cog mr-2"></i>
                                 Gestion des colonnes
                             </a>
@@ -104,5 +103,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/mouvement_traca.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/mouvement_traca.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

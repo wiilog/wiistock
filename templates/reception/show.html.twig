@@ -34,7 +34,7 @@
                                                 data-target="#modalAddLigneArticle"
                                                 class="btn btn-primary btn-ripple split-button"
                                                 onclick="initNewArticleEditor('#modalAddLigneArticle'),
-                                                ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
+                                                Select2.provider($('.ajax-autocomplete-fournisseur'))">
                                             <span class="fa fa-plus mr-2"></span>Ajouter <span title="article">{{ 'réception.article'|trans }}</span>
                                         </button>
                                     {% endif %}
@@ -122,7 +122,7 @@
 {% block javascripts %}
     {{ parent() }}
 
-    <script src="{{ asset('js/form-litiges.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/form-reference-article.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/reception-show.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/form-litiges.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/form-reference-article.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/reception-show.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

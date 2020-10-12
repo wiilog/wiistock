@@ -69,7 +69,7 @@
                 </div>
                 <span class="toggle-collapsible expanded">Champs libres</span>
                 <div class="collapsible expanded free-fields-container">
-                    {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+                    {% include 'free_field/freeFieldsViewing.html.twig' with {
                         freeFields: champsLibres,
                         freeFieldValues: [],
                         colType: 'col-md-4 col-12',
@@ -80,8 +80,8 @@
             </div>
             <div class="error-msg"></div>
             <div class="modal-footer">
-                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitNewMvtTraca" type="button" class="btn btn-success">Enregistrer</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button id="submitNewMvtTraca" type="button" class="btn btn-primary">Enregistrer</button>
             </div>
         </div>
     </div>

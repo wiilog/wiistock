@@ -176,6 +176,7 @@ class UtilisateurController extends AbstractController
 				->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT)
                 ->setColumnsVisibleForArrivage(Utilisateur::COL_VISIBLE_ARR_DEFAULT)
                 ->setColumnsVisibleForDispatch(Utilisateur::COL_VISIBLE_DISPATCH_DEFAULT)
+                ->setColumnsVisibleForTrackingMovement(Utilisateur::COL_VISIBLE_TRACKING_MOVEMENT_DEFAULT)
                 ->setColumnsVisibleForLitige(Utilisateur::COL_VISIBLE_LIT_DEFAULT)
 				->setRechercheForArticle(Utilisateur::SEARCH_DEFAULT)
                 ->setRecherche(Utilisateur::SEARCH_DEFAULT)

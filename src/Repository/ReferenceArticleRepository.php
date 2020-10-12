@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
@@ -28,8 +28,8 @@ class ReferenceArticleRepository extends EntityRepository
         'Label' => 'libelle',
         'Libellé' => 'libelle',
         'Référence' => 'reference',
-        'SeuilAlerte' => 'limitWarning',
-        'SeuilSecurite' => 'limitSecurity',
+        'limitWarning' => 'limitWarning',
+        'limitSecurity' => 'limitSecurity',
         'Urgence' => 'isUrgent',
         'Type' => 'Type',
         'Quantité disponible' => 'quantiteDisponible',
@@ -42,7 +42,8 @@ class ReferenceArticleRepository extends EntityRepository
         'Date d\'alerte' => 'dateEmergencyTriggered',
         'typeQuantite' => 'typeQuantite',
         'Dernier inventaire' => 'dateLastInventory',
-        'Synchronisation nomade' => 'needsMobileSync'
+        'Synchronisation nomade' => 'needsMobileSync',
+        'Prix unitaire' => 'prixUnitaire',
     ];
 
     public function getIdAndLibelle()
@@ -221,8 +222,8 @@ class ReferenceArticleRepository extends EntityRepository
             'Quantité disponible' => ['field' => 'quantiteDisponible', 'typage' => 'text'],
             'Commentaire d\'urgence' => ['field' => 'emergencyComment', 'typage' => 'text'],
             'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'text'],
-            'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
-            'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
+            'limitWarning' => ['field' => 'Seuil d\'alerte', 'typage' => 'number'],
+            'limitSecurity' => ['field' => 'Seuil de securité', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
             'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
         ];
@@ -300,24 +301,24 @@ class ReferenceArticleRepository extends EntityRepository
                     $clId = $filter['champLibre'];
                     $freeFieldType = $filter['typage'];
                     switch ($freeFieldType) {
-                        case ChampLibre::TYPE_BOOL:
+                        case FreeField::TYPE_BOOL:
                             $value = empty($value) ? "0" : $value;
                             break;
-                        case ChampLibre::TYPE_TEXT:
+                        case FreeField::TYPE_TEXT:
                             $value = '%' . $value . '%';
                             break;
-                        case ChampLibre::TYPE_DATE:
-                        case ChampLibre::TYPE_DATETIME:
+                        case FreeField::TYPE_DATE:
+                        case FreeField::TYPE_DATETIME:
                             $formattedDate = new \DateTime(str_replace('/', '-', $value));
                             $value = '%' . $formattedDate->format('Y-m-d') . '%';
                             break;
-                        case ChampLibre::TYPE_LIST:
-                        case ChampLibre::TYPE_LIST_MULTIPLE:
+                        case FreeField::TYPE_LIST:
+                        case FreeField::TYPE_LIST_MULTIPLE:
                             $value = array_map(function (string $value) {
                                 return '%' . $value . '%';
                             }, explode(',', $value));
                             break;
-                        case ChampLibre::TYPE_NUMBER:
+                        case FreeField::TYPE_NUMBER:
                             break;
                     }
                     if (!is_array($value)) {
@@ -326,7 +327,7 @@ class ReferenceArticleRepository extends EntityRepository
 
                     $jsonSearchesQueryArray = array_map(function(string $item) use ($clId, $freeFieldType) {
                         $conditionType = ' IS NOT NULL';
-                        if ($item === "0" && $freeFieldType === ChampLibre::TYPE_BOOL) {
+                        if ($item === "0" && $freeFieldType === FreeField::TYPE_BOOL) {
                             $item = "1";
                             $conditionType = ' IS NULL';
                         }
@@ -418,7 +419,6 @@ class ReferenceArticleRepository extends EntityRepository
                 if (!empty($order)) {
                     $orderData = $params->get('columns')[$params->get('order')[0]['column']]['data'];
                     $column = self::DtToDbLabels[$orderData] ?? $orderData;
-
                     switch ($column) {
                         case 'Actions':
                             break;
@@ -442,6 +442,10 @@ class ReferenceArticleRepository extends EntityRepository
                             $qb
                                 ->leftJoin('ra.statut', 's')
                                 ->orderBy('s.nom', $order);
+                            break;
+                        case 'prixUnitaire':
+                            $qb
+                                ->orderBy('ra.prixUnitaire', $order);
                             break;
                         default:
                             if (property_exists(ReferenceArticle::class, $column)) {
@@ -665,7 +669,8 @@ class ReferenceArticleRepository extends EntityRepository
                          ocr.quantite as quantity,
                          1 as is_ref,
                          oc.id as id_collecte,
-                         ra.barCode
+                         ra.barCode,
+                         ra.libelle as reference_label
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
 			JOIN ra.ordreCollecteReferences ocr

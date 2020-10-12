@@ -74,5 +74,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/reception.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/reception.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

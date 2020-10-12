@@ -38,41 +38,11 @@
                         </div>
                     </div>
                 {% else %}
-                    {% if hasRightCreate and hasRightExport %}
-                        <div class="btn-group">
-                            <div class="btn btn-primary btn-ripple split-button"
-                                 data-toggle="modal" data-target="#modalNewDemande"
-                                 onclick='initNewLivraisonEditor("#modalNewDemande")'>
-                                <span class="fa fa-plus mr-2"></span>Nouvelle demande
-                            </div>
-                            <button type="button"
-                                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
-                                    data-toggle="dropdown"
-                                    aria-haspopup="true"
-                                    aria-expanded="false">
-                                <span class="fa fa-angle-down"></span>
-                            </button>
-                            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                                <div class="dropdown-item" onclick="saveExportFile('get_demandes_csv')">
-                                    <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
-                                </div>
-                            </div>
+                    {% if hasRightExport %}
+                        <div class="btn btn-primary btn-ripple"
+                             onclick="saveExportFile('get_demandes_csv')">
+                            <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
                         </div>
-                    {% else %}
-                        {% if hasRightCreate %}
-                            <div class="btn btn-primary btn-ripple"
-                                 data-toggle="modal"
-                                 data-target="#modalNewDemande"
-                                 onclick='initNewLivraisonEditor("#modalNewDemande")'>
-                                <span class="fa fa-plus mr-2"></span>Nouvelle demande
-                            </div>
-                        {% endif %}
-                        {% if hasRightExport %}
-                            <div class="btn btn-primary btn-ripple"
-                                 onclick="saveExportFile('get_demandes_csv')">
-                                <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
-                            </div>
-                        {% endif %}
                     {% endif %}
                 {% endif %}
 
@@ -97,5 +67,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/demande-livraison.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/demande-livraison.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

@@ -1,15 +1,17 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}Erreur 403{% endblock %}
+{% block pageContainerClass 'd-flex justify-content-center align-items-center h-100' %}
+{% block title %}Accès refusé{% endblock %}
 
-{% block body %}
-    <div id="app">
-        <div class="error-wrapper">
-            {# <h1 class="glitch" data-text="ERROR 403">ERROR 403</h1> #}
-            <h1 class="glitch-2">ERREUR 403</h1>
-            <div class="sub">ACCÈS REFUSÉ !</div>
-            <div class="em">Vous n'êtes pas autorisé à consulter cette page.</div>
-            <a href="{{ path('check_last_login') }}">Retour</a>
-        </div>
+{% block page_content %}
+    <div class="text-center">
+        <i class="fas fa-question-circle fa-7x"></i>
+        <h1 class="main-title">Vous n'êtes pas autorisé à accéder à cette page</h1>
+
+        <strong>Erreur 403</strong>
+        <p>La page à laquelle vous souhaitez accéder requiert des droits dont vous ne disposez pas.</p>
+        <p class="mt-3 btn btn-primary">
+            <a href="{{ path('accueil') }}">Retour à l'accueil</a>
+        </p>
     </div>
 {% endblock %}

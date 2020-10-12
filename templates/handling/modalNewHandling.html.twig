@@ -1,4 +1,4 @@
-<form method="" class="modal fade" id="modalNewHandling" role="dialog" aria-labelledby="dataModalCenterTitle"
+<form method="" class="modal fade" data-modal-type="new" id="modalNewHandling" role="dialog" aria-labelledby="dataModalCenterTitle"
       aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
@@ -111,7 +111,7 @@
                         <div class="collapsible expanded free-fields-container mb-2">
                             {% for type in freeFieldsTypes %}
                                 <div class="d-none" id="{{ type.typeId }}-new">
-                                    {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+                                    {% include 'free_field/freeFieldsViewing.html.twig' with {
                                         freeFields: type.freeFields,
                                         freeFieldValues: [],
                                         colType: 'col-md-6 col-12',
@@ -137,8 +137,8 @@
 
             <div class="error-msg"></div>
             <div class="modal-footer">
-                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitNewHandling" type="button" class="btn btn-success">Enregistrer</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button id="submitNewHandling" type="button" class="btn btn-primary">Enregistrer</button>
             </div>
         </div>
     </div>

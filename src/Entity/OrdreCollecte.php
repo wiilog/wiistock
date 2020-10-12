@@ -46,6 +46,11 @@ class OrdreCollecte
     private $date;
 
     /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $treatingDate;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Collecte", inversedBy="ordreCollecte")
      */
     private $demandeCollecte;
@@ -122,6 +127,18 @@ class OrdreCollecte
     public function setDate(\DateTimeInterface $date): self
     {
         $this->date = $date;
+
+        return $this;
+    }
+
+    public function getTreatingDate(): ?\DateTimeInterface
+    {
+        return $this->treatingDate;
+    }
+
+    public function setTreatingDate(\DateTimeInterface $date): self
+    {
+        $this->treatingDate = $date;
 
         return $this;
     }

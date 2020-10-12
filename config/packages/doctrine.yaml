@@ -35,3 +35,4 @@ doctrine:
                 REPLACE: DoctrineExtensions\Query\Mysql\Replace
                 CAST: DoctrineExtensions\Query\Mysql\Cast
                 DATE_FORMAT: DoctrineExtensions\Query\Mysql\DateFormat
+                FIELD: DoctrineExtensions\Query\Mysql\Field

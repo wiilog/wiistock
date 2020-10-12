@@ -41,6 +41,7 @@ class ArticleRepository extends EntityRepository
         'Actions' => 'Actions',
         'Code barre' => 'barCode',
         'Dernier inventaire' => 'dateLastInventory',
+        'Prix unitaire' => 'prixUnitaire'
     ];
 
     private const linkChampLibreLabelToField = [
@@ -427,7 +428,7 @@ class ArticleRepository extends EntityRepository
     {
         $qb = $this->createQueryBuilder("a");
 
-        $countQuery = $countTotal = QueryCounter::count($qb);
+        $countQuery = $countTotal = QueryCounter::count($qb, 'a');
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -537,7 +538,7 @@ class ArticleRepository extends EntityRepository
                     }
                 }
 
-				$countQuery =  QueryCounter::count($qb);
+				$countQuery =  QueryCounter::count($qb, 'a');
 			}
 
             if (!empty($params->get('order'))) {
@@ -570,6 +571,10 @@ class ArticleRepository extends EntityRepository
                             $qb
                                 ->leftJoin('a.statut', 's_sort')
                                 ->orderBy('s_sort.nom', $order);
+                            break;
+                        case 'prixUnitaire':
+                            $qb
+                                ->orderBy('a.prixUnitaire', $order);
                             break;
                         case 'dateFinReception':
                             $expr = $qb->expr();
@@ -804,7 +809,8 @@ class ArticleRepository extends EntityRepository
 			 a.label,
 			 a.quantite as quantity,
 			 0 as is_ref, oc.id as id_collecte,
-			 a.barCode
+			 a.barCode,
+			 ra.libelle as reference_label
 			FROM App\Entity\Article a
 			JOIN a.articleFournisseur artf
 			JOIN artf.referenceArticle ra

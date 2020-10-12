@@ -273,10 +273,10 @@ a {
     .select2-selection {
         border: 1px solid red !important;
     }
+}
 
-    &:not(.select2-container):not(.wii-switch) {
-        padding-right: 2.25rem;
-    }
+select.is-invalid {
+    background-image: none !important;
 }
 
 .label {
@@ -323,10 +323,6 @@ a {
     }
 }
 
-.z-index-back {
-    z-index: -1;
-}
-
 .ellipsis {
     word-break: break-all;
     white-space: nowrap;
@@ -344,4 +340,25 @@ a {
 
 .bg-primary-followgt {
     background-image: linear-gradient(15.7deg, $backgroundBodyColorLight, $backgroundBodyColorDark);
+}
+
+.dataTables_processing {
+    background: rgba(255, 255, 255, 0.5) !important;
+    height: 60px !important;
+}
+
+@mixin icon-button {
+    display: inline-block;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+
+    .icon {
+        background-color: $white;
+        width: 20px;
+        height: 20px;
+        display: block;
+        -webkit-mask: url("../../public/svg/plusblanc.svg") no-repeat center;
+        mask: url("../../public/svg/plusblanc.svg") no-repeat center;
+    }
 }

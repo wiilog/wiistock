@@ -1,0 +1,34 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Paramétrage | Types | Champs libres | {{ type.category.label|capitalize }} - {{ type.label|capitalize }}{% endblock %}
+{% block titleLink path('types_index') %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                <a href="" data-toggle="modal" data-target="#modalNewFreeField" class="btn btn-primary btn-ripple"
+                   onclick="clearModal('#modalNewFreeField')">
+                    <span class="fa fa-plus mr-2"></span>Nouveau Champ Libre
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <table id="tableChamplibre_id" class="table w-100">
+                </table>
+            </div>
+        </div>
+        <input id="cl-type-id" type="hidden" value="{{ type.id }}"/>
+    </div>
+
+    {% include "free_field/modalNewFreeField.html.twig" %}
+    {% include "free_field/modalDeleteFreeField.html.twig" %}
+    {% include "free_field/modalEditFreeField.html.twig" %}
+
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/pages/free-field.js') }}?{{ app_last_cache_clear }}"></script>
+{% endblock %}

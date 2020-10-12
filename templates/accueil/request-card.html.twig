@@ -1,0 +1,59 @@
+{% set href = href is defined ? href %}
+{% set errorMessage = errorMessage is defined ? errorMessage %}
+
+<a class="card wii-card pointer p-3 my-2 shadow-sm bg-{{ cardColor }}"
+   href="{{ href }}"
+   {% if not href and errorMessage %}onclick="showBSAlert('{{errorMessage | escape('js')}}', 'danger'); event.preventDefault()"{% endif %}>
+    <div class="wii-card-header">
+        <div class="row">
+            <div class="col-10 mb-2">
+                <p class="mb-2 small">{{ estimatedFinishTimeLabel }}</p>
+                <strong>{{ estimatedFinishTime }}</strong>
+            </div>
+            <div class="col-2 d-flex justify-content-end">
+                {{ emergencyText }}<i class="ml-2 fa {{ topRightIcon }} wii-card-icon"></i>
+            </div>
+            <div class="col-12 mb-2">
+                <div class="progress bg-{{ progressBarBGColor }}" style="height: 7px;">
+                    <div class="progress-bar"
+                         role="progressbar"
+                         style="width: {{ progress }}%; background-color: {{ progressBarColor }};"
+                         aria-valuenow="{{ progress }}"
+                         aria-valuemin="0"
+                         aria-valuemax="100">
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <p>{{ requestStatus | capitalize }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="wii-card-body p-2 bg-{{ bodyColor }}">
+        <div class="row">
+            <div class="col-12 card-title text-center">
+                <strong>{{ requestBodyTitle }}</strong>
+            </div>
+            <div class="col-12">
+                <div class="w-100 d-inline-flex justify-content-center">
+                    <strong class="card-title m-0 mr-2">
+                        <i class="fa fa-map-marker-alt "></i>
+                    </strong>
+                    <strong class="ellipsis">{{ requestLocation }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="wii-card-footer">
+        <div class="row align-items-end">
+            <div class="col-6 text-left ellipsis">
+                <span class="bold">{{ requestNumber }}</span><br/>
+                <span class="text-secondary">{{ requestDate }}</span>
+            </div>
+            <div class="col-6 text-right ellipsis">
+                <div class="profile-picture" style="background-color: #EEE">{{ app.user.username | first | upper }}</div>
+                <span class="bold">{{ requestUser }}</span>
+            </div>
+        </div>
+    </div>
+</a>

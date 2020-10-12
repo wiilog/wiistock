@@ -2,12 +2,16 @@
 
 namespace App\Repository;
 
+use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
+use App\Entity\Demande;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Join;
 
 /**
  * @method Collecte|null find($id, $lockMode = null, $lockVersion = null)
@@ -84,7 +88,7 @@ class CollecteRepository extends EntityRepository
     public function findByParamsAndFilters($params, $filters) {
         $qb = $this->createQueryBuilder("c");
 
-        $countTotal =  QueryCounter::count($qb);
+        $countTotal =  QueryCounter::count($qb, 'c');
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -173,7 +177,7 @@ class CollecteRepository extends EntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered =  QueryCounter::count($qb);
+		$countFiltered =  QueryCounter::count($qb, 'c');
 
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
@@ -214,5 +218,57 @@ class CollecteRepository extends EntityRepository
         return $queryBuilder
             ->getQuery()
             ->getResult();
+    }
+
+    public function getTreatingTimesWithType() {
+        $nowDate = new DateTime();
+        $datePrior3Months = (clone $nowDate)->modify('-3 month');
+        $queryBuilder = $this->createQueryBuilder('request');
+        $queryBuilderExpr = $queryBuilder->expr();
+        $query = $queryBuilder
+            ->select('type.id AS typeId')
+            ->addSelect($queryBuilderExpr->min('request.validationDate') . ' AS validationDate')
+            ->addSelect($queryBuilderExpr->max('collect_order.date') . ' AS treatingDate')
+            ->join('request.ordreCollecte', 'collect_order')
+            ->join('request.statut', 'status')
+            ->join('request.type', 'type')
+            ->where('status.nom LIKE :treatedStatus')
+            ->andHaving($queryBuilderExpr->min('request.validationDate') . ' BETWEEN :start AND :end')
+            ->groupBy('request.id')
+            ->setParameters([
+                'start' => $datePrior3Months,
+                'end' => $nowDate,
+                'treatedStatus' => Collecte::STATUT_COLLECTE
+            ])
+            ->getQuery();
+        return $query->execute();
+    }
+
+    public function findRequestToTreatByUser(Utilisateur $requester) {
+        $statuses = [
+            Collecte::STATUT_BROUILLON,
+            Collecte::STATUT_A_TRAITER,
+            Collecte::STATUT_INCOMPLETE,
+        ];
+
+        $queryBuilder = $this->createQueryBuilder('request');
+        $queryBuilderExpr = $queryBuilder->expr();
+        return $queryBuilder
+            ->innerJoin('request.statut', 'status')
+            ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = request.type')
+            ->where(
+                $queryBuilderExpr->andX(
+                    $queryBuilderExpr->in('status.nom', ':statusNames'),
+                    $queryBuilderExpr->eq('request.demandeur', ':requester')
+                )
+            )
+            ->setParameters([
+                'statusNames' => $statuses,
+                'requester' => $requester,
+            ])
+            ->addOrderBy(sprintf("FIELD(status.nom, '%s', '%s', '%s')", ...$statuses), 'DESC')
+            ->addOrderBy("DATE_ADD(request.validationDate, art.average, 'second')", 'ASC')
+            ->getQuery()
+            ->execute();
     }
 }

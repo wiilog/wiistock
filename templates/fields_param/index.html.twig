@@ -82,5 +82,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/fields_param.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/fields_param.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

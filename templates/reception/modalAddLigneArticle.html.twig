@@ -102,19 +102,19 @@
             <div class="error-msg"></div>
             <div class="modal-footer">
                 <button type="button"
-                        class="btn"
+                        class="btn btn-secondary"
                         data-dismiss="modal"
                         onclick="clearModal($(this).parents('#modalAddLigneArticle'))">
                     Annuler
                 </button>
                 <button type="button"
                         id="addArticleLigneSubmit"
-                        class="btn btn-success">
+                        class="btn btn-primary">
                     Enregistrer
                 </button>
                 <button type="button"
                         id="addArticleLigneSubmitAndRedirect"
-                        class="btn btn-success d-none"
+                        class="btn btn-primary d-none"
                         title="Enregistrer et réception"
                         onclick="openModalLigneReception($(this))">
                       Enregistrer et {{ 'réception.réception'|trans }}

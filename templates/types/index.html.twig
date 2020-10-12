@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Paramétrage | Types{% endblock %}
+{% block title %}Paramétrage | Types & Champs libres{% endblock %}
 
 {% block page_content %}
     <div class="m-4 wii-page-card">
@@ -27,5 +27,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/types-param.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/type.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

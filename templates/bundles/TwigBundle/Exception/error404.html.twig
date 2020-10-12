@@ -1,21 +1,20 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}Erreur 404{% endblock %}
+{% block pageContainerClass 'd-flex justify-content-center align-items-center h-100' %}
+{% block title %}Page introuvable{% endblock %}
 
-{% block body %}
+{% block page_content %}
+    <div class="text-center">
+        <i class="fas fa-question-circle fa-7x"></i>
+        <h1 class="main-title">La page à laquelle vous souhaitez accéder semble introuvable</h1>
 
-    <div id="app">
-        <div class="error-wrapper">
-            {# <h1 class="glitch" data-text="ERREUR 404">ERREUR 404</h1> #}
-            <h1 class="glitch-2">ERREUR 404</h1>
-            <div class="sub">PAGE NON TROUVÉE !</div>
-            <div class="em">La page que vous recherchez semble introuvable.</div>
-            <a href="{{ path('check_last_login') }}">Retour</a>
-        </div>
+        <strong>Erreur 404</strong>
+        <p>Nous sommes désolés mais la page demandée est introuvable.</p>
+        <p>
+            <em>Si le problème persiste, n'hésitez pas à nous contacter.</em>
+        </p>
+        <p class="mt-3 btn btn-primary">
+            <a href="{{ path('accueil') }}">Retour à l'accueil</a>
+        </p>
     </div>
-
-{% endblock %}
-
-{% block javascripts %}
-    <script type="text/javascript"></script>
 {% endblock %}

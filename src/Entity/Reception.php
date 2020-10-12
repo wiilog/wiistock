@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -68,7 +69,7 @@ class Reception extends FreeFieldEntity
     /**
      * @ORM\Column(type="string", nullable=true)
      */
-    private $reference;
+    private $orderNumber;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="reception")
@@ -158,12 +159,12 @@ class Reception extends FreeFieldEntity
         return $this->commentaire ?? '';
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getDate(): ?DateTimeInterface
     {
         return $this->date;
     }
 
-    public function setDate(?\DateTimeInterface $date): self
+    public function setDate(?DateTimeInterface $date): self
     {
         $this->date = $date;
 
@@ -206,38 +207,38 @@ class Reception extends FreeFieldEntity
         return $this;
     }
 
-    public function getDateAttendue(): ?\DateTimeInterface
+    public function getDateAttendue(): ?DateTimeInterface
     {
         return $this->dateAttendue;
     }
 
-    public function setDateAttendue(?\DateTimeInterface $dateAttendue): self
+    public function setDateAttendue(?DateTimeInterface $dateAttendue): self
     {
         $this->dateAttendue = $dateAttendue;
 
         return $this;
     }
 
-    public function getDateCommande(): ?\DateTimeInterface
+    public function getDateCommande(): ?DateTimeInterface
     {
         return $this->dateCommande;
     }
 
-    public function setDateCommande(?\DateTimeInterface $dateCommande): self
+    public function setDateCommande(?DateTimeInterface $dateCommande): self
     {
         $this->dateCommande = $dateCommande;
 
         return $this;
     }
 
-    public function getReference(): ?string
+    public function getOrderNumber(): ?string
     {
-        return $this->reference;
+        return $this->orderNumber;
     }
 
-    public function setReference(?string $reference): self
+    public function setOrderNumber(?string $orderNumber): self
     {
-        $this->reference = $reference;
+        $this->orderNumber = $orderNumber;
 
         return $this;
     }
@@ -286,12 +287,12 @@ class Reception extends FreeFieldEntity
         return $this;
     }
 
-    public function getDateFinReception(): ?\DateTimeInterface
+    public function getDateFinReception(): ?DateTimeInterface
     {
         return $this->dateFinReception;
     }
 
-    public function setDateFinReception(?\DateTimeInterface $dateFinReception): self
+    public function setDateFinReception(?DateTimeInterface $dateFinReception): self
     {
         $this->dateFinReception = $dateFinReception;
 

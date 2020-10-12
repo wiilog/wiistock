@@ -6,7 +6,7 @@ namespace DoctrineMigrations;
 
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -94,13 +94,13 @@ final class Version20200727074820 extends AbstractMigration
                     $value = !empty($freeFieldValue['valeur'])
                         ? $freeFieldValue['valeur']
                         : "";
-                    $value = $freeFieldValue['typage'] === ChampLibre::TYPE_BOOL
+                    $value = $freeFieldValue['typage'] === FreeField::TYPE_BOOL
                         ? (empty($value)
                             ? "0"
                             : "1")
                         : $value;
                     if ($typeId === $clTypeId && ($value || $value === "0")) {
-                        if ($freeFieldValue['typage'] !== ChampLibre::TYPE_LIST || in_array($value, json_decode($freeFieldValue['elements']))) {
+                        if ($freeFieldValue['typage'] !== FreeField::TYPE_LIST || in_array($value, json_decode($freeFieldValue['elements']))) {
                             $freeFieldsToBeInsertedInJSON[$freeFieldId] = strval($value);
                         }
                     }

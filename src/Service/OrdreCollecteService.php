@@ -190,7 +190,7 @@ class OrdreCollecteService
 		$ordreCollecte
 			->setUtilisateur($user)
 			->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
-			->setDate($date);
+			->setTreatingDate($date);
 
 		// on modifie la quantité des articles de référence liés à la collecte
 		$collecteReferences = $ordreCollecteReferenceRepository->findByOrdreCollecte($ordreCollecte);
@@ -406,7 +406,8 @@ class OrdreCollecteService
         $demande = $ordreCollecte->getDemandeCollecte();
         $requester = $demande ? $demande->getDemandeur() : null;
         $pointCollecte = $demande ? $demande->getPointCollecte() : null;
-        $dateCollecte = $ordreCollecte->getDate();
+        $dateCreation = $ordreCollecte->getDate();
+        $dateCollecte = $ordreCollecte->getTreatingDate();
         $comment = $demande->getCommentaire();
 
         return [
@@ -416,6 +417,7 @@ class OrdreCollecteService
             [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
             [ 'label' => 'Destination', 'value' => $demande->isStock() ? 'Mise en stock' : 'Destruction' ],
             [ 'label' => 'Point de collecte', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
+            [ 'label' => 'Date de création', 'value' => $dateCreation ? $dateCreation->format('d/m/Y H:i') : '' ],
             [ 'label' => 'Date de collecte', 'value' => $dateCollecte ? $dateCollecte->format('d/m/Y H:i') : '' ],
             [
                 'label' => 'Commentaire',
@@ -472,8 +474,7 @@ class OrdreCollecteService
             $statutCollecte = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_COLLECTE);
             // cas de collecte totale
             $demandeCollecte
-                ->setStatut($statutCollecte)
-                ->setValidationDate($dateNow);
+                ->setStatut($statutCollecte);
         }
     }
 }

@@ -21,5 +21,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/alert.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/alert.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

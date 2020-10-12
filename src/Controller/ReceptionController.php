@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\InventoryCategory;
@@ -61,6 +61,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -148,6 +149,7 @@ class ReceptionController extends AbstractController {
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function new(EntityManagerInterface $entityManager,
                         FreeFieldService $champLibreService,
@@ -197,8 +199,11 @@ class ReceptionController extends AbstractController {
                     ->setTransporteur($transporteur);
             }
 
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+
             $reception
-                ->setReference(!empty($data['reference']) ? $data['reference'] : null)
+                ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
                 ->setDateAttendue(
                     !empty($data['dateAttendue'])
                         ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
@@ -211,8 +216,8 @@ class ReceptionController extends AbstractController {
                 ->setStatut($statut)
                 ->setNumeroReception($numero)
                 ->setDate($date)
-                ->setReference(!empty($data['reference']) ? $data['reference'] : null)
-                ->setUtilisateur($this->getUser())
+                ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
+                ->setUtilisateur($currentUser)
                 ->setType($type)
                 ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null);
 
@@ -277,7 +282,7 @@ class ReceptionController extends AbstractController {
             $reception->setLocation($location);
 
             $reception
-                ->setReference(!empty($data['numeroCommande']) ? $data['numeroCommande'] : null)
+                ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
                 ->setDateAttendue(
                     !empty($data['dateAttendue'])
                         ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
@@ -286,7 +291,6 @@ class ReceptionController extends AbstractController {
                     !empty($data['dateCommande'])
                         ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
                         : null)
-                ->setNumeroReception(isset($data['numeroReception']) ? $data['numeroReception'] : null)
                 ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null);
 
             $entityManager->flush();
@@ -300,7 +304,9 @@ class ReceptionController extends AbstractController {
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
                     'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
-                ])
+                ]),
+                'success' => true,
+                'msg' => 'La réception <strong>' . $reception->getNumeroReception() . '</strong> a bien été modifiée.'
             ];
             return new JsonResponse($json);
         }
@@ -313,7 +319,6 @@ class ReceptionController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function apiEdit(EntityManagerInterface $entityManager,
                             Request $request): Response {
@@ -323,7 +328,7 @@ class ReceptionController extends AbstractController {
             }
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
@@ -466,7 +471,7 @@ class ReceptionController extends AbstractController {
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         //TODO à modifier si plusieurs types possibles pour une réception
@@ -494,12 +499,10 @@ class ReceptionController extends AbstractController {
     /**
      * @Route("/supprimer", name="reception_delete", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param MouvementTracaService $mouvementTracaService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function delete(Request $request,
-                           MouvementTracaService $mouvementTracaService,
                            EntityManagerInterface $entityManager): Response {
         if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
@@ -568,7 +571,6 @@ class ReceptionController extends AbstractController {
      * @Route("/retirer-article", name="reception_article_remove",  options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
      * @param ReceptionService $receptionService
-     * @param MouvementTracaService $mouvementTracaService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
@@ -587,6 +589,7 @@ class ReceptionController extends AbstractController {
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
             $ligneArticle = $receptionReferenceArticleRepository->find($data['ligneArticle']);
+            $ligneArticleLabel = $ligneArticle->getReferenceArticle() ? $ligneArticle->getReferenceArticle()->getReference() : '';
 
             if(!$ligneArticle) {
                 return new JsonResponse([
@@ -650,7 +653,8 @@ class ReceptionController extends AbstractController {
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
                     'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
-                ])
+                ]),
+                'msg' => 'La référence <strong>' . $ligneArticleLabel . '</strong> a bien été supprimée.'
             ]);
         }
         throw new NotFoundHttpException("404");
@@ -724,7 +728,7 @@ class ReceptionController extends AbstractController {
 
                 $json = [
                     'success' => true,
-                    'msg' => 'La référence a été ajoutée à la réception',
+                    'msg' => 'La référence <strong>' . $refArticle->getReference() . '</strong> a bien été ajoutée.',
                     'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                         'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                         'reception' => $reception,
@@ -889,16 +893,17 @@ class ReceptionController extends AbstractController {
 
             $entityManager->flush();
 
-            $json = [
+            $referenceLabel = $receptionReferenceArticle->getReferenceArticle() ? $receptionReferenceArticle->getReferenceArticle()->getReference() : '';
+
+            return new JsonResponse([
                 'success' => true,
-                'msg' => '',
+                'msg' => 'La référence <strong>' . $referenceLabel . '</strong> a bien été modifiée.',
                 'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
                     'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
                 ])
-            ];
-            return new JsonResponse($json);
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -922,7 +927,7 @@ class ReceptionController extends AbstractController {
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $listTypesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $typeChampLibreDL = [];
@@ -1045,7 +1050,7 @@ class ReceptionController extends AbstractController {
                                                   EntityManagerInterface $entityManager) {
         if($request->isXmlHttpRequest()) {
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $reference = $request->query->get('reference');
@@ -1140,7 +1145,7 @@ class ReceptionController extends AbstractController {
 
             $litige
                 ->setDeclarant($utilisateurRepository->find($post->get('declarantLitige')))
-                ->setUpdateDate(new \DateTime('now'))
+                ->setUpdateDate(new DateTime('now'))
                 ->setType($typeRepository->find($post->get('typeLitige')))
                 ->setStatus($statutAfter);
 
@@ -1187,12 +1192,15 @@ class ReceptionController extends AbstractController {
                 $comment .= trim($post->get('commentaire'));
             }
 
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+
             if(!empty($comment)) {
                 $histoLitige = new LitigeHistoric();
                 $histoLitige
                     ->setLitige($litige)
-                    ->setDate(new \DateTime('now'))
-                    ->setUser($this->getUser())
+                    ->setDate(new DateTime('now'))
+                    ->setUser($currentUser)
                     ->setComment($comment);
                 $entityManager->persist($histoLitige);
                 $entityManager->flush();
@@ -1214,7 +1222,8 @@ class ReceptionController extends AbstractController {
                 $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION, true);
             }
             return new JsonResponse([
-                'success' => true
+                'success' => true,
+                'msg' => 'Le litige <strong>' . $litige->getNumeroLitige() . '</strong> a bien été modifié.'
             ]);
         }
         throw new NotFoundHttpException('404');
@@ -1277,13 +1286,16 @@ class ReceptionController extends AbstractController {
             $userComment = trim($post->get('commentaire'));
             $nl = !empty($userComment) ? "\n" : '';
             $commentaire = $userComment . (!empty($trimCommentStatut) ? ($nl . $commentStatut) : '');
+
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
             if(!empty($commentaire)) {
                 $histo = new LitigeHistoric();
                 $histo
-                    ->setDate(new \DateTime('now'))
+                    ->setDate(new DateTime('now'))
                     ->setComment($commentaire)
                     ->setLitige($litige)
-                    ->setUser($this->getUser());
+                    ->setUser($currentUser);
                 $entityManager->persist($histo);
             }
 
@@ -1295,7 +1307,8 @@ class ReceptionController extends AbstractController {
             $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION);
 
             return new JsonResponse([
-                'success' => true
+                'success' => true,
+                'msg' => 'Le litige <strong>' . $litige->getNumeroLitige() . '</strong> a bien été créé.'
             ]);
         }
         throw new NotFoundHttpException("404");
@@ -1360,6 +1373,7 @@ class ReceptionController extends AbstractController {
             $statutRepository = $entityManager->getRepository(Statut::class);
 
             $dispute = $litigeRepository->find($data['litige']);
+            $disputeNumber = $dispute->getNumeroLitige();
             $articlesInDispute = $dispute->getArticles()->toArray();
 
             $articleStatusAvailable = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
@@ -1372,7 +1386,10 @@ class ReceptionController extends AbstractController {
             $entityManager->remove($dispute);
             $entityManager->flush();
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'Le litige <strong>' . $disputeNumber . '</strong> a bien été supprimé.'
+            ]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -1437,13 +1454,11 @@ class ReceptionController extends AbstractController {
      * @Route("/finir", name="reception_finish", methods={"GET", "POST"}, options={"expose"=true})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param MouvementTracaService $mouvementTracaService
      * @return Response
      * @throws Exception
      */
     public function finish(Request $request,
-                           EntityManagerInterface $entityManager,
-                           MouvementTracaService $mouvementTracaService): Response {
+                           EntityManagerInterface $entityManager): Response {
         if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -1460,7 +1475,7 @@ class ReceptionController extends AbstractController {
                 return new JsonResponse('Vous ne pouvez pas finir une réception sans article.');
             } else {
                 if($data['confirmed'] === true) {
-                    $this->validateReception($entityManager, $reception, $listReceptionReferenceArticle, $mouvementTracaService);
+                    $this->validateReception($entityManager, $reception);
                     return new JsonResponse(1);
                 } else {
                     $partielle = false;
@@ -1468,7 +1483,7 @@ class ReceptionController extends AbstractController {
                         if($receptionRA->getQuantite() !== $receptionRA->getQuantiteAR()) $partielle = true;
                     }
                     if(!$partielle) {
-                        $this->validateReception($entityManager, $reception, $listReceptionReferenceArticle, $mouvementTracaService);
+                        $this->validateReception($entityManager, $reception);
                     }
                     return new JsonResponse($partielle ? 0 : 1);
                 }
@@ -1510,7 +1525,7 @@ class ReceptionController extends AbstractController {
             $entityManager = $this->getDoctrine()->getManager();
 
             $typeRepository = $entityManager->getRepository(Type::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
             $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
@@ -1656,6 +1671,8 @@ class ReceptionController extends AbstractController {
 
     /**
      * @Route("/ajouter_lot", name="add_lot", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @return JsonResponse
      */
     public function addLot(Request $request) {
         if($request->isXmlHttpRequest()) {
@@ -1729,7 +1746,7 @@ class ReceptionController extends AbstractController {
         try {
             $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
             $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch(\Throwable $throwable) {
+        } catch(Throwable $throwable) {
         }
 
         if(isset($dateTimeMin) && isset($dateTimeMax)) {
@@ -1801,7 +1818,7 @@ class ReceptionController extends AbstractController {
     private function serializeReception(array $reception): array {
         return [
             $reception['numeroReception'] ?: '',
-            $reception['reference'] ?: '',
+            $reception['orderNumber'] ?: '',
             $reception['providerName'] ?: '',
             $reception['userUsername'] ?: '',
             $reception['statusName'] ?: '',
@@ -2001,7 +2018,10 @@ class ReceptionController extends AbstractController {
             }
             $entityManager->flush();
 
-            return new JsonResponse(true);
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'La réception a bien été effectuée.'
+            ]);
         }
         throw new NotFoundHttpException('404');
     }

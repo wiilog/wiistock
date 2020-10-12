@@ -1,14 +1,11 @@
 <div class="row">
-    {% if fieldsParam|isFieldRequired('numeroReception', 'displayedFormsEdit') %}
-        <div class="form-group col-6">
-            <label for="numeroReception"
-                   title="n° de réception">{{ 'réception.n° de réception'|trans }}{{ fieldsParam|isFieldRequired('numeroReception', 'mustToModify') ? '*' : '' }}</label>
-            <input type="text"
-                   class="form-control data Numéro Réception{{ fieldsParam|isFieldRequired('numeroReception', 'mustToModify') ? 'needed' : '' }}"
-                   name="numeroReception" id='numeroReception'
-                   value="{{ reception.numeroReception }}">
-        </div>
-    {% endif %}
+    <div class="form-group col-6">
+        <label for="numeroReception"
+               title="n° de réception">{{ 'réception.n° de réception'|trans }}</label>
+        <input type="text"
+               class="form-control"
+               value="{{ reception.numeroReception }}" disabled>
+    </div>
     <div class="form-group col-6">
         <label for="statut">Statut*</label>
         <select class="form-control data" name="statut">
@@ -50,15 +47,15 @@
         <div class="form-group col-6">
             <label for="numeroCommande">Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'mustToModify') ? '*' : '' }}</label>
             <input type="text" class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'mustToModify') ? 'needed' : '' }}"
-                   name="numeroCommande" id='numeroCommande'
-                   value="{{ reception.reference }}">
+                   name="orderNumber" id='numeroCommande'
+                   value="{{ reception.orderNumber }}">
         </div>
     {% endif %}
     {% if fieldsParam|isFieldRequired('emplacement', 'displayedFormsEdit') %}
         <div class="form-group col-6 w-100">
             <label>Emplacement{{ fieldsParam|isFieldRequired('emplacement', 'mustToModify') ? '*' : '' }}</label>
             <select
-                class="ajax-autocompleteEmplacement-edit data form-control {{ fieldsParam|isFieldRequired('emplacement', 'mustToModify') ? 'needed' : '' }}"
+                class="ajax-autocomplete-location-edit data form-control {{ fieldsParam|isFieldRequired('emplacement', 'mustToModify') ? 'needed' : '' }}"
                 name="location">
                 {% if reception.location != null %}
                     <option value="{{ reception.location.id }}">{{ reception.location.label }}</option>
@@ -121,7 +118,7 @@
                        maxlength="64">
             </div>
             <div class="form-group col-2 invisible submit-button-container" id="addFournisseur">
-                <span class="btn btn-success"
+                <span class="btn btn-primary"
                       onclick="onFlyFormSubmit(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))">
                     <i class="fas fa-check-circle"></i>
                 </span>
@@ -137,7 +134,7 @@
                        maxlength="64">
             </div>
             <div class="form-group col-2 invisible submit-button-container" id="addTransporteur">
-                <span class="btn btn-success"
+                <span class="btn btn-primary"
                       onclick="onFlyFormSubmit(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))">
                     <i class="fas fa-check-circle"></i>
                 </span>
@@ -174,7 +171,7 @@
 <!-- CHAMPS LIBRES -->
 <span class="toggle-collapsible expanded">Champs libres</span>
 <div class="collapsible expanded free-fields-container">
-    {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+    {% include 'free_field/freeFieldsViewing.html.twig' with {
         freeFields: freeFieldsGroupedByTypes,
         freeFieldValues: reception.freeFields,
         colType: 'col-md-4 col-12',

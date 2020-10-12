@@ -7,7 +7,7 @@ use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
+use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\Menu;
@@ -85,10 +85,9 @@ class DispatchController extends AbstractController {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -245,8 +244,6 @@ class DispatchController extends AbstractController {
             $fileBag = $request->files->count() > 0 ? $request->files : null;
 
             $type = $typeRepository->find($post->get('type'));
-
-
 
             $locationTake = $post->get('prise')
                 ? ($emplacementRepository->find($post->get('prise')) ?: $type->getPickLocation())
@@ -998,6 +995,7 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/csv", name="get_dispatches_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
+     * @param FreeFieldService $freeFieldService
      * @param CSVExportService $CSVExportService
      * @param EntityManagerInterface $entityManager
      * @param TranslatorInterface $translator
@@ -1285,25 +1283,14 @@ class DispatchController extends AbstractController {
      * @param Dispatch $dispatch
      * @return JsonResponse
      */
-    public function checkWaybill(TranslatorInterface $translator, Dispatch $dispatch) {
-
-        $invalidPacks = array_filter($dispatch->getDispatchPacks()->toArray(), function(DispatchPack $pack) {
-            return !$pack->getPack()->getWeight() || !$pack->getPack()->getVolume();
-        });
-
+    public function checkWaybill(TranslatorInterface $translator, Dispatch $dispatch)
+    {
         if ($dispatch->getDispatchPacks()->count() === 0) {
             return new JsonResponse([
                 'success' => false,
                 'msg' => $translator->trans('acheminement.Des colis sont nécessaires pour générer une lettre de voiture') . '.'
             ]);
-        }
-        else if ($invalidPacks) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => $translator->trans("acheminement.Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée") . '.'
-            ]);
-        }
-        else {
+        } else {
             return new JsonResponse([
                 "success" => true,
             ]);
@@ -1506,5 +1493,30 @@ class DispatchController extends AbstractController {
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
 
         return $response;
+    }
+
+    /**
+     * @Route("/{dispatch}/rollback-draft", name="rollback_draft", methods="GET")
+     * @param EntityManagerInterface $entityManager
+     * @param Dispatch $dispatch
+     * @return Response
+     */
+    public function rollbackToDraftStatus(EntityManagerInterface $entityManager,
+                                          Dispatch $dispatch): Response {
+
+        $dispatchType = $dispatch->getType();
+        $statusRepository = $entityManager->getRepository(Statut::class);
+
+        $draftStatus = $statusRepository->findOneBy([
+            'type' => $dispatchType,
+            'state' => 0
+        ]);
+
+        $dispatch->setStatut($draftStatus);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('dispatch_show', [
+            'id' => $dispatch->getId()
+        ]);
     }
 }

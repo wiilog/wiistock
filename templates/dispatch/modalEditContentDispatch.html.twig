@@ -43,7 +43,7 @@
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
         <div class="form-group col-md-4 col-12">
             <label for="prise" title="Emplacement de prise">{{ 'acheminement.Emplacement prise'|trans }}{{ required ? '*' }}</label>
-            <select name="prise" class="form-control data ajax-autocompleteEmplacement-edit d-block {{ required ? 'needed' }} location-prise"
+            <select name="prise" class="form-control data ajax-autocomplete-location-edit d-block {{ required ? 'needed' }} location-prise"
                     id="prise">
                 {% if dispatch.locationFrom %}
                     <option value="{{ dispatch.locationFrom.id }}">{{ dispatch.locationFrom.label }}</option>
@@ -57,7 +57,7 @@
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
         <div class="form-group col-md-4 col-12">
             <label for="depose" title="Emplacement de dépose">{{ 'acheminement.Emplacement dépose'|trans }}{{ required ? '*' }}</label>
-            <select name="depose" class="form-control data ajax-autocompleteEmplacement-edit {{ required ? 'needed' }} location-depose"
+            <select name="depose" class="form-control data ajax-autocomplete-location-edit {{ required ? 'needed' }} location-depose"
                     id="depose">
                 {% if dispatch.locationTo %}
                     <option value="{{ dispatch.locationTo.id }}">{{ dispatch.locationTo.label }}</option>
@@ -211,7 +211,7 @@
     <div class="col-12">
         <span class="toggle-collapsible expanded">Champs libres</span>
         <div class="collapsible expanded free-fields-container mb-2">
-            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
+            {% include 'free_field/freeFieldsViewing.html.twig' with {
                 freeFields: dispatch.type.champsLibres,
                 freeFieldValues: dispatch.freeFields,
                 colType: 'col-md-4 col-12',

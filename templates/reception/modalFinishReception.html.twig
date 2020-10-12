@@ -14,10 +14,10 @@
                 <span title="cette réception">{{ 'réception.cette réception'|trans }}</span> contient des <span title="articles">{{ 'réception.articles'|trans }}</span> à finir de réceptionner.<br>Êtes-vous sûr de vouloir {{ 'réception.la'|trans }} finir ?
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn" data-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
                 <button type="button"
                         data-dismiss="modal"
-                        class="btn btn-success"
+                        class="btn btn-primary"
                         onclick="finishReception({{ reception.id }}, true, $('#finishReceptionButton'))">
                     Valider
                 </button>

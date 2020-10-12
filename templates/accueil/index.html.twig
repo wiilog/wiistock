@@ -15,11 +15,6 @@
                 </div>
             </div>
         {% endif %}
-        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
-            <div class="col-auto mx-auto">
-                {% include "accueil/linkToAddArticleForm.html.twig" %}
-            </div>
-        {% endif %}
     </div>
 {% endblock %}
 
@@ -39,7 +34,13 @@
                     <div class="carousel-item"
                          data-name="{{ dashboard }}">
                         <div class="col-12">
-                            {% if dashboard == 'arrivage' %}
+                            {% if dashboard == 'demandes' %}
+                                {% include'accueil/dashboardPendingRequests.html.twig' with { requests: {
+                                    pendingDeliveries: pendingDeliveries,
+                                    pendingHandlings: pendingHandlings,
+                                    pendingCollects: pendingCollects
+                                } } %}
+                            {% elseif dashboard == 'arrivage' %}
                                 {% include 'accueil/dashboardArrival.html.twig' %}
                             {% elseif dashboard == 'quai' %}
                                 {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 0 } %}
@@ -53,7 +54,7 @@
                 {% endfor %}
             </div>
             <div class="row">
-                <div class="col-12 little-font text-right fixed-bottom z-index-back d-none refresh-date-container">
+                <div class="col-12 little-font text-right fixed-bottom d-none refresh-date-container">
                     Actualisé le : <span class="refreshDate"></span>
                 </div>
             </div>
@@ -63,5 +64,6 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/dashboard.js') }}?{{ date().timestamp }}"></script>
+    {{ encore_entry_script_tags('dashboard') }}
+    <script src="{{ asset('js/pages/dashboard.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}
