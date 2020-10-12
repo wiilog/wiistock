@@ -123,7 +123,7 @@ function manageArticleAndRefSearch($input, $printButton) {
 
 function toggleInputRadioOnRow(tr) {
     const $checkbox = $(tr).find('input[type="checkbox"]');
-    $checkbox.prop('checked', !$checkbox.is(':checked'));
+    $checkbox.prop('checked', !$checkbox.is(':checked')).change();
 }
 
 function createDatatableDomFooter({information, length, pagination}) {
