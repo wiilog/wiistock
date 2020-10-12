@@ -2,23 +2,23 @@
 
 namespace App\Repository;
 
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use Doctrine\ORM\EntityRepository;
 
 /**
- * @method PieceJointe|null find($id, $lockMode = null, $lockVersion = null)
- * @method PieceJointe|null findOneBy(array $criteria, array $orderBy = null)
- * @method PieceJointe[]    findAll()
- * @method PieceJointe[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Attachment|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Attachment|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Attachment[]    findAll()
+ * @method Attachment[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class PieceJointeRepository extends EntityRepository
+class AttachmentRepository extends EntityRepository
 {
     public function findOneByFileName($filename)
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
-			"SELECT pj
-           FROM App\Entity\PieceJointe pj
+            "SELECT pj
+           FROM App\Entity\Attachment pj
            WHERE pj.fileName = :filename"
 		)->setParameter('filename', $filename);
 		;
@@ -30,8 +30,8 @@ class PieceJointeRepository extends EntityRepository
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			/** @lang  DQL */
-			"SELECT pj
-           FROM App\Entity\PieceJointe pj
+            "SELECT pj
+           FROM App\Entity\Attachment pj
            WHERE pj.fileName = :filename AND pj.litige = :litigeId"
 		)->setParameters(['filename' => $filename, 'litigeId' => $litigeId]);
 

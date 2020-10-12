@@ -15,7 +15,7 @@ use App\Entity\Import;
 use App\Entity\InventoryCategory;
 use App\Entity\MouvementStock;
 use App\Entity\ParametrageGlobal;
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -168,10 +168,10 @@ class ImportService
     }
 
     /**
-     * @param PieceJointe $attachment
+     * @param Attachment $attachment
      * @return array
      */
-    public function getImportConfig(PieceJointe $attachment)
+    public function getImportConfig(Attachment $attachment)
     {
         $path = $this->attachmentService->getServerPath($attachment);
 
@@ -589,14 +589,14 @@ class ImportService
 
     /**
      * @param array $logRows
-     * @return PieceJointe
+     * @return Attachment
      * @throws NonUniqueResultException
      */
     private function persistLogFilePieceJointe(array $logRows)
     {
         $createdLogFile = $this->buildLogFile($logRows);
 
-        $pieceJointeForLogFile = new PieceJointe();
+        $pieceJointeForLogFile = new Attachment();
         $pieceJointeForLogFile
             ->setOriginalName($createdLogFile)
             ->setFileName($createdLogFile);

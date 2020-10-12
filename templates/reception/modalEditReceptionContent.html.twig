@@ -156,17 +156,33 @@
         </div>
     {% endif %}
 </div>
-{% if fieldsParam|isFieldRequired('commentaire', 'displayedFormsEdit') %}
-    <div class="form-group">
-        <label for="Reception">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? '*' : '' }}</label>
-        <input id='commentaire' class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? 'needed' : '' }}"
-               name="commentaire" type="hidden"
-               value="{{ reception.commentaire }}">
-        <div class="editor-container-edit" id="editor-container"
-             value="{{ reception.commentaire }}"> {{ reception.commentaire|raw }}
+<div class="row">
+    {% if fieldsParam|isFieldRequired('commentaire', 'displayedFormsEdit') %}
+        <div class="form-group col-8">
+            <label for="Reception">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? '*' : '' }}</label>
+            <input id='commentaire' class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? 'needed' : '' }}"
+                   name="commentaire" type="hidden"
+                   value="{{ reception.commentaire }}">
+            <div class="editor-container-edit" id="editor-container"
+                 value="{{ reception.commentaire }}"> {{ reception.commentaire|raw }}
+            </div>
         </div>
-    </div>
-{% endif %}
+    {% endif %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ATTACHMENTS') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
+        <div class="form-group col-4">
+            <div>
+                {% include 'attachment/attachment.html.twig' with {
+                    'isNew': false,
+                    'required': fieldsParam|isFieldRequired(fieldCode, 'mustToModify'),
+                    'attachments': reception.attachments
+                } %}
+            </div>
+        </div>
+    {% else %}
+        <input type="hidden" name="isAttachmentForm" value="1"/>
+    {% endif %}
+</div>
 
 <!-- CHAMPS LIBRES -->
 <span class="toggle-collapsible expanded">Champs libres</span>

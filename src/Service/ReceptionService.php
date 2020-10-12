@@ -115,6 +115,7 @@ class ReceptionService
         $creationDate = $reception->getDate();
         $orderNumber = $reception->getOrderNumber();
         $comment = $reception->getCommentaire();
+        $attachments = $reception->getAttachments();
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
@@ -174,15 +175,24 @@ class ReceptionService
             $configFiltered,
             $freeFieldArray,
             ($this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsCreate')
-            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsEdit'))
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsEdit'))
                 ? [[
-                    'label' => 'Commentaire',
-                    'value' => $comment ?: '',
-                    'isRaw' => true,
-                    'colClass' => 'col-sm-6 col-12',
-                    'isScrollable' => true,
-                    'isNeededNotEmpty' => true
-                ]]
+                'label' => 'Commentaire',
+                'value' => $comment ?: '',
+                'isRaw' => true,
+                'colClass' => 'col-sm-6 col-12',
+                'isScrollable' => true,
+                'isNeededNotEmpty' => true
+            ]]
+                : [],
+            $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachment', 'displayedFormsCreate')
+            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachment', 'displayedFormsEdit')
+                ? [[
+                'label' => 'Pièces jointes',
+                'value' => $attachments->toArray(),
+                'isAttachments' => true,
+                'isNeededNotEmpty' => true
+            ]]
                 : []
         );
     }

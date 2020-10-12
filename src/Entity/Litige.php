@@ -44,7 +44,7 @@ class Litige
     private $type;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="litige")
+     * @ORM\OneToMany(targetEntity="Attachment", mappedBy="litige")
      */
     private $attachements;
 
@@ -111,14 +111,14 @@ class Litige
     }
 
     /**
-     * @return Collection|PieceJointe[]
+     * @return Collection|Attachment[]
      */
     public function getAttachments(): Collection
     {
         return $this->attachements;
     }
 
-    public function addPiecesJointe(PieceJointe $piecesJointe): self
+    public function addPiecesJointe(Attachment $piecesJointe): self
     {
         if (!$this->attachements->contains($piecesJointe)) {
             $this->attachements[] = $piecesJointe;
@@ -128,7 +128,7 @@ class Litige
         return $this;
     }
 
-    public function removePiecesJointe(PieceJointe $piecesJointe): self
+    public function removePiecesJointe(Attachment $piecesJointe): self
     {
         if ($this->attachements->contains($piecesJointe)) {
             $this->attachements->removeElement($piecesJointe);
@@ -208,7 +208,7 @@ class Litige
         return $this;
     }
 
-    public function addAttachment(PieceJointe $attachment): self
+    public function addAttachment(Attachment $attachment): self
     {
         if (!$this->attachements->contains($attachment)) {
             $this->attachements[] = $attachment;
@@ -218,7 +218,7 @@ class Litige
         return $this;
     }
 
-    public function removeAttachment(PieceJointe $attachment): self
+    public function removeAttachment(Attachment $attachment): self
     {
         if ($this->attachements->contains($attachment)) {
             $this->attachements->removeElement($attachment);

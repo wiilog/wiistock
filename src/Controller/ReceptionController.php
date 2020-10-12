@@ -16,7 +16,7 @@ use App\Entity\CategorieCL;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\ParametrageGlobal;
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
@@ -27,6 +27,7 @@ use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\CategoryType;
+use App\Helper\Stream;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\TransporteurRepository;
@@ -146,19 +147,21 @@ class ReceptionController extends AbstractController {
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $champLibreService
+     * @param AttachmentService $attachmentService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
-     * @throws Exception
+     * @throws \ReflectionException
      */
     public function new(EntityManagerInterface $entityManager,
                         FreeFieldService $champLibreService,
+                        AttachmentService $attachmentService,
                         Request $request): Response {
         if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = $request->request->all()) {
 
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -225,7 +228,7 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
 
             $champLibreService->manageFreeFields($reception, $data, $entityManager);
-
+            $attachmentService->manageAttachments($entityManager, $reception, $request->files);
             $entityManager->flush();
 
             $data = [
@@ -244,15 +247,17 @@ class ReceptionController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $champLibreService
      * @param ReceptionService $receptionService
+     * @param AttachmentService $attachmentService
      * @param Request $request
      * @return Response
-     * @throws Exception
+     * @throws \ReflectionException
      */
     public function edit(EntityManagerInterface $entityManager,
                          FreeFieldService $champLibreService,
                          ReceptionService $receptionService,
+                         AttachmentService $attachmentService,
                          Request $request): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if($request->isXmlHttpRequest() && $data = $request->request->all()) {
             if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -293,10 +298,12 @@ class ReceptionController extends AbstractController {
                         : null)
                 ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null);
 
+            $reception->removeIfNotIn($data['files']);
+
             $entityManager->flush();
 
-
             $champLibreService->manageFreeFields($reception, $data, $entityManager);
+            $attachmentService->manageAttachments($entityManager, $reception, $request->files);
 
             $entityManager->flush();
             $json = [
@@ -1209,7 +1216,7 @@ class ReceptionController extends AbstractController {
             $listAttachmentIdToKeep = $post->get('files') ?? [];
             $attachments = $litige->getAttachments()->toArray();
             foreach($attachments as $attachment) {
-                /** @var PieceJointe $attachment */
+                /** @var Attachment $attachment */
                 if(!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
                     $this->attachmentService->removeAndDeleteAttachment($attachment, $litige);
                 }
@@ -1326,7 +1333,7 @@ class ReceptionController extends AbstractController {
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $litigeRepository = $entityManager->getRepository(Litige::class);
-            $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentRepository = $entityManager->getRepository(Attachment::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $litige = $litigeRepository->find($data['litigeId']);
@@ -1347,7 +1354,7 @@ class ReceptionController extends AbstractController {
                 'litige' => $litige,
                 'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
-                'attachments' => $pieceJointeRepository->findBy(['litige' => $litige]),
+                'attachments' => $attachmentRepository->findBy(['litige' => $litige]),
                 'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);
 
