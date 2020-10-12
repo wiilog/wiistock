@@ -56,7 +56,7 @@
 
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR'))
                               and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-                            <a class="d-flex align-items-center" href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
+                            <a class="d-flex align-items-center" href="{{ path('demande_index', {'open-modal': 'new'}) }}">
                                 <span class="wii-icon wii-icon-delivery quick-menu-icon mx-2"></span>
                                 <span class="flex-fill">Livraison</span>
                             </a>
@@ -64,7 +64,7 @@
 
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL'))
                               and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-                            <a class="d-flex align-items-center" href="{{ path('demande_index', {'open-modal': 'new'}) }}">
+                            <a class="d-flex align-items-center" href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
                                 <span class="wii-icon wii-icon-import quick-menu-icon mx-2"></span>
                                 <span class="flex-fill">Collecte</span>
                             </a>
