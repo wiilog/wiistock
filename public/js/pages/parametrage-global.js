@@ -220,6 +220,17 @@ function updatePrefixDemand() {
     $('.error-msg').html(msg);
 }
 
+function updateExpirationDelay() {
+    let expirationDelay = $('[name="expirationDelay"]').val();
+
+    let path = Routing.generate('ajax_update_expiration_delay', true);
+    let params = JSON.stringify({expirationDelay: expirationDelay});
+
+    $.post(path, params, () => {
+        showBSAlert('Le délais d\'alerte de péremption a bien été mis à jour.', 'success');
+    });
+}
+
 function getPrefixDemand(select) {
     let typeDemande = select.val();
 

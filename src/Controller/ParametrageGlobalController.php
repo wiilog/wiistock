@@ -125,6 +125,10 @@ class ParametrageGlobalController extends AbstractController
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
                     'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL)
                 ],
+                'paramStock' => [
+                    'alertThreshold' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_ALERT_THRESHOLD),
+                    'securityThreshold' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_SECURITY_THRESHOLD)
+                ],
                 'paramDispatches' => [
                     'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
                     'consignor' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONSIGNER),
@@ -374,6 +378,20 @@ class ParametrageGlobalController extends AbstractController
             return new JsonResponse(['typeDemande' => $data['typeDemande'], 'prefixe' => $data['prefixe']]);
         }
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/ajax-update-expiration-delay", name="ajax_update_expiration_delay",  options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateExpirationDelay(Request $request) {
+
+        // TODO : A compléter lors de la création des nouveaux champs pour l'article
+
+        return $this->json([
+            'success' => true
+        ]);
     }
 
     /**
