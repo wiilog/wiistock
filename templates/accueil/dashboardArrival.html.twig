@@ -1,19 +1,13 @@
 <input type="hidden" class="page-title" value="Dashboard | RÉCEPTION ARRIVAGE"/>
-<div class="row">
-    {% if extDashboard is not defined %}
-        <div class="col-12 pl-3 pr-3" id="blocIndicators">
-            <div class="plus-btn" id="btnIndicators" data-toggle="collapse" data-target="#indicators"
-                 aria-expanded="false" aria-controls="indicators">
-                <span class="icon"></span>
-            </div>
-            <div class="collapse indicators" id="indicators">
-                <div class="card card-body">
-                    {% include 'accueil/dashboardIndicatorsList.html.twig' %}
-                </div>
-            </div>
+
+{% if extDashboard is not defined %}
+    <div class="row">
+        <div class="col-12">
+            {% include 'accueil/buttonIndicator.html.twig' %}
         </div>
-    {% endif %}
-</div>
+    </div>
+{% endif %}
+
 <div class="row">
     <div class="dashboard-box-container col-6 pr-2 half-height">
         <div class="dashboard-box">
