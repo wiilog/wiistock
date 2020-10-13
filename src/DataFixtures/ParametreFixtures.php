@@ -16,6 +16,7 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 class ParametreFixtures extends Fixture implements FixtureGroupInterface
 {
@@ -39,6 +40,8 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
+        $output = new ConsoleOutput();
+
 		$parameters = [
 			[
 				'label' => Parametre::LABEL_AJOUT_QUANTITE,
@@ -61,7 +64,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 					->setDefaultValue($parameter['default'])
 					->setElements($parameter['elements']);
 				$manager->persist($param);
-				dump("création du paramètre " . $parameter['label']);
+				$output->writeln("Création du paramètre " . $parameter['label']);
 			}
 		}
         $statutRepository = $manager->getRepository(Statut::class);
@@ -171,7 +174,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 					->setLabel($globalParameterLabel)
 					->setValue($value);
 				$manager->persist($globalParam);
-				dump("création du paramètre " . $globalParameterLabel);
+                $output->writeln("Création du paramètre " . $globalParameterLabel);
 			}
 		}
 
@@ -181,7 +184,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
                 ->setHeight(ParametrageGlobal::LABEL_HEIGHT_DEFAULT)
                 ->setWidth(parametrageGlobal::LABEL_WIDTH_DEFAULT);
 		    $manager->persist($dimensionEtiquette);
-		    dump('création des dimensions étiquettes');
+            $output->writeln('Création des dimensions étiquettes');
         }
 
         $manager->flush();

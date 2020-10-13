@@ -8,6 +8,7 @@ use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 class TranslationFixtures extends Fixture implements FixtureGroupInterface
 {
@@ -29,6 +30,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
      */
     public function load(ObjectManager $manager)
     {
+        $output = new ConsoleOutput();
+
         $isCurrentClientCEA = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI);
         $translations = [
             'natures' => [
@@ -190,7 +193,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
             if (!isset($translations[$menu][$label])) {
                 $manager->remove($savedTranslation);
-                dump("Suppression de la traduction :  $menu / $label");
+                $output->writeln("Suppression de la traduction :  $menu / $label");
             }
         }
 
@@ -217,7 +220,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ->setTranslation($translatedLabel)
                         ->setUpdated(true);
                     $manager->persist($translationObject);
-                    dump("Ajout de la traduction :  $menu / $label ==> $translatedLabel");
+                    $output->writeln("Ajout de la traduction :  $menu / $label ==> $translatedLabel");
                 }
             }
         }

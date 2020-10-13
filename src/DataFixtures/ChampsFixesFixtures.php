@@ -8,10 +8,13 @@ use App\Entity\FieldsParam;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
 
     public function load(ObjectManager $manager) {
+        $output = new ConsoleOutput();
+
         $listEntityFieldCodes = [
             FieldsParam::ENTITY_CODE_RECEPTION => [
                 ['code' => FieldsParam::FIELD_CODE_FOURNISSEUR, 'label' => FieldsParam::FIELD_LABEL_FOURNISSEUR, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
@@ -89,7 +92,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                         ->setFieldCode($fieldCode['code']);
                     $manager->persist($field);
                     $manager->flush();
-                    dump('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
+                    $output->writeln('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
                 }
             }
         }
