@@ -72,13 +72,26 @@ $(function () {
 
     if (!isDashboardExt()) {
         initTooltips($('.has-tooltip'));
-        let $indicators = $('#indicators');
-        $('.btnIndicators').mouseenter(function () {
-            $indicators.fadeIn();
-        });
-        $('.blocIndicators').mouseleave(function () {
-            $indicators.fadeOut();
-        });
+        let blockDisplayed = false;
+        $('.blocIndicators')
+            .mouseenter(function () {
+                if (!blockDisplayed) {
+                    blockDisplayed = true;
+                    const $button = $(this);
+                    const $indicators = $button.find('.indicators');
+                    $indicators.fadeIn();
+                }
+            })
+            .mouseleave(function () {
+                setTimeout(() => {
+                    if (blockDisplayed) {
+                        blockDisplayed = false;
+                        const $button = $(this);
+                        const $indicators = $button.find('.indicators');
+                        $indicators.fadeOut();
+                    }
+                }, 200);
+            });
 
         $(document).on('keydown', function (e) {
             if (!$('.carousel-indicators').hasClass('d-none')) {
