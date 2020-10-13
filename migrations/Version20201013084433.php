@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use App\Entity\Statut;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -21,6 +22,8 @@ final class Version20201013084433 extends AbstractMigration
     {
         // this up() migration is auto-generated, please modify it to your needs
 
+        $treatedState = Statut::TREATED;
+
         $this
             ->addSql("ALTER TABLE dispatch_pack ADD treated TINYINT(1) DEFAULT '0' NOT NULL");
         $this
@@ -29,7 +32,7 @@ final class Version20201013084433 extends AbstractMigration
                 INNER JOIN dispatch on dispatch_pack.dispatch_id = dispatch.id
                 INNER JOIN statut on dispatch.statut_id = statut.id
                 SET treated = 1
-                WHERE statut.state = 2
+                WHERE statut.state = ${treatedState}
             ");
     }
 

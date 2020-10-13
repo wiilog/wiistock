@@ -5,6 +5,7 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
+use App\Entity\DispatchPack;
 use App\Entity\FreeField;
 use App\Entity\Dispatch;
 use App\Entity\CategorieCL;
@@ -402,16 +403,31 @@ class DispatchService {
             $receiverEmails = $dispatch->getReceiver() ? $dispatch->getReceiver()->getMainAndSecondaryEmails() : [];
             $requesterEmails = $dispatch->getRequester() ? $dispatch->getRequester()->getMainAndSecondaryEmails() : [];
 
+            $dispatchPackTreatedCounter = $dispatch
+                ->getDispatchPacks()
+                ->filter(function (DispatchPack $dispatchPack) {
+                    return $dispatchPack->isTreated();
+                })
+                ->count();
+            $dispatchPackCounter = $dispatch
+                ->getDispatchPacks()
+                ->count();
+
+            $translatedTitle = $dispatchPackTreatedCounter === $dispatchPackCounter
+                ? 'acheminement.Acheminement {numéro} traité le {date}'
+                : 'acheminement.Acheminement {numéro} traité partiellement le {date}';
+
             $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
             $title = $status->isTreated()
-                ? $this->translator->trans('acheminement.Acheminement {numéro} traité le {date}', [
+                ? $this->translator->trans($translatedTitle, [
                     "{numéro}" => $dispatch->getNumber(),
                     "{date}" => $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate()->format('d/m/Y à H:i:s') : ''
                 ])
                 : (!$isUpdate
                     ? ('Un(e) ' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
                     : ('Changement de statut d\'un(e) ' . $translatedCategory . ' de type ' . $type . ' vous concernant :'));
-            $subject = $status->isTreated() ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translator->trans('acheminement.demande d\'acheminement') . '.')
+            $subject = ($status->isTreated() || $status->isPartial())
+                ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translator->trans('acheminement.demande d\'acheminement') . '.')
                 : (!$isUpdate
                     ? ('FOLLOW GT // Création d\'un(e) ' . $translatedCategory)
                     : 'FOLLOW GT // Changement de statut d\'un(e) ' . $translatedCategory . '.');
@@ -463,47 +479,52 @@ class DispatchService {
      * @throws Exception
      */
     public function treatDispatchRequest(EntityManagerInterface $entityManager,
-                                            Dispatch $dispatch,
-                                            Statut $treatedStatus,
-                                            Utilisateur $loggedUser,
-                                            bool $fromNomade = false): void {
+                                         Dispatch $dispatch,
+                                         Statut $treatedStatus,
+                                         Utilisateur $loggedUser,
+                                         bool $fromNomade = false): void {
         $dispatchPacks = $dispatch->getDispatchPacks();
         $takingLocation = $dispatch->getLocationFrom();
         $dropLocation = $dispatch->getLocationTo();
         $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
         $dispatch
             ->setStatut($treatedStatus)
-            ->setTreatmentDate($date);
+            ->setTreatmentDate($date)
+            ->setTreatedBy($loggedUser);
 
         foreach ($dispatchPacks as $dispatchPack) {
-            $pack = $dispatchPack->getPack();
+            if (!$dispatchPack->isTreated()) {
+                $pack = $dispatchPack->getPack();
 
-            $trackingTaking = $this->mouvementTracaService->createTrackingMovement(
-                $pack,
-                $takingLocation,
-                $loggedUser,
-                $date,
-                $fromNomade,
-                true,
-                MouvementTraca::TYPE_PRISE,
-                ['quantity' => $dispatchPack->getQuantity(), 'from' => $dispatch]
-            );
+                $trackingTaking = $this->mouvementTracaService->createTrackingMovement(
+                    $pack,
+                    $takingLocation,
+                    $loggedUser,
+                    $date,
+                    $fromNomade,
+                    true,
+                    MouvementTraca::TYPE_PRISE,
+                    ['quantity' => $dispatchPack->getQuantity(), 'from' => $dispatch]
+                );
 
-            $trackingDrop = $this->mouvementTracaService->createTrackingMovement(
-                $pack,
-                $dropLocation,
-                $loggedUser,
-                $date,
-                $fromNomade,
-                true,
-                MouvementTraca::TYPE_DEPOSE,
-                ['quantity' => $dispatchPack->getQuantity(), 'from' => $dispatch]
-            );
+                $trackingDrop = $this->mouvementTracaService->createTrackingMovement(
+                    $pack,
+                    $dropLocation,
+                    $loggedUser,
+                    $date,
+                    $fromNomade,
+                    true,
+                    MouvementTraca::TYPE_DEPOSE,
+                    ['quantity' => $dispatchPack->getQuantity(), 'from' => $dispatch]
+                );
 
-            $entityManager->persist($trackingTaking);
-            $entityManager->persist($trackingDrop);
+                $entityManager->persist($trackingTaking);
+                $entityManager->persist($trackingDrop);
+
+                $dispatchPack->setTreated(true);
+            }
         }
-        $dispatch->setTreatedBy($loggedUser);
         $entityManager->flush();
 
         $this->sendEmailsAccordingToStatus($dispatch, true);

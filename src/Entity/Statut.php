@@ -179,6 +179,10 @@ class Statut
         return $this->state === self::TREATED;
     }
 
+    public function isPartial(): ?bool {
+        return $this->state === self::PARTIAL;
+    }
+
     public function isDraft(): ?bool {
         return $this->state === self::DRAFT;
     }

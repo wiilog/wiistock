@@ -34,7 +34,7 @@ class DispatchPack
     private $dispatch;
 
     /**
-     * @ORM\Column(type="boolean", options={"default": 0})
+     * @ORM\Column(type="boolean", options={"default": false})
      */
     private $treated;
 
