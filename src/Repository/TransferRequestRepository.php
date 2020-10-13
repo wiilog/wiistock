@@ -21,11 +21,11 @@ class TransferRequestRepository extends EntityRepository {
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
-                case 'status':
+                case 'statut':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('t.status', 't')
-                        ->andWhere('t.id in (:status)')
+                        ->join('t.status', 's')
+                        ->andWhere('s.id in (:status)')
                         ->setParameter('status', $value);
                     break;
                 case 'requester':
@@ -125,6 +125,20 @@ class TransferRequestRepository extends EntityRepository {
             'count' => $countFiltered,
             'total' => $total
         ];
+    }
+
+    public function getLastTransferNumberByPrefix($prefix) {
+        $queryBuilder = $this->createQueryBuilder('t');
+        $queryBuilder
+            ->select('t.number')
+            ->where('t.number LIKE :value')
+            ->orderBy('t.creationDate', 'DESC')
+            ->setParameter('value', $prefix . '%');
+
+        $result = $queryBuilder
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
     }
 
 }

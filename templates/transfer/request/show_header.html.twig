@@ -1,6 +1,6 @@
 {% extends 'utils/show-header.html.twig' %}
 
-{% block showTitle ('Demande de transfert n°' ~ transfer.number) %}
+{% block showTitle ('Demande de transfert ' ~ transfer.number) %}
 
 {% block showActions %}
     <div class="btn-group">
@@ -26,6 +26,7 @@
             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
                 {% if hasRightEdit %}
                     <a data-id='{{ transfer.id }}'
+                       onclick="editRow($(this), Routing.generate('transfer_request_api_edit', true), $('#modalEditTransferRequest'), $('#submitEditTransferRequest'), true, '#modalEditTransferRequest .editor-container-edit')"
                        data-target='#modalEditTransferRequest'
                        data-toggle='modal'
                        class="dropdown-item">

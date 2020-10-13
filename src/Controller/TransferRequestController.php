@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Dispatch;
 use App\Entity\FreeField;
 use App\Entity\Collecte;
 use App\Entity\Emplacement;
@@ -107,6 +108,28 @@ class TransferRequestController extends AbstractController {
         }
     }
 
+    private function createNumber($entityManager, $date) {
+        $dateStr = $date->format('Ymd');
+
+        $lastDispatchNumber = $entityManager->getRepository(TransferRequest::class)->getLastTransferNumberByPrefix("T-" . $dateStr);
+
+        if ($lastDispatchNumber) {
+            $lastCounter = (int) substr($lastDispatchNumber, -4, 4);
+            $currentCounter = ($lastCounter + 1);
+        } else {
+            $currentCounter = 1;
+        }
+
+        $currentCounterStr = (
+        $currentCounter < 10 ? ('000' . $currentCounter) :
+            ($currentCounter < 100 ? ('00' . $currentCounter) :
+                ($currentCounter < 1000 ? ('0' . $currentCounter) :
+                    $currentCounter))
+        );
+
+        return ("T-" . $dateStr . $currentCounterStr);
+    }
+
     /**
      * @Route("/creer", name="transfer_request_new", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
@@ -114,35 +137,36 @@ class TransferRequestController extends AbstractController {
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function new(Request $request, EntityManagerInterface $em): Response {
-        $statusRepository = $em->getRepository(Statut::class);
-        $draft = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::DRAFT);
+    public function new(Request $request, EntityManagerInterface $entityManager): Response {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
-        $transfer = new TransferRequest();
-        $transfer->setRequester($this->getUser());
-        $transfer->setStatus($draft);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
-        $form = $this->createForm(TransferRequestType::class, $transfer);
-        $form->handleRequest($request);
+            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
-        if($form->isSubmitted() && $form->isValid()) {
-            //TODO 2741: mettre en commun le numéro
-            $transfer->setNumber("lol");
-            $transfer->setCreationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+            $draft = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::DRAFT);
+            $transfer = new TransferRequest();
+            $destination = $emplacementRepository->find($data['destination']);
 
-            $em->persist($transfer);
-            $em->flush();
+            $transfer
+                ->setStatus($draft)
+                ->setNumber($this->createNumber($entityManager, $date))
+                ->setDestination($destination)
+                ->setCreationDate($date)
+                ->setRequester($this->getUser())
+                ->setComment($data['comment']);
+            $entityManager->persist($transfer);
+            $entityManager->flush();
 
-            return $this->json([
-                "success" => true,
-                "redirect" => $this->generateUrl("transfer_request_show", ["transfer" => $transfer->getId()])
+            return new JsonResponse([
+                'redirect' => $this->generateUrl('transfer_request_show', ['transfer' => $transfer->getId()]),
             ]);
         }
-
-        return $this->render('transfer/request/new.html.twig', [
-            "new_transfer" => $form->createView(),
-            "new_modal_open" => $form->isSubmitted() && !$form->isValid(),
-        ]);
+        throw new NotFoundHttpException('404 not found');
     }
 
     /**
@@ -165,33 +189,64 @@ class TransferRequestController extends AbstractController {
         ]);
     }
 
+
     /**
-     * @Route("/modifier/{transfer}", name="transfer_request_edit", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/api-modifier", name="transfer_request_api_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param EntityManagerInterface $em
-     * @param TransferRequest $transfer
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function edit(Request $request, EntityManagerInterface $em, TransferRequest $transfer): Response {
-        $transfer->setRequester($this->getUser());
+    public function editApi(Request $request, EntityManagerInterface $entityManager): Response {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
-        $form = $this->createForm(TransferRequestType::class, $transfer);
-        $form->handleRequest($request);
+            $transfer = $entityManager->getRepository(TransferRequest::class)->find($data['id']);
 
-        if($form->isSubmitted() && $form->isValid()) {
-            $em->persist($transfer);
-            $em->flush();
-
-            return $this->json([
-                "success" => true,
-                "redirect" => $this->generateUrl("transfer_request_show", ["transfer" => $transfer->getId()])
+            $json = $this->renderView('transfer/request/modalEditTransferContent.html.twig', [
+                'transfer' => $transfer,
             ]);
+
+            return new JsonResponse($json);
         }
 
-        return $this->render('transfer/request/edit.html.twig', [
-            "edit_transfer" => $form->createView(),
-            "edit_modal_open" => $form->isSubmitted() && !$form->isValid(),
-        ]);
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/modifier", name="transfer_request_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param DemandeCollecteService $collecteService
+     * @param FreeFieldService $champLibreService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws Exception
+     */
+    public function edit(Request $request, TransferRequestService $service, EntityManagerInterface $entityManager): Response {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $destination = $entityManager->getRepository(Emplacement::class)->find($data['destination']);
+
+            $transfer = $entityManager->getRepository(TransferRequest::class)->find($data['transfer']);
+            $transfer
+                ->setDestination($destination)
+                ->setComment($data['comment']);
+
+            $entityManager->flush();
+
+            return $this->json([
+                'entete' => $this->renderView('transfer/request/show_header.html.twig', [
+                    'transfer' => $transfer,
+                    'modifiable' => ($transfer->getStatus()->getNom() == TransferRequest::DRAFT),
+                    'showDetails' => $service->createHeaderDetailsConfig($transfer)
+                ]),
+            ]);
+        }
+        throw new NotFoundHttpException('404');
     }
 
     /**

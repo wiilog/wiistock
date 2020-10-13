@@ -26,10 +26,10 @@ $(document).ready(() => {
         }, 'json');
     }
 
-    const $modalNewTransferRequest = $('#modalNewTransferRequest');
+    const $modalNewTransferRequest = $('#modalNewTransfer');
     $modalNewTransferRequest.on('show.bs.modal', function () {
-        initNewTransferRequestEditor("#modalNewTransferRequest");
-        clearModal("#modalNewTransferRequest");
+        clearModal("#modalNewTransfer");
+        initNewTransferRequestEditor("#modalNewTransfer");
     });
 });
 
@@ -66,20 +66,10 @@ let transferRequestTableConfig = {
 let table = initDataTable('tableTransferRequest', transferRequestTableConfig);
 
 
-let modalNewTransferRequest = $("#modalNewTransferRequest");
-let SubmitNewTransferRequest = $("#submitNewTransferRequest");
+let modalNewTransferRequest = $("#modalNewTransfer");
+let SubmitNewTransferRequest = $("#submitNewTransfer");
 let urlNewTransferRequest = Routing.generate('transfer_request_new', true)
 InitModal(modalNewTransferRequest, SubmitNewTransferRequest, urlNewTransferRequest, {tables: [table]});
-
-let modalDeleteTransferRequest = $("#modalDeleteTransferRequest");
-let submitDeleteTransferRequest = $("#submitDeleteTransferRequest");
-let urlDeleteTransferRequest = Routing.generate('transfer_request_delete', true)
-InitModal(modalDeleteTransferRequest, submitDeleteTransferRequest, urlDeleteTransferRequest, {tables: [table]});
-
-let modalModifyTransferRequest = $('#modalEditTransferRequest');
-let submitModifyTransferRequest = $('#submitEditTransferRequest');
-let urlModifyTransferRequest = Routing.generate('transfer_request_edit');
-InitModal(modalModifyTransferRequest, submitModifyTransferRequest, urlModifyTransferRequest, {tables: [table]});
 
 $.fn.dataTable.ext.search.push(
     function (settings, data, dataIndex) {

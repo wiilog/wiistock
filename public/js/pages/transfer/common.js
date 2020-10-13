@@ -1,3 +1,5 @@
+$(document)
+
 function submitTransferRequest(e, route) {
     e.preventDefault();
     let that = this;

@@ -1,5 +1,4 @@
 let tableArticles;
-const $addArticleModal = $("#modalNewArticle");
 
 $(document).ready(() => {
     $('form[name="transfer_request"]').submit(function(e) {
@@ -7,21 +6,6 @@ $(document).ready(() => {
     });
 
     Select2.articleReference($(".ajax-autocomplete"));
-
-    let modal = $("#modalAddArticle");
-    let submit = $("#submitAddArticle");
-    let url = Routing.generate('transfer_request_add_article', {transfer: id});
-    InitModal(modal, submit, url, {tables: [tableArticle]});
-
-    let modalDeleteArticle = $("#modalDeleteArticle");
-    let submitDeleteArticle = $("#submitDeleteArticle");
-    let urlDeleteArticle = Routing.generate('transfer_request_remove_article', true);
-    InitModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, {tables: [tableArticle]});
-
-    let modalDeleteTransfer = $("#modalDeleteTransfer");
-    let submitDeleteTransfer = $("#submitDeleteTransfer");
-    let urlDeleteTransfer = Routing.generate('transfer_request_delete', true)
-    InitModal(modalDeleteTransfer, submitDeleteTransfer, urlDeleteTransfer);
 
     tableArticle = initDataTable('tableArticle', {
         ajax: {
@@ -39,6 +23,26 @@ $(document).ready(() => {
             {"data": 'Quantité', 'title': 'Quantité'}
         ],
     });
+
+    let modal = $("#modalAddArticle");
+    let submit = $("#submitAddArticle");
+    let url = Routing.generate('transfer_request_add_article', {transfer: id});
+    InitModal(modal, submit, url, {tables: [tableArticle]});
+
+    let modalDeleteArticle = $("#modalDeleteArticle");
+    let submitDeleteArticle = $("#submitDeleteArticle");
+    let urlDeleteArticle = Routing.generate('transfer_request_remove_article', true);
+    InitModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, {tables: [tableArticle]});
+
+    let $modalEdit = $("#modalEditTransferRequest");
+    let $submitEdit = $("#submitEditTransferRequest");
+    let pathEdit = Routing.generate('transfer_request_edit', true);
+    InitModal($modalEdit, $submitEdit, pathEdit);
+
+    let modalDeleteTransfer = $("#modalDeleteTransfer");
+    let submitDeleteTransfer = $("#submitDeleteTransfer");
+    let urlDeleteTransfer = Routing.generate('transfer_request_delete', true)
+    InitModal(modalDeleteTransfer, submitDeleteTransfer, urlDeleteTransfer);
 });
 
 function onReferenceChange($select) {
@@ -54,7 +58,6 @@ function onReferenceChange($select) {
     });
 
     $.post(route, data, function(response) {
-        console.log(response);
         if(response.success && response.html) {
             $("#add-article-code-selector").html(response.html);
         } else {
