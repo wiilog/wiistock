@@ -33,6 +33,11 @@ class DispatchPack
      */
     private $dispatch;
 
+    /**
+     * @ORM\Column(type="boolean", options={"default": 0})
+     */
+    private $treated;
+
     public function __construct() {
         $this->quantity = 1;
     }
@@ -73,6 +78,18 @@ class DispatchPack
 
     public function getQuantity(): int {
         return $this->quantity;
+    }
+
+    public function isTreated(): ?bool
+    {
+        return $this->treated;
+    }
+
+    public function setTreated(bool $treated): self
+    {
+        $this->treated = $treated;
+
+        return $this;
     }
 
 }

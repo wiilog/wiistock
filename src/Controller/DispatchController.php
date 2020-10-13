@@ -360,6 +360,7 @@ class DispatchController extends AbstractController {
                     $packDispatch = new DispatchPack();
                     $packDispatch
                         ->setPack($pack)
+                        ->setTreated(false)
                         ->setQuantity($packQuantity)
                         ->setDispatch($dispatch);
                     $entityManager->persist($packDispatch);
@@ -714,6 +715,7 @@ class DispatchController extends AbstractController {
                         'lastMvtDate' => $lastTracking ? ($lastTracking->getDatetime() ? $lastTracking->getDatetime()->format('d/m/Y H:i') : '') : '',
                         'lastLocation' => $lastTracking ? ($lastTracking->getEmplacement() ? $lastTracking->getEmplacement()->getLabel() : '') : '',
                         'operator' => $lastTracking ? ($lastTracking->getOperateur() ? $lastTracking->getOperateur()->getUsername() : '') : '',
+                        'status' => $dispatchPack->isTreated() ? 'Traité' : 'A traiter',
                         'actions' => $this->renderView('dispatch/datatablePackRow.html.twig', [
                             'pack' => $pack,
                             'packDispatch' => $dispatchPack,
@@ -777,6 +779,7 @@ class DispatchController extends AbstractController {
             $packDispatch = new DispatchPack();
             $packDispatch
                 ->setPack($pack)
+                ->setTreated(false)
                 ->setDispatch($dispatch);
             $entityManager->persist($packDispatch);
 

@@ -16,6 +16,7 @@ class Statut
     const NOT_TREATED = 1;
     const TREATED = 2;
     const DISPUTE = 3;
+    const PARTIAL = 4;
 
     /**
      * @ORM\Id()
