@@ -10,8 +10,13 @@
                 <p class="mb-2 small">{{ estimatedFinishTimeLabel }}</p>
                 <strong>{{ estimatedFinishTime }}</strong>
             </div>
-            <div class="col-2 d-flex justify-content-end">
-                {{ emergencyText }}<i class="ml-2 fa {{ topRightIcon }} wii-card-icon"></i>
+            <div class="col-2 d-flex justify-content-end align-items-start">
+                {{ emergencyText }}
+                {% if topRightIcon == 'fa-exclamation-triangle red' %}
+                    <i class="wii-card-icon fa {{ topRightIcon }}"></i>
+                {% else %}
+                    <img alt="" src="{{ asset('svg/' ~ topRightIcon) }}" class="wii-card-icon"/>
+                {% endif %}
             </div>
             <div class="col-12 mb-2">
                 <div class="progress bg-{{ progressBarBGColor }}" style="height: 7px;">
