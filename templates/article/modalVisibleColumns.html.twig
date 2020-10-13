@@ -30,7 +30,7 @@
                                     {% set checked = (champ.label in columnsVisibles ? 'checked' : '') %}
                                     <input class="form-check-input {{ checked == 'checked' ? 'data' : '' }}"
                                            name="{{ champ.label }}"
-                                           onclick="showOrHideColumn($(this), tableArticle)" type="checkbox"
+                                           onchange="showOrHideColumn($(this), tableArticle)" type="checkbox"
                                            id="column_visible_input{{ loop.index }}" {{ checked }}
                                            data-column="{{ i }}" data-name="{{ champ.label }}">
                                     <label for="column_visible_input{{ loop.index }}" class="pointer"></label>

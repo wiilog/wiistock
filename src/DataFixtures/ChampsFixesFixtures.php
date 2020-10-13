@@ -20,7 +20,6 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_DATE_ATTENDUE, 'label' => FieldsParam::FIELD_LABEL_DATE_ATTENDUE, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_DATE_COMMANDE, 'label' => FieldsParam::FIELD_LABEL_DATE_COMMANDE, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_UTILISATEUR, 'label' => FieldsParam::FIELD_LABEL_UTILISATEUR, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
-                ['code' => FieldsParam::FIELD_CODE_NUM_RECEPTION, 'label' => FieldsParam::FIELD_LABEL_NUM_RECEPTION, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_TRANSPORTEUR, 'label' => FieldsParam::FIELD_LABEL_TRANSPORTEUR, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_EMPLACEMENT, 'label' => FieldsParam::FIELD_LABEL_EMPLACEMENT, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_ANOMALIE, 'label' => FieldsParam::FIELD_LABEL_ANOMALIE, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],

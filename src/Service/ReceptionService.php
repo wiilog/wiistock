@@ -83,23 +83,22 @@ class ReceptionService
      */
     public function dataRowReception(Reception $reception)
     {
-        return
-            [
-                'id' => ($reception->getId()),
-                "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
-                "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y H:i'),
-                "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : ''),
-                "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
-                "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
-                "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
-                "Numéro de commande" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
-                "storageLocation" => ($reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : ''),
-                "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
-                'Actions' => $this->templating->render(
-                    'reception/datatableReceptionRow.html.twig',
-                    ['reception' => $reception]
-                )
-            ];
+        return [
+            'id' => ($reception->getId()),
+            "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
+            "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y H:i'),
+            "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : ''),
+            "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
+            "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
+            "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
+            "Numéro de commande" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
+            "storageLocation" => ($reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : ''),
+            "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
+            'Actions' => $this->templating->render(
+                'reception/datatableReceptionRow.html.twig',
+                ['reception' => $reception]
+            )
+        ];
     }
 
     public function createHeaderDetailsConfig(Reception $reception): array {
