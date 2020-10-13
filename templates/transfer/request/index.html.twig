@@ -3,10 +3,9 @@
 {% block title %}Demande | Transfert{% endblock %}
 
 {% block page_filter %}
-    {% include 'filters/filtersDemands.html.twig' with {
+    {% include 'transfer/request/filters.html.twig' with {
         'page': 'PAGE_TRANSFER_REQUEST',
         'tableSelector': '#tableTransferRequest',
-        'callback': 'callbackSaveFilter'
     } %}
 {% endblock %}
 {% block page_content %}

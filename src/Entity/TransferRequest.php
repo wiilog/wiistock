@@ -65,7 +65,7 @@ class TransferRequest {
     /**
      * @ORM\OneToOne(targetEntity=TransferOrder::class, mappedBy="request", cascade={"persist", "remove"})
      */
-    private $transferOrder;
+    private $order;
 
     /**
      * @ORM\ManyToMany(targetEntity=Article::class, inversedBy="transferRequests")
@@ -149,16 +149,16 @@ class TransferRequest {
         return $this;
     }
 
-    public function getTransferOrder(): ?TransferOrder {
-        return $this->transferOrder;
+    public function getOrder(): ?TransferOrder {
+        return $this->order;
     }
 
-    public function setTransferOrder(TransferOrder $transferOrder): self {
-        $this->transferOrder = $transferOrder;
+    public function setOrder(TransferOrder $order): self {
+        $this->order = $order;
 
         // set the owning side of the relation if necessary
-        if($transferOrder->getRequest() !== $this) {
-            $transferOrder->setRequest($this);
+        if($order->getRequest() !== $this) {
+            $order->setRequest($this);
         }
 
         return $this;

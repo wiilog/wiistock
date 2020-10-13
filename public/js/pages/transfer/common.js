@@ -8,8 +8,6 @@ function submitTransferRequest(e, route) {
         type: $form.attr('method'),
         data : $form.serialize(),
         success: function(html) {
-            console.log(html, $(html).find('form[name="transfer_request"]'));
-
             if(html.success) {
                 if(html.redirect) {
                     window.location.href = html.redirect

@@ -10,8 +10,15 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Routing\RouterInterface;
 
 class TransferRequestType extends AbstractType {
+
+    private $routing;
+
+    public function __construct(RouterInterface $routing) {
+        $this->routing = $routing;
+    }
 
     public function buildForm(FormBuilderInterface $builder, array $options) {
         $builder
@@ -32,7 +39,7 @@ class TransferRequestType extends AbstractType {
 
     public function configureOptions(OptionsResolver $resolver) {
         $resolver->setDefaults([
-            "data_class" => TransferRequest::class
+            "data_class" => TransferRequest::class,
         ]);
     }
 

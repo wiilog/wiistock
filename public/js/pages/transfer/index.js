@@ -1,6 +1,35 @@
 $(document).ready(() => {
-    $('form[name="transfer_request"]').submit(function(e) {
-        submitTransferRequest($(this), e,  Routing.generate("transfer_request_new"))
+    const $statusSelector = $('.filterService select[name="statut"]');
+
+    initDateTimePicker();
+    Select2.init($statusSelector, 'Statuts');
+    Select2.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
+    Select2.user($('.filterService select[name="requester"]'), "Demandeurs");
+    Select2.user($('.filterService select[name="operator"]'), "Opérateurs");
+
+    // applique les filtres si pré-remplis
+    let val = $('#filterStatus').val();
+
+    if (val && val.length > 0) {
+        let valuesStr = val.split(',');
+        let valuesInt = [];
+        valuesStr.forEach((value) => {
+            valuesInt.push(parseInt(value));
+        })
+        $statusSelector.val(valuesInt).select2();
+    } else {
+        // sinon, filtres enregistrés en base pour chaque utilisateur
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_TRANSFER_REQUEST);
+        $.post(path, params, function (data) {
+            displayFiltersSup(data);
+        }, 'json');
+    }
+
+    const $modalNewTransferRequest = $('#modalNewTransferRequest');
+    $modalNewTransferRequest.on('show.bs.modal', function () {
+        initNewTransferRequestEditor("#modalNewTransferRequest");
+        clearModal("#modalNewTransferRequest");
     });
 });
 
@@ -49,7 +78,7 @@ InitModal(modalDeleteTransferRequest, submitDeleteTransferRequest, urlDeleteTran
 
 let modalModifyTransferRequest = $('#modalEditTransferRequest');
 let submitModifyTransferRequest = $('#submitEditTransferRequest');
-let urlModifyTransferRequest = Routing.generate('transfer_request_edit', true);
+let urlModifyTransferRequest = Routing.generate('transfer_request_edit');
 InitModal(modalModifyTransferRequest, submitModifyTransferRequest, urlModifyTransferRequest, {tables: [table]});
 
 $.fn.dataTable.ext.search.push(
@@ -77,37 +106,6 @@ $.fn.dataTable.ext.search.push(
     }
 );
 
-$(function() {
-    initDateTimePicker();
-    Select2.init($('#statut'), 'Statuts');
-    Select2.user('Demandeurs');
-
-    // applique les filtres si pré-remplis
-    let val = $('#filterStatus').val();
-
-    if (val && val.length > 0) {
-        let valuesStr = val.split(',');
-        let valuesInt = [];
-        valuesStr.forEach((value) => {
-            valuesInt.push(parseInt(value));
-        })
-        $('#statut').val(valuesInt).select2();
-    } else {
-        // sinon, filtres enregistrés en base pour chaque utilisateur
-        let path = Routing.generate('filter_get_by_page');
-        let params = JSON.stringify(PAGE_TRANSFER_REQUEST);
-        $.post(path, params, function (data) {
-            displayFiltersSup(data);
-        }, 'json');
-    }
-
-    const $modalNewTransferRequest = $('#modalNewTransferRequest');
-    $modalNewTransferRequest.on('show.bs.modal', function () {
-        initNewTransferRequestEditor("#modalNewTransferRequest");
-        clearModal("#modalNewTransferRequest");
-    });
-});
-
 //initialisation editeur de texte une seule fois à la création
 let editorNewTransferRequestAlreadyDone = false;
 
@@ -116,13 +114,6 @@ function initNewTransferRequestEditor(modal) {
         initEditorInModal(modal);
         editorNewTransferRequestAlreadyDone = true;
     }
-    Select2.location($('.ajax-autocomplete-location'))
-}
 
-function callbackSaveFilter() {
-    // supprime le filtre de l'url
-    let str = window.location.href.split('/');
-    if (str[5]) {
-        window.location.href = Routing.generate('transfer_request_index');
-    }
+    Select2.location($('.ajax-autocomplete-location'))
 }
