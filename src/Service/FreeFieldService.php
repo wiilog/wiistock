@@ -83,11 +83,11 @@ class FreeFieldService
     public function manageJSONFreeField(FreeField $champLibre, $value): string
     {
         $value = $champLibre->getTypage() === FreeField::TYPE_BOOL
-            ? empty($value) || $value === "false"
+            ? (empty($value) || $value === "false"
                 ? "0"
-                : "1"
+                : "1")
             : ($champLibre->getTypage() === FreeField::TYPE_LIST_MULTIPLE
-                ? implode(';', json_decode($value))
+                ? implode(';', json_decode($value) ?: [])
                 : $value);
 
         return strval($value);

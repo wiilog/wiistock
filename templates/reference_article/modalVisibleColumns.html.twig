@@ -30,7 +30,7 @@
                                 <div class="checkbox d-inline-block pointer" onclick="toggleInputRadioOnRow(this)">
                                     <input class="form-check-input {{ checked == 'checked' ? 'data' : '' }}"
                                            name="{{ champ.label }}"
-                                           onclick="showOrHideColumn($(this), pageTables[0])" type="checkbox"
+                                           onchange="showOrHideColumn($(this), pageTables[0])" type="checkbox"
                                            id="column_visible_input{{ loop.index }}" {{ checked }}
                                            data-column="{{ i }}" data-name="{{ champ.label }}">
                                     <label for="column_visible_input{{ loop.index }}" class="pointer"></label>

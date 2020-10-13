@@ -34,7 +34,7 @@
                                         {% set checked = (name in visibleColumns ? 'checked' : '') %}
                                         <input class="visible-column-tracking-movement-input form-check-input {{ checked == 'checked' ? 'data' : '' }}"
                                                name="{{ name }}"
-                                               onclick="showOrHideColumn($(this), tableMvt)"
+                                               onchange="showOrHideColumn($(this), tableMvt)"
                                                type="checkbox"
                                                id="column_visible_tracking_movement_input_{{ loop.index }}"
                                             {{ checked }}

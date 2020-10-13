@@ -39,24 +39,11 @@ $(function () {
 
     $('[data-toggle="popover"]').popover();
 
-    let $quickCreate = $('#quick-create');
-    $('[data-target="#quick-create"]')
-        .click(() => {
-            if ($quickCreate.hasClass('d-none')) {
-                $quickCreate.removeClass('d-none');
-                $quickCreate.fadeIn();
-            } else {
-                $quickCreate.fadeOut(() => {
-                    $quickCreate.addClass('d-none');
-                });
-            }
-        });
 
     setTimeout(() => {
         let query = GetRequestQuery();
         const openModalNew = 'new';
         const openModalEdit = 'edit';
-        console.log(query)
         if (query["open-modal"] === openModalNew
             || query["open-modal"] === openModalEdit) {
             if (query["open-modal"] === openModalNew) {

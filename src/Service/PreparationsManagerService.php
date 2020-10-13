@@ -160,7 +160,7 @@ class PreparationsManagerService
 
         $articles = $preparation->getArticles();
         foreach ($articles as $article) {
-            if ($article->getQuantitePrelevee() < $article->getQuantiteAPrelever()) {
+            if (($article->getQuantitePrelevee() < $article->getQuantiteAPrelever()) || empty($article->getQuantitePrelevee())) {
                 $complete = false;
                 break;
             }
@@ -256,7 +256,6 @@ class PreparationsManagerService
      * @param string $article
      * @param Preparation $preparation
      * @param bool $isSelectedByArticle
-     * @throws NonUniqueResultException
      */
     public function createMouvementLivraison(int $quantity,
                                              Utilisateur $userNomade,
@@ -298,12 +297,16 @@ class PreparationsManagerService
                 ? $article
                 : $articleRepository->findOneByReference($article);
             if ($article) {
+                /** @var MouvementStock $stockMovement */
+                $stockMovement = !$isSelectedByArticle
+                    ? $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId())
+                    : null;
                 // si c'est un article sélectionné par l'utilisateur :
                 // on prend la quantité donnée dans le mouvement
                 // sinon on prend la quantité spécifiée dans le mouvement de transfert (créé dans beginPrepa)
-                $mouvementQuantity = ($isSelectedByArticle
+                $mouvementQuantity = ($isSelectedByArticle || !isset($stockMovement))
                     ? $quantity
-                    : $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId())->getQuantity());
+                    : $stockMovement->getQuantity();
 
                 $mouvement
                     ->setArticle($article)
@@ -452,7 +455,6 @@ class PreparationsManagerService
                         }
                         $insertedArticle = $this->articleDataService->newArticle($newArticle);
                         $this->entityManager->flush();
-
                         if ($selected) {
                             if ($article->getQuantitePrelevee() !== $article->getQuantiteAPrelever()) {
                                 $insertedArticle->setQuantiteAPrelever($article->getQuantiteAPrelever() - $article->getQuantitePrelevee());
@@ -465,7 +467,6 @@ class PreparationsManagerService
                             $articlesSplittedToKeep[] = $article->getId();
                         }
                     }
-
                     if ($selected) {
                         // création des mouvements de préparation pour les articles
                         $mouvement = new MouvementStock();
