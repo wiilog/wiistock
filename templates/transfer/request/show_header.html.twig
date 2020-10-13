@@ -33,8 +33,8 @@
                     </a>
                 {% endif %}
                 {% if hasRightDelete %}
-                    <a href="" onclick="deleteRow($(this), $('#modalDeleteTransferRequest'), $('#submitDeleteTransferRequest'))"
-                       data-id='{{ transfer.id }}' data-target='#modalDeleteTransferRequest' data-toggle='modal'
+                    <a href="" onclick="deleteRow($(this), $('#modalDeleteTransfer'), $('#submitDeleteTransfer'))"
+                       data-id='{{ transfer.id }}' data-target='#modalDeleteTransfer' data-toggle='modal'
                        class="dropdown-item">
                         <i class="fa fa-trash mr-2"></i>Supprimer</a>
                 {% endif %}

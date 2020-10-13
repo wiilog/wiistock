@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Repository\TransferRequestRepository;
 use DateTimeInterface;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -64,6 +66,21 @@ class TransferRequest {
      * @ORM\OneToOne(targetEntity=TransferOrder::class, mappedBy="request", cascade={"persist", "remove"})
      */
     private $transferOrder;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=Article::class, inversedBy="transferRequests")
+     */
+    private $articles;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=ReferenceArticle::class, inversedBy="transferRequests")
+     */
+    private $references;
+
+    public function __construct() {
+        $this->articles = new ArrayCollection();
+        $this->references = new ArrayCollection();
+    }
 
     public function getId(): ?int {
         return $this->id;
@@ -132,18 +149,68 @@ class TransferRequest {
         return $this;
     }
 
-    public function getTransferOrder(): ?TransferOrder
-    {
+    public function getTransferOrder(): ?TransferOrder {
         return $this->transferOrder;
     }
 
-    public function setTransferOrder(TransferOrder $transferOrder): self
-    {
+    public function setTransferOrder(TransferOrder $transferOrder): self {
         $this->transferOrder = $transferOrder;
 
         // set the owning side of the relation if necessary
-        if ($transferOrder->getRequest() !== $this) {
+        if($transferOrder->getRequest() !== $this) {
             $transferOrder->setRequest($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Article[]
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Article $article): self
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReferenceArticle[]
+     */
+    public function getReferences(): Collection
+    {
+        return $this->references;
+    }
+
+    public function addReference(ReferenceArticle $reference): self
+    {
+        if (!$this->references->contains($reference)) {
+            $this->references[] = $reference;
+        }
+
+        return $this;
+    }
+
+    public function removeReference(ReferenceArticle $reference): self
+    {
+        if ($this->references->contains($reference)) {
+            $this->references->removeElement($reference);
         }
 
         return $this;

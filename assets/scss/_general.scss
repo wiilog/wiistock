@@ -368,6 +368,10 @@ select.is-invalid {
     }
 }
 
+label.required:after {
+    content: "* ";
+}
+
 @mixin icon-button {
     display: inline-block;
     padding: 8px;

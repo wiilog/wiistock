@@ -159,6 +159,10 @@ class Article extends FreeFieldEntity
      */
     private $mouvementTracas;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=TransferRequest::class, mappedBy="articles")
+     */
+    private $transferRequests;
 
     public function __construct()
     {
@@ -169,6 +173,7 @@ class Article extends FreeFieldEntity
         $this->litiges = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
         $this->mouvementTracas = new ArrayCollection();
+        $this->transferRequests = new ArrayCollection();
 
         $this->quantite = 0;
     }
@@ -639,5 +644,33 @@ class Article extends FreeFieldEntity
             }
         }
         return $inProgress;
+    }
+
+    /**
+     * @return Collection|TransferRequest[]
+     */
+    public function getTransferRequests(): Collection
+    {
+        return $this->transferRequests;
+    }
+
+    public function addTransferRequest(TransferRequest $transferRequest): self
+    {
+        if (!$this->transferRequests->contains($transferRequest)) {
+            $this->transferRequests[] = $transferRequest;
+            $transferRequest->addArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransferRequest(TransferRequest $transferRequest): self
+    {
+        if ($this->transferRequests->contains($transferRequest)) {
+            $this->transferRequests->removeElement($transferRequest);
+            $transferRequest->removeArticle($this);
+        }
+
+        return $this;
     }
 }

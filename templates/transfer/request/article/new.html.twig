@@ -1,4 +1,4 @@
-<div method="" class="modal fade" id="modalNewArticle" role="dialog" aria-labelledby="modalAddArticleTitle"
+<div method="" class="modal fade" id="modalAddArticle" role="dialog" aria-labelledby="modalAddArticleTitle"
     aria-hidden="true" data-transfer-id="{{ transfer.id }}">
     <div class="modal-dialog  modal-xl" role="document">
         <div class="modal-content">
@@ -11,25 +11,20 @@
             <div class="modal-body modal-input container-fluid">
                 <form class="row">
                     <div class="form-group col-12 mb-3 w-100">
-                        <label for="reference" title="référence">
+                        <label for="add-article-reference" title="référence">
                             {{ 'reference.référence'|trans }}*
                         </label>
-                        <select class="ajax-autocomplete data form-control needed"
-                            onchange="ajaxGetTransferArticle($(this))" id="reference" name="referenceArticle">
+                        <select class="ajax-autocomplete form-control data needed" name="reference"
+                            onchange="onReferenceChange($(this))" id="add-article-reference">
                         </select>
                     </div>
-                    <div id='selection' class="col-12 clear p-0">
-
-                    </div>
-                    <div id='editNewArticle' class="col-12 clear">
-
-                    </div>
+                    <div id="add-article-code-selector" class="col-12 clear"></div>
                 </form>
             </div>
             <div class="error-msg"></div>
-            <div class="modal-footer d-none">
+            <div class="modal-footer">
                 <div class="btn btn-secondary" data-dismiss="modal">Annuler</div>
-                <button id="submitNewArticle"
+                <button id="submitAddArticle"
                         name="transfer"
                         value="{{transfer.id}}"
                         type="button"

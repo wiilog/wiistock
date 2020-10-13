@@ -17,7 +17,9 @@ use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\Article;
+use App\Form\AddArticleToTransferType;
 use App\Form\TransferRequestType;
+use App\Service\RefArticleDataService;
 use App\Service\TransferRequestService;
 use DateTime;
 use App\Service\CSVExportService;
@@ -34,6 +36,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -191,60 +194,53 @@ class TransferRequestController extends AbstractController {
         ]);
     }
 
-
-
     /**
-     * @Route("/article/api/{id}", name="transfer_request_article_api", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/article/api/{transfer}", name="transfer_request_article_api", options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
      * @param Request $request
-     * @param $id
+     * @param TransferRequest $transfer
      * @return Response
      */
     public function articleApi(EntityManagerInterface $entityManager,
                                Request $request,
-                               $id): Response {
+                               TransferRequest $transfer): Response {
         if($request->isXmlHttpRequest()) { //Si la requête est de type Xml
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)) {
+            if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $articleRepository = $entityManager->getRepository(Article::class);
-            $collecteRepository = $entityManager->getRepository(Collecte::class);
-            $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
+            $articles = $transfer->getArticles();
+            $references = $transfer->getReferences();
 
-            $collecte = $collecteRepository->find($id);
-            $articles = $articleRepository->findByCollecteId($collecte->getId());
-            $referenceCollectes = $collecteReferenceRepository->findByCollecte($collecte);
             $rowsRC = [];
-            foreach($referenceCollectes as $referenceCollecte) {
+            foreach($references as $reference) {
                 $rowsRC[] = [
-                    'Référence' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getReference() : ''),
-                    'Libellé' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getLibelle() : ''),
-                    'Emplacement' => $collecte->getPointCollecte()->getLabel(),
-                    'Quantité' => ($referenceCollecte->getQuantite() ? $referenceCollecte->getQuantite() : ''),
-                    'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
+                    'Référence' => $reference->getReference(),
+                    'Libellé' => $reference->getLibelle(),
+                    'Quantité' => $reference->getQuantiteDisponible(),
+                    'Actions' => $this->renderView('transfer/request/article/actions.html.twig', [
                         'type' => 'reference',
-                        'id' => $referenceCollecte->getId(),
-                        'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
-                        'refArticleId' => $referenceCollecte->getReferenceArticle()->getId(),
-                        'collecteId' => $collecte->getid(),
-                        'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
+                        'id' => $reference->getId(),
+                        'name' => $reference->getTypeQuantite(),
+                        'refArticleId' => $reference->getId(),
+                        'transferId' => $transfer->getid(),
+                        'modifiable' => ($transfer->getStatus()->getNom() == TransferRequest::DRAFT),
                     ]),
                 ];
             }
+
             $rowsCA = [];
             foreach($articles as $article) {
                 $rowsCA[] = [
                     'Référence' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                     'Libellé' => $article->getLabel(),
-                    'Emplacement' => ($collecte->getPointCollecte() ? $collecte->getPointCollecte()->getLabel() : ''),
                     'Quantité' => $article->getQuantite(),
-                    'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
+                    'Actions' => $this->renderView('transfer/request/article/actions.html.twig', [
                         'name' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
                         'type' => 'article',
                         'id' => $article->getId(),
-                        'collecteId' => $collecte->getid(),
-                        'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON ? true : false),
+                        'transferId' => $transfer->getid(),
+                        'modifiable' => ($transfer->getStatus()->getNom() == TransferRequest::DRAFT),
                     ]),
                 ];
             }
@@ -256,149 +252,111 @@ class TransferRequestController extends AbstractController {
     }
 
     /**
-     * @Route("/ajouter-article", name="transfer_request_add_article", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/", name="get_collecte_article_by_refArticle", options={"expose"=true})
      * @param Request $request
-     * @param FreeFieldService $champLibreService
-     * @param EntityManagerInterface $entityManager
-     * @param DemandeCollecteService $demandeCollecteService
+     * @param ReferenceArticle $reference
      * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws Exception
      */
-    public function addArticle(Request $request,
-                               FreeFieldService $champLibreService,
-                               EntityManagerInterface $entityManager,
-                               DemandeCollecteService $demandeCollecteService): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $collecteRepository = $entityManager->getRepository(Collecte::class);
-            $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
-
-            $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
-            $collecte = $collecteRepository->find($data['collecte']);
-            if(($data['quantity-to-pick'] <= 0) || empty($data['quantity-to-pick'])) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'La quantité doit être superieur à zero.'
-                ]);
-            }
-            if($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                if($collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
-                    $collecteReference = $collecteReferenceRepository->getByCollecteAndRA($collecte, $refArticle);
-                    $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + max(intval($data['quantity-to-pick']), 0)); // protection contre quantités négatives
-                } else {
-                    $collecteReference = new CollecteReference();
-                    $collecteReference
-                        ->setCollecte($collecte)
-                        ->setReferenceArticle($refArticle)
-                        ->setQuantite(max($data['quantity-to-pick'], 0)); // protection contre quantités négatives
-
-                    $entityManager->persist($collecteReference);
-                }
-
-                if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
-                    return $this->redirectToRoute('access_denied');
-                }
-                $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser(), $champLibreService);
-            } elseif($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
-            }
-            $entityManager->flush();
-
-            return new JsonResponse([
-                'success' => true,
-                'msg' => 'La référence <strong>' . $refArticle->getLibelle() . '</strong> a bien été ajoutée à la collecte.'
+    public function getCollecteArticleByRefArticle(RefArticleDataService $service, ReferenceArticle $reference): Response {
+        if ($reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            return $this->json([
+                'modif' => $service->getViewEditRefArticle($reference, true),
+                'selection' => $this->render('collecte/newRefArticleByQuantiteRefContent.html.twig'),
+            ]);
+        } elseif ($reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            return $this->json([
+                'selection' => $this->render('collecte/newRefArticleByQuantiteRefContentTemp.html.twig'),
             ]);
         }
 
-        throw new NotFoundHttpException('404');
-    }
-
-    /**
-     * @Route("/modifier-quantite-article", name="transfer_request_edit_article", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function editArticle(Request $request,
-                                EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
-
-//TODO dans DL et DC, si on modifie une ligne, la réf article n'est pas modifiée dans l'edit
-            $collecteReference = $collecteReferenceRepository->find($data['collecteRef']);
-            $collecteReference->setQuantite(intval($data['quantite']));
-            $entityManager->flush();
-
-            return new JsonResponse();
-        }
-        throw new NotFoundHttpException('404');
-    }
-
-    /**
-     * @Route("/modifier-quantite-api-article", name="transfer_request_edit_api_article", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function editApiArticle(Request $request,
-                                   EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
-
-            $json = $this->renderView('collecte/modalEditArticleContent.html.twig', [
-                'collecteRef' => $collecteReferenceRepository->find($data['id']),
+            return $this->json([
+                "success" => false,
+                "msg" => "Erreur interne"
             ]);
+    }
 
-            return new JsonResponse($json);
+    /**
+     * @Route("/ajouter-article/{transfer}", name="transfer_request_add_article", options={"expose"=true})
+     */
+    public function addArticle(Request $request, TransferRequest $transfer): Response {
+        if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
+            return $this->redirectToRoute('access_denied');
         }
-        throw new NotFoundHttpException('404');
+
+        if(!$content = json_decode($request->getContent())) {
+            throw new BadRequestHttpException();
+        }
+
+        $manager = $this->getDoctrine()->getManager();
+
+        $reference = $content->reference;
+        $reference = $manager->getRepository(ReferenceArticle::class)->find($reference);
+
+        if(isset($content->article)) {
+            $article = $manager->getRepository(Article::class)->find($content->article);
+        } else {
+            $article = null;
+        }
+
+        if(isset($content->fetchOnly) && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            $articles = $this->getDoctrine()
+                ->getRepository(Article::class)
+                ->findForReferenceWithoutTransfer($reference);
+
+            return $this->json([
+                "success" => true,
+                "html" => $this->renderView("transfer/request/article/select_article_form.html.twig", [
+                    "articles" => $articles
+                ])
+            ]);
+        }
+
+        if($article && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            $transfer->addArticle($article);
+            $manager->flush();
+        } else if($reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            $transfer->addReference($reference);
+            $manager->flush();
+        }
+
+        return $this->json([
+            "success" => true
+        ]);
     }
 
     /**
      * @Route("/retirer-article", name="transfer_request_remove_article", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param EntityManagerInterface $entityManager
+     * @param EntityManagerInterface $manager
      * @return JsonResponse|RedirectResponse
      */
-    public function removeArticle(Request $request,
-                                  EntityManagerInterface $entityManager) {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    public function removeArticle(Request $request, EntityManagerInterface $manager) {
+        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent())) {
             if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $articleRepository = $entityManager->getRepository(Article::class);
-            $collecteRepository = $entityManager->getRepository(Collecte::class);
-            $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
+
+            $transerRepository = $manager->getRepository(TransferRequest::class);
+            $transfer = $transerRepository->find($data->transfer);
 
             if(array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
-                $collecteReference = $collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
-                $entityManager->remove($collecteReference);
+                $transfer->removeReference($manager
+                    ->getRepository(ReferenceArticle::class)
+                    ->find($data->reference));
             } elseif(array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
-                $article = $articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
-                $collecte = $collecteRepository->find($data['collecte']);
-                $collecte->removeArticle($article);
+                $transfer->removeArticle($manager
+                    ->getRepository(Article::class)
+                    ->find($data->article));
             }
-            $entityManager->flush();
+
+            $manager->flush();
 
             return new JsonResponse([
                 'success' => true,
                 'msg' => 'La référence a bien été supprimée de la collecte.'
             ]);
         }
+
         throw new NotFoundHttpException('404');
     }
 
@@ -408,28 +366,24 @@ class TransferRequestController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function delete(Request $request,
-                           EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $collecteRepository = $entityManager->getRepository(Collecte::class);
-
-            $collecte = $collecteRepository->find($data['collecte']);
-            foreach($collecte->getCollecteReferences() as $cr) {
-                $entityManager->remove($cr);
-            }
-            $entityManager->remove($collecte);
-            $entityManager->flush();
-            $data = [
-                'redirect' => $this->generateUrl('collecte_index'),
-            ];
-
-            return new JsonResponse($data);
+    public function delete(Request $request, EntityManagerInterface $entityManager): Response {
+        if(!$request->isXmlHttpRequest() || !$data = json_decode($request->getContent())) {
+            throw new BadRequestHttpException();
         }
-        throw new NotFoundHttpException('404');
+
+        if(!$this->userService->hasRightFunction(Menu::DEM, Action::DELETE)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        $transferRepository = $entityManager->getRepository(TransferRequest::class);
+
+        $transfer = $transferRepository->find($data->transfer);
+        $entityManager->remove($transfer);
+        $entityManager->flush();
+
+        return $this->json([
+            'redirect' => $this->generateUrl('transfer_request_index'),
+        ]);
     }
 
     /**

@@ -24,7 +24,7 @@
                 <div class="row wii-page-card-header">
                     <div class="col-auto ml-auto">
                         <div class="btn-group">
-                            <button type="button" data-toggle="modal" data-target="#modalNewArticle"
+                            <button type="button" data-toggle="modal" data-target="#modalAddArticle"
                                     onclick="clearDiv(), Select2.articleReference($('#reference'))"
                                     class="btn btn-primary btn-ripple split-button">
                                 <span class="fa fa-plus mr-2"></span>Ajouter article
@@ -37,7 +37,6 @@
                             </button>
                             <div class="dropdown-menu dropdown-follow-gt pointer dropdown-menu-right">
                                 <a href="{{ path('reference_article_index') }}"
-                                   data-toggle="modal"
                                    class="dropdown-item"
                                    title="Chercher une référence">
                                     <i class="fa fa-search mr-2"></i>
