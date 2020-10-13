@@ -6,7 +6,7 @@
     </h1>
 </a>
 <div class="collapse col-12" id="paramStock">
-    <div class="float-right btn btn-success" onclick="updateExpirationDelay()">
+    <div class="float-right btn btn-success" onclick="updateStockParam()">
         <i class='fas fa-check'></i>
     </div>
     <div class="row mt-2">
@@ -14,9 +14,11 @@
             <div class="w-100">
                 {% set checked = (securityThreshold ? 'checked' : '') %}
                 <label class="switch">
-                    <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-security-threshold"
-                           data-param="{{ constant('App\\Entity\\ParametrageGlobal::SEND_MAIL_MANAGER_SECURITY_THRESHOLD') }}"
-                           onchange="updateToggledParam($(this))">
+                    <input type="checkbox"
+                           class="checkbox col-3"
+                           {{ checked }}
+                           name="param-security-threshold"
+                           data-param="{{ constant('App\\Entity\\ParametrageGlobal::SEND_MAIL_MANAGER_SECURITY_THRESHOLD') }}">
                     <span class="slider round"></span>
                 </label>
                 <label class="pl-1" for="param-security-threshold">Envoi de mail au gestionnaire de la référence si seuil de sécurité atteint</label>
@@ -27,9 +29,11 @@
         <div class="col-12">
             {% set checked = (alertThreshold ? 'checked' : '') %}
             <label class="switch">
-                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-alert-threshold"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::SEND_MAIL_MANAGER_ALERT_THRESHOLD') }}"
-                       onchange="updateToggledParam($(this))">
+                <input type="checkbox"
+                       class="checkbox col-3"
+                       {{ checked }}
+                       name="param-alert-threshold"
+                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::SEND_MAIL_MANAGER_ALERT_THRESHOLD') }}">
                 <span class="slider round"></span>
             </label>
             <label class="pl-1" for="param-alert-threshold">Envoi de mail au gestionnaire de la référence si seuil d'alerte atteint</label>
@@ -39,6 +43,6 @@
         <label>Délais alerte péremption (format HH:MM)</label>
         <input type="text" class="form-control data"
                name="expirationDelay"
-               value="">
+               value="{{ expirationDelay }}">
     </div>
 </div>

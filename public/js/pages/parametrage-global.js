@@ -220,15 +220,26 @@ function updatePrefixDemand() {
     $('.error-msg').html(msg);
 }
 
-function updateExpirationDelay() {
+function updateStockParam() {
     let expirationDelay = $('[name="expirationDelay"]').val();
 
-    let path = Routing.generate('ajax_update_expiration_delay', true);
-    let params = JSON.stringify({expirationDelay: expirationDelay});
-
-    $.post(path, params, () => {
-        showBSAlert('Le délais d\'alerte de péremption a bien été mis à jour.', 'success');
-    });
+    Promise
+        .all([
+            $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'SEND_MAIL_MANAGER_ALERT_THRESHOLD', val: $('[name="param-security-threshold"]').val()})),
+            $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'SEND_MAIL_MANAGER_SECURITY_THRESHOLD', val: $('[name="param-alert-threshold"]').val()})),
+            $.post(Routing.generate('ajax_update_expiration_delay', true), {expirationDelay})
+        ])
+        .then(([successAlert, successSecurity, {success: successDelay, msg: msgDelay}]) => {
+            if (successAlert && successSecurity && successDelay) {
+                showBSAlert('Vos paramétrages ont bien été mis à jour.', 'success');
+            }
+            else if (!successDelay) {
+                showBSAlert(msgDelay, 'danger');
+            }
+            else {
+                showBSAlert('Erreur, il y a eu un problème lors de la sauvegarde de vos paramètres', 'danger');
+            }
+        });
 }
 
 function getPrefixDemand(select) {
