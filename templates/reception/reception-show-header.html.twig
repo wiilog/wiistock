@@ -84,8 +84,13 @@
 {% endblock %}
 
 {% block showUrgence %}
-    {% if reception.manualUrgent %}
+    {% if reception.manualUrgent or reception.urgentArticles %}
         <i class="fa fa-exclamation-triangle mr-2"></i>
-        <span title="Cette réception est urgente">{{ 'réception.Cette réception est urgente'|trans }}</span>
+        <span title="Cette réception est urgente">
+            {{ ((reception.manualUrgent and reception.urgentArticles) ? 'réception.Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes'|trans
+                : (reception.manualUrgent ? 'réception.Cette réception est urgente'|trans
+                    : (reception.urgentArticles ? 'réception.Une ou plusieurs références liées à cette réception sont urgentes'|trans
+                        : '')))
+            }}</span>
     {% endif %}
 {% endblock %}

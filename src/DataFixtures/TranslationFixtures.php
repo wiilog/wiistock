@@ -113,7 +113,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "l'article" => "l'article",
                 "d'article" => "d'article",
                 "d'articles" => "d'articles",
-                'Cette réception est urgente' => 'Cette réception est urgente'
+                'Cette réception est urgente' => 'Cette réception est urgente',
+                'Une ou plusieurs références liées à cette réception sont urgentes' => 'Une ou plusieurs références liées à cette réception sont urgentes',
+                'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes' => 'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes'
             ],
             'urgences' => [
                 'urgence' => 'urgence',
