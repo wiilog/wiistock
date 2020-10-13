@@ -88,15 +88,18 @@
     {% set urgentArticles = reception.urgentArticles %}
     {% if manualUrgent or urgentArticles %}
         <i class="fa fa-exclamation-triangle mr-2"></i>
-        <span title="{{ ((manualUrgent and urgentArticles) ? 'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes'
-                            : (manualUrgent ? 'Cette réception est urgente'
-                                : (urgentArticles ? 'Une ou plusieurs références liées à cette réception sont urgentes'
-                                    : '')))
-                    }}">
-            {{ ((manualUrgent and urgentArticles) ? 'réception.Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes'|trans
-                : (manualUrgent ? 'réception.Cette réception est urgente'|trans
-                    : (urgentArticles ? 'réception.Une ou plusieurs références liées à cette réception sont urgentes'|trans
+        <span title="{{
+            ((manualUrgent and urgentArticles) ? 'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes'
+                : (manualUrgent ? 'Cette réception est urgente'
+                    : (urgentArticles ? 'Une ou plusieurs références liées à cette réception sont urgentes'
                         : '')))
-            }}</span>
+            }}">
+            {{
+                ((manualUrgent and urgentArticles) ? 'réception.Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes'|trans
+                    : (manualUrgent ? 'réception.Cette réception est urgente'|trans
+                        : (urgentArticles ? 'réception.Une ou plusieurs références liées à cette réception sont urgentes'|trans
+                            : '')))
+            }}
+        </span>
     {% endif %}
 {% endblock %}

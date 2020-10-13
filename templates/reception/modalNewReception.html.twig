@@ -62,41 +62,90 @@
 
                 <div class="row fly-form">
                     {% if fieldsParam|isFieldRequired('fournisseur', 'displayedFormsCreate') %}
-                        <div class="form-group w-100 col">
-                            <label
-                                for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
-                            <select
-                                class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
-                                name="fournisseur" id="fournisseur">
-                            </select>
-                        </div>
-                        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                            <div class="form-group col-1 toggle-button-container">
-                                <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
-                                    <i class="fa fa-plus"></i>
-                                </span>
+                        <div class="col-md-6 col-12">
+                            <div class="row">
+                                <div class="form-group w-100 col">
+                                    <label
+                                        for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
+                                    <select
+                                        class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
+                                        name="fournisseur" id="fournisseur">
+                                    </select>
+                                </div>
+                                {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+                                    <div class="form-group col-auto toggle-button-container">
+                                        <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
+                                            <i class="fa fa-plus"></i>
+                                        </span>
+                                    </div>
+                                {% endif %}
                             </div>
-                        {% endif %}
+                        </div>
                     {% endif %}
 
                     {% if fieldsParam|isFieldRequired('transporteur', 'displayedFormsCreate') %}
-                        <div class="form-group w-100 col">
-                            <label
-                                for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
-                            <select
-                                class="form-control data ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
-                                name="transporteur" id="transporteur">
-                            </select>
-                        </div>
-                        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                            <div class="form-group col-1 toggle-button-container">
-                                <span class="btn btn-primary"
-                                      onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
-                                    <i class="fa fa-plus"></i></span>
+                        <div class="col-md-6 col-12">
+                            <div class="row">
+                                <div class="form-group w-100 col">
+                                    <label
+                                        for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
+                                    <select
+                                        class="form-control data ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
+                                        name="transporteur" id="transporteur">
+                                    </select>
+                                </div>
+                                {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+                                    <div class="form-group col-auto toggle-button-container">
+                                        <span class="btn btn-primary"
+                                              onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
+                                            <i class="fa fa-plus"></i></span>
+                                    </div>
+                                {% endif %}
                             </div>
-                        {% endif %}
+                        </div>
                     {% endif %}
                 </div>
+
+                {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+                    <div class="row">
+                        <div class="col-md-6 col-12 fly-form">
+                            <div class="row">
+                                <div class="form-group col invisible" id="fournisseurDisplay">
+                                    <label for="newFournisseur">Nom*</label>
+                                    <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew copyOnTheFly"
+                                           name="Nom" maxlength="64">
+                                    <label for="newFournisseurCode" class="mt-2">Code*</label>
+                                    <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew copiedOnTheFly"
+                                           name="Code" maxlength="64">
+                                </div>
+                                <div class="form-group col-auto invisible submit-button-container" id="addFournisseur">
+                                    <span class="btn btn-primary"
+                                          onclick="onFlyFormSubmit(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))">
+                                        <i class="fas fa-check-circle"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-12 fly-form">
+                            <div class="row">
+                                <div class="form-group col invisible" id="transporteurDisplay">
+                                    <label for="newTransporteur">Nom*</label>
+                                    <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew copyOnTheFly"
+                                           name="label" maxlength="64">
+                                    <label for="newTransporteurCode" class="mt-2">Code*</label>
+                                    <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew copiedOnTheFly"
+                                           name="code" maxlength="64">
+                                </div>
+                                <div class="form-group col-auto invisible submit-button-container" id="addTransporteur">
+                                    <span class="btn btn-primary"
+                                          onclick="onFlyFormSubmit(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))">
+                                        <i class="fas fa-check-circle"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
 
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('storageLocation', 'displayedFormsCreate') %}
@@ -107,44 +156,27 @@
                             </select>
                         </div>
                     {% endif %}
+                    {% if fieldsParam|isFieldRequired('anomalie', 'displayedFormsCreate') %}
+                        <div class="form-group col-3 pt-4">
+                            <label>Anomalie</label>
+                            <label class="switch">
+                                <input class="checkbox" type="checkbox" name="anomalie">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    {% endif %}
+                    {% if fieldsParam|isFieldRequired('manualUrgent', 'displayedFormsCreate') %}
+                        <div class="form-group col-3 mt-4">
+                            <label>Urgence ?{{ fieldsParam|isFieldRequired('manualUrgent', 'mustToCreate') ? '*' : '' }}</label>
+                            <label class="switch">
+                                <input class="checkbox {{ fieldsParam|isFieldRequired('manualUrgent', 'mustToCreate') ? 'needed' : '' }}"
+                                       type="checkbox"
+                                       name="emergency">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    {% endif %}
                 </div>
-
-                {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                    <div class="row new-on-fly-form-container">
-                        <div class="row col-6 formulaire fly-form">
-                            <div class="form-group col-10 invisible" id="fournisseurDisplay">
-                                <label for="newFournisseur">Nom*</label>
-                                <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew copyOnTheFly"
-                                       name="Nom" maxlength="64">
-                                <label for="newFournisseurCode" class="mt-2">Code*</label>
-                                <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew copiedOnTheFly"
-                                       name="Code" maxlength="64">
-                            </div>
-                            <div class="form-group col-2 invisible submit-button-container" id="addFournisseur">
-                                <span class="btn btn-primary"
-                                      onclick="onFlyFormSubmit(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))">
-                                    <i class="fas fa-check-circle"></i>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="row col-6 formulaire fly-form">
-                            <div class="form-group col-10 invisible" id="transporteurDisplay">
-                                <label for="newTransporteur">Nom*</label>
-                                <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew copyOnTheFly"
-                                       name="label" maxlength="64">
-                                <label for="newTransporteurCode" class="mt-2">Code*</label>
-                                <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew copiedOnTheFly"
-                                       name="code" maxlength="64">
-                            </div>
-                            <div class="form-group col-2 invisible submit-button-container" id="addTransporteur">
-                                <span class="btn btn-primary"
-                                      onclick="onFlyFormSubmit(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))">
-                                    <i class="fas fa-check-circle"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
 
                 {% if fieldsParam|isFieldRequired('commentaire', 'displayedFormsCreate') %}
                     <div class="form-group">
@@ -171,29 +203,6 @@
                             } %}
                         </div>
                     {% endfor %}
-                </div>
-
-                <div class="row">
-                    {% if fieldsParam|isFieldRequired('anomalie', 'displayedFormsCreate') %}
-                        <div class="form-group col-3 pt-4">
-                            <label>Anomalie</label>
-                            <label class="switch">
-                                <input class="checkbox" type="checkbox" name="anomalie">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                    {% endif %}
-                    {% if fieldsParam|isFieldRequired('manualUrgent', 'displayedFormsCreate') %}
-                    <div class="form-group col-3 mt-4">
-                        <label>Urgence ?{{ fieldsParam|isFieldRequired('manualUrgent', 'mustToCreate') ? '*' : '' }}</label>
-                        <label class="switch">
-                            <input class="checkbox {{ fieldsParam|isFieldRequired('manualUrgent', 'mustToCreate') ? 'needed' : '' }}"
-                                   type="checkbox"
-                                   name="emergency">
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
 
