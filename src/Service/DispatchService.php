@@ -473,13 +473,15 @@ class DispatchService {
      * @param Statut $treatedStatus
      * @param Utilisateur $loggedUser
      * @param bool $fromNomade
+     * @param array $treatedPacks
      * @throws Exception
      */
     public function treatDispatchRequest(EntityManagerInterface $entityManager,
                                          Dispatch $dispatch,
                                          Statut $treatedStatus,
                                          Utilisateur $loggedUser,
-                                         bool $fromNomade = false): void {
+                                         bool $fromNomade = false,
+                                         array $treatedPacks = []): void {
         $dispatchPacks = $dispatch->getDispatchPacks();
         $takingLocation = $dispatch->getLocationFrom();
         $dropLocation = $dispatch->getLocationTo();
@@ -491,7 +493,11 @@ class DispatchService {
             ->setTreatedBy($loggedUser);
 
         foreach ($dispatchPacks as $dispatchPack) {
-            if (!$dispatchPack->isTreated()) {
+            if (!$dispatchPack->isTreated()
+                && (
+                    empty($treatedPacks)
+                    || in_array($dispatchPack->getId(), $treatedPacks)
+                )) {
                 $pack = $dispatchPack->getPack();
 
                 $trackingTaking = $this->mouvementTracaService->createTrackingMovement(

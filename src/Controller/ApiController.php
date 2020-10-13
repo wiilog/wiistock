@@ -1816,6 +1816,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
             $natureRepository = $entityManager->getRepository(Nature::class);
 
+            $entireTreatedDispatch = [];
+
             $dispatchPacksByDispatch = is_array($dispatchPacksParam)
                 ? array_reduce($dispatchPacksParam, function (array $acc, array $current) {
                     $id = (int) $current['id'];
@@ -1840,10 +1842,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $dispatchStatus = $dispatch->getStatut();
                 if (!$dispatchStatus || !$dispatchStatus->isTreated()) {
                     $treatedStatus = $statusRepository->find($dispatchArray['treatedStatusId']);
-                    if ($treatedStatus && $treatedStatus->isTreated()) {
+                    if ($treatedStatus
+                        && ($treatedStatus->isTreated() || $treatedStatus->isPartial())) {
+                        $treatedPacks = [];
                         // we treat pack edits
                         if (!empty($dispatchPacksByDispatch[$dispatch->getId()])) {
                             foreach ($dispatchPacksByDispatch[$dispatch->getId()] as $packArray) {
+                                $treatedPacks[] = $packArray['id'];
                                 $packDispatch = $dispatchPackRepository->find($packArray['id']);
                                 if (!empty($packDispatch)) {
                                     if (!empty($packArray['natureId'])) {
@@ -1862,12 +1867,17 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             }
                         }
 
-                        $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $nomadUser, true);
+                        $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $nomadUser, true, $treatedPacks);
+
+                        if (!$treatedStatus->isPartial()) {
+                            $entireTreatedDispatch[] = $dispatch->getId();
+                        }
                     }
                 }
             }
             $statusCode = Response::HTTP_OK;
             $resData['success'] = true;
+            $resData['entireTreatedDispatch'] = $entireTreatedDispatch;
         }
         else {
             $statusCode = Response::HTTP_UNAUTHORIZED;

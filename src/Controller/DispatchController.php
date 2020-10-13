@@ -953,7 +953,7 @@ class DispatchController extends AbstractController {
                                             Dispatch $dispatch): Response {
         $status = $dispatch->getStatut();
 
-        if (!$status || $status->isNotTreated()) {
+        if (!$status || $status->isNotTreated() || $status->isPartial()) {
             $data = json_decode($request->getContent(), true);
             $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -966,7 +966,6 @@ class DispatchController extends AbstractController {
 
                 /** @var Utilisateur $loggedUser */
                 $loggedUser = $this->getUser();
-
                 $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser);
             } else {
                 return new JsonResponse([
