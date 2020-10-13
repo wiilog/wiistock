@@ -185,12 +185,14 @@ class ReceptionRepository extends ServiceEntityRepository
                     $qb
 						->leftJoin('r.statut', 's2')
 						->leftJoin('r.fournisseur', 'f2')
-                        ->andWhere('r.date LIKE :value
-                        OR r.numeroReception LIKE :value
-                        OR r.orderNumber LIKE :value
-                        OR r.commentaire lIKE :value
-                        OR s2.nom LIKE :value
-                        OR f2.nom LIKE :value')
+                        ->andWhere('(
+                            r.date LIKE :value
+                            OR r.numeroReception LIKE :value
+                            OR r.orderNumber LIKE :value
+                            OR r.commentaire lIKE :value
+                            OR s2.nom LIKE :value
+                            OR f2.nom LIKE :value
+                        )')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
