@@ -1,14 +1,11 @@
 <div class="row">
-    {% if fieldsParam|isFieldRequired('numeroReception', 'displayedFormsEdit') %}
-        <div class="form-group col-6">
-            <label for="numeroReception"
-                   title="n° de réception">{{ 'réception.n° de réception'|trans }}{{ fieldsParam|isFieldRequired('numeroReception', 'mustToModify') ? '*' : '' }}</label>
-            <input type="text"
-                   class="form-control data Numéro Réception{{ fieldsParam|isFieldRequired('numeroReception', 'mustToModify') ? 'needed' : '' }}"
-                   name="numeroReception" id='numeroReception'
-                   value="{{ reception.numeroReception }}">
-        </div>
-    {% endif %}
+    <div class="form-group col-6">
+        <label for="numeroReception"
+               title="n° de réception">{{ 'réception.n° de réception'|trans }}</label>
+        <input type="text"
+               class="form-control"
+               value="{{ reception.numeroReception }}" disabled>
+    </div>
     <div class="form-group col-6">
         <label for="statut">Statut*</label>
         <select class="form-control data" name="statut">

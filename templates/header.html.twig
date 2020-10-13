@@ -48,45 +48,45 @@
                 {% endif %}
 
                 <div class="dropdown mr-4">
-                    <div class="quick-plus" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button class="quick-plus" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="icon"></span>
-                    </div>
+                    </button>
                     <div id="quick-menu" class="dropdown-menu p-0">
                         <p class="mx-3 quick-menu-title user-select-none">Nouvelle demande</p>
 
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR'))
                               and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-                            <a class="d-flex align-items-center" href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
+                            <a class="d-flex align-items-start" href="{{ path('demande_index', {'open-modal': 'new'}) }}">
                                 <span class="wii-icon wii-icon-delivery quick-menu-icon mx-2"></span>
-                                <span class="flex-fill">Livraison</span>
+                                <span class="flex-fill align-self-center">Livraison</span>
                             </a>
                         {% endif %}
 
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL'))
                               and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-                            <a class="d-flex align-items-center" href="{{ path('demande_index', {'open-modal': 'new'}) }}">
+                            <a class="d-flex align-items-start" href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
                                 <span class="wii-icon wii-icon-import quick-menu-icon mx-2"></span>
-                                <span class="flex-fill">Collecte</span>
+                                <span class="flex-fill align-self-center">Collecte</span>
                             </a>
                         {% endif %}
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_HAND'))
                               and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-                            <a class="d-flex align-items-center" href="{{ path('handling_index', {'open-modal': 'new'}) }}" title="Service">
+                            <a class="d-flex align-items-start" href="{{ path('handling_index', {'open-modal': 'new'}) }}" title="Service">
                                 <span class="wii-icon wii-icon-handling quick-menu-icon mx-2"></span>
-                                <span class="flex-fill">{{ 'services.Service' | trans }}</span>
+                                <span class="flex-fill align-self-center">{{ 'services.Service' | trans }}</span>
                             </a>
                         {% endif %}
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_ACHE'))
                               and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-                            <a class="d-flex align-items-center" href="{{ path('dispatch_index', {'open-modal': 'new'}) }}" title="Acheminement">
+                            <a class="d-flex align-items-start" href="{{ path('dispatch_index', {'open-modal': 'new'}) }}" title="Acheminement">
                                 <span class="wii-icon wii-icon-way quick-menu-icon mx-2"></span>
-                                <span class="flex-fill">{{ 'acheminement.Acheminement' | trans }}</span>
+                                <span class="flex-fill align-self-center">{{ 'acheminement.Acheminement' | trans }}</span>
                             </a>
                         {% endif %}
                         {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}
-                            <a class="d-flex align-items-center" href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u" >
+                            <a class="d-flex align-items-start" href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u" >
                                 <span class="wii-icon wii-icon-add quick-menu-icon mx-2"></span>
-                                <span class="flex-fill">Créer un article</span>
+                                <span class="flex-fill align-self-center">Créer un article</span>
                             </a>
                         {% endif %}
                     </div>
