@@ -338,9 +338,9 @@ class PreparationController extends AbstractController
      * @Route("/supprimer/{id}", name="preparation_delete", methods="GET|POST")
      * @param Preparation $preparation
      * @param EntityManagerInterface $entityManager
+     * @param PreparationsManagerService $preparationsManagerService
      * @param RefArticleDataService $refArticleDataService
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function delete(Preparation $preparation,
                            EntityManagerInterface $entityManager,
