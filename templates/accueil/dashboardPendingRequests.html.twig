@@ -1,5 +1,13 @@
 <input type="hidden" class="page-title" value="Dashboard | DEMANDES EN COURS"/>
 
+<div class="row">
+    {% if extDashboard is not defined %}
+        <div class="col-12 pl-3 pr-3 blocIndicators">
+            {% include 'buttons/button_item/buttonIndicator.html.twig' %}
+        </div>
+    {% endif %}
+</div>
+
 {% if pendingDeliveries and pendingDeliveries is not empty %}
     <div class="row m-4">
         <div class="dashboard-box-container w-100">

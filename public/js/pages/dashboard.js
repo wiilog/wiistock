@@ -73,10 +73,10 @@ $(function () {
     if (!isDashboardExt()) {
         initTooltips($('.has-tooltip'));
         let $indicators = $('#indicators');
-        $('#btnIndicators').mouseenter(function () {
+        $('.btnIndicators').mouseenter(function () {
             $indicators.fadeIn();
         });
-        $('#blocIndicators').mouseleave(function () {
+        $('.blocIndicators').mouseleave(function () {
             $indicators.fadeOut();
         });
 
