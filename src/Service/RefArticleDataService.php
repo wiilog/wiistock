@@ -274,12 +274,12 @@ class RefArticleDataService
         if (isset($data['prix'])) $refArticle->setPrixUnitaire($price);
         if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
         if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
-        if (isset($data['limitWarning'])) $refArticle->setLimitWarning($data['limitWarning']);
+        (is_string($data['limitWarning'])) ? $refArticle->setLimitWarning(null) : $refArticle->setLimitWarning(intval($data['limitWarning']));
         if (isset($data['mobileSync'])) $refArticle->setNeedsMobileSync($data['mobileSync']);
         if ($data['emergency-comment-input']) {
             $refArticle->setEmergencyComment($data['emergency-comment-input']);
         }
-        if (isset($data['limitSecurity'])) $refArticle->setLimitSecurity($data['limitSecurity']);
+        (is_string($data['limitSecurity'])) ? $refArticle->setLimitSecurity(null)  : $refArticle->setLimitSecurity($data['limitSecurity']);
         if (isset($data['statut'])) {
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
             if ($statut) {
