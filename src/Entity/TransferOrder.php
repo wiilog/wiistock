@@ -47,6 +47,12 @@ class TransferOrder {
 
     public function setRequest(TransferRequest $request): self {
         $this->request = $request;
+
+        // set the reverse side of the relation if necessary
+        if ($request->getTransferOrder() !== $this) {
+            $request->setTransferOrder($this);
+        }
+
         return $this;
     }
 
