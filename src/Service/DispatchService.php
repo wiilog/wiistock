@@ -403,19 +403,16 @@ class DispatchService {
             $receiverEmails = $dispatch->getReceiver() ? $dispatch->getReceiver()->getMainAndSecondaryEmails() : [];
             $requesterEmails = $dispatch->getRequester() ? $dispatch->getRequester()->getMainAndSecondaryEmails() : [];
 
-            $dispatchPackTreatedCounter = $dispatch
+            $partialDispatch = $dispatch
                 ->getDispatchPacks()
                 ->filter(function (DispatchPack $dispatchPack) {
-                    return $dispatchPack->isTreated();
+                    return !$dispatchPack->isTreated();
                 })
-                ->count();
-            $dispatchPackCounter = $dispatch
-                ->getDispatchPacks()
-                ->count();
+                ->isEmpty();
 
-            $translatedTitle = $dispatchPackTreatedCounter === $dispatchPackCounter
-                ? 'acheminement.Acheminement {numéro} traité le {date}'
-                : 'acheminement.Acheminement {numéro} traité partiellement le {date}';
+            $translatedTitle = $partialDispatch
+                ? 'acheminement.Acheminement {numéro} traité partiellement le {date}'
+                : 'acheminement.Acheminement {numéro} traité le {date}';
 
             $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
             $title = $status->isTreated()
