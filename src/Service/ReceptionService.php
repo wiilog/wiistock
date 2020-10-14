@@ -5,9 +5,11 @@ namespace App\Service;
 
 
 use App\Entity\CategoryType;
+use App\Entity\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Reception;
+use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Utilisateur;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
@@ -91,6 +93,11 @@ class ReceptionService
                 "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : ''),
                 "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
                 "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
+                "receiver" => implode(', ', array_unique(
+                    $reception->getDemandes()->map(function (Demande $request) {
+                        return $request->getUtilisateur() ? $request->getUtilisateur()->getUsername() : '';
+                    })->toArray())
+                ),
                 "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
                 "Numéro de commande" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
                 'Actions' => $this->templating->render(

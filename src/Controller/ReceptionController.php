@@ -1765,6 +1765,7 @@ class ReceptionController extends AbstractController {
                 'commentaire',
                 'quantité à recevoir',
                 'quantité reçue',
+                'destinataire',
                 'référence',
                 'libellé',
                 'quantité stock',
@@ -1827,7 +1828,8 @@ class ReceptionController extends AbstractController {
             $reception['dateFinReception'] ? $reception['dateFinReception']->format('d/m/Y H:i') : '',
             $reception['commentaire'] ? strip_tags($reception['commentaire']) : '',
             $reception['receptionRefArticleQuantiteAR'] ?: '',
-            $reception['receptionRefArticleQuantite'] ?: ''
+            $reception['receptionRefArticleQuantite'] ?: '',
+            $reception['receiverDemandUsername']
         ];
     }
 

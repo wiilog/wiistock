@@ -28,7 +28,7 @@ class ReceptionRepository extends ServiceEntityRepository
         'Commentaire' => 'commentaire',
         'Statut' => 'statut',
         'Fournisseur' => 'fournisseur',
-        'urgence' => 'emergencyTriggered',
+        'urgence' => 'emergencyTriggered'
     ];
 
     public function __construct(ManagerRegistry $registry)
@@ -115,6 +115,7 @@ class ReceptionRepository extends ServiceEntityRepository
             ->addSelect('articleType.label AS articleTypeLabel')
             ->addSelect('articleReferenceArticle.barCode AS articleReferenceArticleBarcode')
             ->addSelect('article.barCode as articleBarcode')
+            ->addSelect('join_demand_user.username AS receiverDemandUsername')
 
             ->where('reception.date BETWEEN :dateMin AND :dateMax')
 
@@ -128,6 +129,8 @@ class ReceptionRepository extends ServiceEntityRepository
             ->leftJoin('article.type', 'articleType')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('articleFournisseur.referenceArticle', 'articleReferenceArticle')
+            ->leftJoin('reception.demandes', 'join_demand')
+            ->leftJoin('join_demand.utilisateur', 'join_demand_user')
 
             ->setParameters([
                 'dateMin' => $dateMin,
@@ -155,6 +158,23 @@ class ReceptionRepository extends ServiceEntityRepository
 						->andWhere('s.id in (:statut)')
 						->setParameter('statut', $value);
 					break;
+
+                case 'utilisateurs':
+                    $values = array_map(function($value) {
+                        return explode(":", $value)[0];
+                    }, explode(',', $filter['value']));
+                    $qb
+                        ->join('r.demandes', 'filter_request')
+                        ->join('filter_request.utilisateur', 'filter_request_user');
+
+                    $exprBuilder = $qb->expr();
+                    $OROperands = [];
+                    foreach ($values as $index => $user) {
+                        $OROperands[] = "filter_request_user.id = :user$index";
+                        $qb->setParameter("user$index", $user);
+                    }
+                    $qb->andWhere('(' . $exprBuilder->andX(...$OROperands) . ')');
+					break;
                 case 'providers':
                     $value = explode(',', $filter['value']);
                     $qb
@@ -181,16 +201,28 @@ class ReceptionRepository extends ServiceEntityRepository
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
+                $values = explode(',', $search);
+                dump($values);
                 if (!empty($search)) {
                     $qb
 						->leftJoin('r.statut', 's2')
 						->leftJoin('r.fournisseur', 'f2')
-                        ->andWhere('r.date LIKE :value
+                        ->leftJoin('r.demandes', 'search_request')
+                        ->leftJoin('search_request.utilisateur', 'search_request_User')
+                        ->andWhere('(r.date LIKE :value
                         OR r.numeroReception LIKE :value
                         OR r.orderNumber LIKE :value
                         OR r.commentaire lIKE :value
                         OR s2.nom LIKE :value
-                        OR f2.nom LIKE :value')
+                        OR f2.nom LIKE :value)');
+
+                        $exprBuilder = $qb->expr();
+                        $ANDOperands = [];
+                        foreach ($values as $index => $user) {
+                            $ANDOperands[] = "search_request_User.username LIKE :value$index";
+                            $qb->setParameter("value$index", '%' . $user . '%');
+                        }
+                        $qb->orWhere('(' . $exprBuilder->andX(...$ANDOperands) . ')')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
