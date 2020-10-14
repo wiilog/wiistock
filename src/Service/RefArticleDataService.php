@@ -262,7 +262,9 @@ class RefArticleDataService
             }
         }
 
-        if (isset($data['categorie'])) $refArticle->setCategory($category);
+        if (isset($data['categorie'])) {
+            $refArticle->setCategory($category);
+        }
         if (isset($data['urgence'])) {
             if ($data['urgence'] && $data['urgence'] !== $refArticle->getIsUrgent()) {
                 $refArticle->setUserThatTriggeredEmergency($user);
@@ -270,6 +272,19 @@ class RefArticleDataService
                 $refArticle->setUserThatTriggeredEmergency(null);
             }
             $refArticle->setIsUrgent($data['urgence']);
+        }
+        if (isset($data['prix'])) {
+            $refArticle->setPrixUnitaire($price);
+        }
+        if (isset($data['libelle'])) {
+            $refArticle->setLibelle($data['libelle']);
+        }
+        if (isset($data['commentaire'])) {
+            $refArticle->setCommentaire($data['commentaire']);
+        }
+        (is_string($data['limitWarning'])) ? $refArticle->setLimitWarning(null) : $refArticle->setLimitWarning(intval($data['limitWarning']));
+        if (isset($data['mobileSync'])) {
+            $refArticle->setNeedsMobileSync($data['mobileSync']);
         }
         if (isset($data['prix'])) $refArticle->setPrixUnitaire($price);
         if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
