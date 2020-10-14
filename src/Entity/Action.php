@@ -41,8 +41,10 @@ class Action
 	const TREAT_LITIGE = 'traiter les litiges';
 
 	// menu demande
-	const DISPLAY_DEM_COLL = 'afficher collectes';
+	const DISPLAY_TRANSFER_REQ = 'afficher demande de transfert';
+	const DISPLAY_TRANSFER_ORD = 'afficher ordres de transfert';
 	const DISPLAY_DEM_LIVR = 'afficher livraisons';
+	const DISPLAY_DEM_COLL = 'afficher collectes';
     const DISPLAY_HAND = 'afficher services';
     const TREAT_HANDLING = 'traiter services';
     const DISPLAY_ACHE = 'afficher acheminements';

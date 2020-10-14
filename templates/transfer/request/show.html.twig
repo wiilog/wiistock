@@ -1,0 +1,75 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Demande | Transfert | Détails{% endblock %}
+{% block titleLink path('transfer_request_index') %}
+
+{% block page_content %}
+    <div class="m-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="zone-entete">
+                    {% include "transfer/request/show_header.html.twig" with {
+                        modifiable: modifiable,
+                        transfer: transfer,
+                        showDetails: detailsConfig
+                    } %}
+                </div>
+            </div>
+        </div>
+        <div class="mt-3 wii-page-card">
+            <div class="row mb-2">
+                <h5 class="col-auto h5">Liste des articles</h5>
+            </div>
+            {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+                <div class="row wii-page-card-header">
+                    <div class="col-auto ml-auto">
+                        <div class="btn-group">
+                            <button type="button" data-toggle="modal" data-target="#modalAddArticle"
+                                    onclick="clearDiv(), Select2.articleReference($('#reference'))"
+                                    class="btn btn-primary btn-ripple split-button">
+                                <span class="fa fa-plus mr-2"></span>Ajouter article
+                            </button>
+                            <button type="button" class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                    data-toggle="dropdown"
+                                    aria-haspopup="true"
+                                    aria-expanded="false">
+                                <span class="fa fa-angle-down"></span>
+                            </button>
+                            <div class="dropdown-menu dropdown-follow-gt pointer dropdown-menu-right">
+                                <a href="{{ path('reference_article_index') }}"
+                                   class="dropdown-item"
+                                   title="Chercher une référence">
+                                    <i class="fa fa-search mr-2"></i>
+                                    Chercher une {{ 'reference.référence'|trans }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            <div class="row">
+                <div class="col-12">
+                    <table id="tableArticle" class="table"></table>
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-secondary" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
+    </div>
+
+    {% include "transfer/request/article/new.html.twig" %}
+    {% include "transfer/request/article/delete.html.twig" %}
+    {% include "transfer/request/article/edit.html.twig" %}
+    {% include "transfer/request/delete.html.twig" %}
+    {% include "transfer/request/edit.html.twig" %}
+    {% include 'reference_article/modalShowRefArticle.html.twig' %}
+    {% include 'article/modalShowArticle.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let id = {{ transfer.id }};
+    </script>
+
+    <script src="{{ asset('js/pages/transfer/show.js') }}?{{ app_last_cache_clear }}"></script>
+{% endblock %}

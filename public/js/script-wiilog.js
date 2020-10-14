@@ -1,3 +1,5 @@
+const PAGE_TRANSFER_REQUEST = 'rtransfer';
+const PAGE_TRANSFER_ORDER = 'otransfer';
 const PAGE_DEM_COLLECTE = 'dcollecte';
 const PAGE_DEM_LIVRAISON = 'dlivraison';
 const PAGE_HAND = 'handling';
@@ -39,6 +41,8 @@ $(function () {
 
     $('[data-toggle="popover"]').popover();
 
+
+    $('.modal.auto-open').modal('show');
 
     setTimeout(() => {
         let query = GetRequestQuery();

@@ -347,6 +347,10 @@ select.is-invalid {
     height: 60px !important;
 }
 
+label.required:after {
+    content: "* ";
+}
+
 @mixin icon-button {
     display: inline-block;
     padding: 8px;

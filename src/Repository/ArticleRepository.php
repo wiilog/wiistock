@@ -9,6 +9,7 @@ use App\Entity\InventoryMission;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 
 use App\Helper\QueryCounter;
@@ -19,6 +20,7 @@ use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -1093,4 +1095,16 @@ class ArticleRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findForReferenceWithoutTransfer($reference) {
+        return $this->createQueryBuilder("a")
+            ->join("a.articleFournisseur", "af")
+            ->leftJoin("a.transferRequests", "tr")
+            ->where("af.referenceArticle = :reference")
+            ->andWhere("tr.id IS NULL")
+            ->setParameter("reference", $reference)
+            ->getQuery()
+            ->getResult();
+    }
+
 }

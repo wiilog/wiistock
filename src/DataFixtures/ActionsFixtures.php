@@ -58,6 +58,8 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::TREAT_LITIGE
 			],
 			Menu::DEM => [
+				Action::DISPLAY_TRANSFER_REQ,
+                Action::DISPLAY_TRANSFER_ORD,
 				Action::DISPLAY_DEM_COLL,
 				Action::DISPLAY_DEM_LIVR,
 				Action::DISPLAY_HAND,
