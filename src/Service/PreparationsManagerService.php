@@ -160,7 +160,7 @@ class PreparationsManagerService
 
         $articles = $preparation->getArticles();
         foreach ($articles as $article) {
-            if ($article->getQuantitePrelevee() < $article->getQuantiteAPrelever()) {
+            if (($article->getQuantitePrelevee() < $article->getQuantiteAPrelever()) || empty($article->getQuantitePrelevee())) {
                 $complete = false;
                 break;
             }
@@ -426,7 +426,6 @@ class PreparationsManagerService
         $articles = $preparation->getArticles();
         foreach ($articles as $article) {
             $mouvementAlreadySaved = $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId());
-
             if (!$mouvementAlreadySaved) {
                 $quantitePrelevee = $article->getQuantitePrelevee();
                 $selected = !(empty($quantitePrelevee));
@@ -456,7 +455,6 @@ class PreparationsManagerService
                         }
                         $insertedArticle = $this->articleDataService->newArticle($newArticle);
                         $this->entityManager->flush();
-
                         if ($selected) {
                             if ($article->getQuantitePrelevee() !== $article->getQuantiteAPrelever()) {
                                 $insertedArticle->setQuantiteAPrelever($article->getQuantiteAPrelever() - $article->getQuantitePrelevee());
@@ -469,7 +467,6 @@ class PreparationsManagerService
                             $articlesSplittedToKeep[] = $article->getId();
                         }
                     }
-
                     if ($selected) {
                         // création des mouvements de préparation pour les articles
                         $mouvement = new MouvementStock();

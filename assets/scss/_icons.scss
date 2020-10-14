@@ -43,7 +43,7 @@ $icons: (
     "import": "../../public/svg/import.svg",
     "handling": "../../public/svg/handling.svg",
     "add": "../../public/svg/add.svg",
-    "way": "../../public/svg/way.svg",
+    "way": "../../public/svg/way.svg"
 );
 
 @each $iconName, $iconPath in $icons {
