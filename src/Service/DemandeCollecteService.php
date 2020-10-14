@@ -348,7 +348,7 @@ class DemandeCollecteService
             'requestUser' => $request->getDemandeur() ? $request->getDemandeur()->getUsername() : 'Non défini',
             'cardColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'lightGrey' : 'white',
             'bodyColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'white' : 'lightGrey',
-            'topRightIcon' => 'fa-box',
+            'topRightIcon' => 'livreur.svg',
             'emergencyText' => '',
             'progress' => $statusesToProgress[$requestStatus] ?? 0,
             'progressBarColor' => '#2ec2ab',
