@@ -92,11 +92,12 @@ class ReceptionService
             "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
             "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
             "Numéro de commande" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
+            "storageLocation" => ($reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : ''),
+            "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
             'Actions' => $this->templating->render(
                 'reception/datatableReceptionRow.html.twig',
                 ['reception' => $reception]
-            ),
-            'urgence' => $reception->getEmergencyTriggered()
+            )
         ];
     }
 
@@ -114,6 +115,7 @@ class ReceptionService
         $creationDate = $reception->getDate();
         $orderNumber = $reception->getOrderNumber();
         $comment = $reception->getCommentaire();
+        $storageLocation = $reception->getStorageLocation();
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
@@ -165,6 +167,11 @@ class ReceptionService
             ],
             [ 'label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i') : '' ],
             [ 'label' => 'Date de fin', 'value' => $dateEndReception ? $dateEndReception->format('d/m/Y H:i') : '' ],
+            [
+                'label' => 'Emplacement de stockage',
+                'value' => $storageLocation ?: '',
+                'show' => [ 'fieldName' => 'storageLocation' ]
+            ],
         ];
 
         $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_RECEPTION);

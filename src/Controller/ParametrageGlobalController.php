@@ -125,6 +125,11 @@ class ParametrageGlobalController extends AbstractController
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
                     'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL)
                 ],
+                'paramStock' => [
+                    'alertThreshold' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_ALERT_THRESHOLD),
+                    'securityThreshold' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_SECURITY_THRESHOLD),
+                    'expirationDelay' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY)
+                ],
                 'paramDispatches' => [
                     'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
                     'consignor' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONSIGNER),
@@ -374,6 +379,41 @@ class ParametrageGlobalController extends AbstractController
             return new JsonResponse(['typeDemande' => $data['typeDemande'], 'prefixe' => $data['prefixe']]);
         }
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/ajax-update-expiration-delay", name="ajax_update_expiration_delay",  options={"expose"=true},  methods="POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     * @throws NonUniqueResultException
+     */
+    public function updateExpirationDelay(Request $request,
+                                          EntityManagerInterface $entityManager) {
+
+        $expirationDelay = $request->request->get('expirationDelay');
+
+        if(!empty($expirationDelay) && !preg_match('/\d\d:\d\d/', $expirationDelay)) {
+            return $this->json([
+                'success' => false,
+                'msg' => "Le délai d'expiration doit être renseigné au format HH:MM"
+            ]);
+        }
+
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $expirationDelayParam = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);
+
+        if (empty($expirationDelayParam)) {
+            $expirationDelayParam = new ParametrageGlobal();
+            $expirationDelayParam->setLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);
+            $entityManager->persist($expirationDelayParam);
+        }
+        $expirationDelayParam->setValue($expirationDelay);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true
+        ]);
     }
 
     /**

@@ -20,6 +20,8 @@ class FieldsParam
     const FIELD_CODE_TRANSPORTEUR = 'transporteur';
     const FIELD_CODE_EMPLACEMENT = 'emplacement';
     const FIELD_CODE_ANOMALIE = 'anomalie';
+    const FIELD_CODE_STORAGE_LOCATION = 'storageLocation';
+    const FIELD_CODE_EMERGENCY_REC = 'manualUrgent';
 
     const FIELD_LABEL_FOURNISSEUR = 'fournisseur';
     const FIELD_LABEL_NUM_COMMANDE = 'numéro de commande';
@@ -30,6 +32,8 @@ class FieldsParam
 	const FIELD_LABEL_TRANSPORTEUR = 'transporteur';
 	const FIELD_LABEL_EMPLACEMENT = 'emplacement';
 	const FIELD_LABEL_ANOMALIE = 'anomalie';
+	const FIELD_LABEL_STORAGE_LOCATION = 'emplacement de stockage';
+	const FIELD_LABEL_EMERGENCY_REC = 'urgence';
 
 	const ENTITY_CODE_ARRIVAGE = 'arrivage';
 

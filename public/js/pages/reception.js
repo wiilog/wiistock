@@ -34,14 +34,15 @@ $(function () {
             {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
             {"data": 'Référence', 'name': 'reference', 'title': 'réception.n° de réception', translated: true},
             {"data": 'Statut', 'name': 'statut', 'title': 'Statut'},
+            {"data": 'storageLocation', 'name': 'storageLocation', 'title': 'Emplacement de stockage'},
             {"data": 'Commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
-            {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', visible: false},
+            {"data": 'emergency', 'name': 'emergency', 'title': 'urgence', visible: false},
         ],
         rowConfig: {
             needsColor: true,
             color: 'danger',
             needsRowClickAction: true,
-            dataToCheck: 'urgence'
+            dataToCheck: 'emergency'
         }
     };
     tableReception = initDataTable('tableReception_id', tableReceptionConfig);
