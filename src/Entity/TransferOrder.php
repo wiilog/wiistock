@@ -22,7 +22,7 @@ class TransferOrder {
     private $id;
 
     /**
-     * @ORM\OneToOne(targetEntity=TransferRequest::class, inversedBy="transferOrder", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity=TransferRequest::class, inversedBy="order", cascade={"persist", "remove"})
      * @ORM\JoinColumn(nullable=false)
      */
     private $request;

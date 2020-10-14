@@ -1,52 +1,67 @@
 <input type="hidden" class="page-title" value="Dashboard | DEMANDES EN COURS"/>
+<div class="m-4">
+    {% if extDashboard is not defined %}
+        <div class="row">
+            <div class="col-12">
+                {% include 'accueil/buttonIndicator.html.twig' %}
+            </div>
+        </div>
+    {% endif %}
 
-{% if pendingDeliveries and pendingDeliveries is not empty %}
-    <div class="row m-4">
-        <div class="dashboard-box-container w-100">
-            <div class="dashboard-box pending-requests fourth-row-height w-100 p-3" style="background-color: #f5f6fb">
-                <strong class="title m-3">Demandes de livraisons en cours</strong>
-                <div class="row">
-                    {% for delivery in pendingDeliveries %}
-                        <div class="col-12 col-lg-4 col-xl-3">
-                            {% include 'accueil/request-card.html.twig' with delivery %}
+    {% if pendingDeliveries and pendingDeliveries is not empty %}
+        <div class="row">
+            <div class="col-12">
+                <div class="dashboard-box-container w-100">
+                    <div class="dashboard-box pending-requests fourth-row-height w-100 p-3" style="background-color: #f5f6fb">
+                        <strong class="title m-3">Demandes de livraisons en cours</strong>
+                        <div class="row">
+                            {% for delivery in pendingDeliveries %}
+                                <div class="col-12 col-lg-4 col-xl-3">
+                                    {% include 'accueil/request-card.html.twig' with delivery %}
+                                </div>
+                            {% endfor %}
                         </div>
-                    {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-{% endif %}
+    {% endif %}
 
-{% if pendingCollects and pendingCollects is not empty %}
-    <div class="row m-4">
-        <div class="dashboard-box-container w-100">
-            <div class="dashboard-box pending-requests fourth-row-height w-100 p-3" style="background-color: #f5f6fb">
-                <strong class="title m-3">Demandes de collecte en cours</strong>
-                <div class="row">
-                    {% for collects in pendingCollects %}
-                        <div class="col-12 col-lg-4 col-xl-3">
-                            {% include 'accueil/request-card.html.twig' with collects %}
+    {% if pendingCollects and pendingCollects is not empty %}
+        <div class="row">
+            <div class="col-12">
+                <div class="dashboard-box-container w-100">
+                    <div class="dashboard-box pending-requests fourth-row-height w-100 p-3" style="background-color: #f5f6fb">
+                        <strong class="title m-3">Demandes de collecte en cours</strong>
+                        <div class="row">
+                            {% for collects in pendingCollects %}
+                                <div class="col-12 col-lg-4 col-xl-3">
+                                    {% include 'accueil/request-card.html.twig' with collects %}
+                                </div>
+                            {% endfor %}
                         </div>
-                    {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-{% endif %}
+    {% endif %}
 
-{% if pendingHandlings and pendingHandlings is not empty %}
-    <div class="row m-4">
-        <div class="dashboard-box-container w-100">
-            <div class="dashboard-box pending-requests fourth-row-height w-100 p-3" style="background-color: #f5f6fb">
-                <strong class="title m-3" title="Demande de service">{{ 'services.Demande de service'|trans }} en cours</strong>
-                <div class="row">
-                    {% for handling in pendingHandlings %}
-                        <div class="col-12 col-lg-4 col-xl-3">
-                            {% include 'accueil/request-card.html.twig' with handling %}
+    {% if pendingHandlings and pendingHandlings is not empty %}
+        <div class="row">
+            <div class="col-12">
+                <div class="dashboard-box-container w-100">
+                    <div class="dashboard-box pending-requests fourth-row-height w-100 p-3" style="background-color: #f5f6fb">
+                        <strong class="title m-3" title="Demande de service">{{ 'services.Demande de service'|trans }} en cours</strong>
+                        <div class="row">
+                            {% for handling in pendingHandlings %}
+                                <div class="col-12 col-lg-4 col-xl-3">
+                                    {% include 'accueil/request-card.html.twig' with handling %}
+                                </div>
+                            {% endfor %}
                         </div>
-                    {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-{% endif %}
+    {% endif %}
+</div>

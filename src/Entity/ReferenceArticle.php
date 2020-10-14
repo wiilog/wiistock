@@ -192,6 +192,11 @@ class ReferenceArticle extends FreeFieldEntity
      */
     private $needsMobileSync;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=TransferRequest::class, mappedBy="references")
+     */
+    private $transferRequests;
+
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();
@@ -209,6 +214,7 @@ class ReferenceArticle extends FreeFieldEntity
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
         $this->quantiteDisponible = 0;
+        $this->transferRequests = new ArrayCollection();
     }
 
     public function getId()
@@ -868,6 +874,34 @@ class ReferenceArticle extends FreeFieldEntity
             }
         }
         return $inProgress;
+    }
+
+    /**
+     * @return Collection|TransferRequest[]
+     */
+    public function getTransferRequests(): Collection
+    {
+        return $this->transferRequests;
+    }
+
+    public function addTransferRequest(TransferRequest $transferRequest): self
+    {
+        if (!$this->transferRequests->contains($transferRequest)) {
+            $this->transferRequests[] = $transferRequest;
+            $transferRequest->addReference($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransferRequest(TransferRequest $transferRequest): self
+    {
+        if ($this->transferRequests->contains($transferRequest)) {
+            $this->transferRequests->removeElement($transferRequest);
+            $transferRequest->removeReference($this);
+        }
+
+        return $this;
     }
 
 }

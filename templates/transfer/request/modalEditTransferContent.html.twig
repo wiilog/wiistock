@@ -1,0 +1,17 @@
+<div class="form-group">
+    <label class="required">Demandeur</label>
+    <input type="text" disabled="disabled" class="form-control" value="{{ transfer.requester.username }}">
+</div>
+<div class="form-group">
+    <label class="required">Destination</label>
+    <select name="destination" required="required" class="form-control data ajax-autocomplete-location-edit">
+        {% if transfer.destination is defined and transfer.destination != null %}
+            <option value="{{transfer.destination.id}}" selected>{{transfer.destination.label}}</option>
+        {% endif %}
+    </select>
+</div>
+<div class="form-group">
+    <label>Commentaire</label>
+    <input id="comment" class="form-control data" name="comment" type="hidden" value="{{transfer.comment}}" >
+    <div class="editor-container-edit" value="{{transfer.comment}}"> {{transfer.comment|raw}}</div>
+</div>
