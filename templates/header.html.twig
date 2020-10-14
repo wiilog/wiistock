@@ -85,7 +85,8 @@
                         {% endif %}
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_TRANSFER_REQ')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
                             <a href="{{ path('transfer_request_index', {'open-modal': 'new'}) }}" title="Transfert">
-                                Transfert
+                                <span class="wii-icon wii-icon-way quick-menu-icon mx-2"></span>
+                                <span class="flex-fill align-self-center">Transfert</span>
                             </a>
                         {% endif %}
                         {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}

@@ -1,9 +1,6 @@
 let tableArticles;
 
 $(document).ready(() => {
-    $('form[name="transfer_request"]').submit(function(e) {
-        submitTransferRequest.call(this, e,  Routing.generate("transfer_request_edit", {transfer: id}))
-    });
 
     Select2.articleReference($(".ajax-autocomplete"));
 
@@ -19,7 +16,7 @@ $(document).ready(() => {
         columns: [
             {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'Référence', 'title': 'Référence'},
-            {"data": 'Libellé', 'title': 'Libellé'},
+            {"data": 'barCode', 'title': 'Code barre'},
             {"data": 'Quantité', 'title': 'Quantité'}
         ],
     });
@@ -58,10 +55,8 @@ function onReferenceChange($select) {
     });
 
     $.post(route, data, function(response) {
-        if(response.success && response.html) {
-            $("#add-article-code-selector").html(response.html);
-        } else {
-            $("#add-article-code-selector").html("");
+        if (response.success) {
+           $("#add-article-code-selector").html(response.html || "");
         }
     });
 }

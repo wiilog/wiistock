@@ -4,7 +4,7 @@ $(document).ready(() => {
     initDateTimePicker();
     Select2.init($statusSelector, 'Statuts');
     Select2.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
-    Select2.user($('.filterService select[name="requester"]'), "Demandeurs");
+    Select2.user($('.filterService select[name="requesters"]'), "Demandeurs");
     Select2.user($('.filterService select[name="operator"]'), "Opérateurs");
 
     // applique les filtres si pré-remplis

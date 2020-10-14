@@ -3,6 +3,6 @@
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' %}
-    {% include 'filters/filter_item/filterUser.html.twig' with {name: 'requester'} %}
+    {% include 'filters/filter_item/filterUser.html.twig' with {name: 'requesters'} %}
     {% include 'filters/filter_item/filterUser.html.twig' with {name: 'operator'} %}
 {% endblock %}

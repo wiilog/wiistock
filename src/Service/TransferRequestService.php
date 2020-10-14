@@ -30,21 +30,17 @@ class TransferRequestService {
         $this->userService = $userService;
     }
 
-    public function getDataForDatatable($params = null, $statusFilter = null) {
-        if($statusFilter) {
-            $filters = [['field' => 'statut', 'value' => $statusFilter]];
-        } else {
-            $filters = $this->em->getRepository(FiltreSup::class)
-                ->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSFER_REQUEST, $this->user);
-        }
-
+    public function getDataForDatatable($params = null)
+    {
+        $filters = $this->em->getRepository(FiltreSup::class)
+            ->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSFER_REQUEST, $this->user);
         $queryResult = $this->em->getRepository(TransferRequest::class)
             ->findByParamsAndFilters($params, $filters);
 
         $transfers = $queryResult['data'];
 
         $rows = [];
-        foreach($transfers as $transfer) {
+        foreach ($transfers as $transfer) {
             $rows[] = $this->dataRowTransfer($transfer);
         }
 

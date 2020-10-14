@@ -18,8 +18,6 @@ use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\Article;
-use App\Form\AddArticleToTransferType;
-use App\Form\TransferRequestType;
 use App\Service\RefArticleDataService;
 use App\Service\TransferRequestService;
 use DateTime;
@@ -75,10 +73,7 @@ class TransferRequestController extends AbstractController {
         $transfer = new TransferRequest();
         $transfer->setRequester($this->getUser());
 
-        $form = $this->createForm(TransferRequestType::class, $transfer);
-
         return $this->render('transfer/request/index.html.twig', [
-            "new_transfer" => $form->createView(),
             'statuts' => $statusRepository->findByCategorieName(CategorieStatut::TRANSFER_REQUEST),
             'filterStatus' => $filter
         ]);
@@ -98,9 +93,7 @@ class TransferRequestController extends AbstractController {
                 return $this->redirectToRoute('access_denied');
             }
 
-            // cas d'un filtre statut depuis page d'accueil
-            $filterStatus = $request->request->get('filterStatus');
-            $data = $this->service->getDataForDatatable($request->request, $filterStatus);
+            $data = $this->service->getDataForDatatable($request->request);
 
             return new JsonResponse($data);
         } else {
@@ -179,10 +172,8 @@ class TransferRequestController extends AbstractController {
             return $this->redirectToRoute('access_denied');
         }
 
-        $form = $this->createForm(TransferRequestType::class, $transfer);
 
         return $this->render('transfer/request/show.html.twig', [
-            'edit_transfer' => $form->createView(),
             'transfer' => $transfer,
             'modifiable' => $transfer->getStatus()->getNom() == TransferRequest::DRAFT,
             'detailsConfig' => $this->service->createHeaderDetailsConfig($transfer)
@@ -271,7 +262,7 @@ class TransferRequestController extends AbstractController {
             foreach($references as $reference) {
                 $rowsRC[] = [
                     'Référence' => $reference->getReference(),
-                    'Libellé' => $reference->getLibelle(),
+                    'barCode' => $reference->getBarCode(),
                     'Quantité' => $reference->getQuantiteDisponible(),
                     'Actions' => $this->renderView('transfer/request/article/actions.html.twig', [
                         'type' => 'reference',
@@ -288,7 +279,7 @@ class TransferRequestController extends AbstractController {
             foreach($articles as $article) {
                 $rowsCA[] = [
                     'Référence' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
-                    'Libellé' => $article->getLabel(),
+                    'barCode' => $article->getBarCode(),
                     'Quantité' => $article->getQuantite(),
                     'Actions' => $this->renderView('transfer/request/article/actions.html.twig', [
                         'name' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
@@ -365,11 +356,22 @@ class TransferRequestController extends AbstractController {
                 ])
             ]);
         }
-
         if($article && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            if ($transfer->getArticles()->contains($article)) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => 'Cet article est déjà présent dans la demande de transfert.'
+                ]);
+            }
             $transfer->addArticle($article);
             $manager->flush();
         } else if($reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($transfer->getReferences()->contains($reference)) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => 'Cette référence est déjà présente dans la demande de transfert.'
+                ]);
+            }
             $transfer->addReference($reference);
             $manager->flush();
         }
