@@ -35,7 +35,7 @@ class TransferRequestRepository extends EntityRepository {
                         ->andWhere("req.id in (:id)")
                         ->setParameter('id', $value);
                     break;
-                case 'operator':dump("fuck");
+                case 'operator':
                     $value = explode(',', $filter['value']);
                     $qb
                         ->join('t.order', 'to')
