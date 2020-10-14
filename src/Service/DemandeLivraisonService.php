@@ -20,14 +20,12 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Repository\AverageRequestTimeRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\NonUniqueResultException;
-use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
@@ -172,16 +170,14 @@ class DemandeLivraisonService
         $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR);
         $hasRightToSeePrepaOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA);
         $hasRightToSeeDeliveryOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR);
-        $hasRightToSeeReception = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE);
 
         $requestStatus = $demande->getStatut() ? $demande->getStatut()->getNom() : '';
         $demandeType = $demande->getType() ? $demande->getType()->getLabel() : '';
 
-        if ($requestStatus === Demande::STATUT_BROUILLON && $hasRightToSeeRequest) {
-            $href = $this->router->generate('demande_show', ['id' => $demande->getId()]);
-        } else if ($requestStatus === Demande::STATUT_A_TRAITER && $hasRightToSeePrepaOrders && !$demande->getPreparations()->isEmpty()) {
+        if ($requestStatus === Demande::STATUT_A_TRAITER && $hasRightToSeePrepaOrders && !$demande->getPreparations()->isEmpty()) {
             $href = $this->router->generate('preparation_index', ['demandId' => $demande->getId()]);
-        } else if (
+        }
+        else if (
             (
                 $requestStatus === Demande::STATUT_LIVRE_INCOMPLETE ||
                 $requestStatus === Demande::STATUT_INCOMPLETE ||
@@ -190,8 +186,9 @@ class DemandeLivraisonService
             && $hasRightToSeeDeliveryOrders && !$demande->getLivraisons()->isEmpty()
         ) {
             $href = $this->router->generate('livraison_index', ['demandId' => $demande->getId()]);
-        } else if ($demande->getReception() && $hasRightToSeeReception) {
-            $href = $this->router->generate('reception_show', ['id' => $demande->getReception()->getId()]);
+        }
+        else if ($hasRightToSeeRequest) {
+            $href = $this->router->generate('demande_show', ['id' => $demande->getId()]);
         }
 
         $articlesCounter = ($demande->getArticles()->count() + $demande->getLigneArticle()->count());
@@ -249,7 +246,7 @@ class DemandeLivraisonService
             'requestUser' => $demande->getUtilisateur() ? $demande->getUtilisateur()->getUsername() : 'Non défini',
             'cardColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'lightGrey' : 'white',
             'bodyColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
-            'topRightIcon' => 'fa-box',
+            'topRightIcon' => 'livreur.svg',
             'progress' => $statusesToProgress[$requestStatus] ?? 0,
             'progressBarColor' => '#2ec2ab',
             'emergencyText' => '',

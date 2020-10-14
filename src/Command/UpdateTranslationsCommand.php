@@ -6,8 +6,7 @@ namespace App\Command;
 
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
+use Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -35,8 +34,7 @@ class UpdateTranslationsCommand extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int|void
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @throws Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output) {
         $this->translationService->generateTranslationsFile();

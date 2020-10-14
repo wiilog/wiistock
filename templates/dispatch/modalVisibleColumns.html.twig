@@ -34,7 +34,7 @@
                                         {% set checked = (name in visibleColumns ? 'checked' : '') %}
                                         <input class="visible-column-dispatch-input form-check-input {{ checked == 'checked' ? 'data' : '' }}"
                                                name="{{ name }}"
-                                               onclick="showOrHideColumn($(this), tableDispatches)"
+                                               onchange="showOrHideColumn($(this), tableDispatches)"
                                                type="checkbox"
                                                id="column_visible_dispatch_input_{{ loop.index }}"
                                             {{ checked }}
