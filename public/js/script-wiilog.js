@@ -41,18 +41,6 @@ $(function () {
 
     $('[data-toggle="popover"]').popover();
 
-    let $quickCreate = $('#quick-create');
-    $('[data-target="#quick-create"]')
-        .click(() => {
-            if ($quickCreate.hasClass('d-none')) {
-                $quickCreate.removeClass('d-none');
-                $quickCreate.fadeIn();
-            } else {
-                $quickCreate.fadeOut(() => {
-                    $quickCreate.addClass('d-none');
-                });
-            }
-        });
 
     $('.modal.auto-open').modal('show');
 
@@ -60,8 +48,8 @@ $(function () {
         let query = GetRequestQuery();
         const openModalNew = 'new';
         const openModalEdit = 'edit';
-
-        if (query["open-modal"] === openModalNew || query["open-modal"] === openModalEdit) {
+        if (query["open-modal"] === openModalNew
+            || query["open-modal"] === openModalEdit) {
             if (query["open-modal"] === openModalNew) {
                 $('[data-modal-type="new"]').first().modal("show");
             }

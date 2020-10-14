@@ -35,7 +35,7 @@
                                         <input type="checkbox" class="form-check-input {{ checked == 'checked' ? 'data' : '' }}"
                                                name="{{ name }}"
                                                data-column="{{ loop.index0 }}" data-name="{{ name }}"
-                                               onclick="showOrHideColumn($(this), arrivalsTable)"
+                                               onchange="showOrHideColumn($(this), arrivalsTable)"
                                                id="checkbox-{{ loop.index }}"
                                                {{ checked }}>
                                         <label class="form-check-label pointer" for="checkbox-{{ loop.index }}"></label>

@@ -139,20 +139,58 @@
 }
 
 .quick-plus {
+    @extend .btn;
     @include icon-button;
+    @include button-variant(#2EC2AB, #2EC2AB);
 
     display: flex;
     height: 36px;
     width: 36px;
     align-items: center;
     justify-content: center;
-    margin: 2px 5px 2px 0;
+    border-radius: 50%;
+}
 
-    &:hover {
-        background-color: rgba(255, 255, 255, 0.2);
-        color: white;
+#quick-menu {
+    $itemMinHeight: 35px;
+    $iconMinSize: 15px;
+    $itemYPadding: 0.2rem;
+
+    .quick-menu-title {
+        color: #2EC2AB;
+        font-weight: 100;
+        font-size: 0.8rem;
+        height: 40px;
+        padding-top: 12px;
+    }
+
+    .quick-menu-icon {
+        background-color: $black;
+        min-width: $iconMinSize;
+        min-height: $iconMinSize;
+        margin-top: calc((#{$itemMinHeight} - #{$iconMinSize} - #{$itemYPadding * 2}) / 2);
+        display: inline-block;
+    }
+
+    & > a {
+        display: block;
+        padding: $itemYPadding 0.5rem;
+        font-size: 0.8rem;
+        min-height: $itemMinHeight;
+        font-weight: 100;
+
+        &:hover {
+            background: #2EC2AB;
+            color: white;
+            cursor: pointer !important;
+
+            & > span:first-of-type {
+                background-color: white;
+            }
+        }
     }
 }
+
 
 .user {
     background-color: rgba(255, 255, 255, 0.1);

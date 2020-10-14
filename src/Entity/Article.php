@@ -150,6 +150,7 @@ class Article extends FreeFieldEntity
     private $litiges;
 
     /**
+     * @var Preparation|null
      * @ORM\ManyToOne(targetEntity="App\Entity\Preparation", inversedBy="articles")
      */
     private $preparation;
@@ -551,7 +552,15 @@ class Article extends FreeFieldEntity
 
     public function setPreparation(?Preparation $preparation): self
     {
+        if ($this->preparation && $this->preparation !== $preparation) {
+            $this->preparation->removeArticle($this);
+        }
+
         $this->preparation = $preparation;
+
+        if ($this->preparation) {
+            $this->preparation->addArticle($this);
+        }
 
         return $this;
     }
