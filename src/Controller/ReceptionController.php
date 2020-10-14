@@ -146,13 +146,14 @@ class ReceptionController extends AbstractController {
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $champLibreService
+     * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
-     * @throws Exception
      */
     public function new(EntityManagerInterface $entityManager,
                         FreeFieldService $champLibreService,
+                        ReceptionService $receptionService,
                         Request $request): Response {
         if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
             return $this->redirectToRoute('access_denied');
@@ -160,68 +161,8 @@ class ReceptionController extends AbstractController {
 
         if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $receptionRepository = $entityManager->getRepository(Reception::class);
+            $reception = $receptionService->createAndPersistReception($entityManager, $this->getUser(), $data);
 
-            $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
-            $reception = new Reception();
-
-            $statusCode = !empty($data['anomalie']) ? ($data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE) : Reception::STATUT_EN_ATTENTE;
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
-
-            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-
-            // génère le numéro
-            $lastNumero = $receptionRepository->getLastNumeroByPrefixeAndDate('R', $date->format('ymd'));
-            $lastCpt = (int)substr($lastNumero, -4, 4);
-            $i = $lastCpt + 1;
-            $cpt = sprintf('%04u', $i);
-            $numero = 'R' . $date->format('ymd') . $cpt;
-
-            if(!empty($data['fournisseur'])) {
-                $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
-                $reception
-                    ->setFournisseur($fournisseur);
-            }
-
-            if(!empty($data['location'])) {
-                $location = $emplacementRepository->find(intval($data['location']));
-                $reception
-                    ->setLocation($location);
-            }
-
-            if(!empty($data['transporteur'])) {
-                $transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
-                $reception
-                    ->setTransporteur($transporteur);
-            }
-
-            /** @var Utilisateur $currentUser */
-            $currentUser = $this->getUser();
-
-            $reception
-                ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
-                ->setDateAttendue(
-                    !empty($data['dateAttendue'])
-                        ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
-                        : null)
-                ->setDateCommande(
-                    !empty($data['dateCommande'])
-                        ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
-                        : null)
-                ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null)
-                ->setStatut($statut)
-                ->setNumeroReception($numero)
-                ->setDate($date)
-                ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
-                ->setUtilisateur($currentUser)
-                ->setType($type)
-                ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null);
-
-            $entityManager->persist($reception);
             $entityManager->flush();
 
             $champLibreService->manageFreeFields($reception, $data, $entityManager);

@@ -4,11 +4,22 @@
 namespace App\Service;
 
 
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
+use App\Entity\Fournisseur;
 use App\Entity\Reception;
+use App\Entity\Statut;
+use App\Entity\Transporteur;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Repository\ReceptionRepository;
+use DateTime;
+use DateTimeZone;
+use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -72,6 +83,79 @@ class ReceptionService
             'recordsTotal' => $queryResult['total'],
             'recordsFiltered' => $queryResult['count'],
         ];
+    }
+
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Utilisateur|null $currentUser
+     * @param array $data
+     * @return Reception
+     * @throws NonUniqueResultException
+     */
+    public function createAndPersistReception(EntityManagerInterface $entityManager, ?Utilisateur $currentUser, array $data): Reception {
+
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $receptionRepository = $entityManager->getRepository(Reception::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $ransporteurRepository = $entityManager->getRepository(Transporteur::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+
+        $statusCode = !empty($data['anomalie']) ? ($data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE) : Reception::STATUT_EN_ATTENTE;
+        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
+        $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
+
+        $reception = new Reception();
+        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
+        // génère le numéro
+        $lastNumero = $receptionRepository->getLastNumeroByPrefixeAndDate('R', $date->format('ymd'));
+        $lastCpt = (int)substr($lastNumero, -4, 4);
+        $i = $lastCpt + 1;
+        $cpt = sprintf('%04u', $i);
+        $numero = 'R' . $date->format('ymd') . $cpt;
+
+
+        if(!empty($data['fournisseur'])) {
+            $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
+            $reception
+                ->setFournisseur($fournisseur);
+        }
+
+        if(!empty($data['location'])) {
+            $location = $emplacementRepository->find(intval($data['location']));
+            $reception
+                ->setLocation($location);
+        }
+
+        if(!empty($data['transporteur'])) {
+            $transporteur = $ransporteurRepository->find(intval($data['transporteur']));
+            $reception
+                ->setTransporteur($transporteur);
+        }
+
+        $reception
+            ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
+            ->setDateAttendue(
+                !empty($data['dateAttendue'])
+                    ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
+                    : null)
+            ->setDateCommande(
+                !empty($data['dateCommande'])
+                    ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
+                    : null)
+            ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null)
+            ->setStatut($statut)
+            ->setNumeroReception($numero)
+            ->setDate($date)
+            ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
+            ->setUtilisateur($currentUser)
+            ->setType($type)
+            ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null);
+
+        $entityManager->persist($reception);
+        return $reception;
     }
 
     /**

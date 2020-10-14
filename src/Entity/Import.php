@@ -21,7 +21,8 @@ class Import
 	const ENTITY_ART = 'ART';
 	const ENTITY_REF= 'REF';
 	const ENTITY_FOU = 'FOU';
-	const ENTITY_ART_FOU = 'ART_FOU';
+    const ENTITY_ART_FOU = 'ART_FOU';
+    const ENTITY_RECEPTION = 'RECEP';
 
 	const FIELDS_NEEDED = [
         self::ENTITY_ART_FOU => [
@@ -44,6 +45,11 @@ class Import
             'type',
             'emplacement',
             'typeQuantite'
+        ],
+        self::ENTITY_RECEPTION => [
+            'orderNumber',
+            'quantity',
+            'reference'
         ]
     ];
 
@@ -51,7 +57,8 @@ class Import
 	    self::ENTITY_ART_FOU => 'reference',
         self::ENTITY_ART => 'barCode',
         self::ENTITY_FOU => 'codeReference',
-        self::ENTITY_REF => 'reference'
+        self::ENTITY_REF => 'reference',
+        self::ENTITY_RECEPTION => null,
     ];
 
 	const FIELDS_ENTITY = [
@@ -77,7 +84,16 @@ class Import
 		'typeLabel' => 'type',
         'dateLastInventory' => 'date dernier inventaire (jj/mm/AAAA)',
         'emergencyComment' => 'commentaire urgence',
+        'orderNumber' => 'numéro de commande',
+        'quantity' => 'quantité',
 	];
+
+	public CONST IMPORT_FIELDS_TO_FIELDS_PARAM = [
+        'commentaire' => 'commentaire',
+        'destination' => 'emplacement',
+        'fournisseur' => 'fournisseur',
+        'transporteur' => 'transporteur',
+    ];
 
     /**
      * @ORM\Id()
