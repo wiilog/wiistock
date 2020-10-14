@@ -56,7 +56,10 @@
 
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR'))
                               and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-                            <a class="d-flex align-items-start" href="{{ path('demande_index', {'open-modal': 'new'}) }}">
+                            {% set isCurrentPage = (app.request.attributes.get('_route') == 'demande_index') %}
+                            <a class="d-flex align-items-start"
+                               onclick="{{ isCurrentPage ? "openModalNew({'open-modal': 'new'}, event)" }}"
+                               href="{{ path('demande_index', {'open-modal': 'new'}) }}">
                                 <span class="wii-icon wii-icon-delivery quick-menu-icon mx-2"></span>
                                 <span class="flex-fill align-self-center">Livraison</span>
                             </a>
@@ -64,21 +67,32 @@
 
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL'))
                               and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-                            <a class="d-flex align-items-start" href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
+                            {% set isCurrentPage = (app.request.attributes.get('_route') == 'collecte_index') %}
+                            <a class="d-flex align-items-start"
+                               onclick="{{ isCurrentPage ? "openModalNew({'open-modal': 'new'}, event)" }}"
+                               href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
                                 <span class="wii-icon wii-icon-import quick-menu-icon mx-2"></span>
                                 <span class="flex-fill align-self-center">Collecte</span>
                             </a>
                         {% endif %}
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_HAND'))
                               and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-                            <a class="d-flex align-items-start" href="{{ path('handling_index', {'open-modal': 'new'}) }}" title="Service">
+                            {% set isCurrentPage = (app.request.attributes.get('_route') == 'handling_index') %}
+                            <a class="d-flex align-items-start"
+                               onclick="{{ isCurrentPage ? "openModalNew({'open-modal': 'new'}, event)" }}"
+                               href="{{ path('handling_index', {'open-modal': 'new'}) }}"
+                               title="Service">
                                 <span class="wii-icon wii-icon-handling quick-menu-icon mx-2"></span>
                                 <span class="flex-fill align-self-center">{{ 'services.Service' | trans }}</span>
                             </a>
                         {% endif %}
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_ACHE'))
                               and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-                            <a class="d-flex align-items-start" href="{{ path('dispatch_index', {'open-modal': 'new'}) }}" title="Acheminement">
+                            {% set isCurrentPage = (app.request.attributes.get('_route') == 'dispatch_index') %}
+                            <a class="d-flex align-items-start"
+                               onclick="{{ isCurrentPage ? "openModalNew({'open-modal': 'new'}, event)" }}"
+                               href="{{ path('dispatch_index', {'open-modal': 'new'}) }}"
+                               title="Acheminements">
                                 <span class="wii-icon wii-icon-way quick-menu-icon mx-2"></span>
                                 <span class="flex-fill align-self-center">{{ 'acheminement.Acheminement' | trans }}</span>
                             </a>
