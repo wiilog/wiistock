@@ -28,6 +28,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_ANOMALIE, 'label' => FieldsParam::FIELD_LABEL_ANOMALIE, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_STORAGE_LOCATION, 'label' => FieldsParam::FIELD_LABEL_STORAGE_LOCATION, 'displayedFormsCreate' => false, 'displayedFormsEdit' => false, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_REC, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_REC, 'displayedFormsCreate' => false, 'displayedFormsEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ATTACHMENTS, 'label' => FieldsParam::FIELD_LABEL_ATTACHMENTS, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
             ],
 
             FieldsParam::ENTITY_CODE_ARRIVAGE => [

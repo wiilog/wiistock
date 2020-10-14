@@ -16,6 +16,7 @@ class FieldsParam
     const FIELD_CODE_DATE_ATTENDUE = 'dateAttendue';
     const FIELD_CODE_DATE_COMMANDE = 'dateCommande';
     const FIELD_CODE_COMMENTAIRE = 'commentaire';
+    const FIELD_CODE_ATTACHMENTS = 'attachment';
     const FIELD_CODE_UTILISATEUR = 'utilisateur';
     const FIELD_CODE_TRANSPORTEUR = 'transporteur';
     const FIELD_CODE_EMPLACEMENT = 'emplacement';
@@ -28,6 +29,7 @@ class FieldsParam
     const FIELD_LABEL_DATE_ATTENDUE = 'date attendue';
     const FIELD_LABEL_DATE_COMMANDE = 'date commande';
     const FIELD_LABEL_COMMENTAIRE = 'commentaire';
+    const FIELD_LABEL_ATTACHMENTS = 'pièces jointes';
     const FIELD_LABEL_UTILISATEUR = 'utilisateur';
 	const FIELD_LABEL_TRANSPORTEUR = 'transporteur';
 	const FIELD_LABEL_EMPLACEMENT = 'emplacement';

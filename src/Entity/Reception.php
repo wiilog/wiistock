@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\AttachmentTrait;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -16,6 +17,8 @@ class Reception extends FreeFieldEntity
     const STATUT_RECEPTION_PARTIELLE = 'réception partielle';
     const STATUT_RECEPTION_TOTALE = 'réception totale';
     const STATUT_ANOMALIE = 'anomalie';
+
+    use AttachmentTrait;
 
     /**
      * @ORM\Id()
@@ -132,6 +135,7 @@ class Reception extends FreeFieldEntity
         $this->demandes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->mouvementsTraca = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int

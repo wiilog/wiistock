@@ -22,7 +22,7 @@ use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
 use App\Entity\DispatchPack;
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -1344,7 +1344,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
-        $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+        $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1436,7 +1436,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         'href' => $request->getSchemeAndHttpHost() . '/uploads/attachements/' . $attachment['fileName']
                     ];
                 },
-                $pieceJointeRepository->getMobileAttachmentForHandling($handlingIds)
+                $attachmentRepository->getMobileAttachmentForHandling($handlingIds)
             );
 
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();

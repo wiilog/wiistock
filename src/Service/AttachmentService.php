@@ -7,8 +7,11 @@ use App\Entity\Arrivage;
 use App\Entity\Handling;
 use App\Entity\Litige;
 use App\Entity\MouvementTraca;
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\Entity;
+use DoctrineExtensions\Query\Mysql\Pi;
+use ReflectionClass;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -31,7 +34,7 @@ class AttachmentService
 
 	/**
 	 * @param FileBag|UploadedFile[]|array $files if array it's an assoc array between originalFileName and serverFileName
-	 * @return PieceJointe[]
+	 * @return Attachment[]
 	 */
 	public function createAttachements($files) {
 		$attachments = [];
@@ -51,11 +54,11 @@ class AttachmentService
                     $originalFileName = $file->getClientOriginalName();
                     $fileName = $fileArray[$file->getClientOriginalName()];
                 }
-                $pj = new PieceJointe();
-                $pj
+                $attachment = new Attachment();
+                $attachment
                     ->setOriginalName($originalFileName)
                     ->setFileName($fileName);
-                $attachments[] = $pj;
+                $attachments[] = $attachment;
 			}
 		}
 
@@ -78,17 +81,17 @@ class AttachmentService
     }
 
 	/**
-	 * @param PieceJointe $attachment
+	 * @param Attachment $attachment
 	 * @param Arrivage|Litige|Dispatch|MouvementTraca|Handling $entity
 	 */
-	public function removeAndDeleteAttachment(PieceJointe $attachment, $entity)
+	public function removeAndDeleteAttachment(Attachment $attachment, $entity)
 	{
 		if ($entity) {
             $entity->removeAttachment($attachment);
 		}
 
-        $pieceJointeRepository = $this->em->getRepository(PieceJointe::class);
-        $pieceJointeAlreadyInDB = $pieceJointeRepository->findOneByFileName($attachment->getFileName());
+        $attachmentRepository = $this->em->getRepository(Attachment::class);
+        $pieceJointeAlreadyInDB = $attachmentRepository->findOneByFileName($attachment->getFileName());
         if (count($pieceJointeAlreadyInDB) === 1) {
             $path = $this->getServerPath($attachment);
             unlink($path);
@@ -99,10 +102,10 @@ class AttachmentService
 	}
 
     /**
-     * @param PieceJointe $attachment
+     * @param Attachment $attachment
      * @return string
      */
-	public function getServerPath(PieceJointe $attachment): string {
+	public function getServerPath(Attachment $attachment): string {
 	    return $this->attachmentDirectory . '/' . $attachment->getFileName();
     }
 
@@ -127,9 +130,9 @@ class AttachmentService
     /**
      * @param UploadedFile $file
      * @param Arrivage|Litige $link
-     * @return PieceJointe
+     * @return Attachment
      */
-    public function createPieceJointe(UploadedFile $file, $link): PieceJointe {
+    public function createPieceJointe(UploadedFile $file, $link): Attachment {
         if ($file->getClientOriginalExtension()) {
             $filename = uniqid() . "." . $file->getClientOriginalExtension();
         } else {
@@ -137,18 +140,68 @@ class AttachmentService
         }
         $file->move($this->attachmentDirectory, $filename);
 
-        $pj = new PieceJointe();
-        $pj
+        $attachment = new Attachment();
+        $attachment
             ->setFileName($filename)
             ->setOriginalName($file->getClientOriginalName());
 
         if ($link instanceof Arrivage) {
-            $pj->setArrivage($link);
+            $attachment->setArrivage($link);
         }
         else if($link instanceof Litige) {
-            $pj->setLitige($link);
+            $attachment->setLitige($link);
         }
 
-        return $pj;
+        return $attachment;
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param $attachmentEntity
+     * @param FileBag $files
+     * @throws \ReflectionException
+     */
+    public function manageAttachments(EntityManagerInterface $entityManager, $attachmentEntity, FileBag $files) {
+        $reflect = new ReflectionClass($attachmentEntity);
+        $dedicatedAttachmentFolder = strtolower($reflect->getShortName()) . '/' . $attachmentEntity->getId();
+        foreach ($files as $file) {
+            $attachment = $this->saveFileInDedicatedFolder($file, $dedicatedAttachmentFolder);
+            $attachmentEntity->addAttachment($attachment);
+            $entityManager->persist($attachment);
+        }
+    }
+
+    private function saveFileInDedicatedFolder(UploadedFile $uploadedFile, string $dedicatedSubFolder): Attachment {
+        $dedicatedFolder = $this->attachmentDirectory . '/' . $dedicatedSubFolder;
+        if (!file_exists($dedicatedSubFolder)) {
+            mkdir($dedicatedSubFolder, 0777, true);
+        }
+
+        $filename = $uploadedFile->getClientOriginalName();
+
+        $fileNameWithoutExtension = pathinfo($filename, PATHINFO_FILENAME);
+        $fileNameExtension = pathinfo($filename, PATHINFO_EXTENSION);
+
+        $filePath = $dedicatedFolder . '/' . $filename;
+
+        $relativePath = Attachment::MAIN_PATH . '/' . $dedicatedSubFolder . '/' . $filename;
+
+        while (file_exists($filePath)) {
+            $fileNameWithoutExtension .= '_BIS';
+            $filename = $fileNameWithoutExtension . '.' . $fileNameExtension;
+            $filePath = $dedicatedFolder . '/' . $filename;
+        }
+
+        $uploadedFile->move($dedicatedFolder, $filename);
+        return $this->createAttachment($filename, $relativePath);
+    }
+
+    private function createAttachment(string $fileName, string $fullPath): Attachment {
+        $attachment = new Attachment();
+        $attachment
+            ->setOriginalName($fileName)
+            ->setFullPath($fullPath)
+            ->setFileName($fileName);
+        return $attachment;
     }
 }

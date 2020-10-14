@@ -12,7 +12,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\MouvementTraca;
 use App\Entity\ParametrageGlobal;
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -445,7 +445,7 @@ class MouvementTracaController extends AbstractController
 
             $attachments = $mvt->getAttachments()->toArray();
             foreach ($attachments as $attachment) {
-                /** @var PieceJointe $attachment */
+                /** @var Attachment $attachment */
                 if (!$listAttachmentIdToKeep || !in_array($attachment->getId(), $listAttachmentIdToKeep)) {
                     $this->attachmentService->removeAndDeleteAttachment($attachment, $mvt);
                 }
@@ -515,12 +515,12 @@ class MouvementTracaController extends AbstractController
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-            $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::MVT_TRACA]);
 
             $mouvements = $mouvementTracaRepository->getByDates($dateTimeMin, $dateTimeMax);
-            $attachmentsNameByMouvementTraca = $pieceJointeRepository->getNameGroupByMouvements();
+            $attachmentsNameByMouvementTraca = $attachmentRepository->getNameGroupByMouvements();
 
             $csvHeader = array_merge([
                 'date',

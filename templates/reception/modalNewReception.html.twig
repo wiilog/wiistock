@@ -178,17 +178,31 @@
                     {% endif %}
                 </div>
 
-                {% if fieldsParam|isFieldRequired('commentaire', 'displayedFormsCreate') %}
-                    <div class="form-group">
-                        <label
-                            for="NumeroReception">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? '*' : '' }}</label>
-                        <input id='commentaire'
-                               class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? 'needed' : '' }}"
-                               name="commentaire" type="hidden">
-                        <div class="editor-container" id='editor-container'></div>
-                    </div>
-                {% endif %}
-
+                <div class="row">
+                    {% if fieldsParam|isFieldRequired('commentaire', 'displayedFormsCreate') %}
+                        <div class="form-group col-8">
+                            <label
+                                for="NumeroReception">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? '*' : '' }}</label>
+                            <input id='commentaire'
+                                   class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? 'needed' : '' }}"
+                                   name="commentaire" type="hidden">
+                            <div class="editor-container" id='editor-container'></div>
+                        </div>
+                    {% endif %}
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ATTACHMENTS') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                        <div class="form-group col-4">
+                            <div>
+                                {% include 'attachment/attachment.html.twig' with {
+                                    'isNew': true,
+                                    'required': fieldsParam|isFieldRequired(fieldCode, 'mustToCreate')
+                                } %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <input type="hidden" name="isAttachmentForm" value="1"/>
+                    {% endif %}
+                </div>
                 <!-- CHAMPS LIBRES -->
                 <span class="toggle-collapsible expanded">Champs libres</span>
                 <div class="collapsible expanded free-fields-container">
