@@ -4,8 +4,12 @@
 namespace App\EventListener;
 
 
+use App\Entity\Alert;
 use App\Entity\Article;
+use App\Entity\ParametrageGlobal;
 use App\Service\RefArticleDataService;
+use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;
@@ -16,11 +20,18 @@ class ArticleQuantityNotifier
 
     private $refArticleService;
     private $entityManager;
+    private $expiryDelay;
 
     public function __construct(RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager) {
         $this->refArticleService = $refArticleDataService;
         $this->entityManager = $entityManager;
+
+        $this->expiryDelay = $entityManager->getRepository(ParametrageGlobal::class)
+            ->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY) ?: "0h";
+        $this->expiryDelay = str_replace("s", "week", $this->expiryDelay);
+        $this->expiryDelay = str_replace("j", "day", $this->expiryDelay);
+        $this->expiryDelay = str_replace("h", "hour", $this->expiryDelay);
     }
 
     /**
@@ -62,6 +73,7 @@ class ArticleQuantityNotifier
             $this->refArticleService->updateRefArticleQuantities($referenceArticle);
             $entityManager->flush();
             $this->refArticleService->treatAlert($referenceArticle);
+            $this->treatAlert($article);
             $entityManager->flush();
         }
     }
@@ -75,5 +87,24 @@ class ArticleQuantityNotifier
         return $this->entityManager->isOpen() && !$cleaned
             ? $this->entityManager
             : EntityManager::Create($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
+    }
+
+    private function treatAlert(Article $article) {
+        $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $alertDay = clone $article->getExpiryDate();
+        $alertDay->modify("$this->expiryDelay");
+
+        $existing = $this->entityManager->getRepository(Alert::class)->findForReference($article, Alert::EXPIRY);
+
+        if($now >= $alertDay && !$existing) {
+            $alert = new Alert();
+            $alert->setArticle($article);
+            $alert->setType(Alert::EXPIRY);
+            $alert->setDate($now);
+
+            $this->entityManager->persist($alert);
+        } else if($now < $alertDay && $existing) {
+            $this->entityManager->remove($existing);
+        }
     }
 }

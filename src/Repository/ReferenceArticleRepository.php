@@ -39,7 +39,6 @@ class ReferenceArticleRepository extends EntityRepository
         'Fournisseur' => 'Fournisseur',
         'Statut' => 'status',
         'Code barre' => 'barCode',
-        'Date d\'alerte' => 'dateEmergencyTriggered',
         'typeQuantite' => 'typeQuantite',
         'Dernier inventaire' => 'dateLastInventory',
         'Synchronisation nomade' => 'needsMobileSync',
@@ -872,77 +871,6 @@ class ReferenceArticleRepository extends EntityRepository
         return $result ? $result[0]['barCode'] : null;
     }
 
-    public function getAlertDataByParams($params, $filters)
-    {
-        $qb = $this->getDataAlert();
-
-        $countTotal = QueryCounter::count($qb, "ra");
-
-        foreach ($filters as $filter) {
-            switch ($filter['field']) {
-                case 'type':
-                    $qb
-                        ->join('ra.type', 't3')
-                        ->andWhere('t3.label LIKE :type')
-                        ->setParameter('type', $filter['value']);
-            }
-        }
-
-        // prise en compte des paramètres issus du datatable
-        if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
-                if (!empty($search)) {
-                    $qb
-                        ->andWhere('ra.reference LIKE :value OR ra.libelle LIKE :value')
-                        ->setParameter('value', '%' . str_replace('_', '\_', $search) . '%');
-                }
-            }
-
-            $countFiltered = QueryCounter::count($qb, "ra");
-
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
-                if (!empty($order)) {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-                    switch ($column) {
-                        case 'Type':
-                            $qb
-                                ->join('ra.type', 't2')
-                                ->orderBy('t2.label', $order);
-                        case 'quantiteStock':
-                            $qb
-                                ->leftJoin('ra.articlesFournisseur', 'af')
-                                ->leftJoin('af.articles', 'a')
-                                ->addSelect('(CASE
-								WHEN ra.typeQuantite = :typeQteArt
-								THEN (SUM(a.quantite))
-								ELSE ra.quantiteStock
-								END) as quantity')
-                                ->groupBy('ra.id')
-                                ->orderBy('quantity', $order)
-                                ->setParameter('typeQteArt', ReferenceArticle::TYPE_QUANTITE_ARTICLE);
-                            break;
-                        default:
-                            $qb->orderBy('ra.' . $column, $order);
-                            break;
-                    }
-                }
-            }
-        }
-
-        if (!empty($params)) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
-
-        return [
-            'data' => $qb->getQuery()->getResult(),
-            'count' => $countFiltered,
-            'total' => $countTotal
-        ];
-    }
-
     /**
      * @param ReferenceArticle $referenceArticle
      * @return int
@@ -1020,46 +948,6 @@ class ReferenceArticleRepository extends EntityRepository
         return $reservedQuantity;
     }
 
-    public function countAlert() {
-        return $this->getDataAlert()
-        ->select("COUNT(ra.id)")
-        ->getQuery()
-        ->getSingleScalarResult();
-    }
-
-    public function getDataAlert()
-    {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
-
-        $qb
-            ->select('
-                ra.reference,
-                ra.libelle,
-                ra.typeQuantite,
-                ra.id,
-                ra.quantiteStock,
-                ra.limitSecurity,
-                ra.limitWarning,
-                ra.dateEmergencyTriggered,
-                ra.typeQuantite,
-                ra.quantiteDisponible,
-                t.label as type')
-            ->from('App\Entity\ReferenceArticle', 'ra')
-            ->join('ra.type', 't')
-            ->join('ra.statut', 'status')
-            ->andWhere('status.nom = :activeStatus')
-            ->andWhere('ra.dateEmergencyTriggered IS NOT NULL')
-            ->andWhere(
-                $qb->expr()->orX(
-                    $qb->expr()->gt('ra.limitSecurity', 0),
-                    $qb->expr()->gt('ra.limitWarning', 0)
-                )
-            )
-            ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF);
-        return $qb;
-    }
-
     /**
      * @param ReferenceArticle $ref
      * @return int
@@ -1080,9 +968,6 @@ class ReferenceArticleRepository extends EntityRepository
 
         return $query->getSingleScalarResult();
     }
-
-
-
 
     public function getOneReferenceByBarCodeAndLocation(string $barCode, string $location)
     {

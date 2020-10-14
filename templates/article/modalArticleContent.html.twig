@@ -64,11 +64,17 @@
             </label>
         </div>
     </div>
-    <div class="form-group col-3">
+    <div class="form-group col-6 w-100">
+        <label for="emplacement">Date d'expiration</label>
+        <input type="date" class="form-control data needed" name="expiry" value="{{ article.expiryDate | date('Y-m-d') }}"/>
+    </div>
+</div>
+<div class="row">
+    <div class="form-group col-6">
         <label>Catégorie d'inventaire</label>
         <input disabled class="form-control" type="text" value="{{ invCategory ? invCategory.label }}">
     </div>
-    <div class="form-group col-3">
+    <div class="form-group col-6">
         <label>Date dernier inventaire</label>
         <input name="categorie" class="form-control" disabled value="{{ article.dateLastInventory | date('d/m/Y') }}">
     </div>

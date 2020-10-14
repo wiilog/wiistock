@@ -393,7 +393,7 @@ class ParametrageGlobalController extends AbstractController
 
         $expirationDelay = $request->request->get('expirationDelay');
 
-        if(!empty($expirationDelay) && !preg_match('/\d\d:\d\d/', $expirationDelay)) {
+        if($expirationDelay && !preg_match('/(\d+j)? *(\d+h)?/', $expirationDelay)) {
             return $this->json([
                 'success' => false,
                 'msg' => "Le délai d'expiration doit être renseigné au format HH:MM"

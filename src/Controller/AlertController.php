@@ -37,7 +37,7 @@ class AlertController extends AbstractController
      * @param UserService $userService
      * @return Response
      */
-    public function indexAlerte(UserService $userService): Response
+    public function index(UserService $userService): Response
     {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ALER)) {
             return $this->redirectToRoute('access_denied');
@@ -46,7 +46,12 @@ class AlertController extends AbstractController
         $typeRepository = $this->getDoctrine()->getRepository(Type::class);
 
         return $this->render('alerte_reference/index.html.twig', [
-            'types' => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE])
+            "types" => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]),
+            "alerts" => [
+                "security" => "Seuil de sécurité",
+                "alert" => "Seuil d'alerte",
+                "expiration" => "Péremption",
+            ]
         ]);
     }
 

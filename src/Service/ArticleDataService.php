@@ -290,6 +290,7 @@ class ArticleDataService
                     ->setPrixUnitaire($price)
                     ->setLabel($data['label'])
                     ->setConform(!$data['conform'])
+                    ->setExpiryDate(DateTime::createFromFormat("Y-m-d", $data['expiry']))
                     ->setCommentaire($data['commentaire']);
 
                 if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
@@ -366,7 +367,6 @@ class ArticleDataService
 		}
 
         $quantity = max((int)$data['quantite'], 0); // protection contre quantités négatives
-
         $toInsert
             ->setLabel(isset($data['libelle']) ? $data['libelle'] : $refArticle->getLibelle())
             ->setConform(isset($data['conform']) ? !$data['conform'] : true)
@@ -378,7 +378,8 @@ class ArticleDataService
             ->setEmplacement($location)
             ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type)
-            ->setBarCode($this->generateBarCode());
+            ->setBarCode($this->generateBarCode())
+            ->setExpiryDate(DateTime::createFromFormat("Y-m-d", $data['expiry']));
         $entityManager->persist($toInsert);
         $this->freeFieldService->manageFreeFields($toInsert, $data, $entityManager);
         // optionnel : ajout dans une demande
