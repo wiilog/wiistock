@@ -175,10 +175,11 @@ class ReceptionRepository extends ServiceEntityRepository
                         ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
                     break;
 				case 'emergency':
-					$qb
-						->andWhere('r.urgentArticles = :emergency')
-                        ->orWhere('r.manualUrgent = :emergency')
-						->setParameter('emergency', $filter['value']);
+				    $valueFilter = ((int) ($filter['value'] ?? 0));
+				    if ($valueFilter) {
+                        $qb
+                            ->andWhere('r.urgentArticles = true OR r.manualUrgent = true');
+                    }
 					break;
             }
         }
