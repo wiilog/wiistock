@@ -13,29 +13,36 @@ use Doctrine\ORM\EntityRepository;
  */
 class PieceJointeRepository extends EntityRepository
 {
-    public function findOneByFileName($filename)
+    public function findOneByFileName($fileName)
 	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			"SELECT pj
-           FROM App\Entity\PieceJointe pj
-           WHERE pj.fileName = :filename"
-		)->setParameter('filename', $filename);
-		;
-		return $query->getResult();
+	    $qb = $this->createQueryBuilder('piece_jointe');
+
+	    $qb
+            ->select('piece_jointe')
+            ->where('piece_jointe.fileName = :fileName')
+            ->setParameter('filename', $fileName);
+
+	    return $qb
+            ->getQuery()
+            ->getResult();
 	}
 
-	public function findOneByFileNameAndLitigeId($filename, $litigeId)
+	public function findOneByFileNameAndLitigeId($fileName, $litigeId)
 	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			/** @lang  DQL */
-			"SELECT pj
-           FROM App\Entity\PieceJointe pj
-           WHERE pj.fileName = :filename AND pj.litige = :litigeId"
-		)->setParameters(['filename' => $filename, 'litigeId' => $litigeId]);
+        $qb = $this->createQueryBuilder('piece_jointe');
 
-		return $query->getResult();
+        $qb
+            ->select('piece_jointe')
+            ->where('piece_jointe.fileName = :fileName')
+            ->andWhere('piece_jointe.litige = :litigeId')
+            ->setParameters([
+                'filename' => $fileName,
+                'litigeId' => $litigeId
+            ]);
+
+        return $qb
+            ->getQuery()
+            ->getResult();
 	}
 
 	public function getNameGroupByMovements() {
