@@ -1,10 +1,10 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande | Transfert{% endblock %}
+{% block title %}Ordre | Transfert{% endblock %}
 
 {% block page_filter %}
     {% include 'transfer/request/filters.html.twig' with {
-        'page': 'PAGE_TRANSFER_REQUEST',
+        'page': 'PAGE_TRANSFER_ORDER',
         'tableSelector': '#tableTransferRequest',
     } %}
 {% endblock %}
@@ -15,7 +15,7 @@
                 <div class="col-auto ml-auto">
                     <!-- TODO: export des transferts -->
                     <div class="btn btn-primary btn-ripple"
-                         onclick="saveExportFile('get_transfer_requests_for_csv')">
+                         onclick="saveExportFile('get_transfer_orders_for_csv')">
                         <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
                     </div>
                 </div>
@@ -23,7 +23,7 @@
         {% endif %}
         <div class="row">
             <div class="col-12">
-                <table id="tableTransferRequest" class="table w-100"></table>
+                <table id="tableTransferOrders" class="table w-100"></table>
             </div>
         </div>
     </div>
@@ -33,5 +33,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/transfer/request/index.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/transfer/order/index.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

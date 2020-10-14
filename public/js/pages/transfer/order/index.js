@@ -25,23 +25,15 @@ $(document).ready(() => {
             displayFiltersSup(data);
         }, 'json');
     }
-
-    const $modalNewTransferRequest = $('#modalNewTransfer');
-    $modalNewTransferRequest.on('show.bs.modal', function () {
-        clearModal("#modalNewTransfer");
-        initNewTransferRequestEditor("#modalNewTransfer");
-    });
 });
 
-$('.select2').select2();
-
-let pathTransferRequest = Routing.generate('transfer_request_api', true);
-let transferRequestTableConfig = {
+let pathTransferOrder = Routing.generate('transfer_orders_api', true);
+let transferOrderTableConfig = {
     processing: true,
     serverSide: true,
     order: [[1, 'desc']],
     ajax: {
-        "url": pathTransferRequest,
+        "url": pathTransferOrder,
         "type": "POST",
         'data' : {
             'filterStatus': $('#filterStatus').val()
@@ -58,18 +50,13 @@ let transferRequestTableConfig = {
         {"data": 'number', 'name': 'Numéro', 'title': 'Numéro'},
         {"data": 'status', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'requester', 'name': 'Demandeur', 'title': 'Demandeur'},
+        {"data": 'operator', 'name': 'Opérateur', 'title': 'Opérateur'},
         {"data": 'destination', 'name': 'Destination', 'title': 'Destination'},
         {"data": 'creationDate', 'name': 'Création', 'title': 'Date de création'},
         {"data": 'validationDate', 'name': 'Validation', 'title': 'Date de validation'},
     ]
 };
-let table = initDataTable('tableTransferRequest', transferRequestTableConfig);
-
-
-let modalNewTransferRequest = $("#modalNewTransfer");
-let SubmitNewTransferRequest = $("#submitNewTransfer");
-let urlNewTransferRequest = Routing.generate('transfer_request_new', true)
-InitModal(modalNewTransferRequest, SubmitNewTransferRequest, urlNewTransferRequest, {tables: [table]});
+let table = initDataTable('tableTransferOrders', transferOrderTableConfig);
 
 $.fn.dataTable.ext.search.push(
     function (settings, data, dataIndex) {
@@ -95,15 +82,3 @@ $.fn.dataTable.ext.search.push(
         return false;
     }
 );
-
-//initialisation editeur de texte une seule fois à la création
-let editorNewTransferRequestAlreadyDone = false;
-
-function initNewTransferRequestEditor(modal) {
-    if (!editorNewTransferRequestAlreadyDone) {
-        initEditorInModal(modal);
-        editorNewTransferRequestAlreadyDone = true;
-    }
-
-    Select2.location($('.ajax-autocomplete-location'))
-}

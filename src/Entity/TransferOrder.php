@@ -4,13 +4,13 @@ namespace App\Entity;
 
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\TransferOrderRepository;
 
 /**
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass=TransferOrderRepository::class)
  */
 class TransferOrder {
 
-    const DRAFT = "Brouillon";
     const TO_TREAT = "À traiter";
     const TREATED = "Traité";
 
@@ -22,6 +22,17 @@ class TransferOrder {
     private $id;
 
     /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $number;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Statut::class)
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $status;
+
+    /**
      * @ORM\OneToOne(targetEntity=TransferRequest::class, inversedBy="order", cascade={"persist", "remove"})
      * @ORM\JoinColumn(nullable=false)
      */
@@ -31,6 +42,11 @@ class TransferOrder {
      * @ORM\ManyToOne(targetEntity=Utilisateur::class)
      */
     private $operator;
+
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    private $creationDate;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
@@ -49,10 +65,19 @@ class TransferOrder {
         $this->request = $request;
 
         // set the reverse side of the relation if necessary
-        if ($request->getTransferOrder() !== $this) {
-            $request->setTransferOrder($this);
+        if ($request->getOrder() !== $this) {
+            $request->setOrder($this);
         }
 
+        return $this;
+    }
+
+    public function getCreationDate(): ?DateTimeInterface {
+        return $this->creationDate;
+    }
+
+    public function setCreationDate(DateTimeInterface $creationDate): self {
+        $this->creationDate = $creationDate;
         return $this;
     }
 
@@ -71,6 +96,24 @@ class TransferOrder {
 
     public function setTransferDate(?DateTimeInterface $transferDate): self {
         $this->transferDate = $transferDate;
+        return $this;
+    }
+
+    public function getNumber(): ?string {
+        return $this->number;
+    }
+
+    public function setNumber(string $number): self {
+        $this->number = $number;
+        return $this;
+    }
+
+    public function getStatus(): ?Statut {
+        return $this->status;
+    }
+
+    public function setStatus(?Statut $status): self {
+        $this->status = $status;
         return $this;
     }
 

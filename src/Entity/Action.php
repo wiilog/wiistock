@@ -63,7 +63,8 @@ class Action
 
 	// menu ordre
 	const DISPLAY_ORDRE_COLL = 'afficher collectes';
-	const DISPLAY_ORDRE_LIVR = 'afficher livraisons';
+    const DISPLAY_ORDRE_LIVR = 'afficher livraisons';
+    const DISPLAY_ORDRE_TRANS = 'afficher livraisons';
 	const DISPLAY_PREPA = 'afficher préparations';
 	const DISPLAY_RECE = 'afficher réceptions';
 	const CREATE_REF_FROM_RECEP = 'création référence depuis réception';
