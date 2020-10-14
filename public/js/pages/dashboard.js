@@ -12,6 +12,7 @@ let chartTreatedPacks;
 
 let currentChartsFontSize;
 const dashboardChartsData = {};
+let fontSizeYAxes;
 
 const DASHBOARD_ARRIVAL_NAME = 'arrivage';
 const DASHBOARD_DOCK_NAME = 'quai';
@@ -44,6 +45,7 @@ $(function () {
     Chart.defaults.global.responsive = true;
     Chart.defaults.global.maintainAspectRatio = false;
     currentChartsFontSize = calculateChartsFontSize();
+    fontSizeYAxes = currentChartsFontSize *0.5;
     $('.indicator').each(function() {
         displayedDashboards.push($(this).data('name'));
     });
@@ -555,7 +557,7 @@ function newChart($canvasId, redForLastData = false) {
                 scales: {
                     yAxes: [{
                         ticks: {
-                            fontSize,
+                            fontSizeYAxes,
                             fontStyle,
                             beginAtZero: true,
                             callback: (value) => {
@@ -666,10 +668,10 @@ function refreshCounter($counterCountainer, data, needsRedColorIfPositiv = false
     }
     if (counter > 0 && needsRedColorIfPositiv) {
         $counterCountainer.find('.dashboard-stats').addClass('red');
-        $counterCountainer.find('.fas').addClass('red fa-exclamation-triangle');
+        $counterCountainer.find('.exclamationUrgencyIcone').addClass('fas red fa-exclamation-triangle');
     } else {
         $counterCountainer.find('.dashboard-stats').removeClass('red');
-        $counterCountainer.find('.fas').removeClass('red fa-exclamation-triangle');
+        $counterCountainer.find('.exclamationUrgencyIcone').removeClass('fas red fa-exclamation-triangle');
     }
     $counterCountainer.find('.dashboard-stats').text(counter);
 }

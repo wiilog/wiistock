@@ -244,7 +244,7 @@ class HandlingService
             'requestUser' => $handling->getRequester() ? $handling->getRequester()->getUsername() : 'Non défini',
             'cardColor' => 'white',
             'bodyColor' => 'lightGrey',
-            'topRightIcon' => $handling->getEmergency() ? 'fa-exclamation-triangle red' : 'fa-box',
+            'topRightIcon' => $handling->getEmergency() ? 'fa-exclamation-triangle red' : 'livreur.svg',
             'emergencyText' => $handling->getEmergency() ?? '',
             'progress' =>  $statusesToProgress[$state] ?? 0,
             'progressBarColor' => '#2ec2ab',
