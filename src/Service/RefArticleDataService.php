@@ -274,12 +274,14 @@ class RefArticleDataService
         if (isset($data['prix'])) $refArticle->setPrixUnitaire($price);
         if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
         if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
-        (is_string($data['limitWarning'])) ? $refArticle->setLimitWarning(null) : $refArticle->setLimitWarning(intval($data['limitWarning']));
+
+        $refArticle->setLimitWarning((empty($data['limitWarning']) && $data['limitWarning'] !== 0 && $data['limitWarning'] !== '0') ? null : intval($data['limitWarning']));
+        $refArticle->setLimitSecurity((empty($data['limitSecurity']) && $data['limitSecurity'] !== 0 && $data['limitSecurity'] !== '0') ? null : intval($data['limitSecurity']));
+
         if (isset($data['mobileSync'])) $refArticle->setNeedsMobileSync($data['mobileSync']);
         if ($data['emergency-comment-input']) {
             $refArticle->setEmergencyComment($data['emergency-comment-input']);
         }
-        (is_string($data['limitSecurity'])) ? $refArticle->setLimitSecurity(null)  : $refArticle->setLimitSecurity($data['limitSecurity']);
         if (isset($data['statut'])) {
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
             if ($statut) {
