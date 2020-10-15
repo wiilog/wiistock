@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use DateInterval;
+use Symfony\Component\Translation\Interval;
 
 class DateService
 {
@@ -52,5 +53,14 @@ class DateService
         $dateInterval->s = $remainingSeconds;
 
         return $dateInterval;
+    }
+
+    public function intervalToStr(DateInterval $delay): string {
+        return (
+            ($delay->d ? "{$delay->d}j" : '')
+            . ($delay->h ? " {$delay->h}h" : '')
+            . ($delay->i ? " {$delay->i}m" : '')
+            . ($delay->s ? " {$delay->s}s" : '')
+        );
     }
 }

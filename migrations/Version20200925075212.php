@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\LocationCluster;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\ParametrageGlobal;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Schema\Schema;
@@ -120,7 +120,7 @@ final class Version20200925075212 extends AbstractMigration
                     if (!in_array($locationId, $dashboardLocationArray)) {
                         break;
                     }
-                    else if ($type === MouvementTraca::TYPE_DEPOSE) {
+                    else if ($type === TrackingMovement::TYPE_DEPOSE) {
                         $firstDrop = $trackingId;
                     }
                 }

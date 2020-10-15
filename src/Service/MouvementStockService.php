@@ -7,7 +7,7 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\MouvementStock;
 
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use DateTime;
@@ -125,7 +125,7 @@ class MouvementStockService
     }
 
     public function getFromColumnConfig(EntityManagerInterface $entityManager, MouvementStock $mouvement) {
-        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
         $orderPath = null;
         $orderId = null;
@@ -149,7 +149,7 @@ class MouvementStockService
         } else if ($mouvement->getImport()) {
             $from = 'import';
             $orderPath = 'import_index';
-        } else if ($mouvementTracaRepository->countByMouvementStock($mouvement) > 0) {
+        } else if ($trackingMovementRepository->countByMouvementStock($mouvement) > 0) {
             $from = 'transfert de stock';
         } else if (in_array($mouvement->getType(), [MouvementStock::TYPE_INVENTAIRE_ENTREE, MouvementStock::TYPE_INVENTAIRE_SORTIE])) {
             $from = 'inventaire';
@@ -210,8 +210,8 @@ class MouvementStockService
      */
     public function manageMouvementStockPreRemove(MouvementStock $mouvementStock,
                                                   EntityManagerInterface $entityManager) {
-        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-        foreach ($mouvementTracaRepository->findBy(['mouvementStock' => $mouvementStock]) as $mvtTraca) {
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        foreach ($trackingMovementRepository->findBy(['mouvementStock' => $mouvementStock]) as $mvtTraca) {
             $entityManager->remove($mvtTraca);
         }
     }

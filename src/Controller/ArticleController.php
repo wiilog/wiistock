@@ -10,7 +10,7 @@ use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\MouvementStock;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -605,9 +605,9 @@ class ArticleController extends AbstractController
             $rows = $article->getId();
 
             // Delete mvt traca
-            /** @var MouvementTraca $mouvementTraca */
-            foreach ($article->getMouvementTracas()->toArray() as $mouvementTraca) {
-                $entityManager->remove($mouvementTraca);
+            /** @var TrackingMovement $trackingMovement */
+            foreach ($article->getTrackingMovements()->toArray() as $trackingMovement) {
+                $entityManager->remove($trackingMovement);
             }
 
             // Delete mvt stock
@@ -693,7 +693,7 @@ class ArticleController extends AbstractController
                 $hasRightToDeleteTraca = $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE);
                 $hasRightToDeleteStock = $this->userService->hasRightFunction(Menu::STOCK, Action::DELETE);
 
-                $articlesMvtTracaIsEmpty = $article->getMouvementTracas()->isEmpty();
+                $articlesMvtTracaIsEmpty = $article->getTrackingMovements()->isEmpty();
                 $articlesMvtStockIsEmpty = $article->getMouvements()->isEmpty();
                 $articleRequest = $article->getDemande();
                 $articlePrepa = $article->getPreparation();

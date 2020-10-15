@@ -18,6 +18,7 @@ use App\Entity\Utilisateur;
 
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
+use App\Service\DateService;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
 use App\Service\UserService;
@@ -226,10 +227,12 @@ class HandlingController extends AbstractController
     /**
      * @Route("/api-modifier", name="handling_edit_api", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
+     * @param DateService $dateService
      * @param Request $request
      * @return Response
      */
     public function editApi(EntityManagerInterface $entityManager,
+                            DateService $dateService,
                             Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -247,8 +250,13 @@ class HandlingController extends AbstractController
             $statusTreated = $status && $status->isTreated();
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
 
+            $treatmentDelay = $handling->getTreatmentDelay();
+            $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
+            $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
+
             $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
                 'handling' => $handling,
+                'treatmentDelay' => $treatmentDelayStr,
                 'handlingStatus' => !$statusTreated
                     ? $statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType())
                     : [],

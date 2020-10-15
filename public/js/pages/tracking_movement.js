@@ -3,7 +3,8 @@ let quillNew;
 
 $(function () {
     $('.select2').select2();
-    $('#modalNewMvtTraca').find('.list-multiple').select2();
+    const $modalNewMvtTraca = $('#modalNewMvtTraca');
+    $modalNewMvtTraca.find('.list-multiple').select2();
 
     initDateTimePicker();
     Select2.init($('#statut'), 'Types');
@@ -18,7 +19,7 @@ $(function () {
 
     Select2.user('Opérateurs');
     Select2.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
-    initNewModal($('#modalNewMvtTraca'));
+    initNewModal($modalNewMvtTraca);
 
     $
         .post(Routing.generate('tracking_movement_api_columns'))
@@ -100,8 +101,8 @@ function initPageModal(tableMvt) {
         {
             tables: [tableMvt],
             keepModal: !Number($('#redirectAfterTrackingMovementCreation').val()),
-            success: ({success, mouvementTracaCounter}) => {
-                displayOnSuccessCreation(success, mouvementTracaCounter);
+            success: ({success, trackingMovementsCounter}) => {
+                displayOnSuccessCreation(success, trackingMovementsCounter);
             }
         });
 }
@@ -174,13 +175,13 @@ function clearURL() {
     window.history.pushState({}, document.title, `${window.location.pathname}`);
 }
 
-function displayOnSuccessCreation(success, mouvementTracaCounter) {
+function displayOnSuccessCreation(success, trackingMovementsCounter) {
     displayAlertModal(
         undefined,
         $('<div/>', {
             class: 'text-center',
-            text: mouvementTracaCounter > 0
-                ? (mouvementTracaCounter > 1
+            text: trackingMovementsCounter > 0
+                ? (trackingMovementsCounter > 1
                     ? 'Mouvements créés avec succès.'
                     : 'Mouvement créé avec succès.')
                 : 'Aucun mouvement créé.'

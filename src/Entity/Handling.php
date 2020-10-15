@@ -34,6 +34,11 @@ class Handling extends FreeFieldEntity
     private $subject;
 
     /**
+     * @ORM\Column(type="integer", nullable=true, options={"unsigned": true})
+     */
+    private $treatmentDelay;
+
+    /**
      * @ORM\Column(type="text", nullable=true)
      */
     private $comment;
@@ -292,5 +297,14 @@ class Handling extends FreeFieldEntity
     public function getTreatedByHandling(): ?Utilisateur
     {
         return $this->treatedByHandling;
+    }
+
+    public function setTreatmentDelay(?int $treatmentDelay): self {
+        $this->treatmentDelay = $treatmentDelay;
+        return $this;
+    }
+
+    public function getTreatmentDelay(): ?int {
+        return $this->treatmentDelay;
     }
 }

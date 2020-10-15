@@ -304,19 +304,6 @@ function processInputsForm($modal, isAttachmentForm) {
         $isInvalidElements.push($firstDate, $lastDate);
     }
 
-    const $limitSecurity = $inputs.filter('[name="limitSecurity"]');
-    const $limitWarning = $inputs.filter('[name="limitWarning"]');
-    const limitSecurity = $limitSecurity.val();
-    const limitWarning = $limitWarning.val();
-
-    if (($limitSecurity.length > 0 && $limitWarning.length > 0)
-        && limitSecurity
-        && limitWarning
-        && Number(limitWarning) < Number(limitSecurity)) {
-        errorMessages.push('Le seuil d\'alerte doit être supérieur au seuil de sécurité.');
-        $isInvalidElements.push($limitSecurity, $limitWarning);
-    }
-
     $inputs.each(function () {
         const $input = $(this);
         const name = $input.attr('name');

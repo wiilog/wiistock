@@ -6,7 +6,7 @@ use App\Entity\Dispatch;
 use App\Entity\Arrivage;
 use App\Entity\Handling;
 use App\Entity\Litige;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\Attachment;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\Entity;
@@ -82,9 +82,10 @@ class AttachmentService
 
 	/**
 	 * @param Attachment $attachment
-	 * @param Arrivage|Litige|Dispatch|MouvementTraca|Handling $entity
+	 * @param Arrivage|Litige|Dispatch|TrackingMovement|Handling $entity
 	 */
-	public function removeAndDeleteAttachment(Attachment $attachment, $entity)
+	public function removeAndDeleteAttachment(Attachment $attachment,
+                                              $entity)
 	{
 		if ($entity) {
             $entity->removeAttachment($attachment);

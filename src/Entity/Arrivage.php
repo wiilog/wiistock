@@ -105,11 +105,6 @@ class Arrivage extends FreeFieldEntity
      */
     private $urgences;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="arrivage")
-     */
-    private $mouvementsTraca;
-
 	/**
 	 * @ORM\Column(type="boolean", nullable=true)
 	 */
@@ -140,7 +135,7 @@ class Arrivage extends FreeFieldEntity
         $this->packs = new ArrayCollection();
         $this->attachements = new ArrayCollection();
         $this->urgences = new ArrayCollection();
-        $this->mouvementsTraca = new ArrayCollection();
+        $this->trackingMovements = new ArrayCollection();
         $this->numeroCommandeList = [];
     }
 
@@ -490,37 +485,6 @@ class Arrivage extends FreeFieldEntity
     public function setStatut(?Statut $statut): self
     {
         $this->statut = $statut;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|MouvementTraca[]
-     */
-    public function getMouvementsTraca(): Collection
-    {
-        return $this->mouvementsTraca;
-    }
-
-    public function addMouvementsTraca(MouvementTraca $mouvementsTraca): self
-    {
-        if (!$this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca[] = $mouvementsTraca;
-            $mouvementsTraca->setArrivage($this);
-        }
-
-        return $this;
-    }
-
-    public function removeMouvementsTraca(MouvementTraca $mouvementsTraca): self
-    {
-        if ($this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca->removeElement($mouvementsTraca);
-            // set the owning side to null (unless already changed)
-            if ($mouvementsTraca->getArrivage() === $this) {
-                $mouvementsTraca->setArrivage(null);
-            }
-        }
 
         return $this;
     }

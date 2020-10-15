@@ -36,58 +36,65 @@
     </select>
 </div>
 
-    <div class="form-group needed col-md-6 col-12">
-        <label for="subject">Objet*</label>
-        <input class="form-control data needed" name="subject" value="{{ handling.subject }}">
-    </div>
+<div class="form-group needed col-md-6 col-12">
+    <label for="subject">Objet*</label>
+    <input class="form-control data needed" name="subject" value="{{ handling.subject }}">
+</div>
 
-    <div class="form-group needed col-md-6 col-12">
-        <label for="requester">Demandeur</label>
-        <select class="demandeur form-control data needed input" name="requester" disabled>
-            <option value="{{ handling.requester.id }}">{{ handling.requester.username }}</option>
-        </select>
-    </div>
+<div class="form-group needed col-md-6 col-12">
+    <label for="requester">Demandeur</label>
+    <select class="demandeur form-control data needed input" name="requester" disabled>
+        <option value="{{ handling.requester.id }}">{{ handling.requester.username }}</option>
+    </select>
+</div>
 
+<div class="form-group col-md-6 col-12">
+    <label for="desired-date">Date attendue</label>
+    <input class="form-control data needed"
+           type="datetime-local"
+           value="{{ handling.desiredDate|date('Y-m-d\\TH:i') }}"
+           name="desired-date"
+           min="{{ 'now' | date('Y-m-d') }}">
+</div>
+
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
     <div class="form-group col-md-6 col-12">
-        <label for="desired-date">Date attendue</label>
-        <input class="form-control data needed"
-               type="datetime-local"
-               value="{{ handling.desiredDate|date('Y-m-d\\TH:i') }}"
-               name="desired-date"
-               min="{{ 'now' | date('Y-m-d') }}">
-    </div>
+        <label>Urgence{{ required ? '*' }}</label>
+        <div class="w-100">
+            <select
+                class="form-control input-sm data {{ required ? 'needed' : '' }}"
+                name="emergency">
+                <option value="">Non urgent</option>
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
-        <div class="form-group col-md-6 col-12">
-            <label>Urgence{{ required ? '*' }}</label>
-            <div class="w-100">
-                <select
-                    class="form-control input-sm data {{ required ? 'needed' : '' }}"
-                    name="emergency">
-                    <option value="">Non urgent</option>
+                {% if handling.emergency and handling.emergency not in emergencies %}
+                    <option value="{{ handling.emergency }}" selected>{{ handling.emergency }}</option>
+                {% endif %}
 
-                    {% if handling.emergency and handling.emergency not in emergencies %}
-                        <option value="{{ handling.emergency }}" selected>{{ handling.emergency }}</option>
-                    {% endif %}
-
-                    {% for emergency in emergencies %}
-                        <option value="{{ emergency }}" {% if handling.emergency == emergency %}selected{% endif %}>{{ emergency }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+                {% for emergency in emergencies %}
+                    <option value="{{ emergency }}" {% if handling.emergency == emergency %}selected{% endif %}>{{ emergency }}</option>
+                {% endfor %}
+            </select>
         </div>
-    {% endif %}
-
-    {% set validationDate = handling.validationDate ? handling.validationDate|date('Y-m-d\\TH:i') : '' %}
-    <div class="form-group col-12">
-        <label for="desired-date">Date de réalisation</label>
-        <input class="form-control needed"
-               type="datetime-local"
-               value="{{ validationDate }}"
-               disabled>
     </div>
+{% endif %}
+
+{% set validationDate = handling.validationDate ? handling.validationDate|date('Y-m-d\\TH:i') : '' %}
+<div class="form-group col-md-6 col-12">
+    <label for="desired-date">Date de réalisation</label>
+    <input class="form-control needed"
+           type="datetime-local"
+           value="{{ validationDate }}"
+           disabled>
+</div>
+<div class="form-group col-md-6 col-12">
+    <label>Temps de traitement</label>
+    <input class="form-control"
+           type="text"
+           value="{{ treatmentDelay }}"
+           disabled>
+</div>
 
 {% if fieldsParam|isFieldRequired('loadingZone', 'displayedFormsEdit') %}
     <div class="form-group col-md-6 col-12">
