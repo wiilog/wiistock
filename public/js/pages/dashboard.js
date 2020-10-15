@@ -668,10 +668,10 @@ function refreshCounter($counterCountainer, data, needsRedColorIfPositiv = false
     }
     if (counter > 0 && needsRedColorIfPositiv) {
         $counterCountainer.find('.dashboard-stats').addClass('red');
-        $counterCountainer.find('.exclamationUrgencyIcone').addClass('fas red fa-exclamation-triangle');
+        $counterCountainer.find('.emergency-icon').addClass('fas red fa-exclamation-triangle');
     } else {
         $counterCountainer.find('.dashboard-stats').removeClass('red');
-        $counterCountainer.find('.exclamationUrgencyIcone').removeClass('fas red fa-exclamation-triangle');
+        $counterCountainer.find('.emergency-icon').removeClass('fas red fa-exclamation-triangle');
     }
     $counterCountainer.find('.dashboard-stats').text(counter);
 }
