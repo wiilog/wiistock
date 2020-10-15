@@ -7,6 +7,7 @@ use App\Repository\MenuRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class MenusFixtures extends Fixture implements FixtureGroupInterface
@@ -26,6 +27,8 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
+        $output = new ConsoleOutput();
+
 		$menuLabels = [
 			Menu::ACCUEIL,
 			Menu::TRACA,
@@ -45,7 +48,7 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface
 				$menu = new Menu();
 				$menu->setLabel($menuLabel);
 				$manager->persist($menu);
-				dump('création du menu ' . $menuLabel);
+				$output->writeln('Création du menu "' . $menuLabel . '"');
 			}
 			$this->addReference('menu-' . $menuLabel, $menu);
 		}

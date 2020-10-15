@@ -2,24 +2,24 @@
 
 namespace App\Repository;
 
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use Doctrine\ORM\EntityRepository;
 
 /**
- * @method PieceJointe|null find($id, $lockMode = null, $lockVersion = null)
- * @method PieceJointe|null findOneBy(array $criteria, array $orderBy = null)
- * @method PieceJointe[]    findAll()
- * @method PieceJointe[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Attachment|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Attachment|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Attachment[]    findAll()
+ * @method Attachment[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class PieceJointeRepository extends EntityRepository
+class AttachmentRepository extends EntityRepository
 {
     public function findOneByFileName($fileName)
 	{
 	    $qb = $this->createQueryBuilder('piece_jointe');
 
 	    $qb
-            ->select('piece_jointe')
-            ->where('piece_jointe.fileName = :fileName')
+            ->select('attachment')
+            ->where('attachment.fileName = :fileName')
             ->setParameter('filename', $fileName);
 
 	    return $qb
@@ -29,14 +29,14 @@ class PieceJointeRepository extends EntityRepository
 
 	public function findOneByFileNameAndLitigeId($fileName, $litigeId)
 	{
-        $qb = $this->createQueryBuilder('piece_jointe');
+        $qb = $this->createQueryBuilder('attachment');
 
         $qb
-            ->select('piece_jointe')
-            ->where('piece_jointe.fileName = :fileName')
-            ->andWhere('piece_jointe.litige = :litigeId')
+            ->select('attachment')
+            ->where('attachment.fileName = :fileName')
+            ->andWhere('attachment.litige = :litigeId')
             ->setParameters([
-                'filename' => $fileName,
+                'fileName' => $fileName,
                 'litigeId' => $litigeId
             ]);
 

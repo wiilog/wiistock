@@ -11,28 +11,12 @@
 {% endblock %}
 {% block page_content %}
     <div class="m-4 wii-page-card">
-        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
             <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
-                    <div class="btn-group">
-                        <button data-toggle="modal" data-target="#modalNewCollecte" class="btn btn-primary btn-ripple"
-                                onclick='initNewCollecteEditor("#modalNewCollecte"), clearModal("#modalNewCollecte")'>
-                            <span class="fa fa-plus mr-2"></span>Nouvelle collecte
-                        </button>
-                        <button type="button"
-                                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
-                                data-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false">
-                            <span class="fa fa-angle-down"></span>
-                        </button>
-                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                            <div class="dropdown-item"
-                                 onclick="saveExportFile('get_demandes_collectes_for_csv')">
-                                <i class="fa fa-file-csv mr-2"></i>
-                                Exporter au format CSV
-                            </div>
-                        </div>
+                    <div class="btn btn-primary btn-ripple"
+                         onclick="saveExportFile('get_demandes_collectes_for_csv')">
+                        <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
                     </div>
                 </div>
             </div>

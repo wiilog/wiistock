@@ -12,7 +12,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\TrackingMovement;
 use App\Entity\ParametrageGlobal;
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -439,7 +439,7 @@ class TrackingMovementController extends AbstractController
 
             $attachments = $mvt->getAttachments()->toArray();
             foreach ($attachments as $attachment) {
-                /** @var PieceJointe $attachment */
+                /** @var Attachment $attachment */
                 if (!$listAttachmentIdToKeep || !in_array($attachment->getId(), $listAttachmentIdToKeep)) {
                     $this->attachmentService->removeAndDeleteAttachment($attachment, $mvt);
                 }
@@ -509,12 +509,12 @@ class TrackingMovementController extends AbstractController
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-            $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::MVT_TRACA]);
 
             $trackingMovements = $trackingMovementRepository->getByDates($dateTimeMin, $dateTimeMax);
-            $attachmentsNameByTracking = $pieceJointeRepository->getNameGroupByMovements();
+            $attachmentsNameByTracking = $attachmentRepository->getNameGroupByMovements();
 
             $csvHeader = array_merge([
                 'date',

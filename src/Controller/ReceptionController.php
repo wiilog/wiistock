@@ -16,7 +16,7 @@ use App\Entity\CategorieCL;
 use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\ParametrageGlobal;
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
@@ -27,6 +27,7 @@ use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\CategoryType;
+use App\Helper\Stream;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\TransporteurRepository;
@@ -146,19 +147,21 @@ class ReceptionController extends AbstractController {
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $champLibreService
+     * @param AttachmentService $attachmentService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
-     * @throws Exception
+     * @throws \ReflectionException
      */
     public function new(EntityManagerInterface $entityManager,
                         FreeFieldService $champLibreService,
+                        AttachmentService $attachmentService,
                         Request $request): Response {
         if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = $request->request->all()) {
 
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -199,6 +202,17 @@ class ReceptionController extends AbstractController {
                     ->setTransporteur($transporteur);
             }
 
+            if(!empty($data['storageLocation'])) {
+                $storageLocation = $emplacementRepository->find(intval($data['storageLocation']));
+                $reception
+                    ->setStorageLocation($storageLocation);
+            }
+
+            if(!empty($data['emergency'])) {
+                $reception
+                    ->setManualUrgent($data['emergency']);
+            }
+
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
 
@@ -225,7 +239,7 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
 
             $champLibreService->manageFreeFields($reception, $data, $entityManager);
-
+            $attachmentService->manageAttachments($entityManager, $reception, $request->files);
             $entityManager->flush();
 
             $data = [
@@ -244,15 +258,17 @@ class ReceptionController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $champLibreService
      * @param ReceptionService $receptionService
+     * @param AttachmentService $attachmentService
      * @param Request $request
      * @return Response
-     * @throws Exception
+     * @throws \ReflectionException
      */
     public function edit(EntityManagerInterface $entityManager,
                          FreeFieldService $champLibreService,
                          ReceptionService $receptionService,
+                         AttachmentService $attachmentService,
                          Request $request): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if($request->isXmlHttpRequest() && $data = $request->request->all()) {
             if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -281,6 +297,12 @@ class ReceptionController extends AbstractController {
             $location = !empty($data['location']) ? $emplacementRepository->find($data['location']) : null;
             $reception->setLocation($location);
 
+            $storageLocation = !empty($data['storageLocation']) ? $emplacementRepository->find($data['storageLocation']) : null;
+            $reception->setStorageLocation($storageLocation);
+
+            $emergency = !empty($data['emergency']) ? $data['emergency'] : null;
+            $reception->setManualUrgent($emergency);
+
             $reception
                 ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
                 ->setDateAttendue(
@@ -291,13 +313,14 @@ class ReceptionController extends AbstractController {
                     !empty($data['dateCommande'])
                         ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
                         : null)
-                ->setNumeroReception(isset($data['numeroReception']) ? $data['numeroReception'] : null)
                 ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null);
+
+            $reception->removeIfNotIn($data['files']);
 
             $entityManager->flush();
 
-
             $champLibreService->manageFreeFields($reception, $data, $entityManager);
+            $attachmentService->manageAttachments($entityManager, $reception, $request->files);
 
             $entityManager->flush();
             $json = [
@@ -721,7 +744,7 @@ class ReceptionController extends AbstractController {
                 $entityManager->flush();
 
                 if($refArticle->getIsUrgent()) {
-                    $reception->setEmergencyTriggered(true);
+                    $reception->setUrgentArticles(true);
                     $receptionReferenceArticle->setEmergencyTriggered(true);
                     $receptionReferenceArticle->setEmergencyComment($refArticle->getEmergencyComment());
                 }
@@ -1210,7 +1233,7 @@ class ReceptionController extends AbstractController {
             $listAttachmentIdToKeep = $post->get('files') ?? [];
             $attachments = $litige->getAttachments()->toArray();
             foreach($attachments as $attachment) {
-                /** @var PieceJointe $attachment */
+                /** @var Attachment $attachment */
                 if(!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
                     $this->attachmentService->removeAndDeleteAttachment($attachment, $litige);
                 }
@@ -1327,7 +1350,7 @@ class ReceptionController extends AbstractController {
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $litigeRepository = $entityManager->getRepository(Litige::class);
-            $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentRepository = $entityManager->getRepository(Attachment::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $litige = $litigeRepository->find($data['litigeId']);
@@ -1348,7 +1371,7 @@ class ReceptionController extends AbstractController {
                 'litige' => $litige,
                 'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
-                'attachments' => $pieceJointeRepository->findBy(['litige' => $litige]),
+                'attachments' => $attachmentRepository->findBy(['litige' => $litige]),
                 'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);
 
@@ -1765,6 +1788,8 @@ class ReceptionController extends AbstractController {
                 'commentaire',
                 'quantité à recevoir',
                 'quantité reçue',
+                'emplacement de stockage',
+                'urgent',
                 'référence',
                 'libellé',
                 'quantité stock',
@@ -1772,9 +1797,10 @@ class ReceptionController extends AbstractController {
                 'code-barre reference',
                 'code-barre article',
             ];
+            $nowStr = date("d-m-Y_H:i");
 
             return $CSVExportService->createBinaryResponseFromData(
-                'export.csv',
+                "export-" . str_replace(["/", "\\"], "-", $translator->trans('réception.réception')) . "-" . $nowStr  . ".csv",
                 $receptions,
                 $csvHeader,
                 function($reception) {
@@ -1827,7 +1853,9 @@ class ReceptionController extends AbstractController {
             $reception['dateFinReception'] ? $reception['dateFinReception']->format('d/m/Y H:i') : '',
             $reception['commentaire'] ? strip_tags($reception['commentaire']) : '',
             $reception['receptionRefArticleQuantiteAR'] ?: '',
-            $reception['receptionRefArticleQuantite'] ?: ''
+            $reception['receptionRefArticleQuantite'] ?: '',
+            $reception['storageLocation'] ?: '',
+            $reception['emergency'] ? 'oui' : 'non'
         ];
     }
 
@@ -1967,7 +1995,7 @@ class ReceptionController extends AbstractController {
             foreach($emergencies as $article) {
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
 
-                $mailContent = $this->render('mails/contents/mailArticleUrgentReceived.html.twig', [
+                $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
                     'article' => $article,
                     'title' => 'Votre article urgent a bien été réceptionné.',
                 ]);
@@ -2005,6 +2033,7 @@ class ReceptionController extends AbstractController {
                         'demande' => $demande,
                         'fournisseur' => $reception->getFournisseur(),
                         'isReception' => true,
+                        'reception' => $reception,
                         'title' => 'Une ' . $translator->trans('réception.réception')
                             . ' '
                             . $reception->getNumeroReception()

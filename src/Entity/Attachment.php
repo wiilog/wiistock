@@ -5,12 +5,11 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\PieceJointeRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\AttachmentRepository")
  */
-class PieceJointe
+class Attachment
 {
-    const MAIN_PATH = '/uploads/attachements/';
-	const TEMP_PATH = self::MAIN_PATH . 'temp/';
+    const MAIN_PATH = '/uploads/attachements';
 
     /**
      * @ORM\Id()
@@ -28,6 +27,11 @@ class PieceJointe
      * @ORM\Column(type="string", length=255)
      */
     private $fileName;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $fullPath;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="attachements")
@@ -96,6 +100,18 @@ class PieceJointe
     public function setFileName(string $fileName): self
     {
         $this->fileName = $fileName;
+
+        return $this;
+    }
+
+    public function getFullPath(): ?string
+    {
+        return $this->fullPath;
+    }
+
+    public function setFullPath(string $fullPath): self
+    {
+        $this->fullPath = $fullPath;
 
         return $this;
     }

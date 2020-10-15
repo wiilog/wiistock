@@ -29,7 +29,7 @@
                                     {% set checked = (champ.key  in columnsVisibles ? 'checked' : '') %}
                                     <input class="visible-column-litige-input form-check-input {{ checked == 'checked' ? 'data' : '' }}"
                                            name="{{ champ.key }}"
-                                           onclick="showOrHideColumn($(this), tableLitiges)"
+                                           onchange="showOrHideColumn($(this), tableLitiges)"
                                            type="checkbox"
                                            id="column_visible_litige_input_{{ champ.key }}"
                                             {{ checked }}

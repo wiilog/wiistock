@@ -16,22 +16,26 @@ class FieldsParam
     const FIELD_CODE_DATE_ATTENDUE = 'dateAttendue';
     const FIELD_CODE_DATE_COMMANDE = 'dateCommande';
     const FIELD_CODE_COMMENTAIRE = 'commentaire';
+    const FIELD_CODE_ATTACHMENTS = 'attachment';
     const FIELD_CODE_UTILISATEUR = 'utilisateur';
-    const FIELD_CODE_NUM_RECEPTION = 'numeroReception';
     const FIELD_CODE_TRANSPORTEUR = 'transporteur';
     const FIELD_CODE_EMPLACEMENT = 'emplacement';
     const FIELD_CODE_ANOMALIE = 'anomalie';
+    const FIELD_CODE_STORAGE_LOCATION = 'storageLocation';
+    const FIELD_CODE_EMERGENCY_REC = 'manualUrgent';
 
     const FIELD_LABEL_FOURNISSEUR = 'fournisseur';
     const FIELD_LABEL_NUM_COMMANDE = 'numéro de commande';
     const FIELD_LABEL_DATE_ATTENDUE = 'date attendue';
     const FIELD_LABEL_DATE_COMMANDE = 'date commande';
     const FIELD_LABEL_COMMENTAIRE = 'commentaire';
+    const FIELD_LABEL_ATTACHMENTS = 'pièces jointes';
     const FIELD_LABEL_UTILISATEUR = 'utilisateur';
-    const FIELD_LABEL_NUM_RECEPTION = 'numéro de réception';
 	const FIELD_LABEL_TRANSPORTEUR = 'transporteur';
 	const FIELD_LABEL_EMPLACEMENT = 'emplacement';
 	const FIELD_LABEL_ANOMALIE = 'anomalie';
+	const FIELD_LABEL_STORAGE_LOCATION = 'emplacement de stockage';
+	const FIELD_LABEL_EMERGENCY_REC = 'urgence';
 
 	const ENTITY_CODE_ARRIVAGE = 'arrivage';
 

@@ -70,7 +70,7 @@ class TrackingMovement extends FreeFieldEntity
 	private $commentaire;
 
 	/**
-	 * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="trackingMovement")
+	 * @ORM\OneToMany(targetEntity=Attachment::class, mappedBy="trackingMovement")
 	 */
 	private $attachements;
 
@@ -172,14 +172,14 @@ class TrackingMovement extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|PieceJointe[]
+     * @return Collection|Attachment[]
      */
     public function getAttachments(): Collection
     {
         return $this->attachements;
     }
 
-    public function addAttachment(PieceJointe $attachment): self
+    public function addAttachment(Attachment $attachment): self
     {
         if (!$this->attachements->contains($attachment)) {
             $this->attachements[] = $attachment;
@@ -189,7 +189,7 @@ class TrackingMovement extends FreeFieldEntity
         return $this;
     }
 
-    public function removeAttachment(PieceJointe $attachement): self
+    public function removeAttachment(Attachment $attachement): self
     {
         if ($this->attachements->contains($attachement)) {
             $this->attachements->removeElement($attachement);

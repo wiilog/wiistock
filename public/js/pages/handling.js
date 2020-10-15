@@ -32,6 +32,7 @@ let tableHandlingConfig = {
         { "data": 'validationDate', 'name': 'validationDate', 'title': 'Date de réalisation' },
         { "data": 'status', 'name': 'status', 'title': 'Statut' },
         { "data": 'emergency', 'name': 'emergency', 'title': 'Urgence' },
+        { "data": 'treatmentDelay', 'name': 'treatmentDelay', 'title': 'Temps de traitement' },
         { "data": 'treatedBy', 'name': 'treatedBy', 'title': 'Traité par' },
     ]
 };
@@ -110,8 +111,14 @@ function changeStatus(button) {
         }
     }
 
-    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
-    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
+    $('span[data-toggle="' + tog + '"]')
+        .not('[data-title="' + sel + '"]')
+        .removeClass('active')
+        .addClass('not-active');
+
+    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]')
+        .removeClass('not-active')
+        .addClass('active');
 }
 
 function callbackSaveFilter() {

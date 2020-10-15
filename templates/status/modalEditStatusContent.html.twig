@@ -116,8 +116,11 @@
 
         {% set showNeedMobileSync = (
             (
-                status.categorie.nom == constant('App\\Entity\\CategorieStatut::DISPATCH') and
-                status.state == constant('App\\Entity\\Statut::NOT_TREATED')
+                status.categorie.nom == constant('App\\Entity\\CategorieStatut::DISPATCH')
+                and (
+                    status.state == constant('App\\Entity\\Statut::NOT_TREATED')
+                    or status.state == constant('App\\Entity\\Statut::PARTIAL')
+                )
             )
             or status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING')
         ) %}

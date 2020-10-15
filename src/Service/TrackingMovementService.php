@@ -431,6 +431,30 @@ class TrackingMovementService
                         || ($previousRecordLastTracking->getId() !== $previousLastTracking->getId())) {
                         $record->setFirstDrop($tracking);
                     }
+
+                    $this->locationClusterService->setMeter(
+                        $entityManager,
+                        LocationClusterService::METER_ACTION_INCREASE,
+                        $tracking->getDatetime(),
+                        $cluster
+                    );
+
+                    if ($previousLastTracking
+                        && $previousLastTracking->isTaking()) {
+
+                        $locationPreviousLastTracking = $previousLastTracking->getEmplacement();
+                        $locationClustersPreviousLastTracking = $locationPreviousLastTracking ? $locationPreviousLastTracking->getClusters() : [];
+                        /** @var LocationCluster $locationClusterPreviousLastTracking */
+                        foreach ($locationClustersPreviousLastTracking as $locationClusterPreviousLastTracking) {
+                            $this->locationClusterService->setMeter(
+                                $entityManager,
+                                LocationClusterService::METER_ACTION_INCREASE,
+                                $tracking->getDatetime(),
+                                $cluster,
+                                $locationClusterPreviousLastTracking
+                            );
+                        }
+                    }
                 }
                 else if (isset($record)) {
                     $record->setActive(false);
@@ -439,30 +463,6 @@ class TrackingMovementService
                 if (isset($record)) {
                     // set last tracking after check of drop
                     $record->setLastTracking($tracking);
-                }
-
-                $this->locationClusterService->setMeter(
-                    $entityManager,
-                    LocationClusterService::METER_ACTION_INCREASE,
-                    $tracking->getDatetime(),
-                    $cluster
-                );
-
-                if ($previousLastTracking
-                    && $previousLastTracking->isTaking()) {
-
-                    $locationPreviousLastTracking = $previousLastTracking->getEmplacement();
-                    $locationClustersPreviousLastTracking = $locationPreviousLastTracking ? $locationPreviousLastTracking->getClusters() : [];
-                    /** @var LocationCluster $locationClusterPreviousLastTracking */
-                    foreach ($locationClustersPreviousLastTracking as $locationClusterPreviousLastTracking) {
-                        $this->locationClusterService->setMeter(
-                            $entityManager,
-                            LocationClusterService::METER_ACTION_INCREASE,
-                            $tracking->getDatetime(),
-                            $cluster,
-                            $locationClusterPreviousLastTracking
-                        );
-                    }
                 }
             }
         }

@@ -1,0 +1,219 @@
+<?php
+
+namespace App\Entity;
+
+use App\Repository\TransferRequestRepository;
+use DateTimeInterface;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
+
+/**
+ * @ORM\Entity(repositoryClass=TransferRequestRepository::class)
+ */
+class TransferRequest {
+
+    const DRAFT = "Brouillon";
+    const TO_TREAT = "À traiter";
+    const TREATED = "Traité";
+
+    /**
+     * @ORM\Id
+     * @ORM\GeneratedValue
+     * @ORM\Column(type="integer")
+     */
+    private $id;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $number;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Statut::class)
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $status;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Utilisateur::class)
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $requester;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Emplacement::class)
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $destination;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $comment;
+
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    private $creationDate;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $validationDate;
+
+    /**
+     * @ORM\OneToOne(targetEntity=TransferOrder::class, mappedBy="request", cascade={"persist", "remove"})
+     */
+    private $order;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=Article::class, inversedBy="transferRequests")
+     */
+    private $articles;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=ReferenceArticle::class, inversedBy="transferRequests")
+     */
+    private $references;
+
+    public function __construct() {
+        $this->articles = new ArrayCollection();
+        $this->references = new ArrayCollection();
+    }
+
+    public function getId(): ?int {
+        return $this->id;
+    }
+
+    public function getNumber(): ?string {
+        return $this->number;
+    }
+
+    public function setNumber(string $number): self {
+        $this->number = $number;
+        return $this;
+    }
+
+    public function getStatus(): ?Statut {
+        return $this->status;
+    }
+
+    public function setStatus(?Statut $status): self {
+        $this->status = $status;
+        return $this;
+    }
+
+    public function getRequester(): ?Utilisateur {
+        return $this->requester;
+    }
+
+    public function setRequester(?Utilisateur $requester): self {
+        $this->requester = $requester;
+        return $this;
+    }
+
+    public function getDestination(): ?Emplacement {
+        return $this->destination;
+    }
+
+    public function setDestination(?Emplacement $destination): self {
+        $this->destination = $destination;
+        return $this;
+    }
+
+    public function getComment(): ?string {
+        return $this->comment;
+    }
+
+    public function setComment(?string $comment): self {
+        $this->comment = $comment;
+        return $this;
+    }
+
+    public function getValidationDate(): ?DateTimeInterface {
+        return $this->validationDate;
+    }
+
+    public function setValidationDate(DateTimeInterface $validationDate): self {
+        $this->validationDate = $validationDate;
+        return $this;
+    }
+
+    public function getCreationDate(): ?DateTimeInterface {
+        return $this->creationDate;
+    }
+
+    public function setCreationDate(DateTimeInterface $creationDate): self {
+        $this->creationDate = $creationDate;
+        return $this;
+    }
+
+    public function getOrder(): ?TransferOrder {
+        return $this->order;
+    }
+
+    public function setOrder(TransferOrder $order): self {
+        $this->order = $order;
+
+        // set the owning side of the relation if necessary
+        if($order->getRequest() !== $this) {
+            $order->setRequest($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Article[]
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Article $article): self
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReferenceArticle[]
+     */
+    public function getReferences(): Collection
+    {
+        return $this->references;
+    }
+
+    public function addReference(ReferenceArticle $reference): self
+    {
+        if (!$this->references->contains($reference)) {
+            $this->references[] = $reference;
+        }
+
+        return $this;
+    }
+
+    public function removeReference(ReferenceArticle $reference): self
+    {
+        if ($this->references->contains($reference)) {
+            $this->references->removeElement($reference);
+        }
+
+        return $this;
+    }
+
+}

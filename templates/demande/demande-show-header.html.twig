@@ -55,12 +55,11 @@
                 {% endif %}
             {% endif %}
             {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-                <a href="#"
-                   onclick="editRow($(this), Routing.generate('demandeLivraison_api_edit', true), $('#modalEditDemande'), $('#submitEditdemande'), true, '#modalEditDemande .editor-container-edit')"
+                <a onclick="editRow($(this), Routing.generate('demandeLivraison_api_edit', true), $('#modalEditDemande'), $('#submitEditdemande'), true, '#modalEditDemande .editor-container-edit')"
                    data-id='{{ demande.id }}'
                    data-target='#modalEditDemande'
                    data-toggle='modal'
-                   class="dropdown-item">
+                   class="dropdown-item pointer">
                     <i class="fas fa-pencil-alt mr-2" aria-hidden="true"></i>Modifier
                 </a>
             {% endif %}

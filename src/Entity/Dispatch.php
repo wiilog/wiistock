@@ -137,7 +137,7 @@ class Dispatch extends FreeFieldEntity
     private $statut;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="dispatch")
+     * @ORM\OneToMany(targetEntity="Attachment", mappedBy="dispatch")
      */
     private $attachements;
 
@@ -330,14 +330,14 @@ class Dispatch extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|PieceJointe[]
+     * @return Collection|Attachment[]
      */
     public function getAttachments(): Collection
     {
         return $this->attachements;
     }
 
-    public function addAttachment(PieceJointe $attachment): self
+    public function addAttachment(Attachment $attachment): self
     {
         if (!$this->attachements->contains($attachment)) {
             $this->attachements[] = $attachment;
@@ -347,7 +347,7 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
-    public function removeAttachment(PieceJointe $attachment): self
+    public function removeAttachment(Attachment $attachment): self
     {
         if ($this->attachements->contains($attachment)) {
             $this->attachements->removeElement($attachment);

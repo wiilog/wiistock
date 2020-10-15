@@ -11,13 +11,14 @@ use App\Entity\FieldsParam;
 use App\Entity\Menu;
 use App\Entity\Handling;
 
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
+use App\Service\DateService;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
 use App\Service\UserService;
@@ -226,10 +227,12 @@ class HandlingController extends AbstractController
     /**
      * @Route("/api-modifier", name="handling_edit_api", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
+     * @param DateService $dateService
      * @param Request $request
      * @return Response
      */
     public function editApi(EntityManagerInterface $entityManager,
+                            DateService $dateService,
                             Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -239,7 +242,7 @@ class HandlingController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $handlingRepository = $entityManager->getRepository(Handling::class);
-            $attachmentsRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentsRepository = $entityManager->getRepository(Attachment::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
             $handling = $handlingRepository->find($data['id']);
@@ -247,8 +250,13 @@ class HandlingController extends AbstractController
             $statusTreated = $status && $status->isTreated();
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
 
+            $treatmentDelay = $handling->getTreatmentDelay();
+            $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
+            $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
+
             $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
                 'handling' => $handling,
+                'treatmentDelay' => $treatmentDelayStr,
                 'handlingStatus' => !$statusTreated
                     ? $statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType())
                     : [],
@@ -324,7 +332,7 @@ class HandlingController extends AbstractController
 
         $attachments = $handling->getAttachments()->toArray();
         foreach ($attachments as $attachment) {
-            /** @var PieceJointe $attachment */
+            /** @var Attachment $attachment */
             if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
                 $attachmentService->removeAndDeleteAttachment($attachment, $handling);
             }
@@ -386,7 +394,7 @@ class HandlingController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
             $handlingRepository = $entityManager->getRepository(Handling::class);
-            $attachmentRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
             $handling = $handlingRepository->find($data['handling']);
             $handlingNumber = $handling->getNumber();

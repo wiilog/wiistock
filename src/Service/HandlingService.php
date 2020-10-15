@@ -42,12 +42,14 @@ class HandlingService
     private $entityManager;
     private $mailerService;
     private $translator;
+    private $dateService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 UserService $userService,
                                 RouterInterface $router,
                                 MailerService $mailerService,
                                 EntityManagerInterface $entityManager,
+                                DateService $dateService,
                                 Twig_Environment $templating,
                                 TranslatorInterface $translator)
     {
@@ -58,6 +60,7 @@ class HandlingService
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
         $this->translator = $translator;
+        $this->dateService = $dateService;
     }
 
     public function getDataForDatatable($params = null, $statusFilter = null)
@@ -101,6 +104,10 @@ class HandlingService
      */
     public function dataRowHandling(Handling $handling)
     {
+        $treatmentDelay = $handling->getTreatmentDelay();
+        $treatmentDelayInterval = $treatmentDelay ? $this->dateService->secondsToDateInterval($treatmentDelay) : null;
+        $treatmentDelayStr = $treatmentDelayInterval ? $this->dateService->intervalToStr($treatmentDelayInterval) : '';
+
         return [
             'id' => $handling->getId() ? $handling->getId() : 'Non défini',
             'number' => $handling->getNumber() ? $handling->getNumber() : '',
@@ -113,6 +120,7 @@ class HandlingService
             'status' => $handling->getStatus()->getNom() ? $handling->getStatus()->getNom() : null,
             'emergency' => $handling->getEmergency() ?? '',
             'treatedBy' => $handling->getTreatedByHandling() ? $handling->getTreatedByHandling()->getUsername() : '',
+            'treatmentDelay' => $treatmentDelayStr,
             'Actions' => $this->templating->render('handling/datatableHandlingRow.html.twig', [
                 'handling' => $handling
             ]),
@@ -191,7 +199,7 @@ class HandlingService
         $state = $handling->getStatus() ? $handling->getStatus()->getState() : null;
 
         if ($hasRightHandling) {
-            $href = $this->router->generate('handling_index');
+            $href = $this->router->generate('handling_index') . '?open-modal=edit&modal-edit-id=' . $handling->getId();
         }
 
         $typeId = $handling->getType() ? $handling->getType()->getId() : null;
@@ -244,7 +252,7 @@ class HandlingService
             'requestUser' => $handling->getRequester() ? $handling->getRequester()->getUsername() : 'Non défini',
             'cardColor' => 'white',
             'bodyColor' => 'lightGrey',
-            'topRightIcon' => $handling->getEmergency() ? 'fa-exclamation-triangle red' : 'fa-box',
+            'topRightIcon' => $handling->getEmergency() ? 'fa-exclamation-triangle red' : 'livreur.svg',
             'emergencyText' => $handling->getEmergency() ?? '',
             'progress' =>  $statusesToProgress[$state] ?? 0,
             'progressBarColor' => '#2ec2ab',

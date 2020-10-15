@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\AttachmentTrait;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -16,6 +17,8 @@ class Reception extends FreeFieldEntity
     const STATUT_RECEPTION_PARTIELLE = 'réception partielle';
     const STATUT_RECEPTION_TOTALE = 'réception totale';
     const STATUT_ANOMALIE = 'anomalie';
+
+    use AttachmentTrait;
 
     /**
      * @ORM\Id()
@@ -107,14 +110,24 @@ class Reception extends FreeFieldEntity
 	private $location;
 
     /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement")
+     */
+    private $storageLocation;
+
+    /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $emergencyTriggered;
+    private $urgentArticles;
 
     /**
      * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="reception")
      */
     private $trackingMovements;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $manualUrgent;
 
     public function __construct()
     {
@@ -122,6 +135,7 @@ class Reception extends FreeFieldEntity
         $this->demandes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -385,14 +399,35 @@ class Reception extends FreeFieldEntity
         return $this;
     }
 
-    public function getEmergencyTriggered(): ?bool
+    public function getStorageLocation(): ?Emplacement
     {
-        return $this->emergencyTriggered;
+        return $this->storageLocation;
     }
 
-    public function setEmergencyTriggered(?bool $emergencyTriggered): self
+    public function setStorageLocation(?Emplacement $storageLocation): self
     {
-        $this->emergencyTriggered = $emergencyTriggered;
+        $this->storageLocation = $storageLocation;
+
+        return $this;
+    }
+
+    public function isManualUrgent(): ?bool {
+        return $this->manualUrgent;
+    }
+
+    public function setManualUrgent(?bool $manualUrgent): self {
+        $this->manualUrgent = $manualUrgent;
+        return $this;
+    }
+
+    public function hasUrgentArticles(): ?bool
+    {
+        return $this->urgentArticles;
+    }
+
+    public function setUrgentArticles(?bool $urgentArticles): self
+    {
+        $this->urgentArticles = $urgentArticles;
 
         return $this;
     }

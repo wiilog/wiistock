@@ -22,7 +22,7 @@ use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
 use App\Entity\DispatchPack;
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -822,6 +822,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
             $id = $request->request->get('id');
+            /** @var Handling $handling */
             $handling = $handlingRepository->find($id);
             $oldStatus = $handling->getStatus();
 
@@ -833,8 +834,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 }
 
                 $commentaire = $request->request->get('comment');
+                $treatmentDelay = $request->request->get('treatmentDelay');
                 if (!empty($commentaire)) {
                     $handling->setComment($handling->getComment() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
+                }
+
+                if (!empty($treatmentDelay)) {
+                    $handling->setTreatmentDelay($treatmentDelay);
                 }
 
                 $maxNbFilesSubmitted = 10;
@@ -1344,7 +1350,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
-        $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+        $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1436,7 +1442,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         'href' => $request->getSchemeAndHttpHost() . '/uploads/attachements/' . $attachment['fileName']
                     ];
                 },
-                $pieceJointeRepository->getMobileAttachmentForHandling($handlingIds)
+                $attachmentRepository->getMobileAttachmentForHandling($handlingIds)
             );
 
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
@@ -1816,6 +1822,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
             $natureRepository = $entityManager->getRepository(Nature::class);
 
+            $entireTreatedDispatch = [];
+
             $dispatchPacksByDispatch = is_array($dispatchPacksParam)
                 ? array_reduce($dispatchPacksParam, function (array $acc, array $current) {
                     $id = (int) $current['id'];
@@ -1840,10 +1848,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $dispatchStatus = $dispatch->getStatut();
                 if (!$dispatchStatus || !$dispatchStatus->isTreated()) {
                     $treatedStatus = $statusRepository->find($dispatchArray['treatedStatusId']);
-                    if ($treatedStatus && $treatedStatus->isTreated()) {
+                    if ($treatedStatus
+                        && ($treatedStatus->isTreated() || $treatedStatus->isPartial())) {
+                        $treatedPacks = [];
                         // we treat pack edits
                         if (!empty($dispatchPacksByDispatch[$dispatch->getId()])) {
                             foreach ($dispatchPacksByDispatch[$dispatch->getId()] as $packArray) {
+                                $treatedPacks[] = $packArray['id'];
                                 $packDispatch = $dispatchPackRepository->find($packArray['id']);
                                 if (!empty($packDispatch)) {
                                     if (!empty($packArray['natureId'])) {
@@ -1862,12 +1873,17 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             }
                         }
 
-                        $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $nomadUser, true);
+                        $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $nomadUser, true, $treatedPacks);
+
+                        if (!$treatedStatus->isPartial()) {
+                            $entireTreatedDispatch[] = $dispatch->getId();
+                        }
                     }
                 }
             }
             $statusCode = Response::HTTP_OK;
             $resData['success'] = true;
+            $resData['entireTreatedDispatch'] = $entireTreatedDispatch;
         }
         else {
             $statusCode = Response::HTTP_UNAUTHORIZED;

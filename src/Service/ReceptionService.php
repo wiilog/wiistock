@@ -83,22 +83,22 @@ class ReceptionService
      */
     public function dataRowReception(Reception $reception)
     {
-        return
-            [
-                'id' => ($reception->getId()),
-                "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
-                "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y H:i'),
-                "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : ''),
-                "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
-                "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
-                "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
-                "Numéro de commande" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
-                'Actions' => $this->templating->render(
-                    'reception/datatableReceptionRow.html.twig',
-                    ['reception' => $reception]
-                ),
-                'urgence' => $reception->getEmergencyTriggered()
-            ];
+        return [
+            'id' => ($reception->getId()),
+            "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
+            "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y H:i'),
+            "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : ''),
+            "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
+            "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
+            "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
+            "Numéro de commande" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
+            "storageLocation" => ($reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : ''),
+            "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
+            'Actions' => $this->templating->render(
+                'reception/datatableReceptionRow.html.twig',
+                ['reception' => $reception]
+            )
+        ];
     }
 
     public function createHeaderDetailsConfig(Reception $reception): array {
@@ -115,6 +115,8 @@ class ReceptionService
         $creationDate = $reception->getDate();
         $orderNumber = $reception->getOrderNumber();
         $comment = $reception->getCommentaire();
+        $storageLocation = $reception->getStorageLocation();
+        $attachments = $reception->getAttachments();
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
@@ -166,6 +168,11 @@ class ReceptionService
             ],
             [ 'label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i') : '' ],
             [ 'label' => 'Date de fin', 'value' => $dateEndReception ? $dateEndReception->format('d/m/Y H:i') : '' ],
+            [
+                'label' => 'Emplacement de stockage',
+                'value' => $storageLocation ?: '',
+                'show' => [ 'fieldName' => 'storageLocation' ]
+            ],
         ];
 
         $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_RECEPTION);
@@ -174,15 +181,24 @@ class ReceptionService
             $configFiltered,
             $freeFieldArray,
             ($this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsCreate')
-            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsEdit'))
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsEdit'))
                 ? [[
-                    'label' => 'Commentaire',
-                    'value' => $comment ?: '',
-                    'isRaw' => true,
-                    'colClass' => 'col-sm-6 col-12',
-                    'isScrollable' => true,
-                    'isNeededNotEmpty' => true
-                ]]
+                'label' => 'Commentaire',
+                'value' => $comment ?: '',
+                'isRaw' => true,
+                'colClass' => 'col-sm-6 col-12',
+                'isScrollable' => true,
+                'isNeededNotEmpty' => true
+            ]]
+                : [],
+            $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachment', 'displayedFormsCreate')
+            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachment', 'displayedFormsEdit')
+                ? [[
+                'label' => 'Pièces jointes',
+                'value' => $attachments->toArray(),
+                'isAttachments' => true,
+                'isNeededNotEmpty' => true
+            ]]
                 : []
         );
     }

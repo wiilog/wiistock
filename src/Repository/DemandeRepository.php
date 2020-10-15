@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\AverageRequestTime;
 use App\Entity\Demande;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
@@ -10,6 +11,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Join;
 use DoctrineExtensions\Query\Mysql\Date;
 use function Doctrine\ORM\QueryBuilder;
 
@@ -43,11 +45,20 @@ class DemandeRepository extends EntityRepository
     }
 
     public function findRequestToTreatByUser(Utilisateur $requester) {
+        $statuses = [
+            Demande::STATUT_BROUILLON,
+            Demande::STATUT_A_TRAITER,
+            Demande::STATUT_INCOMPLETE,
+            Demande::STATUT_PREPARE,
+            Demande::STATUT_LIVRE_INCOMPLETE,
+        ];
+
         $queryBuilder = $this->createQueryBuilder('demande');
         $queryBuilderExpr = $queryBuilder->expr();
         return $queryBuilder
             ->select('demande')
             ->innerJoin('demande.statut', 'status')
+            ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = demande.type')
             ->where(
                 $queryBuilderExpr->andX(
                     $queryBuilderExpr->in('status.nom', ':statusNames'),
@@ -55,16 +66,11 @@ class DemandeRepository extends EntityRepository
                 )
             )
             ->setParameters([
-                'statusNames' => [
-                    Demande::STATUT_A_TRAITER,
-                    Demande::STATUT_BROUILLON,
-                    Demande::STATUT_INCOMPLETE,
-                    Demande::STATUT_LIVRE_INCOMPLETE,
-                    Demande::STATUT_PREPARE
-                ],
-                'requester' => $requester
+                'statusNames' => $statuses,
+                'requester' => $requester,
             ])
-            ->orderBy('demande.date', 'DESC')
+            ->addOrderBy(sprintf("FIELD(status.nom, '%s', '%s', '%s', '%s', '%s')", ...$statuses), 'DESC')
+            ->addOrderBy("DATE_ADD(demande.date, art.average, 'second')", 'ASC')
             ->getQuery()
             ->execute();
     }

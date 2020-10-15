@@ -97,7 +97,7 @@ class Import
     private $entity;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\PieceJointe", inversedBy="importCsv")
+     * @ORM\OneToOne(targetEntity="Attachment", inversedBy="importCsv")
      */
     private $csvFile;
 
@@ -155,8 +155,8 @@ class Import
     private $endDate;
 
 	/**
-     * @var PieceJointe
-	 * @ORM\OneToOne(targetEntity="App\Entity\PieceJointe", inversedBy="importLog")
+     * @var Attachment
+	 * @ORM\OneToOne(targetEntity="Attachment", inversedBy="importLog")
 	 */
     private $logFile;
 
@@ -206,12 +206,12 @@ class Import
         return $this;
     }
 
-    public function getCsvFile(): ?PieceJointe
+    public function getCsvFile(): ?Attachment
     {
         return $this->csvFile;
     }
 
-    public function setCsvFile(?PieceJointe $csvFile): self
+    public function setCsvFile(?Attachment $csvFile): self
     {
         $this->csvFile = $csvFile;
 
@@ -314,12 +314,12 @@ class Import
         return $this;
     }
 
-    public function getLogFile(): ?PieceJointe
+    public function getLogFile(): ?Attachment
     {
         return $this->logFile;
     }
 
-    public function setLogFile(?PieceJointe $logFile): self
+    public function setLogFile(?Attachment $logFile): self
     {
         if (isset($this->logFile)) {
             $this->logFile->setImportLog(null);

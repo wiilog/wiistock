@@ -28,7 +28,8 @@ class ReceptionRepository extends ServiceEntityRepository
         'Commentaire' => 'commentaire',
         'Statut' => 'statut',
         'Fournisseur' => 'fournisseur',
-        'urgence' => 'emergencyTriggered',
+        'emergency' => 'emergency',
+        'storageLocation' => 'storageLocation'
     ];
 
     public function __construct(ManagerRegistry $registry)
@@ -115,12 +116,15 @@ class ReceptionRepository extends ServiceEntityRepository
             ->addSelect('articleType.label AS articleTypeLabel')
             ->addSelect('articleReferenceArticle.barCode AS articleReferenceArticleBarcode')
             ->addSelect('article.barCode as articleBarcode')
+            ->addSelect('reception.manualUrgent AS emergency')
+            ->addSelect('join_storageLocation.label AS storageLocation')
 
             ->where('reception.date BETWEEN :dateMin AND :dateMax')
 
             ->leftJoin('reception.fournisseur', 'provider')
             ->leftJoin('reception.utilisateur', 'user')
             ->leftJoin('reception.statut', 'status')
+            ->leftJoin('reception.storageLocation', 'join_storageLocation')
             ->leftJoin('reception.receptionReferenceArticles', 'receptionReferenceArticle')
             ->leftJoin('receptionReferenceArticle.referenceArticle', 'referenceArticle')
             ->leftJoin('referenceArticle.type', 'referenceArticleType')
@@ -171,9 +175,11 @@ class ReceptionRepository extends ServiceEntityRepository
                         ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
                     break;
 				case 'emergency':
-					$qb
-						->andWhere('r.emergencyTriggered = :isUrgent')
-						->setParameter('isUrgent', $filter['value']);
+				    $valueFilter = ((int) ($filter['value'] ?? 0));
+				    if ($valueFilter) {
+                        $qb
+                            ->andWhere('r.urgentArticles = true OR r.manualUrgent = true');
+                    }
 					break;
             }
         }
@@ -185,12 +191,14 @@ class ReceptionRepository extends ServiceEntityRepository
                     $qb
 						->leftJoin('r.statut', 's2')
 						->leftJoin('r.fournisseur', 'f2')
-                        ->andWhere('r.date LIKE :value
-                        OR r.numeroReception LIKE :value
-                        OR r.orderNumber LIKE :value
-                        OR r.commentaire lIKE :value
-                        OR s2.nom LIKE :value
-                        OR f2.nom LIKE :value')
+                        ->andWhere('(
+                            r.date LIKE :value
+                            OR r.numeroReception LIKE :value
+                            OR r.orderNumber LIKE :value
+                            OR r.commentaire lIKE :value
+                            OR s2.nom LIKE :value
+                            OR f2.nom LIKE :value
+                        )')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -209,6 +217,10 @@ class ReceptionRepository extends ServiceEntityRepository
                             $qb
                                 ->leftJoin('r.fournisseur', 'u2')
                                 ->addOrderBy('u2.nom', $order);
+                        } else if ($column === 'storageLocation') {
+                            $qb
+                                ->leftJoin('r.storageLocation', 'join_storageLocation')
+                                ->addOrderBy('join_storageLocation.label', $order);
                         } else {
                             $qb
                                 ->addOrderBy('r.' . $column, $order);

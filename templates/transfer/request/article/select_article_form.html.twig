@@ -1,0 +1,10 @@
+<div class="form-group">
+    <label class="required" for="add_article_to_transfer_reference">Article</label>
+    <select id="add_article_to_transfer_reference" class="form-control data needed" name="article"
+            required="required"
+            class="form-control">
+        {% for article in articles %}
+            <option value="{{ article.id }}">{{ article.barCode }}</option>
+        {% endfor %}
+    </select>
+</div>
