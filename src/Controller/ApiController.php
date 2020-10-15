@@ -822,6 +822,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
             $id = $request->request->get('id');
+            /** @var Handling $handling */
             $handling = $handlingRepository->find($id);
             $oldStatus = $handling->getStatus();
 
@@ -833,8 +834,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 }
 
                 $commentaire = $request->request->get('comment');
+                $treatmentDelay = $request->request->get('treatmentDelay');
                 if (!empty($commentaire)) {
                     $handling->setComment($handling->getComment() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
+                }
+
+                if (!empty($treatmentDelay)) {
+                    $handling->setTreatmentDelay($treatmentDelay);
                 }
 
                 $maxNbFilesSubmitted = 10;
