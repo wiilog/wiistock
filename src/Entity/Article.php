@@ -171,9 +171,19 @@ class Article extends FreeFieldEntity
     private $alerts;
 
     /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $batch;
+
+    /**
      * @ORM\Column(type="date", nullable=true)
      */
     private $expiryDate;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $stockEntryDate;
 
     public function __construct()
     {
@@ -733,6 +743,30 @@ class Article extends FreeFieldEntity
     public function setExpiryDate(?\DateTimeInterface $expiryDate): self
     {
         $this->expiryDate = $expiryDate;
+
+        return $this;
+    }
+
+    public function getBatch(): ?string
+    {
+        return $this->batch;
+    }
+
+    public function setBatch(?string $batch): self
+    {
+        $this->batch = $batch;
+
+        return $this;
+    }
+
+    public function getStockEntryDate(): ?\DateTimeInterface
+    {
+        return $this->stockEntryDate;
+    }
+
+    public function setStockEntryDate(?\DateTimeInterface $stockEntryDate): self
+    {
+        $this->stockEntryDate = $stockEntryDate;
 
         return $this;
     }

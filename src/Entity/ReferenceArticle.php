@@ -113,11 +113,6 @@ class ReferenceArticle extends FreeFieldEntity
     private $mouvements;
 
     /**
-     * @ORM\Column(type="date", nullable=true)
-     */
-    private $expiryDate;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\InventoryCategory", inversedBy="refArticle")
      */
     private $category;
@@ -519,18 +514,6 @@ class ReferenceArticle extends FreeFieldEntity
                 $mouvement->setRefArticle(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getExpiryDate(): ?\DateTimeInterface
-    {
-        return $this->expiryDate;
-    }
-
-    public function setExpiryDate(?\DateTimeInterface $expiryDate): self
-    {
-        $this->expiryDate = $expiryDate;
 
         return $this;
     }

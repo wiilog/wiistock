@@ -77,6 +77,9 @@ class Import
 		'typeLabel' => 'type',
         'dateLastInventory' => 'date dernier inventaire (jj/mm/AAAA)',
         'emergencyComment' => 'commentaire urgence',
+        'batch' => 'Lot',
+        'expiryDate' => 'Date de péremption (jj/mm/AAAA)',
+        'stockEntryDate' => 'Date d\'entrée en stock (jj/mm/AAAA hh:MM)',
 	];
 
     /**

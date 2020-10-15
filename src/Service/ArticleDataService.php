@@ -28,6 +28,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
 use DateTime;
+use DateTimeZone;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -379,6 +380,8 @@ class ArticleDataService
             ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type)
             ->setBarCode($this->generateBarCode())
+            ->setBatch($data['batch'])
+            ->setStockEntryDate(new DateTime("now", new DateTimeZone("Europe/Paris")))
             ->setExpiryDate(DateTime::createFromFormat("Y-m-d", $data['expiry']));
         $entityManager->persist($toInsert);
         $this->freeFieldService->manageFreeFields($toInsert, $data, $entityManager);
@@ -535,6 +538,9 @@ class ArticleDataService
             'Prix unitaire' => $article->getPrixUnitaire(),
             'Code barre' => $article->getBarCode() ?? 'Non défini',
             "Dernier inventaire" => $article->getDateLastInventory() ? $article->getDateLastInventory()->format('d/m/Y') : '',
+            "Lot" => $article->getBatch(),
+            "Date d'entrée en stock" => $article->getStockEntryDate() ? $article->getStockEntryDate()->format('d/m/Y H:i') : '',
+            "Date de péremption" => $article->getExpiryDate() ? $article->getExpiryDate()->format('d/m/Y') : '',
             'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
                 'url' => $url,
                 'articleId' => $article->getId(),
