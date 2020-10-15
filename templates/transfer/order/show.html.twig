@@ -10,7 +10,7 @@
                 <div class="zone-entete">
                     {% include "transfer/order/show_header.html.twig" with {
                         modifiable: modifiable,
-                        transfer: transfer,
+                        order: order,
                         showDetails: detailsConfig
                     } %}
                 </div>
@@ -29,11 +29,8 @@
         <button class="btn btn-secondary" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
     </div>
 
-    {% include "transfer/request/article/new.html.twig" %}
-    {% include "transfer/request/article/delete.html.twig" %}
-    {% include "transfer/request/article/edit.html.twig" %}
-    {% include "transfer/request/delete.html.twig" %}
-    {% include "transfer/request/edit.html.twig" %}
+    {% include "transfer/order/delete.html.twig" %}
+    {% include "transfer/order/deleteWithLocation.html.twig" %}
     {% include 'reference_article/modalShowRefArticle.html.twig' %}
     {% include 'article/modalShowArticle.html.twig' %}
 {% endblock %}
@@ -41,7 +38,8 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-        let id = {{ transfer.id }};
+        let id = {{ order.id }};
+        let isTreated = {{ order.status.nom == constant('App\\Entity\\TransferOrder::TREATED') ? 'true' : 'false' }};
     </script>
 
     <script src="{{ asset('js/pages/transfer/order/show.js') }}?{{ app_last_cache_clear }}"></script>

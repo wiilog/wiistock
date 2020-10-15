@@ -2,6 +2,11 @@ let tableArticles;
 
 $(document).ready(() => {
 
+
+    $('#modalDeleteTransferWithLocation').on('show.bs.modal', function (e) {
+        Select2.location($('.ajax-autocomplete-location'));
+    })
+
     Select2.articleReference($(".ajax-autocomplete"));
 
     tableArticle = initDataTable('tableArticle', {
@@ -21,51 +26,36 @@ $(document).ready(() => {
         ],
     });
 
-    let modal = $("#modalAddArticle");
-    let submit = $("#submitAddArticle");
-    let url = Routing.generate('transfer_request_add_article', {transfer: id});
-    InitModal(modal, submit, url, {tables: [tableArticle]});
-
-    let modalDeleteArticle = $("#modalDeleteArticle");
-    let submitDeleteArticle = $("#submitDeleteArticle");
-    let urlDeleteArticle = Routing.generate('transfer_request_remove_article', true);
-    InitModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, {tables: [tableArticle]});
-
-    let $modalEdit = $("#modalEditTransferRequest");
-    let $submitEdit = $("#submitEditTransferRequest");
-    let pathEdit = Routing.generate('transfer_request_edit', true);
-    InitModal($modalEdit, $submitEdit, pathEdit);
-
     let modalDeleteTransfer = $("#modalDeleteTransfer");
     let submitDeleteTransfer = $("#submitDeleteTransfer");
-    let urlDeleteTransfer = Routing.generate('transfer_request_delete', true)
+    let urlDeleteTransfer = Routing.generate('transfer_order_delete', {id}, true)
     InitModal(modalDeleteTransfer, submitDeleteTransfer, urlDeleteTransfer);
 });
 
-function onReferenceChange($select) {
-    let reference = $select.val();
-    if(!reference) {
-        return;
+function deleteOrder() {
+    if (!isTreated) {
+        const $modal = $('#modalDeleteTransfer');
+        deleteRow($(this), $modal, $('#submitDeleteTransfer'));
+        $modal.modal('show');
+    } else {
+        let modalDeleteTransfer = $("#modalDeleteTransferWithLocation");
+        let submitDeleteTransfer = $("#submitDeleteTransferWithLocation");
+        let urlDeleteTransfer = Routing.generate('transfer_order_delete', {id}, true)
+        InitModal(modalDeleteTransfer, submitDeleteTransfer, urlDeleteTransfer);
+        $('#modalDeleteTransferWithLocation').modal('show');
     }
+}
 
-    let route = Routing.generate('transfer_request_add_article', {transfer: id});
-    let data = JSON.stringify({
-        fetchOnly: true,
-        reference
-    });
+function validateOrder($button) {
 
-    $.post(route, data, function(response) {
-        if (response.success) {
-           $("#add-article-code-selector").html(response.html || "");
-        }
-    });
+    let route = Routing.generate('transfer_order_validate', {id});
+
+    wrapLoadingOnActionButton($button, () => (
+        $.post(route, function (response) {
+            window.location.href = response.redirect;
+            return true;
+        })
+    ));
 }
 
 $('.select2').select2();
-
-function deleteRowTransfer(button, modal, submit) {
-    let id = button.data('id');
-    let name = button.data('name');
-    modal.find(submit).attr('value', id);
-    modal.find(submit).attr('name', name);
-}

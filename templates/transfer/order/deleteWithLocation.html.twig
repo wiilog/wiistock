@@ -1,4 +1,4 @@
-<form method="" class="modal fade" id="modalDeleteTransfer" role="dialog" aria-labelledby="dataModalCenterTitle"
+<form method="" class="modal fade" id="modalDeleteTransferWithLocation" role="dialog" aria-labelledby="dataModalCenterTitle"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -9,12 +9,15 @@
                 </button>
             </div>
             <div class="modal-body">
-                Voulez-vous réellement supprimer cet ordre de transfert ?
+                <div class="form-group">
+                    <label class="required">Destination</label>
+                    <select name="destination" required="required" class="w-100 form-control data ajax-autocomplete-location needed"></select>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitDeleteTransfer" name='transfer' value='' type="button" data-dismiss="modal"
-                    class="btn btn-danger data">Supprimer</button>
+                <button id="submitDeleteTransferWithLocation" name='transfer' value='' type="button"
+                    class="btn btn-danger" onclick="">Supprimer</button>
             </div>
         </div>
     </div>

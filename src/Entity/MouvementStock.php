@@ -98,6 +98,11 @@ class MouvementStock
 	 */
 	private $comment;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=TransferOrder::class, inversedBy="stockMovements")
+     */
+    private $transferOrder;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -267,6 +272,18 @@ class MouvementStock
     public function setReceptionOrder(?Reception $receptionOrder): self
     {
         $this->receptionOrder = $receptionOrder;
+
+        return $this;
+    }
+
+    public function getTransferOrder(): ?TransferOrder
+    {
+        return $this->transferOrder;
+    }
+
+    public function setTransferOrder(?TransferOrder $transferOrder): self
+    {
+        $this->transferOrder = $transferOrder;
 
         return $this;
     }

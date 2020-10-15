@@ -1,44 +1,40 @@
 {% extends 'utils/show-header.html.twig' %}
 
-{% block showTitle ('Demande de transfert ' ~ transfer.number) %}
+{% block showTitle ('Ordre de transfert ' ~ order.number) %}
 
 {% block showActions %}
     <div class="btn-group">
-        {% if modifiable %}
-            {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
-            {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
+        {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
+        {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
 
-            {% if hasRightEdit %}
-                <button type="button"
-                        onclick=""
-                        class="btn btn-primary btn-ripple split-button">
-                    <i class="fa fa-check mr-2 button-icon"></i>
-                    Valider
-                </button>
-                <button type="button"
-                        class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
-                        data-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false">
-                    <span class="fa fa-angle-down"></span>
-                </button>
-                {% if hasRightDelete %}
-                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                        <a href="" onclick="deleteRow($(this), $('#modalDeleteTransfer'), $('#submitDeleteTransfer'))"
-                           data-id='{{ transfer.id }}' data-target='#modalDeleteTransfer' data-toggle='modal'
-                           class="dropdown-item">
-                            <i class="fa fa-trash mr-2"></i>Supprimer</a>
-                    </div>
-                {% endif %}
+        {% if hasRightEdit and order.status.nom != constant('App\\Entity\\TransferOrder::TREATED') %}
+            <button type="button"
+                    onclick="validateOrder($(this))"
+                    class="btn btn-primary btn-ripple split-button">
+                <i class="fa fa-check mr-2 button-icon"></i>
+                Valider
+            </button>
+        {% endif %}
+        <button type="button"
+                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false">
+            <span class="fa fa-angle-down"></span>
+        </button>
+        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+            {% if hasRightDelete %}
+                <button onclick="deleteOrder()"
+                   data-id='{{ order.id }}'
+                   class="dropdown-item">
+                    <i class="fa fa-trash mr-2"></i>Supprimer</button>
             {% endif %}
-            {% elseif hasRightDelete %}
-                <button type="button"
-                        onclick=""
-                        class="btn btn-primary btn-ripple split-button">
-                    <i class="fa fa-check mr-2 button-icon"></i>
-                    Supprimer
-                </button>
-            {% endif %}
+            <a href="{{ path('transfer_request_show', {'transfer': order.request.id }) }}"
+               class="dropdown-item">
+                <i class="mr-2 fas fa-external-link-alt"></i>Aller vers la demande de transfert
+            </a>
+        </div>
+
     </div>
 {% endblock %}
 

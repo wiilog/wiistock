@@ -135,7 +135,7 @@ class TransferRequest {
         return $this->validationDate;
     }
 
-    public function setValidationDate(DateTimeInterface $validationDate): self {
+    public function setValidationDate(?DateTimeInterface $validationDate): self {
         $this->validationDate = $validationDate;
         return $this;
     }

@@ -31,16 +31,14 @@ class TransferOrderRepository extends EntityRepository {
                 case 'requesters':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('t.requester', 'req')
-                        ->andWhere("req.id in (:id)")
+                        ->join('t.request', 'requestFilter')
+                        ->andWhere("requestFilter.requester in (:id)")
                         ->setParameter('id', $value);
                     break;
-                case 'operator':
+                case 'operators':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('t.order', 'to')
-                        ->join('to.operator', 'tou')
-                        ->andWhere("req.id in (:id)")
+                        ->andWhere("t.operator in (:id)")
                         ->setParameter('id', $value);
                     break;
                 case 'dateMin':
@@ -61,16 +59,19 @@ class TransferOrderRepository extends EntityRepository {
                 if (!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb
+                        ->join('t.request', 'request')
                         ->andWhere(
                             $exprBuilder->orX(
                                 't.number LIKE :value',
                                 'req_search.username LIKE :value',
+                                'op_search.username LIKE :value',
                                 'status_search.nom LIKE :value'
                             )
                         )
                         ->setParameter('value', '%' . $search . '%')
-                        ->leftJoin('t.requester', 'req_search')
-                        ->leftJoin('t.status', 'status_search');
+                        ->leftJoin('request.requester', 'req_search')
+                        ->leftJoin('t.operator', 'op_search')
+                        ->leftJoin('request.status', 'status_search');
                 }
             }
 

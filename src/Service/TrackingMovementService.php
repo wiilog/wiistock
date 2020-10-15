@@ -113,6 +113,11 @@ class TrackingMovementService
             $fromLabel = 'acheminement.Acheminement';
             $fromEntityId = $movement->getDispatch()->getId();
             $originFrom = $movement->getDispatch()->getNumber();
+        } else if ($movement->getMouvementStock() && $movement->getMouvementStock()->getTransferOrder()) {
+            $fromPath = 'transfer_order_show';
+            $fromLabel = 'Transfert de stock';
+            $fromEntityId = $movement->getMouvementStock()->getTransferOrder()->getId();
+            $originFrom = $movement->getMouvementStock()->getTransferOrder()->getNumber();
         } else {
             $fromPath = null;
             $fromEntityId = null;

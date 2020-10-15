@@ -11,6 +11,8 @@ use App\Entity\FreeField;
 use App\Entity\Collecte;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
+use App\Entity\MouvementStock;
+use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\CollecteReference;
 use App\Entity\Statut;
@@ -19,6 +21,8 @@ use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\Article;
+use App\Service\MouvementStockService;
+use App\Service\TrackingMovementService;
 use App\Service\RefArticleDataService;
 use App\Service\TransferOrderService;
 use App\Service\TransferRequestService;
@@ -30,6 +34,7 @@ use App\Service\FreeFieldService;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -139,27 +144,48 @@ class TransferOrderController extends AbstractController {
 
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
-            $toTreat = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
+            $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
+            $toTreatRequest = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
             $transfer = new TransferOrder();
+
+            $transitStatusForArticles = $statutRepository->findOneByCategorieNameAndStatutCode(
+                CategorieStatut::ARTICLE,
+                Article::STATUT_EN_TRANSIT
+            );
+            $transitStatusForRefs = $statutRepository->findOneByCategorieNameAndStatutCode(
+                CategorieStatut::REFERENCE_ARTICLE,
+                ReferenceArticle::STATUT_INACTIF
+            );
+
+            foreach ($transferRequest->getReferences() as $reference) {
+                $reference->setStatut($transitStatusForRefs);
+            }
+
+            foreach ($transferRequest->getArticles() as $article) {
+                $article->setStatut($transitStatusForArticles);
+            }
+
+            $transferRequest->setStatus($toTreatRequest);
+            $transferRequest->setValidationDate(new DateTime());
 
             $transfer
                 ->setNumber($this->createNumber($entityManager, $date))
                 ->setCreationDate($date)
                 ->setRequest($transferRequest)
-                ->setStatus($toTreat);
+                ->setStatus($toTreatOrder);
             $entityManager->persist($transfer);
             $entityManager->flush();
 
             return new JsonResponse([
                 'success' => true,
-                'redirect' => $this->generateUrl('transfer_order_show', ['transfer' => $transfer->getId()]),
+                'redirect' => $this->generateUrl('transfer_order_show', ['id' => $transfer->getId()]),
             ]);
         }
         throw new NotFoundHttpException('404 not found');
     }
 
     /**
-     * @Route("/voir/{transfer}", name="transfer_order_show", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/voir/{id}", name="transfer_order_show", options={"expose"=true}, methods={"GET", "POST"})
      * @param TransferOrder $transfer
      * @return Response
      */
@@ -169,7 +195,7 @@ class TransferOrderController extends AbstractController {
         }
 
         return $this->render('transfer/order/show.html.twig', [
-            'transfer' => $transfer,
+            'order' => $transfer,
             'detailsConfig' => $this->service->createHeaderDetailsConfig($transfer),
             'modifiable' => $transfer->getStatus()->getNom() === TransferOrder::TO_TREAT
         ]);
@@ -222,13 +248,20 @@ class TransferOrderController extends AbstractController {
     }
 
     /**
-     * @Route("/supprimer", name="transfer_order_delete", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/valider/{id}", name="transfer_order_validate", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param TransferOrderService $transferOrderService
+     * @param TransferOrder $transferOrder
      * @return Response
+     * @throws NonUniqueResultException
+     * @throws Exception
      */
-    public function delete(Request $request, EntityManagerInterface $entityManager): Response {
-        if(!$request->isXmlHttpRequest() || !$data = json_decode($request->getContent())) {
+    public function finish(Request $request,
+                           EntityManagerInterface $entityManager,
+                           TransferOrderService $transferOrderService,
+                           TransferOrder $transferOrder): Response {
+        if(!$request->isXmlHttpRequest()) {
             throw new BadRequestHttpException();
         }
 
@@ -236,79 +269,94 @@ class TransferOrderController extends AbstractController {
             return $this->redirectToRoute('access_denied');
         }
 
-        $transferRepository = $entityManager->getRepository(TransferRequest::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
 
-        $transfer = $transferRepository->find($data->transfer);
-        $entityManager->remove($transfer);
+        $treatedRequest = $statutRepository
+            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TREATED);
+
+        $treatedOrder = $statutRepository
+            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferRequest::TREATED);
+
+        $transferOrder->getRequest()->setStatus($treatedRequest);
+        $transferOrder->setStatus($treatedOrder);
+        $transferOrder->setOperator($this->getUser());
+        $transferOrder->setTransferDate(new DateTime());
+
+        $locationTo = $transferOrder->getRequest()->getDestination();
+        $transferOrderService->releaseRefsAndArticles($locationTo, $transferOrder, $this->getUser(), $entityManager, true);
+
         $entityManager->flush();
 
+
         return $this->json([
-            'redirect' => $this->generateUrl('transfer_request_index'),
+            'success' => true,
+            'redirect' => $this->generateUrl('transfer_order_show', [
+                'id' => $transferOrder->getId()
+            ])
         ]);
     }
 
     /**
-     * @Route("/csv", name="get_transfer_requests_for_csv",options={"expose"=true}, methods="GET|POST" )
-     * @param EntityManagerInterface $entityManager
-     * @param TransferRequestService $transferRequestService
+     * @Route("/supprimer/{id}", name="transfer_order_delete", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param CSVExportService $CSVExportService
+     * @param EntityManagerInterface $entityManager
+     * @param MouvementStockService $mouvementStockService
+     * @param TransferOrderService $transferOrderService
+     * @param TransferOrder $transferOrder
      * @return Response
+     * @throws NonUniqueResultException
      * @throws Exception
      */
-    public function getTransferRequestsCSV(EntityManagerInterface $entityManager,
-                                           TransferRequestService $transferRequestService,
-                                           Request $request,
-                                           CSVExportService $CSVExportService): Response {
-        $dateMin = $request->query->get('dateMin');
-        $dateMax = $request->query->get('dateMax');
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager,
+                           MouvementStockService $mouvementStockService,
+                           TransferOrderService $transferOrderService,
+                           TransferOrder $transferOrder): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
-        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
-        if(isset($dateTimeMin) && isset($dateTimeMax)) {
+            $statutRepository = $entityManager->getRepository(Statut::class);
 
-            $collecteRepository = $entityManager->getRepository(Collecte::class);
-            $collectes = $collecteRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $draftRequest = $statutRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::DRAFT);
 
-            $csvHeader = array_merge(
-                [
-                    'Numero demande',
-                    'Date de création',
-                    'Date de validation',
-                    'Type',
-                    'Statut',
-                    'Sujet',
-                    'Stock ou destruction',
-                    'Demandeur',
-                    'Point de collecte',
-                    'Commentaire',
-                    'Code barre',
-                    'Quantité',
-                ]
-            );
-            $today = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $fileName = "export_demande_collecte" . $today->format('d_m_Y') . ".csv";
-            return $CSVExportService->createBinaryResponseFromData(
-                $fileName,
-                $collectes,
-                $csvHeader,
-                function(Collecte $collecte) use ($transferRequestService) {
-                    $rows = [];
-                    foreach($collecte->getArticles() as $article) {
+            $transferOrder->getRequest()->setStatus($draftRequest);
+            $transferOrder->getRequest()->setValidationDate(null);
 
-                    }
+            $locationsRepository = $entityManager->getRepository(Emplacement::class);
 
-                    foreach($collecte->getCollecteReferences() as $collecteReference) {
+            if (isset($data['destination'])) {
+                $locationTo = $locationsRepository->find($data['destination']);
+            } else {
+                $locationTo = null;
+            }
 
-                    }
+            $transferOrderService->releaseRefsAndArticles($locationTo, $transferOrder, $this->getUser(), $entityManager);
 
-                    return $rows;
-                }
-            );
-        } else {
-            throw new NotFoundHttpException('404');
+            foreach ($transferOrder->getStockMovements() as $mouvementStock) {
+                $mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager);
+                $entityManager->flush();
+                $transferOrder->removeStockMovement($mouvementStock);
+                $entityManager->remove($mouvementStock);
+            }
+
+            $requestId = $transferOrder->getRequest()->getId();
+
+            $entityManager->remove($transferOrder);
+            $entityManager->flush();
+
+
+            return $this->json([
+                'success' => true,
+                'redirect' => $this->generateUrl('transfer_request_show', [
+                    'transfer' => $requestId
+                ])
+            ]);
         }
+        throw new BadRequestHttpException();
     }
-
 }

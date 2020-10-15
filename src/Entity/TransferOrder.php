@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use DateTimeInterface;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\TransferOrderRepository;
 
@@ -33,7 +35,7 @@ class TransferOrder {
     private $status;
 
     /**
-     * @ORM\OneToOne(targetEntity=TransferRequest::class, inversedBy="order", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity=TransferRequest::class, inversedBy="order")
      * @ORM\JoinColumn(nullable=false)
      */
     private $request;
@@ -52,6 +54,16 @@ class TransferOrder {
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $transferDate;
+
+    /**
+     * @ORM\OneToMany(targetEntity=MouvementStock::class, mappedBy="transferOrder")
+     */
+    private $stockMovements;
+
+    public function __construct()
+    {
+        $this->stockMovements = new ArrayCollection();
+    }
 
     public function getId(): ?int {
         return $this->id;
@@ -114,6 +126,37 @@ class TransferOrder {
 
     public function setStatus(?Statut $status): self {
         $this->status = $status;
+        return $this;
+    }
+
+    /**
+     * @return Collection|MouvementStock[]
+     */
+    public function getStockMovements(): Collection
+    {
+        return $this->stockMovements;
+    }
+
+    public function addStockMovement(MouvementStock $stockMovement): self
+    {
+        if (!$this->stockMovements->contains($stockMovement)) {
+            $this->stockMovements[] = $stockMovement;
+            $stockMovement->setTransferOrder($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStockMovement(MouvementStock $stockMovement): self
+    {
+        if ($this->stockMovements->contains($stockMovement)) {
+            $this->stockMovements->removeElement($stockMovement);
+            // set the owning side to null (unless already changed)
+            if ($stockMovement->getTransferOrder() === $this) {
+                $stockMovement->setTransferOrder(null);
+            }
+        }
+
         return $this;
     }
 

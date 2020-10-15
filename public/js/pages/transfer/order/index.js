@@ -5,26 +5,14 @@ $(document).ready(() => {
     Select2.init($statusSelector, 'Statuts');
     Select2.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     Select2.user($('.filterService select[name="requesters"]'), "Demandeurs");
-    Select2.user($('.filterService select[name="operator"]'), "Opérateurs");
+    Select2.user($('.filterService select[name="operators"]'), "Opérateurs");
 
-    // applique les filtres si pré-remplis
-    let val = $('#filterStatus').val();
-
-    if (val && val.length > 0) {
-        let valuesStr = val.split(',');
-        let valuesInt = [];
-        valuesStr.forEach((value) => {
-            valuesInt.push(parseInt(value));
-        })
-        $statusSelector.val(valuesInt).select2();
-    } else {
-        // sinon, filtres enregistrés en base pour chaque utilisateur
-        let path = Routing.generate('filter_get_by_page');
-        let params = JSON.stringify(PAGE_TRANSFER_REQUEST);
-        $.post(path, params, function (data) {
-            displayFiltersSup(data);
-        }, 'json');
-    }
+    // sinon, filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_TRANSFER_ORDER);
+    $.post(path, params, function (data) {
+        displayFiltersSup(data);
+    }, 'json');
 });
 
 let pathTransferOrder = Routing.generate('transfer_orders_api', true);
@@ -35,7 +23,7 @@ let transferOrderTableConfig = {
     ajax: {
         "url": pathTransferOrder,
         "type": "POST",
-        'data' : {
+        'data': {
             'filterStatus': $('#filterStatus').val()
         },
     },
