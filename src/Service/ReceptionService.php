@@ -94,9 +94,14 @@ class ReceptionService
                 "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
                 "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
                 "receiver" => implode(', ', array_unique(
-                    $reception->getDemandes()->map(function (Demande $request) {
-                        return $request->getUtilisateur() ? $request->getUtilisateur()->getUsername() : '';
-                    })->toArray())
+                    $reception->getDemandes()
+                        ->map(function (Demande $request) {
+                            return $request->getUtilisateur() ? $request->getUtilisateur()->getUsername() : '';
+                        })
+                        ->filter(function (string $username) {
+                            return !empty($username);
+                        })
+                        ->toArray())
                 ),
                 "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
                 "Numéro de commande" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
@@ -122,6 +127,16 @@ class ReceptionService
         $creationDate = $reception->getDate();
         $orderNumber = $reception->getOrderNumber();
         $comment = $reception->getCommentaire();
+        $receivers = implode(', ', array_unique(
+                $reception->getDemandes()
+                    ->map(function (Demande $request) {
+                        return $request->getUtilisateur() ? $request->getUtilisateur()->getUsername() : '';
+                    })
+                    ->filter(function (string $username) {
+                        return !empty($username);
+                    })
+                    ->toArray())
+        );
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
@@ -165,6 +180,10 @@ class ReceptionService
                 'label' => 'Numéro de commande',
                 'value' => $orderNumber ?: '',
                 'show' => [ 'fieldName' => 'numCommande' ]
+            ],
+            [
+                'label' => 'Destinataire(s)',
+                'value' => $receivers ?: ''
             ],
             [
                 'label' => 'Date attendue',
