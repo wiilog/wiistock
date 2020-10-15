@@ -109,44 +109,45 @@
                 </tr>
             {% endif %}
             {% for dispatchPack in dispatch.dispatchPacks %}
-
-                {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.label : '' %}
-                {% set packLastTracking = dispatchPack.pack.lastTracking ?? '' %}
-                {% set packLocationLastTracking = packLastTracking.emplacement ?? '' %}
-                <tr>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ natureLabel }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.pack.code }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.quantity }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ packLastTracking ? packLastTracking.datetime|date('d/m/Y H:i:s') : '-' }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ packLocationLastTracking ? packLocationLastTracking.label : '-' }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ packLastTracking ? packLastTracking.operateur.username : '-' }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.pack.weight ?? '-' }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.pack.volume ?? '-' }}
-                    </td>
-                </tr>
+                {% if dispatchPack.treated %}
+                    {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.label : '' %}
+                    {% set packLastTracking = dispatchPack.pack.lastTracking ?? '' %}
+                    {% set packLocationLastTracking = packLastTracking.emplacement ?? '' %}
+                    <tr>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ natureLabel }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchPack.pack.code }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchPack.quantity }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ packLastTracking ? packLastTracking.datetime|date('d/m/Y H:i:s') : '-' }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ packLocationLastTracking ? packLocationLastTracking.label : '-' }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ packLastTracking ? packLastTracking.operateur.username : '-' }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchPack.pack.weight ?? '-' }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ dispatchPack.pack.volume ?? '-' }}
+                        </td>
+                    </tr>
+                {% endif %}
             {% endfor %}
         </tbody>
     </table>

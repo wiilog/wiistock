@@ -262,7 +262,10 @@ class RefArticleDataService
             }
         }
 
-        if (isset($data['categorie'])) $refArticle->setCategory($category);
+        if (isset($data['categorie'])) {
+            $refArticle->setCategory($category);
+        }
+
         if (isset($data['urgence'])) {
             if ($data['urgence'] && $data['urgence'] !== $refArticle->getIsUrgent()) {
                 $refArticle->setUserThatTriggeredEmergency($user);
@@ -271,15 +274,30 @@ class RefArticleDataService
             }
             $refArticle->setIsUrgent($data['urgence']);
         }
-        if (isset($data['prix'])) $refArticle->setPrixUnitaire($price);
-        if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
-        if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
-        if (isset($data['limitWarning'])) $refArticle->setLimitWarning($data['limitWarning']);
-        if (isset($data['mobileSync'])) $refArticle->setNeedsMobileSync($data['mobileSync']);
+
+        if (isset($data['prix'])) {
+            $refArticle->setPrixUnitaire($price);
+        }
+
+        if (isset($data['libelle'])) {
+            $refArticle->setLibelle($data['libelle']);
+        }
+
+        if (isset($data['commentaire'])) {
+            $refArticle->setCommentaire($data['commentaire']);
+        }
+
+        if (isset($data['mobileSync'])) {
+            $refArticle->setNeedsMobileSync($data['mobileSync']);
+        }
+
+        $refArticle->setLimitWarning((empty($data['limitWarning']) && $data['limitWarning'] !== 0 && $data['limitWarning'] !== '0') ? null : intval($data['limitWarning']));
+        $refArticle->setLimitSecurity((empty($data['limitSecurity']) && $data['limitSecurity'] !== 0 && $data['limitSecurity'] !== '0') ? null : intval($data['limitSecurity']));
+
         if ($data['emergency-comment-input']) {
             $refArticle->setEmergencyComment($data['emergency-comment-input']);
         }
-        if (isset($data['limitSecurity'])) $refArticle->setLimitSecurity($data['limitSecurity']);
+
         if (isset($data['statut'])) {
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
             if ($statut) {

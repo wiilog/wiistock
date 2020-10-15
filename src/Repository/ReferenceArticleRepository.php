@@ -1052,8 +1052,8 @@ class ReferenceArticleRepository extends EntityRepository
             ->andWhere('ra.dateEmergencyTriggered IS NOT NULL')
             ->andWhere(
                 $qb->expr()->orX(
-                    $qb->expr()->gt('ra.limitSecurity', 0),
-                    $qb->expr()->gt('ra.limitWarning', 0)
+                    $qb->expr()->gte('ra.limitSecurity', 0),
+                    $qb->expr()->gte('ra.limitWarning', 0)
                 )
             )
             ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF);
