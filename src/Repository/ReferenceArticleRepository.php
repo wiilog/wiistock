@@ -10,6 +10,7 @@ use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
+use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -308,12 +309,12 @@ class ReferenceArticleRepository extends EntityRepository
                             $value = '%' . $value . '%';
                             break;
                         case FreeField::TYPE_DATE:
-                            $formattedDate = new \DateTime(str_replace('/', '-', $value));
-                            $value =  $formattedDate->format('Y-m-d');
-                            break;
                         case FreeField::TYPE_DATETIME:
-                            $formattedDate = new \DateTime(str_replace('/', '-', $value));
-                            $value = '%' . $formattedDate->format('Y-m-d') . '%';
+                            $formattedDate = DateTime::createFromFormat('d/m/Y', $value) ?: $value;
+                            $value =  $formattedDate->format('Y-m-d');
+                            if ($freeFieldType === FreeField::TYPE_DATETIME) {
+                                $value .= '%';
+                            }
                             break;
                         case FreeField::TYPE_LIST:
                         case FreeField::TYPE_LIST_MULTIPLE:
