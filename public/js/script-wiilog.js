@@ -1162,7 +1162,7 @@ function onTypeChange($select) {
     const $selectStatus = $modal.find('select[name="status"]');
     $selectStatus.find('option[data-type-id!="' + type + '"]').addClass('d-none');
     $selectStatus.val(null).trigger('change');
-console.log($selectStatus);
+
     const $errorEmptyStatus = $selectStatus.siblings('.error-empty-status');
     $errorEmptyStatus.addClass('d-none');
 
@@ -1174,7 +1174,7 @@ console.log($selectStatus);
         $selectStatus.removeAttr('disabled');
         $correspondingStatuses.removeClass('d-none');
         const defaultStatuses = JSON.parse($selectStatus.siblings('input[name="defaultStatuses"]').val() || '{}');
-console.log($correspondingStatuses.length);
+
         if ($correspondingStatuses.length > 1) {
             $selectStatus.removeClass('d-none');
             if (defaultStatuses[type]) {
@@ -1185,7 +1185,6 @@ console.log($correspondingStatuses.length);
                 $selectStatus.removeAttr('disabled');
             }
         } else if($correspondingStatuses.length === 1) {
-            $selectStatus;
             $selectStatus.val($modal.find('select[name="status"] option:not(.d-none):first').val())
                 .removeClass('d-none')
                 .prop('disabled', true);

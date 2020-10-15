@@ -110,8 +110,9 @@ function changeStatus(button) {
             $statusHandling.val("0");
         }
     }
-console.log(button);
-    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]')
+
+    $('span[data-toggle="' + tog + '"]')
+        .not('[data-title="' + sel + '"]')
         .removeClass('active')
         .addClass('not-active');
 
