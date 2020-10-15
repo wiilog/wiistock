@@ -308,6 +308,9 @@ class ReferenceArticleRepository extends EntityRepository
                             $value = '%' . $value . '%';
                             break;
                         case FreeField::TYPE_DATE:
+                            $formattedDate = new \DateTime(str_replace('/', '-', $value));
+                            $value =  $formattedDate->format('Y-m-d');
+                            break;
                         case FreeField::TYPE_DATETIME:
                             $formattedDate = new \DateTime(str_replace('/', '-', $value));
                             $value = '%' . $formattedDate->format('Y-m-d') . '%';
@@ -316,7 +319,7 @@ class ReferenceArticleRepository extends EntityRepository
                         case FreeField::TYPE_LIST_MULTIPLE:
                             $value = array_map(function (string $value) {
                                 return '%' . $value . '%';
-                            }, explode(',', $value));
+                            }, json_decode($value));
                             break;
                         case FreeField::TYPE_NUMBER:
                             break;
@@ -338,7 +341,6 @@ class ReferenceArticleRepository extends EntityRepository
 
                     $qb
                         ->andWhere($jsonSearchesQueryString);
-
                 }
             }
         }

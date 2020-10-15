@@ -5,6 +5,12 @@ let $printTag;
 let pageTables = [];
 
 $(function () {
+    $('#modalNewFilter').on('hide.bs.modal',function(e) {
+        const $modal = $(e.currentTarget);
+        $modal.find('.input-group').html('');
+        $('.valueLabel').text('');
+    });
+
     $('.select2').select2();
     $printTag = $('#printTag');
     let activeFilter;
