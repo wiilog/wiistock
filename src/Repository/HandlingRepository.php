@@ -31,7 +31,8 @@ class HandlingRepository extends EntityRepository
         'validationDate' => 'validationDate',
         'status' => 'status',
         'emergency' => 'emergency',
-        'treatedBy' => 'treatedBy'
+        'treatedBy' => 'treatedBy',
+        'treatmentDelay' => 'treatmentDelay',
     ];
 
     /**
@@ -272,6 +273,9 @@ class HandlingRepository extends EntityRepository
                     } else if ($column === 'emergency') {
                         $qb
                             ->orderBy('handling.emergency', $order);
+                    } else if ($column === 'treatmentDelay') {
+                        $qb
+                            ->orderBy('handling.treatmentDelay', $order);
                     } else if ($column === 'treatedBy') {
                         $qb
                             ->leftJoin('handling.treatedByHandling', 'order_treatedByHandling')

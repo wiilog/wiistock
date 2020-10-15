@@ -39,27 +39,31 @@ $(function () {
 
     $('[data-toggle="popover"]').popover();
 
+    setTimeout(() => {openModalNew()}, 200);
 
-    setTimeout(() => {
-        let query = GetRequestQuery();
-        const openModalNew = 'new';
-        const openModalEdit = 'edit';
-        if (query["open-modal"] === openModalNew
-            || query["open-modal"] === openModalEdit) {
-            if (query["open-modal"] === openModalNew) {
-                $('[data-modal-type="new"]').first().modal("show");
-            }
-            else { // edit
-                const $openModal = $(`.open-modal-edit`);
-                $openModal.data('id', query['modal-edit-id']);
-                $openModal.trigger('click');
-                delete query['modal-edit-id'];
-            }
-            delete query["open-modal"];
-            SetRequestQuery(query);
-        }
-    }, 200);
 });
+
+function openModalNew(query = null, event) {
+    if (event) {
+        event.preventDefault();
+    }
+    query = query || GetRequestQuery();
+    const openModalNew = 'new';
+    const openModalEdit = 'edit';
+    if (query["open-modal"] === openModalNew
+        || query["open-modal"] === openModalEdit) {
+        if (query["open-modal"] === openModalNew) {
+            $('[data-modal-type="new"]').first().modal("show");
+        } else { // edit
+            const $openModal = $(`.open-modal-edit`);
+            $openModal.data('id', query['modal-edit-id']);
+            $openModal.trigger('click');
+            delete query['modal-edit-id'];
+        }
+        delete query["open-modal"];
+        SetRequestQuery(query);
+    }
+}
 
 //DELETE
 function deleteRow(button, modal, submit) {

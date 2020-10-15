@@ -32,6 +32,7 @@ class DispatchPackRepository extends EntityRepository {
             ->leftJoin('pack.lastTracking', 'packLastTracking')
             ->leftJoin('packLastTracking.emplacement', 'packLastLocation')
             ->where('dispatch.id IN (:dispatchIds)')
+            ->andWhere('dispatch_pack.treated = false')
             ->setParameter('dispatchIds', $dispatchIds);
         return $queryBuilder
             ->getQuery()
