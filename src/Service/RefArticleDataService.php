@@ -478,7 +478,6 @@ class RefArticleDataService {
             $reference = $entity->getReference();
             $code = $entity->getBarCode();
             $label = $entity->getLibelle();
-            $quantity = $entity->getQuantiteStock();
             $quantityType = $entity->getTypeQuantite();
             $security = $entity->getLimitSecurity();
             $warning = $entity->getLimitWarning();
@@ -486,8 +485,7 @@ class RefArticleDataService {
             $reference = $entity->getReference();
             $code = $entity->getBarCode();
             $label = $entity->getLabel();
-            $quantity = $entity->getQuantite();
-            $expiry = $entity->getExpiryDate()->format("d/m/Y H:i");
+            $expiry = $entity->getExpiryDate() ? $entity->getExpiryDate()->format("d/m/Y H:i") : "Non défini";
         } else {
             throw new RuntimeException("Invalid alert");
         }

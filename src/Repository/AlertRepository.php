@@ -39,7 +39,9 @@ class AlertRepository extends EntityRepository {
     public function getAlertDataByParams($params, $filters) {
         $qb = $this->createQueryBuilder("a")
             ->leftJoin("a.reference", "reference")
-            ->leftJoin("a.article", "article");
+            ->leftJoin("a.article", "article")
+            ->leftJoin('reference.articlesFournisseur', 'af')
+            ->leftJoin('af.articles', 'raarticle');
 
         $total = QueryCounter::count($qb, "a");
 
@@ -55,12 +57,19 @@ class AlertRepository extends EntityRepository {
                     $qb->andWhere('a.type = :alert')
                         ->setParameter('alert', $filter['value']);
                     break;
-//                case 'utilisateurs':
-//                    $qb
-//                        ->join('ra.type', 't3')
-//                        ->andWhere('t3.label LIKE :type')
-//                        ->setParameter('type', $filter['value']);
-//                    break;
+                case 'utilisateurs':
+                    $value = explode(',', $filter['value']);
+
+                    $or = $qb->expr()->orX();
+                    foreach($value as $user) {
+                        $or->add(":user_$user IN rmanagers");
+                        $qb->setParameter('users', $value);
+                    }
+
+                    $qb->andWhere($or)
+                        ->join('reference.managers', 'rmanagers')
+                        ->join('raarticle.managers', 'amanagers');
+                    break;
             }
         }
 
@@ -96,16 +105,7 @@ class AlertRepository extends EntityRepository {
                                 ->orderBy("code", $order);
                             break;
                         case "quantity":
-                            $qb
-                                ->leftJoin('reference.articlesFournisseur', 'af')
-                                ->leftJoin('af.articles', 'raarticle')
-                                ->addSelect('COALESCE(CASE
-								WHEN reference.typeQuantite = \'article\'
-								THEN SUM(raarticle.quantite)
-								ELSE reference.quantiteStock
-								END, article.quantite) AS quantity')
-                                ->groupBy('a.id')
-                                ->orderBy('quantity', $order);
+                            $qb->orderBy('quantity', $order);
                             break;
                         case "quantityType":
                             $qb->orderBy("reference.typeQuantite", $order);
@@ -126,6 +126,13 @@ class AlertRepository extends EntityRepository {
                 }
             }
         }
+
+        $qb->groupBy('a.id')
+            ->addSelect('COALESCE(CASE
+								WHEN reference.typeQuantite = \'' .ReferenceArticle::TYPE_QUANTITE_ARTICLE . '\'
+								THEN SUM(raarticle.quantite)
+								ELSE reference.quantiteStock
+								END, article.quantite) AS quantity');
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
