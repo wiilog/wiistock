@@ -10,6 +10,7 @@ use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
+use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -78,6 +79,7 @@ class ReferenceArticleRepository extends EntityRepository
             ->addSelect('referenceArticle.dateLastInventory')
             ->addSelect('referenceArticle.needsMobileSync')
             ->addSelect('referenceArticle.freeFields')
+            ->addSelect('referenceArticle.stockManagement')
             ->leftJoin('referenceArticle.statut', 'statutRef')
             ->leftJoin('referenceArticle.emplacement', 'emplacementRef')
             ->leftJoin('referenceArticle.type', 'typeRef')
@@ -225,6 +227,8 @@ class ReferenceArticleRepository extends EntityRepository
             'limitSecurity' => ['field' => 'Seuil de securité', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
             'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
+            'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text'],
+            'Gestionnaire(s)' => ['field' => 'managers', 'typage' => 'text'],
         ];
 
         $qb
@@ -237,6 +241,10 @@ class ReferenceArticleRepository extends EntityRepository
                     $qb->leftJoin('ra.statut', 'sra');
                     $qb->andWhere('sra.nom LIKE \'' . $filter['value'] . '\'');
                 }
+            } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_MANAGERS) {
+                $qb->leftJoin('ra.managers', 'managers')
+                    ->andWhere('managers.username LIKE :username')
+                    ->setParameter('username', '%' . $filter['value'] . '%');
             } else {
                 // cas particulier champ référence article fournisseur
                 if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_REF_ART_FOURN) {
@@ -308,14 +316,17 @@ class ReferenceArticleRepository extends EntityRepository
                             break;
                         case FreeField::TYPE_DATE:
                         case FreeField::TYPE_DATETIME:
-                            $formattedDate = new \DateTime(str_replace('/', '-', $value));
-                            $value = '%' . $formattedDate->format('Y-m-d') . '%';
+                            $formattedDate = DateTime::createFromFormat('d/m/Y', $value) ?: $value;
+                            $value =  $formattedDate->format('Y-m-d');
+                            if ($freeFieldType === FreeField::TYPE_DATETIME) {
+                                $value .= '%';
+                            }
                             break;
                         case FreeField::TYPE_LIST:
                         case FreeField::TYPE_LIST_MULTIPLE:
                             $value = array_map(function (string $value) {
                                 return '%' . $value . '%';
-                            }, explode(',', $value));
+                            }, json_decode($value));
                             break;
                         case FreeField::TYPE_NUMBER:
                             break;
@@ -337,7 +348,6 @@ class ReferenceArticleRepository extends EntityRepository
 
                     $qb
                         ->andWhere($jsonSearchesQueryString);
-
                 }
             }
         }
@@ -382,6 +392,18 @@ class ReferenceArticleRepository extends EntityRepository
                                 }
                                 break;
 
+                            case 'Gestionnaire(s)':
+                                $subqb = $this->createQueryBuilder('referenceArticle');
+                                $subqb
+                                    ->select('referenceArticle.id')
+                                    ->leftJoin('referenceArticle.managers', 'managers')
+                                    ->andWhere('managers.username LIKE :username')
+                                    ->setParameter('username', '%' . $searchValue . '%');
+
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+                                break;
                             default:
                                 $metadatas = $em->getClassMetadata(ReferenceArticle::class);
                                 $field = !empty($linkChampLibreLabelToField[$searchField]) ? $linkChampLibreLabelToField[$searchField]['field'] : '';
@@ -445,6 +467,10 @@ class ReferenceArticleRepository extends EntityRepository
                         case 'prixUnitaire':
                             $qb
                                 ->orderBy('ra.prixUnitaire', $order);
+                            break;
+                        case 'stockManagement':
+                            $qb
+                                ->orderBy('ra.stockManagement', $order);
                             break;
                         default:
                             if (property_exists(ReferenceArticle::class, $column)) {

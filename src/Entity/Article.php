@@ -156,9 +156,9 @@ class Article extends FreeFieldEntity
     private $preparation;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="article")
+     * @ORM\OneToMany(targetEntity=Pack::class, mappedBy="article")
      */
-    private $mouvementTracas;
+    private $trackingPacks;
 
     /**
      * @ORM\ManyToMany(targetEntity=TransferRequest::class, mappedBy="articles")
@@ -193,7 +193,7 @@ class Article extends FreeFieldEntity
         $this->inventoryMissions = new ArrayCollection();
         $this->litiges = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
-        $this->mouvementTracas = new ArrayCollection();
+        $this->trackingPacks = new ArrayCollection();
         $this->transferRequests = new ArrayCollection();
 
         $this->quantite = 0;
@@ -587,30 +587,27 @@ class Article extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|MouvementTraca[]
+     * @return Collection|Pack[]
      */
-    public function getMouvementTracas(): Collection
-    {
-        return $this->mouvementTracas;
+    public function getTrackingPacks(): Collection {
+        return $this->trackingPacks;
     }
 
-    public function addMouvementTraca(MouvementTraca $mouvementTraca): self
-    {
-        if (!$this->mouvementTracas->contains($mouvementTraca)) {
-            $this->mouvementTracas[] = $mouvementTraca;
-            $mouvementTraca->setArticle($this);
+    public function addTrackingPack(Pack $pack): self {
+        if (!$this->trackingPacks->contains($pack)) {
+            $this->trackingPacks[] = $pack;
+            $pack->setArticle($this);
         }
 
         return $this;
     }
 
-    public function removeMouvementTraca(MouvementTraca $mouvementTraca): self
-    {
-        if ($this->mouvementTracas->contains($mouvementTraca)) {
-            $this->mouvementTracas->removeElement($mouvementTraca);
+    public function removeTrackingPack(Pack $pack): self {
+        if ($this->trackingPacks->contains($pack)) {
+            $this->trackingPacks->removeElement($pack);
             // set the owning side to null (unless already changed)
-            if ($mouvementTraca->getArticle() === $this) {
-                $mouvementTraca->setArticle(null);
+            if ($pack->getArticle() === $this) {
+                $pack->setArticle(null);
             }
         }
 

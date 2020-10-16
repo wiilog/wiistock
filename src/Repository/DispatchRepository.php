@@ -254,7 +254,7 @@ class DispatchRepository extends EntityRepository
             ->where('status.needsMobileSync = 1')
             ->andWhere('status.state IN (:untreatedStates)')
             ->andWhere('type.id IN (:dispatchTypeIds)')
-            ->setParameter('untreatedStates', [Statut::DRAFT, Statut::NOT_TREATED])
+            ->setParameter('untreatedStates', [Statut::DRAFT, Statut::NOT_TREATED, Statut::PARTIAL])
             ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds());
 
         return $queryBuilder

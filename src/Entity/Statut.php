@@ -16,6 +16,7 @@ class Statut
     const NOT_TREATED = 1;
     const TREATED = 2;
     const DISPUTE = 3;
+    const PARTIAL = 4;
 
     /**
      * @ORM\Id()
@@ -176,6 +177,10 @@ class Statut
 
     public function isTreated(): ?bool {
         return $this->state === self::TREATED;
+    }
+
+    public function isPartial(): ?bool {
+        return $this->state === self::PARTIAL;
     }
 
     public function isDraft(): ?bool {

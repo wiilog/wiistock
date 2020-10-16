@@ -201,7 +201,20 @@ class RefArticleDataService {
             'totalQuantity' => $data['totalQuantity'],
             'articles' => $articlesFournisseur,
             'categories' => $categories,
-            'isADemand' => $isADemand
+            'isADemand' => $isADemand,
+            'stockManagement' => [
+                ReferenceArticle::STOCK_MANAGEMENT_FEFO,
+                ReferenceArticle::STOCK_MANAGEMENT_FIFO
+            ],
+            'managers' => $refArticle->getManagers()
+                ->map(function (Utilisateur $manager) {
+                    $managerId = $manager->getId();
+                    $managerUsername = $manager->getUsername();
+                    return [
+                        'managerId' => $managerId,
+                        'managerUsername' => $managerUsername
+                    ];
+                })
         ]);
     }
 
@@ -226,6 +239,7 @@ class RefArticleDataService {
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
         //modification champsFixes
         $entityManager = $this->entityManager;
@@ -255,25 +269,43 @@ class RefArticleDataService {
             }
         }
 
-        if(isset($data['categorie'])) $refArticle->setCategory($category);
-        if(isset($data['urgence'])) {
-            if($data['urgence'] && $data['urgence'] !== $refArticle->getIsUrgent()) {
+        if (isset($data['categorie'])) {
+            $refArticle->setCategory($category);
+        }
+
+        if (isset($data['urgence'])) {
+            if ($data['urgence'] && $data['urgence'] !== $refArticle->getIsUrgent()) {
                 $refArticle->setUserThatTriggeredEmergency($user);
             } else if(!$data['urgence']) {
                 $refArticle->setUserThatTriggeredEmergency(null);
             }
             $refArticle->setIsUrgent($data['urgence']);
         }
-        if(isset($data['prix'])) $refArticle->setPrixUnitaire($price);
-        if(isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
-        if(isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
-        if(isset($data['limitWarning'])) $refArticle->setLimitWarning($data['limitWarning']);
-        if(isset($data['mobileSync'])) $refArticle->setNeedsMobileSync($data['mobileSync']);
-        if($data['emergency-comment-input']) {
+
+        if (isset($data['prix'])) {
+            $refArticle->setPrixUnitaire($price);
+        }
+
+        if (isset($data['libelle'])) {
+            $refArticle->setLibelle($data['libelle']);
+        }
+
+        if (isset($data['commentaire'])) {
+            $refArticle->setCommentaire($data['commentaire']);
+        }
+
+        if (isset($data['mobileSync'])) {
+            $refArticle->setNeedsMobileSync($data['mobileSync']);
+        }
+
+        $refArticle->setLimitWarning((empty($data['limitWarning']) && $data['limitWarning'] !== 0 && $data['limitWarning'] !== '0') ? null : intval($data['limitWarning']));
+        $refArticle->setLimitSecurity((empty($data['limitSecurity']) && $data['limitSecurity'] !== 0 && $data['limitSecurity'] !== '0') ? null : intval($data['limitSecurity']));
+
+        if ($data['emergency-comment-input']) {
             $refArticle->setEmergencyComment($data['emergency-comment-input']);
         }
-        if(isset($data['limitSecurity'])) $refArticle->setLimitSecurity($data['limitSecurity']);
-        if(isset($data['statut'])) {
+
+        if (isset($data['statut'])) {
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
             if($statut) {
                 $refArticle->setStatut($statut);
@@ -284,6 +316,20 @@ class RefArticleDataService {
             $type = $typeRepository->find(intval($data['type']));
             if($type) $refArticle->setType($type);
         }
+
+        $refArticle->setStockManagement($data['stockManagement']);
+
+        $managers = (array) $data['managers'];
+
+        $existingManagers = $refArticle->getManagers();
+        foreach($existingManagers as $manager) {
+            $refArticle->removeManager($manager);
+        }
+
+        foreach ($managers as $manager) {
+            $refArticle->addManager($userRepository->find($manager));
+        }
+
 
         $entityManager->flush();
         //modification ou création des champsLibres
@@ -344,6 +390,17 @@ class RefArticleDataService {
             'Urgence' => $refArticle->getIsUrgent() ? 'Oui' : 'Non',
             'Synchronisation nomade' => $refArticle->getNeedsMobileSync() ? 'Oui' : 'Non',
             "Dernier inventaire" => $refArticle->getDateLastInventory() ? $refArticle->getDateLastInventory()->format('d/m/Y') : '',
+            'stockManagement' => $refArticle->getStockManagement() ?? '',
+            'managers' => implode(', ', array_unique(
+                    $refArticle->getManagers()
+                        ->map(function (Utilisateur $manager) {
+                            return $manager->getUsername() ?: '';
+                        })
+                        ->filter(function (string $username) {
+                            return !empty($username);
+                        })
+                        ->toArray())
+            ),
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),
                 'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,

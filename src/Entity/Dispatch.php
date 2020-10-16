@@ -157,7 +157,7 @@ class Dispatch extends FreeFieldEntity
     private $dispatchPacks;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="dispatch")
+     * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="dispatch")
      */
     private $trackingMovements;
 
@@ -506,7 +506,7 @@ class Dispatch extends FreeFieldEntity
         return $this->trackingMovements;
     }
 
-    public function addTrackingMovement(MouvementTraca $trackingMovement): self
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self
     {
         if (!$this->trackingMovements->contains($trackingMovement)) {
             $this->trackingMovements[] = $trackingMovement;
@@ -516,7 +516,7 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
-    public function removeTrackingMovement(MouvementTraca $trackingMovement): self
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self
     {
         if ($this->trackingMovements->contains($trackingMovement)) {
             $this->trackingMovements->removeElement($trackingMovement);

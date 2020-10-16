@@ -13,51 +13,58 @@ use Doctrine\ORM\EntityRepository;
  */
 class AttachmentRepository extends EntityRepository
 {
-    public function findOneByFileName($filename)
+    public function findOneByFileName($fileName)
 	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-            "SELECT pj
-           FROM App\Entity\Attachment pj
-           WHERE pj.fileName = :filename"
-		)->setParameter('filename', $filename);
-		;
-		return $query->getResult();
+	    $qb = $this->createQueryBuilder('piece_jointe');
+
+	    $qb
+            ->select('attachment')
+            ->where('attachment.fileName = :fileName')
+            ->setParameter('filename', $fileName);
+
+	    return $qb
+            ->getQuery()
+            ->getResult();
 	}
 
-	public function findOneByFileNameAndLitigeId($filename, $litigeId)
+	public function findOneByFileNameAndLitigeId($fileName, $litigeId)
 	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			/** @lang  DQL */
-            "SELECT pj
-           FROM App\Entity\Attachment pj
-           WHERE pj.fileName = :filename AND pj.litige = :litigeId"
-		)->setParameters(['filename' => $filename, 'litigeId' => $litigeId]);
+        $qb = $this->createQueryBuilder('attachment');
 
-		return $query->getResult();
+        $qb
+            ->select('attachment')
+            ->where('attachment.fileName = :fileName')
+            ->andWhere('attachment.litige = :litigeId')
+            ->setParameters([
+                'fileName' => $fileName,
+                'litigeId' => $litigeId
+            ]);
+
+        return $qb
+            ->getQuery()
+            ->getResult();
 	}
 
-	public function getNameGroupByMouvements() {
+	public function getNameGroupByMovements() {
         $queryBuilder = $this->createQueryBuilder('attachment')
-            ->select('mouvementTraca.id AS mouvementTracaId')
+            ->select('trackingMovement.id AS trackingMovementId')
             ->addSelect('attachment.originalName')
-            ->join('attachment.mouvementTraca', 'mouvementTraca');
+            ->join('attachment.trackingMovement', 'trackingMovement');
 
         $result = $queryBuilder
             ->getQuery()
             ->getResult();
 
         return array_reduce($result, function ($acc, $attachment) {
-            $mouvementTracaId = (int) $attachment['mouvementTracaId'];
-            if (empty($acc[$mouvementTracaId])) {
-                $acc[$mouvementTracaId] = '';
+            $trackingMovementId = (int) $attachment['trackingMovementId'];
+            if (empty($acc[$trackingMovementId])) {
+                $acc[$trackingMovementId] = '';
             }
             else {
-                $acc[$mouvementTracaId] .= ', ';
+                $acc[$trackingMovementId] .= ', ';
             }
 
-            $acc[$mouvementTracaId] .= $attachment['originalName'];
+            $acc[$trackingMovementId] .= $attachment['originalName'];
             return $acc;
         }, []);
     }

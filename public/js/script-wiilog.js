@@ -41,29 +41,33 @@ $(function () {
 
     $('[data-toggle="popover"]').popover();
 
-
-    $('.modal.auto-open').modal('show');
-
     setTimeout(() => {
-        let query = GetRequestQuery();
-        const openModalNew = 'new';
-        const openModalEdit = 'edit';
-        if (query["open-modal"] === openModalNew
-            || query["open-modal"] === openModalEdit) {
-            if (query["open-modal"] === openModalNew) {
-                $('[data-modal-type="new"]').first().modal("show");
-            }
-            else { // edit
-                const $openModal = $(`.open-modal-edit`);
-                $openModal.data('id', query['modal-edit-id']);
-                $openModal.trigger('click');
-                delete query['modal-edit-id'];
-            }
-            delete query["open-modal"];
-            SetRequestQuery(query);
-        }
+        openQueryModal();
     }, 200);
+
 });
+
+function openQueryModal(query = null, event) {
+    if (event) {
+        event.preventDefault();
+    }
+    query = query || GetRequestQuery();
+    const openModalNew = 'new';
+    const openModalEdit = 'edit';
+    if (query["open-modal"] === openModalNew
+        || query["open-modal"] === openModalEdit) {
+        if (query["open-modal"] === openModalNew) {
+            $('[data-modal-type="new"]').first().modal("show");
+        } else { // edit
+            const $openModal = $(`.open-modal-edit`);
+            $openModal.data('id', query['modal-edit-id']);
+            $openModal.trigger('click');
+            delete query['modal-edit-id'];
+        }
+        delete query["open-modal"];
+        SetRequestQuery(query);
+    }
+}
 
 //DELETE
 function deleteRow(button, modal, submit) {
@@ -1181,7 +1185,7 @@ function onTypeChange($select) {
         $correspondingStatuses.removeClass('d-none');
         const defaultStatuses = JSON.parse($selectStatus.siblings('input[name="defaultStatuses"]').val() || '{}');
 
-        if ($correspondingStatuses.length !== 0) {
+        if ($correspondingStatuses.length > 1) {
             $selectStatus.removeClass('d-none');
             if (defaultStatuses[type]) {
                 $selectStatus.val(defaultStatuses[type]);
@@ -1190,6 +1194,10 @@ function onTypeChange($select) {
             } else {
                 $selectStatus.removeAttr('disabled');
             }
+        } else if($correspondingStatuses.length === 1) {
+            $selectStatus.val($modal.find('select[name="status"] option:not(.d-none):first').val())
+                .removeClass('d-none')
+                .prop('disabled', true);
         } else if (type) {
             $errorEmptyStatus.removeClass('d-none');
             $selectStatus.addClass('d-none');
