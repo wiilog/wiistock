@@ -5,7 +5,7 @@ $(document).ready(() => {
     Select2.init($statusSelector, 'Statuts');
     Select2.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     Select2.user($('.filterService select[name="requesters"]'), "Demandeurs");
-    Select2.user($('.filterService select[name="operator"]'), "Opérateurs");
+    Select2.user($('.filterService select[name="operators"]'), "Opérateurs");
 
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
@@ -35,13 +35,13 @@ $(document).ready(() => {
 
 $('.select2').select2();
 
-let pathTransferRequest = Routing.generate('transfer_request_api', true);
-let transferRequestTableConfig = {
+let pathTransferOrder = Routing.generate('transfer_request_api', true);
+let transferOrderTableConfig = {
     processing: true,
     serverSide: true,
     order: [[1, 'desc']],
     ajax: {
-        "url": pathTransferRequest,
+        "url": pathTransferOrder,
         "type": "POST",
         'data' : {
             'filterStatus': $('#filterStatus').val()
@@ -63,7 +63,7 @@ let transferRequestTableConfig = {
         {"data": 'validationDate', 'name': 'Validation', 'title': 'Date de validation'},
     ]
 };
-let table = initDataTable('tableTransferRequest', transferRequestTableConfig);
+let table = initDataTable('tableTransferRequest', transferOrderTableConfig);
 
 
 let modalNewTransferRequest = $("#modalNewTransfer");

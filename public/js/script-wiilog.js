@@ -823,6 +823,7 @@ function displayFiltersSup(data) {
             case 'multipleTypes':
             case 'receivers':
             case 'requesters':
+            case 'operators':
             case 'dispatchNumber':
             case 'emergencyMultiple':
                 let valuesElement = element.value.split(',');

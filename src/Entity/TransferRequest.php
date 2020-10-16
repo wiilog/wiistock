@@ -63,7 +63,7 @@ class TransferRequest {
     private $validationDate;
 
     /**
-     * @ORM\OneToOne(targetEntity=TransferOrder::class, mappedBy="request", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity=TransferOrder::class, mappedBy="request")
      */
     private $order;
 
@@ -135,7 +135,7 @@ class TransferRequest {
         return $this->validationDate;
     }
 
-    public function setValidationDate(DateTimeInterface $validationDate): self {
+    public function setValidationDate(?DateTimeInterface $validationDate): self {
         $this->validationDate = $validationDate;
         return $this;
     }

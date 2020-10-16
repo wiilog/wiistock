@@ -2,17 +2,17 @@
 
 namespace App\Repository;
 
-use App\Entity\TransferRequest;
+use App\Entity\TransferOrder;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 
 /**
- * @method TransferRequest|null find($id, $lockMode = null, $lockVersion = null)
- * @method TransferRequest|null findOneBy(array $criteria, array $orderBy = null)
- * @method TransferRequest[]    findAll()
- * @method TransferRequest[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method TransferOrder|null find($id, $lockMode = null, $lockVersion = null)
+ * @method TransferOrder|null findOneBy(array $criteria, array $orderBy = null)
+ * @method TransferOrder[]    findAll()
+ * @method TransferOrder[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class TransferRequestRepository extends EntityRepository {
+class TransferOrderRepository extends EntityRepository {
 
     public function findByParamsAndFilters($params, $filters) {
         $qb = $this->createQueryBuilder("t");
@@ -31,16 +31,14 @@ class TransferRequestRepository extends EntityRepository {
                 case 'requesters':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('t.requester', 'req')
-                        ->andWhere("req.id in (:id)")
+                        ->join('t.request', 'requestFilter')
+                        ->andWhere("requestFilter.requester in (:id)")
                         ->setParameter('id', $value);
                     break;
                 case 'operators':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('t.order', 'to')
-                        ->join('to.operator', 'tou')
-                        ->andWhere("tou.id in (:id)")
+                        ->andWhere("t.operator in (:id)")
                         ->setParameter('id', $value);
                     break;
                 case 'dateMin':
@@ -61,16 +59,19 @@ class TransferRequestRepository extends EntityRepository {
                 if (!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb
+                        ->join('t.request', 'request')
                         ->andWhere(
                             $exprBuilder->orX(
                                 't.number LIKE :value',
                                 'req_search.username LIKE :value',
+                                'op_search.username LIKE :value',
                                 'status_search.nom LIKE :value'
                             )
                         )
                         ->setParameter('value', '%' . $search . '%')
-                        ->leftJoin('t.requester', 'req_search')
-                        ->leftJoin('t.status', 'status_search');
+                        ->leftJoin('request.requester', 'req_search')
+                        ->leftJoin('t.operator', 'op_search')
+                        ->leftJoin('request.status', 'status_search');
                 }
             }
 

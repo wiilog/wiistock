@@ -356,7 +356,7 @@ class TransferRequestController extends AbstractController {
                 ])
             ]);
         }
-        if($article && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        if(!isset($content->fetchOnly) && $article && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             if ($transfer->getArticles()->contains($article)) {
                 return $this->json([
                     "success" => false,
@@ -365,7 +365,7 @@ class TransferRequestController extends AbstractController {
             }
             $transfer->addArticle($article);
             $manager->flush();
-        } else if($reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+        } else if(!isset($content->fetchOnly) && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             if ($transfer->getReferences()->contains($reference)) {
                 return $this->json([
                     "success" => false,
@@ -444,126 +444,27 @@ class TransferRequestController extends AbstractController {
     }
 
     /**
-     * @Route("/non-vide", name="transfer_request_has_articles", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/non-vide/{id}", name="transfer_request_has_articles", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param EntityManagerInterface $entityManager
+     * @param TransferRequest $transferRequest
      * @return Response
      */
     public function hasArticles(Request $request,
-                                EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $articleRepository = $entityManager->getRepository(Article::class);
-            $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
+                                TransferRequest $transferRequest): Response {
+        if($request->isXmlHttpRequest()) {
+            $count = $transferRequest->getArticles()->count() + $transferRequest->getReferences()->count();
 
-            $articles = $articleRepository->findByCollecteId($data['id']);
-            $referenceCollectes = $collecteReferenceRepository->findByCollecte($data['id']);
-            $count = count($articles) + count($referenceCollectes);
-
-            return new JsonResponse($count > 0);
+            if ($count > 0) {
+                return $this->redirectToRoute('transfer_order_new', [
+                    'id' => $transferRequest->getId()
+                ]);
+            } else {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Aucun article dans la demande de transfert.'
+                ]);
+            }
         }
         throw new NotFoundHttpException('404');
     }
-
-    /**
-     * @Route("/autocomplete", name="get_demand_collect", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function getDemandCollectAutoComplete(Request $request,
-                                                 EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $collecteRepository = $entityManager->getRepository(Collecte::class);
-
-            $search = $request->query->get('term');
-
-            $collectes = $collecteRepository->getIdAndLibelleBySearch($search);
-
-            return new JsonResponse(['results' => $collectes]);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route("/csv", name="get_demandes_collectes_for_csv",options={"expose"=true}, methods="GET|POST" )
-     * @param EntityManagerInterface $entityManager
-     * @param DemandeCollecteService $demandeCollecteService
-     * @param Request $request
-     * @param FreeFieldService $freeFieldService
-     * @param CSVExportService $CSVExportService
-     * @return Response
-     * @throws Exception
-     */
-    public function getDemandesCollecteCSV(EntityManagerInterface $entityManager,
-                                           DemandeCollecteService $demandeCollecteService,
-                                           Request $request,
-                                           FreeFieldService $freeFieldService,
-                                           CSVExportService $CSVExportService): Response {
-        $dateMin = $request->query->get('dateMin');
-        $dateMax = $request->query->get('dateMax');
-
-        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
-        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-
-        if(isset($dateTimeMin) && isset($dateTimeMax)) {
-            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_COLLECTE]);
-
-            $collecteRepository = $entityManager->getRepository(Collecte::class);
-            $collectes = $collecteRepository->findByDates($dateTimeMin, $dateTimeMax);
-
-            $csvHeader = array_merge(
-                [
-                    'Numero demande',
-                    'Date de création',
-                    'Date de validation',
-                    'Type',
-                    'Statut',
-                    'Sujet',
-                    'Stock ou destruction',
-                    'Demandeur',
-                    'Point de collecte',
-                    'Commentaire',
-                    'Code barre',
-                    'Quantité',
-                ],
-                $freeFieldsConfig['freeFieldsHeader']
-            );
-            $today = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $fileName = "export_demande_collecte" . $today->format('d_m_Y') . ".csv";
-            return $CSVExportService->createBinaryResponseFromData(
-                $fileName,
-                $collectes,
-                $csvHeader,
-                function(Collecte $collecte) use ($freeFieldsConfig, $freeFieldService, $demandeCollecteService) {
-                    $rows = [];
-                    foreach($collecte->getArticles() as $article) {
-                        $rows[] = $demandeCollecteService->serialiseExportRow($collecte, $freeFieldsConfig, $freeFieldService, function() use ($article) {
-                            return [
-                                $article->getBarCode(),
-                                $article->getQuantite()
-                            ];
-                        });
-                    }
-
-                    foreach($collecte->getCollecteReferences() as $collecteReference) {
-                        $rows[] = $demandeCollecteService->serialiseExportRow($collecte, $freeFieldsConfig, $freeFieldService, function() use ($collecteReference) {
-                            return [
-                                $collecteReference->getReferenceArticle() ? $collecteReference->getReferenceArticle()->getBarCode() : '',
-                                $collecteReference->getQuantite()
-                            ];
-                        });
-                    }
-
-                    return $rows;
-                }
-            );
-        } else {
-            throw new NotFoundHttpException('404');
-        }
-    }
-
 }

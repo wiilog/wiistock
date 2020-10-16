@@ -113,7 +113,6 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
                 TransferRequest::TREATED,
             ],
             CategorieStatut::TRANSFER_ORDER => [
-                TransferOrder::DRAFT,
                 TransferOrder::TO_TREAT,
                 TransferOrder::TREATED,
             ],
