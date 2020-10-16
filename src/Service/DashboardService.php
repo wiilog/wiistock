@@ -423,8 +423,8 @@ class DashboardService
         $natureRepository = $entityManager->getRepository(Nature::class);
         $locationClusterRepository = $entityManager->getRepository(LocationCluster::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $packRepository = $entityManager->getRepository(Pack::class);
         $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
+        $packsRepository = $entityManager->getRepository(Pack::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
 
@@ -450,22 +450,25 @@ class DashboardService
         ];
 
         if (!empty($naturesForGraph)) {
-            $cluster = $locationClusterRepository->findOneBy(
-                [
-                    'code' => $clusterCode
-                ]
-            );
+            $cluster = $locationClusterRepository->findOneBy([
+                'code' => $clusterCode
+            ]);
             $packsOnCluster = $locationClusterRepository->getPacksOnCluster($clusterCode, $naturesForGraph);
             $packsOnClusterVerif = Stream::from(
-                $packRepository->getCurrentPackOnLocations(
+                $packsRepository->getCurrentPackOnLocations(
                 $cluster->getLocations()->toArray(),
                 $naturesIdForGraph,
                 [],
-                false
+                false,
+                    'colis.id, emplacement.label'
                 )
-            )->map(function(array $id) {
-                return $id['id'];
-            })->toArray();
+            )->reduce(function(array $carry, array $pack) {
+                if (!isset($carry[$pack['label']])) {
+                    $carry[$pack['label']] = [];
+                }
+                $carry[$pack['label']][] = $pack['id'];
+                return $carry;
+            }, []);
             $countByNatureBase = [];
             foreach ($naturesForGraph as $wantedNature) {
                 $countByNatureBase[$wantedNature->getLabel()] = 0;
@@ -488,7 +491,7 @@ class DashboardService
                 $countByNature = array_merge($countByNatureBase);
                 $packUntreated = [];
                 foreach ($packsOnCluster as $pack) {
-                    if (in_array(intval($pack['packId']), $packsOnClusterVerif)) {
+                    if (isset($packsOnClusterVerif[$pack['currentLocationLabel']]) && in_array(intval($pack['packId']), $packsOnClusterVerif[$pack['currentLocationLabel']])) {
                         $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $pack['firstTrackingDateTime'], $workFreeDays);
                         $timeInformation = $this->enCoursService->getTimeInformation($date, $adminDelay);
                         $countDownHours = isset($timeInformation['countDownLateTimespan'])
