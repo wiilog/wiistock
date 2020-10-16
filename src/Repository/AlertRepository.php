@@ -62,13 +62,16 @@ class AlertRepository extends EntityRepository {
 
                     $or = $qb->expr()->orX();
                     foreach($value as $user) {
-                        $or->add(":user_$user IN rmanagers");
-                        $qb->setParameter('users', $value);
+                        $id = explode(":", $user)[0];
+
+                        $or->add(":user_$id MEMBER OF reference.managers");
+                        $or->add(":user_$id MEMBER OF articlera.managers");
+                        $qb->setParameter("user_$id", $value);
                     }
 
                     $qb->andWhere($or)
-                        ->join('reference.managers', 'rmanagers')
-                        ->join('raarticle.managers', 'amanagers');
+                        ->join("article.articleFournisseur", "articleaf")
+                        ->join("articleaf.referenceArticle", "articlera");
                     break;
             }
         }

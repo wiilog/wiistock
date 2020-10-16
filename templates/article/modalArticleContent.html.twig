@@ -66,12 +66,10 @@
     </div>
     <div class="form-group col-6">
         {% set managers = "" %}
-        {# TODO: remove condition when WIIS-2979 is merged #}
-        {% if article.articleFournisseur.referenceArticle.managers is defined %}
-            {% for manager in article.articleFournisseur.referenceArticle.managers %}
-                {% set managers = managers ~ (not loop.first ? ', ') ~ manager.username %}
-            {% endfor %}
-        {% endif %}
+        {% for manager in article.articleFournisseur.referenceArticle.managers %}
+            {% set managers = managers ~ (not loop.first ? ', ') ~ manager.username %}
+        {% endfor %}
+
         <label>Gestionnaires</label>
         <input class="form-control" type="text" value="{{ managers }}" disabled>
     </div>
