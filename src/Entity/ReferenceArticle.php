@@ -20,6 +20,9 @@ class ReferenceArticle extends FreeFieldEntity
 
     const BARCODE_PREFIX = 'REF';
 
+    const STOCK_MANAGEMENT_FEFO = 'FEFO';
+    const STOCK_MANAGEMENT_FIFO = 'FIFO';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -197,6 +200,16 @@ class ReferenceArticle extends FreeFieldEntity
      */
     private $transferRequests;
 
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $stockManagement;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", inversedBy="referencesArticle")
+     */
+    private $managers;
+
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();
@@ -210,6 +223,7 @@ class ReferenceArticle extends FreeFieldEntity
         $this->ordreCollecteReferences = new ArrayCollection();
         $this->ligneArticlePreparations = new ArrayCollection();
         $this->trackingPacks = new ArrayCollection();
+        $this->managers = new ArrayCollection();
 
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
@@ -824,6 +838,32 @@ class ReferenceArticle extends FreeFieldEntity
         return $this;
     }
 
+    /**
+     * @return Collection|Utilisateur[]
+     */
+    public function getManagers(): Collection
+    {
+        return $this->managers;
+    }
+
+    public function addManager(Utilisateur $manager): self
+    {
+        if (!$this->managers->contains($manager)) {
+            $this->managers[] = $manager;
+        }
+
+        return $this;
+    }
+
+    public function removeManager(Utilisateur $manager): self
+    {
+        if ($this->managers->contains($manager)) {
+            $this->managers->removeElement($manager);
+        }
+
+        return $this;
+    }
+
     public function getUserThatTriggeredEmergency(): ?Utilisateur
     {
         return $this->userThatTriggeredEmergency;
@@ -900,6 +940,18 @@ class ReferenceArticle extends FreeFieldEntity
             $this->transferRequests->removeElement($transferRequest);
             $transferRequest->removeReference($this);
         }
+
+        return $this;
+    }
+
+    public function getStockManagement(): ?string
+    {
+        return $this->stockManagement;
+    }
+
+    public function setStockManagement(?string $stockManagement): self
+    {
+        $this->stockManagement = $stockManagement;
 
         return $this;
     }

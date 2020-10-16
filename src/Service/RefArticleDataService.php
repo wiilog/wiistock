@@ -207,7 +207,20 @@ class RefArticleDataService
             'totalQuantity' => $data['totalQuantity'],
             'articles' => $articlesFournisseur,
             'categories' => $categories,
-            'isADemand' => $isADemand
+            'isADemand' => $isADemand,
+            'stockManagement' => [
+                ReferenceArticle::STOCK_MANAGEMENT_FEFO,
+                ReferenceArticle::STOCK_MANAGEMENT_FIFO
+            ],
+            'managers' => $refArticle->getManagers()
+                ->map(function (Utilisateur $manager) {
+                    $managerId = $manager->getId();
+                    $managerUsername = $manager->getUsername();
+                    return [
+                        'managerId' => $managerId,
+                        'managerUsername' => $managerUsername
+                    ];
+                })
         ]);
     }
 
@@ -233,6 +246,7 @@ class RefArticleDataService
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
         //modification champsFixes
         $entityManager = $this->entityManager;
@@ -310,6 +324,20 @@ class RefArticleDataService
             if ($type) $refArticle->setType($type);
         }
 
+        $refArticle->setStockManagement($data['stockManagement']);
+
+        $managers = (array) $data['managers'];
+
+        $existingManagers = $refArticle->getManagers();
+        foreach($existingManagers as $manager) {
+            $refArticle->removeManager($manager);
+        }
+
+        foreach ($managers as $manager) {
+            $refArticle->addManager($userRepository->find($manager));
+        }
+
+
         $entityManager->flush();
         //modification ou création des champsLibres
 
@@ -371,6 +399,17 @@ class RefArticleDataService
             'Urgence' => $refArticle->getIsUrgent() ? 'Oui' : 'Non',
             'Synchronisation nomade' => $refArticle->getNeedsMobileSync() ? 'Oui' : 'Non',
             "Dernier inventaire" => $refArticle->getDateLastInventory() ? $refArticle->getDateLastInventory()->format('d/m/Y') : '',
+            'stockManagement' => $refArticle->getStockManagement() ?? '',
+            'managers' => implode(', ', array_unique(
+                    $refArticle->getManagers()
+                        ->map(function (Utilisateur $manager) {
+                            return $manager->getUsername() ?: '';
+                        })
+                        ->filter(function (string $username) {
+                            return !empty($username);
+                        })
+                        ->toArray())
+            ),
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),
                 'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,

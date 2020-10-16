@@ -245,6 +245,19 @@ class ReferenceArticleController extends AbstractController
                     'name' => 'Synchronisation nomade',
                     "class" => (in_array('Synchronisation nomade', $columnsVisible) ? 'display' : 'hide'),
                 ],
+                [
+                    "title" => 'Gestion de stock',
+                    "data" => 'stockManagement',
+                    'name' => 'Gestion de stock',
+                    "class" => (in_array('Gestion de stock', $columnsVisible) ? 'display' : 'hide'),
+                ],
+                [
+                    "title" => 'Gestionnaire(s)',
+                    "data" => 'managers',
+                    'name' => 'Gestionnaire(s)',
+                    'orderable' => false,
+                    "class" => (in_array('Gestionnaire(s)', $columnsVisible) ? 'display' : 'hide'),
+                ]
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
@@ -311,6 +324,7 @@ class ReferenceArticleController extends AbstractController
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+            $userRepository = $entityManager->getRepository(Utilisateur::class);
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
@@ -380,6 +394,13 @@ class ReferenceArticleController extends AbstractController
                 $refArticle->setQuantiteStock(0);
             }
             $refArticle->setQuantiteReservee(0);
+            $refArticle->setStockManagement($data['stockManagement']);
+
+            $managers = (array) $data['managers'];
+            if (isset($data['managers'])) {
+                foreach ($managers as $manager)
+                    $refArticle->addManager($userRepository->find($manager));
+            }
 
             if (!empty($data['frl'])) {
                 foreach ($data['frl'] as $frl) {
@@ -560,6 +581,16 @@ class ReferenceArticleController extends AbstractController
             'id' => 0,
             'typage' => 'date'
         ];
+        $champF[] = [
+            'label' => 'Gestion de stock',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champF[] = [
+            'label' => 'Gestionnaire(s)',
+            'id' => 0,
+            'typage' => 'text'
+        ];
 
         // champs pour recherche personnalisée (uniquement de type texte ou liste)
 		$champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_TEXT);
@@ -598,6 +629,18 @@ class ReferenceArticleController extends AbstractController
         ];
         $champsFText[] = [
             'label' => 'Référence Article Fournisseur',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champsFText[] = [
+            'label' => 'Gestion de stock',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champsFText[] = [
+            'label' => 'Gestionnaire(s)',
             'id' => 0,
             'typage' => 'text'
 
@@ -644,7 +687,11 @@ class ReferenceArticleController extends AbstractController
             'typeQuantite' => $typeQuantite,
             'filters' => $filtreRefRepository->findByUserExceptChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT),
             'categories' => $inventoryCategories,
-            'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF
+            'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF,
+            'stockManagement' => [
+                ReferenceArticle::STOCK_MANAGEMENT_FEFO,
+                ReferenceArticle::STOCK_MANAGEMENT_FIFO
+            ],
         ]);
     }
 
@@ -1155,7 +1202,9 @@ class ReferenceArticleController extends AbstractController
                 'code barre',
                 'catégorie inventaire',
                 'date dernier inventaire',
-                'synchronisation nomade'
+                'synchronisation nomade',
+                'gestion de stock',
+                'gestionnaire(s)'
             ],
             $freeFieldsConfig['freeFieldsHeader']
         );
@@ -1167,7 +1216,7 @@ class ReferenceArticleController extends AbstractController
         $start = 0;
         do {
             $references = $referenceArticleRepository->getAllWithLimits($start, $step);
-            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $freeFieldService, $references, ($start === 0 ? $headers : null), $freeFieldsConfig);
+            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $freeFieldService, $references, ($start === 0 ? $headers : null), $freeFieldsConfig, $entityManager);
             $references = null;
             $start += $step;
         } while ($start < $allReferencesCount);
@@ -1182,11 +1231,18 @@ class ReferenceArticleController extends AbstractController
                                          FreeFieldService $freeFieldService,
                                          array $references,
                                          ?array $headers,
-                                         array $freeFieldsConfig): string {
+                                         array $freeFieldsConfig,
+                                         $entityManager): string {
+
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+
+        $managersByReferenceArticle = $userRepository->getUsernameManagersGroupByReference();
+
         return $CSVExportService->createCsvFile(
             $references,
             $headers,
-            function ($reference) use ($freeFieldService, $freeFieldsConfig) {
+            function ($reference) use ($freeFieldService, $freeFieldsConfig, $managersByReferenceArticle) {
+                $referenceArticleId = (int) $reference['id'];
                 $referenceArray = [
                     $reference['reference'],
                     $reference['libelle'],
@@ -1203,6 +1259,8 @@ class ReferenceArticleController extends AbstractController
                     $reference['category'],
                     $reference['dateLastInventory'] ? $reference['dateLastInventory']->format('d/m/Y H:i:s') : '',
                     $reference['needsMobileSync'],
+                    $reference['stockManagement'],
+                    $managersByReferenceArticle[$referenceArticleId] ?? ''
                 ];
 
                 foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {

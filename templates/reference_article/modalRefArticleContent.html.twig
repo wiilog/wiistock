@@ -77,6 +77,29 @@
         <input name="categorie" class="form-control" disabled
                value="{{ articleRef.dateLastInventory ? articleRef.dateLastInventory | date('d/m/Y') }}">
     </div>
+
+    {% if articleRef.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_ARTICLE') %}
+        <div class="form-group col-4">
+            <label>Gestion de stock</label>
+            <select name="stockManagement" class="form-control data">
+                <option value=""></option>
+                {% for value in stockManagement %}
+                {% set selected = (articleRef.stockManagement == value) ? 'selected' : '' %}
+                    <option value="{{ value }}" {{ selected }}>{{ value }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endif %}
+    <div class="form-group col-4">
+        <label>Gestionnaires</label>
+        <select name="managers" class="form-control data ajax-autocomplete-user-edit" multiple>
+            {% if managers is not empty %}
+                {% for manager in managers %}
+                    <option value="{{ manager['managerId'] }}" selected>{{ manager['managerUsername'] }}</option>
+                {% endfor %}
+            {% endif %}
+        </select>
+    </div>
 </div>
 <div class="row">
     <div class="form-group col-12">

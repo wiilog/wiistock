@@ -60,6 +60,22 @@
             {% endfor %}
         </select>
     </div>
+
+    <div class="form-group col-4 stockManagement d-none">
+        <label>Gestion de stock</label>
+        <select name="stockManagement" class="form-control data">
+            <option value=""></option>
+            {% for value in stockManagement %}
+                <option value="{{ value }}">{{ value }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group col-4 w-100">
+        <label>Gestionnaires</label>
+        <select name="managers" class="form-control data ajax-autocomplete-user managers" multiple>
+        </select>
+    </div>
 </div>
 <div class="row mb-4">
     <div class="form-group col-12">
