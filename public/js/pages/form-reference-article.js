@@ -4,12 +4,10 @@ function displayRequiredChampsFixesByTypeQuantiteReferenceArticle(typeQuantite, 
         $modal.find('#quantite').removeClass('needed');
         $modal.find('#emplacement').removeClass('needed');
         $modal.find('.type_quantite').val('article');
-        $modal.find('.stockManagement').removeClass('d-none');
     } else {
         $modal.find('#quantite').addClass('needed');
         $modal.find('#emplacement').addClass('needed');
         $modal.find('.type_quantite').val('reference');
-        $modal.find('.stockManagement').addClass('d-none');
     }
 }
 

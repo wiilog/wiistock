@@ -78,18 +78,6 @@
                value="{{ articleRef.dateLastInventory ? articleRef.dateLastInventory | date('d/m/Y') }}">
     </div>
 
-    {% if articleRef.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_ARTICLE') %}
-        <div class="form-group col-4">
-            <label>Gestion de stock</label>
-            <select name="stockManagement" class="form-control data">
-                <option value=""></option>
-                {% for value in stockManagement %}
-                {% set selected = (articleRef.stockManagement == value) ? 'selected' : '' %}
-                    <option value="{{ value }}" {{ selected }}>{{ value }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    {% endif %}
     <div class="form-group col-4">
         <label>Gestionnaires</label>
         <select name="managers" class="form-control data ajax-autocomplete-user-edit" multiple>
@@ -181,6 +169,19 @@
         <label for="prix">Prix Unitaire (€)</label>
         <input class="form-control data" type="number" name="prix" min="0" step="0.01" value="{{ articleRef.prixUnitaire }}" {{ disabled }}>
     </div>
+
+    {% if articleRef.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_ARTICLE') %}
+        <div class="form-group col-4">
+            <label>Gestion de stock</label>
+            <select name="stockManagement" class="form-control data">
+                <option value=""></option>
+                {% for value in stockManagement %}
+                    {% set selected = (articleRef.stockManagement == value) ? 'selected' : '' %}
+                    <option value="{{ value }}" {{ selected }}>{{ value }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endif %}
 
     <div class="form-group col-4">
         <div class="form-group w-100">

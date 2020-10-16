@@ -61,16 +61,6 @@
         </select>
     </div>
 
-    <div class="form-group col-4 stockManagement d-none">
-        <label>Gestion de stock</label>
-        <select name="stockManagement" class="form-control data">
-            <option value=""></option>
-            {% for value in stockManagement %}
-                <option value="{{ value }}">{{ value }}</option>
-            {% endfor %}
-        </select>
-    </div>
-
     <div class="form-group col-4 w-100">
         <label>Gestionnaires</label>
         <select name="managers" class="form-control data ajax-autocomplete-user managers" multiple>
@@ -133,14 +123,26 @@
         <label for="quantite">Quantité*</label>
         <input class="form-control data needed" type="number" min="0" name="quantite" id="quantite">
     </div>
-    <div class="form-group col-4 article d-none">
-        <label for="quantite">Quantité</label>
-        <input disabled class="form-control" type="number">
-    </div>
     <div class="form-group col-4 reference">
         <label for="prix">Prix Unitaire (€)</label>
         <input class="form-control data" type="number" name="prix" min="0" step="0.01">
     </div>
+
+    <div class="form-group col-4 article d-none">
+        <label for="quantite">Quantité</label>
+        <input disabled class="form-control" type="number">
+    </div>
+
+    <div class="form-group col-4 article d-none">
+        <label>Gestion de stock</label>
+        <select name="stockManagement" class="form-control data">
+            <option value=""></option>
+            {% for value in stockManagement %}
+                <option value="{{ value }}">{{ value }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
     <div class="form-group col-4">
         <label for="limitWarning">Seuil d'alerte</label>
         <input class="form-control data" type="number" name="limitWarning" min="0">
