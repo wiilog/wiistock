@@ -35,12 +35,12 @@ class TransferRequestRepository extends EntityRepository {
                         ->andWhere("req.id in (:id)")
                         ->setParameter('id', $value);
                     break;
-                case 'operator':
+                case 'operators':
                     $value = explode(',', $filter['value']);
                     $qb
                         ->join('t.order', 'to')
                         ->join('to.operator', 'tou')
-                        ->andWhere("req.id in (:id)")
+                        ->andWhere("tou.id in (:id)")
                         ->setParameter('id', $value);
                     break;
                 case 'dateMin':

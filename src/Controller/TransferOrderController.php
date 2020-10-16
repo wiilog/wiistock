@@ -353,11 +353,19 @@ class TransferOrderController extends AbstractController {
                 $entityManager->remove($mouvementStock);
             }
 
+            $request = $transferOrder->getRequest();
             $requestId = $transferOrder->getRequest()->getId();
+
+            foreach($request->getArticles() as $article) {
+                $article->setEmplacement($locationTo);
+            }
+
+            foreach($request->getReferences() as $reference) {
+                $reference->setEmplacement($locationTo);
+            }
 
             $entityManager->remove($transferOrder);
             $entityManager->flush();
-
 
             return $this->json([
                 'success' => true,
