@@ -91,55 +91,63 @@ class TransferOrderService {
         $availableRef = $statutRepository
             ->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, ReferenceArticle::STATUT_ACTIF);
 
+        $context = [$locationTo, $utilisateur, $entityManager, $availableArticle, $availableRef, $transferOrder, $isFinish];
+
         Stream::from($transferOrder->getRequest()->getReferences()->toArray())
             ->merge($transferOrder->getRequest()->getArticles()->toArray())
-            ->each(function ($refOrArt) use ($locationTo, $utilisateur, $entityManager, $availableArticle, $availableRef, $transferOrder, $isFinish) {
-                $statutAvailable = $refOrArt instanceof Article ? $availableArticle : $availableRef;
-                $emplacementFrom = $refOrArt->getEmplacement();
-                $quantite = $refOrArt instanceof Article ? $refOrArt->getQuantite() : $refOrArt->getQuantiteDisponible();
-                $barcode = $refOrArt->getBarCode();
-                if ($locationTo) {
-                    $newMouvementStock = $this->mouvementStockService->createMouvementStock(
-                        $utilisateur,
-                        $emplacementFrom,
-                        $quantite,
-                        $refOrArt,
-                        MouvementStock::TYPE_TRANSFERT
-                    );
-                    $trackingPick = $this->mouvementTracaService->createTrackingMovement(
-                        $barcode,
-                        $emplacementFrom,
-                        $utilisateur,
-                        new DateTime(),
-                        false,
-                        true,
-                        TrackingMovement::TYPE_PRISE,
-                        [
-                            'mouvementStock' => $newMouvementStock
-                        ]
-                    );
-                    $entityManager->persist($trackingPick);
-                    $this->mouvementStockService->finishMouvementStock($newMouvementStock, new DateTime(), $locationTo);
-                    $trackingDrop = $this->mouvementTracaService->createTrackingMovement(
-                        $barcode,
-                        $locationTo,
-                        $utilisateur,
-                        new DateTime(),
-                        false,
-                        true,
-                        TrackingMovement::TYPE_DEPOSE,
-                        [
-                            'mouvementStock' => $newMouvementStock
-                        ]
-                    );
-                    $entityManager->persist($trackingDrop);
-                    $entityManager->persist($newMouvementStock);
-                    if ($isFinish) {
-                        $transferOrder->addStockMovement($newMouvementStock);
-                    }
-                }
-                $refOrArt->setStatut($statutAvailable);
+            ->each(function($refOrArt) use ($context) {
+                $this->createMovements($context, $refOrArt);
             });
+    }
+
+    private function createMovements($context, $refOrArt) {
+        [$locationTo, $utilisateur, $entityManager, $availableArticle, $availableRef, $transferOrder, $isFinish] = $context;
+
+        $statutAvailable = $refOrArt instanceof Article ? $availableArticle : $availableRef;
+        $emplacementFrom = $refOrArt->getEmplacement();
+        $quantite = $refOrArt instanceof Article ? $refOrArt->getQuantite() : $refOrArt->getQuantiteDisponible();
+        $barcode = $refOrArt->getBarCode();
+        if($locationTo) {
+            $newMouvementStock = $this->mouvementStockService->createMouvementStock(
+                $utilisateur,
+                $emplacementFrom,
+                $quantite,
+                $refOrArt,
+                MouvementStock::TYPE_TRANSFERT
+            );
+            $trackingPick = $this->mouvementTracaService->createTrackingMovement(
+                $barcode,
+                $emplacementFrom,
+                $utilisateur,
+                new DateTime(),
+                false,
+                true,
+                TrackingMovement::TYPE_PRISE,
+                [
+                    'mouvementStock' => $newMouvementStock
+                ]
+            );
+            $entityManager->persist($trackingPick);
+            $this->mouvementStockService->finishMouvementStock($newMouvementStock, new DateTime(), $locationTo);
+            $trackingDrop = $this->mouvementTracaService->createTrackingMovement(
+                $barcode,
+                $locationTo,
+                $utilisateur,
+                new DateTime(),
+                false,
+                true,
+                TrackingMovement::TYPE_DEPOSE,
+                [
+                    'mouvementStock' => $newMouvementStock
+                ]
+            );
+            $entityManager->persist($trackingDrop);
+            $entityManager->persist($newMouvementStock);
+            if($isFinish) {
+                $transferOrder->addStockMovement($newMouvementStock);
+            }
+        }
+        $refOrArt->setStatut($statutAvailable);
     }
 
     public function dataRowTransfer(TransferOrder $transfer) {

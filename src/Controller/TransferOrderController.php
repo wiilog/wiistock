@@ -269,6 +269,8 @@ class TransferOrderController extends AbstractController {
             return $this->redirectToRoute('access_denied');
         }
 
+        $request = $transferOrder->getRequest();
+
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $treatedRequest = $statutRepository
@@ -277,16 +279,23 @@ class TransferOrderController extends AbstractController {
         $treatedOrder = $statutRepository
             ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferRequest::TREATED);
 
-        $transferOrder->getRequest()->setStatus($treatedRequest);
+        $request->setStatus($treatedRequest);
         $transferOrder->setStatus($treatedOrder);
         $transferOrder->setOperator($this->getUser());
         $transferOrder->setTransferDate(new DateTime());
 
-        $locationTo = $transferOrder->getRequest()->getDestination();
+        $locationTo = $request->getDestination();
         $transferOrderService->releaseRefsAndArticles($locationTo, $transferOrder, $this->getUser(), $entityManager, true);
 
-        $entityManager->flush();
+        foreach($request->getArticles() as $article) {
+            $article->setEmplacement($request->getDestination());
+        }
 
+        foreach($request->getReferences() as $reference) {
+            $reference->setEmplacement($request->getDestination());
+        }
+
+        $entityManager->flush();
 
         return $this->json([
             'success' => true,

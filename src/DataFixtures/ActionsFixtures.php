@@ -59,7 +59,6 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 			],
 			Menu::DEM => [
 				Action::DISPLAY_TRANSFER_REQ,
-                Action::DISPLAY_TRANSFER_ORD,
 				Action::DISPLAY_DEM_COLL,
 				Action::DISPLAY_DEM_LIVR,
 				Action::DISPLAY_HAND,
@@ -76,7 +75,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 Action::TREAT_HANDLING,
 			],
 			Menu::ORDRE => [
-				Action::DISPLAY_ORDRE_COLL,
+                Action::DISPLAY_ORDRE_COLL,
                 Action::DISPLAY_ORDRE_LIVR,
                 Action::DISPLAY_ORDRE_TRANS,
 				Action::DISPLAY_PREPA,
