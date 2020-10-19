@@ -106,7 +106,6 @@ class ReceptionService
                 "Numéro de commande" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
                 "storageLocation" => ($reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : ''),
                 "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
-                'urgence' => $reception->getEmergencyTriggered(),
                 'Actions' => $this->templating->render(
                     'reception/datatableReceptionRow.html.twig',
                     ['reception' => $reception]
