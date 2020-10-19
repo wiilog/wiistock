@@ -90,21 +90,23 @@ class ArticleQuantityNotifier
     }
 
     private function treatAlert(Article $article) {
-        $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
-        $alertDay = clone $article->getExpiryDate();
-        $alertDay->modify("$this->expiryDelay");
+        if ($article->getExpiryDate()) {
+            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+            $alertDay = clone $article->getExpiryDate();
+            $alertDay->modify("$this->expiryDelay");
 
-        $existing = $this->entityManager->getRepository(Alert::class)->findForReference($article, Alert::EXPIRY);
+            $existing = $this->entityManager->getRepository(Alert::class)->findForReference($article, Alert::EXPIRY);
 
-        if($now >= $alertDay && !$existing) {
-            $alert = new Alert();
-            $alert->setArticle($article);
-            $alert->setType(Alert::EXPIRY);
-            $alert->setDate($now);
+            if ($now >= $alertDay && !$existing) {
+                $alert = new Alert();
+                $alert->setArticle($article);
+                $alert->setType(Alert::EXPIRY);
+                $alert->setDate($now);
 
-            $this->entityManager->persist($alert);
-        } else if($now < $alertDay && $existing) {
-            $this->entityManager->remove($existing);
+                $this->entityManager->persist($alert);
+            } else if ($now < $alertDay && $existing) {
+                $this->entityManager->remove($existing);
+            }
         }
     }
 }

@@ -16,7 +16,7 @@ let tableAlerteConfig = {
         { "data": "label", "title": "Libellé" },
         { "data": "reference", "title": "Référence" },
         { "data": "code", "title": "Code barre" },
-        { "data": "quantity", "title": "Quantité en stock" },
+        { "data": "quantity", "title": "Quantité disponible" },
         { "data": "quantityType", "title": "Type quantité" },
         { "data": "warningThreshold", "title": "Seuil d'alerte" },
         { "data": "securityThreshold", "title": "Seuil de sécurité" },

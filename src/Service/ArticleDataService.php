@@ -284,13 +284,13 @@ class ArticleDataService
         $price = max(0, $data['prix']);
 
         $article = $articleRepository->find($data['article']);
-
         if ($article) {
             if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 $article
                     ->setPrixUnitaire($price)
                     ->setLabel($data['label'])
                     ->setConform(!$data['conform'])
+                    ->setBatch($data['batch'] ?? null)
                     ->setExpiryDate(DateTime::createFromFormat("Y-m-d", $data['expiry']))
                     ->setCommentaire($data['commentaire']);
 
@@ -324,7 +324,6 @@ class ArticleDataService
      */
     public function newArticle($data, Demande $demande = null) {
         $entityManager = $this->entityManager;
-
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
@@ -382,7 +381,7 @@ class ArticleDataService
             ->setBarCode($this->generateBarCode())
             ->setBatch($data['batch'])
             ->setStockEntryDate(new DateTime("now", new DateTimeZone("Europe/Paris")))
-            ->setExpiryDate(DateTime::createFromFormat("Y-m-d", $data['expiry']));
+            ->setExpiryDate($data['expiry'] ? DateTime::createFromFormat("Y-m-d", $data['expiry']) : null);
         $entityManager->persist($toInsert);
         $this->freeFieldService->manageFreeFields($toInsert, $data, $entityManager);
         // optionnel : ajout dans une demande

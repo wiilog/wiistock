@@ -394,7 +394,7 @@ class ReferenceArticleController extends AbstractController
                 $refArticle->setQuantiteStock(0);
             }
             $refArticle->setQuantiteReservee(0);
-            $refArticle->setStockManagement($data['stockManagement']);
+            $refArticle->setStockManagement($data['stockManagement'] ?? null);
 
             $managers = (array) $data['managers'];
             if (isset($data['managers'])) {

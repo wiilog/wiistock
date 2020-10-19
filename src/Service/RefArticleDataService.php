@@ -317,7 +317,7 @@ class RefArticleDataService {
             if($type) $refArticle->setType($type);
         }
 
-        $refArticle->setStockManagement($data['stockManagement']);
+        $refArticle->setStockManagement($data['stockManagement'] ?? null);
 
         $managers = (array) $data['managers'];
 
@@ -525,10 +525,8 @@ class RefArticleDataService {
     }
 
     /**
+     * @param Alert $alert
      * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function dataRowAlerteRef(Alert $alert) {
         if($entity = $alert->getReference()) {
@@ -538,6 +536,7 @@ class RefArticleDataService {
             $quantityType = $entity->getTypeQuantite();
             $security = $entity->getLimitSecurity();
             $warning = $entity->getLimitWarning();
+            $quantity = $entity->getQuantiteDisponible();
         } else if($entity = $alert->getArticle()) {
             $reference = $entity->getReference();
             $code = $entity->getBarCode();
@@ -552,7 +551,7 @@ class RefArticleDataService {
             "reference" => $reference ?? "Non défini",
             "code" => $code ?? "Non défini",
             "label" => $label ?? "Non défini",
-            "quantity" => $alert->displayedQuantity ?? "Non défini",
+            "quantity" => $quantity ?? "0",
             "quantityType" => ucfirst($quantityType ?? "Non défini"),
             "securityThreshold" => $security ?? "Non défini",
             "warningThreshold" => $warning ?? "Non défini",
@@ -648,18 +647,28 @@ class RefArticleDataService {
         $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
         $ar = $this->entityManager->getRepository(Alert::class);
 
-        if($reference->getLimitSecurity()) {
-            $limit = $reference->getLimitSecurity();
+        $availableQuantity = $reference->getQuantiteDisponible();;
+        $securityLimit = $reference->getLimitSecurity();
+        $warningLimit = $reference->getLimitWarning();
+        if ($securityLimit && $warningLimit) {
+            if ($availableQuantity <= $warningLimit && $warningLimit <= $securityLimit) {
+                $limit = $warningLimit;
+                $type = Alert::WARNING;
+            } else if ($availableQuantity <= $securityLimit) {
+                $limit = $securityLimit;
+                $type = Alert::SECURITY;
+            }
+        } else if ($securityLimit) {
+            $limit = $securityLimit;
             $type = Alert::SECURITY;
-        } else if($reference->getLimitWarning()) {
-            $limit = $reference->getLimitWarning();
+        } else if($warningLimit) {
+            $limit = $warningLimit;
             $type = Alert::WARNING;
         }
 
         if(isset($limit, $type)) {
-            $reached = $limit >= $reference->getQuantiteDisponible();
+            $reached = $limit >= $availableQuantity;
             $existing = $ar->findForReference($reference, $type);
-
             if($reached && !$existing) {
                 $alert = new Alert();
                 $alert->setReference($reference);
@@ -671,6 +680,7 @@ class RefArticleDataService {
                 $this->entityManager->remove($existing);
             }
         }
+        $this->entityManager->flush();
     }
 
 }

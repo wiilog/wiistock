@@ -7,6 +7,7 @@ use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 
 /**
  * @method Alert|null find($id, $lockMode = null, $lockVersion = null)
@@ -16,6 +17,12 @@ use Doctrine\ORM\EntityRepository;
  */
 class AlertRepository extends EntityRepository {
 
+    /**
+     * @param $reference
+     * @param int $type
+     * @return int|mixed|string|null
+     * @throws NonUniqueResultException
+     */
     public function findForReference($reference, int $type) {
         return $this->createQueryBuilder("a")
             ->where("a.reference = :reference")
@@ -23,7 +30,7 @@ class AlertRepository extends EntityRepository {
             ->setParameter("reference", $reference)
             ->setParameter("type", $type)
             ->getQuery()
-            ->getResult();
+            ->getOneOrNullResult();
     }
 
     public function findForArticle($article, int $type) {
@@ -39,9 +46,7 @@ class AlertRepository extends EntityRepository {
     public function getAlertDataByParams($params, $filters) {
         $qb = $this->createQueryBuilder("a")
             ->leftJoin("a.reference", "reference")
-            ->leftJoin("a.article", "article")
-            ->leftJoin('reference.articlesFournisseur', 'af')
-            ->leftJoin('af.articles', 'raarticle');
+            ->leftJoin("a.article", "article");
 
         $total = QueryCounter::count($qb, "a");
 
@@ -63,15 +68,14 @@ class AlertRepository extends EntityRepository {
                     $or = $qb->expr()->orX();
                     foreach($value as $user) {
                         $id = explode(":", $user)[0];
-
                         $or->add(":user_$id MEMBER OF reference.managers");
                         $or->add(":user_$id MEMBER OF articlera.managers");
-                        $qb->setParameter("user_$id", $value);
+                        $qb->setParameter("user_$id", $id);
                     }
 
                     $qb->andWhere($or)
-                        ->join("article.articleFournisseur", "articleaf")
-                        ->join("articleaf.referenceArticle", "articlera");
+                        ->leftJoin("article.articleFournisseur", "articleaf")
+                        ->leftJoin("articleaf.referenceArticle", "articlera");
                     break;
             }
         }
@@ -131,11 +135,7 @@ class AlertRepository extends EntityRepository {
         }
 
         $qb->groupBy('a.id')
-            ->addSelect('COALESCE(CASE
-								WHEN reference.typeQuantite = \'' .ReferenceArticle::TYPE_QUANTITE_ARTICLE . '\'
-								THEN SUM(raarticle.quantite)
-								ELSE reference.quantiteStock
-								END, article.quantite) AS quantity');
+            ->addSelect('reference.quantiteDisponible AS quantity');
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
