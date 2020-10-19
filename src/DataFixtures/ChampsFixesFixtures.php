@@ -8,10 +8,13 @@ use App\Entity\FieldsParam;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
 
     public function load(ObjectManager $manager) {
+        $output = new ConsoleOutput();
+
         $listEntityFieldCodes = [
             FieldsParam::ENTITY_CODE_RECEPTION => [
                 ['code' => FieldsParam::FIELD_CODE_FOURNISSEUR, 'label' => FieldsParam::FIELD_LABEL_FOURNISSEUR, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
@@ -23,6 +26,9 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_TRANSPORTEUR, 'label' => FieldsParam::FIELD_LABEL_TRANSPORTEUR, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_EMPLACEMENT, 'label' => FieldsParam::FIELD_LABEL_EMPLACEMENT, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_ANOMALIE, 'label' => FieldsParam::FIELD_LABEL_ANOMALIE, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
+                ['code' => FieldsParam::FIELD_CODE_STORAGE_LOCATION, 'label' => FieldsParam::FIELD_LABEL_STORAGE_LOCATION, 'displayedFormsCreate' => false, 'displayedFormsEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_EMERGENCY_REC, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_REC, 'displayedFormsCreate' => false, 'displayedFormsEdit' => false, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_ATTACHMENTS, 'label' => FieldsParam::FIELD_LABEL_ATTACHMENTS, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
             ],
 
             FieldsParam::ENTITY_CODE_ARRIVAGE => [
@@ -87,7 +93,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                         ->setFieldCode($fieldCode['code']);
                     $manager->persist($field);
                     $manager->flush();
-                    dump('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
+                    $output->writeln('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
                 }
             }
         }

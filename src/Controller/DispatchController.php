@@ -16,7 +16,7 @@ use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\DispatchPack;
 use App\Entity\ParametrageGlobal;
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
@@ -360,6 +360,7 @@ class DispatchController extends AbstractController {
                     $packDispatch = new DispatchPack();
                     $packDispatch
                         ->setPack($pack)
+                        ->setTreated(false)
                         ->setQuantity($packQuantity)
                         ->setDispatch($dispatch);
                     $entityManager->persist($packDispatch);
@@ -560,7 +561,7 @@ class DispatchController extends AbstractController {
 
         $attachments = $dispatch->getAttachments()->toArray();
         foreach ($attachments as $attachment) {
-            /** @var PieceJointe $attachment */
+            /** @var Attachment $attachment */
             if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
                 $this->attachmentService->removeAndDeleteAttachment($attachment, $dispatch);
             }
@@ -596,7 +597,7 @@ class DispatchController extends AbstractController {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-            $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
@@ -625,7 +626,7 @@ class DispatchController extends AbstractController {
                 'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
                 'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                 'statuses' => $statuses,
-                'attachments' => $pieceJointeRepository->findBy(['dispatch' => $dispatch])
+                'attachments' => $attachmentRepository->findBy(['dispatch' => $dispatch])
             ]);
 
             return new JsonResponse($json);
@@ -645,7 +646,7 @@ class DispatchController extends AbstractController {
                            TranslatorInterface $translator): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-            $attachmentRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
             $dispatch = $dispatchRepository->find($data['dispatch']);
 
@@ -714,6 +715,7 @@ class DispatchController extends AbstractController {
                         'lastMvtDate' => $lastTracking ? ($lastTracking->getDatetime() ? $lastTracking->getDatetime()->format('d/m/Y H:i') : '') : '',
                         'lastLocation' => $lastTracking ? ($lastTracking->getEmplacement() ? $lastTracking->getEmplacement()->getLabel() : '') : '',
                         'operator' => $lastTracking ? ($lastTracking->getOperateur() ? $lastTracking->getOperateur()->getUsername() : '') : '',
+                        'status' => $dispatchPack->isTreated() ? 'Traité' : 'A traiter',
                         'actions' => $this->renderView('dispatch/datatablePackRow.html.twig', [
                             'pack' => $pack,
                             'packDispatch' => $dispatchPack,
@@ -777,6 +779,7 @@ class DispatchController extends AbstractController {
             $packDispatch = new DispatchPack();
             $packDispatch
                 ->setPack($pack)
+                ->setTreated(false)
                 ->setDispatch($dispatch);
             $entityManager->persist($packDispatch);
 
@@ -950,7 +953,7 @@ class DispatchController extends AbstractController {
                                             Dispatch $dispatch): Response {
         $status = $dispatch->getStatut();
 
-        if (!$status || $status->isNotTreated()) {
+        if (!$status || $status->isNotTreated() || $status->isPartial()) {
             $data = json_decode($request->getContent(), true);
             $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -963,7 +966,6 @@ class DispatchController extends AbstractController {
 
                 /** @var Utilisateur $loggedUser */
                 $loggedUser = $this->getUser();
-
                 $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser);
             } else {
                 return new JsonResponse([
@@ -1220,7 +1222,7 @@ class DispatchController extends AbstractController {
         $documentTitle = "BL - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}";
         $fileName = $pdf->generatePDFDeliveryNote($documentTitle, $logo, $dispatch);
 
-        $deliveryNoteAttachment = new PieceJointe();
+        $deliveryNoteAttachment = new Attachment();
         $deliveryNoteAttachment
             ->setDispatch($dispatch)
             ->setFileName($fileName)
@@ -1254,13 +1256,13 @@ class DispatchController extends AbstractController {
      * @param TranslatorInterface $trans
      * @param Dispatch $dispatch
      * @param KernelInterface $kernel
-     * @param PieceJointe $attachment
+     * @param Attachment $attachment
      * @return PdfResponse
      */
     public function printDeliveryNote(TranslatorInterface $trans,
                                       Dispatch $dispatch,
                                       KernelInterface $kernel,
-                                      PieceJointe $attachment): Response {
+                                      Attachment $attachment): Response {
         if (!$dispatch->getDeliveryNoteData()) {
             throw new NotFoundHttpException($trans->trans('acheminement.Le bon de livraison n\'existe pas pour cet acheminement'));
         }
@@ -1444,7 +1446,7 @@ class DispatchController extends AbstractController {
         $title = "LDV - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}";
         $fileName = $pdf->generatePDFWaybill($title, $logo, $dispatch);
 
-        $wayBillAttachment = new PieceJointe();
+        $wayBillAttachment = new Attachment();
         $wayBillAttachment
             ->setDispatch($dispatch)
             ->setFileName($fileName)
@@ -1477,13 +1479,13 @@ class DispatchController extends AbstractController {
      * )
      * @param TranslatorInterface $trans
      * @param Dispatch $dispatch
-     * @param PieceJointe $attachment
+     * @param Attachment $attachment
      * @param KernelInterface $kernel
      * @return JsonResponse
      */
     public function printWaybillNote(TranslatorInterface $trans,
                                      Dispatch $dispatch,
-                                     PieceJointe $attachment,
+                                     Attachment $attachment,
                                      KernelInterface $kernel): Response {
         if (!$dispatch->getWaybillData()) {
             throw new NotFoundHttpException($trans->trans('acheminement.La lettre de voiture n\'existe pas pour cet acheminement'));

@@ -24,7 +24,9 @@
                             {% if isAttachments %}
                                 <div class="scrollable-details bg-light">
                                     {% for attachment in datum.value %}
-                                        <a href="/uploads/attachements/{{ attachment.filename }}"
+                                        <a href="{{ attachment.fullPath is defined and attachment.fullPath is not null
+                                                        ? attachment.fullPath
+                                                        : '/uploads/attachements/' ~ attachment.fileName }}"
                                            target="_blank">
                                             <i class="fas fa-file"></i> {{ attachment.originalName }}
                                         </a>

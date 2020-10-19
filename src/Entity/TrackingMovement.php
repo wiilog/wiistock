@@ -8,9 +8,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\MouvementTracaRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\TrackingMovementRepository")
  */
-class MouvementTraca extends FreeFieldEntity
+class TrackingMovement extends FreeFieldEntity
 {
 
     const TYPE_PRISE = 'prise';
@@ -70,7 +70,7 @@ class MouvementTraca extends FreeFieldEntity
 	private $commentaire;
 
 	/**
-	 * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="mouvementTraca")
+	 * @ORM\OneToMany(targetEntity=Attachment::class, mappedBy="trackingMovement")
 	 */
 	private $attachements;
 
@@ -86,29 +86,14 @@ class MouvementTraca extends FreeFieldEntity
     private $quantity;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="mouvementsTraca")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="trackingMovements")
      */
     private $reception;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="mouvementsTraca")
-     */
-    private $arrivage;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Dispatch", inversedBy="trackingMovements")
      */
     private $dispatch;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="mouvementTracas")
-     */
-    private $referenceArticle;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Article", inversedBy="mouvementTracas")
-     */
-    private $article;
 
     /**
      * @var Pack|null
@@ -134,7 +119,7 @@ class MouvementTraca extends FreeFieldEntity
     private $lastTrackingRecords;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="mouvementsTraca")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="trackingMovements")
      */
     private $receptionReferenceArticle;
 
@@ -187,30 +172,30 @@ class MouvementTraca extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|PieceJointe[]
+     * @return Collection|Attachment[]
      */
     public function getAttachments(): Collection
     {
         return $this->attachements;
     }
 
-    public function addAttachment(PieceJointe $attachment): self
+    public function addAttachment(Attachment $attachment): self
     {
         if (!$this->attachements->contains($attachment)) {
             $this->attachements[] = $attachment;
-            $attachment->setMouvementTraca($this);
+            $attachment->setTrackingMovement($this);
         }
 
         return $this;
     }
 
-    public function removeAttachment(PieceJointe $attachement): self
+    public function removeAttachment(Attachment $attachement): self
     {
         if ($this->attachements->contains($attachement)) {
             $this->attachements->removeElement($attachement);
             // set the owning side to null (unless already changed)
-            if ($attachement->getMouvementTraca() === $this) {
-                $attachement->setMouvementTraca(null);
+            if ($attachement->getTrackingMovement() === $this) {
+                $attachement->setTrackingMovement(null);
             }
         }
 
@@ -307,7 +292,9 @@ class MouvementTraca extends FreeFieldEntity
 
     public function getArrivage(): ?Arrivage
     {
-        return $this->arrivage;
+        return isset($this->pack)
+            ? $this->pack->getArrivage()
+            : null;
     }
 
     public function setArrivage(?Arrivage $arrivage): self
@@ -324,7 +311,7 @@ class MouvementTraca extends FreeFieldEntity
 
     /**
      * @param mixed $dispatch
-     * @return MouvementTraca
+     * @return TrackingMovement
      */
     public function setDispatch($dispatch): self
     {
@@ -332,28 +319,16 @@ class MouvementTraca extends FreeFieldEntity
         return $this;
     }
 
-    public function getReferenceArticle(): ?ReferenceArticle
-    {
-        return $this->referenceArticle;
+    public function getReferenceArticle(): ?ReferenceArticle {
+        return isset($this->pack)
+            ? $this->pack->getReferenceArticle()
+            : null;
     }
 
-    public function setReferenceArticle(?ReferenceArticle $referenceArticle): self
-    {
-        $this->referenceArticle = $referenceArticle;
-
-        return $this;
-    }
-
-    public function getArticle(): ?Article
-    {
-        return $this->article;
-    }
-
-    public function setArticle(?Article $article): self
-    {
-        $this->article = $article;
-
-        return $this;
+    public function getArticle(): ?Article {
+        return isset($this->pack)
+            ? $this->pack->getArticle()
+            : null;
     }
 
     /**
@@ -365,9 +340,9 @@ class MouvementTraca extends FreeFieldEntity
 
     /**
      * @param Pack|null $linkedPackLastTracking
-     * @return MouvementTraca
+     * @return TrackingMovement
      */
-    public function setLinkedPackLastTracking(?Pack $linkedPackLastTracking): MouvementTraca {
+    public function setLinkedPackLastTracking(?Pack $linkedPackLastTracking): TrackingMovement {
         $this->linkedPackLastTracking = $linkedPackLastTracking;
         return $this;
     }
@@ -381,9 +356,9 @@ class MouvementTraca extends FreeFieldEntity
 
     /**
      * @param Pack|null $linkedPackLastDrop
-     * @return MouvementTraca
+     * @return TrackingMovement
      */
-    public function setLinkedPackLastDrop(?Pack $linkedPackLastDrop): MouvementTraca {
+    public function setLinkedPackLastDrop(?Pack $linkedPackLastDrop): TrackingMovement {
         $this->linkedPackLastDrop = $linkedPackLastDrop;
         return $this;
     }

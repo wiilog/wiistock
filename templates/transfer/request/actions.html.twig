@@ -1,0 +1,7 @@
+<div class="d-none">
+    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_TRANSFER_REQ')) %}
+        <a href="{{ url }}" class="d-none action-on-click">
+            <div class="btn btn-col-action"></div>
+        </a>
+    {% endif %}
+</div>

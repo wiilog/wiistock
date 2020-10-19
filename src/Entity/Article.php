@@ -156,10 +156,34 @@ class Article extends FreeFieldEntity
     private $preparation;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="article")
+     * @ORM\OneToMany(targetEntity=Pack::class, mappedBy="article")
      */
-    private $mouvementTracas;
+    private $trackingPacks;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=TransferRequest::class, mappedBy="articles")
+     */
+    private $transferRequests;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Alert::class, mappedBy="article")
+     */
+    private $alerts;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $batch;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $expiryDate;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $stockEntryDate;
 
     public function __construct()
     {
@@ -169,9 +193,11 @@ class Article extends FreeFieldEntity
         $this->inventoryMissions = new ArrayCollection();
         $this->litiges = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
-        $this->mouvementTracas = new ArrayCollection();
+        $this->trackingPacks = new ArrayCollection();
+        $this->transferRequests = new ArrayCollection();
 
         $this->quantite = 0;
+        $this->alerts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -561,30 +587,27 @@ class Article extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|MouvementTraca[]
+     * @return Collection|Pack[]
      */
-    public function getMouvementTracas(): Collection
-    {
-        return $this->mouvementTracas;
+    public function getTrackingPacks(): Collection {
+        return $this->trackingPacks;
     }
 
-    public function addMouvementTraca(MouvementTraca $mouvementTraca): self
-    {
-        if (!$this->mouvementTracas->contains($mouvementTraca)) {
-            $this->mouvementTracas[] = $mouvementTraca;
-            $mouvementTraca->setArticle($this);
+    public function addTrackingPack(Pack $pack): self {
+        if (!$this->trackingPacks->contains($pack)) {
+            $this->trackingPacks[] = $pack;
+            $pack->setArticle($this);
         }
 
         return $this;
     }
 
-    public function removeMouvementTraca(MouvementTraca $mouvementTraca): self
-    {
-        if ($this->mouvementTracas->contains($mouvementTraca)) {
-            $this->mouvementTracas->removeElement($mouvementTraca);
+    public function removeTrackingPack(Pack $pack): self {
+        if ($this->trackingPacks->contains($pack)) {
+            $this->trackingPacks->removeElement($pack);
             // set the owning side to null (unless already changed)
-            if ($mouvementTraca->getArticle() === $this) {
-                $mouvementTraca->setArticle(null);
+            if ($pack->getArticle() === $this) {
+                $pack->setArticle(null);
             }
         }
 
@@ -648,5 +671,100 @@ class Article extends FreeFieldEntity
             }
         }
         return $inProgress;
+    }
+
+    /**
+     * @return Collection|TransferRequest[]
+     */
+    public function getTransferRequests(): Collection
+    {
+        return $this->transferRequests;
+    }
+
+    public function addTransferRequest(TransferRequest $transferRequest): self
+    {
+        if (!$this->transferRequests->contains($transferRequest)) {
+            $this->transferRequests[] = $transferRequest;
+            $transferRequest->addArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransferRequest(TransferRequest $transferRequest): self
+    {
+        if ($this->transferRequests->contains($transferRequest)) {
+            $this->transferRequests->removeElement($transferRequest);
+            $transferRequest->removeArticle($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Alert[]
+     */
+    public function getAlerts(): Collection
+    {
+        return $this->alerts;
+    }
+
+    public function addAlert(Alert $alert): self
+    {
+        if (!$this->alerts->contains($alert)) {
+            $this->alerts[] = $alert;
+            $alert->setArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAlert(Alert $alert): self
+    {
+        if ($this->alerts->contains($alert)) {
+            $this->alerts->removeElement($alert);
+            // set the owning side to null (unless already changed)
+            if ($alert->getArticle() === $this) {
+                $alert->setArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getExpiryDate(): ?\DateTimeInterface
+    {
+        return $this->expiryDate;
+    }
+
+    public function setExpiryDate(?\DateTimeInterface $expiryDate): self
+    {
+        $this->expiryDate = $expiryDate;
+
+        return $this;
+    }
+
+    public function getBatch(): ?string
+    {
+        return $this->batch;
+    }
+
+    public function setBatch(?string $batch): self
+    {
+        $this->batch = $batch;
+
+        return $this;
+    }
+
+    public function getStockEntryDate(): ?\DateTimeInterface
+    {
+        return $this->stockEntryDate;
+    }
+
+    public function setStockEntryDate(?\DateTimeInterface $stockEntryDate): self
+    {
+        $this->stockEntryDate = $stockEntryDate;
+
+        return $this;
     }
 }

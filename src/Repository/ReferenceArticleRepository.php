@@ -10,6 +10,7 @@ use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
+use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -39,7 +40,6 @@ class ReferenceArticleRepository extends EntityRepository
         'Fournisseur' => 'Fournisseur',
         'Statut' => 'status',
         'Code barre' => 'barCode',
-        'Date d\'alerte' => 'dateEmergencyTriggered',
         'typeQuantite' => 'typeQuantite',
         'Dernier inventaire' => 'dateLastInventory',
         'Synchronisation nomade' => 'needsMobileSync',
@@ -79,6 +79,7 @@ class ReferenceArticleRepository extends EntityRepository
             ->addSelect('referenceArticle.dateLastInventory')
             ->addSelect('referenceArticle.needsMobileSync')
             ->addSelect('referenceArticle.freeFields')
+            ->addSelect('referenceArticle.stockManagement')
             ->leftJoin('referenceArticle.statut', 'statutRef')
             ->leftJoin('referenceArticle.emplacement', 'emplacementRef')
             ->leftJoin('referenceArticle.type', 'typeRef')
@@ -226,6 +227,8 @@ class ReferenceArticleRepository extends EntityRepository
             'limitSecurity' => ['field' => 'Seuil de securité', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
             'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
+            'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text'],
+            'Gestionnaire(s)' => ['field' => 'managers', 'typage' => 'text'],
         ];
 
         $qb
@@ -238,6 +241,10 @@ class ReferenceArticleRepository extends EntityRepository
                     $qb->leftJoin('ra.statut', 'sra');
                     $qb->andWhere('sra.nom LIKE \'' . $filter['value'] . '\'');
                 }
+            } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_MANAGERS) {
+                $qb->leftJoin('ra.managers', 'managers')
+                    ->andWhere('managers.username LIKE :username')
+                    ->setParameter('username', '%' . $filter['value'] . '%');
             } else {
                 // cas particulier champ référence article fournisseur
                 if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_REF_ART_FOURN) {
@@ -309,14 +316,17 @@ class ReferenceArticleRepository extends EntityRepository
                             break;
                         case FreeField::TYPE_DATE:
                         case FreeField::TYPE_DATETIME:
-                            $formattedDate = new \DateTime(str_replace('/', '-', $value));
-                            $value = '%' . $formattedDate->format('Y-m-d') . '%';
+                            $formattedDate = DateTime::createFromFormat('d/m/Y', $value) ?: $value;
+                            $value =  $formattedDate->format('Y-m-d');
+                            if ($freeFieldType === FreeField::TYPE_DATETIME) {
+                                $value .= '%';
+                            }
                             break;
                         case FreeField::TYPE_LIST:
                         case FreeField::TYPE_LIST_MULTIPLE:
                             $value = array_map(function (string $value) {
                                 return '%' . $value . '%';
-                            }, explode(',', $value));
+                            }, json_decode($value));
                             break;
                         case FreeField::TYPE_NUMBER:
                             break;
@@ -338,7 +348,6 @@ class ReferenceArticleRepository extends EntityRepository
 
                     $qb
                         ->andWhere($jsonSearchesQueryString);
-
                 }
             }
         }
@@ -383,6 +392,18 @@ class ReferenceArticleRepository extends EntityRepository
                                 }
                                 break;
 
+                            case 'Gestionnaire(s)':
+                                $subqb = $this->createQueryBuilder('referenceArticle');
+                                $subqb
+                                    ->select('referenceArticle.id')
+                                    ->leftJoin('referenceArticle.managers', 'managers')
+                                    ->andWhere('managers.username LIKE :username')
+                                    ->setParameter('username', '%' . $searchValue . '%');
+
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+                                break;
                             default:
                                 $metadatas = $em->getClassMetadata(ReferenceArticle::class);
                                 $field = !empty($linkChampLibreLabelToField[$searchField]) ? $linkChampLibreLabelToField[$searchField]['field'] : '';
@@ -446,6 +467,10 @@ class ReferenceArticleRepository extends EntityRepository
                         case 'prixUnitaire':
                             $qb
                                 ->orderBy('ra.prixUnitaire', $order);
+                            break;
+                        case 'stockManagement':
+                            $qb
+                                ->orderBy('ra.stockManagement', $order);
                             break;
                         default:
                             if (property_exists(ReferenceArticle::class, $column)) {
@@ -872,77 +897,6 @@ class ReferenceArticleRepository extends EntityRepository
         return $result ? $result[0]['barCode'] : null;
     }
 
-    public function getAlertDataByParams($params, $filters)
-    {
-        $qb = $this->getDataAlert();
-
-        $countTotal = QueryCounter::count($qb, "ra");
-
-        foreach ($filters as $filter) {
-            switch ($filter['field']) {
-                case 'type':
-                    $qb
-                        ->join('ra.type', 't3')
-                        ->andWhere('t3.label LIKE :type')
-                        ->setParameter('type', $filter['value']);
-            }
-        }
-
-        // prise en compte des paramètres issus du datatable
-        if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
-                if (!empty($search)) {
-                    $qb
-                        ->andWhere('ra.reference LIKE :value OR ra.libelle LIKE :value')
-                        ->setParameter('value', '%' . str_replace('_', '\_', $search) . '%');
-                }
-            }
-
-            $countFiltered = QueryCounter::count($qb, "ra");
-
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
-                if (!empty($order)) {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-                    switch ($column) {
-                        case 'Type':
-                            $qb
-                                ->join('ra.type', 't2')
-                                ->orderBy('t2.label', $order);
-                        case 'quantiteStock':
-                            $qb
-                                ->leftJoin('ra.articlesFournisseur', 'af')
-                                ->leftJoin('af.articles', 'a')
-                                ->addSelect('(CASE
-								WHEN ra.typeQuantite = :typeQteArt
-								THEN (SUM(a.quantite))
-								ELSE ra.quantiteStock
-								END) as quantity')
-                                ->groupBy('ra.id')
-                                ->orderBy('quantity', $order)
-                                ->setParameter('typeQteArt', ReferenceArticle::TYPE_QUANTITE_ARTICLE);
-                            break;
-                        default:
-                            $qb->orderBy('ra.' . $column, $order);
-                            break;
-                    }
-                }
-            }
-        }
-
-        if (!empty($params)) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
-
-        return [
-            'data' => $qb->getQuery()->getResult(),
-            'count' => $countFiltered,
-            'total' => $countTotal
-        ];
-    }
-
     /**
      * @param ReferenceArticle $referenceArticle
      * @return int
@@ -1020,46 +974,6 @@ class ReferenceArticleRepository extends EntityRepository
         return $reservedQuantity;
     }
 
-    public function countAlert() {
-        return $this->getDataAlert()
-        ->select("COUNT(ra.id)")
-        ->getQuery()
-        ->getSingleScalarResult();
-    }
-
-    public function getDataAlert()
-    {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
-
-        $qb
-            ->select('
-                ra.reference,
-                ra.libelle,
-                ra.typeQuantite,
-                ra.id,
-                ra.quantiteStock,
-                ra.limitSecurity,
-                ra.limitWarning,
-                ra.dateEmergencyTriggered,
-                ra.typeQuantite,
-                ra.quantiteDisponible,
-                t.label as type')
-            ->from('App\Entity\ReferenceArticle', 'ra')
-            ->join('ra.type', 't')
-            ->join('ra.statut', 'status')
-            ->andWhere('status.nom = :activeStatus')
-            ->andWhere('ra.dateEmergencyTriggered IS NOT NULL')
-            ->andWhere(
-                $qb->expr()->orX(
-                    $qb->expr()->gt('ra.limitSecurity', 0),
-                    $qb->expr()->gt('ra.limitWarning', 0)
-                )
-            )
-            ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF);
-        return $qb;
-    }
-
     /**
      * @param ReferenceArticle $ref
      * @return int
@@ -1080,9 +994,6 @@ class ReferenceArticleRepository extends EntityRepository
 
         return $query->getSingleScalarResult();
     }
-
-
-
 
     public function getOneReferenceByBarCodeAndLocation(string $barCode, string $location)
     {

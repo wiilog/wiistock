@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\Pack;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use Doctrine\ORM\EntityManagerInterface;
@@ -39,7 +39,7 @@ final class Version20200623132732 extends AbstractMigration implements Container
         /** @var EntityManagerInterface $em */
         $em = $this->container->get('doctrine.orm.entity_manager');
 
-        $mouvementTracaRepository = $em->getRepository(MouvementTraca::class);
+        $mouvementTracaRepository = $em->getRepository(TrackingMovement::class);
         $packRepository = $em->getRepository(Pack::class);
 
 //        $lastDropsGroupedByColis = $mouvementTracaRepository->getLastDropsGroupedByColis();

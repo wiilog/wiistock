@@ -1,6 +1,7 @@
 {% if entityPath is not null %}
     <a href="{{ path(entityPath, {'id': entityId}) }}"
        class="d-inline-flex align-items-center"
+       onclick="event.stopPropagation()"
        target="_blank">
         <i class='fas fa-share-square mr-2'></i>
         <span class="flex-fill">

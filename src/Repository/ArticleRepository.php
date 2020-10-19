@@ -9,6 +9,7 @@ use App\Entity\InventoryMission;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 
 use App\Helper\QueryCounter;
@@ -19,6 +20,7 @@ use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -41,7 +43,10 @@ class ArticleRepository extends EntityRepository
         'Actions' => 'Actions',
         'Code barre' => 'barCode',
         'Dernier inventaire' => 'dateLastInventory',
-        'Prix unitaire' => 'prixUnitaire'
+        'Prix unitaire' => 'prixUnitaire',
+        'Lot' => 'batch',
+        'Date d\'entrée en stock' => 'stockEntryDate',
+        'Date de péremption' => 'expiryDate',
     ];
 
     private const linkChampLibreLabelToField = [
@@ -229,6 +234,9 @@ class ArticleRepository extends EntityRepository
             ->addSelect('article.barCode')
             ->addSelect('article.dateLastInventory')
             ->addSelect('article.freeFields')
+            ->addSelect('article.batch')
+            ->addSelect('article.stockEntryDate')
+            ->addSelect('article.expiryDate')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
             ->leftJoin('article.type', 'type')
@@ -544,10 +552,9 @@ class ArticleRepository extends EntityRepository
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column =
-                        isset(self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']])
-                            ? self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']]
-                            : $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = self::DtToDbLabels[$column] ?? $column;
+
                     switch ($column) {
                         case 'Actions':
                             break;
@@ -590,8 +597,7 @@ class ArticleRepository extends EntityRepository
                             break;
                         default:
                             if (property_exists(Article::class, $column)) {
-                                $qb
-                                    ->orderBy('a.' . $column, $order);
+                                $qb->orderBy('a.' . $column, $order);
                             } else {
                                 $orderField = $column;
                                 $clId = $freeFields[trim(mb_strtolower($orderField))] ?? null;
@@ -1093,4 +1099,16 @@ class ArticleRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findForReferenceWithoutTransfer($reference) {
+        return $this->createQueryBuilder("a")
+            ->join("a.articleFournisseur", "af")
+            ->leftJoin("a.transferRequests", "tr")
+            ->where("af.referenceArticle = :reference")
+            ->andWhere("tr.id IS NULL")
+            ->setParameter("reference", $reference)
+            ->getQuery()
+            ->getResult();
+    }
+
 }

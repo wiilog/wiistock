@@ -7,7 +7,7 @@ use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Utilisateur;
@@ -29,17 +29,17 @@ Class PackService
     private $entityManager;
     private $security;
     private $template;
-    private $mouvementTracaService;
+    private $trackingMovementService;
     private $specificService;
 
-    public function __construct(MouvementTracaService $mouvementTracaService,
+    public function __construct(TrackingMovementService $trackingMovementService,
                                 SpecificService $specificService,
                                 Security $security,
                                 Twig_Environment $template,
                                 EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
         $this->specificService = $specificService;
-        $this->mouvementTracaService = $mouvementTracaService;
+        $this->trackingMovementService = $trackingMovementService;
         $this->security = $security;
         $this->template = $template;
     }
@@ -92,7 +92,7 @@ Class PackService
             $originFrom = '-';
         }
 
-        /** @var MouvementTraca $lastPackMovement */
+        /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
         return [
             'actions' => $this->template->render('pack/datatablePackRow.html.twig', [
@@ -260,17 +260,17 @@ Class PackService
             for ($i = 0; $i < $number; $i++) {
                 $pack = $this->createPack(['arrival' => $arrivage, 'nature' => $nature]);
                 if ($defaultEmpForMvt) {
-                    $mouvementDepose = $this->mouvementTracaService->createTrackingMovement(
+                    $mouvementDepose = $this->trackingMovementService->createTrackingMovement(
                         $pack,
                         $defaultEmpForMvt,
                         $user,
                         $now,
                         false,
                         true,
-                        MouvementTraca::TYPE_DEPOSE,
+                        TrackingMovement::TYPE_DEPOSE,
                         ['from' => $arrivage]
                     );
-                    $this->mouvementTracaService->persistSubEntities($this->entityManager, $mouvementDepose);
+                    $this->trackingMovementService->persistSubEntities($this->entityManager, $mouvementDepose);
                     $this->entityManager->persist($mouvementDepose);
                 }
                 $entityManager->persist($pack);

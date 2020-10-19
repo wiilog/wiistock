@@ -7,7 +7,7 @@ namespace App\EventListener;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
 use App\Entity\LocationClusterRecord;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\OptimisticLockException;
@@ -17,12 +17,12 @@ use Doctrine\ORM\ORMException;
 class TrackingMovementListener
 {
     /**
-     * @param MouvementTraca $movementToDelete
+     * @param TrackingMovement $movementToDelete
      * @param LifecycleEventArgs $lifecycleEventArgs
      * @throws ORMException
      * @throws OptimisticLockException
      */
-    public function preRemove(MouvementTraca $movementToDelete,
+    public function preRemove(TrackingMovement $movementToDelete,
                               LifecycleEventArgs $lifecycleEventArgs) {
         $entityManager = $lifecycleEventArgs->getEntityManager();
 
@@ -41,11 +41,11 @@ class TrackingMovementListener
 
     /**
      * @param EntityManager $entityManager
-     * @param MouvementTraca $movementToDelete
+     * @param TrackingMovement $movementToDelete
      * @throws ORMException
      * @throws OptimisticLockException
      */
-    public function treatPackLinking(MouvementTraca $movementToDelete,
+    public function treatPackLinking(TrackingMovement $movementToDelete,
                                      EntityManager $entityManager): void {
         $pack = $movementToDelete->getPack();
 
@@ -93,11 +93,11 @@ class TrackingMovementListener
 
     /**
      * @param EntityManager $entityManager
-     * @param MouvementTraca $movementToDelete
+     * @param TrackingMovement $movementToDelete
      * @throws ORMException
      * @throws OptimisticLockException
      */
-    private function treatFirstDropRecordLinking(MouvementTraca $movementToDelete,
+    private function treatFirstDropRecordLinking(TrackingMovement $movementToDelete,
                                                  EntityManager $entityManager): void {
         $pack = $movementToDelete->getPack();
         $firstDropRecords = $movementToDelete->getFirstDropsRecords();
@@ -136,12 +136,12 @@ class TrackingMovementListener
     /**
      * @param EntityManager $entityManager
      * @param array $recordIdsToIgnore
-     * @param MouvementTraca $movementToDelete
+     * @param TrackingMovement $movementToDelete
      * @throws ORMException
      * @throws OptimisticLockException
      */
     private function treatLastTrackingRecordLinking(array $recordIdsToIgnore,
-                                                    MouvementTraca $movementToDelete,
+                                                    TrackingMovement $movementToDelete,
                                                     EntityManager $entityManager): void {
         $pack = $movementToDelete->getPack();
         $lastTrackingRecords = $movementToDelete->getLastTrackingRecords();
@@ -181,11 +181,11 @@ class TrackingMovementListener
 
     /**
      * @param EntityManager $entityManager
-     * @param MouvementTraca $trackingMovement
+     * @param TrackingMovement $trackingMovement
      * @throws ORMException
      * @throws OptimisticLockException
      */
-    private function treatLocationClusterMeterLinking(MouvementTraca $trackingMovement,
+    private function treatLocationClusterMeterLinking(TrackingMovement $trackingMovement,
                                                       EntityManager $entityManager): void {
         $location = $trackingMovement->getEmplacement();
         if ($trackingMovement->isDrop()

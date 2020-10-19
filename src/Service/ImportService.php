@@ -15,9 +15,8 @@ use App\Entity\Import;
 use App\Entity\InventoryCategory;
 use App\Entity\MouvementStock;
 use App\Entity\ParametrageGlobal;
-use App\Entity\PieceJointe;
-use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
+use App\Entity\Attachment;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -173,10 +172,10 @@ class ImportService
     }
 
     /**
-     * @param PieceJointe $attachment
+     * @param Attachment $attachment
      * @return array
      */
-    public function getImportConfig(PieceJointe $attachment)
+    public function getImportConfig(Attachment $attachment)
     {
         $path = $this->attachmentService->getServerPath($attachment);
 
@@ -633,6 +632,18 @@ class ImportService
                         'needed' => $this->fieldIsNeeded('emplacement', Import::ENTITY_ART),
                         'value' => isset($corresp['emplacement']) ? $corresp['emplacement'] : null,
                     ],
+                    'batch' => [
+                        'needed' => $this->fieldIsNeeded('batch', Import::ENTITY_ART),
+                        'value' => $corresp['batch'] ?? null,
+                    ],
+                    'expiryDate' => [
+                        'needed' => $this->fieldIsNeeded('expiryDate', Import::ENTITY_ART),
+                        'value' => $corresp['expiryDate'] ?? null,
+                    ],
+                    'stockEntryDate' => [
+                        'needed' => $this->fieldIsNeeded('stockEntryDate', Import::ENTITY_ART),
+                        'value' => $corresp['stockEntryDate'] ?? null,
+                    ],
                 ];
                 break;
             default:
@@ -665,14 +676,14 @@ class ImportService
 
     /**
      * @param array $logRows
-     * @return PieceJointe
+     * @return Attachment
      * @throws NonUniqueResultException
      */
     private function persistLogFilePieceJointe(array $logRows)
     {
         $createdLogFile = $this->buildLogFile($logRows);
 
-        $pieceJointeForLogFile = new PieceJointe();
+        $pieceJointeForLogFile = new Attachment();
         $pieceJointeForLogFile
             ->setOriginalName($createdLogFile)
             ->setFileName($createdLogFile);
@@ -1045,9 +1056,33 @@ class ImportService
 
         if (isset($data['prixUnitaire'])) {
             if (!is_numeric($data['prixUnitaire'])) {
-                $this->throwError('La quantité doit être un nombre.');
+                $this->throwError('Le prix unitaire doit être un nombre.');
             }
             $article->setPrixUnitaire($data['prixUnitaire']);
+        }
+
+        if (isset($data['batch'])) {
+            $article->setBatch($data['batch']);
+        }
+
+        if (isset($data['expiryDate'])) {
+            if(str_contains($data['expiryDate'], ' ')) {
+                $date = DateTime::createFromFormat("d/m/Y H:i", $data['expiryDate']);
+            } else {
+                $date = DateTime::createFromFormat("d/m/Y", $data['expiryDate']);
+            }
+
+            $article->setExpiryDate($date);
+        }
+
+        if (isset($data['stockEntryDate'])) {
+            if(str_contains($data['stockEntryDate'], ' ')) {
+                $date = DateTime::createFromFormat("d/m/Y H:i", $data['stockEntryDate']);
+            } else {
+                $date = DateTime::createFromFormat("d/m/Y", $data['stockEntryDate']);
+            }
+
+            $article->setStockEntryDate($date);
         }
 
         if ($isNewEntity) {
