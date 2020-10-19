@@ -155,8 +155,7 @@
     <div class="form-group col-4 reference {{ dnoneRef }}">
         <label class="my-auto mr-2" for="quantite">Quantité</label>
         {# si on est sur une demande, la quantité ne doit pas être modifiée #}
-        {% set disabledOnDemand = isADemand is defined and isADemand ? 'disabled' : disabled %}
-        <input {{ disabledOnDemand }} class="form-control rounded data" value='{{ articleRef.quantiteStock }}' type="number" min="0"
+        <input class="form-control rounded data" value='{{ articleRef.quantiteDisponible }}' type="number" min="0"
                                       id="quantite" disabled>
     </div>
 

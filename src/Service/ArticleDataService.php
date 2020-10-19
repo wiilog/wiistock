@@ -28,6 +28,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
 use DateTime;
+use DateTimeZone;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -283,13 +284,14 @@ class ArticleDataService
         $price = max(0, $data['prix']);
 
         $article = $articleRepository->find($data['article']);
-
         if ($article) {
             if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 $article
                     ->setPrixUnitaire($price)
                     ->setLabel($data['label'])
                     ->setConform(!$data['conform'])
+                    ->setBatch($data['batch'] ?? null)
+                    ->setExpiryDate(DateTime::createFromFormat("Y-m-d", $data['expiry']))
                     ->setCommentaire($data['commentaire']);
 
                 if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
@@ -322,7 +324,6 @@ class ArticleDataService
      */
     public function newArticle($data, Demande $demande = null) {
         $entityManager = $this->entityManager;
-
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
@@ -366,7 +367,6 @@ class ArticleDataService
 		}
 
         $quantity = max((int)$data['quantite'], 0); // protection contre quantités négatives
-
         $toInsert
             ->setLabel(isset($data['libelle']) ? $data['libelle'] : $refArticle->getLibelle())
             ->setConform(isset($data['conform']) ? !$data['conform'] : true)
@@ -378,7 +378,10 @@ class ArticleDataService
             ->setEmplacement($location)
             ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type)
-            ->setBarCode($this->generateBarCode());
+            ->setBarCode($this->generateBarCode())
+            ->setBatch($data['batch'])
+            ->setStockEntryDate(new DateTime("now", new DateTimeZone("Europe/Paris")))
+            ->setExpiryDate($data['expiry'] ? DateTime::createFromFormat("Y-m-d", $data['expiry']) : null);
         $entityManager->persist($toInsert);
         $this->freeFieldService->manageFreeFields($toInsert, $data, $entityManager);
         // optionnel : ajout dans une demande
@@ -534,6 +537,9 @@ class ArticleDataService
             'Prix unitaire' => $article->getPrixUnitaire(),
             'Code barre' => $article->getBarCode() ?? 'Non défini',
             "Dernier inventaire" => $article->getDateLastInventory() ? $article->getDateLastInventory()->format('d/m/Y') : '',
+            "Lot" => $article->getBatch(),
+            "Date d'entrée en stock" => $article->getStockEntryDate() ? $article->getStockEntryDate()->format('d/m/Y H:i') : '',
+            "Date de péremption" => $article->getExpiryDate() ? $article->getExpiryDate()->format('d/m/Y') : '',
             'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
                 'url' => $url,
                 'articleId' => $article->getId(),

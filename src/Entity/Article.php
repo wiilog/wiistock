@@ -165,6 +165,26 @@ class Article extends FreeFieldEntity
      */
     private $transferRequests;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Alert::class, mappedBy="article")
+     */
+    private $alerts;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $batch;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $expiryDate;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $stockEntryDate;
+
     public function __construct()
     {
         $this->collectes = new ArrayCollection();
@@ -177,6 +197,7 @@ class Article extends FreeFieldEntity
         $this->transferRequests = new ArrayCollection();
 
         $this->quantite = 0;
+        $this->alerts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -676,6 +697,73 @@ class Article extends FreeFieldEntity
             $this->transferRequests->removeElement($transferRequest);
             $transferRequest->removeArticle($this);
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Alert[]
+     */
+    public function getAlerts(): Collection
+    {
+        return $this->alerts;
+    }
+
+    public function addAlert(Alert $alert): self
+    {
+        if (!$this->alerts->contains($alert)) {
+            $this->alerts[] = $alert;
+            $alert->setArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAlert(Alert $alert): self
+    {
+        if ($this->alerts->contains($alert)) {
+            $this->alerts->removeElement($alert);
+            // set the owning side to null (unless already changed)
+            if ($alert->getArticle() === $this) {
+                $alert->setArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getExpiryDate(): ?\DateTimeInterface
+    {
+        return $this->expiryDate;
+    }
+
+    public function setExpiryDate(?\DateTimeInterface $expiryDate): self
+    {
+        $this->expiryDate = $expiryDate;
+
+        return $this;
+    }
+
+    public function getBatch(): ?string
+    {
+        return $this->batch;
+    }
+
+    public function setBatch(?string $batch): self
+    {
+        $this->batch = $batch;
+
+        return $this;
+    }
+
+    public function getStockEntryDate(): ?\DateTimeInterface
+    {
+        return $this->stockEntryDate;
+    }
+
+    public function setStockEntryDate(?\DateTimeInterface $stockEntryDate): self
+    {
+        $this->stockEntryDate = $stockEntryDate;
 
         return $this;
     }

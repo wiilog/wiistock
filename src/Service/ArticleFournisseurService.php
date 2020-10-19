@@ -80,6 +80,9 @@ class ArticleFournisseurService
         else {
             throw new Exception(self::ERROR_REFERENCE_ALREADY_EXISTS);
         }
+
+        $this->entityManager->persist($articleFournisseur);
+
         return $articleFournisseur;
     }
 

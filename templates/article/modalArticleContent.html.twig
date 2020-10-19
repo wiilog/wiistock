@@ -64,13 +64,40 @@
             </label>
         </div>
     </div>
+    <div class="form-group col-6">
+        {% set managers = "" %}
+        {% for manager in article.articleFournisseur.referenceArticle.managers %}
+            {% set managers = managers ~ (not loop.first ? ', ') ~ manager.username %}
+        {% endfor %}
+
+        <label>Gestionnaires</label>
+        <input class="form-control" type="text" value="{{ managers }}" disabled>
+    </div>
+</div>
+<div class="row">
+    <div class="form-group col-6">
+        <label>Lot</label>
+        <input class="form-control data" type="text" name="batch" value="{{ article.batch }}">
+    </div>
     <div class="form-group col-3">
         <label>Catégorie d'inventaire</label>
-        <input disabled class="form-control" type="text" value="{{ invCategory ? invCategory.label }}">
+        <input class="form-control" type="text" value="{{ invCategory ? invCategory.label }}" disabled>
     </div>
     <div class="form-group col-3">
         <label>Date dernier inventaire</label>
         <input name="categorie" class="form-control" disabled value="{{ article.dateLastInventory | date('d/m/Y') }}">
+    </div>
+</div>
+<div class="row">
+    <div class="form-group col-6 w-100">
+        {% if article.stockEntryDate %}
+        <label>Date d'entrée en stock</label>
+        <input type="text" class="form-control" value="{{ article.stockEntryDate | date('d/m/Y H:i') }}" disabled/>
+        {% endif %}
+    </div>
+    <div class="form-group col-6 w-100">
+        <label>Date de péremption</label>
+        <input type="date" class="form-control data needed" name="expiry" value="{{ article.expiryDate | date('Y-m-d') }}"/>
     </div>
 </div>
 <div class="row">
