@@ -4,12 +4,15 @@ namespace App\EventListener;
 
 use App\Entity\ReferenceArticle;
 use App\Service\RefArticleDataService;
+use Doctrine\ORM\EntityManagerInterface;
 
 class RefArticleQuantityNotifier {
 
+    private $manager;
     private $refArticleService;
 
-    public function __construct(RefArticleDataService $refArticleDataService) {
+    public function __construct(EntityManagerInterface $manager, RefArticleDataService $refArticleDataService) {
+        $this->manager = $manager;
         $this->refArticleService = $refArticleDataService;
     }
 
@@ -22,12 +25,13 @@ class RefArticleQuantityNotifier {
     }
 
     private function handleReference(ReferenceArticle $referenceArticle) {
-        if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            $this->refArticleService->treatAlert($referenceArticle);
-        }
+        $this->refArticleService->treatAlert($referenceArticle);
+        $this->manager->flush();
 
         $available = $referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee();
         $referenceArticle->setQuantiteDisponible($available);
+
+        $this->manager->flush();
     }
 
 }

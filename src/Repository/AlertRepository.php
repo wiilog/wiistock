@@ -16,12 +16,16 @@ use Doctrine\ORM\EntityRepository;
  */
 class AlertRepository extends EntityRepository {
 
-    public function findForReference($reference, int $type) {
+    public function findForReference($reference, $types) {
+        if(!is_array($types)) {
+            $types = [$types];
+        }
+
         return $this->createQueryBuilder("a")
             ->where("a.reference = :reference")
-            ->andWhere("a.type = :type")
+            ->andWhere("a.type IN (:types)")
             ->setParameter("reference", $reference)
-            ->setParameter("type", $type)
+            ->setParameter("types", $types)
             ->getQuery()
             ->getResult();
     }
@@ -45,8 +49,8 @@ class AlertRepository extends EntityRepository {
 
         $total = QueryCounter::count($qb, "a");
 
-        foreach ($filters as $filter) {
-            switch ($filter['field']) {
+        foreach($filters as $filter) {
+            switch($filter['field']) {
                 case 'type':
                     $qb
                         ->join('reference.type', 't3')
@@ -77,10 +81,10 @@ class AlertRepository extends EntityRepository {
         }
 
         // prise en compte des paramètres issus du datatable
-        if (!empty($params)) {
-            if (!empty($params->get('search'))) {
+        if(!empty($params)) {
+            if(!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
-                if (!empty($search)) {
+                if(!empty($search)) {
                     $qb
                         ->andWhere('reference.reference LIKE :value OR reference.libelle LIKE :value')
                         ->setParameter('value', '%' . str_replace('_', '\_', $search) . '%');
@@ -89,12 +93,12 @@ class AlertRepository extends EntityRepository {
 
             $countFiltered = QueryCounter::count($qb, "a");
 
-            if (!empty($params->get('order'))) {
+            if(!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
-                if (!empty($order)) {
+                if(!empty($order)) {
                     $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
 
-                    switch ($column) {
+                    switch($column) {
                         case "label":
                             $qb->addSelect("COALESCE(article.label, reference.libelle) AS HIDDEN label")
                                 ->orderBy("label", $order);
@@ -132,14 +136,14 @@ class AlertRepository extends EntityRepository {
 
         $qb->groupBy('a.id')
             ->addSelect('COALESCE(CASE
-								WHEN reference.typeQuantite = \'' .ReferenceArticle::TYPE_QUANTITE_ARTICLE . '\'
+								WHEN reference.typeQuantite = \'' . ReferenceArticle::TYPE_QUANTITE_ARTICLE . '\'
 								THEN SUM(raarticle.quantite)
 								ELSE reference.quantiteStock
 								END, article.quantite) AS quantity');
 
-        if (!empty($params)) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        if(!empty($params)) {
+            if(!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if(!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
 
         return [

@@ -4,7 +4,11 @@ namespace App\Helper;
 
 use Closure;
 use Countable;
+use Doctrine\Common\Collections\ArrayCollection;
 use Error;
+use RecursiveArrayIterator;
+use RecursiveIteratorIterator;
+use RuntimeException;
 
 class Stream implements Countable
 {
@@ -25,13 +29,21 @@ class Stream implements Countable
         $this->elements = $array;
     }
 
-    /**
-     * @param array $array
-     * @return Stream
-     */
-    public static function from(array $array): Stream
+    public static function from($array): Stream
     {
-        return new Stream($array);
+        if(is_array($array)) {
+            return new Stream($array);
+        } else if(is_iterable($array)) {
+            return new Stream(iterator_to_array($array));
+        } else {
+            if(is_object($array)) {
+                $type = get_class($array);
+            } else {
+                $type = gettype($array);
+            }
+
+            throw new RuntimeException("Unsupported type `$type`, expected array or iterable");
+        }
     }
 
     /**
@@ -74,6 +86,23 @@ class Stream implements Countable
         } else {
             throw new Error($this::INVALID_STREAM);
         }
+    }
+
+    public function flatten(): self {
+        $elements = [];
+        $iterator = new RecursiveIteratorIterator(new RecursiveArrayIterator($this->elements));
+
+        foreach($iterator as $element) {
+            $elements[] = $element;
+        }
+
+        $this->elements = $elements;
+        return $this;
+    }
+
+    public function unique(): self {
+        $this->elements = array_unique($this->elements);
+        return $this;
     }
 
     /**

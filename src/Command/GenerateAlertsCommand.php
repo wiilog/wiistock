@@ -5,8 +5,7 @@ namespace App\Command;
 use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\ParametrageGlobal;
-use App\Entity\Utilisateur;
-use App\Helper\Stream;
+use App\Service\AlertService;
 use App\Service\MailerService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,22 +17,32 @@ use Twig\Environment;
 class GenerateAlertsCommand extends Command {
 
     private $manager;
-    private $mailer;
-    private $templating;
+    private $service;
+
+    private $sendSecurity;
+    private $sendWarning;
+    private $sendExpiry;
     private $expiryDelay;
 
-    public function __construct(EntityManagerInterface $manager, MailerService $mailer, Environment $templating) {
+    public function __construct(EntityManagerInterface $manager, AlertService $service) {
         parent::__construct();
 
         $this->manager = $manager;
-        $this->mailer = $mailer;
-        $this->templating = $templating;
+        $this->service = $service;
 
-        $this->expiryDelay = $manager->getRepository(ParametrageGlobal::class)
-            ->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY) ?: "0h";
-        $this->expiryDelay = str_replace("s", "week", $this->expiryDelay);
-        $this->expiryDelay = str_replace("j", "day", $this->expiryDelay);
-        $this->expiryDelay = str_replace("h", "hour", $this->expiryDelay);
+        $parametrage = $manager->getRepository(ParametrageGlobal::class);
+        $this->sendSecurity = $parametrage->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_SECURITY_THRESHOLD);
+        $this->sendWarning = $parametrage->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_WARNING_THRESHOLD);
+
+        if($expiry = $parametrage->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY)) {
+            $this->sendExpiry = true;
+            $this->expiryDelay = $expiry;
+            $this->expiryDelay = str_replace("s", "week", $this->expiryDelay);
+            $this->expiryDelay = str_replace("j", "day", $this->expiryDelay);
+            $this->expiryDelay = str_replace("h", "hour", $this->expiryDelay);
+        } else {
+            $this->sendExpiry = false;
+        }
     }
 
     protected function configure() {
@@ -42,14 +51,6 @@ class GenerateAlertsCommand extends Command {
     }
 
     protected function execute(InputInterface $input, OutputInterface $output) {
-
-    }
-
-    private function treatArticleThresholds() {
-
-    }
-
-    private function treatExpiredArticles() {
         $now = new DateTime("now", new \DateTimeZone("Europe/Paris"));
 
         $expired = $this->manager->getRepository(Article::class)->findExpiredToGenerate($this->expiryDelay);
@@ -75,13 +76,7 @@ class GenerateAlertsCommand extends Command {
         }
 
         foreach($managers as $manager => $articles) {
-            /** @var Article[] $articles */
-            $content = $this->templating->render('mails/contents/mailExpiredArticle.html.twig', [
-                "articles" => $articles,
-                "delay" => $this->displayExpiry(),
-            ]);
-
-            $this->mailer->sendMail('FOLLOW GT // Seuil de péremption atteint', $content, $manager);
+            $this->service->sendExpiryMails($manager, $articles, $this->expiryDelay);
         }
     }
 
