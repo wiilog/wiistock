@@ -1973,7 +1973,7 @@ class ReceptionController extends AbstractController {
                 $destinataires = '';
                 $userThatTriggeredEmergency = $ref->getUserThatTriggeredEmergency();
                 if($userThatTriggeredEmergency) {
-                    if($demande && $demande->getUtilisateur()) {
+                    if(isset($demande) && $demande->getUtilisateur()) {
                         $destinataires = array_merge(
                             $userThatTriggeredEmergency->getMainAndSecondaryEmails(),
                             $demande->getUtilisateur()->getMainAndSecondaryEmails()
@@ -1982,7 +1982,7 @@ class ReceptionController extends AbstractController {
                         $destinataires = $userThatTriggeredEmergency->getMainAndSecondaryEmails();
                     }
                 } else {
-                    if($demande && $demande->getUtilisateur()) {
+                    if(isset($demande) && $demande->getUtilisateur()) {
                         $destinataires = $demande->getUtilisateur()->getMainAndSecondaryEmails();
                     }
                 }

@@ -570,6 +570,7 @@ function initNewLigneReception($button) {
     );
     let $submitNewReceptionButton = $modalNewLigneReception.find("#submitNewReceptionButton");
 
+    $submitNewReceptionButton.off('click');
     $submitNewReceptionButton.click(function () {
         const error = getErrorModalNewLigneReception();
         const $errorContainer = $modalNewLigneReception.find('.error-msg');
