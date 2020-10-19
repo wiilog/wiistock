@@ -5,9 +5,11 @@ namespace App\Service;
 
 
 use App\Entity\CategoryType;
+use App\Entity\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Reception;
+use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Utilisateur;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
@@ -84,21 +86,32 @@ class ReceptionService
     public function dataRowReception(Reception $reception)
     {
         return [
-            'id' => ($reception->getId()),
-            "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
-            "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y H:i'),
-            "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : ''),
-            "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
-            "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
-            "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
-            "Numéro de commande" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
-            "storageLocation" => ($reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : ''),
-            "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
-            'Actions' => $this->templating->render(
-                'reception/datatableReceptionRow.html.twig',
-                ['reception' => $reception]
-            )
-        ];
+                "id" => ($reception->getId()),
+                "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
+                "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y H:i'),
+                "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : ''),
+                "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
+                "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
+                "receiver" => implode(', ', array_unique(
+                    $reception->getDemandes()
+                        ->map(function (Demande $request) {
+                            return $request->getUtilisateur() ? $request->getUtilisateur()->getUsername() : '';
+                        })
+                        ->filter(function (string $username) {
+                            return !empty($username);
+                        })
+                        ->toArray())
+                ),
+                "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
+                "Numéro de commande" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
+                "storageLocation" => ($reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : ''),
+                "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
+                'urgence' => $reception->getEmergencyTriggered(),
+                'Actions' => $this->templating->render(
+                    'reception/datatableReceptionRow.html.twig',
+                    ['reception' => $reception]
+                ),
+            ];
     }
 
     public function createHeaderDetailsConfig(Reception $reception): array {
@@ -117,6 +130,16 @@ class ReceptionService
         $comment = $reception->getCommentaire();
         $storageLocation = $reception->getStorageLocation();
         $attachments = $reception->getAttachments();
+        $receivers = implode(', ', array_unique(
+                $reception->getDemandes()
+                    ->map(function (Demande $request) {
+                        return $request->getUtilisateur() ? $request->getUtilisateur()->getUsername() : '';
+                    })
+                    ->filter(function (string $username) {
+                        return !empty($username);
+                    })
+                    ->toArray())
+        );
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
@@ -160,6 +183,10 @@ class ReceptionService
                 'label' => 'Numéro de commande',
                 'value' => $orderNumber ?: '',
                 'show' => [ 'fieldName' => 'numCommande' ]
+            ],
+            [
+                'label' => 'Destinataire(s)',
+                'value' => $receivers ?: ''
             ],
             [
                 'label' => 'Date attendue',

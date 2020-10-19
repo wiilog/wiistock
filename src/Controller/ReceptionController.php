@@ -1790,6 +1790,7 @@ class ReceptionController extends AbstractController {
                 'quantité reçue',
                 'emplacement de stockage',
                 'urgent',
+                'destinataire',
                 'référence',
                 'libellé',
                 'quantité stock',
@@ -1809,6 +1810,7 @@ class ReceptionController extends AbstractController {
                         if($reception['referenceArticleId']) {
                             $row = $this->serializeReception($reception);
 
+                            $row[] = '';
                             $row[] = $reception['referenceArticleReference'] ?: '';
                             $row[] = $reception['referenceArticleLibelle'] ?: '';
                             $row[] = $reception['referenceArticleQuantiteStock'] ?: '';
@@ -1821,6 +1823,7 @@ class ReceptionController extends AbstractController {
                         if($reception['articleId']) {
                             $row = $this->serializeReception($reception);
 
+                            $row[] = $reception['requesterUsername'] ?: '';
                             $row[] = $reception['articleReference'] ?: '';
                             $row[] = $reception['articleLabel'] ?: '';
                             $row[] = $reception['articleQuantity'] ?: '';
