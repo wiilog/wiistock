@@ -207,15 +207,14 @@ class ReceptionRepository extends ServiceEntityRepository
 						->leftJoin('r.fournisseur', 'f2')
                         ->leftJoin('r.demandes', 'search_request')
                         ->leftJoin('search_request.utilisateur', 'search_request_User')
-                        ->andWhere('(
+                        ->andWhere('
                             r.date LIKE :value
                             OR r.numeroReception LIKE :value
                             OR r.orderNumber LIKE :value
-                            OR r.commentaire lIKE :value
+                            OR r.commentaire LIKE :value
                             OR s2.nom LIKE :value
-                            OR f2.nom LIKE :value,
-                            OR search_request_User.username LIKE :value
-                        )')
+                            OR f2.nom LIKE :value
+                            OR search_request_User.username LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
