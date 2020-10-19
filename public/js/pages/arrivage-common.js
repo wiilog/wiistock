@@ -27,6 +27,7 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
                                 isCreation,
                                 arrivalsDatatable
                             );
+                            initNewArrivageEditor('#modalNewArrivage');
                         }
                     }
                     else {
