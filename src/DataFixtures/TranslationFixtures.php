@@ -88,6 +88,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Des colis sont nécessaires pour générer un bon de livraison" => "Des colis sont nécessaires pour générer un bon de livraison",
                 "Des colis sont nécessaires pour générer une lettre de voiture" => "Des colis sont nécessaires pour générer une lettre de voiture",
                 "Acheminement {numéro} traité le {date}" => "Acheminement {numéro} traité le {date}",
+                "Acheminement {numéro} traité partiellement le {date}" => "Acheminement {numéro} traité partiellement le {date}",
                 "L'acheminement contient plus de {nombre} colis" => "L'acheminement contient plus de {nombre} colis",
                 'Générer un bon d\'acheminement' => 'Générer un bon d\'acheminement',
                 'Générer un bon de livraison' => 'Générer un bon de livraison',
