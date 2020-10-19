@@ -865,7 +865,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     $handling
                         ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
                 }
-
+                $handling->setTreatedByHandling($nomadUser);
                 $entityManager->flush();
 
                 if ((!$oldStatus && $newStatus)
