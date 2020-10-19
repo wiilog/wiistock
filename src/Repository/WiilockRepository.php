@@ -11,7 +11,6 @@ use Doctrine\ORM\EntityRepository;
  * @method Wiilock[]    findAll()
  * @method Wiilock[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class WiilockRepository extends EntityRepository
-{
+class WiilockRepository extends EntityRepository {
 
 }
