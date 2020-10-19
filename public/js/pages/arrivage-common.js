@@ -23,7 +23,7 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
                                 arrivalId,
                                 alertConfig.numeroCommande,
                                 alertConfig.postNb,
-                                {alertConfigs: nextAlertConfigs, ...response},
+                                {alertConfigs: nextAlertConfigs, success, ...response},
                                 isCreation,
                                 arrivalsDatatable
                             );
