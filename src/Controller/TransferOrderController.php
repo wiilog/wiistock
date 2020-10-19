@@ -63,13 +63,13 @@ class TransferOrderController extends AbstractController {
     }
 
     /**
-     * @Route("/liste/{filter}", name="transfer_order_index", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/liste/{reception}", name="transfer_order_index", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
      * @param EntityManagerInterface $em
-     * @param string|null $filter
+     * @param null $reception
      * @return Response
      */
-    public function index(Request $request, EntityManagerInterface $em, $filter = null): Response {
+    public function index(Request $request, EntityManagerInterface $em, $reception = null): Response {
         if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -81,7 +81,7 @@ class TransferOrderController extends AbstractController {
 
         return $this->render('transfer/order/index.html.twig', [
             'statuts' => $statusRepository->findByCategorieName(CategorieStatut::TRANSFER_ORDER),
-            'filterStatus' => $filter
+            'receptionFilter' => $reception,
         ]);
     }
 
@@ -95,8 +95,8 @@ class TransferOrderController extends AbstractController {
             if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $data = $this->service->getDataForDatatable($request->request);
+            $filterReception = $request->request->get('filterReception');
+            $data = $this->service->getDataForDatatable($request->request, $filterReception);
 
             return new JsonResponse($data);
         } else {
@@ -104,7 +104,7 @@ class TransferOrderController extends AbstractController {
         }
     }
 
-    private function createNumber($entityManager, $date) {
+    public static function createNumber($entityManager, $date) {
         $dateStr = $date->format('Ymd');
 
         $lastDispatchNumber = $entityManager->getRepository(TransferOrder::class)->getLastTransferNumberByPrefix("T-" . $dateStr);
@@ -169,7 +169,7 @@ class TransferOrderController extends AbstractController {
             $transferRequest->setValidationDate(new DateTime());
 
             $transfer
-                ->setNumber($this->createNumber($entityManager, $date))
+                ->setNumber($this::createNumber($entityManager, $date))
                 ->setCreationDate($date)
                 ->setRequest($transferRequest)
                 ->setStatus($toTreatOrder);

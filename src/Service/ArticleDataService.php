@@ -379,7 +379,7 @@ class ArticleDataService
             ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type)
             ->setBarCode($this->generateBarCode())
-            ->setBatch($data['batch'])
+            ->setBatch($data['batch'] ?? null)
             ->setStockEntryDate(new DateTime("now", new DateTimeZone("Europe/Paris")))
             ->setExpiryDate($data['expiry'] ? DateTime::createFromFormat("Y-m-d", $data['expiry']) : null);
         $entityManager->persist($toInsert);

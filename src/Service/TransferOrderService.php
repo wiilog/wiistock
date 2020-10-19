@@ -49,12 +49,12 @@ class TransferOrderService {
         $this->mouvementStockService = $mouvementStockService;
     }
 
-    public function getDataForDatatable($params = null)
+    public function getDataForDatatable($params, $filterReception)
     {
         $filters = $this->em->getRepository(FiltreSup::class)
             ->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSFER_ORDER, $this->user);
         $queryResult = $this->em->getRepository(TransferOrder::class)
-            ->findByParamsAndFilters($params, $filters);
+            ->findByParamsAndFilters($params, $filters, $filterReception);
 
         $transfers = $queryResult['data'];
 

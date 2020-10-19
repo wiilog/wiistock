@@ -101,7 +101,7 @@ class TransferRequestController extends AbstractController {
         }
     }
 
-    private function createNumber($entityManager, $date) {
+    public static function createNumber($entityManager, $date) {
         $dateStr = $date->format('Ymd');
 
         $lastDispatchNumber = $entityManager->getRepository(TransferRequest::class)->getLastTransferNumberByPrefix("T-" . $dateStr);
@@ -147,7 +147,7 @@ class TransferRequestController extends AbstractController {
 
             $transfer
                 ->setStatus($draft)
-                ->setNumber($this->createNumber($entityManager, $date))
+                ->setNumber($this::createNumber($entityManager, $date))
                 ->setDestination($destination)
                 ->setCreationDate($date)
                 ->setRequester($this->getUser())
