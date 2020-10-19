@@ -89,7 +89,7 @@ class PreparationsManagerService
      * On termine les mouvements de prepa
      * @param Preparation $preparation
      * @param DateTime $date
-     * @param Emplacement $emplacement
+     * @param Emplacement|null $emplacement
      */
     public function closePreparationMouvement(Preparation $preparation, DateTime $date, Emplacement $emplacement = null): void
     {
