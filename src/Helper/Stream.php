@@ -52,6 +52,28 @@ class Stream implements Countable
      * @param Closure $closure
      * @return Stream
      */
+    public function sort(Closure $closure): Stream
+    {
+        if (isset($this->elements)) {
+            usort($this->elements, $closure);
+        } else {
+            throw new Error($this::INVALID_STREAM);
+        }
+        return $this;
+    }
+    public function first()
+    {
+        if (isset($this->elements)) {
+            return $this->elements[0];
+        } else {
+            throw new Error($this::INVALID_STREAM);
+        }
+    }
+
+    /**
+     * @param Closure $closure
+     * @return Stream
+     */
     public function map(Closure $closure): Stream
     {
         if (isset($this->elements)) {
