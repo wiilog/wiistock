@@ -8,6 +8,7 @@ use App\Helper\QueryCounter;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 
 /**
  * @method Alert|null find($id, $lockMode = null, $lockVersion = null)
@@ -147,6 +148,18 @@ class AlertRepository extends EntityRepository {
             'count' => $countFiltered,
             'total' => $total
         ];
+    }
+
+    /**
+     * @return int|mixed|string
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function countAll() {
+        return $this->createQueryBuilder("a")
+            ->select('COUNT(a)')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
 }

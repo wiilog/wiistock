@@ -277,8 +277,8 @@ class UtilisateurController extends AbstractController
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $roleRepository = $entityManager->getRepository(Role::class);
-
-            $utilisateur = $utilisateurRepository->find($data['id']);
+            dump($data);
+            $utilisateur = $utilisateurRepository->find($data['user']);
             $role = $roleRepository->find($data['role']);
 
             $result = $this->passwordService->checkPassword($data['password'],$data['password2']);
