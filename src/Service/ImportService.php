@@ -825,25 +825,31 @@ class ImportService
                                            array &$stats)
     {
         $refArtRepository = $this->em->getRepository(ReferenceArticle::class);
-        $refArt = $refArtRepository->findOneBy(['reference' => $data['référence']]);
+
+
         $reception = $receptionsWithCommand[$data['orderNumber']] ?? null;
         $newEntity = isset($reception);
         if (!$reception) {
             $reception = $this->receptionService->createAndPersistReception($this->em, $user, $data);
             $receptionsWithCommand[$data['orderNumber']] = $reception;
         }
-        if ($refArt) {
-            if (isset($data['quantité à recevoir'])) {
-                $receptionRefArticle = new ReceptionReferenceArticle();
-                $receptionRefArticle
-                    ->setReception($reception)
-                    ->setReferenceArticle($refArt)
-                    ->setQuantiteAR($data['quantité à recevoir'])
-                    ->setCommande($reception->getOrderNumber())
-                    ->setQuantite(0);
-                $this->em->persist($receptionRefArticle);
-            } else {
-                $this->throwError('La quantité à recevoir doit être renseignée.');
+
+        if(!empty($data['référence'])) {
+            $refArt = $refArtRepository->findOneBy(['reference' => $data['référence']]);
+
+            if($refArt) {
+                if(isset($data['quantité à recevoir'])) {
+                    $receptionRefArticle = new ReceptionReferenceArticle();
+                    $receptionRefArticle
+                        ->setReception($reception)
+                        ->setReferenceArticle($refArt)
+                        ->setQuantiteAR($data['quantité à recevoir'])
+                        ->setCommande($reception->getOrderNumber())
+                        ->setQuantite(0);
+                    $this->em->persist($receptionRefArticle);
+                } else {
+                    $this->throwError('La quantité à recevoir doit être renseignée.');
+                }
             }
         }
         if ($newEntity) {

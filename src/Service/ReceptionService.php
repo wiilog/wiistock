@@ -137,6 +137,15 @@ class ReceptionService
                 ->setTransporteur($transporteur);
         }
 
+        if(!empty($data['storageLocation'])) {
+            $storageLocation = $emplacementRepository->find(intval($data['storageLocation']));
+            $reception->setStorageLocation($storageLocation);
+        }
+
+        if(!empty($data['emergency'])) {
+            $reception->setManualUrgent($data['emergency']);
+        }
+
         $reception
             ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
             ->setDateAttendue(
