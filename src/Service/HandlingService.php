@@ -129,23 +129,29 @@ class HandlingService
 
     /**
      * @param Handling $handling
+     * @param bool $isNewHandlingAndNotTreated
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function sendEmailsAccordingToStatus(Handling $handling): void {
+    public function sendEmailsAccordingToStatus(Handling $handling, $isNewHandlingAndNotTreated = false): void {
         $requester = $handling->getRequester();
         $emails = $requester ? $requester->getMainAndSecondaryEmails() : [];
         if (!empty($emails)) {
             $status = $handling->getStatus();
             if ($status && $status->getSendNotifToDeclarant()) {
                 $statusTreated = $status->isTreated();
-                $subject = $statusTreated
-                    ? $this->translator->trans('services.Demande de service effectuée')
-                    : $this->translator->trans('services.Changement de statut d\'une demande de service');
-                $title = $statusTreated
-                    ? $this->translator->trans('services.Votre demande de service a bien été effectuée') . '.'
-                    : $this->translator->trans('services.Une demande de service vous concernant a changé de statut') . '.';
+                if ($isNewHandlingAndNotTreated) {
+                    $subject = $this->translator->trans('services.Création d\'une demande de service');
+                    $title = $this->translator->trans('services.Votre demande de service a été créée') . '.';
+                } else {
+                    $subject = $statusTreated
+                        ? $this->translator->trans('services.Demande de service effectuée')
+                        : $this->translator->trans('services.Changement de statut d\'une demande de service');
+                    $title = $statusTreated
+                        ? $this->translator->trans('services.Votre demande de service a bien été effectuée') . '.'
+                        : $this->translator->trans('services.Une demande de service vous concernant a changé de statut') . '.';
+                }
                 $this->mailerService->sendMail(
                     'FOLLOW GT // ' . $subject,
                     $this->templating->render('mails/contents/mailHandlingTreated.html.twig', [

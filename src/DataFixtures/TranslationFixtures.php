@@ -180,7 +180,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Demande de service effectuée' => 'Demande de service effectuée',
                 'Type de demande de service' => 'Type de demande de service',
                 "Changement de statut d'une demande de service" => "Changement de statut d'une demande de service",
-                "Une demande de service vous concernant a changé de statut" => "Une demande de service vous concernant a changé de statut"
+                "Une demande de service vous concernant a changé de statut" => "Une demande de service vous concernant a changé de statut",
+                "Votre demande de service a été créée" => "Votre demande de service a été créée",
+                "Création d'une demande de service" => "Création d'une demande de service",
             ]
         ];
 
