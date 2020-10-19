@@ -212,11 +212,7 @@ class HandlingController extends AbstractController
             $entityManager->persist($handling);
             $entityManager->flush();
 
-            if (!$status->isTreated()) {
-                $handlingService->sendEmailsAccordingToStatus($handling, true);
-            } else {
-                $handlingService->sendEmailsAccordingToStatus($handling);
-            }
+            $handlingService->sendEmailsAccordingToStatus($handling, !$status->isTreated());
 
             return new JsonResponse([
                 'success' => true,
