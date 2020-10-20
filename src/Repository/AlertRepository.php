@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\Alert;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
+use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
 
@@ -151,6 +153,19 @@ class AlertRepository extends EntityRepository {
             'count' => $countFiltered,
             'total' => $total
         ];
+    }
+
+    public function findNoLongerExpired() {
+        $since = new DateTime("now", new DateTimeZone("Europe/Paris"));
+
+        return $this->createQueryBuilder("a")
+            ->join("a.article", "ar")
+            ->where("ar.id IS NOT NULL")
+            ->andWhere("a.type = " . Alert::EXPIRY)
+            ->andWhere("ar.expiryDate > :since OR a.expiryDate IS NULL")
+            ->setParameter("since", $since)
+            ->getQuery()
+            ->getResult();
     }
 
 }

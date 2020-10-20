@@ -105,23 +105,14 @@ class Stream implements Countable
         return $this;
     }
 
-    /**
-     * @param Closure $closure
-     * @return bool
-     */
-    public function each(Closure $closure)
-    {
+    public function each(Closure $closure): self {
         if (isset($this->elements)) {
-            return array_walk($this->elements, $closure);
+            array_walk($this->elements, $closure);
         } else {
             throw new Error($this::INVALID_STREAM);
         }
     }
 
-    /**
-     * @param Closure $closure
-     * @return bool
-     */
     public function isEmpty(): bool
     {
         if (isset($this->elements)) {
@@ -131,9 +122,6 @@ class Stream implements Countable
         }
     }
 
-    /**
-     * @return array
-     */
     public function toArray(): array
     {
         $streamArray = array_merge($this->elements);
@@ -141,9 +129,6 @@ class Stream implements Countable
         return $streamArray;
     }
 
-    /**
-     * @return int
-     */
     public function count(): int
     {
         return count($this->elements);

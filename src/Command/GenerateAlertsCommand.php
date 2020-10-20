@@ -55,42 +55,37 @@ class GenerateAlertsCommand extends Command {
         $now = new DateTime("now", new \DateTimeZone("Europe/Paris"));
 
         $expired = $this->manager->getRepository(Article::class)->findExpiredToGenerate($this->expiryDelay);
-        $noLongerExpired = $this->manager->getRepository(Article::class)->findNoLongerExpired();
+        $noLongerExpired = $this->manager->getRepository(Alert::class)->findNoLongerExpired();
 
-        /** @var Article $article */
-        foreach ($noLongerExpired as $article) {
-            Stream::from($article->getAlerts())
-                ->filter(function (Alert $alert) {
-                    return $alert->getType() === Alert::EXPIRY;
-                })->each(function(Alert $alert) {
-                    $this->manager->remove($alert);
-                });
+        foreach ($noLongerExpired as $alert) {
+            $this->manager->remove($alert);
         }
 
         $managers = [];
         /** @var Article $article */
-        foreach($expired as $article) {
+        foreach($expired as $alert) {
             $hasExistingAlert = !(
-                Stream::from($article->getAlerts())
+                Stream::from($alert->getAlerts())
                     ->filter(function (Alert $alert) {
                         return $alert->getType() === Alert::EXPIRY;
                     })->isEmpty()
             );
+
             if (!$hasExistingAlert) {
                 $alert = new Alert();
-                $alert->setArticle($article);
+                $alert->setArticle($alert);
                 $alert->setType(Alert::EXPIRY);
                 $alert->setDate($now);
 
                 $this->manager->persist($alert);
             }
-            $recipients = $article->getArticleFournisseur()
+            $recipients = $alert->getArticleFournisseur()
                 ->getReferenceArticle()
                 ->getManagers();
 
             foreach ($recipients as $recipient) {
-                $this->addArticle($managers, $recipient->getEmail(), $article);
-                $this->addArticle($managers, $recipient->getSecondaryEmails(), $article);
+                $this->addArticle($managers, $recipient->getEmail(), $alert);
+                $this->addArticle($managers, $recipient->getSecondaryEmails(), $alert);
             }
         }
 
