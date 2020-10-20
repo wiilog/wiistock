@@ -103,6 +103,21 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL => [
                 'default' => true,
             ],
+            ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL => [
+                'default' => false,
+            ],
+            ParametrageGlobal::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL => [
+                'default' => false,
+            ],
+            ParametrageGlobal::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL => [
+                'default' => false,
+            ],
+            ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL => [
+                'default' => false,
+            ],
+            ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL => [
+                'default' => false,
+            ],
             ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL => [
                 'default' => null,
             ],

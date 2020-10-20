@@ -313,13 +313,8 @@ class ArticleDataService
     /**
      * @param array $data
      * @param Demande|null $demande
-     * @param Reception|null $reception
-     *
      * @return Article
      *
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
      * @throws Exception
      */
     public function newArticle($data, Demande $demande = null) {
@@ -379,9 +374,15 @@ class ArticleDataService
             ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type)
             ->setBarCode($this->generateBarCode())
-            ->setBatch($data['batch'])
-            ->setStockEntryDate(new DateTime("now", new DateTimeZone("Europe/Paris")))
-            ->setExpiryDate($data['expiry'] ? DateTime::createFromFormat("Y-m-d", $data['expiry']) : null);
+            ->setStockEntryDate(new DateTime("now", new DateTimeZone("Europe/Paris")));
+
+        if (isset($data['batch'])) {
+            $toInsert->setBatch($data['batch']);
+        }
+
+        if (isset($data['expiry'])) {
+            $toInsert->setExpiryDate($data['expiry'] ? DateTime::createFromFormat("Y-m-d", $data['expiry']) : null);
+        }
         $entityManager->persist($toInsert);
         $this->freeFieldService->manageFreeFields($toInsert, $data, $entityManager);
         // optionnel : ajout dans une demande
@@ -424,9 +425,10 @@ class ArticleDataService
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
         $articles = $ligne->getArticles();
+        $reception = $ligne->getReception();
         $rows = [];
         foreach ($articles as $article) {
-            $rows[] = $this->dataRowArticle($article, true);
+            $rows[] = $this->dataRowArticle($article, $reception);
         }
         return ['data' => $rows];
     }
@@ -480,14 +482,13 @@ class ArticleDataService
 
     /**
      * @param Article $article
-     * @param bool $fromReception
+     * @param Reception|null $reception
      * @return array
-     * @throws DBALException
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
      */
-    public function dataRowArticle($article, bool $fromReception = false)
+    public function dataRowArticle($article, Reception $reception = null)
     {
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
         $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
@@ -545,7 +546,8 @@ class ArticleDataService
                 'articleId' => $article->getId(),
                 'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null,
                 'articleFilter' => $article->getBarCode(),
-                'fromReception' => $fromReception
+                'fromReception' => isset($reception),
+                'receptionId' => $reception ? $reception->getId() : null
             ]),
         ];
 
@@ -572,45 +574,100 @@ class ArticleDataService
 
     /**
      * @param Article $article
+     * @param Reception|null $reception
      * @return array
      */
-    public function getBarcodeConfig(Article $article): array {
+    public function getBarcodeConfig(Article $article, Reception $reception = null): array {
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
 
         if (!isset($this->wantCLOnLabel)
             && !isset($this->clWantedOnLabel)
             && !isset($this->typeCLOnLabel)) {
+
             $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
             $categoryCLRepository = $this->entityManager->getRepository(CategorieCL::class);
             $this->clWantedOnLabel = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS);
             $this->wantCLOnLabel = (bool) $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+
             if (isset($this->clWantedOnLabel)) {
                 $champLibre = $champLibreRepository->findOneBy([
                     'categorieCL' => $categoryCLRepository->findOneByLabel(CategoryType::ARTICLE),
                     'label' => $this->clWantedOnLabel
                 ]);
+
                 $this->typeCLOnLabel = isset($champLibre) ? $champLibre->getTypage() : null;
                 $this->clIdWantedOnLabel = isset($champLibre) ? $champLibre->getId() : null;
             }
         }
+
         $articleFournisseur = $article->getArticleFournisseur();
         $refArticle = isset($articleFournisseur) ? $articleFournisseur->getReferenceArticle() : null;
         $refRefArticle = isset($refArticle) ? $refArticle->getReference() : null;
         $labelRefArticle = isset($refArticle) ? $refArticle->getLibelle() : null;
+
         $quantityArticle = $article->getQuantite();
         $labelArticle = $article->getLabel();
         $champLibreValue = $this->clIdWantedOnLabel ? $article->getFreeFieldValue($this->clIdWantedOnLabel) : '';
+        $batchArticle = $article->getBatch() ?? '';
+        $expirationDateArticle = $article->getExpiryDate() ? $article->getExpiryDate()->format('d/m/Y') : '';
+
+        $wantsRecipient = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL);
+        $wantsRecipientDropzone = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL);
+        $wantDestinationLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
+
+        // Récupération du username & dropzone de l'utilisateur
+        $articleReception = $article->getReceptionReferenceArticle() ? $article->getReceptionReferenceArticle()->getReception() : '';
+        $articleReceptionRecipient = $articleReception ? $articleReception->getUtilisateur() : '';
+        $articleReceptionRecipientUsername = ($articleReceptionRecipient && $wantsRecipient) ? $articleReceptionRecipient->getUsername() : '';
+        $articleReceptionRecipientDropzone = $articleReceptionRecipient ? $articleReceptionRecipient->getDropzone() : '';
+        $articleReceptionRecipientDropzoneLabel = ($articleReceptionRecipientDropzone && $wantsRecipientDropzone) ? $articleReceptionRecipientDropzone->getLabel() : '';
+
+        if (isset($reception) && $wantDestinationLocation) {
+            $location = $article->getDemande() ? $article->getDemande()->getDestination()->getLabel() : '';
+        }
+        else if ($wantsRecipientDropzone
+                && $articleReceptionRecipient
+                && isset($reception)
+                && !$wantDestinationLocation) {
+            $location = $articleReceptionRecipientDropzoneLabel;
+        }
+        else {
+            $location = '';
+        }
+
+        if ($wantsRecipient && isset($reception) && !$reception->getDemandes()->isEmpty()) {
+            $username = $articleReceptionRecipientUsername;
+        }
+        else {
+            $username = '';
+        }
+
+        $separator = ($location && $username) ? ' / ' : '';
+
         $labels = [
+            $username . $separator . $location,
             !empty($labelRefArticle) ? ('L/R : ' . $labelRefArticle) : '',
             !empty($refRefArticle) ? ('C/R : ' . $refRefArticle) : '',
             !empty($labelArticle) ? ('L/A : ' . $labelArticle) : '',
             (!empty($this->typeCLOnLabel) && !empty($champLibreValue)) ? ($champLibreValue) : '',
         ];
+
         $wantsQTT = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL);
+        $wantsBatchArticle = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
+        $wantsExpirationDateArticle = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
+
+        if ($wantsBatchArticle) {
+            $labels[] = !empty($batchArticle) ? ('N° lot : '. $batchArticle) : '';
+        }
+
+        if ($wantsExpirationDateArticle) {
+            $labels[] = !empty($expirationDateArticle) ? ('Date péremption : '. $expirationDateArticle) : '';
+        }
+
         if ($wantsQTT) {
             $labels[] = !empty($quantityArticle) ? ('Qte : '. $quantityArticle) : '';
-
         }
+
         return [
             'code' => $article->getBarCode(),
             'labels' => array_filter($labels, function (string $label) {

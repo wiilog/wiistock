@@ -465,3 +465,13 @@ function saveDispatchesParam() {
             }
         });
 }
+
+function toggleRecipient($checkbox) {
+     if ($checkbox.attr('name') === 'param-add-destination-location-article-label'
+        && $checkbox.prop('checked')) {
+        $('.checkbox[name="param-add-recipient-dropzone-location-article-label"]').prop('checked', false);
+    } else if ($checkbox.attr('name') === 'param-add-recipient-dropzone-location-article-label'
+        && $checkbox.prop('checked')) {
+        $('.checkbox[name="param-add-destination-location-article-label"]').prop('checked', false);
+    }
+}
