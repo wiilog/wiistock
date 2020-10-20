@@ -31,7 +31,7 @@ class LitigeRepository extends EntityRepository
 		'updateDate' => 'updateDate',
         'status' => 'status',
         'urgence' => 'emergencyTriggered',
-        'disputeNumber' => 'disputeNumber'
+        'disputeNumber' => 'disputeNumber',
 	];
 
     public function findByStatutSendNotifToBuyer()

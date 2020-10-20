@@ -315,7 +315,7 @@ class LivraisonController extends AbstractController
 
             $data = [
                 'success' => true,
-                'redirect' => $this->generateUrl('preparation_show', [
+                'redirect' => $this->redirect('preparation_show', [
                     'id' => $preparation->getId()
                 ]),
             ];

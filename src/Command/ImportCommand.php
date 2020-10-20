@@ -8,16 +8,20 @@ namespace App\Command;
 use App\Entity\CategorieStatut;
 use App\Entity\Import;
 use App\Entity\Statut;
+use App\Exceptions\ImportException;
 use App\Service\ImportService;
 use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
+use Doctrine\ORM\TransactionRequiredException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 class ImportCommand extends Command
 {
@@ -44,9 +48,12 @@ class ImportCommand extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int|void
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws ORMException
+     * @throws ImportException
+     * @throws OptimisticLockException
+     * @throws TransactionRequiredException
+     * @throws Throwable
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -77,7 +84,7 @@ class ImportCommand extends Command
         $statusFinished = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
 
         foreach ($importsToLaunch as $import) {
-            $this->importService->treatImport($import, ImportService::IMPORT_MODE_RUN);
+            $this->importService->treatImport($import, null, ImportService::IMPORT_MODE_RUN);
             $import
                 ->setStatus($statusFinished)
                 ->setEndDate(new DateTime('now'));

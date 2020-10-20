@@ -85,4 +85,4 @@ services:
     tracking_movement_listener:
         class: App\EventListener\TrackingMovementListener
         tags:
-            - { name: doctrine.orm.entity_listener, event: preRemove, lazy: true, entity: App\Entity\MouvementTraca }
+            - { name: doctrine.orm.entity_listener, event: preRemove, lazy: true, entity: App\Entity\TrackingMovement }

@@ -33,6 +33,7 @@ function initPageModals() {
     let submitNewRefArticle = $("#submitNewRefArticle");
     let urlRefArticleNew = Routing.generate('reference_article_new', true);
     InitModal(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, {tables: pageTables});
+    Select2.user(modalRefArticleNew.find('.ajax-autocomplete-user[name=managers]'))
 
     let modalDeleteRefArticle = $("#modalDeleteRefArticle");
     let SubmitDeleteRefArticle = $("#submitDeleteRefArticle");
@@ -43,6 +44,7 @@ function initPageModals() {
     let submitModifyRefArticle = $('#submitEditRefArticle');
     let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
     InitModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, {tables: pageTables, clearOnClose: true});
+    Select2.user(modalModifyRefArticle.find('.ajax-autocomplete-user-edit'));
 
     let $modalPlusDemande = $('#modalPlusDemande');
     let $submitPlusDemande = $('#submitPlusDemande');

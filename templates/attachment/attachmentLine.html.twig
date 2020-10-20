@@ -1,6 +1,6 @@
 <p class="attachement">
     <input class="data" type="hidden" name="savedFiles[]" value="{{ pj.id }}">
-    <a target="_blank" href="/uploads/attachements/{{ pjName }}">
+    <a target="_blank" href="{{ pj.fullPath is defined and pj.fullPath is not null ? pj.fullPath : '/uploads/attachements/' ~ pjName }}">
         <i class="fa fa-file mr-2"></i>{{ originalName }}
     </a>
     {% if canRemove is not defined or canRemove == true %}

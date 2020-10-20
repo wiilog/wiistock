@@ -6,6 +6,7 @@ use App\Entity\CategoryType;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\CategorieCL;
@@ -21,6 +22,8 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
+        $output = new ConsoleOutput();
+
         $categorieCLRepository = $manager->getRepository(CategorieCL::class);
         $categorieTypeRepository = $manager->getRepository(CategoryType::class);
 
@@ -44,12 +47,12 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
                 $categorie = new CategorieCL();
                 $categorie->setLabel($index);
                 $manager->persist($categorie);
-                dump("Création de la catégorie " . $index);
+                $output->writeln("Création de la catégorie " . $index);
             }
 
             if (!$categorie->getCategoryType()) {
                 $categorie->setCategoryType($categorieType);
-                dump('Liaison categorieCL ' . $index . ' à categorieType ' . $categorieName);
+                $output->writeln('Liaison categorieCL ' . $index . ' à categorieType ' . $categorieName);
             }
         }
         $manager->flush();

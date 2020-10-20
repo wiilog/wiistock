@@ -85,7 +85,7 @@ class Arrivage extends FreeFieldEntity
     private $commentaire;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="arrivage")
+     * @ORM\OneToMany(targetEntity="Attachment", mappedBy="arrivage")
      */
     private $attachements;
 
@@ -104,11 +104,6 @@ class Arrivage extends FreeFieldEntity
      * @ORM\OneToMany(targetEntity="App\Entity\Urgence", mappedBy="lastArrival")
      */
     private $urgences;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="arrivage")
-     */
-    private $mouvementsTraca;
 
 	/**
 	 * @ORM\Column(type="boolean", nullable=true)
@@ -140,7 +135,7 @@ class Arrivage extends FreeFieldEntity
         $this->packs = new ArrayCollection();
         $this->attachements = new ArrayCollection();
         $this->urgences = new ArrayCollection();
-        $this->mouvementsTraca = new ArrayCollection();
+        $this->trackingMovements = new ArrayCollection();
         $this->numeroCommandeList = [];
     }
 
@@ -440,14 +435,14 @@ class Arrivage extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|PieceJointe[]
+     * @return Collection|Attachment[]
      */
     public function getAttachments(): Collection
     {
         return $this->attachements;
     }
 
-    public function addAttachment(PieceJointe $attachment): self
+    public function addAttachment(Attachment $attachment): self
     {
         if (!$this->attachements->contains($attachment)) {
             $this->attachements[] = $attachment;
@@ -457,7 +452,7 @@ class Arrivage extends FreeFieldEntity
         return $this;
     }
 
-    public function removeAttachment(PieceJointe $attachement): self
+    public function removeAttachment(Attachment $attachement): self
     {
         if ($this->attachements->contains($attachement)) {
             $this->attachements->removeElement($attachement);
@@ -490,37 +485,6 @@ class Arrivage extends FreeFieldEntity
     public function setStatut(?Statut $statut): self
     {
         $this->statut = $statut;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|MouvementTraca[]
-     */
-    public function getMouvementsTraca(): Collection
-    {
-        return $this->mouvementsTraca;
-    }
-
-    public function addMouvementsTraca(MouvementTraca $mouvementsTraca): self
-    {
-        if (!$this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca[] = $mouvementsTraca;
-            $mouvementsTraca->setArrivage($this);
-        }
-
-        return $this;
-    }
-
-    public function removeMouvementsTraca(MouvementTraca $mouvementsTraca): self
-    {
-        if ($this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca->removeElement($mouvementsTraca);
-            // set the owning side to null (unless already changed)
-            if ($mouvementsTraca->getArrivage() === $this) {
-                $mouvementsTraca->setArrivage(null);
-            }
-        }
 
         return $this;
     }

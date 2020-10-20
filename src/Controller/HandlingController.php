@@ -11,7 +11,7 @@ use App\Entity\FieldsParam;
 use App\Entity\Menu;
 use App\Entity\Handling;
 
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -242,7 +242,7 @@ class HandlingController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $handlingRepository = $entityManager->getRepository(Handling::class);
-            $attachmentsRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentsRepository = $entityManager->getRepository(Attachment::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
             $handling = $handlingRepository->find($data['id']);
@@ -332,7 +332,7 @@ class HandlingController extends AbstractController
 
         $attachments = $handling->getAttachments()->toArray();
         foreach ($attachments as $attachment) {
-            /** @var PieceJointe $attachment */
+            /** @var Attachment $attachment */
             if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
                 $attachmentService->removeAndDeleteAttachment($attachment, $handling);
             }
@@ -394,7 +394,7 @@ class HandlingController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
             $handlingRepository = $entityManager->getRepository(Handling::class);
-            $attachmentRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
             $handling = $handlingRepository->find($data['handling']);
             $handlingNumber = $handling->getNumber();

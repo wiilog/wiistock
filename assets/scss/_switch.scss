@@ -7,7 +7,6 @@
 
     input {
         display: inline-block;
-        cursor: pointer;
         appearance: none;
         outline: 0;
         height: 30px;
@@ -15,22 +14,27 @@
         border-radius: 4px;
         color: #10336b;
         transition: all 200ms linear;
-    }
 
-    input:hover:not(:checked) {
-        background-color: $blueButton;
-        color: white;
-    }
+        &:not(:disabled) {
 
-    input:checked {
-        background-color: $blueGT;
-        color: white;
-    }
+            cursor: pointer;
 
-    input:before {
-        content: attr(content);
-        height: 30px;
-        line-height: 30px;
-        text-align: center;
+            &:hover:not(:checked) {
+                background-color: $blueButton;
+                color: white;
+            }
+        }
+
+        &:checked {
+            background-color: $blueGT;
+            color: white;
+        }
+
+        &:before {
+            content: attr(content);
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+        }
     }
 }

@@ -56,5 +56,5 @@ function typeSelectChange($typeSelect, $modal) {
 
 function initTypeLocations($modal) {
     const $defaultLocations = $modal.find('.needs-default-locations');
-    Select2.location($defaultLocations.find('.ajax-autocomplete-location'))
+    Select2.location($defaultLocations.find('.ajax-autocomplete-location'));
 }

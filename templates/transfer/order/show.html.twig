@@ -1,0 +1,46 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Ordre | Transfert | Détails{% endblock %}
+{% block titleLink path('transfer_order_index') %}
+
+{% block page_content %}
+    <div class="m-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="zone-entete">
+                    {% include "transfer/order/show_header.html.twig" with {
+                        modifiable: modifiable,
+                        order: order,
+                        showDetails: detailsConfig
+                    } %}
+                </div>
+            </div>
+        </div>
+        <div class="mt-3 wii-page-card">
+            <div class="row mb-2">
+                <h5 class="col-auto h5">Liste des articles</h5>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <table id="tableArticle" class="table"></table>
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-secondary" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
+    </div>
+
+    {% include "transfer/order/delete.html.twig" %}
+    {% include "transfer/order/deleteWithLocation.html.twig" %}
+    {% include 'reference_article/modalShowRefArticle.html.twig' %}
+    {% include 'article/modalShowArticle.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let id = {{ order.id }};
+        let isTreated = {{ order.status.nom == constant('App\\Entity\\TransferOrder::TREATED') ? 'true' : 'false' }};
+    </script>
+
+    <script src="{{ asset('js/pages/transfer/order/show.js') }}?{{ app_last_cache_clear }}"></script>
+{% endblock %}

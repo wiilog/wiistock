@@ -9,6 +9,7 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentFixtureInterface
 {
@@ -18,6 +19,8 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentF
      */
     public function load(ObjectManager $manager)
     {
+        $output = new ConsoleOutput();
+
         $rolesLabels = [
             Role::NO_ACCESS_USER,
             Role::SUPER_ADMIN
@@ -35,7 +38,7 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentF
                     ->setActive(true);
 
                 $manager->persist($role);
-                dump("création du rôle " . $roleLabel);
+                $output->writeln("Création du rôle " . $roleLabel);
 
                 if ($roleLabel == Role::SUPER_ADMIN) {
                     $actions = $actionRepository->findAll();

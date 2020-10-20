@@ -13,7 +13,7 @@ use App\Entity\Livraison;
 use App\Entity\Menu;
 
 use App\Entity\MouvementStock;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 
@@ -285,7 +285,7 @@ class EmplacementController extends AbstractController
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
-        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $collecteRepository = $entityManager->getRepository(Collecte::class);
         $livraisonRepository = $entityManager->getRepository(Livraison::class);
         $demandeRepository = $entityManager->getRepository(Demande::class);
@@ -308,8 +308,8 @@ class EmplacementController extends AbstractController
         $mouvementsStock = $mouvementStockRepository->countByEmplacement($emplacementId);
         if ($mouvementsStock > 0) $usedBy[] = 'mouvements de stock';
 
-        $mouvementsTraca = $mouvementTracaRepository->countByEmplacement($emplacementId);
-        if ($mouvementsTraca > 0) $usedBy[] = 'mouvements de traçabilité';
+        $trackingMovements = $trackingMovementRepository->countByEmplacement($emplacementId);
+        if ($trackingMovements > 0) $usedBy[] = 'mouvements de traçabilité';
 
         $refArticle = $referenceArticleRepository->countByEmplacement($emplacementId);
         if ($refArticle > 0)$usedBy[] = 'références article';

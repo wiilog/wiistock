@@ -31,14 +31,14 @@ class LocationClusterRecord {
     private $pack;
 
     /**
-     * @var MouvementTraca|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="firstDropRecords")
+     * @var TrackingMovement|null
+     * @ORM\ManyToOne(targetEntity=TrackingMovement::class, inversedBy="firstDropRecords")
      */
     private $firstDrop;
 
     /**
-     * @var MouvementTraca|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="lastTrackingRecords")
+     * @var TrackingMovement|null
+     * @ORM\ManyToOne(targetEntity=TrackingMovement::class, inversedBy="lastTrackingRecords")
      */
     private $lastTracking;
 
@@ -109,17 +109,17 @@ class LocationClusterRecord {
     }
 
     /**
-     * @return MouvementTraca|null
+     * @return TrackingMovement|null
      */
-    public function getFirstDrop(): ?MouvementTraca {
+    public function getFirstDrop(): ?TrackingMovement {
         return $this->firstDrop;
     }
 
     /**
-     * @param MouvementTraca|null $firstDrop
+     * @param TrackingMovement|null $firstDrop
      * @return self
      */
-    public function setFirstDrop(?MouvementTraca $firstDrop): self {
+    public function setFirstDrop(?TrackingMovement $firstDrop): self {
         if (isset($this->firstDrop)) {
             $this->firstDrop->removeFirstDropRecord($this);
         }
@@ -131,17 +131,17 @@ class LocationClusterRecord {
     }
 
     /**
-     * @return MouvementTraca|null
+     * @return TrackingMovement|null
      */
-    public function getLastTracking(): ?MouvementTraca {
+    public function getLastTracking(): ?TrackingMovement {
         return $this->lastTracking;
     }
 
     /**
-     * @param MouvementTraca|null $lastTracking
+     * @param TrackingMovement|null $lastTracking
      * @return self
      */
-    public function setLastTracking(?MouvementTraca $lastTracking): self {
+    public function setLastTracking(?TrackingMovement $lastTracking): self {
         if (isset($this->lastTracking)) {
             $this->lastTracking->removeLastTrackingRecord($this);
         }

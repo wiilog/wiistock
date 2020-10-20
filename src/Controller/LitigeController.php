@@ -11,7 +11,7 @@ use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\LitigeHistoric;
 
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -342,9 +342,9 @@ class LitigeController extends AbstractController
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			$litigeId = (int)$data['litigeId'];
-			$pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+			$attachmentRepository = $entityManager->getRepository(Attachment::class);
 
-			$attachements = $pieceJointeRepository->findOneByFileNameAndLitigeId($data['pjName'], $litigeId);
+			$attachements = $attachmentRepository->findOneByFileNameAndLitigeId($data['pjName'], $litigeId);
 			if (!empty($attachements)) {
 			    foreach ($attachements as $attachement) {
                     $entityManager->remove($attachement);

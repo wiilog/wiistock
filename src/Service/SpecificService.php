@@ -17,6 +17,7 @@ class SpecificService
 	const CLIENT_TEREGA = 'terega';
 	const CLIENT_AIA = 'aia';
 	const CLIENT_EMERSON = 'emerson';
+	const CLIENT_ARCELOR = 'arcelor';
 
 	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT COLIS';
 

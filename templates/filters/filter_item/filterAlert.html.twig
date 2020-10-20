@@ -1,0 +1,16 @@
+<div class="col-auto mb-2 pr-0">
+    {% if alerts is defined %}
+        <div class="minw-100px">
+            <div class="input-group">
+                <select class="form-control data cursor-default filter-input" name="alert" {{ disabled }}>
+                    <option value>Alerte</option>
+                    {% for alert_label, alert in alerts %}
+                        <option value="{{ alert_label }}">
+                            {{ alert }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    {% endif %}
+</div>
