@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Controller\TransferRequestController;
 use App\Entity\FiltreSup;
 use App\Entity\TransferRequest;
+use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -59,11 +60,11 @@ class TransferRequestService {
         return [
             'id' => $transfer->getId(),
             'number' => $transfer->getNumber(),
-            'status' => $transfer->getStatus() ? $transfer->getStatus()->getNom() : "",
-            'destination' => $transfer->getDestination() ? $transfer->getDestination()->getLabel() : "",
-            'requester' => $transfer->getRequester() ? $transfer->getRequester()->getUsername() : "",
-            'creationDate' => $transfer->getCreationDate() ? $transfer->getCreationDate()->format("d/m/Y H:i") : "",
-            'validationDate' => $transfer->getValidationDate() ? $transfer->getValidationDate()->format("d/m/Y H:i") : "",
+            'status' => FormatHelper::status($transfer->getStatus()),
+            'destination' =>  FormatHelper::location($transfer->getDestination()),
+            'requester' => FormatHelper::user($transfer->getRequester()),
+            'creationDate' => FormatHelper::datetime($transfer->getCreationDate()),
+            'validationDate' => FormatHelper::datetime($transfer->getValidationDate()),
             'actions' => $this->templating->render('transfer/request/actions.html.twig', [
                 'url' => $url,
             ]),
@@ -71,19 +72,13 @@ class TransferRequestService {
     }
 
     public function createHeaderDetailsConfig(TransferRequest $transfer): array {
-        $status = $transfer->getStatus();
-        $requester = $transfer->getRequester();
-        $destination = $transfer->getDestination();
-        $created = $transfer->getCreationDate();
-        $validated = $transfer->getValidationDate();
-
         return [
             ['label' => 'Numéro', 'value' => $transfer->getNumber()],
-            ['label' => 'Statut', 'value' => $status ? $status->getNom() : ''],
-            ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
-            ['label' => 'Destination', 'value' => $destination ? $destination->getLabel() : ''],
-            ['label' => 'Date de création', 'value' => $created ? $created->format('d/m/Y H:i') : ''],
-            ['label' => 'Date de validation', 'value' => $validated ? $validated->format('d/m/Y H:i') : ''],
+            ['label' => 'Statut', 'value' => FormatHelper::status($transfer->getStatus())],
+            ['label' => 'Demandeur', 'value' => FormatHelper::user($transfer->getRequester())],
+            ['label' => 'Destination', 'value' => FormatHelper::location($transfer->getDestination())],
+            ['label' => 'Date de création', 'value' => FormatHelper::datetime($transfer->getCreationDate())],
+            ['label' => 'Date de validation', 'value' => FormatHelper::datetime($transfer->getValidationDate())],
             [
                 'label' => 'Commentaire',
                 'value' => $transfer->getComment() ?: "",

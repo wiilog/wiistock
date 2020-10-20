@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\Serializable;
+use App\Helper\FormatHelper;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -11,7 +13,7 @@ use App\Repository\TransferOrderRepository;
 /**
  * @ORM\Entity(repositoryClass=TransferOrderRepository::class)
  */
-class TransferOrder {
+class TransferOrder implements Serializable {
 
     const TO_TREAT = "À traiter";
     const TREATED = "Traité";
@@ -158,6 +160,20 @@ class TransferOrder {
         }
 
         return $this;
+    }
+
+    public function serialize(): array {
+        return [
+            'number' => $this->getNumber(),
+            'request' => $this->getRequest()->getNumber(),
+            'status' => FormatHelper::status($this->getStatus()),
+            'requester' => FormatHelper::user($this->getRequest()->getRequester()),
+            'operator' => FormatHelper::user($this->getOperator()),
+            'destination' => FormatHelper::location($this->getRequest()->getDestination()),
+            'creationDate' => FormatHelper::datetime($this->getCreationDate()),
+            'transferDate' => FormatHelper::datetime($this->getTransferDate()),
+            'comment' => FormatHelper::html($this->getRequest()->getComment()),
+        ];
     }
 
 }

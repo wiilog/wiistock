@@ -15,97 +15,101 @@ use Doctrine\ORM\EntityRepository;
 class TransferRequestRepository extends EntityRepository {
 
     public function findByParamsAndFilters($params, $filters) {
-        $qb = $this->createQueryBuilder("t");
-        $total =  QueryCounter::count($qb, "t");
+        $qb = $this->createQueryBuilder("transfer_request");
+        $total = QueryCounter::count($qb, "transfer_request");
 
         // filtres sup
-        foreach ($filters as $filter) {
-            switch ($filter['field']) {
+        foreach($filters as $filter) {
+            switch($filter['field']) {
                 case 'statut':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('t.status', 's')
-                        ->andWhere('s.id in (:status)')
+                        ->join('transfer_request.status', 'filter_status')
+                        ->andWhere('filter_status.id in (:status)')
                         ->setParameter('status', $value);
                     break;
                 case 'requesters':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('t.requester', 'req')
-                        ->andWhere("req.id in (:id)")
+                        ->join('transfer_request.requester', 'filter_requester')
+                        ->andWhere("filter_requester.id in (:id)")
                         ->setParameter('id', $value);
                     break;
                 case 'operators':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('t.order', 'to')
-                        ->join('to.operator', 'tou')
-                        ->andWhere("tou.id in (:id)")
+                        ->join('transfer_request.order', 'filter_order')
+                        ->join('filter_order.operator', 'filter_orderOperator')
+                        ->andWhere("filter_orderOperator.id in (:id)")
                         ->setParameter('id', $value);
                     break;
                 case 'dateMin':
-                    $qb->andWhere('t.creationDate >= :dateMin')
+                    $qb->andWhere('transfer_request.creationDate >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . " 00:00:00");
                     break;
                 case 'dateMax':
-                    $qb->andWhere('t.creationDate <= :dateMax')
+                    $qb->andWhere('transfer_request.creationDate <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
             }
         }
 
         //Filter search
-        if (!empty($params)) {
-            if (!empty($params->get('search'))) {
+        if(!empty($params)) {
+            if(!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
-                if (!empty($search)) {
+                if(!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb
                         ->andWhere(
                             $exprBuilder->orX(
-                                't.number LIKE :value',
-                                'req_search.username LIKE :value',
-                                'status_search.nom LIKE :value'
+                                'transfer_request.number LIKE :value',
+                                'search_requester.username LIKE :value',
+                                'search_status.nom LIKE :value'
                             )
                         )
                         ->setParameter('value', '%' . $search . '%')
-                        ->leftJoin('t.requester', 'req_search')
-                        ->leftJoin('t.status', 'status_search');
+                        ->leftJoin('transfer_request.requester', 'search_requester')
+                        ->leftJoin('transfer_request.status', 'search_status');
                 }
             }
 
-            if (!empty($params->get('order'))) {
+            if(!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
-                if (!empty($order)) {
+                if(!empty($order)) {
                     $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
 
-                    switch ($column) {
+                    switch($column) {
                         case 'number':
-                            $qb->orderBy("t.number", $order);
+                            $qb
+                                ->orderBy("transfer_request.number", $order);
                             break;
                         case 'status':
                             $qb
-                                ->leftJoin('t.status', 's2')
-                                ->orderBy('s2.nom', $order);
+                                ->leftJoin('transfer_request.status', 'order_status')
+                                ->orderBy('order_status.nom', $order);
                             break;
                         case 'destination':
                             $qb
-                                ->leftJoin('t.destination', 'd2')
-                                ->orderBy('d2.label', $order);
+                                ->leftJoin('transfer_request.destination', 'order_destination')
+                                ->orderBy('order_destination.label', $order);
                             break;
                         case 'requester':
                             $qb
-                                ->leftJoin('t.requester', 'r2')
-                                ->orderBy('r2.username', $order);
+                                ->leftJoin('transfer_request.requester', 'order_requester')
+                                ->orderBy('order_requester.username', $order);
                             break;
                         case 'creationDate':
-                            $qb->orderBy("t.creationDate", $order);
+                            $qb
+                                ->orderBy("transfer_request.creationDate", $order);
                             break;
                         case 'validationDate':
-                            $qb->orderBy("t.validationDate", $order);
+                            $qb
+                                ->orderBy("transfer_request.validationDate", $order);
                             break;
                         default:
-                            $qb->orderBy('t.' . $column, $order);
+                            $qb
+                                ->orderBy('transfer_request.' . $column, $order);
                             break;
                     }
                 }
@@ -113,11 +117,11 @@ class TransferRequestRepository extends EntityRepository {
         }
 
         // compte éléments filtrés
-        $countFiltered =  QueryCounter::count($qb, 't');
+        $countFiltered = QueryCounter::count($qb, 'transfer_request');
 
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        if($params) {
+            if(!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if(!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
 
         return [
@@ -128,17 +132,42 @@ class TransferRequestRepository extends EntityRepository {
     }
 
     public function getLastTransferNumberByPrefix($prefix) {
-        $queryBuilder = $this->createQueryBuilder('t');
-        $queryBuilder
-            ->select('t.number')
-            ->where('t.number LIKE :value')
-            ->orderBy('t.creationDate', 'DESC')
-            ->setParameter('value', $prefix . '%');
-
-        $result = $queryBuilder
+        return $this->createQueryBuilder('transfer_request')
+            ->select('transfer_request.number')
+            ->where('transfer_request.number LIKE :value')
+            ->orderBy('transfer_request.creationDate', 'DESC')
+            ->setParameter('value', $prefix . '%')
             ->getQuery()
-            ->execute();
-        return $result ? $result[0]['number'] : null;
+            ->getFirstResult()["number"] ?? null;
     }
 
+    public function getByDates($dateMin, $dateMax) {
+        $qb = $this->createQueryBuilder("transfer_request");
+
+        $qb
+            ->select('transfer_requestArticles.barCode AS barcode')
+            ->addSelect('transfer_requestArticles.reference AS reference')
+            ->addSelect('transfer_request.number AS number')
+            ->addSelect('transfer_requestStatus.nom AS status')
+            ->addSelect('transfer_requestRequester.username AS requester')
+            ->addSelect('transfer_requestDestination.label AS destination')
+            ->addSelect('transfer_request.creationDate AS creationDate')
+            ->addSelect('transfer_request.validationDate AS validationDate')
+            ->addSelect('transfer_request.comment AS comment')
+
+            ->leftJoin('transfer_request.articles', 'transfer_requestArticles')
+            ->leftJoin('transfer_request.status', 'transfer_requestStatus')
+            ->leftJoin('transfer_request.requester', 'transfer_requestRequester')
+            ->leftJoin('transfer_request.destination', 'transfer_requestDestination')
+
+            ->where("transfer_request.creationDate BETWEEN :dateMin AND :dateMax")
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        return $qb
+            ->getQuery()
+            ->getResult();
+    }
 }
