@@ -1967,7 +1967,6 @@ class ReceptionController extends AbstractController {
                 $entityManager->persist($order);
             }
 
-            dump($needCreateLivraison, $transfer, $reception);
             $receptionLocation = $reception->getLocation();
             // crée les articles et les ajoute à la demande, à la réception, crée les urgences
             $receptionLocationId = isset($receptionLocation) ? $receptionLocation->getId() : null;
