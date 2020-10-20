@@ -71,16 +71,18 @@ function defaultValueForTypage($select) {
             typeInput = 'date';
         }
 
-        inputDefaultBlock =
-            `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + (existingValue ? existingValue : '') + `">`
+        inputDefaultBlock = `
+            <input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + (existingValue ? existingValue : '') + `">
+        `;
     }
 
-
-
-    let defaultBlock =
-        `<div class="form-group">
-           ` + inputDefaultBlock + ` <label>` + label + `</label>` +
-        `</div>`;
+    let defaultBlock = `
+        <div class="form-group">
+            ${typage === 'booleen' ? inputDefaultBlock : ''}
+            <label>${label}</label>
+            ${typage !== 'booleen' ? inputDefaultBlock : ''}
+        </div>
+    `;
 
     valueDefault.html(defaultBlock);
 }

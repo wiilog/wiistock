@@ -93,8 +93,10 @@ class TransferOrderService {
 
         $context = [$locationTo, $utilisateur, $entityManager, $availableArticle, $availableRef, $transferOrder, $isFinish];
 
-        Stream::from($transferOrder->getRequest()->getReferences()->toArray())
-            ->merge($transferOrder->getRequest()->getArticles()->toArray())
+        Stream::from(
+            $transferOrder->getRequest()->getReferences()->toArray(),
+            $transferOrder->getRequest()->getArticles()->toArray()
+        )
             ->each(function($refOrArt) use ($context) {
                 $this->createMovements($context, $refOrArt);
             });

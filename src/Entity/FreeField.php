@@ -270,13 +270,18 @@ class FreeField {
     }
 
     public function serialize(): array {
+        $type = $this->getType();
+        $categoryType = $type ? $type->getCategory() : null;
         return [
             'id' => $this->getId(),
             'label' => $this->getLabel(),
             'elements' => $this->getElements(),
             'typing' => $this->getTypage(),
             'defaultValue' => $this->getDefaultValue(),
-            'required' => $this->getRequiredCreate()
+            'requiredCreate' => $this->getRequiredCreate(),
+            'requiredEdit' => $this->getRequiredEdit(),
+            'typeId' => $this->getType() ? $this->getType()->getId() : null,
+            'categoryType' => $categoryType ? $categoryType->getLabel() : null,
         ];
     }
 

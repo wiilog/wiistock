@@ -20,18 +20,31 @@ class Stream implements Countable
      * Stream constructor.
      * @param array $array
      */
-    private function __construct(array $array)
-    {
+    private function __construct(array $array) {
         $this->elements = $array;
     }
 
     /**
      * @param array $array
+     * @param array[] ...$others
      * @return Stream
      */
-    public static function from(array $array): Stream
-    {
-        return new Stream($array);
+    public static function from(array $array, array ...$others): Stream {
+        return (new Stream($array))->concat(...$others);
+    }
+
+    /**
+     * @param Stream|array[] ...$streams
+     * @return Stream
+     */
+    public function concat(...$streams): Stream {
+        $arrays = array_map(function ($stream) {
+            return $stream instanceof Stream
+                ? $stream->toArray()
+                : $stream;
+        }, $streams);
+        $this->elements = array_merge($this->elements, ...$arrays);
+        return $this;
     }
 
     /**
@@ -43,7 +56,7 @@ class Stream implements Countable
         if (isset($this->elements)) {
             $this->elements = array_filter($this->elements, $closure);
         } else {
-            throw new Error($this::INVALID_STREAM);
+            throw new Error(self::INVALID_STREAM);
         }
         return $this;
     }
@@ -57,7 +70,7 @@ class Stream implements Countable
         if (isset($this->elements)) {
             $this->elements = array_map($closure, $this->elements);
         } else {
-            throw new Error($this::INVALID_STREAM);
+            throw new Error(self::INVALID_STREAM);
         }
         return $this;
     }
@@ -72,7 +85,7 @@ class Stream implements Countable
         if (isset($this->elements)) {
             return array_reduce($this->elements, $closure, $carry);
         } else {
-            throw new Error($this::INVALID_STREAM);
+            throw new Error(self::INVALID_STREAM);
         }
     }
 
@@ -85,22 +98,8 @@ class Stream implements Countable
         if (isset($this->elements)) {
             return array_walk($this->elements, $closure);
         } else {
-            throw new Error($this::INVALID_STREAM);
+            throw new Error(self::INVALID_STREAM);
         }
-    }
-
-    /**
-     * @param array $toMerge
-     * @return array
-     */
-    public function merge(array $toMerge): self
-    {
-        if (isset($this->elements)) {
-            $this->elements = array_merge($this->elements, $toMerge);
-        } else {
-            throw new Error($this::INVALID_STREAM);
-        }
-        return $this;
     }
 
     /**

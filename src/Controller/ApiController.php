@@ -32,6 +32,7 @@ use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Exceptions\NegativeQuantityException;
+use App\Helper\Stream;
 use App\Repository\ArticleRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
@@ -800,17 +801,18 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param Request $request
      * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
+     * @param FreeFieldService $freeFieldService
      * @param HandlingService $handlingService
      * @return JsonResponse
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws Exception
      */
     public function postHandlings(Request $request,
                                   AttachmentService $attachmentService,
                                   EntityManagerInterface $entityManager,
+                                  FreeFieldService $freeFieldService,
                                   HandlingService $handlingService)
     {
         $apiKey = $request->request->get('apiKey');
@@ -859,13 +861,17 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 }
                 while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
 
+                $freeFieldValuesStr = $request->request->get('freeFields', '{}');
+                $freeFieldValuesStr = json_decode($freeFieldValuesStr, true);
+                $freeFieldService->manageFreeFields($handling, $freeFieldValuesStr, $entityManager);
+
                 if (!$handling->getValidationDate()
                     && $newStatus
                     && $newStatus->isTreated()) {
                     $handling
-                        ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
-                }
-                $handling->setTreatedByHandling($nomadUser);
+                        ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')))
+                        ->setTreatedByHandling($nomadUser);
+                };
                 $entityManager->flush();
 
                 if ((!$oldStatus && $newStatus)
@@ -1344,7 +1350,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $livraisonRepository = $entityManager->getRepository(Livraison::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $translationsRepository = $entityManager->getRepository(Translation::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
@@ -1445,6 +1451,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $attachmentRepository->getMobileAttachmentForHandling($handlingIds)
             );
 
+            $requestFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_HANDLING]);
+
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
             $demandeLivraisonTypes = array_map(function (Type $type) {
                 return [
@@ -1454,6 +1462,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             }, $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]));
         } else {
             $handlings = [];
+            $requestFreeFields = [];
             $handlingAttachments = [];
             $demandeLivraisonArticles = [];
             $demandeLivraisonTypes = [];
@@ -1468,15 +1477,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $natureRepository->findAll()
             );
             $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
-            $trackingFreeFields = array_map(
-                function (FreeField $freeField) {
-                    return array_merge(
-                        $freeField->serialize(),
-                        ['type' => CategoryType::MOUVEMENT_TRACA]
-                    );
-                },
-                $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA])
-            );
+            $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
 
             $dispatches = $dispatchRepository->getMobileDispatches($user);
             $dispatchPacks = $dispatchPackRepository->getMobilePacksFromDispatches(array_map(function ($dispatch) {
@@ -1496,7 +1497,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations,
-            'freeFields' => $trackingFreeFields,
+            'freeFields' => Stream::from($trackingFreeFields, $requestFreeFields)
+                ->map(function (FreeField $freeField) {
+                    return $freeField->serialize();
+                })
+                ->toArray(),
             'preparations' => $preparations,
             'articlesPrepa' => $this->getArticlesPrepaArrays($preparations),
             'articlesPrepaByRefArticle' => $articlesPrepaByRefArticle,
