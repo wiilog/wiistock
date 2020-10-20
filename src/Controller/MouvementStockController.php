@@ -9,13 +9,13 @@ use App\Entity\Emplacement;
 use App\Entity\Menu;
 
 use App\Entity\MouvementStock;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 
 use App\Entity\Utilisateur;
 use App\Service\MouvementStockService;
-use App\Service\MouvementTracaService;
+use App\Service\TrackingMovementService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -100,21 +100,21 @@ class MouvementStockController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
-            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-            $mouvement = $mouvementStockRepository->find($data['mvt']);
+            $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+            $movement = $mouvementStockRepository->find($data['mvt']);
 
             if (!$userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            if (!empty($mouvementTracaRepository->findBy(['mouvementStock' => $mouvement]))) {
+            if (!empty($trackingMovementRepository->findBy(['mouvementStock' => $movement]))) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => 'Ce mouvement de stock est lié à des mouvements de traçabilité.'
                 ]);
             }
 
-            $entityManager->remove($mouvement);
+            $entityManager->remove($movement);
             $entityManager->flush();
             return new JsonResponse();
         }
@@ -126,7 +126,7 @@ class MouvementStockController extends AbstractController
      * @Route("/nouveau", name="mvt_stock_new", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
      * @param MouvementStockService $mouvementStockService
-     * @param MouvementTracaService $mouvementTracaService
+     * @param TrackingMovementService $trackingMovementService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
@@ -134,7 +134,7 @@ class MouvementStockController extends AbstractController
      */
     public function new(Request $request,
                         MouvementStockService $mouvementStockService,
-                        MouvementTracaService $mouvementTracaService,
+                        TrackingMovementService $trackingMovementService,
                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -217,30 +217,30 @@ class MouvementStockController extends AbstractController
                         $emplacementTo = $chosenLocation;
                         $emplacementFrom = $chosenArticleToMove->getEmplacement();
                         $chosenArticleToMove->setEmplacement($emplacementTo);
-                        $associatedPickTracaMvt = $mouvementTracaService->createTrackingMovement(
+                        $associatedPickTracaMvt = $trackingMovementService->createTrackingMovement(
                             $chosenArticleToMove->getBarCode(),
                             $emplacementFrom,
                             $loggedUser,
                             $now,
                             false,
                             true,
-                            MouvementTraca::TYPE_PRISE,
+                            TrackingMovement::TYPE_PRISE,
                             ['quantity' => $quantity]
                         );
-                        $mouvementTracaService->persistSubEntities($entityManager, $associatedPickTracaMvt);
+                        $trackingMovementService->persistSubEntities($entityManager, $associatedPickTracaMvt);
                         $createdPack = $associatedPickTracaMvt->getPack();
 
-                        $associatedDropTracaMvt = $mouvementTracaService->createTrackingMovement(
+                        $associatedDropTracaMvt = $trackingMovementService->createTrackingMovement(
                             $createdPack,
                             $emplacementTo,
                             $loggedUser,
                             $now,
                             false,
                             true,
-                            MouvementTraca::TYPE_DEPOSE,
+                            TrackingMovement::TYPE_DEPOSE,
                             ['quantity' => $quantity]
                         );
-                        $mouvementTracaService->persistSubEntities($entityManager, $associatedDropTracaMvt);
+                        $trackingMovementService->persistSubEntities($entityManager, $associatedDropTracaMvt);
                         $entityManager->persist($associatedPickTracaMvt);
                         $entityManager->persist($associatedDropTracaMvt);
                     }

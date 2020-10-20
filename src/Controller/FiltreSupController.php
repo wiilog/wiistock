@@ -39,7 +39,6 @@ class FiltreSupController extends AbstractController
             $user = $this->getUser();
 
             $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-
             $filterLabels = [
                 'dateMin' => FiltreSup::FIELD_DATE_MIN,
                 'dateMax' => FiltreSup::FIELD_DATE_MAX,
@@ -96,6 +95,7 @@ class FiltreSupController extends AbstractController
                 'disputeNumber' => FiltreSup::FIELD_LITIGE_DISPUTE_NUMBER,
                 'receivers' => FiltreSup::FIELD_RECEIVERS,
                 'requesters' => FiltreSup::FIELD_REQUESTERS,
+                'operators' => FiltreSup::FIELD_OPERATORS,
                 'dispatchNumber' => FiltreSup::FIELD_DISPATCH_NUMBER,
                 'emergencyMultiple' => FiltreSup::FIELD_EMERGENCY_MULTIPLE
             ];

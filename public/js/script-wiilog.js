@@ -1,3 +1,5 @@
+const PAGE_TRANSFER_REQUEST = 'rtransfer';
+const PAGE_TRANSFER_ORDER = 'otransfer';
 const PAGE_DEM_COLLECTE = 'dcollecte';
 const PAGE_DEM_LIVRAISON = 'dlivraison';
 const PAGE_HAND = 'handling';
@@ -39,11 +41,13 @@ $(function () {
 
     $('[data-toggle="popover"]').popover();
 
-    setTimeout(() => {openModalNew()}, 200);
+    setTimeout(() => {
+        openQueryModal();
+    }, 200);
 
 });
 
-function openModalNew(query = null, event) {
+function openQueryModal(query = null, event) {
     if (event) {
         event.preventDefault();
     }
@@ -637,9 +641,9 @@ function redirectToDemandeLivraison(demandeId) {
 function onFlyFormToggle(id, button, forceHide = false) {
     let $toShow = $('#' + id);
     let $toAdd = $('#' + button);
+    const $flyForm = $toShow.closest('.fly-form');
     if (!forceHide && $toShow.hasClass('invisible')) {
-        $toShow.parent().parent().css("display", "flex");
-        $toShow.parent().parent().css("height", "auto");
+        $flyForm.css('height', 'auto');
         $toShow.css("height", "auto");
         $toShow.removeClass('invisible');
         $toAdd.removeClass('invisible');
@@ -649,10 +653,11 @@ function onFlyFormToggle(id, button, forceHide = false) {
             .addClass('invisible')
             .css("height", "0");
         $toAdd.addClass('invisible');
+        $flyForm.css('height', 0);
 
         // we reset all field
         $toShow
-            .find('.newFormulaire ')
+            .find('.newFormulaire')
             .each(function () {
                 const $fieldNext = $(this).next();
                 if ($fieldNext.is('.select2-container')) {
@@ -678,7 +683,7 @@ function onFlyFormToggle(id, button, forceHide = false) {
 
 
 function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
-    let inputs = button.closest('.formulaire').find(".newFormulaire");
+    let inputs = button.closest('.fly-form').find(".newFormulaire");
     let params = {};
     let formIsValid = true;
     inputs.each(function () {
@@ -700,11 +705,16 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
     });
     if (formIsValid) {
         $.post(path, JSON.stringify(params), function (response) {
-            if ($select) {
-                let option = new Option(response.text, response.id, true, true);
-                $select.append(option).trigger('change');
+            if (response && response.success) {
+                if ($select) {
+                    let option = new Option(response.text, response.id, true, true);
+                    $select.append(option).trigger('change');
+                }
+                onFlyFormToggle(toHide, buttonAdd, true);
             }
-            onFlyFormToggle(toHide, buttonAdd, true)
+            else if (response && response.msg) {
+                showBSAlert(response.msg, 'danger');
+            }
         });
     }
 }
@@ -813,6 +823,7 @@ function displayFiltersSup(data) {
             case 'multipleTypes':
             case 'receivers':
             case 'requesters':
+            case 'operators':
             case 'dispatchNumber':
             case 'emergencyMultiple':
                 let valuesElement = element.value.split(',');

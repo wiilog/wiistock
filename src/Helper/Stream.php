@@ -90,6 +90,20 @@ class Stream implements Countable
     }
 
     /**
+     * @param array $toMerge
+     * @return array
+     */
+    public function merge(array $toMerge): self
+    {
+        if (isset($this->elements)) {
+            $this->elements = array_merge($this->elements, $toMerge);
+        } else {
+            throw new Error($this::INVALID_STREAM);
+        }
+        return $this;
+    }
+
+    /**
      * @return array
      */
     public function toArray(): array

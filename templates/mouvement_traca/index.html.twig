@@ -3,7 +3,7 @@
 {% block title %}Traçabilité | Mouvements{% endblock %}
 
 {% block page_filter %}
-    {% include 'filters/filtersMouvementTraca.html.twig' with {
+    {% include 'filters/filtersTrackingMovements.html.twig' with {
         'page' : 'PAGE_MVT_TRACA',
         'tableSelector' : '#tableMvts',
         callback: 'clearURL'
@@ -103,5 +103,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/mouvement_traca.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/tracking_movement.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

@@ -21,7 +21,8 @@ class Import
 	const ENTITY_ART = 'ART';
 	const ENTITY_REF= 'REF';
 	const ENTITY_FOU = 'FOU';
-	const ENTITY_ART_FOU = 'ART_FOU';
+    const ENTITY_ART_FOU = 'ART_FOU';
+    const ENTITY_RECEPTION = 'RECEP';
 
 	const FIELDS_NEEDED = [
         self::ENTITY_ART_FOU => [
@@ -44,6 +45,11 @@ class Import
             'type',
             'emplacement',
             'typeQuantite'
+        ],
+        self::ENTITY_RECEPTION => [
+            'orderNumber',
+            'quantity',
+            'reference'
         ]
     ];
 
@@ -51,7 +57,8 @@ class Import
 	    self::ENTITY_ART_FOU => 'reference',
         self::ENTITY_ART => 'barCode',
         self::ENTITY_FOU => 'codeReference',
-        self::ENTITY_REF => 'reference'
+        self::ENTITY_REF => 'reference',
+        self::ENTITY_RECEPTION => null,
     ];
 
 	const FIELDS_ENTITY = [
@@ -77,7 +84,19 @@ class Import
 		'typeLabel' => 'type',
         'dateLastInventory' => 'date dernier inventaire (jj/mm/AAAA)',
         'emergencyComment' => 'commentaire urgence',
+        'orderNumber' => 'numéro de commande',
+        'quantity' => 'quantité',
+        'batch' => 'Lot',
+        'expiryDate' => 'Date de péremption (jj/mm/AAAA)',
+        'stockEntryDate' => 'Date d\'entrée en stock (jj/mm/AAAA hh:MM)',
 	];
+
+	public CONST IMPORT_FIELDS_TO_FIELDS_PARAM = [
+        'commentaire' => 'commentaire',
+        'destination' => 'emplacement',
+        'fournisseur' => 'fournisseur',
+        'transporteur' => 'transporteur',
+    ];
 
     /**
      * @ORM\Id()
@@ -97,7 +116,7 @@ class Import
     private $entity;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\PieceJointe", inversedBy="importCsv")
+     * @ORM\OneToOne(targetEntity="Attachment", inversedBy="importCsv")
      */
     private $csvFile;
 
@@ -155,8 +174,8 @@ class Import
     private $endDate;
 
 	/**
-     * @var PieceJointe
-	 * @ORM\OneToOne(targetEntity="App\Entity\PieceJointe", inversedBy="importLog")
+     * @var Attachment
+	 * @ORM\OneToOne(targetEntity="Attachment", inversedBy="importLog")
 	 */
     private $logFile;
 
@@ -206,12 +225,12 @@ class Import
         return $this;
     }
 
-    public function getCsvFile(): ?PieceJointe
+    public function getCsvFile(): ?Attachment
     {
         return $this->csvFile;
     }
 
-    public function setCsvFile(?PieceJointe $csvFile): self
+    public function setCsvFile(?Attachment $csvFile): self
     {
         $this->csvFile = $csvFile;
 
@@ -314,12 +333,12 @@ class Import
         return $this;
     }
 
-    public function getLogFile(): ?PieceJointe
+    public function getLogFile(): ?Attachment
     {
         return $this->logFile;
     }
 
-    public function setLogFile(?PieceJointe $logFile): self
+    public function setLogFile(?Attachment $logFile): self
     {
         if (isset($this->logFile)) {
             $this->logFile->setImportLog(null);

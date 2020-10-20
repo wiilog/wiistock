@@ -15,7 +15,7 @@ use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -30,7 +30,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-class MouvementTracaService
+class TrackingMovementService
 {
     public const INVALID_LOCATION_TO = 'invalid-location-to';
 
@@ -70,10 +70,10 @@ class MouvementTracaService
     public function getDataForDatatable($params = null)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
-        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+        $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $this->security->getUser());
-        $queryResult = $mouvementTracaRepository->findByParamsAndFilters($params, $filters);
+        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters);
 
         $mouvements = $queryResult['data'];
 
@@ -90,13 +90,13 @@ class MouvementTracaService
     }
 
     /**
-     * @param MouvementTraca $movement
+     * @param TrackingMovement $movement
      * @return array
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function dataRowMouvement(MouvementTraca $movement)
+    public function dataRowMouvement(TrackingMovement $movement)
     {
         if ($movement->getArrivage()) {
             $fromPath = 'arrivage_show';
@@ -113,6 +113,11 @@ class MouvementTracaService
             $fromLabel = 'acheminement.Acheminement';
             $fromEntityId = $movement->getDispatch()->getId();
             $originFrom = $movement->getDispatch()->getNumber();
+        } else if ($movement->getMouvementStock() && $movement->getMouvementStock()->getTransferOrder()) {
+            $fromPath = 'transfer_order_show';
+            $fromLabel = 'Transfert de stock';
+            $fromEntityId = $movement->getMouvementStock()->getTransferOrder()->getId();
+            $originFrom = $movement->getMouvementStock()->getTransferOrder()->getNumber();
         } else {
             $fromPath = null;
             $fromEntityId = null;
@@ -179,7 +184,7 @@ class MouvementTracaService
      * @param DateTime $date
      * @param bool $fromNomade
      * @param bool|null $finished
-     * @param string|int $typeMouvementTraca label ou id du mouvement traca
+     * @param string|int $trackingType label ou id du mouvement traca
      * @param array $options = [
      *      'commentaire' => string|null,
      *      'quantity' => int|null,
@@ -187,7 +192,7 @@ class MouvementTracaService
      *      'mouvementStock' => MouvementStock|null,
      *      'fileBag' => FileBag|null, from => Arrivage|Reception|null],
      *      'entityManager' => EntityManagerInterface|null
-     * @return MouvementTraca
+     * @return TrackingMovement
      * @throws Exception
      */
     public function createTrackingMovement($packOrCode,
@@ -196,17 +201,17 @@ class MouvementTracaService
                                            DateTime $date,
                                            bool $fromNomade,
                                            ?bool $finished,
-                                           $typeMouvementTraca,
-                                           array $options = []): MouvementTraca
+                                           $trackingType,
+                                           array $options = []): TrackingMovement
     {
         $entityManager = $options['entityManager'] ?? $this->entityManager;
         $statutRepository = $entityManager->getRepository(Statut::class);
 
-        $type = ($typeMouvementTraca instanceof Statut)
-            ? $typeMouvementTraca
-            : (is_string($typeMouvementTraca)
-                ? $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
-                : $statutRepository->find($typeMouvementTraca));
+        $type = ($trackingType instanceof Statut)
+            ? $trackingType
+            : (is_string($trackingType)
+                ? $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $trackingType)
+                : $statutRepository->find($trackingType));
 
         if (!isset($type)) {
             throw new Exception('Le type de mouvement traca donné est invalide');
@@ -223,7 +228,7 @@ class MouvementTracaService
 
         $pack = $this->getPack($entityManager, $packOrCode, $quantity, $natureId);
 
-        $tracking = new MouvementTraca();
+        $tracking = new TrackingMovement();
         $tracking
             ->setQuantity($quantity)
             ->setEmplacement($location)
@@ -284,7 +289,7 @@ class MouvementTracaService
     }
 
     private function manageTrackingLinks(EntityManagerInterface $entityManager,
-                                         MouvementTraca $tracking,
+                                         TrackingMovement $tracking,
                                          $from,
                                          $receptionReferenceArticle) {
 
@@ -294,21 +299,23 @@ class MouvementTracaService
         $pack = $tracking->getPack();
         $packCode = $pack ? $pack->getCode() : null;
 
-        $refOrArticle = (
-            $referenceArticleRepository->findOneBy(['barCode' => $packCode])
-            ?: $articleRepository->findOneBy(['barCode' => $packCode])
-        );
+        $alreadyLinkedArticle = $pack->getArticle();
+        $alreadyLinkedReferenceArticle = $pack->getReferenceArticle();
+        if (!isset($alreadyLinkedArticle) && !isset($alreadyLinkedReferenceArticle)) {
+            $refOrArticle = (
+                $referenceArticleRepository->findOneBy(['barCode' => $packCode])
+                ?: $articleRepository->findOneBy(['barCode' => $packCode])
+            );
 
-        if ($refOrArticle instanceof ReferenceArticle) {
-            $tracking->setReferenceArticle($refOrArticle);
-        } else if ($refOrArticle instanceof Article) {
-            $tracking->setArticle($refOrArticle);
+            if ($refOrArticle instanceof ReferenceArticle) {
+                $pack->setReferenceArticle($refOrArticle);
+            } else if ($refOrArticle instanceof Article) {
+                $pack->setArticle($refOrArticle);
+            }
         }
 
         if (isset($from)) {
-            if ($from instanceof Arrivage) {
-                $tracking->setArrivage($from);
-            } else if ($from instanceof Reception) {
+            if ($from instanceof Reception) {
                 $tracking->setReception($from);
             } else if ($from instanceof Dispatch) {
                 $tracking->setDispatch($from);
@@ -321,10 +328,10 @@ class MouvementTracaService
     }
 
     /**
-     * @param MouvementTraca $tracking
+     * @param TrackingMovement $tracking
      * @param $fileBag
      */
-    private function manageTrackingFiles(MouvementTraca $tracking, $fileBag) {
+    private function manageTrackingFiles(TrackingMovement $tracking, $fileBag) {
         if (isset($fileBag)) {
             $attachments = $this->attachmentService->createAttachements($fileBag);
             foreach ($attachments as $attachment) {
@@ -336,7 +343,7 @@ class MouvementTracaService
     private function generateUniqueIdForMobile(EntityManagerInterface $entityManager,
                                                DateTime $date): string
     {
-        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
         $uniqueId = null;
         //same format as moment.defaultFormat
@@ -345,39 +352,39 @@ class MouvementTracaService
         do {
             $random = strtolower(substr(sha1(rand()), 0, $randomLength));
             $uniqueId = $dateStr . '_' . $random;
-            $existingMouvements = $mouvementTracaRepository->findBy(['uniqueIdForMobile' => $uniqueId]);
-        } while (!empty($existingMouvements));
+            $existingMovements = $trackingMovementRepository->findBy(['uniqueIdForMobile' => $uniqueId]);
+        } while (!empty($existingMovements));
 
         return $uniqueId;
     }
 
     public function persistSubEntities(EntityManagerInterface $entityManager,
-                                       MouvementTraca $mouvementTraca) {
-        $pack = $mouvementTraca->getPack();
+                                       TrackingMovement $trackingMovement) {
+        $pack = $trackingMovement->getPack();
         if (!empty($pack)) {
             $entityManager->persist($pack);
         }
-        $linkedPackLastDrop = $mouvementTraca->getLinkedPackLastDrop();
+        $linkedPackLastDrop = $trackingMovement->getLinkedPackLastDrop();
         if ($linkedPackLastDrop) {
             $entityManager->persist($linkedPackLastDrop);
         }
 
-        $linkedPackLastTracking = $mouvementTraca->getLinkedPackLastTracking();
+        $linkedPackLastTracking = $trackingMovement->getLinkedPackLastTracking();
         if ($linkedPackLastTracking) {
             $entityManager->persist($linkedPackLastTracking);
         }
 
-        foreach ($mouvementTraca->getAttachments() as $attachement) {
+        foreach ($trackingMovement->getAttachments() as $attachement) {
             $entityManager->persist($attachement);
         }
     }
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param MouvementTraca $tracking
+     * @param TrackingMovement $tracking
      */
     public function managePackLinksWithTracking(EntityManagerInterface $entityManager,
-                                                MouvementTraca $tracking): void {
+                                                TrackingMovement $tracking): void {
 
         $pack = $tracking->getPack();
         $lastTrackingMovements = $pack ? $pack->getTrackingMovements()->toArray() : [];

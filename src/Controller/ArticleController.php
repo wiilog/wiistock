@@ -10,7 +10,7 @@ use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\MouvementStock;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -195,6 +195,21 @@ class ArticleController extends AbstractController
         ];
         $champF[] = [
             'label' => 'Dernier inventaire',
+            'id' => 0,
+            'typage' => 'date'
+        ];
+        $champF[] = [
+            'label' => 'Lot',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champF[] = [
+            'label' => 'Date d\'entrée en stock',
+            'id' => 0,
+            'typage' => 'date'
+        ];
+        $champF[] = [
+            'label' => 'Date de péremption',
             'id' => 0,
             'typage' => 'date'
         ];
@@ -440,6 +455,24 @@ class ArticleController extends AbstractController
 					'name' => 'Dernier inventaire',
 					"class" => (in_array('Dernier inventaire', $columnsVisible) ? 'display' : 'hide'),
 				],
+				[
+					"title" => 'Lot',
+					"data" => 'Lot',
+					'name' => 'Lot',
+					"class" => (in_array('Lot', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => "Date d'entrée en stock",
+					"data" => "Date d'entrée en stock",
+					'name' => "Date d'entrée en stock",
+					"class" => (in_array("Date d'entrée en stock", $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Date de péremption',
+					"data" => 'Date de péremption',
+					'name' => 'Date de péremption',
+					"class" => (in_array('Date de péremption', $columnsVisible) ? 'display' : 'hide'),
+				],
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
@@ -605,9 +638,9 @@ class ArticleController extends AbstractController
             $rows = $article->getId();
 
             // Delete mvt traca
-            /** @var MouvementTraca $mouvementTraca */
-            foreach ($article->getMouvementTracas()->toArray() as $mouvementTraca) {
-                $entityManager->remove($mouvementTraca);
+            /** @var TrackingMovement $trackingMovement */
+            foreach ($article->getTrackingMovements()->toArray() as $trackingMovement) {
+                $entityManager->remove($trackingMovement);
             }
 
             // Delete mvt stock
@@ -693,7 +726,7 @@ class ArticleController extends AbstractController
                 $hasRightToDeleteTraca = $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE);
                 $hasRightToDeleteStock = $this->userService->hasRightFunction(Menu::STOCK, Action::DELETE);
 
-                $articlesMvtTracaIsEmpty = $article->getMouvementTracas()->isEmpty();
+                $articlesMvtTracaIsEmpty = $article->getTrackingMovements()->isEmpty();
                 $articlesMvtStockIsEmpty = $article->getMouvements()->isEmpty();
                 $articleRequest = $article->getDemande();
                 $articlePrepa = $article->getPreparation();
@@ -977,7 +1010,10 @@ class ArticleController extends AbstractController
                 'commentaire',
                 'emplacement',
                 'code barre',
-                'date dernier inventaire'
+                'date dernier inventaire',
+                'lot',
+                'date d\'entrée en stock',
+                'date de péremption',
             ],
             $freeFieldsConfig['freeFieldsHeader']
         );
@@ -1020,6 +1056,9 @@ class ArticleController extends AbstractController
                     $article['empLabel'],
                     $article['barCode'],
                     $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
+                    $article['batch'],
+                    $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
+                    $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
                 ];
 
                 foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {

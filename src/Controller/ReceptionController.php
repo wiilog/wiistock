@@ -14,9 +14,9 @@ use App\Entity\LitigeHistoric;
 use App\Entity\FieldsParam;
 use App\Entity\CategorieCL;
 use App\Entity\MouvementStock;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\ParametrageGlobal;
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
@@ -27,6 +27,7 @@ use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\CategoryType;
+use App\Helper\Stream;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\TransporteurRepository;
@@ -37,7 +38,7 @@ use App\Service\GlobalParamService;
 use App\Service\LitigeService;
 use App\Service\MailerService;
 use App\Service\MouvementStockService;
-use App\Service\MouvementTracaService;
+use App\Service\TrackingMovementService;
 use App\Service\PDFGeneratorService;
 use App\Service\ReceptionService;
 use App\Service\AttachmentService;
@@ -153,79 +154,21 @@ class ReceptionController extends AbstractController {
      */
     public function new(EntityManagerInterface $entityManager,
                         FreeFieldService $champLibreService,
+                        ReceptionService $receptionService,
+                        AttachmentService $attachmentService,
                         Request $request): Response {
         if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = $request->request->all()) {
 
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $receptionRepository = $entityManager->getRepository(Reception::class);
+            $reception = $receptionService->createAndPersistReception($entityManager, $this->getUser(), $data);
 
-            $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
-            $reception = new Reception();
-
-            $statusCode = !empty($data['anomalie']) ? ($data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE) : Reception::STATUT_EN_ATTENTE;
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
-
-            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-
-            // génère le numéro
-            $lastNumero = $receptionRepository->getLastNumeroByPrefixeAndDate('R', $date->format('ymd'));
-            $lastCpt = (int)substr($lastNumero, -4, 4);
-            $i = $lastCpt + 1;
-            $cpt = sprintf('%04u', $i);
-            $numero = 'R' . $date->format('ymd') . $cpt;
-
-            if(!empty($data['fournisseur'])) {
-                $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
-                $reception
-                    ->setFournisseur($fournisseur);
-            }
-
-            if(!empty($data['location'])) {
-                $location = $emplacementRepository->find(intval($data['location']));
-                $reception
-                    ->setLocation($location);
-            }
-
-            if(!empty($data['transporteur'])) {
-                $transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
-                $reception
-                    ->setTransporteur($transporteur);
-            }
-
-            /** @var Utilisateur $currentUser */
-            $currentUser = $this->getUser();
-
-            $reception
-                ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
-                ->setDateAttendue(
-                    !empty($data['dateAttendue'])
-                        ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
-                        : null)
-                ->setDateCommande(
-                    !empty($data['dateCommande'])
-                        ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
-                        : null)
-                ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null)
-                ->setStatut($statut)
-                ->setNumeroReception($numero)
-                ->setDate($date)
-                ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
-                ->setUtilisateur($currentUser)
-                ->setType($type)
-                ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null);
-
-            $entityManager->persist($reception);
             $entityManager->flush();
 
             $champLibreService->manageFreeFields($reception, $data, $entityManager);
-
+            $attachmentService->manageAttachments($entityManager, $reception, $request->files);
             $entityManager->flush();
 
             $data = [
@@ -244,15 +187,17 @@ class ReceptionController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $champLibreService
      * @param ReceptionService $receptionService
+     * @param AttachmentService $attachmentService
      * @param Request $request
      * @return Response
-     * @throws Exception
+     * @throws \ReflectionException
      */
     public function edit(EntityManagerInterface $entityManager,
                          FreeFieldService $champLibreService,
                          ReceptionService $receptionService,
+                         AttachmentService $attachmentService,
                          Request $request): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if($request->isXmlHttpRequest() && $data = $request->request->all()) {
             if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -281,6 +226,12 @@ class ReceptionController extends AbstractController {
             $location = !empty($data['location']) ? $emplacementRepository->find($data['location']) : null;
             $reception->setLocation($location);
 
+            $storageLocation = !empty($data['storageLocation']) ? $emplacementRepository->find($data['storageLocation']) : null;
+            $reception->setStorageLocation($storageLocation);
+
+            $emergency = !empty($data['emergency']) ? $data['emergency'] : null;
+            $reception->setManualUrgent($emergency);
+
             $reception
                 ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
                 ->setDateAttendue(
@@ -293,10 +244,12 @@ class ReceptionController extends AbstractController {
                         : null)
                 ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null);
 
+            $reception->removeIfNotIn($data['files']);
+
             $entityManager->flush();
 
-
             $champLibreService->manageFreeFields($reception, $data, $entityManager);
+            $attachmentService->manageAttachments($entityManager, $reception, $request->files);
 
             $entityManager->flush();
             $json = [
@@ -519,7 +472,7 @@ class ReceptionController extends AbstractController {
                 $articleRepository->setNullByReception($receptionArticle);
             }
 
-            foreach($reception->getMouvementsTraca() as $receptionMvtTraca) {
+            foreach($reception->getTrackingMovements() as $receptionMvtTraca) {
                 $entityManager->remove($receptionMvtTraca);
             }
             $entityManager->flush();
@@ -586,7 +539,7 @@ class ReceptionController extends AbstractController {
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+            $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
             $ligneArticle = $receptionReferenceArticleRepository->find($data['ligneArticle']);
             $ligneArticleLabel = $ligneArticle->getReferenceArticle() ? $ligneArticle->getReferenceArticle()->getReference() : '';
@@ -600,7 +553,7 @@ class ReceptionController extends AbstractController {
 
             $reception = $ligneArticle->getReception();
 
-            $associatedMvts = $mouvementTracaRepository->findBy([
+            $associatedMovements = $trackingMovementRepository->findBy([
                 'receptionReferenceArticle' => $ligneArticle
             ]);
 
@@ -617,7 +570,7 @@ class ReceptionController extends AbstractController {
                 $reference->setQuantiteStock($newRefQuantity);
             }
 
-            foreach($associatedMvts as $associatedMvt) {
+            foreach($associatedMovements as $associatedMvt) {
                 $entityManager->remove($associatedMvt);
             }
 
@@ -720,7 +673,7 @@ class ReceptionController extends AbstractController {
                 $entityManager->flush();
 
                 if($refArticle->getIsUrgent()) {
-                    $reception->setEmergencyTriggered(true);
+                    $reception->setUrgentArticles(true);
                     $receptionReferenceArticle->setEmergencyTriggered(true);
                     $receptionReferenceArticle->setEmergencyComment($refArticle->getEmergencyComment());
                 }
@@ -782,14 +735,14 @@ class ReceptionController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @param ReceptionService $receptionService
      * @param Request $request
-     * @param MouvementTracaService $mouvementTracaService
+     * @param TrackingMovementService $trackingMovementService
      * @return Response
      * @throws Exception
      */
     public function editArticle(EntityManagerInterface $entityManager,
                                 ReceptionService $receptionService,
                                 Request $request,
-                                MouvementTracaService $mouvementTracaService): Response {
+                                TrackingMovementService $trackingMovementService): Response {
         if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -862,14 +815,14 @@ class ReceptionController extends AbstractController {
                             $receptionLocation
                         );
                         $entityManager->persist($mouvementStock);
-                        $createdMvt = $mouvementTracaService->createTrackingMovement(
+                        $createdMvt = $trackingMovementService->createTrackingMovement(
                             $referenceArticle->getBarCode(),
                             $receptionLocation,
                             $currentUser,
                             $now,
                             false,
                             true,
-                            MouvementTraca::TYPE_DEPOSE,
+                            TrackingMovement::TYPE_DEPOSE,
                             [
                                 'mouvementStock' => $mouvementStock,
                                 'quantity' => $mouvementStock->getQuantity(),
@@ -879,7 +832,7 @@ class ReceptionController extends AbstractController {
                         );
 
                         $receptionReferenceArticle->setQuantite($newReceivedQuantity); // protection contre quantités négatives
-                        $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                        $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                         $referenceArticle->setQuantiteStock($newRefQuantity);
                         $entityManager->persist($createdMvt);
                     }
@@ -1209,7 +1162,7 @@ class ReceptionController extends AbstractController {
             $listAttachmentIdToKeep = $post->get('files') ?? [];
             $attachments = $litige->getAttachments()->toArray();
             foreach($attachments as $attachment) {
-                /** @var PieceJointe $attachment */
+                /** @var Attachment $attachment */
                 if(!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
                     $this->attachmentService->removeAndDeleteAttachment($attachment, $litige);
                 }
@@ -1326,7 +1279,7 @@ class ReceptionController extends AbstractController {
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $litigeRepository = $entityManager->getRepository(Litige::class);
-            $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentRepository = $entityManager->getRepository(Attachment::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $litige = $litigeRepository->find($data['litigeId']);
@@ -1347,7 +1300,7 @@ class ReceptionController extends AbstractController {
                 'litige' => $litige,
                 'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
-                'attachments' => $pieceJointeRepository->findBy(['litige' => $litige]),
+                'attachments' => $attachmentRepository->findBy(['litige' => $litige]),
                 'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);
 
@@ -1764,6 +1717,9 @@ class ReceptionController extends AbstractController {
                 'commentaire',
                 'quantité à recevoir',
                 'quantité reçue',
+                'emplacement de stockage',
+                'urgent',
+                'destinataire',
                 'référence',
                 'libellé',
                 'quantité stock',
@@ -1771,9 +1727,10 @@ class ReceptionController extends AbstractController {
                 'code-barre reference',
                 'code-barre article',
             ];
+            $nowStr = date("d-m-Y_H:i");
 
             return $CSVExportService->createBinaryResponseFromData(
-                'export.csv',
+                "export-" . str_replace(["/", "\\"], "-", $translator->trans('réception.réception')) . "-" . $nowStr  . ".csv",
                 $receptions,
                 $csvHeader,
                 function($reception) {
@@ -1782,6 +1739,7 @@ class ReceptionController extends AbstractController {
                         if($reception['referenceArticleId']) {
                             $row = $this->serializeReception($reception);
 
+                            $row[] = '';
                             $row[] = $reception['referenceArticleReference'] ?: '';
                             $row[] = $reception['referenceArticleLibelle'] ?: '';
                             $row[] = $reception['referenceArticleQuantiteStock'] ?: '';
@@ -1794,6 +1752,7 @@ class ReceptionController extends AbstractController {
                         if($reception['articleId']) {
                             $row = $this->serializeReception($reception);
 
+                            $row[] = $reception['requesterUsername'] ?: '';
                             $row[] = $reception['articleReference'] ?: '';
                             $row[] = $reception['articleLabel'] ?: '';
                             $row[] = $reception['articleQuantity'] ?: '';
@@ -1826,7 +1785,9 @@ class ReceptionController extends AbstractController {
             $reception['dateFinReception'] ? $reception['dateFinReception']->format('d/m/Y H:i') : '',
             $reception['commentaire'] ? strip_tags($reception['commentaire']) : '',
             $reception['receptionRefArticleQuantiteAR'] ?: '',
-            $reception['receptionRefArticleQuantite'] ?: ''
+            $reception['receptionRefArticleQuantite'] ?: '',
+            $reception['storageLocation'] ?: '',
+            $reception['emergency'] ? 'oui' : 'non'
         ];
     }
 
@@ -1838,7 +1799,7 @@ class ReceptionController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @param Reception $reception
      * @param FreeFieldService $champLibreService
-     * @param MouvementTracaService $mouvementTracaService
+     * @param TrackingMovementService $trackingMovementService
      * @param MouvementStockService $mouvementStockService
      * @return Response
      * @throws LoaderError
@@ -1853,7 +1814,7 @@ class ReceptionController extends AbstractController {
                                    EntityManagerInterface $entityManager,
                                    Reception $reception,
                                    FreeFieldService $champLibreService,
-                                   MouvementTracaService $mouvementTracaService,
+                                   TrackingMovementService $trackingMovementService,
                                    MouvementStockService $mouvementStockService): Response {
 
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
@@ -1942,14 +1903,14 @@ class ReceptionController extends AbstractController {
 
                 $entityManager->persist($mouvementStock);
 
-                $createdMvt = $mouvementTracaService->createTrackingMovement(
+                $createdMvt = $trackingMovementService->createTrackingMovement(
                     $article->getBarCode(),
                     $receptionLocation,
                     $currentUser,
                     $now,
                     false,
                     true,
-                    MouvementTraca::TYPE_DEPOSE,
+                    TrackingMovement::TYPE_DEPOSE,
                     [
                         'mouvementStock' => $mouvementStock,
                         'quantity' => $mouvementStock->getQuantity(),
@@ -1957,7 +1918,7 @@ class ReceptionController extends AbstractController {
                     ]
                 );
 
-                $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                 $entityManager->persist($createdMvt);
 
                 $entityManager->flush();
@@ -1966,7 +1927,7 @@ class ReceptionController extends AbstractController {
             foreach($emergencies as $article) {
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
 
-                $mailContent = $this->render('mails/contents/mailArticleUrgentReceived.html.twig', [
+                $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
                     'article' => $article,
                     'title' => 'Votre article urgent a bien été réceptionné.',
                 ]);
@@ -2004,6 +1965,7 @@ class ReceptionController extends AbstractController {
                         'demande' => $demande,
                         'fournisseur' => $reception->getFournisseur(),
                         'isReception' => true,
+                        'reception' => $reception,
                         'title' => 'Une ' . $translator->trans('réception.réception')
                             . ' '
                             . $reception->getNumeroReception()
