@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use DateTime;
+use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Selectable;
@@ -730,6 +732,15 @@ class Article extends FreeFieldEntity
         }
 
         return $this;
+    }
+
+    public function isExpired(): ?bool
+    {
+        if($this->getExpiryDate()) {
+            return new DateTime("now", new DateTimeZone("Europe/Paris")) >= $this->expiryDate;
+        } else {
+            return null;
+        }
     }
 
     public function getExpiryDate(): ?\DateTimeInterface

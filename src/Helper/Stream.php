@@ -4,7 +4,11 @@ namespace App\Helper;
 
 use Closure;
 use Countable;
+use Doctrine\Common\Collections\ArrayCollection;
 use Error;
+use RecursiveArrayIterator;
+use RecursiveIteratorIterator;
+use RuntimeException;
 
 class Stream implements Countable
 {
@@ -25,13 +29,21 @@ class Stream implements Countable
         $this->elements = $array;
     }
 
-    /**
-     * @param array $array
-     * @return Stream
-     */
-    public static function from(array $array): Stream
+    public static function from($array): Stream
     {
-        return new Stream($array);
+        if(is_array($array)) {
+            return new Stream($array);
+        } else if(is_iterable($array)) {
+            return new Stream(iterator_to_array($array));
+        } else {
+            if(is_object($array)) {
+                $type = get_class($array);
+            } else {
+                $type = gettype($array);
+            }
+
+            throw new RuntimeException("Unsupported type `$type`, expected array or iterable");
+        }
     }
 
     /**
@@ -62,13 +74,7 @@ class Stream implements Countable
         return $this;
     }
 
-    /**
-     * @param Closure $closure
-     * @param $carry
-     * @return mixed|null
-     */
-    public function reduce(Closure $closure, $carry)
-    {
+    public function reduce(Closure $closure, $carry) {
         if (isset($this->elements)) {
             return array_reduce($this->elements, $closure, $carry);
         } else {
@@ -76,25 +82,34 @@ class Stream implements Countable
         }
     }
 
-    /**
-     * @param Closure $closure
-     * @return bool
-     */
-    public function each(Closure $closure)
-    {
+    public function flatten(): self {
+        $elements = [];
+        $iterator = new RecursiveIteratorIterator(new RecursiveArrayIterator($this->elements));
+
+        foreach($iterator as $element) {
+            $elements[] = $element;
+        }
+
+        $this->elements = $elements;
+        return $this;
+    }
+
+    public function unique(): self {
+        $this->elements = array_unique($this->elements);
+        return $this;
+    }
+
+    public function each(Closure $closure): self {
         if (isset($this->elements)) {
-            return array_walk($this->elements, $closure);
+            array_walk($this->elements, $closure);
         } else {
             throw new Error($this::INVALID_STREAM);
         }
+
+        return $this;
     }
 
-    /**
-     * @param array $toMerge
-     * @return array
-     */
-    public function merge(array $toMerge): self
-    {
+    public function merge(array $toMerge): self {
         if (isset($this->elements)) {
             $this->elements = array_merge($this->elements, $toMerge);
         } else {
@@ -103,21 +118,22 @@ class Stream implements Countable
         return $this;
     }
 
-    /**
-     * @return array
-     */
-    public function toArray(): array
-    {
+    public function toArray(): array {
         $streamArray = array_merge($this->elements);
         $this->elements = null;
         return $streamArray;
     }
 
-    /**
-     * @return int
-     */
-    public function count(): int
-    {
+    public function count(): int {
         return count($this->elements);
     }
+
+    public function isEmpty(): bool {
+        if (isset($this->elements)) {
+            return $this->count() === 0;
+        } else {
+            throw new Error($this::INVALID_STREAM);
+        }
+    }
+
 }

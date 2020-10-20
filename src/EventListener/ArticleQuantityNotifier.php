@@ -93,7 +93,7 @@ class ArticleQuantityNotifier
         if ($article->getExpiryDate()) {
             $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
             $alertDay = clone $article->getExpiryDate();
-            $alertDay->modify("$this->expiryDelay");
+            $alertDay->modify($this->expiryDelay);
 
             $existing = $this->entityManager->getRepository(Alert::class)->findForReference($article, Alert::EXPIRY);
 
