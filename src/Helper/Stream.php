@@ -119,6 +119,19 @@ class Stream implements Countable
     }
 
     /**
+     * @param Closure $closure
+     * @return bool
+     */
+    public function isEmpty(): bool
+    {
+        if (isset($this->elements)) {
+            return $this->count() === 0;
+        } else {
+            throw new Error($this::INVALID_STREAM);
+        }
+    }
+
+    /**
      * @return array
      */
     public function toArray(): array

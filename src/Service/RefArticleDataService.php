@@ -657,7 +657,7 @@ class RefArticleDataService {
         } else if($reference->getLimitWarning() !== null && $reference->getLimitWarning() >= $reference->getQuantiteDisponible()) {
             $type = Alert::WARNING;
         }
-dump($reference->getLimitSecurity(), $reference->getQuantiteDisponible(), $type);
+
         $existing = $ar->findForReference($reference, [Alert::SECURITY, Alert::WARNING]);
 
         //more than 1 security/warning alert is an invalid state -> reset

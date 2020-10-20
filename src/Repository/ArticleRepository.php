@@ -67,11 +67,19 @@ class ArticleRepository extends EntityRepository
         if($delay) {
             $since->modify($delay);
         }
+        return $this->createQueryBuilder("a")
+            ->where("a.expiryDate <= :since")
+            ->setParameter("since", $since)
+            ->getQuery()
+            ->getResult();
+    }
 
+    public function findNoLongerExpired() {
+        $since = new DateTime("now", new DateTimeZone("Europe/Paris"));
         return $this->createQueryBuilder("a")
             ->leftJoin("a.alerts", "al")
-            ->where("a.expiryDate <= :since")
-            ->andWhere("al.id IS NULL")
+            ->where("a.expiryDate > :since OR a.expiryDate IS NULL")
+            ->andWhere("al.id IS NOT NULL")
             ->setParameter("since", $since)
             ->getQuery()
             ->getResult();

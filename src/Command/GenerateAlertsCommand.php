@@ -5,6 +5,7 @@ namespace App\Command;
 use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\ParametrageGlobal;
+use App\Helper\Stream;
 use App\Service\AlertService;
 use App\Service\MailerService;
 use DateTime;
@@ -54,22 +55,40 @@ class GenerateAlertsCommand extends Command {
         $now = new DateTime("now", new \DateTimeZone("Europe/Paris"));
 
         $expired = $this->manager->getRepository(Article::class)->findExpiredToGenerate($this->expiryDelay);
-        $managers = [];
+        $noLongerExpired = $this->manager->getRepository(Article::class)->findNoLongerExpired();
 
         /** @var Article $article */
+        foreach ($noLongerExpired as $article) {
+            Stream::from($article->getAlerts())
+                ->filter(function (Alert $alert) {
+                    return $alert->getType() === Alert::EXPIRY;
+                })->each(function(Alert $alert) {
+                    $this->manager->remove($alert);
+                });
+        }
+
+        $managers = [];
+        /** @var Article $article */
         foreach($expired as $article) {
-            $alert = new Alert();
-            $alert->setArticle($article);
-            $alert->setType(Alert::EXPIRY);
-            $alert->setDate($now);
+            $hasExistingAlert = !(
+                Stream::from($article->getAlerts())
+                    ->filter(function (Alert $alert) {
+                        return $alert->getType() === Alert::EXPIRY;
+                    })->isEmpty()
+            );
+            if (!$hasExistingAlert) {
+                $alert = new Alert();
+                $alert->setArticle($article);
+                $alert->setType(Alert::EXPIRY);
+                $alert->setDate($now);
 
-            $this->manager->persist($alert);
-
+                $this->manager->persist($alert);
+            }
             $recipients = $article->getArticleFournisseur()
                 ->getReferenceArticle()
                 ->getManagers();
 
-            foreach($recipients as $recipient) {
+            foreach ($recipients as $recipient) {
                 $this->addArticle($managers, $recipient->getEmail(), $article);
                 $this->addArticle($managers, $recipient->getSecondaryEmails(), $article);
             }
@@ -78,6 +97,7 @@ class GenerateAlertsCommand extends Command {
         foreach($managers as $manager => $articles) {
             $this->service->sendExpiryMails($manager, $articles, $this->expiryDelay);
         }
+        $this->manager->flush();
     }
 
     private function addArticle(array &$emails, $recipients, Article $article) {
