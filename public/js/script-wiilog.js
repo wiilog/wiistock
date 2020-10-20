@@ -32,6 +32,10 @@ const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \/\-]{1,24}$/;
 // alert modals config
 const AUTO_HIDE_DEFAULT_DELAY = 2000;
 
+// set max date for pickers
+const MAX_DATETIME_HTML_INPUT = '2100-12-31T23:59'
+const MAX_DATE_HTML_INPUT = '2100-12-31'
+
 $(function () {
     $(document).on('hide.bs.modal', function () {
         $('.select2-container.select2-container--open').remove();
@@ -40,7 +44,8 @@ $(function () {
     $('[data-toggle="popover"]').popover();
 
     setTimeout(() => {openModalNew()}, 200);
-
+    $('[type=datetime-local]').attr('max', MAX_DATETIME_HTML_INPUT);
+    $('[type=date]').attr('max', MAX_DATE_HTML_INPUT);
 });
 
 function openModalNew(query = null, event) {
