@@ -14,9 +14,17 @@ use Doctrine\ORM\EntityRepository;
  */
 class TransferOrderRepository extends EntityRepository {
 
-    public function findByParamsAndFilters($params, $filters) {
+    public function findByParamsAndFilters($params, $filters, $receptionFilter) {
         $qb = $this->createQueryBuilder("t");
         $total =  QueryCounter::count($qb, "t");
+
+        if ($receptionFilter) {
+            $qb
+                ->join('t.request', 'r')
+                ->join('r.reception', 'reception')
+                ->andWhere('reception.id = :reception')
+                ->setParameter('reception', $receptionFilter);
+        }
 
         // filtres sup
         foreach ($filters as $filter) {

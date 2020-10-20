@@ -77,6 +77,11 @@ class TransferRequest {
      */
     private $references;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="transferRequests")
+     */
+    private $reception;
+
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->references = new ArrayCollection();
@@ -92,6 +97,20 @@ class TransferRequest {
 
     public function setNumber(string $number): self {
         $this->number = $number;
+        return $this;
+    }
+
+    public function getReception(): ?Reception
+    {
+        return $this->reception;
+    }
+
+    public function setReception(?Reception $reception): self
+    {
+        $this->reception = $reception;
+
+        $reception->addTransferRequest($this);
+
         return $this;
     }
 

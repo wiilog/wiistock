@@ -14,6 +14,7 @@
         {% set canReceive = (hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) and modifiable) %}
         {% set canDelete = (hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) and modifiable) %}
         {% set hasDemande = (hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) and reception.demandes|length > 0) %}
+        {% set hasTransfer = (hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_TRANS')) and reception.transferRequest|length > 0) %}
         {% set dropdownNeedsToBeDisplayed = (not modifiable) or canReceive or hasDemande or canDelete %}
 
         {% if canReceive %}
@@ -68,7 +69,12 @@
             {% if hasDemande %}
                 <a href="{{ path('demande_index', {'reception': reception.id }) }}"
                    class="dropdown-item">
-                    <i class="mr-2 fas fa-external-link-alt"></i>Voir les demandes</a>
+                    <i class="mr-2 fas fa-external-link-alt"></i>Voir les demandes de livraison</a>
+            {% endif %}
+            {% if hasTransfer %}
+                <a href="{{ path('transfer_order_index', {'reception': reception.id }) }}"
+                   class="dropdown-item">
+                    <i class="mr-2 fas fa-external-link-alt"></i>Voir les ordres de transfert</a>
             {% endif %}
             {% if canDelete %}
                 <a data-id='{{ reception.id }}'

@@ -57,13 +57,9 @@ class TransferRequestController extends AbstractController {
     }
 
     /**
-     * @Route("/liste/{filter}", name="transfer_request_index", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $em
-     * @param string|null $filter
-     * @return Response
+     * @Route("/liste", name="transfer_request_index", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function index(Request $request, EntityManagerInterface $em, $filter = null): Response {
+    public function index(EntityManagerInterface $em): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -75,7 +71,6 @@ class TransferRequestController extends AbstractController {
 
         return $this->render('transfer/request/index.html.twig', [
             'statuts' => $statusRepository->findByCategorieName(CategorieStatut::TRANSFER_REQUEST),
-            'filterStatus' => $filter
         ]);
     }
 
@@ -101,7 +96,7 @@ class TransferRequestController extends AbstractController {
         }
     }
 
-    private function createNumber($entityManager, $date) {
+    public static function createNumber($entityManager, $date) {
         $dateStr = $date->format('Ymd');
 
         $lastDispatchNumber = $entityManager->getRepository(TransferRequest::class)->getLastTransferNumberByPrefix("T-" . $dateStr);
@@ -147,7 +142,7 @@ class TransferRequestController extends AbstractController {
 
             $transfer
                 ->setStatus($draft)
-                ->setNumber($this->createNumber($entityManager, $date))
+                ->setNumber(self::createNumber($entityManager, $date))
                 ->setDestination($destination)
                 ->setCreationDate($date)
                 ->setRequester($this->getUser())

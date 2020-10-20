@@ -245,7 +245,7 @@ class LivraisonsManagerService
                     $entityManager,
                     (
                         ($livraisonStatusName === Livraison::STATUT_A_TRAITER)
-                            ? MouvementStock::TYPE_TRANSFERT
+                            ? MouvementStock::TYPE_TRANSFER
                             : MouvementStock::TYPE_ENTREE
                     )
                 );
@@ -282,7 +282,7 @@ class LivraisonsManagerService
                         $entityManager,
                         (
                             ($livraisonStatusName === Livraison::STATUT_A_TRAITER)
-                                ? MouvementStock::TYPE_TRANSFERT
+                                ? MouvementStock::TYPE_TRANSFER
                                 : MouvementStock::TYPE_ENTREE
                         )
                     );

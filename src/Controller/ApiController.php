@@ -326,7 +326,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                             ? $article->getQuantite()
                                             : $article->getQuantiteStock(); // ($article instanceof ReferenceArticle)
 
-                                        $newMouvement = $mouvementStockService->createMouvementStock($nomadUser, $location, $quantiteMouvement, $article, MouvementStock::TYPE_TRANSFERT);
+                                        $newMouvement = $mouvementStockService->createMouvementStock($nomadUser, $location, $quantiteMouvement, $article, MouvementStock::TYPE_TRANSFER);
                                         $options['mouvementStock'] = $newMouvement;
                                         $options['quantity'] = $newMouvement->getQuantity();
                                         $entityManager->persist($newMouvement);
