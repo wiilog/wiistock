@@ -1571,6 +1571,10 @@ class ReceptionController extends AbstractController {
                 'typeChampsLibres' => $typeChampLibre,
                 'types' => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]),
                 'categories' => $inventoryCategories,
+                "stockManagement" => [
+                    ReferenceArticle::STOCK_MANAGEMENT_FEFO,
+                    ReferenceArticle::STOCK_MANAGEMENT_FIFO
+                ],
             ]));
         }
         throw new NotFoundHttpException("404");
@@ -1938,28 +1942,32 @@ class ReceptionController extends AbstractController {
                 $demande = $demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
                 $entityManager->persist($demande);
             } else if ($needCreateTransfer) {
+                $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+
                 $toTreat = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
                 $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
                 $destination = $emplacementRepository->find($data['storage']);
                 $transfer = new TransferRequest();
                 $transfer
                     ->setStatus($toTreat)
-                    ->setCreationDate(new DateTime())
-                    ->setValidationDate(new DateTime())
-                    ->setNumber(TransferRequestController::createNumber($entityManager, new DateTime()))
+                    ->setCreationDate($now)
+                    ->setValidationDate($now)
+                    ->setNumber(TransferRequestController::createNumber($entityManager, $now))
                     ->setDestination($destination)
                     ->setReception($reception)
                     ->setRequester($this->getUser());
                 $order = new TransferOrder();
                 $order
                     ->setRequest($transfer)
-                    ->setNumber(TransferOrderController::createNumber($entityManager, new DateTime()))
+                    ->setNumber(TransferOrderController::createNumber($entityManager, $now))
                     ->setStatus($toTreatOrder)
-                    ->setCreationDate(new DateTime());
+                    ->setCreationDate($now);
+
                 $entityManager->persist($transfer);
                 $entityManager->persist($order);
             }
 
+            dump($needCreateLivraison, $transfer, $reception);
             $receptionLocation = $reception->getLocation();
             // crée les articles et les ajoute à la demande, à la réception, crée les urgences
             $receptionLocationId = isset($receptionLocation) ? $receptionLocation->getId() : null;

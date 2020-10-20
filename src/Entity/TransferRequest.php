@@ -78,7 +78,7 @@ class TransferRequest {
     private $references;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="demandes")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="transferRequests")
      */
     private $reception;
 
@@ -109,8 +109,7 @@ class TransferRequest {
     {
         $this->reception = $reception;
 
-        $reception
-            ->addTransferRequest($this);
+        $reception->addTransferRequest($this);
 
         return $this;
     }
