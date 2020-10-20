@@ -62,7 +62,7 @@
 
     </ul>
     {% if isUrgentArrival and isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
-        {% if arrival.duty %}
+        {% if arrival.customs %}
             <p style="font-weight: bold">
                 La réception de cette commande sera effectuée après dédouanement.
             </p>

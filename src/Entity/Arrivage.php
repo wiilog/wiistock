@@ -113,7 +113,7 @@ class Arrivage extends FreeFieldEntity
 	/**
 	 * @ORM\Column(type="boolean", nullable=true)
 	 */
-    private $duty;
+    private $customs;
 
 	/**
 	 * @ORM\Column(type="boolean", nullable=true)
@@ -525,14 +525,14 @@ class Arrivage extends FreeFieldEntity
         return $this;
     }
 
-    public function getDuty(): ?bool
+    public function getCustoms(): ?bool
     {
-        return $this->duty;
+        return $this->customs;
     }
 
-    public function setDuty(?bool $duty): self
+    public function setCustoms(?bool $customs): self
     {
-        $this->duty = $duty;
+        $this->customs = $customs;
 
         return $this;
     }

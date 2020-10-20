@@ -32,7 +32,7 @@ class FiltreSup
 	const FIELD_LITIGE_DISPUTE_NUMBER = 'disputeNumber';
 	const FIELD_NUM_ARRIVAGE = 'numArrivage';
 	const FIELD_NATURES = 'natures';
-	const FIELD_DUTY = 'duty';
+	const FIELD_CUSTOMS = 'customs';
 	const FIELD_FROZEN = 'frozen';
 	const FIELD_STATUS_ENTITY = 'statusEntity';
 	const FIELD_MULTIPLE_TYPES = 'multipleTypes';

@@ -852,7 +852,7 @@ function displayFiltersSup(data) {
                 break;
 
             case 'emergency':
-            case 'duty':
+            case 'customs':
             case 'frozen':
                 if (element.value === '1') {
                     $('#' + element.field + '-filter').attr('checked', 'checked');

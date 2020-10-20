@@ -104,7 +104,7 @@ class ArrivageRepository extends EntityRepository
             ->addSelect('arrivalType.label AS type')
             ->addSelect('arrivage.noTracking')
             ->addSelect('arrivage.numeroCommandeList')
-            ->addSelect('arrivage.duty')
+            ->addSelect('arrivage.customs')
             ->addSelect('arrivage.frozen')
             ->addSelect('status.nom AS statusName')
             ->addSelect('arrivage.commentaire')
@@ -309,10 +309,10 @@ class ArrivageRepository extends EntityRepository
                         ->andWhere('a.isUrgent = :isUrgent')
                         ->setParameter('isUrgent', $filter['value']);
                     break;
-                case 'duty':
+                case 'customs':
                     if ($filter['value'] === '1') {
                         $qb
-                            ->andWhere('a.duty = :value')
+                            ->andWhere('a.customs = :value')
                             ->setParameter('value', $filter['value']);
                     }
                     break;
@@ -412,7 +412,7 @@ class ArrivageRepository extends EntityRepository
                             ->orderBy('u2.username', $order);
                     } else if ($column === 'custom') {
                         $qb
-                            ->orderBy('a.duty', $order);
+                            ->orderBy('a.customs', $order);
                     } else if ($column === 'frozen') {
                         $qb
                             ->orderBy('a.frozen', $order);

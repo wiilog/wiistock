@@ -106,4 +106,20 @@ class Stream implements Countable
     {
         return count($this->elements);
     }
+
+    /**
+     * @param Closure $closure
+     * @return $this
+     */
+    public function flatMap(Closure $closure)
+    {
+        if (isset($this->elements)) {
+            $mappedArray = $this->map($closure)->toArray();
+            $this->elements = array_merge(...$mappedArray);
+        } else {
+            throw new Error($this::INVALID_STREAM);
+        }
+
+        return $this;
+    }
 }

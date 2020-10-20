@@ -4,9 +4,9 @@
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' %}
     {% include 'filters/filter_item/filterNumArrivage.html.twig' %}
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DUTY_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
-        {% include 'filters/filter_item/filterDuty.html.twig' %}
+        {% include 'filters/filter_item/filterCustoms.html.twig' %}
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
