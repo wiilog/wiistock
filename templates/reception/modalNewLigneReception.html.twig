@@ -81,18 +81,18 @@
                     <label class="switch">
                         <input class="checkbox data needs-default"
                                name="create-demande-transfert"
-                               onclick="toggleForm($('.transfert-form'), $(this))"
+                               onclick="toggleForm($('.transfer-form'), $(this))"
                                data-init="0"
                                type="checkbox"/>
                         <span class="slider round"></span>
                     </label>
-                    <div class="transfert-form mt-4" style="background-color:#F8F8F8;padding:10px;border-radius:4px;">
+                    <div class="transfer-form mt-4" style="background-color:#F8F8F8;padding:10px;border-radius:4px;">
                         <div class="row">
                             <div class="col-4 form-group">
                                 <label for="storage">Emplacement de stockage*</label>
                                 <select name="storage" class="data ajax-autocomplete-location-edit w-100 needed" id="storage">
                                 </select>
-                                <input hidden id="storageTransfert"
+                                <input hidden id="storageTransfer"
                                        data-id="{{ reception.storageLocation ? reception.storageLocation.id }}"
                                        data-text="{{ reception.storageLocation ? reception.storageLocation.label }}">
                             </div>

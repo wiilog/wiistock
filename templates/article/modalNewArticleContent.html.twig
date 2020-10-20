@@ -29,8 +29,7 @@
             <label>Date de péremption</label>
             <input type="date" class="form-control data" name="expiry"/>
         </div>
-    {% endif %}
-    {% if not easyForm %}
+    {% else %}
         <div class="form-group col-6">
             <label for="libelle">Libellé*</label>
             <input class="form-control data needed" type="text" name="libelle" id="libelle">

@@ -475,7 +475,7 @@ class PreparationsManagerService
                             ->setArticle($article)
                             ->setQuantity($quantitePrelevee)
                             ->setEmplacementFrom($article->getEmplacement())
-                            ->setType(MouvementStock::TYPE_TRANSFERT)
+                            ->setType(MouvementStock::TYPE_TRANSFER)
                             ->setPreparationOrder($preparation);
                         $this->entityManager->persist($mouvement);
                     }
@@ -498,7 +498,7 @@ class PreparationsManagerService
                         ->setRefArticle($articleRef)
                         ->setQuantity($ligneArticle->getQuantitePrelevee())
                         ->setEmplacementFrom($articleRef->getEmplacement())
-                        ->setType(MouvementStock::TYPE_TRANSFERT)
+                        ->setType(MouvementStock::TYPE_TRANSFER)
                         ->setPreparationOrder($preparation);
                     $this->entityManager->persist($mouvement);
                 }

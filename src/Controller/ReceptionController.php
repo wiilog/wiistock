@@ -1925,9 +1925,9 @@ class ReceptionController extends AbstractController {
             }
             // optionnel : crée la demande de livraison
             $needCreateLivraison = (bool)$data['create-demande'];
-            $needCreateTransfert = (bool)$data['create-demande-transfert'];
+            $needCreateTransfer = (bool)$data['create-demande-transfert'];
 
-            $transfert = null;
+            $transfer = null;
 
             if($needCreateLivraison) {
                 // optionnel : crée l'ordre de prépa
@@ -1937,12 +1937,12 @@ class ReceptionController extends AbstractController {
 
                 $demande = $demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
                 $entityManager->persist($demande);
-            } else if ($needCreateTransfert) {
+            } else if ($needCreateTransfer) {
                 $toTreat = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
                 $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
                 $destination = $emplacementRepository->find($data['storage']);
-                $transfert = new TransferRequest();
-                $transfert
+                $transfer = new TransferRequest();
+                $transfer
                     ->setStatus($toTreat)
                     ->setCreationDate(new DateTime())
                     ->setValidationDate(new DateTime())
@@ -1952,11 +1952,11 @@ class ReceptionController extends AbstractController {
                     ->setRequester($this->getUser());
                 $order = new TransferOrder();
                 $order
-                    ->setRequest($transfert)
+                    ->setRequest($transfer)
                     ->setNumber(TransferOrderController::createNumber($entityManager, new DateTime()))
                     ->setStatus($toTreatOrder)
                     ->setCreationDate(new DateTime());
-                $entityManager->persist($transfert);
+                $entityManager->persist($transfer);
                 $entityManager->persist($order);
             }
 
@@ -1972,7 +1972,7 @@ class ReceptionController extends AbstractController {
 
                 $noCommande = isset($article['noCommande']) ? $article['noCommande'] : null;
                 $article = $this->articleDataService->newArticle($article, $demande ?? null);
-                if ($transfert) $transfert->addArticle($article);
+                if ($transfer) $transfer->addArticle($article);
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
                 $rra = $receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $ref->getId());
                 $article->setReceptionReferenceArticle($rra);

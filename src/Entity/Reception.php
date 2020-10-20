@@ -102,7 +102,7 @@ class Reception extends FreeFieldEntity
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\TransferRequest", mappedBy="reception")
      */
-    private $transfertRequests;
+    private $transferRequests;
 
 	/**
 	 * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="receptionOrder")
@@ -323,13 +323,13 @@ class Reception extends FreeFieldEntity
      */
     public function getTransferRequest(): Collection
     {
-        return $this->transfertRequests;
+        return $this->transferRequests;
     }
 
     public function addTransferRequest(TransferRequest $request): self
     {
-        if (!$this->transfertRequests->contains($request)) {
-            $this->transfertRequests[] = $request;
+        if (!$this->transferRequests->contains($request)) {
+            $this->transferRequests[] = $request;
             $request->setReception($this);
         }
 
@@ -338,8 +338,8 @@ class Reception extends FreeFieldEntity
 
     public function removeTransferRequest(TransferRequest $request): self
     {
-        if ($this->transfertRequests->contains($request)) {
-            $this->transfertRequests->removeElement($request);
+        if ($this->transferRequests->contains($request)) {
+            $this->transferRequests->removeElement($request);
             // set the owning side to null (unless already changed)
             if ($request->getReception() === $this) {
                 $request->setReception(null);

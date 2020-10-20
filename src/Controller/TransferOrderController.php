@@ -169,7 +169,7 @@ class TransferOrderController extends AbstractController {
             $transferRequest->setValidationDate(new DateTime());
 
             $transfer
-                ->setNumber($this::createNumber($entityManager, $date))
+                ->setNumber(self::createNumber($entityManager, $date))
                 ->setCreationDate($date)
                 ->setRequest($transferRequest)
                 ->setStatus($toTreatOrder);

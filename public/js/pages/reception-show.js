@@ -463,7 +463,7 @@ function clearModalLigneReception(modal) {
     $('.packing-title').addClass('d-none');
     clearModal(modal);
 
-    toggleForm($('.transfert-form,.demande-form'), null, true);
+    toggleForm($('.transfer-form,.demande-form'), null, true);
     resetDefaultArticleFournisseur();
 }
 
@@ -564,8 +564,8 @@ function initNewLigneReception($button) {
     if ($('#locationDemandeLivraison').length > 0) {
         Select2.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
     }
-    if ($('#storageTransfert').length > 0) {
-        Select2.initValues($('#storage'), $('#storageTransfert'));
+    if ($('#storageTransfer').length > 0) {
+        Select2.initValues($('#storage'), $('#storageTransfer'));
     }
 
     let urlNewLigneReception = Routing.generate(
@@ -737,20 +737,20 @@ function updateQuantityToReceive($input) {
 
 function toggleForm($content, $input, force = false) {
     if (force) {
-        $content = $('.transfert-form');
+        $content = $('.transfer-form');
         $content.addClass('d-none');
         $content.find('.data').attr('disabled', 'disabled');
     } else {
         if ($input.is(':checked')) {
             $content.removeClass('d-none');
             $content.find('.data').attr('disabled', null);
-            if ($content.hasClass('transfert-form')) {
+            if ($content.hasClass('transfer-form')) {
                 $('.demande-form').addClass('d-none');
                 $('.demande-form').find('.data').attr('disabled', 'disabled');
                 $('input[name="create-demande"]').prop('checked', false);
             } else {
-                $('.transfert-form').addClass('d-none');
-                $('.transfert-form').find('.data').attr('disabled', 'disabled');
+                $('.transfer-form').addClass('d-none');
+                $('.transfer-form').find('.data').attr('disabled', 'disabled');
                 $('input[name="create-demande-transfert"]').prop('checked', false);
 
             }

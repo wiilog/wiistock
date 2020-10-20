@@ -113,7 +113,7 @@ class TransferOrderService {
                 $emplacementFrom,
                 $quantite,
                 $refOrArt,
-                MouvementStock::TYPE_TRANSFERT
+                MouvementStock::TYPE_TRANSFER
             );
             $trackingPick = $this->mouvementTracaService->createTrackingMovement(
                 $barcode,
