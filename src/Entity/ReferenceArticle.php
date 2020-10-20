@@ -672,7 +672,7 @@ class ReferenceArticle extends FreeFieldEntity
         return $this->limitSecurity;
     }
 
-    public function setLimitSecurity($limitSecurity): self
+    public function setLimitSecurity(?int $limitSecurity): self
     {
         $this->limitSecurity = $limitSecurity;
         return $this;
@@ -683,7 +683,7 @@ class ReferenceArticle extends FreeFieldEntity
         return $this->limitWarning;
     }
 
-    public function setLimitWarning($limitWarning): self
+    public function setLimitWarning(?int $limitWarning): self
     {
         $this->limitWarning = $limitWarning;
         return $this;

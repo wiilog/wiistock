@@ -12,6 +12,7 @@ let chartTreatedPacks;
 
 let currentChartsFontSize;
 const dashboardChartsData = {};
+let fontSizeYAxes;
 
 const DASHBOARD_ARRIVAL_NAME = 'arrivage';
 const DASHBOARD_DOCK_NAME = 'quai';
@@ -44,6 +45,7 @@ $(function () {
     Chart.defaults.global.responsive = true;
     Chart.defaults.global.maintainAspectRatio = false;
     currentChartsFontSize = calculateChartsFontSize();
+    fontSizeYAxes = currentChartsFontSize *0.5;
     $('.indicator').each(function() {
         displayedDashboards.push($(this).data('name'));
     });
@@ -72,13 +74,26 @@ $(function () {
 
     if (!isDashboardExt()) {
         initTooltips($('.has-tooltip'));
-        let $indicators = $('#indicators');
-        $('#btnIndicators').mouseenter(function () {
-            $indicators.fadeIn();
-        });
-        $('#blocIndicators').mouseleave(function () {
-            $indicators.fadeOut();
-        });
+        let blockDisplayed = false;
+        $('.blocIndicators')
+            .mouseenter(function () {
+                if (!blockDisplayed) {
+                    blockDisplayed = true;
+                    const $button = $(this);
+                    const $indicators = $button.find('.indicators');
+                    $indicators.fadeIn();
+                }
+            })
+            .mouseleave(function () {
+                setTimeout(() => {
+                    if (blockDisplayed) {
+                        blockDisplayed = false;
+                        const $button = $(this);
+                        const $indicators = $button.find('.indicators');
+                        $indicators.fadeOut();
+                    }
+                }, 200);
+            });
 
         $(document).on('keydown', function (e) {
             if (!$('.carousel-indicators').hasClass('d-none')) {
@@ -542,7 +557,7 @@ function newChart($canvasId, redForLastData = false) {
                 scales: {
                     yAxes: [{
                         ticks: {
-                            fontSize,
+                            fontSizeYAxes,
                             fontStyle,
                             beginAtZero: true,
                             callback: (value) => {
@@ -653,10 +668,10 @@ function refreshCounter($counterCountainer, data, needsRedColorIfPositiv = false
     }
     if (counter > 0 && needsRedColorIfPositiv) {
         $counterCountainer.find('.dashboard-stats').addClass('red');
-        $counterCountainer.find('.fas').addClass('red fa-exclamation-triangle');
+        $counterCountainer.find('.emergency-icon').addClass('fas red fa-exclamation-triangle');
     } else {
         $counterCountainer.find('.dashboard-stats').removeClass('red');
-        $counterCountainer.find('.fas').removeClass('red fa-exclamation-triangle');
+        $counterCountainer.find('.emergency-icon').removeClass('fas red fa-exclamation-triangle');
     }
     $counterCountainer.find('.dashboard-stats').text(counter);
 }

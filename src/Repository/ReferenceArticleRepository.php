@@ -10,6 +10,7 @@ use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
+use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -309,14 +310,17 @@ class ReferenceArticleRepository extends EntityRepository
                             break;
                         case FreeField::TYPE_DATE:
                         case FreeField::TYPE_DATETIME:
-                            $formattedDate = new \DateTime(str_replace('/', '-', $value));
-                            $value = '%' . $formattedDate->format('Y-m-d') . '%';
+                            $formattedDate = DateTime::createFromFormat('d/m/Y', $value) ?: $value;
+                            $value =  $formattedDate->format('Y-m-d');
+                            if ($freeFieldType === FreeField::TYPE_DATETIME) {
+                                $value .= '%';
+                            }
                             break;
                         case FreeField::TYPE_LIST:
                         case FreeField::TYPE_LIST_MULTIPLE:
                             $value = array_map(function (string $value) {
                                 return '%' . $value . '%';
-                            }, explode(',', $value));
+                            }, json_decode($value));
                             break;
                         case FreeField::TYPE_NUMBER:
                             break;
@@ -338,7 +342,6 @@ class ReferenceArticleRepository extends EntityRepository
 
                     $qb
                         ->andWhere($jsonSearchesQueryString);
-
                 }
             }
         }
@@ -1052,8 +1055,8 @@ class ReferenceArticleRepository extends EntityRepository
             ->andWhere('ra.dateEmergencyTriggered IS NOT NULL')
             ->andWhere(
                 $qb->expr()->orX(
-                    $qb->expr()->gt('ra.limitSecurity', 0),
-                    $qb->expr()->gt('ra.limitWarning', 0)
+                    $qb->expr()->gte('ra.limitSecurity', 0),
+                    $qb->expr()->gte('ra.limitWarning', 0)
                 )
             )
             ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF);

@@ -18,7 +18,7 @@
     <p>Bonjour,</p>
     {% if dispatch.statut.treated %}
         <p>Votre {{ 'acheminement.acheminement'|trans }}/expédition est traité(e) avec les informations suivantes :</p>
-        {% else %}
+    {% else %}
         <p>Votre {{ 'acheminement.acheminement'|trans }}/expédition est en cours de traitement avec les informations suivantes :</p>
     {% endif %}
     <ul>
@@ -28,8 +28,8 @@
         <li>Date de création : <strong>{{ dispatch.creationDate|date('d/m/Y à H:i:s') }}</strong></li>
         {% if not hideTreatmentDateParam %}
             <li>Date de validation : <strong>{{ validationDate }}</strong></li>
-            {% else %}
-                <li>Date de traitement : <strong>{{ treatmentDate }}</strong></li>
+        {% else %}
+            <li>Date de traitement : <strong>{{ treatmentDate }}</strong></li>
         {% endif %}
         {% if hideTreatedBy %}
             <li>Traité par : <strong>{{ dispatch.treatedBy.username }}</strong></li>
@@ -42,18 +42,18 @@
         <li>Transporteur : <strong>{{ dispatch.carrier.label ?? '' }}</strong></li>
         <li>Numéro de tracking transporteur : <strong>{{ dispatch.carrierTrackingNumber ?? '' }}</strong></li>
         <li>Numéro projet : <strong>{{ dispatch.projectNumber  ?? '' }}</strong></li>
-        <li>Business Unit :  <strong>{{ dispatch.businessUnit ?? '' }}</strong></li>
+        <li>Business Unit : <strong>{{ dispatch.businessUnit ?? '' }}</strong></li>
         <li>Urgence : <strong>{{ emergency }}</strong></li>
         <li>Commentaire : {{ comment|striptags }}</li>
         {% if dispatch.attachments|length > 0 %}
-        <li>
-            Pièces jointes :
-            <ul>
-                {% for attachment in dispatch.attachments %}
-                    <li>{{ attachment.originalName }}</li>
-                {% endfor %}
-            </ul>
-        </li>
+            <li>
+                Pièces jointes :
+                <ul>
+                    {% for attachment in dispatch.attachments %}
+                        <li>{{ attachment.originalName }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
         {% endif %}
     </ul>
 
@@ -96,58 +96,65 @@
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
                 Volume (m3)
             </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Statut
+            </th>
         </tr>
         </thead>
         <tbody>
-            {% if dispatch.dispatchPacks.count == 0 %}
-                <tr>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;"
-                        colspan="6">
-                        Aucune donnée à afficher.
-                    </td>
-                </tr>
-            {% endif %}
-            {% for dispatchPack in dispatch.dispatchPacks %}
-
-                {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.label : '' %}
-                {% set packLastTracking = dispatchPack.pack.lastTracking ?? '' %}
-                {% set packLocationLastTracking = packLastTracking.emplacement ?? '' %}
-                <tr>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ natureLabel }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.pack.code }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.quantity }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ packLastTracking ? packLastTracking.datetime|date('d/m/Y H:i:s') : '-' }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ packLocationLastTracking ? packLocationLastTracking.label : '-' }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ packLastTracking ? packLastTracking.operateur.username : '-' }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.pack.weight ?? '-' }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ dispatchPack.pack.volume ?? '-' }}
-                    </td>
-                </tr>
-            {% endfor %}
+        {% if dispatch.dispatchPacks.count == 0 %}
+            <tr>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;"
+                    colspan="6">
+                    Aucune donnée à afficher.
+                </td>
+            </tr>
+        {% endif %}
+        {% for dispatchPack in dispatch.dispatchPacks %}
+            {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.label : '' %}
+            {% set packLastTracking = dispatchPack.pack.lastTracking ?? '' %}
+            {% set packLocationLastTracking = packLastTracking.emplacement ?? '' %}
+            <tr>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ natureLabel }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ dispatchPack.pack.code }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ dispatchPack.quantity }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ packLastTracking ? packLastTracking.datetime|date('d/m/Y H:i:s') : '-' }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ packLocationLastTracking ? packLocationLastTracking.label : '-' }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ packLastTracking ? packLastTracking.operateur.username : '-' }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ dispatchPack.pack.weight ?? '-' }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ dispatchPack.pack.volume ?? '-' }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ dispatchPack.treated ? 'Traité' : 'A traiter' }}
+                </td>
+            </tr>
+        {% endfor %}
         </tbody>
     </table>
     <br>

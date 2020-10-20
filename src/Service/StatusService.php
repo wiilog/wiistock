@@ -113,6 +113,10 @@ class StatusService {
             [
                 'label' => 'Litige',
                 'id' => Statut::DISPUTE
+            ],
+            [
+                'label' => 'Partiel',
+                'id' => Statut::PARTIAL
             ]
         ];
     }

@@ -196,20 +196,16 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
  * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
  */
 function processForm($modal, isAttachmentForm, validator) {
-    const dataArrayForm = processDataArrayForm($modal);
-    const dataInputsForm = processInputsForm($modal, isAttachmentForm);
-    const dataCheckboxesForm = processCheckboxesForm($modal);
-    const dataSwitchesForm = processSwitchesForm($modal);
-    const dataFilesForm = processFilesForm($modal);
+    const data = {};
+
+    const dataArrayForm = processDataArrayForm($modal, data);
+    const dataInputsForm = processInputsForm($modal, data, isAttachmentForm);
+    const dataCheckboxesForm = processCheckboxesForm($modal, data, isAttachmentForm);
+    const dataSwitchesForm = processSwitchesForm($modal, data, isAttachmentForm);
+    const dataFilesForm = processFilesForm($modal, data);
     const dataValidator = validator
         ? validator($modal)
         : {success: true, errorMessages: [], $isInvalidElements: []};
-
-    // TODO remove ?
-    const subData = {};
-    $("div[name='id']").each(function () {
-        subData[$(this).attr("name")] = $(this).attr('value');
-    });
 
     return {
         success: (
@@ -237,13 +233,8 @@ function processForm($modal, isAttachmentForm, validator) {
             ...(dataValidator.$isInvalidElements || [])
         ],
         data: {
-            ...dataArrayForm.data,
-            ...dataInputsForm.data,
-            ...dataCheckboxesForm.data,
-            ...dataSwitchesForm.data,
-            ...dataFilesForm.data,
-            ...(dataValidator.data || {}),
-            ...subData
+            ...data,
+            ...(dataValidator.data || {})
         }
     };
 }
@@ -253,41 +244,15 @@ function processForm($modal, isAttachmentForm, validator) {
  * @param {jQuery} $modal jQuery modal
  * @param {boolean} isAttachmentForm
  * @param $modal jQuery modal
- * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
+ * @param {Object.<*,*>} data
+ * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
  */
-function processInputsForm($modal, isAttachmentForm) {
+function processInputsForm($modal, data, isAttachmentForm) {
     const $inputs = $modal.find('.data:not([name^="savedFiles"])');
-    const data = {};
     const $isInvalidElements = [];
     const missingInputNames = [];
 
     const errorMessages = [];
-
-    const saveData = ($input, name, val) => {
-        const $parent = $input.closest('[data-multiple-key]');
-
-        if (name) {
-            if ($parent && $parent.length > 0) {
-                const multipleKey = $parent.data('multiple-key');
-                const objectIndex = $parent.data('multiple-object-index');
-                const multipleValue = data[multipleKey]
-                    ? (isAttachmentForm
-                        ? JSON.parse(data[multipleKey])
-                        : data[multipleKey])
-                    : {};
-                multipleValue[objectIndex] = (multipleValue[objectIndex] || {});
-                multipleValue[objectIndex][name] = val;
-
-                data[multipleKey] = isAttachmentForm
-                    ? JSON.stringify(multipleValue)
-                    : multipleValue;
-            } else if ($input.hasClass('list-multiple')) {
-                data[name] = JSON.stringify(val);
-            } else {
-                data[name] = val;
-            }
-        }
-    };
 
     const $firstDate = $inputs.filter('.date.first-date');
     const $lastDate = $inputs.filter('.date.last-date');
@@ -302,19 +267,6 @@ function processInputsForm($modal, isAttachmentForm) {
         )) {
         errorMessages.push('La date de début doit être antérieure à la date de fin.');
         $isInvalidElements.push($firstDate, $lastDate);
-    }
-
-    const $limitSecurity = $inputs.filter('[name="limitSecurity"]');
-    const $limitWarning = $inputs.filter('[name="limitWarning"]');
-    const limitSecurity = $limitSecurity.val();
-    const limitWarning = $limitWarning.val();
-
-    if (($limitSecurity.length > 0 && $limitWarning.length > 0)
-        && limitSecurity
-        && limitWarning
-        && Number(limitWarning) < Number(limitSecurity)) {
-        errorMessages.push('Le seuil d\'alerte doit être supérieur au seuil de sécurité.');
-        $isInvalidElements.push($limitSecurity, $limitWarning);
     }
 
     $inputs.each(function () {
@@ -381,11 +333,11 @@ function processInputsForm($modal, isAttachmentForm) {
                     errorMessages.push('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial (@$!%*?&).');
                     $isInvalidElements.push($input)
                 } else {
-                    saveData($input, name, password);
+                    saveData($input, data, name, val, isAttachmentForm);
                 }
             }
             else {
-                saveData($input, name, password);
+                saveData($input, data, name, val, isAttachmentForm);
             }
         }
         // validation valeur des inputs de type number
@@ -415,11 +367,11 @@ function processInputsForm($modal, isAttachmentForm) {
                     errorMessages.push(errorMessage)
                     $isInvalidElements.push($input);
                 } else {
-                    saveData($input, name, val);
+                    saveData($input, data, name, val, isAttachmentForm);
                 }
             }
             else {
-                saveData($input, name, val);
+                saveData($input, data, name, val, isAttachmentForm);
             }
         }
         else {
@@ -432,15 +384,15 @@ function processInputsForm($modal, isAttachmentForm) {
                         $isInvalidElements.push($editorContainer);
                     }
                     else {
-                        saveData($input, name, val);
+                        saveData($input, data, name, val, isAttachmentForm);
                     }
                 }
                 else {
-                    saveData($input, name, val);
+                    saveData($input, data, name, val, isAttachmentForm);
                 }
             }
             else {
-                saveData($input, name, val);
+                saveData($input, data, name, val, isAttachmentForm);
             }
         }
     });
@@ -463,37 +415,38 @@ function processInputsForm($modal, isAttachmentForm) {
 /**
  *
  * @param $modal jQuery modal
- * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
+ * @param {Object.<*,*>} data
+ * @param {boolean} isAttachmentForm
+ * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
  */
-function processCheckboxesForm($modal) {
+function processCheckboxesForm($modal, data, isAttachmentForm) {
     const $checkboxes = $modal.find('.checkbox');
-    const data = {};
 
     $checkboxes.each(function () {
         const $input = $(this);
         if (!$input.hasClass("no-data")) {
-            data[$input.attr("name")] = $input.is(':checked');
+            saveData($input, data, $input.attr("name"), $input.is(':checked'), isAttachmentForm);
         }
     });
 
     return {
         success: true,
         errorMessages: [],
-        $isInvalidElements: [],
-        data
+        $isInvalidElements: []
     };
 }
 
 /**
  *
  * @param $modal jQuery modal
- * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
+ * @param {Object.<*,*>} data
+ * @param {boolean} isAttachmentForm
+ * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
  */
-function processSwitchesForm($modal) {
+function processSwitchesForm($modal, data, isAttachmentForm) {
     const $switches = $modal.find('.wii-switch');
     const $invalidElements = [];
     const messages = [];
-    const data = {};
 
     $switches.each(function () {
         const $div = $(this);
@@ -503,25 +456,24 @@ function processSwitchesForm($modal) {
             $invalidElements.push($div);
             messages.push("Veuillez renseigner une valeur pour le champ " + $div.data("title"));
         } else {
-            data[$input.attr("name")] = $input.val();
+            saveData($input, data, $input.attr("name"), $input.val(), isAttachmentForm);
         }
     });
 
     return {
         success: $invalidElements.length === 0,
         errorMessages: messages,
-        $isInvalidElements: $invalidElements,
-        data
+        $isInvalidElements: $invalidElements
     };
 }
 
 /**
  *
- * @param {*} $modal jQuery modal
- * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
+ * @param {jQuery} $modal jQuery modal
+ * @param {Object.<*,*>} data
+ * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
  */
-function processFilesForm($modal) {
-    const data = {};
+function processFilesForm($modal, data) {
     const $requiredFileField = $modal.find('input[name="isFileNeeded"][type="hidden"]');
     const required = $requiredFileField.val() === '1';
 
@@ -541,17 +493,17 @@ function processFilesForm($modal) {
     return {
         success: !isInvalidRequired,
         errorMessages: isInvalidRequired ? ['Vous devez ajouter au moins une pièce jointe.'] : [],
-        $isInvalidElements: isInvalidRequired ? [$modal.find('.dropFrame')] : [],
-        data: isInvalidRequired ? {} : data
+        $isInvalidElements: isInvalidRequired ? [$modal.find('.dropFrame')] : []
     };
 }
 
 /**
  *
  * @param $modal jQuery modal
- * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
+ * @param {Object.<*,*>} data
+ * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
  */
-function processDataArrayForm($modal) {
+function processDataArrayForm($modal, data) {
     const $inputsArray = $modal.find(".data-array");
     const dataArray = {};
     const dataArrayNeedPositive = {};
@@ -604,14 +556,14 @@ function processDataArrayForm($modal) {
         $isInvalidElements.push(...dataArrayNeedPositiveNames.map((name) => $(`.data-array.needed-positiv[name="${name}"]`)));
     }
 
+    for(const currentName in dataArray) {
+        data[currentName] = JSON.stringify(dataArray[currentName]);
+    }
+
     return {
         success: $isInvalidElements.length === 0,
         errorMessages,
-        $isInvalidElements,
-        data: Object.keys(dataArray).reduce((acc, currentName) => ({
-            ...acc,
-            [currentName]: JSON.stringify(dataArray[currentName])
-        }), {})
+        $isInvalidElements
     };
 }
 
@@ -792,3 +744,31 @@ function saveInputFiles($inputFile, files) {
 function resetDroppedFiles() {
     droppedFiles = [];
 }
+
+function saveData($input, data, name, val, isAttachmentForm) {
+    const $parent = $input.closest('[data-multiple-key]');
+    if (name) {
+        if ($parent && $parent.length > 0) {
+            const multipleKey = $parent.data('multiple-key');
+            const objectIndex = $parent.data('multiple-object-index');
+            const multipleValue = data[multipleKey]
+                ? (isAttachmentForm
+                    ? JSON.parse(data[multipleKey])
+                    : data[multipleKey])
+                : {};
+            multipleValue[objectIndex] = (multipleValue[objectIndex] || {});
+
+            multipleValue[objectIndex][name] = $input.hasClass('list-multiple')
+                ? JSON.stringify(val)
+                : multipleValue[objectIndex][name] = val;
+
+            data[multipleKey] = isAttachmentForm
+                ? JSON.stringify(multipleValue)
+                : multipleValue;
+        } else if ($input.hasClass('list-multiple')) {
+            data[name] = JSON.stringify(val);
+        } else {
+            data[name] = val;
+        }
+    }
+};

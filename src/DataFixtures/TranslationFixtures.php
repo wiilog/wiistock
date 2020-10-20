@@ -88,6 +88,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Des colis sont nécessaires pour générer un bon de livraison" => "Des colis sont nécessaires pour générer un bon de livraison",
                 "Des colis sont nécessaires pour générer une lettre de voiture" => "Des colis sont nécessaires pour générer une lettre de voiture",
                 "Acheminement {numéro} traité le {date}" => "Acheminement {numéro} traité le {date}",
+                "Acheminement {numéro} traité partiellement le {date}" => "Acheminement {numéro} traité partiellement le {date}",
                 "L'acheminement contient plus de {nombre} colis" => "L'acheminement contient plus de {nombre} colis",
                 'Générer un bon d\'acheminement' => 'Générer un bon d\'acheminement',
                 'Générer un bon de livraison' => 'Générer un bon de livraison',
@@ -174,7 +175,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Demande de service effectuée' => 'Demande de service effectuée',
                 'Type de demande de service' => 'Type de demande de service',
                 "Changement de statut d'une demande de service" => "Changement de statut d'une demande de service",
-                "Une demande de service vous concernant a changé de statut" => "Une demande de service vous concernant a changé de statut"
+                "Une demande de service vous concernant a changé de statut" => "Une demande de service vous concernant a changé de statut",
+                "Votre demande de service a été créée" => "Votre demande de service a été créée",
+                "Création d'une demande de service" => "Création d'une demande de service",
             ]
         ];
 
