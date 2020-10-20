@@ -182,7 +182,14 @@ class TransferOrderService {
             ['label' => 'Destination', 'value' => FormatHelper::location($request->getDestination())],
             ['label' => 'Date de création', 'value' => FormatHelper::datetime($order->getCreationDate())],
             ['label' => 'Date de transfert', 'value' => FormatHelper::datetime($order->getTransferDate())],
-            ['label' => 'Commentaire', 'value' => $request->getComment()],
+            [
+                'label' => 'Commentaire',
+                'value' => $request->getComment() ?: '',
+                'isRaw' => true,
+                'colClass' => 'col-sm-6 col-12',
+                'isScrollable' => true,
+                'isNeededNotEmpty' => true
+            ]
         ];
     }
 }
