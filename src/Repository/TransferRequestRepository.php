@@ -16,11 +16,11 @@ class TransferRequestRepository extends EntityRepository {
 
     public function findByParamsAndFilters($params, $filters) {
         $qb = $this->createQueryBuilder("t");
-        $total =  QueryCounter::count($qb, "t");
+        $total = QueryCounter::count($qb, "t");
 
         // filtres sup
-        foreach ($filters as $filter) {
-            switch ($filter['field']) {
+        foreach($filters as $filter) {
+            switch($filter['field']) {
                 case 'statut':
                     $value = explode(',', $filter['value']);
                     $qb
@@ -55,10 +55,10 @@ class TransferRequestRepository extends EntityRepository {
         }
 
         //Filter search
-        if (!empty($params)) {
-            if (!empty($params->get('search'))) {
+        if(!empty($params)) {
+            if(!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
-                if (!empty($search)) {
+                if(!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb
                         ->andWhere(
@@ -74,12 +74,12 @@ class TransferRequestRepository extends EntityRepository {
                 }
             }
 
-            if (!empty($params->get('order'))) {
+            if(!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
-                if (!empty($order)) {
+                if(!empty($order)) {
                     $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
 
-                    switch ($column) {
+                    switch($column) {
                         case 'number':
                             $qb->orderBy("t.number", $order);
                             break;
@@ -113,11 +113,11 @@ class TransferRequestRepository extends EntityRepository {
         }
 
         // compte éléments filtrés
-        $countFiltered =  QueryCounter::count($qb, 't');
+        $countFiltered = QueryCounter::count($qb, 't');
 
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        if($params) {
+            if(!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if(!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
 
         return [
@@ -128,17 +128,23 @@ class TransferRequestRepository extends EntityRepository {
     }
 
     public function getLastTransferNumberByPrefix($prefix) {
-        $queryBuilder = $this->createQueryBuilder('t');
-        $queryBuilder
+        return $this->createQueryBuilder('t')
             ->select('t.number')
             ->where('t.number LIKE :value')
             ->orderBy('t.creationDate', 'DESC')
-            ->setParameter('value', $prefix . '%');
-
-        $result = $queryBuilder
+            ->setParameter('value', $prefix . '%')
             ->getQuery()
-            ->execute();
-        return $result ? $result[0]['number'] : null;
+            ->getFirstResult()["number"] ?? null;
+    }
+
+    public function findBetween($from, $to) {
+        return $this->createQueryBuilder("t")
+            ->where("t.creationDate >= :from")
+            ->andWhere("t.creationDate <= :to")
+            ->setParameter("from", $from)
+            ->setParameter("to", $to)
+            ->getQuery()
+            ->getResult();
     }
 
 }

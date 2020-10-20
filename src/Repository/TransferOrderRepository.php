@@ -129,17 +129,23 @@ class TransferOrderRepository extends EntityRepository {
     }
 
     public function getLastTransferNumberByPrefix($prefix) {
-        $queryBuilder = $this->createQueryBuilder('t');
-        $queryBuilder
-            ->select('t.number')
-            ->where('t.number LIKE :value')
-            ->orderBy('t.creationDate', 'DESC')
-            ->setParameter('value', $prefix . '%');
+        return $this->createQueryBuilder('t')
+                ->select('t.number')
+                ->where('t.number LIKE :value')
+                ->orderBy('t.creationDate', 'DESC')
+                ->setParameter('value', $prefix . '%')
+                ->getQuery()
+                ->getFirstResult()["number"] ?? null;
+    }
 
-        $result = $queryBuilder
+    public function findBetween($from, $to) {
+        return $this->createQueryBuilder("t")
+            ->where("t.creationDate >= :from")
+            ->andWhere("t.creationDate <= :to")
+            ->setParameter("from", $from)
+            ->setParameter("to", $to)
             ->getQuery()
-            ->execute();
-        return $result ? $result[0]['number'] : null;
+            ->getResult();
     }
 
 }

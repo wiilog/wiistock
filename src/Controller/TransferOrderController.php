@@ -3,51 +3,32 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
-use App\Entity\Dispatch;
-use App\Entity\FreeField;
-use App\Entity\Collecte;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
-use App\Entity\MouvementStock;
-use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
-use App\Entity\CollecteReference;
 use App\Entity\Statut;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
-use App\Entity\Type;
-use App\Entity\Utilisateur;
 use App\Entity\Article;
 use App\Service\MouvementStockService;
-use App\Service\TrackingMovementService;
-use App\Service\RefArticleDataService;
 use App\Service\TransferOrderService;
-use App\Service\TransferRequestService;
 use DateTime;
 use App\Service\CSVExportService;
 use App\Service\UserService;
 
-use App\Service\FreeFieldService;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 /**
  * @Route("/transfert/ordres")
@@ -376,4 +357,42 @@ class TransferOrderController extends AbstractController {
         }
         throw new BadRequestHttpException();
     }
+    /**
+     * @Route("/csv", name="transfer_order_export",options={"expose"=true}, methods="GET|POST" )
+     */
+    public function export(Request $request, EntityManagerInterface $entityManager, CSVExportService $CSVExportService): Response {
+        $dateMin = $request->query->get("dateMin");
+        $dateMax = $request->query->get("dateMax");
+
+        $from = DateTime::createFromFormat("Y-m-d H:i:s", $dateMin . " 00:00:00");
+        $to = DateTime::createFromFormat("Y-m-d H:i:s", $dateMax . " 23:59:59");
+
+        if(isset($from, $to)) {
+            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+
+            $transfers = $entityManager->getRepository(TransferOrder::class)->findBetween($from, $to);
+
+            $header = [
+                "Numéro demande",
+                "Numéro ordre",
+                "Statut",
+                "Demandeur",
+                "Opérateur",
+                "Destination",
+                "Date de création",
+                "Date de transfert",
+                "Commentaire",
+            ];
+
+            return $CSVExportService->createBinaryResponseFromData(
+                "export_ordre_transfert" . $now->format("d_m_Y") . ".csv",
+                $transfers,
+                $header,
+                CSVExportService::$SERIALIZABLE
+            );
+        }
+
+        throw new BadRequestHttpException();
+    }
+
 }
