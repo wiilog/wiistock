@@ -26,6 +26,7 @@ use App\Entity\Attachment;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TransferOrder;
 use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -1356,6 +1357,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $attachmentRepository = $entityManager->getRepository(Attachment::class);
+        $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1400,6 +1402,17 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $articlesCollecte = $articleRepository->getByOrdreCollectesIds($collectesIds);
             $refArticlesCollecte = $referenceArticleRepository->getByOrdreCollectesIds($collectesIds);
 
+            /// transferOrder
+            $transferOrders = $transferOrderRepository->getMobileTransferOrders($user);
+
+            /// On tronque le commentaire à 200 caractères (sans les tags)
+//            $collectes = array_map(function ($collecteArray) {
+//                if(!empty($collecteArray['comment'])) {
+//                    $collecteArray['comment'] = substr(strip_tags($collecteArray['comment']), 0, 200);
+//                }
+//                return $collecteArray;
+//            }, $collectes);
+
             // get article linked to a ReferenceArticle where type_quantite === 'article'
             $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user);
 
@@ -1422,6 +1435,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $collectes = [];
             $articlesCollecte = [];
             $refArticlesCollecte = [];
+
+            /// transferOrders
+            $transferOrders = [];
 
             // get article linked to a ReferenceArticle where type_quantite === 'article'
             $articlesPrepaByRefArticle = [];
@@ -1508,6 +1524,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
             'collectes' => $collectes,
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
+            'transferOrders' => $transferOrders,
             'handlings' => $handlings,
             'handlingAttachments' => $handlingAttachments,
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),

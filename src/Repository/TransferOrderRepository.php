@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\TransferOrder;
+use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 
@@ -164,6 +165,26 @@ class TransferOrderRepository extends EntityRepository {
             ]);
 
         return $qb
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getMobileTransferOrders(Utilisateur $user): array {
+        return $this->createQueryBuilder('transferOrder')
+            ->select('transferOrder.id AS id')
+            ->addSelect('transferOrder.number AS number')
+            ->addSelect('join_requester.username AS requester')
+            ->addSelect('join_destination.label AS destination')
+            ->join('transferOrder.status', 'join_orderStatus')
+            ->join('transferOrder.request', 'join_transferRequest')
+            ->join('join_transferRequest.requester', 'join_requester')
+            ->join('join_transferRequest.destination', 'join_destination')
+            ->andWhere('join_orderStatus.nom = :toTreatStatusLabel')
+            ->andWhere('transferOrder.operator IS NULL OR transferOrder.operator = :operator')
+            ->setParameters([
+                'toTreatStatusLabel' => TransferOrder::TO_TREAT,
+                'operator' => $user,
+            ])
             ->getQuery()
             ->getResult();
     }
