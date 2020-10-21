@@ -366,7 +366,7 @@ class TransferOrderController extends AbstractController {
             return $this->json([
                 'success' => true,
                 'redirect' => $this->generateUrl('transfer_request_show', [
-                    'transfer' => $requestId
+                    'id' => $requestId
                 ])
             ]);
         }

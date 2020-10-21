@@ -99,7 +99,11 @@
                             </a>
                         {% endif %}
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_TRANSFER_REQ')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-                            <a href="{{ path('transfer_request_index', {'open-modal': 'new'}) }}" title="Transfert">
+                            {% set isCurrentPage = (app.request.attributes.get('_route') == 'transfer_request_index') %}
+                            <a
+                                onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                                href="{{ path('transfer_request_index', {'open-modal': 'new'}) }}"
+                                title="Transfert">
                                 <span class="wii-icon wii-icon-way quick-menu-icon mx-2"></span>
                                 <span class="flex-fill align-self-center">Transfert</span>
                             </a>
