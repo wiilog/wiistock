@@ -140,7 +140,8 @@ class PreparationsManagerService
 
         $preparation
             ->setUtilisateur($userNomade)
-            ->setStatut($statutPreparePreparation);
+            ->setStatut($statutPreparePreparation)
+            ->setEndLocation($emplacement);
 
         // TODO get remaining articles and refs
         if (!$isPreparationComplete) {

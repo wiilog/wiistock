@@ -921,14 +921,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                 if ($livraison) {
                     $dateEnd = DateTime::createFromFormat(DateTime::ATOM, $livraisonArray['date_end']);
-                    $emplacement = $emplacementRepository->findOneByLabel($livraisonArray['emplacement']);
+                    $location = $emplacementRepository->findOneByLabel($livraisonArray['location']);
                     try {
-                        if ($emplacement) {
+                        if ($location) {
                             // flush auto at the end
-                            $entityManager->transactional(function ()
-                            use ($livraisonsManager, $entityManager, $nomadUser, $livraison, $dateEnd, $emplacement) {
+                            $entityManager->transactional(function () use ($livraisonsManager, $entityManager, $nomadUser, $livraison, $dateEnd, $location) {
                                 $livraisonsManager->setEntityManager($entityManager);
-                                $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $emplacement);
+                                $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $location);
                                 $entityManager->flush();
                             });
 

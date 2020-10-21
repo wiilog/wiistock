@@ -71,6 +71,11 @@ class Preparation
      */
     private $ligneArticlePreparations;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Emplacement::class)
+     */
+    private $endLocation;
+
 
     public function __construct()
     {
@@ -261,6 +266,15 @@ class Preparation
             }
         }
 
+        return $this;
+    }
+
+    public function getEndLocation(): ?Emplacement {
+        return $this->endLocation;
+    }
+
+    public function setEndLocation(?Emplacement $endLocation): self {
+        $this->endLocation = $endLocation;
         return $this;
     }
 }
