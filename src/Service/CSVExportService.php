@@ -51,7 +51,6 @@ class CSVExportService {
         return $tmpCsvFileName;
     }
 
-
     public function createCsvFile(array $data, ?array $csvHeader = null, ?callable $flatMapper = null): string {
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
         $wantsUFT8 = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::USES_UTF8) ?? true;
