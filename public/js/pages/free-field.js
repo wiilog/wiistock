@@ -53,7 +53,6 @@ function defaultValueForTypage($select) {
     let existingElem = $select.data('elem');
 
     if (typage === 'booleen') {
-        console.log(existingValue);
         inputDefaultBlock =
             `<div class="wii-switch">
                 <input type="radio" name="valeur" value="1" content="Oui" ` + (existingValue === 1 ? "checked" : "") + `>

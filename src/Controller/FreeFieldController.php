@@ -240,7 +240,6 @@ class FreeFieldController extends AbstractController {
 				->setElements(array_filter(explode(';', $data['elem'])))
 				->setDefaultValue(null);
 		} else {
-		    dump($data);
 			$champLibre
 				->setElements(null)
 				->setDefaultValue($data['typage'] === FreeField::TYPE_BOOL && $data['valeur'] == -1 ? null : $data['valeur']);
