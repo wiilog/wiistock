@@ -104,8 +104,10 @@ function clearModalRefArticle(modal, data) {
 }
 
 function clearDemandeContent() {
-    $('.plusDemandeContent').find('#collecteShow, #livraisonShow').addClass('d-none');
-    $('.plusDemandeContent').find('#collecteShow, #livraisonShow').removeClass('d-block');
+    $('.plusDemandeContent')
+        .find('#collecteShow, #livraisonShow, #transfertShow')
+        .addClass('d-none')
+        .removeClass('d-block');
     //TODO supprimer partout où pas nécessaire d-block
 }
 
