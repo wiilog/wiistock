@@ -293,13 +293,7 @@ class DemandeController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
-        if ($reception) {
-            /** @var Utilisateur $loggedUser */
-            $loggedUser = $this->getUser();
-            $filtreSupRepository->clearFiltersByUserAndPage($loggedUser, FiltreSup::PAGE_DEM_LIVRAISON);
-        }
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
         $typeChampLibre = [];
