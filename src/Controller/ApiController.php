@@ -1378,6 +1378,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             /// preparations
             $preparations = $preparationRepository->getMobilePreparations($user);
 
+            $preparations = array_map(function ($preparationArray) {
+                if(!empty($preparationArray['comment'])) {
+                    $preparationArray['comment'] = substr(strip_tags($preparationArray['comment']), 0, 200);
+                }
+                return $preparationArray;
+            }, $preparations);
+
             /// collecte
             $collectes = $ordreCollecteRepository->getMobileCollecte($user);
 

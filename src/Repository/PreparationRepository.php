@@ -56,6 +56,7 @@ class PreparationRepository extends EntityRepository
             ->addSelect('dest.label as destination')
             ->addSelect('user.username as requester')
             ->addSelect('t.label as type')
+            ->addSelect('d.commentaire as comment')
             ->join('p.statut', 's')
             ->join('p.demande', 'd')
             ->join('d.destination', 'dest')
