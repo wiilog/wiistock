@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\Serializable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -10,7 +11,7 @@ use App\Repository\FreeFieldRepository;
 /**
  * @ORM\Entity(repositoryClass=FreeFieldRepository::class)
  */
-class FreeField {
+class FreeField implements Serializable {
 
     const TYPE_BOOL = 'booleen';
     const TYPE_TEXT = 'text';
@@ -123,7 +124,7 @@ class FreeField {
         $this->filters = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->label;
     }

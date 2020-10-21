@@ -73,14 +73,14 @@ class TransferOrderService {
 
     /**
      * @param Emplacement|null $locationTo
-     * @param TransferOrder $transferOrder
+     * @param TransferOrder $order
      * @param Utilisateur $utilisateur
      * @param EntityManagerInterface $entityManager
      * @param bool $isFinish
      * @throws NonUniqueResultException
      */
     public function releaseRefsAndArticles(?Emplacement $locationTo,
-                                           TransferOrder $transferOrder,
+                                           TransferOrder $order,
                                            Utilisateur $utilisateur,
                                            EntityManagerInterface $entityManager, bool $isFinish = false) {
 
@@ -92,15 +92,12 @@ class TransferOrderService {
         $availableRef = $statutRepository
             ->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, ReferenceArticle::STATUT_ACTIF);
 
-        $context = [$locationTo, $utilisateur, $entityManager, $availableArticle, $availableRef, $transferOrder, $isFinish];
+        $context = [$locationTo, $utilisateur, $entityManager, $availableArticle, $availableRef, $order, $isFinish];
+        $request = $order->getRequest();
 
-        Stream::from(
-            $transferOrder->getRequest()->getReferences()->toArray(),
-            $transferOrder->getRequest()->getArticles()->toArray()
-        )
-            ->each(function($refOrArt) use ($context) {
-                $this->createMovements($context, $refOrArt);
-            });
+        foreach(Stream::from($request->getReferences(), $request->getArticles()) as $item) {
+            $this->createMovements($context, $item);
+        }
     }
 
     private function createMovements($context, $refOrArt) {
