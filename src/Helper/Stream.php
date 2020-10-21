@@ -83,8 +83,35 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         return $this;
     }
 
-    public function map(Closure $closure): Stream {
-        if(isset($this->elements)) {
+    /**
+     * @param Closure $closure
+     * @return Stream
+     */
+    public function sort(Closure $closure): Stream
+    {
+        if (isset($this->elements)) {
+            usort($this->elements, $closure);
+        } else {
+            throw new Error($this::INVALID_STREAM);
+        }
+        return $this;
+    }
+    public function first()
+    {
+        if (isset($this->elements)) {
+            return $this->elements[0];
+        } else {
+            throw new Error($this::INVALID_STREAM);
+        }
+    }
+
+    /**
+     * @param Closure $closure
+     * @return Stream
+     */
+    public function map(Closure $closure): Stream
+    {
+        if (isset($this->elements)) {
             $this->elements = array_map($closure, $this->elements);
         } else {
             throw new Error(self::INVALID_STREAM);

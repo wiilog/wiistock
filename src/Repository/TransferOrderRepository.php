@@ -20,43 +20,43 @@ class TransferOrderRepository extends EntityRepository {
 
         if ($receptionFilter) {
             $qb
-                ->join('t.request', 'r')
+                ->join('transfer_order.request', 'r')
                 ->join('r.reception', 'reception')
                 ->andWhere('reception.id = :reception')
                 ->setParameter('reception', $receptionFilter);
-        }
-
-        // filtres sup
-        foreach ($filters as $filter) {
-            switch ($filter['field']) {
-                case 'statut':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('transfer_order.status', 'status')
-                        ->andWhere('status.id in (:status)')
-                        ->setParameter('status', $value);
-                    break;
-                case 'requesters':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('transfer_order.request', 'filter_request')
-                        ->andWhere("filter_request.requester in (:id)")
-                        ->setParameter('id', $value);
-                    break;
-                case 'operators':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->andWhere("transfer_order.operator in (:id)")
-                        ->setParameter('id', $value);
-                    break;
-                case 'dateMin':
-                    $qb->andWhere('transfer_order.creationDate >= :dateMin')
-                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
-                    break;
-                case 'dateMax':
-                    $qb->andWhere('transfer_order.creationDate <= :dateMax')
-                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
-                    break;
+        } else {
+            // filtres sup
+            foreach($filters as $filter) {
+                switch($filter['field']) {
+                    case 'statut':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('transfer_order.status', 'status')
+                            ->andWhere('status.id in (:status)')
+                            ->setParameter('status', $value);
+                        break;
+                    case 'requesters':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('transfer_order.request', 'filter_request')
+                            ->andWhere("filter_request.requester in (:id)")
+                            ->setParameter('id', $value);
+                        break;
+                    case 'operators':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->andWhere("transfer_order.operator in (:id)")
+                            ->setParameter('id', $value);
+                        break;
+                    case 'dateMin':
+                        $qb->andWhere('transfer_order.creationDate >= :dateMin')
+                            ->setParameter('dateMin', $filter['value'] . " 00:00:00");
+                        break;
+                    case 'dateMax':
+                        $qb->andWhere('transfer_order.creationDate <= :dateMax')
+                            ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                        break;
+                }
             }
         }
 
