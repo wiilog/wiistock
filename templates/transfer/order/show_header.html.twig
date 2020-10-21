@@ -29,7 +29,7 @@
                    class="dropdown-item">
                     <i class="fa fa-trash mr-2"></i>Supprimer</button>
             {% endif %}
-            <a href="{{ path('transfer_request_show', {'transfer': order.request.id }) }}"
+            <a href="{{ path('transfer_request_show', {'id': order.request.id }) }}"
                class="dropdown-item">
                 <i class="mr-2 fas fa-external-link-alt"></i>Aller vers la demande de transfert
             </a>

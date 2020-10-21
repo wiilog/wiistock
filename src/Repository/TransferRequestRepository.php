@@ -127,6 +127,21 @@ class TransferRequestRepository extends EntityRepository {
         ];
     }
 
+    public function findByStatutLabelAndUser($statutLabel, $user)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT t
+            FROM App\Entity\TransferRequest t
+            JOIN t.status s
+            WHERE s.nom = :statutLabel AND t.requester = :user "
+        )->setParameters([
+            'statutLabel' => $statutLabel,
+            'user' => $user,
+        ]);
+        return $query->execute();
+    }
+
     public function getLastTransferNumberByPrefix($prefix) {
         $queryBuilder = $this->createQueryBuilder('t');
         $queryBuilder
