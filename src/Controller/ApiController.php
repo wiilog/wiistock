@@ -1377,6 +1377,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 return $livraisonArray['id'];
             }, $livraisons);
 
+            $livraisons = array_map(function ($deliveryArray) {
+                if(!empty($deliveryArray['comment'])) {
+                    $deliveryArray['comment'] = substr(strip_tags($deliveryArray['comment']), 0, 200);
+                }
+                return $deliveryArray;
+            }, $livraisons);
+
             $articlesLivraison = $articleRepository->getByLivraisonsIds($livraisonsIds);
             $refArticlesLivraison = $referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
 
