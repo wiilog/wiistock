@@ -1963,10 +1963,11 @@ class ReceptionController extends AbstractController {
             foreach($emergencies as $article) {
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
 
-                $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
+                $mailContent = $this->render('mails/contents/mailArticleUrgentReceived.html.twig', [
                     'article' => $article,
                     'title' => 'Votre article urgent a bien été réceptionné.',
-                ]);
+                ])->getContent();
+
                 $destinataires = '';
                 $userThatTriggeredEmergency = $ref->getUserThatTriggeredEmergency();
                 if($userThatTriggeredEmergency) {
