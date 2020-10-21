@@ -16,21 +16,21 @@
                     <strong class="title m-3">Demandes de livraisons en cours</strong>
                     <div class="row">
                         {% if pendingDeliveries and pendingDeliveries is not empty %}
-                        {% for delivery in pendingDeliveries %}
-                            <div class="col-12 col-lg-4 col-xl-3">
-                                {% include 'accueil/request-card.html.twig' with delivery %}
-                            </div>
-                        {% endfor %}
+                            {% for delivery in pendingDeliveries %}
+                                <div class="col-12 col-lg-4 col-xl-3">
+                                    {% include 'accueil/request-card.html.twig' with delivery %}
+                                </div>
+                            {% endfor %}
                         {% else %}
-                        <div class="col-12 col-lg-4 col-xl-3">
-                            <div class="title text-center font-italic mt-3">Aucune demande de livraison en cours</div>
-                        </div>
+                            <div class="col-12 col-lg-4 col-xl-3">
+                                <div class="title text-center font-italic mt-3">Aucune demande de livraison en cours</div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    {% endif %}
 
     <div class="row">
         <div class="col-12">
@@ -39,21 +39,21 @@
                     <strong class="title m-3">Demandes de collecte en cours</strong>
                     <div class="row">
                         {% if pendingCollects and pendingCollects is not empty %}
-                        {% for collects in pendingCollects %}
-                            <div class="col-12 col-lg-4 col-xl-3">
-                                {% include 'accueil/request-card.html.twig' with collects %}
-                            </div>
-                        {% endfor %}
+                            {% for collects in pendingCollects %}
+                                <div class="col-12 col-lg-4 col-xl-3">
+                                    {% include 'accueil/request-card.html.twig' with collects %}
+                                </div>
+                            {% endfor %}
                         {% else %}
-                        <div class="col-12 col-lg-4 col-xl-3">
-                            <div class="title text-center font-italic mt-3">Aucune demande de collecte en cours</div>
-                        </div>
+                            <div class="col-12 col-lg-4 col-xl-3">
+                                <div class="title text-center font-italic mt-3">Aucune demande de collecte en cours</div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    {% endif %}
 
     <div class="row">
         <div class="col-12">
@@ -62,19 +62,19 @@
                     <strong class="title m-3" title="Demande de service">{{ 'services.Demande de service'|trans }} en cours</strong>
                     <div class="row">
                         {% if pendingHandlings and pendingHandlings is not empty %}
-                        {% for handling in pendingHandlings %}
-                            <div class="col-12 col-lg-4 col-xl-3">
-                                {% include 'accueil/request-card.html.twig' with handling %}
-                            </div>
-                        {% endfor %}
+                            {% for handling in pendingHandlings %}
+                                <div class="col-12 col-lg-4 col-xl-3">
+                                    {% include 'accueil/request-card.html.twig' with handling %}
+                                </div>
+                            {% endfor %}
                         {% else %}
-                        <div class="col-12 col-lg-4 col-xl-3">
-                            <div class="title text-center font-italic mt-3">Aucune demande de service en cours</div>
-                        </div>
+                            <div class="col-12 col-lg-4 col-xl-3">
+                                <div class="title text-center font-italic mt-3">Aucune demande de service en cours</div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    {% endif %}
 </div>
