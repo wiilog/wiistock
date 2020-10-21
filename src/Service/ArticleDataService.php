@@ -381,7 +381,7 @@ class ArticleDataService
             ->setBarCode($this->generateBarCode())
             ->setBatch($data['batch'] ?? null)
             ->setStockEntryDate(new DateTime("now", new DateTimeZone("Europe/Paris")))
-            ->setExpiryDate(isset($data['expiry']) ? DateTime::createFromFormat("Y-m-d", $data['expiry']) : null);
+            ->setExpiryDate($data['expiry'] ? DateTime::createFromFormat("Y-m-d", $data['expiry']) : null);
         $entityManager->persist($toInsert);
         $this->freeFieldService->manageFreeFields($toInsert, $data, $entityManager);
         // optionnel : ajout dans une demande
