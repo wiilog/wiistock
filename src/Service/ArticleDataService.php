@@ -93,8 +93,9 @@ class ArticleDataService
         }
 
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            $json = $this->templating->render($demande . '/newRefArticleByQuantiteRefContent.html.twig', [
-                'maximum' => $refArticle->getQuantiteDisponible()
+            $json = $this->templating->render('reference_article/newRefArticleByQuantiteRefContent.html.twig', [
+                'maximum' => $demande === 'demande' ? $refArticle->getQuantiteDisponible() : null,
+                'needsQuantity' => $demande !== 'transfert'
             ]);
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $articleRepository = $this->entityManager->getRepository(Article::class);
@@ -102,6 +103,8 @@ class ArticleDataService
                 $articles = $articleRepository->findByRefArticleAndStatut($refArticle, [Article::STATUT_INACTIF]);
             } else if ($demande === 'demande') {
                 $articles = $articleRepository->findActifByRefArticleWithoutDemand($refArticle);
+            } else if ($demande === 'transfert') {
+                $articles = $articleRepository->findByRefArticleAndStatut($refArticle, [Article::STATUT_ACTIF]);
             } else {
                 $articles = [];
             }
@@ -111,15 +114,16 @@ class ArticleDataService
                     'barCode' => 'aucun article disponible',
                 ];
             }
+
             $quantity = $refArticle->getQuantiteDisponible();
             if ($byRef && $demande == 'demande') {
 				$json = $this->templating->render('demande/choiceContent.html.twig', [
 					'maximum' => $quantity
 				]);
 			} else {
-				$json = $this->templating->render($demande . '/newRefArticleByQuantiteArticleContent.html.twig', [
+				$json = $this->templating->render('reference_article/newRefArticleByQuantiteArticleContent.html.twig', [
 					'articles' => $articles,
-					'maximum' => $quantity
+					'maximum' => $demande === 'transfert' ? null : $quantity
 				]);
 			}
 
