@@ -93,9 +93,16 @@ class ArticleQuantityNotifier
         if ($article->getExpiryDate()) {
             $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
             $alertDay = clone $article->getExpiryDate();
-            $alertDay->modify("$this->expiryDelay");
+            $alertDay->modify($this->expiryDelay);
 
             $existing = $this->entityManager->getRepository(Alert::class)->findForReference($article, Alert::EXPIRY);
+
+            //more than one expiry alert is an invalid state, so remove them to reset
+            if(count($existing) > 1) {
+                foreach($existing as $alert) {
+                    $this->entityManager->remove($alert);
+                }
+            }
 
             if ($now >= $alertDay && !$existing) {
                 $alert = new Alert();

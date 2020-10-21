@@ -49,7 +49,7 @@ final class Version20201007185031 extends AbstractMigration
             $comment = isset($code['commentaire']) ? str_replace("\\", "\\\\", $code['commentaire']) : null;
             $comment = isset($code['commentaire']) ? str_replace("'", "''", $comment) : null;
             $comment = isset($code['commentaire']) ? "'{$comment}'" : 'NULL';
-            $freeFields = $tracking['free_fields'] ? "'".$tracking['free_fields']."'" : "[]";
+            $freeFields = $tracking['free_fields'] ? "'".$tracking['free_fields']."'" : "'[]'";
 
             $this->addSql("INSERT INTO mouvement_traca
                 (

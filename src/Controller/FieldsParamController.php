@@ -24,7 +24,7 @@ class FieldsParamController extends AbstractController
 
     private $filteredFields = [
         // Arrivages
-        FieldsParam::FIELD_CODE_DUTY_ARRIVAGE,
+        FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE,
         FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE,
         FieldsParam::FIELD_CODE_FOURNISSEUR,
         FieldsParam::FIELD_CODE_TRANSPORTEUR,

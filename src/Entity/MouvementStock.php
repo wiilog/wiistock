@@ -12,7 +12,7 @@ class MouvementStock
 {
 	const TYPE_ENTREE = 'entrée';
 	const TYPE_SORTIE = 'sortie';
-	const TYPE_TRANSFERT = 'transfert';
+	const TYPE_TRANSFER = 'transfert';
 	const TYPE_INVENTAIRE_ENTREE = 'entrée inventaire';
 	const TYPE_INVENTAIRE_SORTIE = 'sortie inventaire';
 	/**

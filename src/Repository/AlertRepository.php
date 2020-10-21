@@ -5,9 +5,12 @@ namespace App\Repository;
 use App\Entity\Alert;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
+use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 
 /**
  * @method Alert|null find($id, $lockMode = null, $lockVersion = null)
@@ -17,20 +20,18 @@ use Doctrine\ORM\NonUniqueResultException;
  */
 class AlertRepository extends EntityRepository {
 
-    /**
-     * @param $reference
-     * @param int $type
-     * @return int|mixed|string|null
-     * @throws NonUniqueResultException
-     */
-    public function findForReference($reference, int $type) {
+    public function findForReference($reference, $types) {
+        if(!is_array($types)) {
+            $types = [$types];
+        }
+
         return $this->createQueryBuilder("a")
             ->where("a.reference = :reference")
-            ->andWhere("a.type = :type")
+            ->andWhere("a.type IN (:types)")
             ->setParameter("reference", $reference)
-            ->setParameter("type", $type)
+            ->setParameter("types", $types)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getResult();
     }
 
     public function findForArticle($article, int $type) {
@@ -50,8 +51,8 @@ class AlertRepository extends EntityRepository {
 
         $total = QueryCounter::count($qb, "a");
 
-        foreach ($filters as $filter) {
-            switch ($filter['field']) {
+        foreach($filters as $filter) {
+            switch($filter['field']) {
                 case 'type':
                     $qb
                         ->join('reference.type', 't3')
@@ -81,10 +82,10 @@ class AlertRepository extends EntityRepository {
         }
 
         // prise en compte des paramètres issus du datatable
-        if (!empty($params)) {
-            if (!empty($params->get('search'))) {
+        if(!empty($params)) {
+            if(!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
-                if (!empty($search)) {
+                if(!empty($search)) {
                     $qb
                         ->andWhere('reference.reference LIKE :value OR reference.libelle LIKE :value')
                         ->setParameter('value', '%' . str_replace('_', '\_', $search) . '%');
@@ -93,12 +94,12 @@ class AlertRepository extends EntityRepository {
 
             $countFiltered = QueryCounter::count($qb, "a");
 
-            if (!empty($params->get('order'))) {
+            if(!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
-                if (!empty($order)) {
+                if(!empty($order)) {
                     $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
 
-                    switch ($column) {
+                    switch($column) {
                         case "label":
                             $qb->addSelect("COALESCE(article.label, reference.libelle) AS HIDDEN label")
                                 ->orderBy("label", $order);
@@ -135,11 +136,11 @@ class AlertRepository extends EntityRepository {
         }
 
         $qb->groupBy('a.id')
-            ->addSelect('reference.quantiteDisponible AS quantity');
+            ->addSelect('COALESCE(reference.quantiteDisponible, article.quantite) AS quantity');
 
-        if (!empty($params)) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        if(!empty($params)) {
+            if(!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if(!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
 
         return [
@@ -147,6 +148,26 @@ class AlertRepository extends EntityRepository {
             'count' => $countFiltered,
             'total' => $total
         ];
+    }
+
+    public function countAll(): int {
+        return $this->createQueryBuilder("a")
+            ->select("COUNT(a)")
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function findNoLongerExpired() {
+        $since = new DateTime("now", new DateTimeZone("Europe/Paris"));
+
+        return $this->createQueryBuilder("a")
+            ->join("a.article", "ar")
+            ->where("ar.id IS NOT NULL")
+            ->andWhere("a.type = " . Alert::EXPIRY)
+            ->andWhere("ar.expiryDate > :since OR a.expiryDate IS NULL")
+            ->setParameter("since", $since)
+            ->getQuery()
+            ->getResult();
     }
 
 }

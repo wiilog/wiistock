@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\Serializable;
+use App\Helper\FormatHelper;
 use App\Repository\TransferRequestRepository;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -11,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=TransferRequestRepository::class)
  */
-class TransferRequest {
+class TransferRequest implements Serializable {
 
     const DRAFT = "Brouillon";
     const TO_TREAT = "À traiter";
@@ -77,6 +79,11 @@ class TransferRequest {
      */
     private $references;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="transferRequests")
+     */
+    private $reception;
+
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->references = new ArrayCollection();
@@ -92,6 +99,20 @@ class TransferRequest {
 
     public function setNumber(string $number): self {
         $this->number = $number;
+        return $this;
+    }
+
+    public function getReception(): ?Reception
+    {
+        return $this->reception;
+    }
+
+    public function setReception(?Reception $reception): self
+    {
+        $this->reception = $reception;
+
+        $reception->addTransferRequest($this);
+
         return $this;
     }
 
@@ -214,6 +235,18 @@ class TransferRequest {
         }
 
         return $this;
+    }
+
+    public function serialize(): array {
+        return [
+            'number' => $this->getNumber(),
+            'status' => FormatHelper::status($this->getStatus()),
+            'requester' => FormatHelper::user($this->getRequester()),
+            'destination' => FormatHelper::location($this->getDestination()),
+            'creationDate' => FormatHelper::datetime($this->getCreationDate()),
+            'validationDate' => FormatHelper::datetime($this->getValidationDate()),
+            'comment' => FormatHelper::html($this->getComment()),
+        ];
     }
 
 }

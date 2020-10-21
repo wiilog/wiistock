@@ -29,10 +29,6 @@ use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
 
 
-/**
- * Class PreparationsManagerService
- * @package App\Service
- */
 class PreparationsManagerService
 {
 
@@ -144,7 +140,8 @@ class PreparationsManagerService
 
         $preparation
             ->setUtilisateur($userNomade)
-            ->setStatut($statutPreparePreparation);
+            ->setStatut($statutPreparePreparation)
+            ->setEndLocation($emplacement);
 
         // TODO get remaining articles and refs
         if (!$isPreparationComplete) {
@@ -475,7 +472,7 @@ class PreparationsManagerService
                             ->setArticle($article)
                             ->setQuantity($quantitePrelevee)
                             ->setEmplacementFrom($article->getEmplacement())
-                            ->setType(MouvementStock::TYPE_TRANSFERT)
+                            ->setType(MouvementStock::TYPE_TRANSFER)
                             ->setPreparationOrder($preparation);
                         $this->entityManager->persist($mouvement);
                     }
@@ -498,7 +495,7 @@ class PreparationsManagerService
                         ->setRefArticle($articleRef)
                         ->setQuantity($ligneArticle->getQuantitePrelevee())
                         ->setEmplacementFrom($articleRef->getEmplacement())
-                        ->setType(MouvementStock::TYPE_TRANSFERT)
+                        ->setType(MouvementStock::TYPE_TRANSFER)
                         ->setPreparationOrder($preparation);
                     $this->entityManager->persist($mouvement);
                 }
@@ -589,18 +586,18 @@ class PreparationsManagerService
      */
     private function dataRowPreparation($preparation)
     {
-        $demande = $preparation->getDemande();
-        $url['show'] = $this->router->generate('preparation_show', ['id' => $preparation->getId()]);
-        $row = [
+        $request = $preparation->getDemande();
+
+        return [
             'Numéro' => $preparation->getNumero() ?? '',
             'Date' => $preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : '',
             'Opérateur' => $preparation->getUtilisateur() ? $preparation->getUtilisateur()->getUsername() : '',
             'Statut' => $preparation->getStatut() ? $preparation->getStatut()->getNom() : '',
-            'Type' => $demande && $demande->getType() ? $demande->getType()->getLabel() : '',
-            'Actions' => $this->templating->render('preparation/datatablePreparationRow.html.twig', ['url' => $url]),
+            'Type' => $request && $request->getType() ? $request->getType()->getLabel() : '',
+            'Actions' => $this->templating->render('preparation/datatablePreparationRow.html.twig', [
+                "url" => $this->router->generate('preparation_show', ["id" => $preparation->getId()])
+            ]),
         ];
-
-        return $row;
     }
 
 

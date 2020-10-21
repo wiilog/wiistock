@@ -18,6 +18,8 @@ use App\Entity\TrackingMovement;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Attachment;
 use App\Entity\Statut;
+use App\Entity\TransferOrder;
+use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -53,6 +55,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
 use Doctrine\ORM\NoResultException;
+use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -147,14 +150,14 @@ class ReceptionController extends AbstractController {
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $champLibreService
-     * @param AttachmentService $attachmentService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
-     * @throws \ReflectionException
+     * @throws Exception
      */
     public function new(EntityManagerInterface $entityManager,
                         FreeFieldService $champLibreService,
+                        ReceptionService $receptionService,
                         AttachmentService $attachmentService,
                         Request $request): Response {
         if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
@@ -163,79 +166,8 @@ class ReceptionController extends AbstractController {
 
         if ($request->isXmlHttpRequest() && $data = $request->request->all()) {
 
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $receptionRepository = $entityManager->getRepository(Reception::class);
+            $reception = $receptionService->createAndPersistReception($entityManager, $this->getUser(), $data);
 
-            $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
-            $reception = new Reception();
-
-            $statusCode = !empty($data['anomalie']) ? ($data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE) : Reception::STATUT_EN_ATTENTE;
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
-
-            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-
-            // génère le numéro
-            $lastNumero = $receptionRepository->getLastNumeroByPrefixeAndDate('R', $date->format('ymd'));
-            $lastCpt = (int)substr($lastNumero, -4, 4);
-            $i = $lastCpt + 1;
-            $cpt = sprintf('%04u', $i);
-            $numero = 'R' . $date->format('ymd') . $cpt;
-
-            if(!empty($data['fournisseur'])) {
-                $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
-                $reception
-                    ->setFournisseur($fournisseur);
-            }
-
-            if(!empty($data['location'])) {
-                $location = $emplacementRepository->find(intval($data['location']));
-                $reception
-                    ->setLocation($location);
-            }
-
-            if(!empty($data['transporteur'])) {
-                $transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
-                $reception
-                    ->setTransporteur($transporteur);
-            }
-
-            if(!empty($data['storageLocation'])) {
-                $storageLocation = $emplacementRepository->find(intval($data['storageLocation']));
-                $reception
-                    ->setStorageLocation($storageLocation);
-            }
-
-            if(!empty($data['emergency'])) {
-                $reception
-                    ->setManualUrgent($data['emergency']);
-            }
-
-            /** @var Utilisateur $currentUser */
-            $currentUser = $this->getUser();
-
-            $reception
-                ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
-                ->setDateAttendue(
-                    !empty($data['dateAttendue'])
-                        ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
-                        : null)
-                ->setDateCommande(
-                    !empty($data['dateCommande'])
-                        ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
-                        : null)
-                ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null)
-                ->setStatut($statut)
-                ->setNumeroReception($numero)
-                ->setDate($date)
-                ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
-                ->setUtilisateur($currentUser)
-                ->setType($type)
-                ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null);
-
-            $entityManager->persist($reception);
             $entityManager->flush();
 
             $champLibreService->manageFreeFields($reception, $data, $entityManager);
@@ -315,7 +247,7 @@ class ReceptionController extends AbstractController {
                         : null)
                 ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null);
 
-            $reception->removeIfNotIn($data['files']);
+            $reception->removeIfNotIn($data['files'] ?? []);
 
             $entityManager->flush();
 
@@ -1568,6 +1500,10 @@ class ReceptionController extends AbstractController {
                 'typeChampsLibres' => $typeChampLibre,
                 'types' => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]),
                 'categories' => $inventoryCategories,
+                "stockManagement" => [
+                    ReferenceArticle::STOCK_MANAGEMENT_FEFO,
+                    ReferenceArticle::STOCK_MANAGEMENT_FIFO
+                ],
             ]));
         }
         throw new NotFoundHttpException("404");
@@ -1790,6 +1726,7 @@ class ReceptionController extends AbstractController {
                 'quantité reçue',
                 'emplacement de stockage',
                 'urgent',
+                'destinataire',
                 'référence',
                 'libellé',
                 'quantité stock',
@@ -1809,6 +1746,7 @@ class ReceptionController extends AbstractController {
                         if($reception['referenceArticleId']) {
                             $row = $this->serializeReception($reception);
 
+                            $row[] = '';
                             $row[] = $reception['referenceArticleReference'] ?: '';
                             $row[] = $reception['referenceArticleLibelle'] ?: '';
                             $row[] = $reception['referenceArticleQuantiteStock'] ?: '';
@@ -1821,6 +1759,7 @@ class ReceptionController extends AbstractController {
                         if($reception['articleId']) {
                             $row = $this->serializeReception($reception);
 
+                            $row[] = $reception['requesterUsername'] ?: '';
                             $row[] = $reception['articleReference'] ?: '';
                             $row[] = $reception['articleLabel'] ?: '';
                             $row[] = $reception['articleQuantity'] ?: '';
@@ -1893,6 +1832,8 @@ class ReceptionController extends AbstractController {
             $articles = $data['conditionnement'];
 
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
             $totalQuantities = [];
             foreach($articles as $article) {
@@ -1917,6 +1858,9 @@ class ReceptionController extends AbstractController {
             }
             // optionnel : crée la demande de livraison
             $needCreateLivraison = (bool)$data['create-demande'];
+            $needCreateTransfer = (bool)$data['create-demande-transfert'];
+
+            $transfer = null;
 
             if($needCreateLivraison) {
                 // optionnel : crée l'ordre de prépa
@@ -1926,6 +1870,30 @@ class ReceptionController extends AbstractController {
 
                 $demande = $demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
                 $entityManager->persist($demande);
+            } else if ($needCreateTransfer) {
+                $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+
+                $toTreat = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
+                $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
+                $destination = $emplacementRepository->find($data['storage']);
+                $transfer = new TransferRequest();
+                $transfer
+                    ->setStatus($toTreat)
+                    ->setCreationDate($now)
+                    ->setValidationDate($now)
+                    ->setNumber(TransferRequestController::createNumber($entityManager, $now))
+                    ->setDestination($destination)
+                    ->setReception($reception)
+                    ->setRequester($this->getUser());
+                $order = new TransferOrder();
+                $order
+                    ->setRequest($transfer)
+                    ->setNumber(TransferOrderController::createNumber($entityManager, $now))
+                    ->setStatus($toTreatOrder)
+                    ->setCreationDate($now);
+
+                $entityManager->persist($transfer);
+                $entityManager->persist($order);
             }
 
             $receptionLocation = $reception->getLocation();
@@ -1940,7 +1908,7 @@ class ReceptionController extends AbstractController {
 
                 $noCommande = isset($article['noCommande']) ? $article['noCommande'] : null;
                 $article = $this->articleDataService->newArticle($article, $demande ?? null);
-
+                if ($transfer) $transfer->addArticle($article);
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
                 $rra = $receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $ref->getId());
                 $article->setReceptionReferenceArticle($rra);
@@ -1995,10 +1963,11 @@ class ReceptionController extends AbstractController {
             foreach($emergencies as $article) {
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
 
-                $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
+                $mailContent = $this->render('mails/contents/mailArticleUrgentReceived.html.twig', [
                     'article' => $article,
                     'title' => 'Votre article urgent a bien été réceptionné.',
-                ]);
+                ])->getContent();
+
                 $destinataires = '';
                 $userThatTriggeredEmergency = $ref->getUserThatTriggeredEmergency();
                 if($userThatTriggeredEmergency) {

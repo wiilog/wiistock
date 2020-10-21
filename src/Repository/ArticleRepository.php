@@ -13,6 +13,8 @@ use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 
 use App\Helper\QueryCounter;
+use DateTime;
+use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -59,6 +61,18 @@ class ArticleRepository extends EntityRepository
         'Prix unitaire' => ['field' => 'prixUnitaire', 'typage' => 'list'],
         'Code barre' => ['field' => 'barCode', 'typage' => 'text'],
     ];
+
+    public function findExpiredToGenerate($delay = null) {
+        $since = new DateTime("now", new DateTimeZone("Europe/Paris"));
+        if($delay) {
+            $since->modify($delay);
+        }
+        return $this->createQueryBuilder("a")
+            ->where("a.expiryDate <= :since")
+            ->setParameter("since", $since)
+            ->getQuery()
+            ->getResult();
+    }
 
     public function getReferencesByRefAndDate($refPrefix, $date)
 	{
