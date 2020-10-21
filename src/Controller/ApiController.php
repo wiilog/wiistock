@@ -52,6 +52,7 @@ use App\Service\TrackingMovementService;
 use App\Service\NatureService;
 use App\Service\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
+use App\Service\TransferOrderService;
 use App\Service\UserService;
 use App\Service\FreeFieldService;
 use DateTimeZone;
@@ -65,6 +66,7 @@ use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Psr\Log\LoggerInterface;
+use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -1324,6 +1326,40 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         return new JsonResponse($dataResponse, $httpCode);
     }
 
+    /**
+     * @Rest\Post("/transfer/finish", name="transfer_finish")
+     * @Rest\View()
+     * @param Request $request
+     * @param TransferOrderService $transferOrderService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function finishTransfers(Request $request,
+                                    TransferOrderService $transferOrderService,
+                                    EntityManagerInterface $entityManager): Response
+    {
+
+        $apiKey = $request->request->get('apiKey');
+        $dataResponse = [];
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
+        if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
+            $httpCode = Response::HTTP_OK;
+            $dataResponse = [];
+            Stream::from($request->request->get('transfers'))
+                ->each(function($transferId) use ($transferOrderRepository, $transferOrderService, $entityManager) {
+                    $transfer = $transferOrderRepository->find($transferId);
+                    $transferOrderService->finish($transfer, $entityManager);
+                });
+        } else {
+            $httpCode = Response::HTTP_UNAUTHORIZED;
+            $dataResponse['success'] = false;
+            $dataResponse['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+        }
+
+        return new JsonResponse($dataResponse, $httpCode);
+    }
 
     /**
      * @param Utilisateur $user

@@ -258,36 +258,7 @@ class TransferOrderController extends AbstractController {
         if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
             return $this->redirectToRoute('access_denied');
         }
-
-        $request = $transferOrder->getRequest();
-
-        $statutRepository = $entityManager->getRepository(Statut::class);
-
-        $treatedRequest = $statutRepository
-            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TREATED);
-
-        $treatedOrder = $statutRepository
-            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferRequest::TREATED);
-
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
-
-        $request->setStatus($treatedRequest);
-        $transferOrder->setStatus($treatedOrder);
-        $transferOrder->setOperator($currentUser);
-        $transferOrder->setTransferDate(new DateTime());
-
-        $locationTo = $request->getDestination();
-        $transferOrderService->releaseRefsAndArticles($locationTo, $transferOrder, $currentUser, $entityManager, true);
-
-        foreach($request->getArticles() as $article) {
-            $article->setEmplacement($request->getDestination());
-        }
-
-        foreach($request->getReferences() as $reference) {
-            $reference->setEmplacement($request->getDestination());
-        }
-
+        $transferOrderService->finish($transferOrder, $entityManager);
         $entityManager->flush();
 
         return $this->json([
