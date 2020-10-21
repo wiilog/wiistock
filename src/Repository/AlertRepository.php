@@ -31,7 +31,7 @@ class AlertRepository extends EntityRepository {
             ->setParameter("reference", $reference)
             ->setParameter("types", $types)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getResult();
     }
 
     public function findForArticle($article, int $type) {

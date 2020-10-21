@@ -282,7 +282,7 @@ class UtilisateurController extends AbstractController
             $role = $roleRepository->find($data['role']);
 
             $result = $this->passwordService->checkPassword($data['password'],$data['password2']);
-            if($result['response'] == false){
+            if ($result['response'] == false){
                 return new JsonResponse([
                 	'success' => false,
 					'msg' => $result['message'],
