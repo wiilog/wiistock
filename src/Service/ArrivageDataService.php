@@ -11,6 +11,7 @@ use App\Entity\FiltreSup;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -159,7 +160,7 @@ class ArrivageDataService
             'receiver' => $arrival->getDestinataire() ? $arrival->getDestinataire()->getUsername() : '',
             'buyers' => implode(', ', $acheteursUsernames),
             'status' => $arrival->getStatut() ? $arrival->getStatut()->getNom() : '',
-            'date' => $arrival->getDate() ? $arrival->getDate()->format('d/m/Y H:i:s') : '',
+            'creationDate' => $arrival->getDate() ? $arrival->getDate()->format('d/m/Y H:i:s') : '',
             'user' => $arrival->getUtilisateur() ? $arrival->getUtilisateur()->getUsername() : '',
             'emergency' => $arrival->getIsUrgent() ? 'oui' : 'non',
             'projectNumber' => $arrival->getProjectNumber() ?? '',
@@ -458,7 +459,7 @@ class ArrivageDataService
                 'title' => 'congelé',
                 'value' => $arrivage->getFrozen() ? 'oui' : 'non',
                 'show' => [ 'fieldName' => 'frozen' ]
-            ]
+            ],
         ];
 
         $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_ARRIVAGE);
@@ -502,7 +503,7 @@ class ArrivageDataService
 
         $columns = [
             ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
-            ['title' => 'Date', 'name' => 'date'],
+            ['title' => 'Date de création', 'name' => 'creationDate'],
             ['title' => 'arrivage.n° d\'arrivage',  'name' => 'arrivalNumber', 'translated' => true],
             ['title' => 'Transporteur', 'name' => 'carrier'],
             ['title' => 'Chauffeur', 'name' => 'driver'],

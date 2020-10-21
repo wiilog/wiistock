@@ -22,7 +22,7 @@ use Exception;
 class ArrivageRepository extends EntityRepository
 {
     private const DtToDbLabels = [
-        'date' => 'date',
+        'creationDate' => 'date',
         'arrivalNumber' => 'arrivalNumber',
         'carrier' => 'carrier',
         'driver' => 'driver',
