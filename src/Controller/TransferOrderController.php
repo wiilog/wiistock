@@ -94,7 +94,7 @@ class TransferOrderController extends AbstractController {
     public static function createNumber($entityManager, $date) {
         $dateStr = $date->format('Ymd');
 
-        $lastTransferOrderNumber = $entityManager->getRepository(TransferOrder::class)->getLastTransferNumberByPrefix("T-" . $dateStr);
+        $lastTransferOrderNumber = $entityManager->getRepository(TransferOrder::class)->getLastTransferNumberByPrefix("OT-" . $dateStr);
 
         if ($lastTransferOrderNumber) {
             $lastCounter = (int) substr($lastTransferOrderNumber, -4, 4);
