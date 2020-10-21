@@ -94,7 +94,8 @@ class TransferOrderController extends AbstractController {
     public static function createNumber($entityManager, $date) {
         $dateStr = $date->format('Ymd');
 
-        $lastTransferOrderNumber = $entityManager->getRepository(TransferOrder::class)->getLastTransferNumberByPrefix("OT-" . $dateStr);
+        $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
+        $lastTransferOrderNumber = $transferOrderRepository->getLastTransferNumberByPrefix(TransferOrder::NUMBER_PREFIX . "-" . $dateStr);
 
         if ($lastTransferOrderNumber) {
             $lastCounter = (int) substr($lastTransferOrderNumber, -4, 4);
@@ -110,7 +111,7 @@ class TransferOrderController extends AbstractController {
                     $currentCounter))
         );
 
-        return ("T-" . $dateStr . $currentCounterStr);
+        return (TransferOrder::NUMBER_PREFIX . "-" . $dateStr . $currentCounterStr);
     }
 
     /**
@@ -258,7 +259,11 @@ class TransferOrderController extends AbstractController {
         if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
             return $this->redirectToRoute('access_denied');
         }
-        $transferOrderService->finish($transferOrder, $entityManager);
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $transferOrderService->finish($transferOrder, $currentUser, $entityManager);
+
         $entityManager->flush();
 
         return $this->json([
@@ -320,16 +325,7 @@ class TransferOrderController extends AbstractController {
                 $entityManager->remove($mouvementStock);
             }
 
-            $request = $transferOrder->getRequest();
             $requestId = $transferOrder->getRequest()->getId();
-
-            foreach($request->getArticles() as $article) {
-                $article->setEmplacement($locationTo);
-            }
-
-            foreach($request->getReferences() as $reference) {
-                $reference->setEmplacement($locationTo);
-            }
 
             $entityManager->remove($transferOrder);
             $entityManager->flush();

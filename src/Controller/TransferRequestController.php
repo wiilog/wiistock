@@ -87,7 +87,8 @@ class TransferRequestController extends AbstractController {
     public static function createNumber($entityManager, $date) {
         $dateStr = $date->format('Ymd');
 
-        $lastDispatchNumber = $entityManager->getRepository(TransferRequest::class)->getLastTransferNumberByPrefix("DT-" . $dateStr);
+        $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
+        $lastDispatchNumber = $transferRequestRepository->getLastTransferNumberByPrefix(TransferRequest::NUMBER_PREFIX . "-" . $dateStr);
 
         if($lastDispatchNumber) {
             $lastCounter = (int)substr($lastDispatchNumber, -4, 4);
@@ -103,7 +104,7 @@ class TransferRequestController extends AbstractController {
                     $currentCounter))
         );
 
-        return ("T-" . $dateStr . $currentCounterStr);
+        return (TransferRequest::NUMBER_PREFIX . "-" . $dateStr . $currentCounterStr);
     }
 
     /**

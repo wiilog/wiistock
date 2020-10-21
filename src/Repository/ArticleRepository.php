@@ -768,6 +768,31 @@ class ArticleRepository extends EntityRepository
 		return $query->execute();
 	}
 
+	public function getByTransferOrders(array $transfersOrders): array {
+	    if (!empty($transfersOrders)) {
+            $res = $this->createQueryBuilder('article')
+                ->select('article.barCode AS barcode')
+                ->addSelect('referenceArticle.libelle AS label')
+                ->addSelect('referenceArticle.reference AS reference')
+                ->addSelect('referenceArticle_location.label AS location')
+                ->addSelect('article.quantite AS quantity')
+                ->addSelect('transferOrder.id AS transfer_order_id')
+                ->join('article.transferRequests', 'transferRequest')
+                ->join('transferRequest.order', 'transferOrder')
+                ->join('article.articleFournisseur', 'articleFournisseur')
+                ->join('articleFournisseur.referenceArticle', 'referenceArticle')
+                ->leftJoin('referenceArticle.emplacement', 'referenceArticle_location')
+                ->where('transferOrder IN (:transferOrders)')
+                ->setParameter('transferOrders', $transfersOrders)
+                ->getQuery()
+                ->getResult();
+        }
+	    else {
+            $res = [];
+        }
+		return $res;
+	}
+
 	public function getByOrdreCollecteId($collecteId)
 	{
 		$em = $this->getEntityManager();

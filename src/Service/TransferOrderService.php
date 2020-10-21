@@ -73,39 +73,34 @@ class TransferOrderService {
 
     /**
      * @param TransferOrder $order
+     * @param Utilisateur $operator
      * @param EntityManagerInterface $entityManager
      * @throws NonUniqueResultException
      */
-    public function finish(TransferOrder $order, EntityManagerInterface $entityManager) {
-        $request = $order->getRequest();
+    public function finish(TransferOrder $order,
+                           Utilisateur $operator,
+                           EntityManagerInterface $entityManager) {
+        $oldOrderStatus = $order->getStatus();
+        if (!$oldOrderStatus || $oldOrderStatus->getCode() === TransferRequest::TO_TREAT) {
+            $request = $order->getRequest();
 
-        $statutRepository = $entityManager->getRepository(Statut::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
 
-        $treatedRequest = $statutRepository
-            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TREATED);
+            $treatedRequest = $statutRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TREATED);
 
-        $treatedOrder = $statutRepository
-            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferRequest::TREATED);
+            $treatedOrder = $statutRepository
+                ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferRequest::TREATED);
 
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
+            $request->setStatus($treatedRequest);
+            $order
+                ->setStatus($treatedOrder)
+                ->setOperator($operator)
+                ->setTransferDate(new DateTime());
 
-        $request->setStatus($treatedRequest);
-        $order->setStatus($treatedOrder);
-        $order->setOperator($currentUser);
-        $order->setTransferDate(new DateTime());
-
-        $locationTo = $request->getDestination();
-        $this->releaseRefsAndArticles($locationTo, $order, $currentUser, $entityManager, true);
-
-        foreach($request->getArticles() as $article) {
-            $article->setEmplacement($request->getDestination());
+            $locationTo = $request->getDestination();
+            $this->releaseRefsAndArticles($locationTo, $order, $operator, $entityManager, true);
         }
-
-        foreach($request->getReferences() as $reference) {
-            $reference->setEmplacement($request->getDestination());
-        }
-
     }
 
     /**
@@ -119,7 +114,8 @@ class TransferOrderService {
     public function releaseRefsAndArticles(?Emplacement $locationTo,
                                            TransferOrder $order,
                                            Utilisateur $utilisateur,
-                                           EntityManagerInterface $entityManager, bool $isFinish = false) {
+                                           EntityManagerInterface $entityManager,
+                                           bool $isFinish = false) {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -132,8 +128,10 @@ class TransferOrderService {
         $context = [$locationTo, $utilisateur, $entityManager, $availableArticle, $availableRef, $order, $isFinish];
         $request = $order->getRequest();
 
+        /** @var Article|ReferenceArticle $item */
         foreach(Stream::from($request->getReferences(), $request->getArticles()) as $item) {
             $this->createMovements($context, $item);
+            $item->setEmplacement($locationTo);
         }
     }
 

@@ -15,6 +15,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class TransferRequest implements Serializable {
 
+    const NUMBER_PREFIX = 'DT';
+
     const DRAFT = "Brouillon";
     const TO_TREAT = "À traiter";
     const TREATED = "Traité";

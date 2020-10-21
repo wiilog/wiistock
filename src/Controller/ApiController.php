@@ -66,7 +66,6 @@ use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Psr\Log\LoggerInterface;
-use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -1327,7 +1326,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/transfer/finish", name="transfer_finish")
+     * @Rest\Post("/api/transfer/finish", name="transfer_finish")
      * @Rest\View()
      * @param Request $request
      * @param TransferOrderService $transferOrderService
@@ -1346,12 +1345,15 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
             $httpCode = Response::HTTP_OK;
-            $dataResponse = [];
-            Stream::from($request->request->get('transfers'))
-                ->each(function($transferId) use ($transferOrderRepository, $transferOrderService, $entityManager) {
+            $transferToTreat = json_decode($request->request->get('transfers'), true) ?: [];
+            Stream::from($transferToTreat)
+                ->each(function($transferId) use ($transferOrderRepository, $transferOrderService, $nomadUser, $entityManager) {
                     $transfer = $transferOrderRepository->find($transferId);
-                    $transferOrderService->finish($transfer, $entityManager);
+                    $transferOrderService->finish($transfer, $nomadUser, $entityManager);
                 });
+
+            $entityManager->flush();
+            $dataResponse['success'] = $transferToTreat;
         } else {
             $httpCode = Response::HTTP_UNAUTHORIZED;
             $dataResponse['success'] = false;
@@ -1432,22 +1434,25 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 return $collecteArray;
             }, $collectes);
 
-            $collectesIds = array_map(function ($collecteArray) {
-                return $collecteArray['id'];
-            }, $collectes);
+            $collectesIds = Stream::from($collectes)
+                ->map(function ($collecteArray) {
+                    return $collecteArray['id'];
+                })
+                ->toArray();
             $articlesCollecte = $articleRepository->getByOrdreCollectesIds($collectesIds);
             $refArticlesCollecte = $referenceArticleRepository->getByOrdreCollectesIds($collectesIds);
 
             /// transferOrder
             $transferOrders = $transferOrderRepository->getMobileTransferOrders($user);
-
-            /// On tronque le commentaire à 200 caractères (sans les tags)
-//            $collectes = array_map(function ($collecteArray) {
-//                if(!empty($collecteArray['comment'])) {
-//                    $collecteArray['comment'] = substr(strip_tags($collecteArray['comment']), 0, 200);
-//                }
-//                return $collecteArray;
-//            }, $collectes);
+            $transferOrdersIds = Stream::from($transferOrders)
+                ->map(function ($transferOrder) {
+                    return $transferOrder['id'];
+                })
+                ->toArray();
+            $transferOrderArticles = array_merge(
+                $articleRepository->getByTransferOrders($transferOrdersIds),
+                $referenceArticleRepository->getByTransferOrders($transferOrdersIds)
+            );
 
             // get article linked to a ReferenceArticle where type_quantite === 'article'
             $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user);
@@ -1474,6 +1479,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
             /// transferOrders
             $transferOrders = [];
+            $transferOrderArticles = [];
 
             // get article linked to a ReferenceArticle where type_quantite === 'article'
             $articlesPrepaByRefArticle = [];
@@ -1561,6 +1567,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'collectes' => $collectes,
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
             'transferOrders' => $transferOrders,
+            'transferOrderArticles' => $transferOrderArticles,
             'handlings' => $handlings,
             'handlingAttachments' => $handlingAttachments,
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
