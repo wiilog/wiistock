@@ -53,13 +53,13 @@ function defaultValueForTypage($select) {
     let existingElem = $select.data('elem');
 
     if (typage === 'booleen') {
-        let checked = existingValue === 1 ? "checked" : "";
+        console.log(existingValue);
         inputDefaultBlock =
-            `<label class="switch">
-                <input type="checkbox" class="data checkbox"
-                name="valeur" value="` + existingValue + `" ` + checked + `>
-                <span class="slider round"></span>
-            </label>`;
+            `<div class="wii-switch">
+                <input type="radio" name="valeur" value="1" content="Oui" ` + (existingValue === 1 ? "checked" : "") + `>
+                <input type="radio" name="valeur" value="0" content="Non" ` + (existingValue === 0 ? "checked" : "") + `>
+                <input type="radio" name="valeur" value="-1" content="Aucune" ` + (existingValue === "" ? "checked" : "") + `>
+            </div>`;
     } else {
         if (typage === 'list' || typage === 'list multiple') {
             label = "Éléments (séparés par ';')";
@@ -78,9 +78,8 @@ function defaultValueForTypage($select) {
 
     let defaultBlock = `
         <div class="form-group">
-            ${typage === 'booleen' ? inputDefaultBlock : ''}
-            <label>${label}</label>
-            ${typage !== 'booleen' ? inputDefaultBlock : ''}
+            <label>${label}</label><br>
+            ${inputDefaultBlock}
         </div>
     `;
 

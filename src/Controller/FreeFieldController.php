@@ -78,7 +78,10 @@ class FreeFieldController extends AbstractController {
 
                 $defaultValue = $champLibre->getDefaultValue();
                 if ($champLibre->getTypage() == FreeField::TYPE_BOOL) {
-                    $defaultValue = $champLibre->getDefaultValue() ? 'oui' : 'non';
+                    $defaultValue = $champLibre->getDefaultValue() === null ?
+                        "" : ($champLibre->getDefaultValue()
+                            ? "Oui"
+                            : "Non");
                 } else if ($champLibre->getTypage() === FreeField::TYPE_DATETIME
                     || $champLibre->getTypage() === FreeField::TYPE_DATE) {
                     $defaultValueDate = new DateTime(str_replace('/', '-', $defaultValue));
@@ -231,17 +234,20 @@ class FreeFieldController extends AbstractController {
 			->setRequiredEdit($data['requiredEdit'])
 			->setDisplayedCreate($data['displayedCreate'])
 			->setTypage($data['typage']);
+
 		if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
 			$champLibre
 				->setElements(array_filter(explode(';', $data['elem'])))
 				->setDefaultValue(null);
 		} else {
+		    dump($data);
 			$champLibre
 				->setElements(null)
-				->setDefaultValue($data['valeur']);
+				->setDefaultValue($data['typage'] === FreeField::TYPE_BOOL && $data['valeur'] == -1 ? null : $data['valeur']);
 		}
-		$em = $this->getDoctrine()->getManager();
-		$em->flush();
+
+		$this->getDoctrine()->getManager()->flush();
+
         return $this->json([
             'success' => true,
             'msg' => 'Le champ libre <strong>' . $data['label'] . '</strong> a bien été modifié.'
