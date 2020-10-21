@@ -3,29 +3,20 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
-use App\Entity\Dispatch;
-use App\Entity\FreeField;
-use App\Entity\Collecte;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
-use App\Entity\CollecteReference;
 use App\Entity\Statut;
 use App\Entity\TransferRequest;
-use App\Entity\Type;
-use App\Entity\Utilisateur;
 use App\Entity\Article;
-use App\Service\RefArticleDataService;
+use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use App\Service\TransferRequestService;
 use DateTime;
 use App\Service\CSVExportService;
-use App\Service\DemandeCollecteService;
 use App\Service\UserService;
 
-use App\Service\FreeFieldService;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -39,9 +30,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 /**
  * @Route("/transfert/demande")
@@ -57,13 +45,9 @@ class TransferRequestController extends AbstractController {
     }
 
     /**
-     * @Route("/liste/{filter}", name="transfer_request_index", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $em
-     * @param string|null $filter
-     * @return Response
+     * @Route("/liste", name="transfer_request_index", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function index(Request $request, EntityManagerInterface $em, $filter = null): Response {
+    public function index(EntityManagerInterface $em): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -71,11 +55,13 @@ class TransferRequestController extends AbstractController {
         $statusRepository = $em->getRepository(Statut::class);
 
         $transfer = new TransferRequest();
-        $transfer->setRequester($this->getUser());
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $transfer->setRequester($currentUser);
 
         return $this->render('transfer/request/index.html.twig', [
             'statuts' => $statusRepository->findByCategorieName(CategorieStatut::TRANSFER_REQUEST),
-            'filterStatus' => $filter
         ]);
     }
 
@@ -83,9 +69,6 @@ class TransferRequestController extends AbstractController {
      * @Route("/api", name="transfer_request_api", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
      * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function api(Request $request): Response {
         if($request->isXmlHttpRequest()) {
@@ -101,13 +84,13 @@ class TransferRequestController extends AbstractController {
         }
     }
 
-    private function createNumber($entityManager, $date) {
+    public static function createNumber($entityManager, $date) {
         $dateStr = $date->format('Ymd');
 
         $lastDispatchNumber = $entityManager->getRepository(TransferRequest::class)->getLastTransferNumberByPrefix("T-" . $dateStr);
 
-        if ($lastDispatchNumber) {
-            $lastCounter = (int) substr($lastDispatchNumber, -4, 4);
+        if($lastDispatchNumber) {
+            $lastCounter = (int)substr($lastDispatchNumber, -4, 4);
             $currentCounter = ($lastCounter + 1);
         } else {
             $currentCounter = 1;
@@ -126,31 +109,35 @@ class TransferRequestController extends AbstractController {
     /**
      * @Route("/creer", name="transfer_request_new", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param EntityManagerInterface $em
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function new(Request $request, EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
+        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
-            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
             $draft = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::DRAFT);
             $transfer = new TransferRequest();
             $destination = $emplacementRepository->find($data['destination']);
 
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+
             $transfer
                 ->setStatus($draft)
-                ->setNumber($this->createNumber($entityManager, $date))
+                ->setNumber(self::createNumber($entityManager, $date))
                 ->setDestination($destination)
                 ->setCreationDate($date)
-                ->setRequester($this->getUser())
+                ->setRequester($currentUser)
                 ->setComment($data['comment']);
             $entityManager->persist($transfer);
             $entityManager->flush();
@@ -172,14 +159,12 @@ class TransferRequestController extends AbstractController {
             return $this->redirectToRoute('access_denied');
         }
 
-
         return $this->render('transfer/request/show.html.twig', [
             'transfer' => $transfer,
-            'modifiable' => $transfer->getStatus()->getNom() == TransferRequest::DRAFT,
+            'modifiable' => FormatHelper::status($transfer->getStatus()) == TransferRequest::DRAFT,
             'detailsConfig' => $this->service->createHeaderDetailsConfig($transfer)
         ]);
     }
-
 
     /**
      * @Route("/api-modifier", name="transfer_request_api_edit", options={"expose"=true}, methods="GET|POST")
@@ -188,8 +173,8 @@ class TransferRequestController extends AbstractController {
      * @return Response
      */
     public function editApi(Request $request, EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
+        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -208,15 +193,15 @@ class TransferRequestController extends AbstractController {
     /**
      * @Route("/modifier", name="transfer_request_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param DemandeCollecteService $collecteService
-     * @param FreeFieldService $champLibreService
+     * @param TransferRequestService $service
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws Exception
      */
-    public function edit(Request $request, TransferRequestService $service, EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
+    public function edit(Request $request,
+                         TransferRequestService $service,
+                         EntityManagerInterface $entityManager): Response {
+        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -235,6 +220,8 @@ class TransferRequestController extends AbstractController {
                     'modifiable' => ($transfer->getStatus()->getNom() == TransferRequest::DRAFT),
                     'showDetails' => $service->createHeaderDetailsConfig($transfer)
                 ]),
+                'success' => true,
+                'msg' => 'La demande de transfert a bien été modifiée.'
             ]);
         }
         throw new NotFoundHttpException('404');
@@ -250,7 +237,7 @@ class TransferRequestController extends AbstractController {
     public function articleApi(EntityManagerInterface $entityManager,
                                Request $request,
                                TransferRequest $transfer): Response {
-        if($request->isXmlHttpRequest()) { //Si la requête est de type Xml
+        if($request->isXmlHttpRequest()) {
             if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -298,33 +285,13 @@ class TransferRequestController extends AbstractController {
     }
 
     /**
-     * @Route("/", name="get_collecte_article_by_refArticle", options={"expose"=true})
+     * @Route("/ajouter-article/{transfer}", name="transfer_request_add_article", options={"expose"=true})
      * @param Request $request
-     * @param ReferenceArticle $reference
+     * @param TransferRequest $transfer
      * @return Response
      */
-    public function getCollecteArticleByRefArticle(RefArticleDataService $service, ReferenceArticle $reference): Response {
-        if ($reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            return $this->json([
-                'modif' => $service->getViewEditRefArticle($reference, true),
-                'selection' => $this->render('collecte/newRefArticleByQuantiteRefContent.html.twig'),
-            ]);
-        } elseif ($reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            return $this->json([
-                'selection' => $this->render('collecte/newRefArticleByQuantiteRefContentTemp.html.twig'),
-            ]);
-        }
-
-            return $this->json([
-                "success" => false,
-                "msg" => "Erreur interne"
-            ]);
-    }
-
-    /**
-     * @Route("/ajouter-article/{transfer}", name="transfer_request_add_article", options={"expose"=true})
-     */
-    public function addArticle(Request $request, TransferRequest $transfer): Response {
+    public function addArticle(Request $request,
+                               TransferRequest $transfer): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -357,7 +324,7 @@ class TransferRequestController extends AbstractController {
             ]);
         }
         if(!isset($content->fetchOnly) && $article && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            if ($transfer->getArticles()->contains($article)) {
+            if($transfer->getArticles()->contains($article)) {
                 return $this->json([
                     "success" => false,
                     "msg" => 'Cet article est déjà présent dans la demande de transfert.'
@@ -366,7 +333,7 @@ class TransferRequestController extends AbstractController {
             $transfer->addArticle($article);
             $manager->flush();
         } else if(!isset($content->fetchOnly) && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            if ($transfer->getReferences()->contains($reference)) {
+            if($transfer->getReferences()->contains($reference)) {
                 return $this->json([
                     "success" => false,
                     "msg" => 'Cette référence est déjà présente dans la demande de transfert.'
@@ -410,7 +377,7 @@ class TransferRequestController extends AbstractController {
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'La référence a bien été supprimée de la collecte.'
+                'msg' => 'La référence a bien été supprimée de la demande de transfert.'
             ]);
         }
 
@@ -454,7 +421,7 @@ class TransferRequestController extends AbstractController {
         if($request->isXmlHttpRequest()) {
             $count = $transferRequest->getArticles()->count() + $transferRequest->getReferences()->count();
 
-            if ($count > 0) {
+            if($count > 0) {
                 return $this->redirectToRoute('transfer_order_new', [
                     'id' => $transferRequest->getId()
                 ]);
@@ -467,4 +434,63 @@ class TransferRequestController extends AbstractController {
         }
         throw new NotFoundHttpException('404');
     }
+
+    /**
+     * @Route("/csv", name="transfer_request_export",options={"expose"=true}, methods="GET|POST" )
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $CSVExportService
+     * @return Response
+     * @throws Exception
+     */
+    public function export(Request $request,
+                           EntityManagerInterface $entityManager,
+                           CSVExportService $CSVExportService): Response {
+        $dateMin = $request->query->get("dateMin");
+        $dateMax = $request->query->get("dateMax");
+
+        $dateTimeMin = DateTime::createFromFormat("Y-m-d H:i:s", $dateMin . " 00:00:00");
+        $dateTimeMax = DateTime::createFromFormat("Y-m-d H:i:s", $dateMax . " 23:59:59");
+
+        if(isset($dateTimeMin, $dateTimeMax)) {
+            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+
+            $transfers = $entityManager->getRepository(TransferRequest::class)->getByDates($dateTimeMin, $dateTimeMax);
+
+            $header = [
+                "numéro demande",
+                "statut",
+                "demandeur",
+                "destination",
+                "date de création",
+                "date de validation",
+                "commentaire",
+                "référence",
+                "code barre"
+            ];
+
+            return $CSVExportService->createBinaryResponseFromData(
+                "export_demande_transfert" . $now->format("d_m_Y") . ".csv",
+                $transfers,
+                $header,
+                function ($transferRequest) {
+                    $row = [];
+                    $row[] = $transferRequest['number'] ?? '';
+                    $row[] = $transferRequest['status'] ?? '';
+                    $row[] = $transferRequest['requester'] ?? '';
+                    $row[] = $transferRequest['destination'] ?? '';
+                    $row[] = $transferRequest['creationDate'] ? $transferRequest['creationDate']->format('d/m/Y H:i:s') : '';
+                    $row[] = $transferRequest['validationDate'] ? $transferRequest['validationDate']->format('d/m/Y H:i:s') : '';
+                    $row[] = $transferRequest['comment'] ? strip_tags($transferRequest['comment']) : '';
+                    $row[] = $transferRequest['reference'] ?? '';
+                    $row[] = $transferRequest['barcode'] ?? '';
+
+                    return [$row];
+                }
+            );
+        }
+
+        throw new BadRequestHttpException();
+    }
+
 }

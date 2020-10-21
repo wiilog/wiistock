@@ -1,0 +1,16 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+    <p>Bonjour,</p>
+    <p>Le {{ type | lower }} a été atteint pour la référence {{ reference.libelle }}</p>
+    <ul>
+        <li>Référence : <strong>{{ reference.reference }}</strong></li>
+        <li>Gestion : <strong>{{ reference.typeQuantite }}</strong></li>
+        <li>Quantité disponible : <strong>{{ reference.quantiteDisponible }}</strong></li>
+        <li>Quantité réservée : <strong>{{ reference.quantiteReservee }}</strong></li>
+        <li>Quantité en stock : <strong>{{ reference.quantiteStock }}</strong></li>
+        <li>Seuil d'alerte : <strong>{{ reference.limitWarning }}</strong></li>
+        <li>Seul de sécurité : <strong>{{ reference.limitSecurity }}</strong></li>
+
+    </ul>
+{% endblock %}

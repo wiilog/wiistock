@@ -150,13 +150,13 @@
 </div>
 
 <div class="row">
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DUTY_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
         <div class="form-group col-2">
             <label title="douane">{{ 'arrivage.douane'|trans }}</label>
             <label class="switch d-block-switch mt-2">
-                {% set checked =  arrivage.duty ? 'checked' : '' %}
-                <input class="checkbox no-clear" type="checkbox" name="duty" {{ checked }}>
+                {% set checked =  arrivage.customs ? 'checked' : '' %}
+                <input class="checkbox no-clear" type="checkbox" name="customs" {{ checked }}>
                 <span class="slider round"></span>
             </label>
         </div>

@@ -13,9 +13,8 @@
         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
             <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
-                    <!-- TODO: export des transferts -->
                     <div class="btn btn-primary btn-ripple"
-                         onclick="saveExportFile('get_transfer_requests_for_csv')">
+                         onclick="saveExportFile('transfer_request_export')">
                         <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
                     </div>
                 </div>

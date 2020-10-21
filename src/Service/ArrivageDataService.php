@@ -153,7 +153,7 @@ class ArrivageDataService
             'orderNumber' => implode(',', $arrival->getNumeroCommandeList()),
             'type' => $arrival->getType() ? $arrival->getType()->getLabel() : '',
             'nbUm' => $arrivalRepository->countColisByArrivage($arrival),
-            'custom' => $arrival->getDuty() ? 'oui' : 'non',
+            'custom' => $arrival->getCustoms() ? 'oui' : 'non',
             'frozen' => $arrival->getFrozen() ? 'oui' : 'non',
             'provider' => $arrival->getFournisseur() ? $arrival->getFournisseur()->getNom() : '',
             'receiver' => $arrival->getDestinataire() ? $arrival->getDestinataire()->getUsername() : '',
@@ -450,8 +450,8 @@ class ArrivageDataService
             [
                 'label' => $this->translator->trans('arrivage.douane'),
                 'title' => 'douane',
-                'value' => $arrivage->getDuty() ? 'oui' : 'non',
-                'show' => [ 'fieldName' => 'duty' ]
+                'value' => $arrivage->getCustoms() ? 'oui' : 'non',
+                'show' => [ 'fieldName' => 'customs' ]
             ],
             [
                 'label' => $this->translator->trans('arrivage.congelé'),

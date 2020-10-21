@@ -36,11 +36,6 @@ class Preparation
     private $numero;
 
     /**
-     * @ORM\Column(type="text", nullable=true)
-     */
-    private $commentaire;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Demande", inversedBy="preparations")
      */
     private $demande;
@@ -204,14 +199,7 @@ class Preparation
 
     public function getCommentaire(): ?string
     {
-        return $this->commentaire;
-    }
-
-    public function setCommentaire(?string $commentaire): self
-    {
-        $this->commentaire = $commentaire;
-
-        return $this;
+        return $this->getDemande() ? $this->getDemande()->getCommentaire() : "";
     }
 
     /**

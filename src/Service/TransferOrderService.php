@@ -14,6 +14,7 @@ use App\Entity\Statut;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use App\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -49,12 +50,12 @@ class TransferOrderService {
         $this->mouvementStockService = $mouvementStockService;
     }
 
-    public function getDataForDatatable($params = null)
+    public function getDataForDatatable($params, $filterReception)
     {
         $filters = $this->em->getRepository(FiltreSup::class)
             ->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSFER_ORDER, $this->user);
         $queryResult = $this->em->getRepository(TransferOrder::class)
-            ->findByParamsAndFilters($params, $filters);
+            ->findByParamsAndFilters($params, $filters, $filterReception);
 
         $transfers = $queryResult['data'];
 
@@ -115,7 +116,7 @@ class TransferOrderService {
                 $emplacementFrom,
                 $quantite,
                 $refOrArt,
-                MouvementStock::TYPE_TRANSFERT
+                MouvementStock::TYPE_TRANSFER
             );
             $trackingPick = $this->mouvementTracaService->createTrackingMovement(
                 $barcode,
@@ -160,33 +161,37 @@ class TransferOrderService {
         return [
             'id' => $transfer->getId(),
             'number' => $transfer->getNumber(),
-            'status' => $transfer->getStatus() ? $transfer->getStatus()->getNom() : "",
-            'destination' => $transfer->getRequest()->getDestination() ? $transfer->getRequest()->getDestination()->getLabel() : "",
-            'requester' => $transfer->getRequest()->getRequester() ? $transfer->getRequest()->getRequester()->getUsername() : "",
-            'operator' => $transfer->getOperator() ? $transfer->getOperator()->getUsername() : "",
-            'creationDate' => $transfer->getCreationDate() ? $transfer->getCreationDate()->format("d/m/Y H:i") : "",
-            'validationDate' => $transfer->getTransferDate() ? $transfer->getTransferDate()->format("d/m/Y H:i") : "",
+            'status' => FormatHelper::status($transfer->getStatus()),
+            'destination' => FormatHelper::location($transfer->getRequest()->getDestination()),
+            'requester' => FormatHelper::user($transfer->getRequest()->getRequester()),
+            'operator' => FormatHelper::user($transfer->getOperator()),
+            'creationDate' => FormatHelper::datetime($transfer->getCreationDate()),
+            'validationDate' => FormatHelper::datetime($transfer->getTransferDate()),
             'actions' => $this->templating->render('transfer/request/actions.html.twig', [
                 'url' => $url,
             ]),
         ];
     }
 
-    public function createHeaderDetailsConfig(TransferOrder $transferOrder): array {
-        $transfer = $transferOrder->getRequest();
-        $status = $transferOrder->getStatus();
-        $requester = $transfer->getRequester();
-        $destination = $transfer->getDestination();
-        $created = $transferOrder->getCreationDate();
-        $validated = $transferOrder->getTransferDate();
+    public function createHeaderDetailsConfig(TransferOrder $order): array {
+        $request = $order->getRequest();
 
         return [
-            ['label' => 'Numéro', 'value' => $transferOrder->getNumber()],
-            ['label' => 'Statut', 'value' => $status ? $status->getNom() : ''],
-            ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
-            ['label' => 'Destination', 'value' => $destination ? $destination->getLabel() : ''],
-            ['label' => 'Date de création', 'value' => $created ? $created->format('d/m/Y H:i') : ''],
-            ['label' => 'Date de validation', 'value' => $validated ? $validated->format('d/m/Y H:i') : ''],
+            ['label' => 'Numéro', 'value' => $order->getNumber()],
+            ['label' => 'Statut', 'value' => FormatHelper::status($order->getStatus())],
+            ['label' => 'Demandeur', 'value' => FormatHelper::user($request->getRequester())],
+            ['label' => 'Opérateur', 'value' => FormatHelper::user($order->getOperator())],
+            ['label' => 'Destination', 'value' => FormatHelper::location($request->getDestination())],
+            ['label' => 'Date de création', 'value' => FormatHelper::datetime($order->getCreationDate())],
+            ['label' => 'Date de transfert', 'value' => FormatHelper::datetime($order->getTransferDate())],
+            [
+                'label' => 'Commentaire',
+                'value' => $request->getComment() ?: '',
+                'isRaw' => true,
+                'colClass' => 'col-sm-6 col-12',
+                'isScrollable' => true,
+                'isNeededNotEmpty' => true
+            ]
         ];
     }
 }

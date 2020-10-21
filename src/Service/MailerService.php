@@ -34,7 +34,7 @@ class MailerService
 
     public function sendMail($subject, $content, $to)
     {
-    	if (isset($_SERVER['APP_NO_MAIL']) && $_SERVER['APP_NO_MAIL'] == 1) {
+        if (isset($_SERVER['APP_NO_MAIL']) && $_SERVER['APP_NO_MAIL'] == 1) {
     		return true;
 		}
         $mailerServer = $this->mailerServerRepository->findOneMailerServer();
@@ -50,6 +50,7 @@ class MailerService
         } else {
             return false;
         }
+
 
         if (empty($user) || empty($password) || empty($host) || empty($port)) {
             return false;
