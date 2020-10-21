@@ -73,6 +73,7 @@ class RefArticleDataService {
     private $router;
     private $freeFieldService;
     private $articleFournisseurService;
+    private $alertService;
 
     public function __construct(RouterInterface $router,
                                 UserService $userService,
@@ -81,7 +82,8 @@ class RefArticleDataService {
                                 Twig_Environment $templating,
                                 TokenStorageInterface $tokenStorage,
                                 ArticleFournisseurService $articleFournisseurService,
-                                InventoryFrequencyRepository $inventoryFrequencyRepository) {
+                                InventoryFrequencyRepository $inventoryFrequencyRepository,
+                                AlertService $alertService) {
         $this->filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
         $this->freeFieldService = $champLibreService;
         $this->templating = $templating;
@@ -91,6 +93,7 @@ class RefArticleDataService {
         $this->router = $router;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->articleFournisseurService = $articleFournisseurService;
+        $this->alertService = $alertService;
     }
 
     /**
@@ -207,7 +210,7 @@ class RefArticleDataService {
                 ReferenceArticle::STOCK_MANAGEMENT_FIFO
             ],
             'managers' => $refArticle->getManagers()
-                ->map(function (Utilisateur $manager) {
+                ->map(function(Utilisateur $manager) {
                     $managerId = $manager->getId();
                     $managerUsername = $manager->getUsername();
                     return [
@@ -269,12 +272,12 @@ class RefArticleDataService {
             }
         }
 
-        if (isset($data['categorie'])) {
+        if(isset($data['categorie'])) {
             $refArticle->setCategory($category);
         }
 
-        if (isset($data['urgence'])) {
-            if ($data['urgence'] && $data['urgence'] !== $refArticle->getIsUrgent()) {
+        if(isset($data['urgence'])) {
+            if($data['urgence'] && $data['urgence'] !== $refArticle->getIsUrgent()) {
                 $refArticle->setUserThatTriggeredEmergency($user);
             } else if(!$data['urgence']) {
                 $refArticle->setUserThatTriggeredEmergency(null);
@@ -282,30 +285,30 @@ class RefArticleDataService {
             $refArticle->setIsUrgent($data['urgence']);
         }
 
-        if (isset($data['prix'])) {
+        if(isset($data['prix'])) {
             $refArticle->setPrixUnitaire($price);
         }
 
-        if (isset($data['libelle'])) {
+        if(isset($data['libelle'])) {
             $refArticle->setLibelle($data['libelle']);
         }
 
-        if (isset($data['commentaire'])) {
+        if(isset($data['commentaire'])) {
             $refArticle->setCommentaire($data['commentaire']);
         }
 
-        if (isset($data['mobileSync'])) {
+        if(isset($data['mobileSync'])) {
             $refArticle->setNeedsMobileSync($data['mobileSync']);
         }
 
         $refArticle->setLimitWarning((empty($data['limitWarning']) && $data['limitWarning'] !== 0 && $data['limitWarning'] !== '0') ? null : intval($data['limitWarning']));
         $refArticle->setLimitSecurity((empty($data['limitSecurity']) && $data['limitSecurity'] !== 0 && $data['limitSecurity'] !== '0') ? null : intval($data['limitSecurity']));
 
-        if ($data['emergency-comment-input']) {
+        if($data['emergency-comment-input']) {
             $refArticle->setEmergencyComment($data['emergency-comment-input']);
         }
 
-        if (isset($data['statut'])) {
+        if(isset($data['statut'])) {
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
             if($statut) {
                 $refArticle->setStatut($statut);
@@ -319,17 +322,16 @@ class RefArticleDataService {
 
         $refArticle->setStockManagement($data['stockManagement'] ?? null);
 
-        $managers = (array) $data['managers'];
+        $managers = (array)$data['managers'];
 
         $existingManagers = $refArticle->getManagers();
         foreach($existingManagers as $manager) {
             $refArticle->removeManager($manager);
         }
 
-        foreach ($managers as $manager) {
+        foreach($managers as $manager) {
             $refArticle->addManager($userRepository->find($manager));
         }
-
 
         $entityManager->flush();
         //modification ou création des champsLibres
@@ -393,10 +395,10 @@ class RefArticleDataService {
             'stockManagement' => $refArticle->getStockManagement() ?? '',
             'managers' => implode(', ', array_unique(
                     $refArticle->getManagers()
-                        ->map(function (Utilisateur $manager) {
+                        ->map(function(Utilisateur $manager) {
                             return $manager->getUsername() ?: '';
                         })
-                        ->filter(function (string $username) {
+                        ->filter(function(string $username) {
                             return !empty($username);
                         })
                         ->toArray())
@@ -647,40 +649,45 @@ class RefArticleDataService {
         $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
         $ar = $this->entityManager->getRepository(Alert::class);
 
-        $availableQuantity = $reference->getQuantiteDisponible();;
-        $securityLimit = $reference->getLimitSecurity();
-        $warningLimit = $reference->getLimitWarning();
-        if ($securityLimit && $warningLimit) {
-            if ($availableQuantity <= $warningLimit && $warningLimit <= $securityLimit) {
-                $limit = $warningLimit;
-                $type = Alert::WARNING;
-            } else if ($availableQuantity <= $securityLimit) {
-                $limit = $securityLimit;
-                $type = Alert::SECURITY;
-            }
-        } else if ($securityLimit) {
-            $limit = $securityLimit;
+        if($reference->getLimitSecurity() !== null && $reference->getLimitSecurity() >= $reference->getQuantiteDisponible()) {
             $type = Alert::SECURITY;
-        } else if($warningLimit) {
-            $limit = $warningLimit;
+        } else if($reference->getLimitWarning() !== null && $reference->getLimitWarning() >= $reference->getQuantiteDisponible()) {
             $type = Alert::WARNING;
         }
 
-        if(isset($limit, $type)) {
-            $reached = $limit >= $availableQuantity;
-            $existing = $ar->findForReference($reference, $type);
-            if($reached && !$existing) {
-                $alert = new Alert();
-                $alert->setReference($reference);
-                $alert->setType($type);
-                $alert->setDate($now);
+        $existing = $ar->findForReference($reference, [Alert::SECURITY, Alert::WARNING]);
 
-                $this->entityManager->persist($alert);
-            } else if(!$reached && $existing) {
-                $this->entityManager->remove($existing);
+        //more than 1 security/warning alert is an invalid state -> reset
+        if(count($existing) > 1) {
+            foreach($existing as $remove) {
+                $this->entityManager->remove($remove);
             }
+
+            $existing = null;
+        } else if(count($existing) == 1) {
+            $existing = $existing[0];
         }
-        $this->entityManager->flush();
+
+        if($existing && (!isset($type) || $this->isDifferentThresholdType($existing, $type))) {
+            $this->entityManager->remove($existing);
+            $existing = null;
+        }
+
+        if(isset($type) && !$existing) {
+            $alert = new Alert();
+            $alert->setReference($reference);
+            $alert->setType($type);
+            $alert->setDate($now);
+
+            $this->entityManager->persist($alert);
+
+            $this->alertService->sendThresholdMails($reference);
+        }
+    }
+
+    private function isDifferentThresholdType($alert, $type) {
+        return $alert->getType() == Alert::WARNING && $type == Alert::SECURITY ||
+            $alert->getType() == Alert::SECURITY && $type == Alert::WARNING;
     }
 
 }

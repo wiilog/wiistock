@@ -24,7 +24,8 @@ let transferOrderTableConfig = {
         "url": pathTransferOrder,
         "type": "POST",
         'data': {
-            'filterStatus': $('#filterStatus').val()
+            'filterStatus': $('#filterStatus').val(),
+            'filterReception': $('#receptionFilter').val()
         },
     },
     rowConfig: {

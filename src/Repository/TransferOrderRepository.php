@@ -14,9 +14,17 @@ use Doctrine\ORM\EntityRepository;
  */
 class TransferOrderRepository extends EntityRepository {
 
-    public function findByParamsAndFilters($params, $filters) {
-        $qb = $this->createQueryBuilder("t");
-        $total =  QueryCounter::count($qb, "t");
+    public function findByParamsAndFilters($params, $filters, $receptionFilter) {
+        $qb = $this->createQueryBuilder("transfer_order");
+        $total =  QueryCounter::count($qb, "transfer_order");
+
+        if ($receptionFilter) {
+            $qb
+                ->join('t.request', 'r')
+                ->join('r.reception', 'reception')
+                ->andWhere('reception.id = :reception')
+                ->setParameter('reception', $receptionFilter);
+        }
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -24,29 +32,29 @@ class TransferOrderRepository extends EntityRepository {
                 case 'statut':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('t.status', 's')
-                        ->andWhere('s.id in (:status)')
+                        ->join('transfer_order.status', 'status')
+                        ->andWhere('status.id in (:status)')
                         ->setParameter('status', $value);
                     break;
                 case 'requesters':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('t.request', 'requestFilter')
-                        ->andWhere("requestFilter.requester in (:id)")
+                        ->join('transfer_order.request', 'filter_request')
+                        ->andWhere("filter_request.requester in (:id)")
                         ->setParameter('id', $value);
                     break;
                 case 'operators':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->andWhere("t.operator in (:id)")
+                        ->andWhere("transfer_order.operator in (:id)")
                         ->setParameter('id', $value);
                     break;
                 case 'dateMin':
-                    $qb->andWhere('t.creationDate >= :dateMin')
+                    $qb->andWhere('transfer_order.creationDate >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . " 00:00:00");
                     break;
                 case 'dateMax':
-                    $qb->andWhere('t.creationDate <= :dateMax')
+                    $qb->andWhere('transfer_order.creationDate <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
             }
@@ -59,19 +67,19 @@ class TransferOrderRepository extends EntityRepository {
                 if (!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb
-                        ->join('t.request', 'request')
+                        ->join('transfer_order.request', 'search_request')
                         ->andWhere(
                             $exprBuilder->orX(
-                                't.number LIKE :value',
-                                'req_search.username LIKE :value',
-                                'op_search.username LIKE :value',
-                                'status_search.nom LIKE :value'
+                                'search_request.number LIKE :value',
+                                'search_requester.username LIKE :value',
+                                'search_operator.username LIKE :value',
+                                'search_status.nom LIKE :value'
                             )
                         )
                         ->setParameter('value', '%' . $search . '%')
-                        ->leftJoin('request.requester', 'req_search')
-                        ->leftJoin('t.operator', 'op_search')
-                        ->leftJoin('request.status', 'status_search');
+                        ->leftJoin('search_request.requester', 'search_requester')
+                        ->leftJoin('transfer_order.operator', 'search_operator')
+                        ->leftJoin('search_request.status', 'search_status');
                 }
             }
 
@@ -82,31 +90,37 @@ class TransferOrderRepository extends EntityRepository {
 
                     switch ($column) {
                         case 'number':
-                            $qb->orderBy("t.number", $order);
+                            $qb
+                                ->orderBy("transfer_order.number", $order);
                             break;
                         case 'status':
                             $qb
-                                ->leftJoin('t.status', 's2')
-                                ->orderBy('s2.nom', $order);
+                                ->leftJoin('transfer_order.status', 'order_status')
+                                ->orderBy('order_status.nom', $order);
                             break;
                         case 'destination':
                             $qb
-                                ->leftJoin('t.destination', 'd2')
-                                ->orderBy('d2.label', $order);
+                                ->leftJoin('transfer_order.request', 'order_request')
+                                ->leftJoin('order_request.destination', 'order_requestDestination')
+                                ->orderBy('order_requestDestination.label', $order);
                             break;
                         case 'requester':
                             $qb
-                                ->leftJoin('t.requester', 'r2')
-                                ->orderBy('r2.username', $order);
+                                ->leftJoin('transfer_order.request', 'order_request')
+                                ->leftJoin('order_request.requester', 'order_requestRequester')
+                                ->orderBy('order_requestRequester.username', $order);
                             break;
                         case 'creationDate':
-                            $qb->orderBy("t.creationDate", $order);
+                            $qb
+                                ->orderBy("transfer_order.creationDate", $order);
                             break;
                         case 'validationDate':
-                            $qb->orderBy("t.validationDate", $order);
+                            $qb
+                                ->leftJoin('transfer_order.request', 'order_request')
+                                ->orderBy("order_request.validationDate", $order);
                             break;
                         default:
-                            $qb->orderBy('t.' . $column, $order);
+                            $qb->orderBy('transfer_order.' . $column, $order);
                             break;
                     }
                 }
@@ -114,7 +128,7 @@ class TransferOrderRepository extends EntityRepository {
         }
 
         // compte éléments filtrés
-        $countFiltered =  QueryCounter::count($qb, 't');
+        $countFiltered =  QueryCounter::count($qb, 'transfer_order');
 
         if ($params) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
@@ -129,17 +143,29 @@ class TransferOrderRepository extends EntityRepository {
     }
 
     public function getLastTransferNumberByPrefix($prefix) {
-        $queryBuilder = $this->createQueryBuilder('t');
-        $queryBuilder
-            ->select('t.number')
-            ->where('t.number LIKE :value')
-            ->orderBy('t.creationDate', 'DESC')
-            ->setParameter('value', $prefix . '%');
+        return $this->createQueryBuilder('transfer_order')
+                ->select('transfer_order.number')
+                ->where('transfer_order.number LIKE :value')
+                ->orderBy('transfer_order.creationDate', 'DESC')
+                ->setParameter('value', $prefix . '%')
+                ->getQuery()
+                ->getFirstResult()["number"] ?? null;
+    }
 
-        $result = $queryBuilder
+    public function getByDates($dateMin, $dateMax) {
+
+        $qb = $this->createQueryBuilder("transfer_order");
+
+        $qb
+            ->where("transfer_order.creationDate BETWEEN :dateMin AND :dateMax")
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        return $qb
             ->getQuery()
-            ->execute();
-        return $result ? $result[0]['number'] : null;
+            ->getResult();
     }
 
 }

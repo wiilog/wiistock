@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\Serializable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -9,8 +10,8 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CollecteRepository")
  */
-class Collecte extends FreeFieldEntity
-{
+class Collecte extends FreeFieldEntity implements Serializable {
+
     const CATEGORIE = 'collecte';
 
     const STATUT_COLLECTE = 'collecté';
@@ -35,9 +36,9 @@ class Collecte extends FreeFieldEntity
      */
     private $date;
 
-	/**
-	 * @ORM\Column(type="datetime", nullable=true)
-	 */
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
     private $validationDate;
 
     /**
@@ -86,60 +87,52 @@ class Collecte extends FreeFieldEntity
      */
     private $type;
 
-	/**
-	 * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="collecteOrder")
-	 */
-	private $mouvements;
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="collecteOrder")
+     */
+    private $mouvements;
 
-	/**
-	 * @ORM\OneToMany(targetEntity="App\Entity\OrdreCollecte", mappedBy="demandeCollecte")
-	 */
-	private $ordreCollecte;
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\OrdreCollecte", mappedBy="demandeCollecte")
+     */
+    private $ordreCollecte;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->articles = new ArrayCollection();
         $this->collecteReferences = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getNumero(): ?string
-    {
+    public function getNumero(): ?string {
         return $this->numero;
     }
 
-    public function setNumero(?string $numero): self
-    {
+    public function setNumero(?string $numero): self {
         $this->numero = $numero;
 
         return $this;
     }
 
-    public function getDate(): ?\DateTimeInterface
-    {
+    public function getDate(): ?\DateTimeInterface {
         return $this->date;
     }
 
-    public function setDate(?\DateTimeInterface $date): self
-    {
+    public function setDate(?\DateTimeInterface $date): self {
         $this->date = $date;
 
         return $this;
     }
 
-    public function getDemandeur(): ?Utilisateur
-    {
+    public function getDemandeur(): ?Utilisateur {
         return $this->demandeur;
     }
 
-    public function setDemandeur(?Utilisateur $demandeur): self
-    {
+    public function setDemandeur(?Utilisateur $demandeur): self {
         $this->demandeur = $demandeur;
 
         return $this;
@@ -148,72 +141,61 @@ class Collecte extends FreeFieldEntity
     /**
      * @return Collection|Article[]
      */
-    public function getArticles(): Collection
-    {
+    public function getArticles(): Collection {
         return $this->articles;
     }
 
-    public function addArticle(Article $article): self
-    {
-        if (!$this->articles->contains($article)) {
+    public function addArticle(Article $article): self {
+        if(!$this->articles->contains($article)) {
             $this->articles[] = $article;
         }
 
         return $this;
     }
 
-    public function removeArticle(Article $article): self
-    {
-        if ($this->articles->contains($article)) {
+    public function removeArticle(Article $article): self {
+        if($this->articles->contains($article)) {
             $this->articles->removeElement($article);
         }
 
         return $this;
     }
 
-    public function getStatut(): ?Statut
-    {
+    public function getStatut(): ?Statut {
         return $this->statut;
     }
 
-    public function setStatut(?Statut $statut): self
-    {
+    public function setStatut(?Statut $statut): self {
         $this->statut = $statut;
 
         return $this;
     }
 
-    public function getObjet(): ?string
-    {
+    public function getObjet(): ?string {
         return $this->objet;
     }
 
-    public function setObjet(?string $objet): self
-    {
+    public function setObjet(?string $objet): self {
         $this->objet = $objet;
 
         return $this;
     }
 
-    public function getPointCollecte(): ?Emplacement
-    {
+    public function getPointCollecte(): ?Emplacement {
         return $this->pointCollecte;
     }
 
-    public function setPointCollecte(?Emplacement $pointCollecte): self
-    {
+    public function setPointCollecte(?Emplacement $pointCollecte): self {
         $this->pointCollecte = $pointCollecte;
 
         return $this;
     }
 
-    public function getCommentaire(): ?string
-    {
+    public function getCommentaire(): ?string {
         return $this->commentaire;
     }
 
-    public function setCommentaire(?string $commentaire): self
-    {
+    public function setCommentaire(?string $commentaire): self {
         $this->commentaire = $commentaire;
 
         return $this;
@@ -222,14 +204,12 @@ class Collecte extends FreeFieldEntity
     /**
      * @return Collection|CollecteReference[]
      */
-    public function getCollecteReferences(): Collection
-    {
+    public function getCollecteReferences(): Collection {
         return $this->collecteReferences;
     }
 
-    public function addCollecteReference(CollecteReference $collecteReference): self
-    {
-        if (!$this->collecteReferences->contains($collecteReference)) {
+    public function addCollecteReference(CollecteReference $collecteReference): self {
+        if(!$this->collecteReferences->contains($collecteReference)) {
             $this->collecteReferences[] = $collecteReference;
             $collecteReference->setCollecte($this);
         }
@@ -237,12 +217,11 @@ class Collecte extends FreeFieldEntity
         return $this;
     }
 
-    public function removeCollecteReference(CollecteReference $collecteReference): self
-    {
-        if ($this->collecteReferences->contains($collecteReference)) {
+    public function removeCollecteReference(CollecteReference $collecteReference): self {
+        if($this->collecteReferences->contains($collecteReference)) {
             $this->collecteReferences->removeElement($collecteReference);
             // set the owning side to null (unless already changed)
-            if ($collecteReference->getCollecte() === $this) {
+            if($collecteReference->getCollecte() === $this) {
                 $collecteReference->setCollecte(null);
             }
         }
@@ -264,13 +243,11 @@ class Collecte extends FreeFieldEntity
         return $this;
     }
 
-    public function getType(): ?Type
-    {
+    public function getType(): ?Type {
         return $this->type;
     }
 
-    public function setType(?Type $type): self
-    {
+    public function setType(?Type $type): self {
         $this->type = $type;
 
         return $this;
@@ -279,26 +256,22 @@ class Collecte extends FreeFieldEntity
     /**
      * @return Collection|OrdreCollecte[]
      */
-    public function getOrdresCollecte(): Collection
-    {
+    public function getOrdresCollecte(): Collection {
         return $this->ordreCollecte;
     }
 
-    public function getValidationDate(): ?\DateTimeInterface
-    {
+    public function getValidationDate(): ?\DateTimeInterface {
         return $this->validationDate;
     }
 
-    public function setValidationDate(?\DateTimeInterface $validationDate): self
-    {
+    public function setValidationDate(?\DateTimeInterface $validationDate): self {
         $this->validationDate = $validationDate;
 
         return $this;
     }
 
-    public function addOrdreCollecte(OrdreCollecte $ordreCollecte): self
-    {
-        if (!$this->ordreCollecte->contains($ordreCollecte)) {
+    public function addOrdreCollecte(OrdreCollecte $ordreCollecte): self {
+        if(!$this->ordreCollecte->contains($ordreCollecte)) {
             $this->ordreCollecte[] = $ordreCollecte;
             $ordreCollecte->setDemandeCollecte($this);
         }
@@ -306,12 +279,11 @@ class Collecte extends FreeFieldEntity
         return $this;
     }
 
-    public function removeOrdreCollecte(OrdreCollecte $ordreCollecte): self
-    {
-        if ($this->ordreCollecte->contains($ordreCollecte)) {
+    public function removeOrdreCollecte(OrdreCollecte $ordreCollecte): self {
+        if($this->ordreCollecte->contains($ordreCollecte)) {
             $this->ordreCollecte->removeElement($ordreCollecte);
             // set the owning side to null (unless already changed)
-            if ($ordreCollecte->getDemandeCollecte() === $this) {
+            if($ordreCollecte->getDemandeCollecte() === $this) {
                 $ordreCollecte->setDemandeCollecte(null);
             }
         }
@@ -322,14 +294,12 @@ class Collecte extends FreeFieldEntity
     /**
      * @return Collection|MouvementStock[]
      */
-    public function getMouvements(): Collection
-    {
+    public function getMouvements(): Collection {
         return $this->mouvements;
     }
 
-    public function addMouvement(MouvementStock $mouvement): self
-    {
-        if (!$this->mouvements->contains($mouvement)) {
+    public function addMouvement(MouvementStock $mouvement): self {
+        if(!$this->mouvements->contains($mouvement)) {
             $this->mouvements[] = $mouvement;
             $mouvement->setCollecteOrder($this);
         }
@@ -337,12 +307,11 @@ class Collecte extends FreeFieldEntity
         return $this;
     }
 
-    public function removeMouvement(MouvementStock $mouvement): self
-    {
-        if ($this->mouvements->contains($mouvement)) {
+    public function removeMouvement(MouvementStock $mouvement): self {
+        if($this->mouvements->contains($mouvement)) {
             $this->mouvements->removeElement($mouvement);
             // set the owning side to null (unless already changed)
-            if ($mouvement->getCollecteOrder() === $this) {
+            if($mouvement->getCollecteOrder() === $this) {
                 $mouvement->setCollecteOrder(null);
             }
         }
@@ -353,8 +322,7 @@ class Collecte extends FreeFieldEntity
     /**
      * @return Collection|OrdreCollecte[]
      */
-    public function getOrdreCollecte(): Collection
-    {
+    public function getOrdreCollecte(): Collection {
         return $this->ordreCollecte;
     }
 
@@ -367,11 +335,10 @@ class Collecte extends FreeFieldEntity
         );
     }
 
-    public function serialize(): array
-    {
+    public function serialize(): array {
         $freeFieldData = [];
 
-        foreach ($this->freeFields as $freeFieldId => $freeFieldValue) {
+        foreach($this->freeFields as $freeFieldId => $freeFieldValue) {
             $freeFieldData[$freeFieldId] = $freeFieldValue;
         }
 
@@ -389,4 +356,5 @@ class Collecte extends FreeFieldEntity
             'freeFields' => $freeFieldData
         ];
     }
+
 }

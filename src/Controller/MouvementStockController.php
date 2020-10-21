@@ -56,7 +56,7 @@ class MouvementStockController extends AbstractController
             'typesMvt' => [
                 MouvementStock::TYPE_ENTREE,
                 MouvementStock::TYPE_SORTIE,
-                MouvementStock::TYPE_TRANSFERT,
+                MouvementStock::TYPE_TRANSFER,
             ]
         ]);
     }
@@ -205,7 +205,7 @@ class MouvementStockController extends AbstractController
                         $chosenArticleToMove
                             ->setQuantite($chosenArticleToMoveAvailableQuantity + $quantity);
                     }
-                } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFERT) {
+                } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFER) {
                     $chosenLocation = $emplacementRepository->find($chosenMvtLocation);
                     if ($chosenArticleToMove->isUsedInQuantityChangingProcesses()) {
                         $response['msg'] = 'La référence saisie est présente dans une demande livraison/collecte en cours de traitement, impossible de la transférer.';

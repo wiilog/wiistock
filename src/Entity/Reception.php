@@ -99,6 +99,11 @@ class Reception extends FreeFieldEntity
      */
     private $demandes;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\TransferRequest", mappedBy="reception")
+     */
+    private $transferRequests;
+
 	/**
 	 * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="receptionOrder")
 	 */
@@ -309,6 +314,37 @@ class Reception extends FreeFieldEntity
     public function setDateFinReception(?DateTimeInterface $dateFinReception): self
     {
         $this->dateFinReception = $dateFinReception;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Demande[]
+     */
+    public function getTransferRequest(): Collection
+    {
+        return $this->transferRequests;
+    }
+
+    public function addTransferRequest(TransferRequest $request): self
+    {
+        if (!$this->transferRequests->contains($request)) {
+            $this->transferRequests[] = $request;
+            $request->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransferRequest(TransferRequest $request): self
+    {
+        if ($this->transferRequests->contains($request)) {
+            $this->transferRequests->removeElement($request);
+            // set the owning side to null (unless already changed)
+            if ($request->getReception() === $this) {
+                $request->setReception(null);
+            }
+        }
 
         return $this;
     }

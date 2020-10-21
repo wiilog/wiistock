@@ -18,6 +18,8 @@ use App\Entity\TrackingMovement;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Attachment;
 use App\Entity\Statut;
+use App\Entity\TransferOrder;
+use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -53,6 +55,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
 use Doctrine\ORM\NoResultException;
+use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -244,7 +247,7 @@ class ReceptionController extends AbstractController {
                         : null)
                 ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null);
 
-            $reception->removeIfNotIn($data['files']);
+            $reception->removeIfNotIn($data['files'] ?? []);
 
             $entityManager->flush();
 
@@ -1497,6 +1500,10 @@ class ReceptionController extends AbstractController {
                 'typeChampsLibres' => $typeChampLibre,
                 'types' => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]),
                 'categories' => $inventoryCategories,
+                "stockManagement" => [
+                    ReferenceArticle::STOCK_MANAGEMENT_FEFO,
+                    ReferenceArticle::STOCK_MANAGEMENT_FIFO
+                ],
             ]));
         }
         throw new NotFoundHttpException("404");
@@ -1825,6 +1832,8 @@ class ReceptionController extends AbstractController {
             $articles = $data['conditionnement'];
 
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
             $totalQuantities = [];
             foreach($articles as $article) {
@@ -1849,6 +1858,9 @@ class ReceptionController extends AbstractController {
             }
             // optionnel : crée la demande de livraison
             $needCreateLivraison = (bool)$data['create-demande'];
+            $needCreateTransfer = (bool)$data['create-demande-transfert'];
+
+            $transfer = null;
 
             if($needCreateLivraison) {
                 // optionnel : crée l'ordre de prépa
@@ -1858,6 +1870,30 @@ class ReceptionController extends AbstractController {
 
                 $demande = $demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
                 $entityManager->persist($demande);
+            } else if ($needCreateTransfer) {
+                $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+
+                $toTreat = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
+                $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
+                $destination = $emplacementRepository->find($data['storage']);
+                $transfer = new TransferRequest();
+                $transfer
+                    ->setStatus($toTreat)
+                    ->setCreationDate($now)
+                    ->setValidationDate($now)
+                    ->setNumber(TransferRequestController::createNumber($entityManager, $now))
+                    ->setDestination($destination)
+                    ->setReception($reception)
+                    ->setRequester($this->getUser());
+                $order = new TransferOrder();
+                $order
+                    ->setRequest($transfer)
+                    ->setNumber(TransferOrderController::createNumber($entityManager, $now))
+                    ->setStatus($toTreatOrder)
+                    ->setCreationDate($now);
+
+                $entityManager->persist($transfer);
+                $entityManager->persist($order);
             }
 
             $receptionLocation = $reception->getLocation();
@@ -1872,7 +1908,7 @@ class ReceptionController extends AbstractController {
 
                 $noCommande = isset($article['noCommande']) ? $article['noCommande'] : null;
                 $article = $this->articleDataService->newArticle($article, $demande ?? null);
-
+                if ($transfer) $transfer->addArticle($article);
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
                 $rra = $receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $ref->getId());
                 $article->setReceptionReferenceArticle($rra);

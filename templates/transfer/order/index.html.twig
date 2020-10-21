@@ -10,24 +10,41 @@
 {% endblock %}
 {% block page_content %}
     <div class="m-4 wii-page-card">
-        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
             <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
+                    {% if receptionFilter is defined and receptionFilter is not null and receptionFilter != 0 %}
+                        <div class="btn-group">
+                            <div class="btn btn-primary btn-ripple split-button">
+                                <a href="{{ path('transfer_order_index') }}">Voir tous les ordres</a>
+                            </div>
+                            <button type="button"
+                                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                    data-toggle="dropdown"
+                                    aria-haspopup="true"
+                                    aria-expanded="false">
+                                <span class="fa fa-angle-down"></span>
+                            </button>
+                            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                                <a href="{{ path('reception_show', {'id': receptionFilter}) }}" class='dropdown-item pointer'>Retour à la réception</a>
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
                     <!-- TODO: export des transferts -->
                     <div class="btn btn-primary btn-ripple"
-                         onclick="saveExportFile('get_transfer_orders_for_csv')">
+                         onclick="saveExportFile('transfer_order_export')">
                         <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
                     </div>
+                    {% endif %}
                 </div>
             </div>
-        {% endif %}
         <div class="row">
             <div class="col-12">
                 <table id="tableTransferOrders" class="table w-100"></table>
             </div>
         </div>
     </div>
-
+    <input type="hidden" value="{{ receptionFilter }}" id="receptionFilter">
     {% include 'transfer/request/new.html.twig' %}
 {% endblock %}
 

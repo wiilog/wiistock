@@ -112,7 +112,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::AUTO_PRINT_COLIS => [
                 'default' => true,
             ],
-            ParametrageGlobal::SEND_MAIL_MANAGER_ALERT_THRESHOLD => [
+            ParametrageGlobal::SEND_MAIL_MANAGER_WARNING_THRESHOLD => [
                 'default' => false,
                 SpecificService::CLIENT_ARCELOR => true
             ],

@@ -2,9 +2,8 @@
     <input type="text" class="d-none" title="Nom d'utilisateur" name="username">
     <input type="password" class="d-none" title="Mot de passe" name="password">
 
-    <div class="col-12 form-group required d-none">
-        <input type="text" class="form-control data needed" name="user" required="" value="{{ user.id }}">
-    </div>
+    <input type="hidden" class="data needed" name="user" value="{{ user.id }}">
+
     <div class="col-12 form-group">
         <label for="username">Role*</label>
         <select name="role" class="form-control data needed">

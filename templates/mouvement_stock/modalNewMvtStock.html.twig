@@ -91,8 +91,8 @@
                                 name="chosen-type-mvt"
                                 onchange="newMvtStockTypeChanged($(this))">
                             {% for typeMvt in typesMvt %}
-                                {% set needsLocationShow = (typeMvt == constant('App\\Entity\\MouvementStock::TYPE_TRANSFERT')) %}
-                                {% set needsQuantityShow = (typeMvt != constant('App\\Entity\\MouvementStock::TYPE_TRANSFERT')) %}
+                                {% set needsLocationShow = (typeMvt == constant('App\\Entity\\MouvementStock::TYPE_TRANSFER')) %}
+                                {% set needsQuantityShow = (typeMvt != constant('App\\Entity\\MouvementStock::TYPE_TRANSFER')) %}
                                 {% set needsQuantityCap = (typeMvt == constant('App\\Entity\\MouvementStock::TYPE_SORTIE')) %}
                                 <option value="{{ typeMvt }}"
                                         data-needs-location="{{ needsLocationShow }}"

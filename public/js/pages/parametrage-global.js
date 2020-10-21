@@ -225,7 +225,7 @@ function updateStockParam() {
 
     Promise
         .all([
-            $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'SEND_MAIL_MANAGER_ALERT_THRESHOLD', val: $('[name="param-security-threshold"]').val()})),
+            $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'SEND_MAIL_MANAGER_WARNING_THRESHOLD', val: $('[name="param-security-threshold"]').val()})),
             $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'SEND_MAIL_MANAGER_SECURITY_THRESHOLD', val: $('[name="param-alert-threshold"]').val()})),
             $.post(Routing.generate('ajax_update_expiration_delay', true), {expirationDelay})
         ])
