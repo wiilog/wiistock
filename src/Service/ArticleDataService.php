@@ -27,6 +27,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
+use App\Helper\Stream;
 use DateTime;
 use DateTimeZone;
 use Doctrine\Common\Collections\Criteria;
@@ -212,9 +213,38 @@ class ArticleDataService
                         'maximum' => $availableQuantity
                     ])];
             } else {
+                $management = $refArticle->getStockManagement();
+                $articleToPreselect = null;
+                if ($management) {
+                    $articleToPreselect = Stream::from($articles)
+                        ->sort(function (Article $article1, Article $article2) use ($management) {
+                            $datesToCompare = [];
+                            if ($management === ReferenceArticle::STOCK_MANAGEMENT_FIFO) {
+                                $datesToCompare[0] = $article1->getStockEntryDate() ? $article1->getStockEntryDate()->format('Y-m-d') : null;
+                                $datesToCompare[1] = $article2->getStockEntryDate() ? $article2->getStockEntryDate()->format('Y-m-d') : null;
+                            } else if ($management === ReferenceArticle::STOCK_MANAGEMENT_FEFO) {
+                                $datesToCompare[0] = $article1->getExpiryDate() ? $article1->getExpiryDate()->format('Y-m-d') : null;
+                                $datesToCompare[1] = $article2->getExpiryDate() ? $article2->getExpiryDate()->format('Y-m-d') : null;
+                            }
+                            if ($datesToCompare[0] && $datesToCompare[1]) {
+                                if (strtotime($datesToCompare[0]) === strtotime($datesToCompare[1])) {
+                                    return 0;
+                                }
+                                return strtotime($datesToCompare[0]) < strtotime($datesToCompare[1]) ? -1 : 1;
+                            } else if ($datesToCompare[0]) {
+                                return -1;
+                            } else if ($datesToCompare[1]) {
+                                return 1;
+                            }
+                            return 0;
+                        })
+                        ->first()
+                        ->getId();
+                }
                 $data = [
                     'selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
                         'articles' => $articles,
+                        'articleToPreselect' => $articleToPreselect ?? null,
                         'maximum' => $availableQuantity,
                     ])
                 ];
