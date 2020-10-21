@@ -72,6 +72,43 @@ class TransferOrderService {
     }
 
     /**
+     * @param TransferOrder $order
+     * @param EntityManagerInterface $entityManager
+     * @throws NonUniqueResultException
+     */
+    public function finish(TransferOrder $order, EntityManagerInterface $entityManager) {
+        $request = $order->getRequest();
+
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
+        $treatedRequest = $statutRepository
+            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TREATED);
+
+        $treatedOrder = $statutRepository
+            ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferRequest::TREATED);
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $request->setStatus($treatedRequest);
+        $order->setStatus($treatedOrder);
+        $order->setOperator($currentUser);
+        $order->setTransferDate(new DateTime());
+
+        $locationTo = $request->getDestination();
+        $this->releaseRefsAndArticles($locationTo, $order, $currentUser, $entityManager, true);
+
+        foreach($request->getArticles() as $article) {
+            $article->setEmplacement($request->getDestination());
+        }
+
+        foreach($request->getReferences() as $reference) {
+            $reference->setEmplacement($request->getDestination());
+        }
+
+    }
+
+    /**
      * @param Emplacement|null $locationTo
      * @param TransferOrder $order
      * @param Utilisateur $utilisateur
