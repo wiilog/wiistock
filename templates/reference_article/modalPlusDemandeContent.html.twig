@@ -26,4 +26,18 @@
         </div>
         {{ articleOrNo | raw }}
     </div>
+{% elseif demandeType == 'transfert' %}
+    <div id="transfertShow" class='d-none col-12'>
+        <div class="form-group w-100 mt-2">
+            <label for="transfert">Mes demandes</label>
+            <select name="transfert" class="form-control ajax-autocomplete-article data select2">
+                {% for transfer in transfers %}
+                    <option value="{{transfer.id}}">
+                        {{transfer.number}}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        {{ articleOrNo | raw }}
+    </div>
 {% endif %}

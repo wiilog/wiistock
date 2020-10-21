@@ -143,14 +143,14 @@ class TransferRequestController extends AbstractController {
             $entityManager->flush();
 
             return new JsonResponse([
-                'redirect' => $this->generateUrl('transfer_request_show', ['transfer' => $transfer->getId()]),
+                'redirect' => $this->generateUrl('transfer_request_show', ['id' => $transfer->getId()]),
             ]);
         }
         throw new NotFoundHttpException('404 not found');
     }
 
     /**
-     * @Route("/voir/{transfer}", name="transfer_request_show", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/voir/{id}", name="transfer_request_show", options={"expose"=true}, methods={"GET", "POST"})
      * @param TransferRequest $transfer
      * @return Response
      */

@@ -54,7 +54,7 @@ class TransferRequestService {
 
     public function dataRowTransfer(TransferRequest $transfer) {
         $url = $this->router->generate('transfer_request_show', [
-            "transfer" => $transfer->getId()
+            "id" => $transfer->getId()
         ]);
 
         return [

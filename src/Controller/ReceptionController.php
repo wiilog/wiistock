@@ -1570,7 +1570,7 @@ class ReceptionController extends AbstractController {
 
         $barcodeConfigs = array_reduce(
             $listReceptionReferenceArticle,
-            function(array $carry, ReceptionReferenceArticle $recepRef) use ($refArticleDataService, $articleDataService): array {
+            function(array $carry, ReceptionReferenceArticle $recepRef) use ($refArticleDataService, $articleDataService, $reception): array {
                 $referenceArticle = $recepRef->getReferenceArticle();
 
                 if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -1581,8 +1581,8 @@ class ReceptionController extends AbstractController {
                         array_push(
                             $carry,
                             ...array_map(
-                                function(Article $article) use ($articleDataService) {
-                                    return $articleDataService->getBarcodeConfig($article);
+                                function(Article $article) use ($articleDataService, $reception) {
+                                    return $articleDataService->getBarcodeConfig($article, $reception);
                                 },
                                 $articlesReception
                             )
@@ -1963,10 +1963,11 @@ class ReceptionController extends AbstractController {
             foreach($emergencies as $article) {
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
 
-                $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
+                $mailContent = $this->render('mails/contents/mailArticleUrgentReceived.html.twig', [
                     'article' => $article,
                     'title' => 'Votre article urgent a bien été réceptionné.',
-                ]);
+                ])->getContent();
+
                 $destinataires = '';
                 $userThatTriggeredEmergency = $ref->getUserThatTriggeredEmergency();
                 if($userThatTriggeredEmergency) {
@@ -2105,6 +2106,31 @@ class ReceptionController extends AbstractController {
         if($currentDisputesCounter === 0) {
             $article->setStatut($articleStatusAvailable);
         }
+    }
+
+    /**
+     * @Route("/{reception}/etiquette/{article}", name="reception_article_single_bar_code_print", options={"expose"=true})
+     * @param Article $article
+     * @param Reception $reception
+     * @param ArticleDataService $articleDataService
+     * @param PDFGeneratorService $PDFGeneratorService
+     * @return Response
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function getSingleReceptionArticleBarCode(Article $article,
+                                                    Reception $reception,
+                                                    ArticleDataService $articleDataService,
+                                                    PDFGeneratorService $PDFGeneratorService): Response {
+        $barcodeConfigs = [$articleDataService->getBarcodeConfig($article, $reception)];
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
+
+        return new PdfResponse(
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $fileName
+        );
     }
 
 }

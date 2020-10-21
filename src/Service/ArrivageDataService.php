@@ -182,10 +182,7 @@ class ArrivageDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function sendArrivalEmails(Arrivage $arrival,
-                                      array $emergencies = []): void
-    {
-
+    public function sendArrivalEmails(Arrivage $arrival, array $emergencies = []): void {
         $isUrgentArrival = !empty($emergencies);
         $finalRecipents = [];
         if ($isUrgentArrival) {
