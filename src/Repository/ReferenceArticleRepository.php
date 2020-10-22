@@ -184,11 +184,12 @@ class ReferenceArticleRepository extends EntityRepository
     /**
      * @param string $search
      * @param bool $activeOnly
-     * @param null $typeQuantity
-     * @param $field
+     * @param int $typeQuantity
+     * @param string $field
+     * @param null $locationFilter
      * @return mixed
      */
-    public function getIdAndRefBySearch($search, $activeOnly = false, $typeQuantity = null, $field = 'reference')
+    public function getIdAndRefBySearch($search, $activeOnly = false, $typeQuantity = -1, $field = 'reference', $locationFilter = null)
     {
         $em = $this->getEntityManager();
 
@@ -210,17 +211,28 @@ class ReferenceArticleRepository extends EntityRepository
             $dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
         }
 
-        if ($typeQuantity) {
+        if ($typeQuantity !== '-1') {
             $dql .= "  AND r.typeQuantite = :type";
+        }
+
+        if ($locationFilter) {
+            $dql .= "  AND (r.emplacement IS NULL OR r.typeQuantite = 'article' OR r.emplacement = :location)";
         }
 
         $query = $em
             ->createQuery($dql)
             ->setParameter('search', '%' . $search . '%');
-        if ($typeQuantity) {
+        if ($typeQuantity !== '-1') {
             $query
                 ->setParameter('type', $typeQuantity);
         }
+
+        if ($locationFilter) {
+            $query
+                ->setParameter('location', $locationFilter);
+        }
+
+        dump($query->getSQL());
 
         return $query->execute();
     }

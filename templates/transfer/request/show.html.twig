@@ -25,7 +25,7 @@
                     <div class="col-auto ml-auto">
                         <div class="btn-group">
                             <button type="button" data-toggle="modal" data-target="#modalAddArticle"
-                                    onclick="clearDiv(), Select2.articleReference($('#reference'))"
+                                    onclick="clearDiv(), Select2.articleReference($('#add-article-reference'), null, 'reference', '', 1, {{ transfer.origin.id }})"
                                     class="btn btn-primary btn-ripple split-button">
                                 <span class="fa fa-plus mr-2"></span>Ajouter article
                             </button>

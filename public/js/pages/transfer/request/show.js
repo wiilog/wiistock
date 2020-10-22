@@ -2,8 +2,6 @@ let tableArticles;
 
 $(document).ready(() => {
 
-    Select2.articleReference($(".ajax-autocomplete"));
-
     tableArticle = initDataTable('tableArticle', {
         ajax: {
             "url": Routing.generate('transfer_request_article_api', {transfer: id}, true),
@@ -57,6 +55,9 @@ function onReferenceChange($select) {
     $.post(route, data, function(response) {
         if (response.success) {
            $("#add-article-code-selector").html(response.html || "");
+            $('.error-msg').html('');
+        } else {
+            $('.error-msg').html(response.msg);
         }
     });
 }

@@ -129,6 +129,7 @@ class TransferRequestController extends AbstractController {
             $draft = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::DRAFT);
             $transfer = new TransferRequest();
             $destination = $emplacementRepository->find($data['destination']);
+            $origin = $emplacementRepository->find($data['origin']);
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
@@ -137,6 +138,7 @@ class TransferRequestController extends AbstractController {
                 ->setStatus($draft)
                 ->setNumber(self::createNumber($entityManager, $date))
                 ->setDestination($destination)
+                ->setOrigin($origin)
                 ->setCreationDate($date)
                 ->setRequester($currentUser)
                 ->setComment($data['comment']);
@@ -313,16 +315,24 @@ class TransferRequestController extends AbstractController {
         }
 
         if(isset($content->fetchOnly) && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            $locationLabel = $transfer->getOrigin()->getLabel();
             $articles = $this->getDoctrine()
                 ->getRepository(Article::class)
-                ->findForReferenceWithoutTransfer($reference);
+                ->findForReferenceWithoutTransfer($reference, $transfer->getOrigin());
 
-            return $this->json([
-                "success" => true,
-                "html" => $this->renderView("transfer/request/article/select_article_form.html.twig", [
-                    "articles" => $articles
-                ])
-            ]);
+            if (count($articles) > 0) {
+                return $this->json([
+                    "success" => true,
+                    "html" => $this->renderView("transfer/request/article/select_article_form.html.twig", [
+                        "articles" => $articles
+                    ])
+                ]);
+            } else {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Aucun article lié à cette référence présent sur $locationLabel."
+                ]);
+            }
         }
         if(!isset($content->fetchOnly) && $article && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             if($transfer->getArticles()->contains($article)) {

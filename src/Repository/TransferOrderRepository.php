@@ -175,10 +175,12 @@ class TransferOrderRepository extends EntityRepository {
             ->addSelect('transferOrder.number AS number')
             ->addSelect('join_requester.username AS requester')
             ->addSelect('join_destination.label AS destination')
+            ->addSelect('join_origin.label AS origin')
             ->join('transferOrder.status', 'join_orderStatus')
             ->join('transferOrder.request', 'join_transferRequest')
             ->join('join_transferRequest.requester', 'join_requester')
             ->join('join_transferRequest.destination', 'join_destination')
+            ->join('join_transferRequest.origin', 'join_origin')
             ->andWhere('join_orderStatus.nom = :toTreatStatusLabel')
             ->andWhere('transferOrder.operator IS NULL OR transferOrder.operator = :operator')
             ->setParameters([

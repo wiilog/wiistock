@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\Demande;
+use App\Entity\Emplacement;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\MouvementStock;
@@ -1139,13 +1140,15 @@ class ArticleRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findForReferenceWithoutTransfer($reference) {
+    public function findForReferenceWithoutTransfer($reference, Emplacement $emplacement) {
         return $this->createQueryBuilder("a")
             ->join("a.articleFournisseur", "af")
             ->leftJoin("a.transferRequests", "tr")
             ->where("af.referenceArticle = :reference")
             ->andWhere("tr.id IS NULL")
+            ->andWhere('a.emplacement = :location')
             ->setParameter("reference", $reference)
+            ->setParameter("location", $emplacement)
             ->getQuery()
             ->getResult();
     }

@@ -324,6 +324,7 @@ class TransferOrderController extends AbstractController {
                 $transferOrder->removeStockMovement($mouvementStock);
                 $entityManager->remove($mouvementStock);
             }
+            $entityManager->flush();
 
             $requestId = $transferOrder->getRequest()->getId();
 
