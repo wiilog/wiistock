@@ -63,9 +63,9 @@ class GenerateAlertsCommand extends Command {
 
         $managers = [];
         /** @var Article $article */
-        foreach($expired as $alert) {
+        foreach($expired as $article) {
             $hasExistingAlert = !(
-                Stream::from($alert->getAlerts())
+                Stream::from($article->getAlerts())
                     ->filter(function (Alert $alert) {
                         return $alert->getType() === Alert::EXPIRY;
                     })->isEmpty()
@@ -73,19 +73,19 @@ class GenerateAlertsCommand extends Command {
 
             if (!$hasExistingAlert) {
                 $alert = new Alert();
-                $alert->setArticle($alert);
+                $alert->setArticle($article);
                 $alert->setType(Alert::EXPIRY);
                 $alert->setDate($now);
 
                 $this->manager->persist($alert);
             }
-            $recipients = $alert->getArticleFournisseur()
+            $recipients = $article->getArticleFournisseur()
                 ->getReferenceArticle()
                 ->getManagers();
 
             foreach ($recipients as $recipient) {
-                $this->addArticle($managers, $recipient->getEmail(), $alert);
-                $this->addArticle($managers, $recipient->getSecondaryEmails(), $alert);
+                $this->addArticle($managers, $recipient->getEmail(), $article);
+                $this->addArticle($managers, $recipient->getSecondaryEmails(), $article);
             }
         }
 
