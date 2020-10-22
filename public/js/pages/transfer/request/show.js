@@ -1,8 +1,8 @@
 let tableArticles;
 
-$(document).ready(() => {
-
-    Select2.articleReference($(".ajax-autocomplete"));
+$(function() {
+    const transferOriginId = $('#transfer-origin-id').val();
+    Select2.articleReference($('#add-article-reference'), null, 'reference', '', 1, transferOriginId);
 
     tableArticle = initDataTable('tableArticle', {
         ajax: {
@@ -56,7 +56,10 @@ function onReferenceChange($select) {
 
     $.post(route, data, function(response) {
         if (response.success) {
-           $("#add-article-code-selector").html(response.html || "");
+            $("#add-article-code-selector").html(response.html || "");
+            $('.error-msg').html('');
+        } else {
+            $('.error-msg').html(response.msg);
         }
     });
 }

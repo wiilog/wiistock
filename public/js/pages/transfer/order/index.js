@@ -40,6 +40,7 @@ let transferOrderTableConfig = {
         {"data": 'status', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'requester', 'name': 'Demandeur', 'title': 'Demandeur'},
         {"data": 'operator', 'name': 'Opérateur', 'title': 'Opérateur'},
+        {"data": 'origin', 'name': 'Origine', 'title': 'Origine'},
         {"data": 'destination', 'name': 'Destination', 'title': 'Destination'},
         {"data": 'creationDate', 'name': 'Création', 'title': 'Date de création'},
         {"data": 'validationDate', 'name': 'Validation', 'title': 'Date de validation'},

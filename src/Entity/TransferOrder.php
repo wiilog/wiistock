@@ -171,10 +171,11 @@ class TransferOrder implements Serializable {
             'status' => FormatHelper::status($this->getStatus()),
             'requester' => FormatHelper::user($this->getRequest()->getRequester()),
             'operator' => FormatHelper::user($this->getOperator()),
+            'origin' => FormatHelper::location($this->getRequest()->getOrigin()),
             'destination' => FormatHelper::location($this->getRequest()->getDestination()),
             'creationDate' => FormatHelper::datetime($this->getCreationDate()),
             'transferDate' => FormatHelper::datetime($this->getTransferDate()),
-            'comment' => FormatHelper::html($this->getRequest()->getComment()),
+            'comment' => FormatHelper::html($this->getRequest()->getComment())
         ];
     }
 

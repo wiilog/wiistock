@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\Demande;
+use App\Entity\Emplacement;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\MouvementStock;
@@ -13,6 +14,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 
 use App\Helper\QueryCounter;
+use App\Helper\Stream;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\Connection;
@@ -22,7 +24,6 @@ use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 
-use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -1140,17 +1141,66 @@ class ArticleRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findForReferenceWithoutTransfer($reference) {
+    public function findForReferenceWithoutTransfer($reference, Emplacement $emplacement) {
         return $this->createQueryBuilder("a")
             ->join("a.articleFournisseur", "af")
             ->leftJoin("a.transferRequests", "tr")
             ->leftJoin("tr.status", "status")
             ->where("af.referenceArticle = :reference")
             ->andWhere("tr.id IS NULL OR status.nom = :label")
+            ->andWhere('a.emplacement = :location')
             ->setParameter("reference", $reference)
+            ->setParameter("location", $emplacement)
             ->setParameter("label", TransferRequest::DRAFT)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @param TransferRequest[] $requests
+     * @param bool $isRequests
+     * @return int|mixed|string
+     */
+    public function getArticlesGroupedByTransfer(array $requests, bool $isRequests = true) {
+        if(!empty($requests)) {
+            $queryBuilder = $this->createQueryBuilder('article')
+                ->select('article.barCode AS barCode')
+                ->addSelect('referenceArticle.reference AS reference')
+                ->join('article.articleFournisseur', 'articleFournisseur')
+                ->join('articleFournisseur.referenceArticle', 'referenceArticle')
+                ->join('article.transferRequests', 'transferRequest');
+
+            if ($isRequests) {
+                $queryBuilder
+                    ->addSelect('transferRequest.id AS transferId')
+                    ->where('transferRequest.id IN (:requests)')
+                    ->setParameter('requests', $requests);
+            }
+            else {
+                $queryBuilder
+                    ->addSelect('transferOrder.id AS transferId')
+                    ->join('transferRequest.order', 'transferOrder')
+                    ->where('transferOrder.id IN (:orders)')
+                    ->setParameter('orders', $requests);
+            }
+
+            $res = $queryBuilder
+                ->getQuery()
+                ->getResult();
+
+            return Stream::from($res)
+                ->reduce(function (array $acc, array $articleArray) {
+                    $transferRequestId = $articleArray['transferId'];
+                    if (!isset($acc[$transferRequestId])) {
+                        $acc[$transferRequestId] = [];
+                    }
+                    $acc[$transferRequestId][] = $articleArray;
+                    return $acc;
+                }, []);
+        }
+        else {
+            return [];
+        }
     }
 
 }

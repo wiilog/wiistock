@@ -52,6 +52,13 @@ class TransferRequest implements Serializable {
     private $destination;
 
     /**
+     * @ORM\ManyToOne(targetEntity=Emplacement::class)
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $origin;
+
+
+    /**
      * @ORM\Column(type="text", nullable=true)
      */
     private $comment;
@@ -142,6 +149,15 @@ class TransferRequest implements Serializable {
 
     public function setDestination(?Emplacement $destination): self {
         $this->destination = $destination;
+        return $this;
+    }
+
+    public function getOrigin(): ?Emplacement {
+        return $this->origin;
+    }
+
+    public function setOrigin(?Emplacement $origin): self {
+        $this->origin = $origin;
         return $this;
     }
 
@@ -244,6 +260,7 @@ class TransferRequest implements Serializable {
             'number' => $this->getNumber(),
             'status' => FormatHelper::status($this->getStatus()),
             'requester' => FormatHelper::user($this->getRequester()),
+            'origin' => FormatHelper::location($this->getOrigin()),
             'destination' => FormatHelper::location($this->getDestination()),
             'creationDate' => FormatHelper::datetime($this->getCreationDate()),
             'validationDate' => FormatHelper::datetime($this->getValidationDate()),

@@ -9,7 +9,9 @@ use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\TransferRequest;
 use App\Helper\QueryCounter;
+use App\Helper\Stream;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -184,45 +186,49 @@ class ReferenceArticleRepository extends EntityRepository
     /**
      * @param string $search
      * @param bool $activeOnly
-     * @param null $typeQuantity
-     * @param $field
+     * @param int $typeQuantity
+     * @param string $field
+     * @param null $locationFilter
      * @return mixed
      */
-    public function getIdAndRefBySearch($search, $activeOnly = false, $typeQuantity = null, $field = 'reference')
+    public function getIdAndRefBySearch($search, $activeOnly = false, $typeQuantity = -1, $field = 'reference', $locationFilter = null)
     {
-        $em = $this->getEntityManager();
-
-        $dql = "SELECT r.id,
-                r.${field} as text,
-                r.typeQuantite as typeQuantity,
-                r.isUrgent as urgent,
-                r.emergencyComment as emergencyComment,
-                r.libelle,
-                r.barCode,
-                e.label as location,
-                r.quantiteDisponible
-          FROM App\Entity\ReferenceArticle r
-          LEFT JOIN r.statut s
-          LEFT JOIN r.emplacement e
-          WHERE r.${field} LIKE :search ";
+        $queryBuilder = $this->createQueryBuilder('r')
+            ->select('r.id')
+            ->addSelect("r.${field} as text")
+            ->addSelect('r.typeQuantite as typeQuantity')
+            ->addSelect('r.isUrgent as urgent')
+            ->addSelect('r.emergencyComment as emergencyComment')
+            ->addSelect('r.libelle')
+            ->addSelect('r.barCode')
+            ->addSelect('e.label AS location')
+            ->addSelect('r.quantiteDisponible')
+            ->leftJoin('r.statut', 's')
+            ->leftJoin('r.emplacement', 'e')
+            ->where("r.${field} LIKE :search")
+            ->setParameter('search', '%' . $search . '%');
 
         if ($activeOnly) {
-            $dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
+            $queryBuilder
+                ->andWhere('s.nom = :activeStatus')
+                ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF);
         }
 
-        if ($typeQuantity) {
-            $dql .= "  AND r.typeQuantite = :type";
-        }
-
-        $query = $em
-            ->createQuery($dql)
-            ->setParameter('search', '%' . $search . '%');
-        if ($typeQuantity) {
-            $query
+        if ($typeQuantity !== -1) {
+            $queryBuilder
+                ->andWhere('r.typeQuantite = :type')
                 ->setParameter('type', $typeQuantity);
         }
 
-        return $query->execute();
+        if ($locationFilter) {
+            $queryBuilder
+                ->andWhere("(r.emplacement IS NULL OR r.typeQuantite = 'article' OR r.emplacement = :location)")
+                ->setParameter('location', $locationFilter);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->execute();
     }
 
     public function findByFiltersAndParams($filters, $params, $user, $freeFields)
@@ -1096,16 +1102,48 @@ class ReferenceArticleRepository extends EntityRepository
             ->execute();
     }
 
-    private function array_values_recursive($array)
-    {
-        $flat = [];
-        foreach ($array as $value) {
-            if (is_array($value)) {
-                $flat = array_merge($flat, $this->array_values_recursive($value));
-            } else {
-                $flat[] = $value;
+    /**
+     * @param TransferRequest[] $requests
+     * @param bool $isRequests
+     * @return int|mixed|string
+     */
+    public function getReferenceArticlesGroupedByTransfer(array $requests, bool $isRequests = true) {
+        if (!empty($requests)) {
+            $queryBuilder = $this->createQueryBuilder('referenceArticle')
+                ->select('referenceArticle.barCode AS barCode')
+                ->addSelect('referenceArticle.reference AS reference')
+                ->join('referenceArticle.transferRequests', 'transferRequest');
+
+            if ($isRequests) {
+                $queryBuilder
+                    ->addSelect('transferRequest.id AS transferId')
+                    ->where('transferRequest.id IN (:requests)')
+                    ->setParameter('requests', $requests);
             }
+            else {
+                $queryBuilder
+                    ->addSelect('transferOrder.id AS transferId')
+                    ->join('transferRequest.order', 'transferOrder')
+                    ->where('transferOrder.id IN (:orders)')
+                    ->setParameter('orders', $requests);
+            }
+
+            $res = $queryBuilder
+                ->getQuery()
+                ->getResult();
+
+            return Stream::from($res)
+                ->reduce(function (array $acc, array $articleArray) {
+                    $transferRequestId = $articleArray['transferId'];
+                    if (!isset($acc[$transferRequestId])) {
+                        $acc[$transferRequestId] = [];
+                    }
+                    $acc[$transferRequestId][] = $articleArray;
+                    return $acc;
+                }, []);
         }
-        return $flat;
+        else {
+            return [];
+        }
     }
 }
