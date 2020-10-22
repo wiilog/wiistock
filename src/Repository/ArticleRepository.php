@@ -1143,9 +1143,11 @@ class ArticleRepository extends EntityRepository
         return $this->createQueryBuilder("a")
             ->join("a.articleFournisseur", "af")
             ->leftJoin("a.transferRequests", "tr")
+            ->leftJoin("tr.status", "status")
             ->where("af.referenceArticle = :reference")
-            ->andWhere("tr.id IS NULL")
+            ->andWhere("tr.id IS NULL OR status.nom = :label")
             ->setParameter("reference", $reference)
+            ->setParameter("label", TransferRequest::DRAFT)
             ->getQuery()
             ->getResult();
     }
