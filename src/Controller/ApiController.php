@@ -1125,11 +1125,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param DemandeLivraisonService $demandeLivraisonService
      * @param FreeFieldService $champLibreService
      * @return Response
-     * @throws ArticleNotAvailableException
-     * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
-     * @throws RequestNeedToBeProcessedException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -1404,24 +1401,42 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($rights['inventoryManager']) {
             $refAnomalies = $inventoryEntryRepository->getAnomaliesOnRef(true);
             $artAnomalies = $inventoryEntryRepository->getAnomaliesOnArt(true);
-        } else {
-            $refAnomalies = [];
-            $artAnomalies = [];
         }
 
         if ($rights['stock']) {
             // livraisons
-            $livraisons = $livraisonRepository->getMobileDelivery($user);
+            $livraisons = Stream::from($livraisonRepository->getMobileDelivery($user))
+                ->map(function ($deliveryArray) {
+                    if (!empty($deliveryArray['comment'])) {
+                        $deliveryArray['comment'] = substr(strip_tags($deliveryArray['comment']), 0, 200);
+                    }
+                    return $deliveryArray;
+                })
+                ->toArray();
 
-            $livraisonsIds = array_map(function ($livraisonArray) {
-                return $livraisonArray['id'];
-            }, $livraisons);
+            $livraisonsIds = Stream::from($livraisons)
+                ->map(function ($livraisonArray) {
+                    return $livraisonArray['id'];
+                })
+                ->toArray();
 
             $articlesLivraison = $articleRepository->getByLivraisonsIds($livraisonsIds);
             $refArticlesLivraison = $referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
 
             /// preparations
-            $preparations = $preparationRepository->getMobilePreparations($user);
+            $preparations = Stream::from($preparationRepository->getMobilePreparations($user))
+                ->map(function ($preparationArray) {
+                    if (!empty($preparationArray['comment'])) {
+                        $preparationArray['comment'] = substr(strip_tags($preparationArray['comment']), 0, 200);
+                    }
+                    return $preparationArray;
+                })
+                ->toArray();
+
+            // get article linked to a ReferenceArticle where type_quantite === 'article'
+            $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user);
+
+            $articlesPrepa = $this->getArticlesPrepaArrays($preparations);
 
             /// collecte
             $collectes = $ordreCollecteRepository->getMobileCollecte($user);
@@ -1454,42 +1469,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $referenceArticleRepository->getByTransferOrders($transferOrdersIds)
             );
 
-            // get article linked to a ReferenceArticle where type_quantite === 'article'
-            $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user);
-
             // inventory
             $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
             $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
 
             // prises en cours
             $stockTaking = $trackingMovementRepository->getTakingByOperatorAndNotDeposed($user, TrackingMovementRepository::MOUVEMENT_TRACA_STOCK);
-        } else {
-            // livraisons
-            $livraisons = [];
-            $articlesLivraison = [];
-            $refArticlesLivraison = [];
-
-            /// preparations
-            $preparations = [];
-
-            /// collecte
-            $collectes = [];
-            $articlesCollecte = [];
-            $refArticlesCollecte = [];
-
-            /// transferOrders
-            $transferOrders = [];
-            $transferOrderArticles = [];
-
-            // get article linked to a ReferenceArticle where type_quantite === 'article'
-            $articlesPrepaByRefArticle = [];
-
-            // inventory
-            $articlesInventory = [];
-            $refArticlesInventory = [];
-
-            // prises en cours
-            $stockTaking = [];
         }
 
         if ($rights['demande']) {
@@ -1517,12 +1502,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     'label' => $type->getLabel(),
                 ];
             }, $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]));
-        } else {
-            $handlings = [];
-            $requestFreeFields = [];
-            $handlingAttachments = [];
-            $demandeLivraisonArticles = [];
-            $demandeLivraisonTypes = [];
         }
 
         if ($rights['tracking']) {
@@ -1540,47 +1519,47 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $dispatchPacks = $dispatchPackRepository->getMobilePacksFromDispatches(array_map(function ($dispatch) {
                 return $dispatch['id'];
             }, $dispatches));
-
-        } else {
-            $trackingTaking = [];
-            $natures = [];
-            $allowedNatureInLocations = [];
-            $trackingFreeFields = [];
-            $dispatches = [];
-            $dispatchPacks = [];
-            $status = [];
         }
 
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
-            'allowedNatureInLocations' => $allowedNatureInLocations,
-            'freeFields' => Stream::from($trackingFreeFields, $requestFreeFields)
+            'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
+            'freeFields' => Stream::from($trackingFreeFields ?? [], $requestFreeFields ?? [])
                 ->map(function (FreeField $freeField) {
                     return $freeField->serialize();
                 })
                 ->toArray(),
-            'preparations' => $preparations,
-            'articlesPrepa' => $this->getArticlesPrepaArrays($preparations),
-            'articlesPrepaByRefArticle' => $articlesPrepaByRefArticle,
-            'livraisons' => $livraisons,
-            'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
-            'collectes' => $collectes,
-            'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
-            'transferOrders' => $transferOrders,
-            'transferOrderArticles' => $transferOrderArticles,
-            'handlings' => $handlings,
-            'handlingAttachments' => $handlingAttachments,
-            'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
-            'anomalies' => array_merge($refAnomalies, $artAnomalies),
-            'trackingTaking' => $trackingTaking,
-            'stockTaking' => $stockTaking,
-            'demandeLivraisonTypes' => $demandeLivraisonTypes,
-            'demandeLivraisonArticles' => $demandeLivraisonArticles,
-            'natures' => $natures,
+            'preparations' => $preparations ?? [],
+            'articlesPrepa' => $articlesPrepa ?? [],
+            'articlesPrepaByRefArticle' => $articlesPrepaByRefArticle ?? [],
+            'livraisons' => $livraisons ?? [],
+            'articlesLivraison' => array_merge(
+                $articlesLivraison ?? [],
+                $refArticlesLivraison ?? []
+            ),
+            'collectes' => $collectes ?? [],
+            'articlesCollecte' => array_merge(
+                $articlesCollecte ?? [],
+                $refArticlesCollecte ?? []
+            ),
+            'transferOrders' => $transferOrders ?? [],
+            'transferOrderArticles' => $transferOrderArticles ?? [],
+            'handlings' => $handlings ?? [],
+            'handlingAttachments' => $handlingAttachments ?? [],
+            'inventoryMission' => array_merge(
+                $articlesInventory ?? [],
+                $refArticlesInventory ?? []
+            ),
+            'anomalies' => array_merge($refAnomalies ?? [], $artAnomalies ?? []),
+            'trackingTaking' => $trackingTaking ?? [],
+            'stockTaking' => $stockTaking ?? [],
+            'demandeLivraisonTypes' => $demandeLivraisonTypes ?? [],
+            'demandeLivraisonArticles' => $demandeLivraisonArticles ?? [],
+            'natures' => $natures ?? [],
             'rights' => $rights,
             'translations' => $translationsRepository->findAllObjects(),
-            'dispatches' => $dispatches,
-            'dispatchPacks' => $dispatchPacks,
+            'dispatches' => $dispatches ?? [],
+            'dispatchPacks' => $dispatchPacks ?? [],
             'status' => $status
         ];
     }

@@ -54,6 +54,7 @@ class LivraisonRepository extends EntityRepository
             ->addSelect('join_type.label as type')
             ->addSelect('user.username as requester')
             ->addSelect('join_preparationLocation.label AS preparationLocation')
+            ->addSelect('request.commentaire AS comment')
             ->join('delivery_order.statut', 'status')
             ->join('delivery_order.preparation', 'preparation')
             ->join('preparation.demande', 'request')

@@ -80,7 +80,7 @@
 
     <div class="form-group col-4">
         <label>Gestionnaires</label>
-        <select name="managers" class="form-control data ajax-autocomplete-user-edit" multiple>
+        <select name="managers" class="form-control data ajax-autocomplete-user-edit w-100" multiple>
             {% if managers is not empty %}
                 {% for manager in managers %}
                     <option value="{{ manager['managerId'] }}" selected>{{ manager['managerUsername'] }}</option>
