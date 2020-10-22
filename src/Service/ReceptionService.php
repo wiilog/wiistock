@@ -35,15 +35,13 @@ class ReceptionService
 {
     private $templating;
     private $router;
-    private $user;
     private $entityManager;
     private $fieldsParamService;
     private $stringService;
     private $translator;
     private $freeFieldService;
 
-    public function __construct(TokenStorageInterface $tokenStorage,
-                                RouterInterface $router,
+    public function __construct(RouterInterface $router,
                                 FieldsParamService $fieldsParamService,
                                 StringService $stringService,
                                 FreeFieldService $champLibreService,
@@ -58,19 +56,15 @@ class ReceptionService
         $this->fieldsParamService = $fieldsParamService;
         $this->router = $router;
         $this->translator = $translator;
-        $this->user = $tokenStorage->getToken()->getUser();
     }
 
-    public function getDataForDatatable($params = null)
+    public function getDataForDatatable(Utilisateur $user, $params = null)
     {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $receptionRepository = $this->entityManager->getRepository(Reception::class);
 
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->user;
-
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $currentUser);
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $user);
         $queryResult = $receptionRepository->findByParamAndFilters($params, $filters);
 
         $receptions = $queryResult['data'];

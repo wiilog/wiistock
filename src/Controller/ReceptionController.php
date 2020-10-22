@@ -348,7 +348,7 @@ class ReceptionController extends AbstractController {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $data = $this->receptionService->getDataForDatatable($request->request);
+            $data = $this->receptionService->getDataForDatatable($this->getUser(), $request->request);
 
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $fieldsParam = $fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
