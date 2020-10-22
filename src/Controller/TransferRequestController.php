@@ -84,7 +84,7 @@ class TransferRequestController extends AbstractController {
         }
     }
 
-    public static function createNumber($entityManager, $date) {
+    public static function createNumber(EntityManagerInterface $entityManager, $date) {
         $dateStr = $date->format('Ymd');
 
         $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
