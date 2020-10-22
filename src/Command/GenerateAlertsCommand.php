@@ -38,9 +38,9 @@ class GenerateAlertsCommand extends Command {
         if($expiry = $parametrage->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY)) {
             $this->sendExpiry = true;
             $this->expiryDelay = $expiry;
-            $this->expiryDelay = str_replace("s", "week", $this->expiryDelay);
-            $this->expiryDelay = str_replace("j", "day", $this->expiryDelay);
-            $this->expiryDelay = str_replace("h", "hour", $this->expiryDelay);
+            $this->expiryDelay = str_replace("s", " semaines", $this->expiryDelay);
+            $this->expiryDelay = str_replace("j", " jours", $this->expiryDelay);
+            $this->expiryDelay = str_replace("h", " heures", $this->expiryDelay);
         } else {
             $this->sendExpiry = false;
         }
