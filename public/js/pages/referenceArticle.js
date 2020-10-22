@@ -33,6 +33,7 @@ function initPageModals() {
     let submitNewRefArticle = $("#submitNewRefArticle");
     let urlRefArticleNew = Routing.generate('reference_article_new', true);
     InitModal(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, {tables: pageTables});
+    Select2.user(modalRefArticleNew.find('.ajax-autocomplete-user[name=managers]'))
 
     let modalDeleteRefArticle = $("#modalDeleteRefArticle");
     let SubmitDeleteRefArticle = $("#submitDeleteRefArticle");
@@ -43,6 +44,7 @@ function initPageModals() {
     let submitModifyRefArticle = $('#submitEditRefArticle');
     let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
     InitModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, {tables: pageTables, clearOnClose: true});
+    Select2.user(modalModifyRefArticle.find('.ajax-autocomplete-user-edit'));
 
     let $modalPlusDemande = $('#modalPlusDemande');
     let $submitPlusDemande = $('#submitPlusDemande');
@@ -102,8 +104,10 @@ function clearModalRefArticle(modal, data) {
 }
 
 function clearDemandeContent() {
-    $('.plusDemandeContent').find('#collecteShow, #livraisonShow').addClass('d-none');
-    $('.plusDemandeContent').find('#collecteShow, #livraisonShow').removeClass('d-block');
+    $('.plusDemandeContent')
+        .find('#collecteShow, #livraisonShow, #transfertShow')
+        .addClass('d-none')
+        .removeClass('d-block');
     //TODO supprimer partout où pas nécessaire d-block
 }
 
@@ -157,30 +161,27 @@ function resizeTable() {
 }
 
 function showDemande(bloc, type) {
-    let $livraisonShow = $('#livraisonShow');
-    let $collecteShow = $('#collecteShow');
+
+    let $blocChosen = null;
 
     if (type === "livraison") {
-        $collecteShow.removeClass('d-block');
-        $collecteShow.addClass('d-none');
-        $collecteShow.find('div').find('select, .quantite').removeClass('data');
-        $collecteShow.find('.data').removeClass('needed');
-
-        $livraisonShow.removeClass('d-none');
-        $livraisonShow.addClass('d-block');
-        $livraisonShow.find('div').find('select, .quantite').addClass('data');
-        $livraisonShow.find('.data').addClass('needed');
-        //setMaxQuantityByArtRef($livraisonShow.find('#quantity-to-deliver'));
+        $blocChosen = $('#livraisonShow');
     } else if (type === "collecte") {
-        $collecteShow.removeClass('d-none');
-        $collecteShow.addClass('d-block');
-        $collecteShow.find('div').find('select, .quantite').addClass('data');
-        $collecteShow.find('.data').addClass('needed');
+        $blocChosen = $('#collecteShow');
+    } else if (type === "transfert") {
+        $blocChosen = $('#transfertShow');
+    }
 
-        $livraisonShow.removeClass('d-block');
-        $livraisonShow.addClass('d-none');
-        $livraisonShow.find('div').find('select, .quantite').removeClass('data')
-        $livraisonShow.find('.data').removeClass('needed');
+    if ($blocChosen) {
+        $blocChosen.removeClass('d-block');
+        $blocChosen.addClass('d-none');
+        $blocChosen.find('div').find('select, .quantite').removeClass('data');
+        $blocChosen.find('.data').removeClass('needed');
+
+        $blocChosen.removeClass('d-none');
+        $blocChosen.addClass('d-block');
+        $blocChosen.find('div').find('select, .quantite').addClass('data');
+        $blocChosen.find('.data').addClass('needed');
     }
 }
 
@@ -351,7 +352,7 @@ let ajaxEditArticle = function ($select) {
                 $editChampLibre.html(data);
                 Select2.location($('.ajax-autocomplete-location-edit'));
                 toggleRequiredChampsLibres($select.closest('.modal').find('#type'), 'edit');
-                $('#livraisonShow').find('#quantityToTake').removeClass('d-none').addClass('data');
+                $('#quantityToTake').removeClass('d-none');
                 modalFooter.removeClass('d-none');
                 $editChampLibre.find('#quantite').attr('name', 'quantite');
                 setMaxQuantityByArtRef($('#livraisonShow').find('#quantity-to-deliver'));
@@ -428,6 +429,7 @@ function redirectToDemande($modal) {
     return () => {
         let livraisonId = $modal.find('.data[name="livraison"]').val();
         let collecteId = $modal.find('.data[name="collecte"]').val();
+        let transfertId = $modal.find('.data[name="transfert"]').val();
 
         let demandeId = null;
         let demandeType = null;
@@ -437,6 +439,9 @@ function redirectToDemande($modal) {
         } else if (livraisonId) {
             demandeId = livraisonId;
             demandeType = 'demande';
+        } else if (transfertId) {
+            demandeId = transfertId;
+            demandeType = 'transfer_request';
         }
 
         clearModal($modal);

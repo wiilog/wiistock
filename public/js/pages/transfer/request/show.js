@@ -63,8 +63,20 @@ function onReferenceChange($select) {
 
 $('.select2').select2();
 
-function validateTransfer() {
-    //TODO: validate transfer and create order
+function validateTransfer(id, $button) {
+    let route = Routing.generate('transfer_request_has_articles', {id});
+
+    wrapLoadingOnActionButton($button, () => (
+        $.post(route, function(response) {
+            if (!response.success) {
+                showBSAlert(response.msg, "danger", false);
+                return false;
+            } else {
+                window.location.href = response.redirect;
+                return true;
+            }
+        })
+    ));
 }
 
 function deleteRowTransfer(button, modal, submit) {

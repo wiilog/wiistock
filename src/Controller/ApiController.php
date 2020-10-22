@@ -26,12 +26,14 @@ use App\Entity\Attachment;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TransferOrder;
 use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Exceptions\NegativeQuantityException;
+use App\Helper\Stream;
 use App\Repository\ArticleRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
@@ -50,6 +52,7 @@ use App\Service\TrackingMovementService;
 use App\Service\NatureService;
 use App\Service\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
+use App\Service\TransferOrderService;
 use App\Service\UserService;
 use App\Service\FreeFieldService;
 use DateTimeZone;
@@ -326,7 +329,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                             ? $article->getQuantite()
                                             : $article->getQuantiteStock(); // ($article instanceof ReferenceArticle)
 
-                                        $newMouvement = $mouvementStockService->createMouvementStock($nomadUser, $location, $quantiteMouvement, $article, MouvementStock::TYPE_TRANSFERT);
+                                        $newMouvement = $mouvementStockService->createMouvementStock($nomadUser, $location, $quantiteMouvement, $article, MouvementStock::TYPE_TRANSFER);
                                         $options['mouvementStock'] = $newMouvement;
                                         $options['quantity'] = $newMouvement->getQuantity();
                                         $entityManager->persist($newMouvement);
@@ -800,17 +803,18 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param Request $request
      * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
+     * @param FreeFieldService $freeFieldService
      * @param HandlingService $handlingService
      * @return JsonResponse
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws Exception
      */
     public function postHandlings(Request $request,
                                   AttachmentService $attachmentService,
                                   EntityManagerInterface $entityManager,
+                                  FreeFieldService $freeFieldService,
                                   HandlingService $handlingService)
     {
         $apiKey = $request->request->get('apiKey');
@@ -859,13 +863,17 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 }
                 while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
 
+                $freeFieldValuesStr = $request->request->get('freeFields', '{}');
+                $freeFieldValuesStr = json_decode($freeFieldValuesStr, true);
+                $freeFieldService->manageFreeFields($handling, $freeFieldValuesStr, $entityManager);
+
                 if (!$handling->getValidationDate()
                     && $newStatus
                     && $newStatus->isTreated()) {
                     $handling
-                        ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
-                }
-
+                        ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')))
+                        ->setTreatedByHandling($nomadUser);
+                };
                 $entityManager->flush();
 
                 if ((!$oldStatus && $newStatus)
@@ -921,14 +929,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                 if ($livraison) {
                     $dateEnd = DateTime::createFromFormat(DateTime::ATOM, $livraisonArray['date_end']);
-                    $emplacement = $emplacementRepository->findOneByLabel($livraisonArray['emplacement']);
+                    $location = $emplacementRepository->findOneByLabel($livraisonArray['location']);
                     try {
-                        if ($emplacement) {
+                        if ($location) {
                             // flush auto at the end
-                            $entityManager->transactional(function ()
-                            use ($livraisonsManager, $entityManager, $nomadUser, $livraison, $dateEnd, $emplacement) {
+                            $entityManager->transactional(function () use ($livraisonsManager, $entityManager, $nomadUser, $livraison, $dateEnd, $location) {
                                 $livraisonsManager->setEntityManager($entityManager);
-                                $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $emplacement);
+                                $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $location);
                                 $entityManager->flush();
                             });
 
@@ -1318,6 +1325,43 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         return new JsonResponse($dataResponse, $httpCode);
     }
 
+    /**
+     * @Rest\Post("/api/transfer/finish", name="transfer_finish")
+     * @Rest\View()
+     * @param Request $request
+     * @param TransferOrderService $transferOrderService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function finishTransfers(Request $request,
+                                    TransferOrderService $transferOrderService,
+                                    EntityManagerInterface $entityManager): Response
+    {
+
+        $apiKey = $request->request->get('apiKey');
+        $dataResponse = [];
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
+        if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
+            $httpCode = Response::HTTP_OK;
+            $transferToTreat = json_decode($request->request->get('transfers'), true) ?: [];
+            Stream::from($transferToTreat)
+                ->each(function($transferId) use ($transferOrderRepository, $transferOrderService, $nomadUser, $entityManager) {
+                    $transfer = $transferOrderRepository->find($transferId);
+                    $transferOrderService->finish($transfer, $nomadUser, $entityManager);
+                });
+
+            $entityManager->flush();
+            $dataResponse['success'] = $transferToTreat;
+        } else {
+            $httpCode = Response::HTTP_UNAUTHORIZED;
+            $dataResponse['success'] = false;
+            $dataResponse['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+        }
+
+        return new JsonResponse($dataResponse, $httpCode);
+    }
 
     /**
      * @param Utilisateur $user
@@ -1344,13 +1388,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $livraisonRepository = $entityManager->getRepository(Livraison::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $translationsRepository = $entityManager->getRepository(Translation::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $attachmentRepository = $entityManager->getRepository(Attachment::class);
+        $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1389,11 +1434,25 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 return $collecteArray;
             }, $collectes);
 
-            $collectesIds = array_map(function ($collecteArray) {
-                return $collecteArray['id'];
-            }, $collectes);
+            $collectesIds = Stream::from($collectes)
+                ->map(function ($collecteArray) {
+                    return $collecteArray['id'];
+                })
+                ->toArray();
             $articlesCollecte = $articleRepository->getByOrdreCollectesIds($collectesIds);
             $refArticlesCollecte = $referenceArticleRepository->getByOrdreCollectesIds($collectesIds);
+
+            /// transferOrder
+            $transferOrders = $transferOrderRepository->getMobileTransferOrders($user);
+            $transferOrdersIds = Stream::from($transferOrders)
+                ->map(function ($transferOrder) {
+                    return $transferOrder['id'];
+                })
+                ->toArray();
+            $transferOrderArticles = array_merge(
+                $articleRepository->getByTransferOrders($transferOrdersIds),
+                $referenceArticleRepository->getByTransferOrders($transferOrdersIds)
+            );
 
             // get article linked to a ReferenceArticle where type_quantite === 'article'
             $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user);
@@ -1417,6 +1476,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $collectes = [];
             $articlesCollecte = [];
             $refArticlesCollecte = [];
+
+            /// transferOrders
+            $transferOrders = [];
+            $transferOrderArticles = [];
 
             // get article linked to a ReferenceArticle where type_quantite === 'article'
             $articlesPrepaByRefArticle = [];
@@ -1445,6 +1508,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $attachmentRepository->getMobileAttachmentForHandling($handlingIds)
             );
 
+            $requestFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_HANDLING]);
+
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
             $demandeLivraisonTypes = array_map(function (Type $type) {
                 return [
@@ -1454,6 +1519,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             }, $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]));
         } else {
             $handlings = [];
+            $requestFreeFields = [];
             $handlingAttachments = [];
             $demandeLivraisonArticles = [];
             $demandeLivraisonTypes = [];
@@ -1468,15 +1534,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $natureRepository->findAll()
             );
             $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
-            $trackingFreeFields = array_map(
-                function (FreeField $freeField) {
-                    return array_merge(
-                        $freeField->serialize(),
-                        ['type' => CategoryType::MOUVEMENT_TRACA]
-                    );
-                },
-                $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA])
-            );
+            $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
 
             $dispatches = $dispatchRepository->getMobileDispatches($user);
             $dispatchPacks = $dispatchPackRepository->getMobilePacksFromDispatches(array_map(function ($dispatch) {
@@ -1496,7 +1554,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations,
-            'freeFields' => $trackingFreeFields,
+            'freeFields' => Stream::from($trackingFreeFields, $requestFreeFields)
+                ->map(function (FreeField $freeField) {
+                    return $freeField->serialize();
+                })
+                ->toArray(),
             'preparations' => $preparations,
             'articlesPrepa' => $this->getArticlesPrepaArrays($preparations),
             'articlesPrepaByRefArticle' => $articlesPrepaByRefArticle,
@@ -1504,6 +1566,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
             'collectes' => $collectes,
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
+            'transferOrders' => $transferOrders,
+            'transferOrderArticles' => $transferOrderArticles,
             'handlings' => $handlings,
             'handlingAttachments' => $handlingAttachments,
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),

@@ -403,12 +403,14 @@ class DispatchService {
             $receiverEmails = $dispatch->getReceiver() ? $dispatch->getReceiver()->getMainAndSecondaryEmails() : [];
             $requesterEmails = $dispatch->getRequester() ? $dispatch->getRequester()->getMainAndSecondaryEmails() : [];
 
-            $partialDispatch = $dispatch
+            $partialDispatch = !(
+                $dispatch
                 ->getDispatchPacks()
                 ->filter(function (DispatchPack $dispatchPack) {
                     return !$dispatchPack->isTreated();
                 })
-                ->isEmpty();
+                ->isEmpty()
+            );
 
             $translatedTitle = $partialDispatch
                 ? 'acheminement.Acheminement {numéro} traité partiellement le {date}'

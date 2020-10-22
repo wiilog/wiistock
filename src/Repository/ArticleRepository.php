@@ -13,6 +13,8 @@ use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 
 use App\Helper\QueryCounter;
+use DateTime;
+use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -43,7 +45,10 @@ class ArticleRepository extends EntityRepository
         'Actions' => 'Actions',
         'Code barre' => 'barCode',
         'Dernier inventaire' => 'dateLastInventory',
-        'Prix unitaire' => 'prixUnitaire'
+        'Prix unitaire' => 'prixUnitaire',
+        'Lot' => 'batch',
+        'Date d\'entrée en stock' => 'stockEntryDate',
+        'Date de péremption' => 'expiryDate',
     ];
 
     private const linkChampLibreLabelToField = [
@@ -56,6 +61,18 @@ class ArticleRepository extends EntityRepository
         'Prix unitaire' => ['field' => 'prixUnitaire', 'typage' => 'list'],
         'Code barre' => ['field' => 'barCode', 'typage' => 'text'],
     ];
+
+    public function findExpiredToGenerate($delay = null) {
+        $since = new DateTime("now", new DateTimeZone("Europe/Paris"));
+        if($delay) {
+            $since->modify($delay);
+        }
+        return $this->createQueryBuilder("a")
+            ->where("a.expiryDate <= :since")
+            ->setParameter("since", $since)
+            ->getQuery()
+            ->getResult();
+    }
 
     public function getReferencesByRefAndDate($refPrefix, $date)
 	{
@@ -231,6 +248,9 @@ class ArticleRepository extends EntityRepository
             ->addSelect('article.barCode')
             ->addSelect('article.dateLastInventory')
             ->addSelect('article.freeFields')
+            ->addSelect('article.batch')
+            ->addSelect('article.stockEntryDate')
+            ->addSelect('article.expiryDate')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
             ->leftJoin('article.type', 'type')
@@ -546,10 +566,9 @@ class ArticleRepository extends EntityRepository
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column =
-                        isset(self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']])
-                            ? self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']]
-                            : $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = self::DtToDbLabels[$column] ?? $column;
+
                     switch ($column) {
                         case 'Actions':
                             break;
@@ -592,8 +611,7 @@ class ArticleRepository extends EntityRepository
                             break;
                         default:
                             if (property_exists(Article::class, $column)) {
-                                $qb
-                                    ->orderBy('a.' . $column, $order);
+                                $qb->orderBy('a.' . $column, $order);
                             } else {
                                 $orderField = $column;
                                 $clId = $freeFields[trim(mb_strtolower($orderField))] ?? null;
@@ -726,7 +744,7 @@ class ArticleRepository extends EntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, l.id as id_livraison, a.barCode
+            "SELECT a.reference, e.label as location, a.label, a.quantitePrelevee as quantity, 0 as is_ref, l.id as id_livraison, a.barCode
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
 			JOIN a.preparation p
@@ -748,6 +766,31 @@ class ArticleRepository extends EntityRepository
             ->setParameter('collectesIds', $collectesIds, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
+	}
+
+	public function getByTransferOrders(array $transfersOrders): array {
+	    if (!empty($transfersOrders)) {
+            $res = $this->createQueryBuilder('article')
+                ->select('article.barCode AS barcode')
+                ->addSelect('referenceArticle.libelle AS label')
+                ->addSelect('referenceArticle.reference AS reference')
+                ->addSelect('referenceArticle_location.label AS location')
+                ->addSelect('article.quantite AS quantity')
+                ->addSelect('transferOrder.id AS transfer_order_id')
+                ->join('article.transferRequests', 'transferRequest')
+                ->join('transferRequest.order', 'transferOrder')
+                ->join('article.articleFournisseur', 'articleFournisseur')
+                ->join('articleFournisseur.referenceArticle', 'referenceArticle')
+                ->leftJoin('referenceArticle.emplacement', 'referenceArticle_location')
+                ->where('transferOrder IN (:transferOrders)')
+                ->setParameter('transferOrders', $transfersOrders)
+                ->getQuery()
+                ->getResult();
+        }
+	    else {
+            $res = [];
+        }
+		return $res;
 	}
 
 	public function getByOrdreCollecteId($collecteId)

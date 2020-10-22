@@ -50,7 +50,7 @@ class FiltreSupController extends AbstractController
                 'commande' => FiltreSup::FIELD_COMMANDE,
                 'numArrivage' => FiltreSup::FIELD_NUM_ARRIVAGE,
                 'anomaly' => FiltreSup::FIELD_ANOMALY,
-                'duty' => FiltreSup::FIELD_DUTY,
+                'customs' => FiltreSup::FIELD_CUSTOMS,
                 'frozen' => FiltreSup::FIELD_FROZEN,
                 'statusEntity' => FiltreSup::FIELD_STATUS_ENTITY
             ];
@@ -95,6 +95,7 @@ class FiltreSupController extends AbstractController
                 'disputeNumber' => FiltreSup::FIELD_LITIGE_DISPUTE_NUMBER,
                 'receivers' => FiltreSup::FIELD_RECEIVERS,
                 'requesters' => FiltreSup::FIELD_REQUESTERS,
+                'operators' => FiltreSup::FIELD_OPERATORS,
                 'dispatchNumber' => FiltreSup::FIELD_DISPATCH_NUMBER,
                 'emergencyMultiple' => FiltreSup::FIELD_EMERGENCY_MULTIPLE
             ];

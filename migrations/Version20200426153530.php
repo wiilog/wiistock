@@ -55,7 +55,7 @@ final class Version20200426153530 extends AbstractMigration
             'destinataire',
             'acheteurs',
             'NbUM',
-            'duty',
+            'customs',
             'frozen',
             'Statut',
             'Utilisateur',

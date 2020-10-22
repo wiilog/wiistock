@@ -198,6 +198,21 @@ class ArticleController extends AbstractController
             'id' => 0,
             'typage' => 'date'
         ];
+        $champF[] = [
+            'label' => 'Lot',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champF[] = [
+            'label' => 'Date d\'entrée en stock',
+            'id' => 0,
+            'typage' => 'date'
+        ];
+        $champF[] = [
+            'label' => 'Date de péremption',
+            'id' => 0,
+            'typage' => 'date'
+        ];
         $champsFText = [];
 
         $champsFText[] = [
@@ -439,6 +454,24 @@ class ArticleController extends AbstractController
 					"data" => 'Dernier inventaire',
 					'name' => 'Dernier inventaire',
 					"class" => (in_array('Dernier inventaire', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Lot',
+					"data" => 'Lot',
+					'name' => 'Lot',
+					"class" => (in_array('Lot', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => "Date d'entrée en stock",
+					"data" => "Date d'entrée en stock",
+					'name' => "Date d'entrée en stock",
+					"class" => (in_array("Date d'entrée en stock", $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Date de péremption',
+					"data" => 'Date de péremption',
+					'name' => 'Date de péremption',
+					"class" => (in_array('Date de péremption', $columnsVisible) ? 'display' : 'hide'),
 				],
 			];
 			foreach ($champs as $champ) {
@@ -977,7 +1010,10 @@ class ArticleController extends AbstractController
                 'commentaire',
                 'emplacement',
                 'code barre',
-                'date dernier inventaire'
+                'date dernier inventaire',
+                'lot',
+                'date d\'entrée en stock',
+                'date de péremption',
             ],
             $freeFieldsConfig['freeFieldsHeader']
         );
@@ -1020,6 +1056,9 @@ class ArticleController extends AbstractController
                     $article['empLabel'],
                     $article['barCode'],
                     $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
+                    $article['batch'],
+                    $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
+                    $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
                 ];
 
                 foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {

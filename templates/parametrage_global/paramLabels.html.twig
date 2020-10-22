@@ -25,61 +25,119 @@
             {% endfor %}
         </select>
     </div>
+    <span class="toggle-collapsible expanded">Arrivages</span>
+    <div class="collapsible expanded mb-2">
+        <div class="row mt-2">
+            <div class="form-group col-6">
+                <label for="param-bl-etiquette">Champ libre <span class="blChosen">"{{ blChosen }}"</span> sur les étiquettes</label>
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3 data"
+                           name="param-bl-etiquette" {{ wantsBL ? 'checked' : '' }}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="form-group col-6">
+                <label for="param-bl-etiquette">Afficher le destinataire sur étiquette colis d'arrivage</label>
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3 data"
+                           name="param-recipient-etiquette" {{ wantsRecipient ? 'checked' : '' }}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-6">
+                <label for="param-bl-etiquette">Afficher le numéro du colis dans l'arrivage</label>
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3 data"
+                           name="param-pack-count" {{ wantsPackCount ? 'checked' : '' }}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="form-group col-6">
+                <label for="param-bl-etiquette">Afficher les numéros de commande et le numéro de projet sur l'étiquette colis d'arrivage</label>
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3 data"
+                           name="param-command-project-numbers-etiquette" {{ wantsCommandAndProjectNumber ? 'checked' : '' }}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-6">
+                <label for="param-bl-etiquette">Afficher l'emplacement de dropzone sur l'étiquette colis d'arrivage</label>
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3 data"
+                           name="param-dz-location-etiquette" {{ wantsDZLocation ? 'checked' : '' }}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+    </div>
 
-    <div class="row">
-        <div class="form-group col-6">
-            <label for="param-bl-etiquette">Champ libre <span class="blChosen">"{{ blChosen }}"</span> sur les étiquettes</label>
-            <label class="switch">
-                <input type="checkbox" class="checkbox col-3 data"
-                       name="param-bl-etiquette" {{ wantsBL ? 'checked' : '' }}>
-                <span class="slider round"></span>
-            </label>
+    <span class="toggle-collapsible expanded">Articles</span>
+    <div class="collapsible expanded mb-2">
+        <div class="row mt-2">
+            <div class="form-group col-6">
+                <label for="param-add-destination-location-article-label">Afficher l’emplacement de destination sur étiquette article de réception</label>
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3 data"
+                           name="param-add-destination-location-article-label" {{ wantsDestinationLocation ? 'checked' : '' }} onchange="toggleRecipient($(this))">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="form-group col-6">
+                <label for="param-add-recipient-article-label">Afficher le destinataire sur étiquette article de réception</label>
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3 data"
+                           name="param-add-recipient-article-label" {{ wantsRecipientArticle ? 'checked' : '' }}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
         </div>
-        <div class="form-group col-6">
-            <label for="param-bl-etiquette">Afficher le destinataire sur étiquette colis d'arrivage</label>
-            <label class="switch">
-                <input type="checkbox" class="checkbox col-3 data"
-                       name="param-recipient-etiquette" {{ wantsRecipient ? 'checked' : '' }}>
-                <span class="slider round"></span>
-            </label>
+
+        <div class="row">
+            <div class="form-group col-6">
+                <label for="param-add-recipient-dropzone-location-article-label">Afficher l'emplacement de dropzone sur l'étiquette article de réception</label>
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3 data"
+                           name="param-add-recipient-dropzone-location-article-label" {{ wantsDropzoneLocationArticle ? 'checked' : '' }} onchange="toggleRecipient($(this))">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="form-group col-6">
+                <label for="param-add-batch-number-article-label">Afficher numéro de lot sur étiquette article de réception</label>
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3 data"
+                           name="param-add-batch-number-article-label" {{ wantsBatchNumberArticle ? 'checked' : '' }}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col-6">
+                <label for="param-add-expiration-date-article-label">Afficher date de péremption sur étiquette article de réception</label>
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3 data"
+                           name="param-add-expiration-date-article-label" {{ wantsExpirationDateArticle ? 'checked' : '' }}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="form-group col-6">
+                <label for="param-bl-etiquette">Afficher la quantité sur l'étiquette d'article</label>
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3 data"
+                           name="param-qtt-etiquette" {{ wantsQTT ? 'checked' : '' }}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
         </div>
     </div>
-    <div class="row">
-        <div class="form-group col-6">
-            <label for="param-bl-etiquette">Afficher la quantité sur l'étiquette d'article</label>
-            <label class="switch">
-                <input type="checkbox" class="checkbox col-3 data"
-                       name="param-qtt-etiquette" {{ wantsQTT ? 'checked' : '' }}>
-                <span class="slider round"></span>
-            </label>
-        </div>
-        <div class="form-group col-6">
-            <label for="param-bl-etiquette">Afficher l'emplacement de dropzone sur l'étiquette colis d'arrivage</label>
-            <label class="switch">
-                <input type="checkbox" class="checkbox col-3 data"
-                       name="param-dz-location-etiquette" {{ wantsDZLocation ? 'checked' : '' }}>
-                <span class="slider round"></span>
-            </label>
-        </div>
-    </div>
-    <div class="row">
-        <div class="form-group col-6">
-            <label for="param-bl-etiquette">Afficher le numéro du colis dans l'arrivage</label>
-            <label class="switch">
-                <input type="checkbox" class="checkbox col-3 data"
-                       name="param-pack-count" {{ wantsPackCount ? 'checked' : '' }}>
-                <span class="slider round"></span>
-            </label>
-        </div>
-        <div class="form-group col-6">
-            <label for="param-bl-etiquette">Afficher les numéros de commande et le numéro de projet sur l'étiquette colis d'arrivage</label>
-            <label class="switch">
-                <input type="checkbox" class="checkbox col-3 data"
-                       name="param-command-project-numbers-etiquette" {{ wantsCommandAndProjectNumber ? 'checked' : '' }}>
-                <span class="slider round"></span>
-            </label>
-        </div>
-    </div>
+
 
     <div class="form-group w-fit-content">
         <label for="param-type-etiquette">Type d'étiquette</label>

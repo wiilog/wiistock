@@ -13,6 +13,7 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\CollecteReference;
@@ -245,6 +246,19 @@ class ReferenceArticleController extends AbstractController
                     'name' => 'Synchronisation nomade',
                     "class" => (in_array('Synchronisation nomade', $columnsVisible) ? 'display' : 'hide'),
                 ],
+                [
+                    "title" => 'Gestion de stock',
+                    "data" => 'stockManagement',
+                    'name' => 'Gestion de stock',
+                    "class" => (in_array('Gestion de stock', $columnsVisible) ? 'display' : 'hide'),
+                ],
+                [
+                    "title" => 'Gestionnaire(s)',
+                    "data" => 'managers',
+                    'name' => 'Gestionnaire(s)',
+                    'orderable' => false,
+                    "class" => (in_array('Gestionnaire(s)', $columnsVisible) ? 'display' : 'hide'),
+                ]
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
@@ -311,6 +325,7 @@ class ReferenceArticleController extends AbstractController
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+            $userRepository = $entityManager->getRepository(Utilisateur::class);
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
@@ -380,6 +395,13 @@ class ReferenceArticleController extends AbstractController
                 $refArticle->setQuantiteStock(0);
             }
             $refArticle->setQuantiteReservee(0);
+            $refArticle->setStockManagement($data['stockManagement'] ?? null);
+
+            $managers = (array) $data['managers'];
+            if (isset($data['managers'])) {
+                foreach ($managers as $manager)
+                    $refArticle->addManager($userRepository->find($manager));
+            }
 
             if (!empty($data['frl'])) {
                 foreach ($data['frl'] as $frl) {
@@ -560,6 +582,16 @@ class ReferenceArticleController extends AbstractController
             'id' => 0,
             'typage' => 'date'
         ];
+        $champF[] = [
+            'label' => 'Gestion de stock',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champF[] = [
+            'label' => 'Gestionnaire(s)',
+            'id' => 0,
+            'typage' => 'text'
+        ];
 
         // champs pour recherche personnalisée (uniquement de type texte ou liste)
 		$champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_TEXT);
@@ -598,6 +630,18 @@ class ReferenceArticleController extends AbstractController
         ];
         $champsFText[] = [
             'label' => 'Référence Article Fournisseur',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champsFText[] = [
+            'label' => 'Gestion de stock',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champsFText[] = [
+            'label' => 'Gestionnaire(s)',
             'id' => 0,
             'typage' => 'text'
 
@@ -644,7 +688,11 @@ class ReferenceArticleController extends AbstractController
             'typeQuantite' => $typeQuantite,
             'filters' => $filtreRefRepository->findByUserExceptChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT),
             'categories' => $inventoryCategories,
-            'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF
+            'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF,
+            'stockManagement' => [
+                ReferenceArticle::STOCK_MANAGEMENT_FEFO,
+                ReferenceArticle::STOCK_MANAGEMENT_FIFO
+            ],
         ]);
     }
 
@@ -920,10 +968,13 @@ class ReferenceArticleController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
+            $transfertRepository = $entityManager->getRepository(TransferRequest::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
 
             $success = true;
 
             $refArticle = (isset($data['refArticle']) ? $referenceArticleRepository->find($data['refArticle']) : '');
+            $article = (isset($data['article']) ? $articleRepository->find($data['article']) : '');
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $statusName = $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : '';
 
@@ -931,7 +982,17 @@ class ReferenceArticleController extends AbstractController
             $currentUser = $this->getUser();
 
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
-				if (array_key_exists('livraison', $data) && $data['livraison']) {
+                if (array_key_exists('transfert', $data) && $data['transfert']) {
+                    $transfert = $transfertRepository->find($data['transfert']);
+
+                    if ($article) {
+                        $transfert
+                            ->addArticle($article);
+                    } else {
+                        $transfert
+                            ->addReference($refArticle);
+                    }
+                } else if (array_key_exists('livraison', $data) && $data['livraison']) {
 				    $demande = $demandeRepository->find($data['livraison']);
                     $success = $this->refArticleDataService->addRefToDemand(
                         $data,
@@ -961,15 +1022,16 @@ class ReferenceArticleController extends AbstractController
                         }
 					}
 
-				} elseif (array_key_exists('collecte', $data) && $data['collecte']) {
+				} else if (array_key_exists('collecte', $data) && $data['collecte']) {
 					$collecte = $collecteRepository->find($data['collecte']);
 					if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
 						//TODO patch temporaire CEA
-                        $data['quantity-to-pick'] = $data['quantite'];
-                        $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
-						//TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
-						//                    $article = $this->articleRepository->find($data['article']);
-						//                    $collecte->addArticle($article);
+                        if (!isset($article)) {
+                            $data['quantity-to-pick'] = $data['quantite'];
+                            $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
+                        } else {
+                            $collecte->addArticle($article);
+                        }
 					}
 					elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
 						$collecteReference = new CollecteReference();
@@ -1015,6 +1077,7 @@ class ReferenceArticleController extends AbstractController
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
+            $transfersRepository = $entityManager->getRepository(TransferRequest::class);
 
             $refArticle = $referenceArticleRepository->find($data['id']);
             if ($refArticle) {
@@ -1022,6 +1085,7 @@ class ReferenceArticleController extends AbstractController
 
                 $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
                 $demandes = $demandeRepository->findByStatutAndUser($statutD, $this->getUser());
+                $transfers = $transfersRepository->findByStatutLabelAndUser(TransferRequest::DRAFT, $this->getUser());
 
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($refArticle) {
@@ -1054,6 +1118,7 @@ class ReferenceArticleController extends AbstractController
                         'articleOrNo' => $articleOrNo,
                         'collectes' => $collectes,
                         'demandes' => $demandes,
+                        'transfers' => $transfers,
                         'demandeType' => $data['demande']
                     ]),
                     'editChampLibre' => $editChampLibre,
@@ -1155,7 +1220,9 @@ class ReferenceArticleController extends AbstractController
                 'code barre',
                 'catégorie inventaire',
                 'date dernier inventaire',
-                'synchronisation nomade'
+                'synchronisation nomade',
+                'gestion de stock',
+                'gestionnaire(s)'
             ],
             $freeFieldsConfig['freeFieldsHeader']
         );
@@ -1167,7 +1234,7 @@ class ReferenceArticleController extends AbstractController
         $start = 0;
         do {
             $references = $referenceArticleRepository->getAllWithLimits($start, $step);
-            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $freeFieldService, $references, ($start === 0 ? $headers : null), $freeFieldsConfig);
+            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $freeFieldService, $references, ($start === 0 ? $headers : null), $freeFieldsConfig, $entityManager);
             $references = null;
             $start += $step;
         } while ($start < $allReferencesCount);
@@ -1182,11 +1249,18 @@ class ReferenceArticleController extends AbstractController
                                          FreeFieldService $freeFieldService,
                                          array $references,
                                          ?array $headers,
-                                         array $freeFieldsConfig): string {
+                                         array $freeFieldsConfig,
+                                         $entityManager): string {
+
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+
+        $managersByReferenceArticle = $userRepository->getUsernameManagersGroupByReference();
+
         return $CSVExportService->createCsvFile(
             $references,
             $headers,
-            function ($reference) use ($freeFieldService, $freeFieldsConfig) {
+            function ($reference) use ($freeFieldService, $freeFieldsConfig, $managersByReferenceArticle) {
+                $referenceArticleId = (int) $reference['id'];
                 $referenceArray = [
                     $reference['reference'],
                     $reference['libelle'],
@@ -1203,6 +1277,8 @@ class ReferenceArticleController extends AbstractController
                     $reference['category'],
                     $reference['dateLastInventory'] ? $reference['dateLastInventory']->format('d/m/Y H:i:s') : '',
                     $reference['needsMobileSync'],
+                    $reference['stockManagement'],
+                    $managersByReferenceArticle[$referenceArticleId] ?? ''
                 ];
 
                 foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
@@ -1265,13 +1341,18 @@ class ReferenceArticleController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
+            $transferRepository = $entityManager->getRepository(TransferRequest::class);
 
             $statutDemande = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
             $demandes = $demandeRepository->findByStatutAndUser($statutDemande, $this->getUser());
             $collectes = $collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
+            $transfers = $transferRepository->findByStatutLabelAndUser(TransferRequest::DRAFT, $this->getUser());
 
             return $this->json([
-                "success" => $demandes || $collectes,
+                "success" =>
+                    ($data['typeDemande'] === 'livraison' && $demandes) ||
+                    ($data['typeDemande'] === 'collecte' && $collectes) ||
+                    ($data['typeDemande'] === 'transfert' && $transfers),
                 "msg" => "Vous n'avez créé aucune demande de {$data['typeDemande']}"
             ]);
         }

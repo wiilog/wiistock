@@ -463,7 +463,7 @@ function clearModalLigneReception(modal) {
     $('.packing-title').addClass('d-none');
     clearModal(modal);
 
-    toggleDLForm();
+    toggleForm($('.transfer-form,.demande-form'), null, true);
     resetDefaultArticleFournisseur();
 }
 
@@ -552,6 +552,7 @@ function initNewLigneReception($button) {
         editorNewLivraisonAlreadyDoneForDL = true;
     }
     Select2.init($modalNewLigneReception.find('.ajax-autocomplete-location'), '', 1, {route: 'get_emplacement'});
+    Select2.location($('.ajax-autocomplete-location-edit'));
     Select2.init($('.select2-type'));
     Select2.user($modalNewLigneReception.find('.select2-user'));
     Select2.initValues($('#demandeurDL'), $( '#currentUser'));
@@ -559,8 +560,12 @@ function initNewLigneReception($button) {
         route: 'get_ref_article_reception',
         param: {reception: $('#receptionId').val()}
     });
+
     if ($('#locationDemandeLivraison').length > 0) {
         Select2.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
+    }
+    if ($('#storageTransfer').length > 0) {
+        Select2.initValues($('#storage'), $('#storageTransfer'));
     }
 
     let urlNewLigneReception = Routing.generate(
@@ -570,6 +575,7 @@ function initNewLigneReception($button) {
     );
     let $submitNewReceptionButton = $modalNewLigneReception.find("#submitNewReceptionButton");
 
+    $submitNewReceptionButton.off('click');
     $submitNewReceptionButton.click(function () {
         const error = getErrorModalNewLigneReception();
         const $errorContainer = $modalNewLigneReception.find('.error-msg');
@@ -729,18 +735,29 @@ function updateQuantityToReceive($input) {
     $input.closest('.modal').find('[name="quantite"]').attr('max', $input.val());
 }
 
-function toggleDLForm() {
-    const $input = $('#modalNewLigneReception input[name="create-demande"]');
-    const $demandeForm = $input
-        .parents('form')
-        .find('.demande-form');
-
-    if ($input.is(':checked')) {
-        $demandeForm.removeClass('d-none');
-        $demandeForm.find('.data').attr('disabled', null);
+function toggleForm($content, $input, force = false) {
+    if (force) {
+        $content = $('.transfer-form');
+        $content.addClass('d-none');
+        $content.find('.data').attr('disabled', 'disabled');
     } else {
-        $demandeForm.addClass('d-none');
-        $demandeForm.find('.data').attr('disabled', 'disabled');
+        if ($input.is(':checked')) {
+            $content.removeClass('d-none');
+            $content.find('.data').attr('disabled', null);
+            if ($content.hasClass('transfer-form')) {
+                $('.demande-form').addClass('d-none');
+                $('.demande-form').find('.data').attr('disabled', 'disabled');
+                $('input[name="create-demande"]').prop('checked', false);
+            } else {
+                $('.transfer-form').addClass('d-none');
+                $('.transfer-form').find('.data').attr('disabled', 'disabled');
+                $('input[name="create-demande-transfert"]').prop('checked', false);
+
+            }
+        } else {
+            $content.addClass('d-none');
+            $content.find('.data').attr('disabled', 'disabled');
+        }
     }
 }
 

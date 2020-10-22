@@ -34,6 +34,10 @@ const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \/\-]{1,24}$/;
 // alert modals config
 const AUTO_HIDE_DEFAULT_DELAY = 2000;
 
+// set max date for pickers
+const MAX_DATETIME_HTML_INPUT = '2100-12-31T23:59'
+const MAX_DATE_HTML_INPUT = '2100-12-31'
+
 $(function () {
     $(document).on('hide.bs.modal', function () {
         $('.select2-container.select2-container--open').remove();
@@ -45,6 +49,8 @@ $(function () {
         openQueryModal();
     }, 200);
 
+    $('[type=datetime-local]').attr('max', MAX_DATETIME_HTML_INPUT);
+    $('[type=date]').attr('max', MAX_DATE_HTML_INPUT);
 });
 
 function openQueryModal(query = null, event) {
@@ -171,7 +177,7 @@ function toggleRadioButton($button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-function toggleLivraisonCollecte($switch) {
+function toggleRequestType($switch) {
     let type = $switch.val();
 
     let path = Routing.generate('demande', true);
@@ -186,8 +192,10 @@ function toggleLivraisonCollecte($switch) {
             let pathIndex;
             if (type === 'livraison') {
                 pathIndex = Routing.generate('demande_index', false);
-            } else {
+            } else if (type === 'collecte') {
                 pathIndex = Routing.generate('collecte_index', false);
+            } else if (type === 'transfert') {
+                pathIndex = Routing.generate('transfer_request_index', false);
             }
 
             boutonNouvelleDemande.find('#creationDemande').html(
@@ -195,11 +203,17 @@ function toggleLivraisonCollecte($switch) {
             );
 
             $switch.closest('.modal').find('.plusDemandeContent').addClass('d-none');
+            $switch.closest('.modal').find('.editChampLibre').addClass('d-none');
+            $switch.closest('.modal').find('#submitPlusDemande').addClass('d-none');
+            $switch.closest('.modal').find('#submitPlusDemandeAndRedirect').addClass('d-none');
         } else {
             ajaxPlusDemandeContent($switch, type);
             $switch.closest('.modal').find('.boutonCreationDemande').addClass('d-none');
             $switch.closest('.modal').find('.plusDemandeContent').removeClass('d-none');
             $switch.closest('.modal').find('.editChampLibre').removeClass('d-none');
+            $switch.closest('.modal').find('#submitPlusDemande').removeClass('d-none');
+            $switch.closest('.modal').find('#submitPlusDemandeAndRedirect').removeClass('d-none');
+            $switch.closest('.modal').find('.error-msg').html('');
         }
     }, 'json');
 }
@@ -243,15 +257,25 @@ function typeChoice($select, text, $freeFieldsContainer = null) {
 
 function updateQuantityDisplay($elem) {
     let $modalBody = $elem.closest('.modal-body');
+    const $reference = $modalBody.find('.reference');
+    const $article = $modalBody.find('.article');
+    const $allArticle = $modalBody.find('.article, .emergency-comment');
     let typeQuantite = $modalBody.find('.type_quantite').val();
 
     if (typeQuantite == 'reference') {
-        $modalBody.find('.article').addClass('d-none');
-        $modalBody.find('.reference').removeClass('d-none');
+        $allArticle.addClass('d-none');
+        $reference.removeClass('d-none');
 
+        clearCheckboxes($allArticle);
+        $allArticle.find('input, select').val('');
+        $allArticle.find('select.select2-hidden-accessible').select2('val', '');
     } else if (typeQuantite == 'article') {
-        $modalBody.find('.reference').addClass('d-none');
-        $modalBody.find('.article').removeClass('d-none');
+        $reference.addClass('d-none');
+        $article.removeClass('d-none');
+
+        clearCheckboxes($reference);
+        $reference.find('input, select').val('');
+        $reference.find('select.select2-hidden-accessible').select2('val', '');
     }
 }
 
@@ -823,6 +847,7 @@ function displayFiltersSup(data) {
             case 'multipleTypes':
             case 'receivers':
             case 'requesters':
+            case 'operators':
             case 'dispatchNumber':
             case 'emergencyMultiple':
                 let valuesElement = element.value.split(',');
@@ -862,7 +887,7 @@ function displayFiltersSup(data) {
                 break;
 
             case 'emergency':
-            case 'duty':
+            case 'customs':
             case 'frozen':
                 if (element.value === '1') {
                     $('#' + element.field + '-filter').attr('checked', 'checked');

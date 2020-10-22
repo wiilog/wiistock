@@ -11,6 +11,7 @@ use App\Entity\FiltreSup;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -153,13 +154,13 @@ class ArrivageDataService
             'orderNumber' => implode(',', $arrival->getNumeroCommandeList()),
             'type' => $arrival->getType() ? $arrival->getType()->getLabel() : '',
             'nbUm' => $arrivalRepository->countColisByArrivage($arrival),
-            'custom' => $arrival->getDuty() ? 'oui' : 'non',
+            'custom' => $arrival->getCustoms() ? 'oui' : 'non',
             'frozen' => $arrival->getFrozen() ? 'oui' : 'non',
             'provider' => $arrival->getFournisseur() ? $arrival->getFournisseur()->getNom() : '',
             'receiver' => $arrival->getDestinataire() ? $arrival->getDestinataire()->getUsername() : '',
             'buyers' => implode(', ', $acheteursUsernames),
             'status' => $arrival->getStatut() ? $arrival->getStatut()->getNom() : '',
-            'date' => $arrival->getDate() ? $arrival->getDate()->format('d/m/Y H:i:s') : '',
+            'creationDate' => $arrival->getDate() ? $arrival->getDate()->format('d/m/Y H:i:s') : '',
             'user' => $arrival->getUtilisateur() ? $arrival->getUtilisateur()->getUsername() : '',
             'emergency' => $arrival->getIsUrgent() ? 'oui' : 'non',
             'projectNumber' => $arrival->getProjectNumber() ?? '',
@@ -181,10 +182,7 @@ class ArrivageDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function sendArrivalEmails(Arrivage $arrival,
-                                      array $emergencies = []): void
-    {
-
+    public function sendArrivalEmails(Arrivage $arrival, array $emergencies = []): void {
         $isUrgentArrival = !empty($emergencies);
         $finalRecipents = [];
         if ($isUrgentArrival) {
@@ -450,15 +448,15 @@ class ArrivageDataService
             [
                 'label' => $this->translator->trans('arrivage.douane'),
                 'title' => 'douane',
-                'value' => $arrivage->getDuty() ? 'oui' : 'non',
-                'show' => [ 'fieldName' => 'duty' ]
+                'value' => $arrivage->getCustoms() ? 'oui' : 'non',
+                'show' => [ 'fieldName' => 'customs' ]
             ],
             [
                 'label' => $this->translator->trans('arrivage.congelé'),
                 'title' => 'congelé',
                 'value' => $arrivage->getFrozen() ? 'oui' : 'non',
                 'show' => [ 'fieldName' => 'frozen' ]
-            ]
+            ],
         ];
 
         $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_ARRIVAGE);
@@ -502,7 +500,7 @@ class ArrivageDataService
 
         $columns = [
             ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
-            ['title' => 'Date', 'name' => 'date'],
+            ['title' => 'Date de création', 'name' => 'creationDate'],
             ['title' => 'arrivage.n° d\'arrivage',  'name' => 'arrivalNumber', 'translated' => true],
             ['title' => 'Transporteur', 'name' => 'carrier'],
             ['title' => 'Chauffeur', 'name' => 'driver'],

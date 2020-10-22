@@ -123,10 +123,11 @@ class ParametrageGlobalController extends AbstractController
                     'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
                     'location' => $globalParamService->getMvtDeposeArrival(),
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
-                    'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL)
+                    'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
+                    'printTwice' =>$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PRINT_TWICE_CUSTOMS)
                 ],
                 'paramStock' => [
-                    'alertThreshold' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_ALERT_THRESHOLD),
+                    'alertThreshold' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_WARNING_THRESHOLD),
                     'securityThreshold' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_SECURITY_THRESHOLD),
                     'expirationDelay' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY)
                 ],
@@ -166,6 +167,11 @@ class ParametrageGlobalController extends AbstractController
                 'wantsRecipient' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL),
                 'wantsDZLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL),
                 'wantsCommandAndProjectNumber' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL),
+                'wantsDestinationLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL),
+                'wantsRecipientArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL),
+                'wantsDropzoneLocationArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL),
+                'wantsBatchNumberArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL),
+                'wantsExpirationDateArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL),
                 'wantsPackCount' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL),
             ]);
     }
@@ -232,6 +238,61 @@ class ParametrageGlobalController extends AbstractController
 
         $parametrageGlobalDZLocation
             ->setValue((int) ($data['param-dz-location-etiquette'] === 'true'));
+
+        $globalSettingsDestinationLocation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
+
+        if (empty($globalSettingsDestinationLocation)) {
+            $globalSettingsDestinationLocation = new ParametrageGlobal();
+            $globalSettingsDestinationLocation->setLabel(ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
+            $entityManager->persist($globalSettingsDestinationLocation);
+        }
+
+        $globalSettingsDestinationLocation
+            ->setValue((int) ($data['param-add-destination-location-article-label'] === 'true'));
+
+        $globalSettingsRecipientOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL);
+
+        if (empty($globalSettingsRecipientOnArticleLabel)) {
+            $globalSettingsRecipientOnArticleLabel = new ParametrageGlobal();
+            $globalSettingsRecipientOnArticleLabel->setLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL);
+            $entityManager->persist($globalSettingsRecipientOnArticleLabel);
+        }
+
+        $globalSettingsRecipientOnArticleLabel
+            ->setValue((int) ($data['param-add-recipient-article-label'] === 'true'));
+
+        $globalSettingsRecipientDropzoneOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL);
+
+        if (empty($globalSettingsRecipientDropzoneOnArticleLabel)) {
+            $globalSettingsRecipientDropzoneOnArticleLabel = new ParametrageGlobal();
+            $globalSettingsRecipientDropzoneOnArticleLabel->setLabel(ParametrageGlobal::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL);
+            $entityManager->persist($globalSettingsRecipientDropzoneOnArticleLabel);
+        }
+
+        $globalSettingsRecipientDropzoneOnArticleLabel
+            ->setValue((int) ($data['param-add-recipient-dropzone-location-article-label'] === 'true'));
+
+        $globalSettingsBatchNumberOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
+
+        if (empty($globalSettingsBatchNumberOnArticleLabel)) {
+            $globalSettingsBatchNumberOnArticleLabel = new ParametrageGlobal();
+            $globalSettingsBatchNumberOnArticleLabel->setLabel(ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
+            $entityManager->persist($globalSettingsBatchNumberOnArticleLabel);
+        }
+
+        $globalSettingsBatchNumberOnArticleLabel
+            ->setValue((int) ($data['param-add-batch-number-article-label'] === 'true'));
+
+        $globalSettingsExpirationDateOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
+
+        if (empty($globalSettingsExpirationDateOnArticleLabel)) {
+            $globalSettingsExpirationDateOnArticleLabel = new ParametrageGlobal();
+            $globalSettingsExpirationDateOnArticleLabel->setLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
+            $entityManager->persist($globalSettingsExpirationDateOnArticleLabel);
+        }
+
+        $globalSettingsExpirationDateOnArticleLabel
+            ->setValue((int) ($data['param-add-expiration-date-article-label'] === 'true'));
 
         $parametrageGlobalCommandAndProjectNumbers = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
 
@@ -393,10 +454,10 @@ class ParametrageGlobalController extends AbstractController
 
         $expirationDelay = $request->request->get('expirationDelay');
 
-        if(!empty($expirationDelay) && !preg_match('/\d\d:\d\d/', $expirationDelay)) {
+        if($expirationDelay && !preg_match('/(\d+s)? *(\d+j)? *(\d+h)?/', $expirationDelay)) {
             return $this->json([
                 'success' => false,
-                'msg' => "Le délai d'expiration doit être renseigné au format HH:MM"
+                'msg' => "Le délai de péremption doit être renseigné au format \"1s 4d 18h\""
             ]);
         }
 

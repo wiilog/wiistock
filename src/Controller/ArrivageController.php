@@ -23,6 +23,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
+use App\Helper\Stream;
 use App\Repository\TransporteurRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
@@ -269,7 +270,7 @@ class ArrivageController extends AbstractController
                 ->setStatut($statutRepository->find($data['status']))
                 ->setUtilisateur($currentUser)
                 ->setNumeroArrivage($numeroArrivage)
-                ->setDuty(isset($data['duty']) ? $data['duty'] == 'true' : false)
+                ->setCustoms(isset($data['customs']) ? $data['customs'] == 'true' : false)
                 ->setFrozen(isset($data['frozen']) ? $data['frozen'] == 'true' : false)
                 ->setCommentaire($data['commentaire'] ?? null)
                 ->setType($typeRepository->find($data['type']));
@@ -542,7 +543,7 @@ class ArrivageController extends AbstractController
                 ->setTransporteur($transporteurId ? $this->transporteurRepository->find($transporteurId) : null)
                 ->setChauffeur($chauffeurId ? $chauffeurRepository->find($chauffeurId) : null)
                 ->setStatut($statutId ? $statutRepository->find($statutId) : null)
-                ->setDuty($post->get('duty') == 'true')
+                ->setCustoms($post->get('customs') == 'true')
                 ->setFrozen($post->get('frozen') == 'true')
                 ->setDestinataire($newDestinataire)
                 ->setBusinessUnit($post->get('businessUnit') ?? null)
@@ -879,7 +880,7 @@ class ArrivageController extends AbstractController
                     $row[] = !empty($arrival['numeroCommandeList']) ? implode(' / ', $arrival['numeroCommandeList']) : '';
                     $row[] = $arrival['type'] ?: '';
                     $row[] = $buyersByArrival[$arrivalId] ?? '';
-                    $row[] = $arrival['duty'] ? 'oui' : 'non';
+                    $row[] = $arrival['customs'] ? 'oui' : 'non';
                     $row[] = $arrival['frozen'] ? 'oui' : 'non';
                     $row[] = $arrival['statusName'] ?: '';
                     $row[] = $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '';
@@ -953,6 +954,7 @@ class ArrivageController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::LITIGE_ARR);
+
         return $this->render("arrivage/show.html.twig", [
             'arrivage' => $arrivage,
             'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
@@ -1467,6 +1469,7 @@ class ArrivageController extends AbstractController
         $dropzoneParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL);
         $packCountParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL);
         $commandAndProjectNumberIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
+        $printTwiceIfCustoms = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PRINT_TWICE_CUSTOMS);
 
         if (!isset($colis)) {
             $printColis = $request->query->getBoolean('printColis');
@@ -1504,6 +1507,15 @@ class ArrivageController extends AbstractController
                 $packCountParamIsDefined,
                 $commandAndProjectNumberIsDefined
             );
+        }
+
+        $printTwice = ($printTwiceIfCustoms && $arrivage->getCustoms());
+        if($printTwice) {
+            $barcodeConfigs = Stream::from($barcodeConfigs)
+                ->flatMap(function($barCodeConfig){
+                    return [$barCodeConfig, $barCodeConfig];
+                })
+                ->toArray();
         }
 
         if (empty($barcodeConfigs)) {

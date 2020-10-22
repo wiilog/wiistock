@@ -33,16 +33,16 @@
                        class="checkbox col-3"
                        {{ checked }}
                        name="param-alert-threshold"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::SEND_MAIL_MANAGER_ALERT_THRESHOLD') }}">
+                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::SEND_MAIL_MANAGER_WARNING_THRESHOLD') }}">
                 <span class="slider round"></span>
             </label>
             <label class="pl-1" for="param-alert-threshold">Envoi de mail au gestionnaire de la référence si seuil d'alerte atteint</label>
         </div>
     </div>
     <div class="form-group w-fit-content mt-2">
-        <label>Délais alerte péremption (format HH:MM)</label>
+        <label>Délais alerte péremption</label>
         <input type="text" class="form-control data"
-               name="expirationDelay"
+               name="expirationDelay" placeholder="1s 3j 8h"
                value="{{ expirationDelay }}">
     </div>
 </div>

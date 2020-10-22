@@ -225,7 +225,7 @@ function updateStockParam() {
 
     Promise
         .all([
-            $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'SEND_MAIL_MANAGER_ALERT_THRESHOLD', val: $('[name="param-security-threshold"]').val()})),
+            $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'SEND_MAIL_MANAGER_WARNING_THRESHOLD', val: $('[name="param-security-threshold"]').val()})),
             $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'SEND_MAIL_MANAGER_SECURITY_THRESHOLD', val: $('[name="param-alert-threshold"]').val()})),
             $.post(Routing.generate('ajax_update_expiration_delay', true), {expirationDelay})
         ])
@@ -464,4 +464,14 @@ function saveDispatchesParam() {
                 showBSAlert("Une erreur est survenue lors de la mise à jour des paramétrages d'acheminements.", 'danger');
             }
         });
+}
+
+function toggleRecipient($checkbox) {
+     if ($checkbox.attr('name') === 'param-add-destination-location-article-label'
+        && $checkbox.prop('checked')) {
+        $('.checkbox[name="param-add-recipient-dropzone-location-article-label"]').prop('checked', false);
+    } else if ($checkbox.attr('name') === 'param-add-recipient-dropzone-location-article-label'
+        && $checkbox.prop('checked')) {
+        $('.checkbox[name="param-add-destination-location-article-label"]').prop('checked', false);
+    }
 }

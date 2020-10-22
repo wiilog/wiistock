@@ -99,7 +99,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 			CategorieStatut::MVT_STOCK => [
 				MouvementStock::TYPE_ENTREE,
 				MouvementStock::TYPE_SORTIE,
-				MouvementStock::TYPE_TRANSFERT,
+				MouvementStock::TYPE_TRANSFER,
 				MouvementStock::TYPE_INVENTAIRE_ENTREE,
 				MouvementStock::TYPE_INVENTAIRE_SORTIE,
 			],
@@ -113,7 +113,6 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
                 TransferRequest::TREATED,
             ],
             CategorieStatut::TRANSFER_ORDER => [
-                TransferOrder::DRAFT,
                 TransferOrder::TO_TREAT,
                 TransferOrder::TREATED,
             ],

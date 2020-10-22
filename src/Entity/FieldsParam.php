@@ -49,7 +49,7 @@ class FieldsParam
     const FIELD_CODE_PRINT_ARRIVAGE = 'imprimerArrivage';
     const FIELD_CODE_COMMENTAIRE_ARRIVAGE = 'commentaire';
     const FIELD_CODE_PJ_ARRIVAGE = 'pj';
-    const FIELD_CODE_DUTY_ARRIVAGE = 'duty';
+    const FIELD_CODE_CUSTOMS_ARRIVAGE = 'customs';
     const FIELD_CODE_FROZEN_ARRIVAGE = 'frozen';
     const FIELD_CODE_PROJECT_NUMBER = 'projectNumber';
     const FIELD_CODE_BUSINESS_UNIT = 'businessUnit';
@@ -64,7 +64,7 @@ class FieldsParam
     const FIELD_LABEL_PRINT_ARRIVAGE = 'imprimer arrivage';
     const FIELD_LABEL_COMMENTAIRE_ARRIVAGE = 'commentaire';
     const FIELD_LABEL_PJ_ARRIVAGE = 'Pièces jointes';
-	const FIELD_LABEL_DUTY_ARRIVAGE = 'douane';
+	const FIELD_LABEL_CUSTOMS_ARRIVAGE = 'douane';
 	const FIELD_LABEL_FROZEN_ARRIVAGE = 'congelé';
     const FIELD_LABEL_PROJECT_NUMBER = 'numéro projet';
     const FIELD_LABEL_BUSINESS_UNIT = 'business unit';

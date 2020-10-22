@@ -112,13 +112,13 @@ class UrgencesController extends AbstractController
 
         if ($sameUrgentCounter > 0) {
             $response['success'] = false;
-            $response['message'] = $this->getErrorMessageForDuplicate($isSEDCurrentClient);
+            $response['msg'] = $this->getErrorMessageForDuplicate($isSEDCurrentClient);
         }
         else {
             $entityManager->persist($urgence);
             $entityManager->flush();
             $response['success'] = true;
-            $response['message'] = "L'urgence a été créée avec succès.";
+            $response['msg'] = "L'urgence a été créée avec succès.";
         }
         return new JsonResponse($response);
     }
@@ -215,17 +215,17 @@ class UrgencesController extends AbstractController
 
             if ($sameUrgentCounter > 0) {
                 $response['success'] = false;
-                $response['message'] = $this->getErrorMessageForDuplicate($isSEDCurrentClient);;
+                $response['msg'] = $this->getErrorMessageForDuplicate($isSEDCurrentClient);;
             }
             else {
                 $entityManager->flush();
                 $response['success'] = true;
-                $response['message'] = "L'urgence a été modifiée avec succès.";
+                $response['msg'] = "L'urgence a été modifiée avec succès.";
             }
         }
         else {
             $response['success'] = false;
-            $response['message'] = "Une erreur est survenue lors de la modification de l'urgence.";
+            $response['msg'] = "Une erreur est survenue lors de la modification de l'urgence.";
         }
 
         return new JsonResponse($response);

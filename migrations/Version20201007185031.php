@@ -49,6 +49,7 @@ final class Version20201007185031 extends AbstractMigration
             $comment = isset($code['commentaire']) ? str_replace("\\", "\\\\", $code['commentaire']) : null;
             $comment = isset($code['commentaire']) ? str_replace("'", "''", $comment) : null;
             $comment = isset($code['commentaire']) ? "'{$comment}'" : 'NULL';
+            $freeFields = $tracking['free_fields'] ? "'".$tracking['free_fields']."'" : "'[]'";
 
             $this->addSql("INSERT INTO mouvement_traca
                 (
@@ -73,10 +74,12 @@ final class Version20201007185031 extends AbstractMigration
                 {$tracking['finished']},
                 {$tracking['arrivage_id']},
                 {$packId},
-                '{$tracking['free_fields']}',
+                {$freeFields},
                 {$tracking['quantity']}
             )");
 
+            $this->addSql("UPDATE pack SET last_drop_id = (SELECT LAST_INSERT_ID()) WHERE last_drop_id = {$trackingId}");
+            $this->addSql("UPDATE pack SET last_tracking_id = (SELECT LAST_INSERT_ID()) WHERE last_tracking_id = {$trackingId}");
             $this->addSql("DELETE FROM mouvement_traca WHERE id = {$trackingId}");
         }
 

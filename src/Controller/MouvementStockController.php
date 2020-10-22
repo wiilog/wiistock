@@ -56,7 +56,7 @@ class MouvementStockController extends AbstractController
             'typesMvt' => [
                 MouvementStock::TYPE_ENTREE,
                 MouvementStock::TYPE_SORTIE,
-                MouvementStock::TYPE_TRANSFERT,
+                MouvementStock::TYPE_TRANSFER,
             ]
         ]);
     }
@@ -183,6 +183,7 @@ class MouvementStockController extends AbstractController
                         $response['msg'] = 'La quantité saisie est superieure à la quantité disponible de la référence.';
                     } else {
                         $response['success'] = true;
+                        $response['msg'] = "Mouvement créé avec succès";
                         $emplacementFrom = $chosenArticleToMove->getEmplacement();
                         if ($chosenArticleToMove instanceof ReferenceArticle) {
                             $chosenArticleToMove
@@ -197,6 +198,7 @@ class MouvementStockController extends AbstractController
                     }
                 } else if ($chosenMvtType === MouvementStock::TYPE_ENTREE) {
                     $response['success'] = true;
+                    $response['msg'] = "Mouvement créé avec succès";
                     $emplacementTo = $chosenArticleToMove->getEmplacement();
                     if ($chosenArticleToMove instanceof ReferenceArticle) {
                         $chosenArticleToMove
@@ -205,7 +207,7 @@ class MouvementStockController extends AbstractController
                         $chosenArticleToMove
                             ->setQuantite($chosenArticleToMoveAvailableQuantity + $quantity);
                     }
-                } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFERT) {
+                } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFER) {
                     $chosenLocation = $emplacementRepository->find($chosenMvtLocation);
                     if ($chosenArticleToMove->isUsedInQuantityChangingProcesses()) {
                         $response['msg'] = 'La référence saisie est présente dans une demande livraison/collecte en cours de traitement, impossible de la transférer.';
@@ -213,6 +215,7 @@ class MouvementStockController extends AbstractController
                         $response['msg'] = 'L\'emplacement saisi est inconnu.';
                     } else {
                         $response['success'] = true;
+                        $response['msg'] = "Mouvement créé avec succès";
                         $quantity = $chosenArticleToMoveAvailableQuantity;
                         $emplacementTo = $chosenLocation;
                         $emplacementFrom = $chosenArticleToMove->getEmplacement();
@@ -245,6 +248,7 @@ class MouvementStockController extends AbstractController
                         $entityManager->persist($associatedDropTracaMvt);
                     }
                 }
+
                 if ($response['success']) {
                     $newMvtStock = $mouvementStockService->createMouvementStock($loggedUser, $emplacementFrom, $quantity, $chosenArticleToMove, $chosenMvtType);
                     $mouvementStockService->finishMouvementStock($newMvtStock, $now, $emplacementTo);

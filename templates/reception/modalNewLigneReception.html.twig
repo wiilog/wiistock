@@ -12,16 +12,16 @@
                 <!--
                 BLOCK DL
                 -->
-                    <label>Demande de livraison</label>
-                    <label class="switch">
-                        <input class="checkbox data needs-default"
-                               name="create-demande"
-                               onclick="toggleDLForm()"
-                               data-init="{{ createDL ? 1 : 0 }}"
-                               type="checkbox"/>
-                        <span class="slider round"></span>
-                    </label>
-                <div class="demande-form mt-2" style="background-color:#F8F8F8;padding:10px;border-radius:4px;">
+                <label>Demande de livraison</label>
+                <label class="switch">
+                    <input class="checkbox data needs-default"
+                           name="create-demande"
+                           onclick="toggleForm($('.demande-form'), $(this))"
+                           data-init="{{ createDL ? 1 : 0 }}"
+                           type="checkbox"/>
+                    <span class="slider round"></span>
+                </label>
+                <div class="demande-form mt-2 {{ not createDL ? 'd-none' }}" style="background-color:#F8F8F8;padding:10px;border-radius:4px;">
                     <div class="row">
                         <div class="col-4 form-group">
                             <label for="destination">Destination*</label>
@@ -86,13 +86,36 @@
                            type="hidden"/>
                     <div class="editor-container" id="editor-container-new-demande"></div>
                 </div>
-
+                <div class="mt-2">
+                    <label>Demande de transfert</label>
+                    <label class="switch">
+                        <input class="checkbox data needs-default"
+                               name="create-demande-transfert"
+                               onclick="toggleForm($('.transfer-form'), $(this))"
+                               data-init="0"
+                               type="checkbox"/>
+                        <span class="slider round"></span>
+                    </label>
+                    <div class="transfer-form mt-4" style="background-color:#F8F8F8;padding:10px;border-radius:4px;">
+                        <div class="row">
+                            <div class="col-4 form-group">
+                                <label for="storage">Emplacement de stockage*</label>
+                                <select name="storage" class="data ajax-autocomplete-location-edit w-100 needed" id="storage">
+                                </select>
+                                <input hidden id="storageTransfer"
+                                       data-id="{{ reception.storageLocation ? reception.storageLocation.id }}"
+                                       data-text="{{ reception.storageLocation ? reception.storageLocation.label }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!--
                 BLOCK CONDITIONNEMENT
                 -->
                 <div class="bloc-packing mt-5">
                     <h5 class="bold mb-3">
-                        <span title="réception">{{ 'réception.réception'|trans }}</span> <span title="d'articles">{{ "réception.d'articles"|trans }}</span>
+                        <span title="réception">{{ 'réception.réception'|trans }}</span> <span
+                            title="d'articles">{{ "réception.d'articles"|trans }}</span>
                     </h5>
                     <div class="row align-items-center">
                         <div class="col-4">

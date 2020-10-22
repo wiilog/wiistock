@@ -29,7 +29,8 @@ class ReceptionRepository extends ServiceEntityRepository
         'Statut' => 'statut',
         'Fournisseur' => 'fournisseur',
         'emergency' => 'emergency',
-        'storageLocation' => 'storageLocation'
+        'storageLocation' => 'storageLocation',
+        'urgence' => 'emergencyTriggered',
     ];
 
     public function __construct(ManagerRegistry $registry)
@@ -118,6 +119,7 @@ class ReceptionRepository extends ServiceEntityRepository
             ->addSelect('article.barCode as articleBarcode')
             ->addSelect('reception.manualUrgent AS emergency')
             ->addSelect('join_storageLocation.label AS storageLocation')
+            ->addSelect('join_request_user.username AS requesterUsername')
 
             ->where('reception.date BETWEEN :dateMin AND :dateMax')
 
@@ -132,6 +134,8 @@ class ReceptionRepository extends ServiceEntityRepository
             ->leftJoin('article.type', 'articleType')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('articleFournisseur.referenceArticle', 'articleReferenceArticle')
+            ->leftJoin('article.demande', 'join_request')
+            ->leftJoin('join_request.utilisateur', 'join_request_user')
 
             ->setParameters([
                 'dateMin' => $dateMin,
@@ -158,6 +162,23 @@ class ReceptionRepository extends ServiceEntityRepository
 						->join('r.statut', 's')
 						->andWhere('s.id in (:statut)')
 						->setParameter('statut', $value);
+					break;
+
+                case 'utilisateurs':
+                    $values = array_map(function($value) {
+                        return explode(":", $value)[0];
+                    }, explode(',', $filter['value']));
+                    $qb
+                        ->join('r.demandes', 'filter_request')
+                        ->join('filter_request.utilisateur', 'filter_request_user');
+
+                    $exprBuilder = $qb->expr();
+                    $OROperands = [];
+                    foreach ($values as $index => $user) {
+                        $OROperands[] = "filter_request_user.id = :user$index";
+                        $qb->setParameter("user$index", $user);
+                    }
+                    $qb->andWhere('(' . $exprBuilder->orX(...$OROperands) . ')');
 					break;
                 case 'providers':
                     $value = explode(',', $filter['value']);
@@ -191,14 +212,16 @@ class ReceptionRepository extends ServiceEntityRepository
                     $qb
 						->leftJoin('r.statut', 's2')
 						->leftJoin('r.fournisseur', 'f2')
-                        ->andWhere('(
+                        ->leftJoin('r.demandes', 'search_request')
+                        ->leftJoin('search_request.utilisateur', 'search_request_User')
+                        ->andWhere('
                             r.date LIKE :value
                             OR r.numeroReception LIKE :value
                             OR r.orderNumber LIKE :value
-                            OR r.commentaire lIKE :value
+                            OR r.commentaire LIKE :value
                             OR s2.nom LIKE :value
                             OR f2.nom LIKE :value
-                        )')
+                            OR search_request_User.username LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }

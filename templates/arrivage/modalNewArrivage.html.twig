@@ -353,12 +353,12 @@
                     {% endif %}
                 </div>
                 <div class="row">
-                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DUTY_ARRIVAGE') %}
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group col-2">
                             <label>{{ 'arrivage.douane'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
-                                <input class="checkbox no-clear" type="checkbox" name="duty">
+                                <input class="checkbox no-clear" type="checkbox" name="customs">
                                 <span class="slider round"></span>
                             </label>
                         </div>

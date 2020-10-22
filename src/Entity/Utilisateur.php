@@ -18,7 +18,7 @@ class Utilisateur implements UserInterface, EquatableInterface
 {
 	const COL_VISIBLE_ARTICLES_DEFAULT = ["Actions", "Libellé", "Référence", "Référence article", "Type", "Quantité", "Emplacement"];
     const COL_VISIBLE_REF_DEFAULT = ["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"];
-    const COL_VISIBLE_ARR_DEFAULT = ["date", "numeroArrivage", "transporteur", "chauffeur", "noTracking", "NumeroCommandeList", "fournisseur", "destinataire", "acheteurs", "NbUM", "duty", "frozen", "Statut", "Utilisateur", "urgent", "actions"];
+    const COL_VISIBLE_ARR_DEFAULT = ["date", "numeroArrivage", "transporteur", "chauffeur", "noTracking", "NumeroCommandeList", "fournisseur", "destinataire", "acheteurs", "NbUM", "customs", "frozen", "Statut", "Utilisateur", "urgent", "actions"];
     const COL_VISIBLE_DISPATCH_DEFAULT = ["number", "creationDate", "validationDate", "treatmentDate", "type", "requester", "receiver", "locationFrom", "locationTo", "nbPacks", "status", "emergency", "actions"];
     const COL_VISIBLE_TRACKING_MOVEMENT_DEFAULT = ["origin", "date", "colis", "reference", "label", "quantity", "location", "type", "operateur"];
     const COL_VISIBLE_LIT_DEFAULT = ["type", "arrivalNumber", "receptionNumber", "buyers", "numCommandeBl", "command", "provider", "references", "lastHistorique", "creationDate", "updateDate", "status", "actions"];
@@ -304,6 +304,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $litigesDeclarant;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="managers")
+     */
+    private $referencesArticle;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -333,6 +338,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->litiges = new ArrayCollection();
         $this->referencesEmergenciesTriggered = new ArrayCollection();
         $this->litigesDeclarant = new ArrayCollection();
+        $this->referencesArticle = new ArrayCollection();
         $this->secondaryEmails = [];
         $this->savedDispatchDeliveryNoteData = [];
         $this->savedDispatchWaybillData = [];
@@ -1334,6 +1340,34 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
+    /**
+     * @return Collection|ReferenceArticle[]
+     */
+    public function getReferencesArticle(): Collection
+    {
+        return $this->referencesArticle;
+    }
+
+    public function addReferenceArticle(ReferenceArticle $referenceArticle): self
+    {
+        if (!$this->referencesArticle->contains($referenceArticle)) {
+            $this->referencesArticle[] = $referenceArticle;
+            $referenceArticle->addManager($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReferenceArticle(ReferenceArticle $referenceArticle): self
+    {
+        if ($this->referencesArticle->contains($referenceArticle)) {
+            $this->referencesArticle->removeElement($referenceArticle);
+            $referenceArticle->removeManager($this);
+        }
+
+        return $this;
+    }
+
     public function getRechercheForArticle(): array
     {
         return $this->rechercheForArticle;
@@ -1577,5 +1611,4 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->phone = $phone;
         return $this;
     }
-
 }

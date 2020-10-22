@@ -33,14 +33,18 @@ class MouvementStockService
 
     private $entityManager;
 
+    private $trackingMovementService;
+
     public function __construct(RouterInterface $router,
                                 EntityManagerInterface $entityManager,
+                                TrackingMovementService $mouvementTracaService,
                                 Twig_Environment $templating)
     {
 
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
+        $this->trackingMovementService = $mouvementTracaService;
     }
 
     /**
@@ -149,9 +153,11 @@ class MouvementStockService
         } else if ($mouvement->getImport()) {
             $from = 'import';
             $orderPath = 'import_index';
-        } else if ($trackingMovementRepository->countByMouvementStock($mouvement) > 0) {
+        } else if ($mouvement->getTransferOrder()) {
             $from = 'transfert de stock';
-        } else if (in_array($mouvement->getType(), [MouvementStock::TYPE_INVENTAIRE_ENTREE, MouvementStock::TYPE_INVENTAIRE_SORTIE])) {
+            $orderPath = 'transfer_order_show';
+            $orderId = $mouvement->getTransferOrder()->getId();
+        }  else if (in_array($mouvement->getType(), [MouvementStock::TYPE_INVENTAIRE_ENTREE, MouvementStock::TYPE_INVENTAIRE_SORTIE])) {
             $from = 'inventaire';
         }
         return [
@@ -167,13 +173,16 @@ class MouvementStockService
      * @param int $quantity
      * @param Article|ReferenceArticle $article
      * @param string $type
-     * @return MouvementStock
+     * @param bool $needsTracing
+     * @return void
+     * @throws \Exception
      */
     public function createMouvementStock(Utilisateur $user,
                                          ?Emplacement $locationFrom,
                                          int $quantity,
                                          $article,
                                          string $type): MouvementStock {
+
         $newMouvement = new MouvementStock();
         $newMouvement
             ->setUser($user)
@@ -194,7 +203,9 @@ class MouvementStockService
     /**
      * @param MouvementStock $mouvementStock
      * @param DateTime $date
-     * @param Emplacement $locationTo
+     * @param Emplacement|null $locationTo
+     * @param bools|false $needsTracing
+     * @throws \Exception
      */
     public function finishMouvementStock(MouvementStock $mouvementStock,
                                          DateTime $date,
