@@ -398,7 +398,7 @@ class DemandeLivraisonService
         }
         $response = [];
         $response['success'] = true;
-        $response['message'] = '';
+        $response['msg'] = '';
         // pour réf gérées par articles
         $articles = $demande->getArticles();
         foreach ($articles as $article) {
@@ -407,7 +407,7 @@ class DemandeLivraisonService
                 && $statutArticle->getNom() !== Article::STATUT_ACTIF) {
                 $response['success'] = false;
                 $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $article->getBarCode();
-                $response['message'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
+                $response['msg'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
             } else {
                 $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
                 $totalQuantity = $refArticle->getQuantiteDisponible();
@@ -417,7 +417,7 @@ class DemandeLivraisonService
                 if ($article->getQuantiteAPrelever() > $treshHold) {
                     $response['success'] = false;
                     $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $article->getBarCode();
-                    $response['message'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $treshHold . ").";
+                    $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $treshHold . ").";
                 }
             }
         }
@@ -428,7 +428,7 @@ class DemandeLivraisonService
             if ($ligne->getQuantite() > $articleRef->getQuantiteDisponible()) {
                 $response['success'] = false;
                 $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleRef->getBarCode();
-                $response['message'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $articleRef->getQuantiteDisponible() . ").";
+                $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $articleRef->getQuantiteDisponible() . ").";
             }
         }
         if ($response['success']) {
@@ -450,13 +450,13 @@ class DemandeLivraisonService
      * @throws SyntaxError
      */
     public function validateDLAfterCheck(EntityManagerInterface $entityManager,
-                                          Demande $demande,
-                                          bool $fromNomade = false,
-                                          bool $simpleValidation = false): array
+                                         Demande $demande,
+                                         bool $fromNomade = false,
+                                         bool $simpleValidation = false): array
     {
         $response = [];
         $response['success'] = true;
-        $response['message'] = '';
+        $response['msg'] = '';
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         // Creation d'une nouvelle preparation basée sur une selection de demandes
@@ -525,7 +525,7 @@ class DemandeLivraisonService
 
         if (!$requestPersisted) {
             $response['success'] = false;
-            $response['message'] = $response['nomadMessage'] = 'Impossible de créer la préparation, veuillez rééssayer ultérieurement';
+            $response['msg'] = $response['nomadMessage'] = 'Impossible de créer la préparation, veuillez rééssayer ultérieurement';
             return $response;
         }
 
@@ -533,7 +533,7 @@ class DemandeLivraisonService
             $this->refArticleDataService->updateRefArticleQuantities($refArticle);
         }
 
-        if ($simpleValidation && $demande->getType()->getSendMail()) {
+        if (!$simpleValidation && $demande->getType()->getSendMail()) {
             $nowDate = new DateTime('now');
             $this->mailerService->sendMail(
                 'FOLLOW GT // Validation d\'une demande vous concernant',
@@ -549,15 +549,15 @@ class DemandeLivraisonService
             );
         }
         $entityManager->flush();
-        if ($simpleValidation && !$fromNomade) {
-            $response['message'] = $this->templating->render('demande/demande-show-header.html.twig', [
+        if (!$simpleValidation && !$fromNomade) {
+            $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
                 'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
+            $response['msg'] = 'Votre demande de livraison a bien été validée';
             $response['demande'] = $demande;
         }
-        $entityManager->flush();
         return $response;
     }
 

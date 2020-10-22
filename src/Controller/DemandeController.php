@@ -103,13 +103,10 @@ class DemandeController extends AbstractController
      * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws ArticleNotAvailableException
-     * @throws RequestNeedToBeProcessedException
      */
     public function compareStock(Request $request,
                                  DemandeLivraisonService $demandeLivraisonService,

@@ -62,7 +62,7 @@ class PreparationRepository extends EntityRepository
             ->join('d.destination', 'dest')
             ->join('d.type', 't')
             ->join('d.utilisateur', 'user')
-            ->andWhere('s.nom = :toTreatStatusLabel or (s.nom = :inProgressStatusLabel AND p.utilisateur = :user)')
+            ->andWhere('(s.nom = :toTreatStatusLabel OR (s.nom = :inProgressStatusLabel AND p.utilisateur = :user))')
             ->andWhere('t.id IN (:type)')
             ->setParameters([
                 'toTreatStatusLabel' => Preparation::STATUT_A_TRAITER,
