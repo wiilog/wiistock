@@ -1741,27 +1741,15 @@ class ReceptionController extends AbstractController {
                 'code-barre article',
             ];
             $nowStr = date("d-m-Y_H:i");
+            $addedRefs = [];
 
             return $CSVExportService->createBinaryResponseFromData(
                 "export-" . str_replace(["/", "\\"], "-", $translator->trans('réception.réception')) . "-" . $nowStr  . ".csv",
                 $receptions,
                 $csvHeader,
-                function($reception) {
+                function($reception) use (&$addedRefs) {
                     $rows = [];
                     if($reception['articleId'] || $reception['referenceArticleId']) {
-                        if($reception['referenceArticleId']) {
-                            $row = $this->serializeReception($reception);
-
-                            $row[] = '';
-                            $row[] = $reception['referenceArticleReference'] ?: '';
-                            $row[] = $reception['referenceArticleLibelle'] ?: '';
-                            $row[] = $reception['referenceArticleQuantiteStock'] ?: '';
-                            $row[] = $reception['referenceArticleTypeLabel'] ?: '';
-                            $row[] = $reception['referenceArticleBarcode'] ?: '';
-
-                            $rows[] = $row;
-                        }
-
                         if($reception['articleId']) {
                             $row = $this->serializeReception($reception);
 
@@ -1774,6 +1762,22 @@ class ReceptionController extends AbstractController {
                             $row[] = $reception['articleBarcode'] ?: '';
 
                             $rows[] = $row;
+                        }
+
+                        if($reception['referenceArticleId']) {
+                            if (!isset($addedRefs[$reception['referenceArticleId']])) {
+                                $addedRefs[$reception['referenceArticleId']] = true;
+                                $row = $this->serializeReception($reception);
+
+                                $row[] = '';
+                                $row[] = $reception['referenceArticleReference'] ?: '';
+                                $row[] = $reception['referenceArticleLibelle'] ?: '';
+                                $row[] = $reception['referenceArticleQuantiteStock'] ?: '';
+                                $row[] = $reception['referenceArticleTypeLabel'] ?: '';
+                                $row[] = $reception['referenceArticleBarcode'] ?: '';
+
+                                $rows[] = $row;
+                            }
                         }
                     } else {
                         $rows[] = $this->serializeReception($reception);
