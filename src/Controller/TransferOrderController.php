@@ -319,10 +319,7 @@ class TransferOrderController extends AbstractController {
             $transferOrderService->releaseRefsAndArticles($locationTo, $transferOrder, $currentUser, $entityManager);
 
             foreach ($transferOrder->getStockMovements() as $mouvementStock) {
-                $mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager);
-                $entityManager->flush();
-                $transferOrder->removeStockMovement($mouvementStock);
-                $entityManager->remove($mouvementStock);
+                $mouvementStock->setTransferOrder(null);
             }
 
             $requestId = $transferOrder->getRequest()->getId();
