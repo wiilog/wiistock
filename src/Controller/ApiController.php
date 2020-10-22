@@ -40,6 +40,7 @@ use App\Repository\InventoryMissionRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\TrackingMovementRepository;
 use App\Repository\ReferenceArticleRepository;
+use App\Service\CSVExportService;
 use App\Service\DispatchService;
 use App\Service\AttachmentService;
 use App\Service\DemandeLivraisonService;
@@ -1141,6 +1142,17 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($nomadUser) {
             $demandeArray = json_decode($request->request->get('demande'), true);
             $demandeArray['demandeur'] = $nomadUser;
+
+            $freeFields = json_decode($demandeArray["freeFields"], true);
+            dump($freeFields, json_last_error_msg());
+            if(is_array($freeFields)) {
+                foreach($freeFields as $key => $value) {
+                    $demandeArray[(int)$key] = $value;
+                }
+            }
+
+            unset($demandeArray["freeFields"]);
+dump($demandeArray);
             $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate(
                 $entityManager,
                 $demandeArray,
@@ -1502,6 +1514,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     'label' => $type->getLabel(),
                 ];
             }, $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]));
+
+            $deliveryFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
         }
 
         if ($rights['tracking']) {
@@ -1524,7 +1538,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
-            'freeFields' => Stream::from($trackingFreeFields ?? [], $requestFreeFields ?? [])
+            'freeFields' => Stream::from($trackingFreeFields ?? [], $requestFreeFields ?? [], $deliveryFreeFields ?? [])
                 ->map(function (FreeField $freeField) {
                     return $freeField->serialize();
                 })
