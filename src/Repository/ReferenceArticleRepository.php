@@ -158,6 +158,29 @@ class ReferenceArticleRepository extends EntityRepository
             ->execute();
     }
 
+    public function getByTransferOrders(array $transfersOrders): array {
+        if (!empty($transfersOrders)) {
+            $res = $this->createQueryBuilder('referenceArticle')
+                ->select('referenceArticle.barCode AS barcode')
+                ->addSelect('referenceArticle.libelle AS label')
+                ->addSelect('referenceArticle.reference AS reference')
+                ->addSelect('referenceArticle_location.label AS location')
+                ->addSelect('referenceArticle.quantiteDisponible AS quantity')
+                ->addSelect('transferOrder.id AS transfer_order_id')
+                ->join('referenceArticle.transferRequests', 'transferRequest')
+                ->leftJoin('referenceArticle.emplacement', 'referenceArticle_location')
+                ->join('transferRequest.order', 'transferOrder')
+                ->where('transferOrder IN (:transferOrders)')
+                ->setParameter('transferOrders', $transfersOrders)
+                ->getQuery()
+                ->getResult();
+        }
+        else {
+            $res = [];
+        }
+        return $res;
+    }
+
     /**
      * @param string $search
      * @param bool $activeOnly

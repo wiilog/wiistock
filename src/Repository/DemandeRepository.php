@@ -236,41 +236,41 @@ class DemandeRepository extends EntityRepository
                 ->join('d.reception', 'r')
                 ->andWhere('r.id = :reception')
                 ->setParameter('reception', $receptionFilter);
+        } else {
+            // filtres sup
+            foreach($filters as $filter) {
+                switch($filter['field']) {
+                    case 'statut':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('d.statut', 's')
+                            ->andWhere('s.id in (:statut)')
+                            ->setParameter('statut', $value);
+                        break;
+                    case 'type':
+                        $qb
+                            ->join('d.type', 't')
+                            ->andWhere('t.label = :type')
+                            ->setParameter('type', $filter['value']);
+                        break;
+                    case 'utilisateurs':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('d.utilisateur', 'u')
+                            ->andWhere("u.id in (:id)")
+                            ->setParameter('id', $value);
+                        break;
+                    case 'dateMin':
+                        $qb->andWhere('d.date >= :dateMin')
+                            ->setParameter('dateMin', $filter['value'] . " 00:00:00");
+                        break;
+                    case 'dateMax':
+                        $qb->andWhere('d.date <= :dateMax')
+                            ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                        break;
+                }
+            }
         }
-
-		// filtres sup
-		foreach ($filters as $filter) {
-			switch($filter['field']) {
-				case 'statut':
-					$value = explode(',', $filter['value']);
-					$qb
-						->join('d.statut', 's')
-						->andWhere('s.id in (:statut)')
-						->setParameter('statut', $value);
-					break;
-				case 'type':
-					$qb
-						->join('d.type', 't')
-						->andWhere('t.label = :type')
-						->setParameter('type', $filter['value']);
-					break;
-				case 'utilisateurs':
-					$value = explode(',', $filter['value']);
-					$qb
-						->join('d.utilisateur', 'u')
-						->andWhere("u.id in (:id)")
-						->setParameter('id', $value);
-					break;
-				case 'dateMin':
-					$qb->andWhere('d.date >= :dateMin')
-						->setParameter('dateMin', $filter['value'] . " 00:00:00");
-					break;
-				case 'dateMax':
-					$qb->andWhere('d.date <= :dateMax')
-						->setParameter('dateMax', $filter['value'] . " 23:59:59");
-					break;
-			}
-		}
 
 		//Filter search
         if (!empty($params)) {
