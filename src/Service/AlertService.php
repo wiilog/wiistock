@@ -42,7 +42,7 @@ class AlertService {
                     "type" => $type
                 ]);
 
-                $this->mailer->sendMail("FOLLOW GT // Seuil de péremption atteint", $content, $email);
+                $this->mailer->sendMail("FOLLOW GT // $type atteint", $content, $email);
             });
     }
 
