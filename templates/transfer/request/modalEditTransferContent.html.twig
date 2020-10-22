@@ -2,6 +2,15 @@
     <label class="required">Demandeur</label>
     <input type="text" disabled="disabled" class="form-control" value="{{ transfer.requester.username }}">
 </div>
+
+<div class="form-group">
+    <label class="required">Origine</label>
+    <select name="destination" required="required" class="form-control data ajax-autocomplete-location-edit" disabled="disabled">
+        {% if transfer.origin is defined and transfer.origin != null %}
+            <option value="{{transfer.origin.id}}" selected>{{transfer.origin.label}}</option>
+        {% endif %}
+    </select>
+</div>
 <div class="form-group">
     <label class="required">Destination</label>
     <select name="destination" required="required" class="form-control data ajax-autocomplete-location-edit">
