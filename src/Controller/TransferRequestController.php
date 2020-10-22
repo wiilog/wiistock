@@ -12,6 +12,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Article;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Helper\Stream;
 use App\Service\TransferRequestService;
 use DateTime;
 use App\Service\CSVExportService;
@@ -320,7 +321,7 @@ class TransferRequestController extends AbstractController {
                 ->getRepository(Article::class)
                 ->findForReferenceWithoutTransfer($reference, $transfer->getOrigin());
 
-            if (count($articles) > 0) {
+            if (!empty($articles)) {
                 return $this->json([
                     "success" => true,
                     "html" => $this->renderView("transfer/request/article/select_article_form.html.twig", [
@@ -466,12 +467,19 @@ class TransferRequestController extends AbstractController {
         if(isset($dateTimeMin, $dateTimeMax)) {
             $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
 
-            $transfers = $entityManager->getRepository(TransferRequest::class)->getByDates($dateTimeMin, $dateTimeMax);
+            $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+            $transfers = $transferRequestRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $articlesByRequest = $articleRepository->getArticlesGroupedByTransfer($transfers);
+            $referenceArticlesByRequest = $referenceArticleRepository->getReferenceArticlesGroupedByTransfer($transfers);
 
             $header = [
                 "numéro demande",
                 "statut",
                 "demandeur",
+                "origine",
                 "destination",
                 "date de création",
                 "date de validation",
@@ -484,19 +492,27 @@ class TransferRequestController extends AbstractController {
                 "export_demande_transfert" . $now->format("d_m_Y") . ".csv",
                 $transfers,
                 $header,
-                function ($transferRequest) {
-                    $row = [];
-                    $row[] = $transferRequest['number'] ?? '';
-                    $row[] = $transferRequest['status'] ?? '';
-                    $row[] = $transferRequest['requester'] ?? '';
-                    $row[] = $transferRequest['destination'] ?? '';
-                    $row[] = $transferRequest['creationDate'] ? $transferRequest['creationDate']->format('d/m/Y H:i:s') : '';
-                    $row[] = $transferRequest['validationDate'] ? $transferRequest['validationDate']->format('d/m/Y H:i:s') : '';
-                    $row[] = $transferRequest['comment'] ? strip_tags($transferRequest['comment']) : '';
-                    $row[] = $transferRequest['reference'] ?? '';
-                    $row[] = $transferRequest['barcode'] ?? '';
-
-                    return [$row];
+                function (TransferRequest $transferRequest) use ($articlesByRequest, $referenceArticlesByRequest) {
+                    $requestId = $transferRequest->getId();
+                    $baseRow = $transferRequest->serialize();
+                    $articles = $articlesByRequest[$requestId] ?? [];
+                    $referenceArticles = $referenceArticlesByRequest[$requestId] ?? [];
+                    if (!empty($articles) || !empty($referenceArticles)) {
+                        return Stream::from($articles, $referenceArticles)
+                            ->map(function ($article) use ($baseRow) {
+                                return array_merge(
+                                    $baseRow,
+                                    [
+                                        $article['reference'],
+                                        $article['barCode']
+                                    ]
+                                );
+                            })
+                            ->toArray();
+                    }
+                    else {
+                        return [$baseRow];
+                    }
                 }
             );
         }

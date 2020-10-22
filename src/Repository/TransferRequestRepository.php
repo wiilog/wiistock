@@ -32,16 +32,16 @@ class TransferRequestRepository extends EntityRepository {
                     $value = explode(',', $filter['value']);
                     $qb
                         ->join('transfer_request.requester', 'filter_requester')
-                        ->andWhere("filter_requester.id in (:id)")
-                        ->setParameter('id', $value);
+                        ->andWhere("filter_requester.id in (:filter_value_requester)")
+                        ->setParameter('filter_value_requester', $value);
                     break;
                 case 'operators':
                     $value = explode(',', $filter['value']);
                     $qb
                         ->join('transfer_request.order', 'filter_order')
                         ->join('filter_order.operator', 'filter_orderOperator')
-                        ->andWhere("filter_orderOperator.id in (:id)")
-                        ->setParameter('id', $value);
+                        ->andWhere("filter_orderOperator.id in (:filter_value_operators)")
+                        ->setParameter('filter_value_operators', $value);
                     break;
                 case 'dateMin':
                     $qb->andWhere('transfer_request.creationDate >= :dateMin')
@@ -61,16 +61,20 @@ class TransferRequestRepository extends EntityRepository {
                 if(!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb
-                        ->andWhere(
+                        ->andWhere('(' .
                             $exprBuilder->orX(
                                 'transfer_request.number LIKE :value',
                                 'search_requester.username LIKE :value',
+                                'search_origin.label LIKE :value',
+                                'search_destination.label LIKE :value',
                                 'search_status.nom LIKE :value'
                             )
-                        )
-                        ->setParameter('value', '%' . $search . '%')
+                        . ')')
                         ->leftJoin('transfer_request.requester', 'search_requester')
-                        ->leftJoin('transfer_request.status', 'search_status');
+                        ->leftJoin('transfer_request.origin', 'search_origin')
+                        ->leftJoin('transfer_request.destination', 'search_destination')
+                        ->leftJoin('transfer_request.status', 'search_status')
+                        ->setParameter('value', '%' . $search . '%');
                 }
             }
 
@@ -88,6 +92,11 @@ class TransferRequestRepository extends EntityRepository {
                             $qb
                                 ->leftJoin('transfer_request.status', 'order_status')
                                 ->orderBy('order_status.nom', $order);
+                            break;
+                        case 'origin':
+                            $qb
+                                ->leftJoin('transfer_request.origin', 'order_origin')
+                                ->orderBy('order_origin.label', $order);
                             break;
                         case 'destination':
                             $qb
@@ -156,25 +165,10 @@ class TransferRequestRepository extends EntityRepository {
             ->getFirstResult()["number"] ?? null;
     }
 
-    public function getByDates($dateMin, $dateMax) {
+    public function findByDates($dateMin, $dateMax) {
         $qb = $this->createQueryBuilder("transfer_request");
 
         $qb
-            ->select('transfer_requestArticles.barCode AS barcode')
-            ->addSelect('transfer_requestArticles.reference AS reference')
-            ->addSelect('transfer_request.number AS number')
-            ->addSelect('transfer_requestStatus.nom AS status')
-            ->addSelect('transfer_requestRequester.username AS requester')
-            ->addSelect('transfer_requestDestination.label AS destination')
-            ->addSelect('transfer_request.creationDate AS creationDate')
-            ->addSelect('transfer_request.validationDate AS validationDate')
-            ->addSelect('transfer_request.comment AS comment')
-
-            ->leftJoin('transfer_request.articles', 'transfer_requestArticles')
-            ->leftJoin('transfer_request.status', 'transfer_requestStatus')
-            ->leftJoin('transfer_request.requester', 'transfer_requestRequester')
-            ->leftJoin('transfer_request.destination', 'transfer_requestDestination')
-
             ->where("transfer_request.creationDate BETWEEN :dateMin AND :dateMax")
             ->setParameters([
                 'dateMin' => $dateMin,

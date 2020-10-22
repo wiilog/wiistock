@@ -14,6 +14,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 
 use App\Helper\QueryCounter;
+use App\Helper\Stream;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\Connection;
@@ -23,7 +24,6 @@ use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 
-use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -1151,6 +1151,58 @@ class ArticleRepository extends EntityRepository
             ->setParameter("location", $emplacement)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @param TransferRequest[] $requests
+     * @param bool $isRequests
+     * @return int|mixed|string
+     */
+    public function getArticlesGroupedByTransfer(array $requests, bool $isRequests = true) {
+        if(!empty($requests)) {
+            $queryBuilder = $this->createQueryBuilder('article')
+                ->select('article.barCode AS barCode')
+                ->addSelect('referenceArticle.reference AS reference')
+                ->join('article.articleFournisseur', 'articleFournisseur')
+                ->join('articleFournisseur.referenceArticle', 'referenceArticle')
+                ->join('article.transferRequests', 'transferRequest')
+                ->where('transferRequest.id IN (:requests)')
+                ->setParameter('requests', $requests)
+                ->getQuery()
+                ->getResult();
+
+            if ($isRequests) {
+                $queryBuilder
+                    ->addSelect('transferRequest.id AS transferId')
+                    ->join('referenceArticle.transferRequests', 'transferRequest')
+                    ->where('transferRequest.id IN (:requests)')
+                    ->setParameter('requests', $requests);
+            }
+            else {
+                $queryBuilder
+                    ->addSelect('transferOrder.id AS transferId')
+                    ->join('transferRequest.order', 'transferOrder')
+                    ->where('transferOrder.id IN (:orders)')
+                    ->setParameter('orders', $requests);
+            }
+
+            $res = $queryBuilder
+                ->getQuery()
+                ->getResult();
+
+            return Stream::from($res)
+                ->reduce(function (array $acc, array $articleArray) {
+                    $transferRequestId = $articleArray['transferId'];
+                    if (!isset($acc[$transferRequestId])) {
+                        $acc[$transferRequestId] = [];
+                    }
+                    $acc[$transferRequestId][] = $articleArray;
+                    return $acc;
+                }, []);
+        }
+        else {
+            return [];
+        }
     }
 
 }

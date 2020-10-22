@@ -903,21 +903,23 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete-ref/{activeOnly}/type/{field}/{typeQuantity}/{locationFilter}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
+     * @Route("/autocomplete-ref", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param bool $activeOnly
-     * @param int $typeQuantity
-     * @param string $field
-     * @param null $locationFilter
      * @return JsonResponse
      */
-    public function getRefArticles(Request $request, EntityManagerInterface $entityManager, $activeOnly = false, $typeQuantity = -1, $field = 'reference', $locationFilter = null)
+    public function getRefArticles(Request $request,
+                                   EntityManagerInterface $entityManager)
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+            $activeOnly = $request->query->getBoolean('activeOnly', false);
+            $typeQuantity = $request->query->get('typeQuantity', -1);
+            $field = $request->query->get('field', 'reference');
+            $locationFilter = $request->query->get('locationFilter', 'reference');
             $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity, $field, $locationFilter);
             return new JsonResponse(['results' => $refArticles]);
         }

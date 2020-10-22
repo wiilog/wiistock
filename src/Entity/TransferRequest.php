@@ -260,6 +260,7 @@ class TransferRequest implements Serializable {
             'number' => $this->getNumber(),
             'status' => FormatHelper::status($this->getStatus()),
             'requester' => FormatHelper::user($this->getRequester()),
+            'origin' => FormatHelper::location($this->getOrigin()),
             'destination' => FormatHelper::location($this->getDestination()),
             'creationDate' => FormatHelper::datetime($this->getCreationDate()),
             'validationDate' => FormatHelper::datetime($this->getValidationDate()),

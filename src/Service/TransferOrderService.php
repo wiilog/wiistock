@@ -214,7 +214,7 @@ class TransferOrderService {
             ['label' => 'Statut', 'value' => FormatHelper::status($order->getStatus())],
             ['label' => 'Demandeur', 'value' => FormatHelper::user($request->getRequester())],
             ['label' => 'Opérateur', 'value' => FormatHelper::user($order->getOperator())],
-            ['label' => 'origin', 'value' => FormatHelper::location($request->getOrigin())],
+            ['label' => 'Origine', 'value' => FormatHelper::location($request->getOrigin())],
             ['label' => 'Destination', 'value' => FormatHelper::location($request->getDestination())],
             ['label' => 'Date de création', 'value' => FormatHelper::datetime($order->getCreationDate())],
             ['label' => 'Date de transfert', 'value' => FormatHelper::datetime($order->getTransferDate())],

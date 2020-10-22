@@ -141,7 +141,7 @@ class Select2 {
             param: {
                 activeOnly,
                 field,
-                typeQuantity: typeQuantity || -1,
+                ...(typeQuantity ? {typeQuantity} : {}),
                 locationFilter
             }
         });
