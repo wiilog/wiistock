@@ -25,15 +25,20 @@ use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TransferOrder;
+use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
+use App\Helper\Stream;
 use DateTime;
 use DateTimeZone;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Validator\Constraints\Json;
 use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
@@ -622,7 +627,19 @@ class ArticleDataService
         $articleReceptionRecipientDropzone = $articleReceptionRecipient ? $articleReceptionRecipient->getDropzone() : '';
         $articleReceptionRecipientDropzoneLabel = ($articleReceptionRecipientDropzone && $wantsRecipientDropzone) ? $articleReceptionRecipientDropzone->getLabel() : '';
 
-        if (isset($reception) && $wantDestinationLocation) {
+        $articleLinkedToTransferRequestToTreat = $article->getTransferRequests()->map(function (TransferRequest $transferRequest) use ($reception) {
+            if ($transferRequest->getStatus()->getNom() === TransferOrder::TO_TREAT) {
+                $transferRequestLocation = $reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : '';
+            } else {
+                $transferRequestLocation = '';
+            }
+            return $transferRequestLocation;
+        });
+
+        if (isset($reception) && $wantDestinationLocation && !empty($articleLinkedToTransferRequestToTreat[0])) {
+            $location = $reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : '';
+        }
+        else if (isset($reception) && $wantDestinationLocation) {
             $location = $article->getDemande() ? $article->getDemande()->getDestination()->getLabel() : '';
         }
         else if ($wantsRecipientDropzone
