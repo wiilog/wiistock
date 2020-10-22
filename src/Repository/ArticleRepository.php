@@ -1165,16 +1165,11 @@ class ArticleRepository extends EntityRepository
                 ->addSelect('referenceArticle.reference AS reference')
                 ->join('article.articleFournisseur', 'articleFournisseur')
                 ->join('articleFournisseur.referenceArticle', 'referenceArticle')
-                ->join('article.transferRequests', 'transferRequest')
-                ->where('transferRequest.id IN (:requests)')
-                ->setParameter('requests', $requests)
-                ->getQuery()
-                ->getResult();
+                ->join('article.transferRequests', 'transferRequest');
 
             if ($isRequests) {
                 $queryBuilder
                     ->addSelect('transferRequest.id AS transferId')
-                    ->join('referenceArticle.transferRequests', 'transferRequest')
                     ->where('transferRequest.id IN (:requests)')
                     ->setParameter('requests', $requests);
             }

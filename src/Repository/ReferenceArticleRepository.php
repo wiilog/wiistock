@@ -1117,7 +1117,6 @@ class ReferenceArticleRepository extends EntityRepository
             if ($isRequests) {
                 $queryBuilder
                     ->addSelect('transferRequest.id AS transferId')
-                    ->join('referenceArticle.transferRequests', 'transferRequest')
                     ->where('transferRequest.id IN (:requests)')
                     ->setParameter('requests', $requests);
             }

@@ -919,7 +919,7 @@ class ReferenceArticleController extends AbstractController
             $activeOnly = $request->query->getBoolean('activeOnly', false);
             $typeQuantity = $request->query->get('typeQuantity', -1);
             $field = $request->query->get('field', 'reference');
-            $locationFilter = $request->query->get('locationFilter', 'reference');
+            $locationFilter = $request->query->get('locationFilter', null);
             $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity, $field, $locationFilter);
             return new JsonResponse(['results' => $refArticles]);
         }
