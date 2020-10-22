@@ -87,6 +87,8 @@ class Import
         'orderNumber' => 'numéro de commande',
         'quantity' => 'quantité',
         'batch' => 'Lot',
+        'location' => 'Emplacement',
+        'manualUrgent' => 'Urgence',
         'expiryDate' => 'Date de péremption (jj/mm/AAAA)',
         'stockEntryDate' => 'Date d\'entrée en stock (jj/mm/AAAA hh:MM)',
 	];

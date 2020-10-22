@@ -136,8 +136,8 @@ class ReceptionService
             $reception->setStorageLocation($storageLocation);
         }
 
-        if(!empty($data['emergency'])) {
-            $reception->setManualUrgent($data['emergency']);
+        if(!empty($data['manualUrgent'])) {
+            $reception->setManualUrgent($data['manualUrgent']);
         }
 
         $reception
