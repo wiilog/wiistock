@@ -47,6 +47,10 @@ class AlertService {
     }
 
     public function sendExpiryMails($manager, $articles, $delay) {
+        if(!is_array($articles)) {
+            $articles = [$articles];
+        }
+
         $content = $this->templating->render('mails/contents/mailExpiredArticle.html.twig', [
             "articles" => $articles,
             "delay" => $delay,

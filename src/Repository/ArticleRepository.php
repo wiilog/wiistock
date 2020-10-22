@@ -62,11 +62,12 @@ class ArticleRepository extends EntityRepository
         'Code barre' => ['field' => 'barCode', 'typage' => 'text'],
     ];
 
-    public function findExpiredToGenerate($delay = null) {
+    public function findExpiredToGenerate($delay = 0) {
         $since = new DateTime("now", new DateTimeZone("Europe/Paris"));
         if($delay) {
             $since->modify($delay);
         }
+
         return $this->createQueryBuilder("a")
             ->where("a.expiryDate <= :since")
             ->setParameter("since", $since)
