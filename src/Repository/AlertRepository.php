@@ -60,8 +60,9 @@ class AlertRepository extends EntityRepository {
                         ->setParameter('type', $filter['value']);
                     break;
                 case 'alert':
+                    $value = Alert::TYPE_LABELS_IDS[$filter['value']];
                     $qb->andWhere('a.type = :alert')
-                        ->setParameter('alert', $filter['value']);
+                        ->setParameter('alert', $value);
                     break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
@@ -164,7 +165,7 @@ class AlertRepository extends EntityRepository {
             ->join("a.article", "ar")
             ->where("ar.id IS NOT NULL")
             ->andWhere("a.type = " . Alert::EXPIRY)
-            ->andWhere("ar.expiryDate > :since OR a.expiryDate IS NULL")
+            ->andWhere("ar.expiryDate > :since OR ar.expiryDate IS NULL")
             ->setParameter("since", $since)
             ->getQuery()
             ->getResult();

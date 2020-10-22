@@ -21,6 +21,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
+use App\Helper\Stream;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
 use DateTime;
@@ -539,11 +540,21 @@ class RefArticleDataService {
             $security = $entity->getLimitSecurity();
             $warning = $entity->getLimitWarning();
             $quantity = $entity->getQuantiteDisponible();
+            $managers = Stream::from($entity->getManagers())
+                ->map(function(Utilisateur $utilisateur) {
+                    return $utilisateur->getUsername();
+                })->toArray();
+            $managers = count($managers) ? implode(",", $managers) : 'Non défini';
         } else if($entity = $alert->getArticle()) {
             $reference = $entity->getReference();
             $code = $entity->getBarCode();
             $label = $entity->getLabel();
             $expiry = $entity->getExpiryDate() ? $entity->getExpiryDate()->format("d/m/Y H:i") : "Non défini";
+            $managers = Stream::from($entity->getArticleFournisseur()->getReferenceArticle()->getManagers())
+                ->map(function(Utilisateur $utilisateur) {
+                    return $utilisateur->getUsername();
+                })->toArray();
+            $managers = count($managers) ? implode(",", $managers) : 'Non défini';
         } else {
             throw new RuntimeException("Invalid alert");
         }
@@ -559,6 +570,7 @@ class RefArticleDataService {
             "warningThreshold" => $warning ?? "Non défini",
             "expiry" => $expiry ?? "Non défini",
             "date" => $alert->getDate()->format("d/m/Y H:i"),
+            "managers" => $managers,
         ];
     }
 

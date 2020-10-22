@@ -168,7 +168,7 @@ class ImportController extends AbstractController
                     $attributes = $em->getClassMetadata($entityCodeToClass[$entity]);
 
                     $fieldsToHide = ['id', 'barCode', 'reference', 'conform', 'quantiteAPrelever', 'quantitePrelevee',
-                        'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible', 'freeFields',
+                        'dateEmergencyTriggered', 'isUrgent', 'quantiteDisponible', 'freeFields',
                         'quantiteReservee', 'dateAttendue', 'dateFinReception', 'dateCommande', 'numeroReception', 'date', 'emergencyTriggered'];
                     $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
                     switch ($entity) {
