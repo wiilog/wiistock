@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\TransferOrder;
+use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 
@@ -20,43 +21,43 @@ class TransferOrderRepository extends EntityRepository {
 
         if ($receptionFilter) {
             $qb
-                ->join('t.request', 'r')
+                ->join('transfer_order.request', 'r')
                 ->join('r.reception', 'reception')
                 ->andWhere('reception.id = :reception')
                 ->setParameter('reception', $receptionFilter);
-        }
-
-        // filtres sup
-        foreach ($filters as $filter) {
-            switch ($filter['field']) {
-                case 'statut':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('transfer_order.status', 'status')
-                        ->andWhere('status.id in (:status)')
-                        ->setParameter('status', $value);
-                    break;
-                case 'requesters':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('transfer_order.request', 'filter_request')
-                        ->andWhere("filter_request.requester in (:id)")
-                        ->setParameter('id', $value);
-                    break;
-                case 'operators':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->andWhere("transfer_order.operator in (:id)")
-                        ->setParameter('id', $value);
-                    break;
-                case 'dateMin':
-                    $qb->andWhere('transfer_order.creationDate >= :dateMin')
-                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
-                    break;
-                case 'dateMax':
-                    $qb->andWhere('transfer_order.creationDate <= :dateMax')
-                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
-                    break;
+        } else {
+            // filtres sup
+            foreach($filters as $filter) {
+                switch($filter['field']) {
+                    case 'statut':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('transfer_order.status', 'status')
+                            ->andWhere('status.id in (:status)')
+                            ->setParameter('status', $value);
+                        break;
+                    case 'requesters':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('transfer_order.request', 'filter_request')
+                            ->andWhere("filter_request.requester in (:id)")
+                            ->setParameter('id', $value);
+                        break;
+                    case 'operators':
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->andWhere("transfer_order.operator in (:id)")
+                            ->setParameter('id', $value);
+                        break;
+                    case 'dateMin':
+                        $qb->andWhere('transfer_order.creationDate >= :dateMin')
+                            ->setParameter('dateMin', $filter['value'] . " 00:00:00");
+                        break;
+                    case 'dateMax':
+                        $qb->andWhere('transfer_order.creationDate <= :dateMax')
+                            ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                        break;
+                }
             }
         }
 
@@ -164,6 +165,26 @@ class TransferOrderRepository extends EntityRepository {
             ]);
 
         return $qb
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getMobileTransferOrders(Utilisateur $user): array {
+        return $this->createQueryBuilder('transferOrder')
+            ->select('transferOrder.id AS id')
+            ->addSelect('transferOrder.number AS number')
+            ->addSelect('join_requester.username AS requester')
+            ->addSelect('join_destination.label AS destination')
+            ->join('transferOrder.status', 'join_orderStatus')
+            ->join('transferOrder.request', 'join_transferRequest')
+            ->join('join_transferRequest.requester', 'join_requester')
+            ->join('join_transferRequest.destination', 'join_destination')
+            ->andWhere('join_orderStatus.nom = :toTreatStatusLabel')
+            ->andWhere('transferOrder.operator IS NULL OR transferOrder.operator = :operator')
+            ->setParameters([
+                'toTreatStatusLabel' => TransferOrder::TO_TREAT,
+                'operator' => $user,
+            ])
             ->getQuery()
             ->getResult();
     }

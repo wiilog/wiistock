@@ -167,7 +167,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
             ->select('ra')
             ->from('App\Entity\ReferenceArticle', 'ra')
             ->join('ra.inventoryMissions', 'm')
-			->leftJoin('ra.inventoryEntries', 'ie')
+			->leftJoin('ra.inventoryEntries', 'ie', Join::WITH, 'ie.mission = m')
             ->where('m = :mission')
             ->setParameter('mission', $mission);
 
@@ -236,7 +236,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
             ->select('a')
             ->from('App\Entity\Article', 'a')
             ->join('a.inventoryMissions', 'm')
-			->leftJoin('a.inventoryEntries', 'ie')
+            ->leftJoin('a.inventoryEntries', 'ie', Join::WITH, 'ie.mission = m')
             ->where('m = :mission')
             ->setParameter('mission', $mission);
 

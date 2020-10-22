@@ -354,13 +354,10 @@ class DemandeLivraisonService
      * @param bool $fromNomade
      * @param FreeFieldService $champLibreService
      * @return array
-     * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \App\Exceptions\ArticleNotAvailableException
-     * @throws \App\Exceptions\RequestNeedToBeProcessedException
      */
     public function checkDLStockAndValidate(EntityManagerInterface $entityManager,
                                             array $demandeArray,
@@ -445,15 +442,17 @@ class DemandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @param Demande $demande
      * @param bool $fromNomade
+     * @param bool $simpleValidation
      * @return array
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    private function validateDLAfterCheck(EntityManagerInterface $entityManager,
+    public function validateDLAfterCheck(EntityManagerInterface $entityManager,
                                           Demande $demande,
-                                          bool $fromNomade = false): array
+                                          bool $fromNomade = false,
+                                          bool $simpleValidation = false): array
     {
         $response = [];
         $response['success'] = true;
@@ -534,7 +533,7 @@ class DemandeLivraisonService
             $this->refArticleDataService->updateRefArticleQuantities($refArticle);
         }
 
-        if ($demande->getType()->getSendMail()) {
+        if ($simpleValidation && $demande->getType()->getSendMail()) {
             $nowDate = new DateTime('now');
             $this->mailerService->sendMail(
                 'FOLLOW GT // Validation d\'une demande vous concernant',
@@ -550,7 +549,7 @@ class DemandeLivraisonService
             );
         }
         $entityManager->flush();
-        if (!$fromNomade) {
+        if ($simpleValidation && !$fromNomade) {
             $response['message'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
                 'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),

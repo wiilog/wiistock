@@ -87,7 +87,8 @@ class TransferRequestController extends AbstractController {
     public static function createNumber($entityManager, $date) {
         $dateStr = $date->format('Ymd');
 
-        $lastDispatchNumber = $entityManager->getRepository(TransferRequest::class)->getLastTransferNumberByPrefix("T-" . $dateStr);
+        $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
+        $lastDispatchNumber = $transferRequestRepository->getLastTransferNumberByPrefix(TransferRequest::NUMBER_PREFIX . "-" . $dateStr);
 
         if($lastDispatchNumber) {
             $lastCounter = (int)substr($lastDispatchNumber, -4, 4);
@@ -103,7 +104,7 @@ class TransferRequestController extends AbstractController {
                     $currentCounter))
         );
 
-        return ("T-" . $dateStr . $currentCounterStr);
+        return (TransferRequest::NUMBER_PREFIX . "-" . $dateStr . $currentCounterStr);
     }
 
     /**
@@ -143,14 +144,14 @@ class TransferRequestController extends AbstractController {
             $entityManager->flush();
 
             return new JsonResponse([
-                'redirect' => $this->generateUrl('transfer_request_show', ['transfer' => $transfer->getId()]),
+                'redirect' => $this->generateUrl('transfer_request_show', ['id' => $transfer->getId()]),
             ]);
         }
         throw new NotFoundHttpException('404 not found');
     }
 
     /**
-     * @Route("/voir/{transfer}", name="transfer_request_show", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/voir/{id}", name="transfer_request_show", options={"expose"=true}, methods={"GET", "POST"})
      * @param TransferRequest $transfer
      * @return Response
      */

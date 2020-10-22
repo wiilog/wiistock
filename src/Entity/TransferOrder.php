@@ -15,6 +15,8 @@ use App\Repository\TransferOrderRepository;
  */
 class TransferOrder implements Serializable {
 
+    const NUMBER_PREFIX = 'OT';
+
     const TO_TREAT = "À traiter";
     const TREATED = "Traité";
 

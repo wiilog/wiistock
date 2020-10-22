@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
+use App\Entity\Demande;
 use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
@@ -13,7 +14,9 @@ use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use App\Entity\FieldsParam;
 use App\Entity\CategorieCL;
+use App\Entity\Livraison;
 use App\Entity\MouvementStock;
+use App\Entity\Preparation;
 use App\Entity\TrackingMovement;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Attachment;
@@ -38,8 +41,10 @@ use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
 use App\Service\LitigeService;
+use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
 use App\Service\MouvementStockService;
+use App\Service\PreparationsManagerService;
 use App\Service\TrackingMovementService;
 use App\Service\PDFGeneratorService;
 use App\Service\ReceptionService;
@@ -343,7 +348,7 @@ class ReceptionController extends AbstractController {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $data = $this->receptionService->getDataForDatatable($request->request);
+            $data = $this->receptionService->getDataForDatatable($this->getUser(), $request->request);
 
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $fieldsParam = $fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
@@ -1570,7 +1575,7 @@ class ReceptionController extends AbstractController {
 
         $barcodeConfigs = array_reduce(
             $listReceptionReferenceArticle,
-            function(array $carry, ReceptionReferenceArticle $recepRef) use ($refArticleDataService, $articleDataService): array {
+            function(array $carry, ReceptionReferenceArticle $recepRef) use ($refArticleDataService, $articleDataService, $reception): array {
                 $referenceArticle = $recepRef->getReferenceArticle();
 
                 if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -1581,8 +1586,8 @@ class ReceptionController extends AbstractController {
                         array_push(
                             $carry,
                             ...array_map(
-                                function(Article $article) use ($articleDataService) {
-                                    return $articleDataService->getBarcodeConfig($article);
+                                function(Article $article) use ($articleDataService, $reception) {
+                                    return $articleDataService->getBarcodeConfig($article, $reception);
                                 },
                                 $articlesReception
                             )
@@ -1808,6 +1813,8 @@ class ReceptionController extends AbstractController {
      * @param FreeFieldService $champLibreService
      * @param TrackingMovementService $trackingMovementService
      * @param MouvementStockService $mouvementStockService
+     * @param PreparationsManagerService $preparationsManagerService
+     * @param LivraisonsManagerService $livraisonsManagerService
      * @return Response
      * @throws LoaderError
      * @throws NonUniqueResultException
@@ -1822,7 +1829,9 @@ class ReceptionController extends AbstractController {
                                    Reception $reception,
                                    FreeFieldService $champLibreService,
                                    TrackingMovementService $trackingMovementService,
-                                   MouvementStockService $mouvementStockService): Response {
+                                   MouvementStockService $mouvementStockService,
+                                   PreparationsManagerService $preparationsManagerService,
+                                   LivraisonsManagerService $livraisonsManagerService): Response {
 
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
         /** @var Utilisateur $currentUser */
@@ -1856,11 +1865,14 @@ class ReceptionController extends AbstractController {
                 }
                 $rra->setQuantite($totalQuantity);
             }
+
             // optionnel : crée la demande de livraison
             $needCreateLivraison = (bool)$data['create-demande'];
             $needCreateTransfer = (bool)$data['create-demande-transfert'];
 
             $transfer = null;
+
+            $createDirectDelivery = (bool)$data['direct-delivery'];
 
             if($needCreateLivraison) {
                 // optionnel : crée l'ordre de prépa
@@ -1870,6 +1882,41 @@ class ReceptionController extends AbstractController {
 
                 $demande = $demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
                 $entityManager->persist($demande);
+
+                if ($createDirectDelivery) {
+                    $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true);
+                    $preparation = $demande->getPreparations()->first();
+                    // TODO : Treat validation request response
+
+                    /** @var Utilisateur $currentUser */
+                    $currentUser = $this->getUser();
+                    $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser);
+
+                    $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+                    $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation);
+                    $entityManager->persist($delivery);
+                    $locationEndPreparation = $demande->getDestination();
+
+                    $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, $articlesNotPicked);
+                    $preparationsManagerService->closePreparationMouvement($preparation, $dateEnd, $locationEndPreparation);
+
+                    $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+                    $mouvements = $mouvementRepository->findByPreparation($preparation);
+                    $entityManager->flush();
+
+                    foreach ($mouvements as $mouvement) {
+                        $preparationsManagerService->createMouvementLivraison(
+                            $mouvement->getQuantity(),
+                            $currentUser,
+                            $delivery,
+                            !empty($mouvement->getRefArticle()),
+                            $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                            $preparation,
+                            false,
+                            $locationEndPreparation
+                        );
+                    }
+                }
             } else if ($needCreateTransfer) {
                 $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
 
@@ -1895,6 +1942,7 @@ class ReceptionController extends AbstractController {
                 $entityManager->persist($transfer);
                 $entityManager->persist($order);
             }
+
 
             $receptionLocation = $reception->getLocation();
             // crée les articles et les ajoute à la demande, à la réception, crée les urgences
@@ -1963,10 +2011,11 @@ class ReceptionController extends AbstractController {
             foreach($emergencies as $article) {
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
 
-                $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
+                $mailContent = $this->render('mails/contents/mailArticleUrgentReceived.html.twig', [
                     'article' => $article,
                     'title' => 'Votre article urgent a bien été réceptionné.',
-                ]);
+                ])->getContent();
+
                 $destinataires = '';
                 $userThatTriggeredEmergency = $ref->getUserThatTriggeredEmergency();
                 if($userThatTriggeredEmergency) {
@@ -2105,6 +2154,31 @@ class ReceptionController extends AbstractController {
         if($currentDisputesCounter === 0) {
             $article->setStatut($articleStatusAvailable);
         }
+    }
+
+    /**
+     * @Route("/{reception}/etiquette/{article}", name="reception_article_single_bar_code_print", options={"expose"=true})
+     * @param Article $article
+     * @param Reception $reception
+     * @param ArticleDataService $articleDataService
+     * @param PDFGeneratorService $PDFGeneratorService
+     * @return Response
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function getSingleReceptionArticleBarCode(Article $article,
+                                                    Reception $reception,
+                                                    ArticleDataService $articleDataService,
+                                                    PDFGeneratorService $PDFGeneratorService): Response {
+        $barcodeConfigs = [$articleDataService->getBarcodeConfig($article, $reception)];
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
+
+        return new PdfResponse(
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $fileName
+        );
     }
 
 }

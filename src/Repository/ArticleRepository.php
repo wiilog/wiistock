@@ -744,7 +744,7 @@ class ArticleRepository extends EntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, l.id as id_livraison, a.barCode
+            "SELECT a.reference, e.label as location, a.label, a.quantitePrelevee as quantity, 0 as is_ref, l.id as id_livraison, a.barCode
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
 			JOIN a.preparation p
@@ -766,6 +766,31 @@ class ArticleRepository extends EntityRepository
             ->setParameter('collectesIds', $collectesIds, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
+	}
+
+	public function getByTransferOrders(array $transfersOrders): array {
+	    if (!empty($transfersOrders)) {
+            $res = $this->createQueryBuilder('article')
+                ->select('article.barCode AS barcode')
+                ->addSelect('referenceArticle.libelle AS label')
+                ->addSelect('referenceArticle.reference AS reference')
+                ->addSelect('referenceArticle_location.label AS location')
+                ->addSelect('article.quantite AS quantity')
+                ->addSelect('transferOrder.id AS transfer_order_id')
+                ->join('article.transferRequests', 'transferRequest')
+                ->join('transferRequest.order', 'transferOrder')
+                ->join('article.articleFournisseur', 'articleFournisseur')
+                ->join('articleFournisseur.referenceArticle', 'referenceArticle')
+                ->leftJoin('referenceArticle.emplacement', 'referenceArticle_location')
+                ->where('transferOrder IN (:transferOrders)')
+                ->setParameter('transferOrders', $transfersOrders)
+                ->getQuery()
+                ->getResult();
+        }
+	    else {
+            $res = [];
+        }
+		return $res;
 	}
 
 	public function getByOrdreCollecteId($collecteId)

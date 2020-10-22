@@ -29,10 +29,6 @@ use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
 
 
-/**
- * Class PreparationsManagerService
- * @package App\Service
- */
 class PreparationsManagerService
 {
 
@@ -89,7 +85,7 @@ class PreparationsManagerService
      * On termine les mouvements de prepa
      * @param Preparation $preparation
      * @param DateTime $date
-     * @param Emplacement $emplacement
+     * @param Emplacement|null $emplacement
      */
     public function closePreparationMouvement(Preparation $preparation, DateTime $date, Emplacement $emplacement = null): void
     {
@@ -144,7 +140,8 @@ class PreparationsManagerService
 
         $preparation
             ->setUtilisateur($userNomade)
-            ->setStatut($statutPreparePreparation);
+            ->setStatut($statutPreparePreparation)
+            ->setEndLocation($emplacement);
 
         // TODO get remaining articles and refs
         if (!$isPreparationComplete) {
@@ -589,18 +586,18 @@ class PreparationsManagerService
      */
     private function dataRowPreparation($preparation)
     {
-        $demande = $preparation->getDemande();
-        $url['show'] = $this->router->generate('preparation_show', ['id' => $preparation->getId()]);
-        $row = [
+        $request = $preparation->getDemande();
+
+        return [
             'Numéro' => $preparation->getNumero() ?? '',
             'Date' => $preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : '',
             'Opérateur' => $preparation->getUtilisateur() ? $preparation->getUtilisateur()->getUsername() : '',
             'Statut' => $preparation->getStatut() ? $preparation->getStatut()->getNom() : '',
-            'Type' => $demande && $demande->getType() ? $demande->getType()->getLabel() : '',
-            'Actions' => $this->templating->render('preparation/datatablePreparationRow.html.twig', ['url' => $url]),
+            'Type' => $request && $request->getType() ? $request->getType()->getLabel() : '',
+            'Actions' => $this->templating->render('preparation/datatablePreparationRow.html.twig', [
+                "url" => $this->router->generate('preparation_show', ["id" => $preparation->getId()])
+            ]),
         ];
-
-        return $row;
     }
 
 

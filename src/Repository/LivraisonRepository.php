@@ -47,29 +47,33 @@ class LivraisonRepository extends EntityRepository
      */
 	public function getMobileDelivery(Utilisateur $user)
 	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			/** @lang DQL */
-			"SELECT l.id,
-                    l.numero as number,
-                    dest.label as location,
-                    t.label as type,
-                    user.username as requester
-			FROM App\Entity\Livraison l
-			JOIN l.statut s
-			JOIN l.preparation preparation
-			JOIN preparation.demande demande
-			JOIN demande.destination dest
-			JOIN demande.type t
-			JOIN demande.utilisateur user
-			WHERE (s.nom = :statusLabel AND (l.utilisateur is null or l.utilisateur = :user)) AND t.id IN (:typeIds)"
-		)->setParameters([
-			'statusLabel' => Livraison::STATUT_A_TRAITER,
-			'user' => $user,
-            'typeIds' => $user->getDeliveryTypeIds()
-		]);
+	    $queryBuilder = $this->createQueryBuilder('delivery_order')
+            ->select('delivery_order.id AS id')
+            ->addSelect('delivery_order.numero AS number')
+            ->addSelect('destination.label as location')
+            ->addSelect('join_type.label as type')
+            ->addSelect('user.username as requester')
+            ->addSelect('join_preparationLocation.label AS preparationLocation')
+            ->addSelect('request.commentaire AS comment')
+            ->join('delivery_order.statut', 'status')
+            ->join('delivery_order.preparation', 'preparation')
+            ->join('preparation.demande', 'request')
+            ->join('request.destination', 'destination')
+            ->join('request.type', 'join_type')
+            ->join('request.utilisateur', 'user')
+            ->join('preparation.endLocation', 'join_preparationLocation')
+            ->where('status.nom = :statusLabel')
+            ->andWhere('(delivery_order.utilisateur IS NULL OR delivery_order.utilisateur = :user)')
+            ->andWhere('join_type.id IN (:typeIds)')
+            ->setParameters([
+                'statusLabel' => Livraison::STATUT_A_TRAITER,
+                'user' => $user,
+                'typeIds' => $user->getDeliveryTypeIds()
+            ]);
 
-		return $query->execute();
+		return $queryBuilder
+            ->getQuery()
+            ->execute();
 	}
 
 	/**

@@ -36,11 +36,6 @@ class Preparation
     private $numero;
 
     /**
-     * @ORM\Column(type="text", nullable=true)
-     */
-    private $commentaire;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Demande", inversedBy="preparations")
      */
     private $demande;
@@ -75,6 +70,11 @@ class Preparation
      * @ORM\OneToMany(targetEntity="App\Entity\LigneArticlePreparation", mappedBy="preparation")
      */
     private $ligneArticlePreparations;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Emplacement::class)
+     */
+    private $endLocation;
 
 
     public function __construct()
@@ -204,14 +204,7 @@ class Preparation
 
     public function getCommentaire(): ?string
     {
-        return $this->commentaire;
-    }
-
-    public function setCommentaire(?string $commentaire): self
-    {
-        $this->commentaire = $commentaire;
-
-        return $this;
+        return $this->getDemande() ? $this->getDemande()->getCommentaire() : "";
     }
 
     /**
@@ -273,6 +266,15 @@ class Preparation
             }
         }
 
+        return $this;
+    }
+
+    public function getEndLocation(): ?Emplacement {
+        return $this->endLocation;
+    }
+
+    public function setEndLocation(?Emplacement $endLocation): self {
+        $this->endLocation = $endLocation;
         return $this;
     }
 }
