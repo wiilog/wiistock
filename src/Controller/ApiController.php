@@ -1411,18 +1411,20 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
         if ($rights['stock']) {
             // livraisons
-            $livraisons = $livraisonRepository->getMobileDelivery($user);
+            $livraisons = Stream::from($livraisonRepository->getMobileDelivery($user))
+                ->map(function ($deliveryArray) {
+                    if (!empty($deliveryArray['comment'])) {
+                        $deliveryArray['comment'] = substr(strip_tags($deliveryArray['comment']), 0, 200);
+                    }
+                    return $deliveryArray;
+                })
+                ->toArray();
 
-            $livraisonsIds = array_map(function ($livraisonArray) {
-                return $livraisonArray['id'];
-            }, $livraisons);
-
-            $livraisons = array_map(function ($deliveryArray) {
-                if(!empty($deliveryArray['comment'])) {
-                    $deliveryArray['comment'] = substr(strip_tags($deliveryArray['comment']), 0, 200);
-                }
-                return $deliveryArray;
-            }, $livraisons);
+            $livraisonsIds = Stream::from($livraisons)
+                ->map(function ($livraisonArray) {
+                    return $livraisonArray['id'];
+                })
+                ->toArray();
 
             $articlesLivraison = $articleRepository->getByLivraisonsIds($livraisonsIds);
             $refArticlesLivraison = $referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
