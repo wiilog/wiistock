@@ -2,7 +2,7 @@
 
 {% block content %}
     <p>Bonjour,</p>
-    <p>Les articles suivants ont atteint le seuil d'expiration et expireront dans {{ delay }} ou moins.
+    <p>Les articles suivants ont atteint le seuil d'expiration et expireront dans {{ delay }} jour{{ delay != 1 ? 's' }} ou moins.
         Les articles ayant déjà dépassé la date de péremption apparaissent en rouge.</p>
 
     <table class="table" style="border: 1px solid black;border-collapse: collapse;">

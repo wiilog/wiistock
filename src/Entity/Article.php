@@ -737,7 +737,9 @@ class Article extends FreeFieldEntity
     public function isExpired(): ?bool
     {
         if($this->getExpiryDate()) {
-            return new DateTime("now", new DateTimeZone("Europe/Paris")) >= $this->expiryDate;
+            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+
+            return $now >= $this->getExpiryDate();
         } else {
             return null;
         }

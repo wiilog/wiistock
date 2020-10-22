@@ -38,9 +38,6 @@ class GenerateAlertsCommand extends Command {
         if($expiry = $parametrage->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY)) {
             $this->sendExpiry = true;
             $this->expiryDelay = $expiry;
-            $this->expiryDelay = str_replace("s", " semaines", $this->expiryDelay);
-            $this->expiryDelay = str_replace("j", " jours", $this->expiryDelay);
-            $this->expiryDelay = str_replace("h", " heures", $this->expiryDelay);
         } else {
             $this->sendExpiry = false;
         }
@@ -111,15 +108,6 @@ class GenerateAlertsCommand extends Command {
 
             $emails[$email][] = $article;
         }
-    }
-
-    private function displayExpiry() {
-        $expiry = $this->expiryDelay;
-        $expiry = str_replace("week", " semaines", $expiry);
-        $expiry = str_replace("day", " jours", $expiry);
-        $expiry = str_replace("hour", " heures", $expiry);
-
-        return $expiry;
     }
 
 }
