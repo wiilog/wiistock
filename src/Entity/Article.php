@@ -158,9 +158,9 @@ class Article extends FreeFieldEntity
     private $preparation;
 
     /**
-     * @ORM\OneToMany(targetEntity=Pack::class, mappedBy="article")
+     * @ORM\OneToOne(targetEntity=Pack::class, mappedBy="article", cascade={"remove"})
      */
-    private $trackingPacks;
+    private $trackingPack;
 
     /**
      * @ORM\ManyToMany(targetEntity=TransferRequest::class, mappedBy="articles")
@@ -195,7 +195,6 @@ class Article extends FreeFieldEntity
         $this->inventoryMissions = new ArrayCollection();
         $this->litiges = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
-        $this->trackingPacks = new ArrayCollection();
         $this->transferRequests = new ArrayCollection();
 
         $this->quantite = 0;
@@ -589,31 +588,33 @@ class Article extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|Pack[]
+     * @return null|Pack
      */
-    public function getTrackingPacks(): Collection {
-        return $this->trackingPacks;
+    public function getTrackingPack(): ?Pack {
+        return $this->trackingPack;
     }
 
-    public function addTrackingPack(Pack $pack): self {
-        if (!$this->trackingPacks->contains($pack)) {
-            $this->trackingPacks[] = $pack;
-            $pack->setArticle($this);
+    /**
+     * @param Pack|null
+     * @return Article
+     */
+    public function setTrackingPack(?Pack $pack): self {
+        if (isset($this->trackingPack)
+            && $this->trackingPack !== $pack) {
+            $this->trackingPack->setArticle(null);
         }
-
+        $this->trackingPack = $pack;
+        if (isset($this->trackingPack)
+            && $this->trackingPack->getArticle() !== $this) {
+            $this->trackingPack->setArticle($this);
+        }
         return $this;
     }
 
-    public function removeTrackingPack(Pack $pack): self {
-        if ($this->trackingPacks->contains($pack)) {
-            $this->trackingPacks->removeElement($pack);
-            // set the owning side to null (unless already changed)
-            if ($pack->getArticle() === $this) {
-                $pack->setArticle(null);
-            }
-        }
-
-        return $this;
+    public function getTrackingMovements(): Collection {
+        return isset($this->trackingPack)
+            ? $this->trackingPack->getTrackingMovements()
+            : new ArrayCollection();
     }
 
     /**

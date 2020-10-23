@@ -608,11 +608,12 @@ class ArrivageController extends AbstractController
      * @throws NonUniqueResultException
      */
     public function delete(Request $request,
-                           EntityManagerInterface $entityManager,
-                           TrackingMovementService $trackingMovementService): Response
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+
+            /** @var Arrivage $arrivage */
             $arrivage = $arrivageRepository->find($data['arrivage']);
 
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
@@ -637,10 +638,6 @@ class ArrivageController extends AbstractController
                 }
                 foreach ($arrivage->getUrgences() as $urgence) {
                     $urgence->setLastArrival(null);
-                }
-
-                foreach ($arrivage->getTrackingMovements() as $trackingMovement) {
-                    $entityManager->remove($trackingMovement);
                 }
 
                 $entityManager->remove($arrivage);

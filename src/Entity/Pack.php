@@ -92,13 +92,13 @@ class Pack
     private $locationClusterRecords;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Article", inversedBy="trackingPacks")
+     * @ORM\OneToOne(targetEntity="App\Entity\Article", inversedBy="trackingPack")
      * @ORM\JoinColumn(nullable=true)
      */
     private $article;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="trackingPacks")
+     * @ORM\OneToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="trackingPack")
      * @ORM\JoinColumn(nullable=true)
      */
     private $referenceArticle;
@@ -358,7 +358,15 @@ class Pack
     }
 
     public function setArticle(?Article $article): self {
+        if (isset($this->article)
+            && $this->article !== $article) {
+            $this->article->setTrackingPack(null);
+        }
         $this->article = $article;
+        if (isset($this->article)
+            && $this->article->getTrackingPack() !== $article->getTrackingPack()) {
+            $this->article->setTrackingPack($this);
+        }
         return $this;
     }
 
@@ -367,7 +375,15 @@ class Pack
     }
 
     public function setReferenceArticle(?ReferenceArticle $referenceArticle): self {
+        if (isset($this->referenceArticle)
+            && $this->referenceArticle !== $referenceArticle) {
+            $this->referenceArticle->setTrackingPack(null);
+        }
         $this->referenceArticle = $referenceArticle;
+        if (isset($this->referenceArticle)
+            && $this->referenceArticle->getTrackingPack() !== $referenceArticle->getTrackingPack()) {
+            $this->referenceArticle->setTrackingPack($this);
+        }
         return $this;
     }
 
