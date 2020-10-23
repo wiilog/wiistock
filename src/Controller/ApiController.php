@@ -1646,9 +1646,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
             $anomalies = json_decode($request->request->get('anomalies'), true);
             $errors = [];
+            $success = [];
             foreach ($anomalies as $anomaly) {
                 try {
-                    $this->inventoryService->doTreatAnomaly(
+                     $res = $this->inventoryService->doTreatAnomaly(
                         $anomaly['id'],
                         $anomaly['reference'],
                         $anomaly['is_ref'],
@@ -1656,6 +1657,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $anomaly['comment'],
                         $nomadUser
                     );
+
+                    $success = array_merge($success, $res['treatedEntries']);
+
                     $numberOfRowsInserted++;
                 }
                 catch (ArticleNotAvailableException|RequestNeedToBeProcessedException $exception) {
@@ -1664,7 +1668,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             }
 
             $s = $numberOfRowsInserted > 1 ? 's' : '';
-            $this->successDataMsg['success'] = true;
+            $this->successDataMsg['success'] = $success;
             $this->successDataMsg['errors'] = $errors;
             $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0)
                 ? ($anomalies > 0
