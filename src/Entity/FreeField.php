@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Interfaces\Serializable;
+use App\Helper\Stream;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -276,7 +277,7 @@ class FreeField implements Serializable {
         return [
             'id' => $this->getId(),
             'label' => $this->getLabel(),
-            'elements' => $this->getElements(),
+            'elements' => Stream::from($this->getElements()),
             'typing' => $this->getTypage(),
             'defaultValue' => $this->getDefaultValue(),
             'requiredCreate' => $this->getRequiredCreate(),

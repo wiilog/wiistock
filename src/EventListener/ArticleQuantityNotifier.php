@@ -103,7 +103,6 @@ class ArticleQuantityNotifier {
                 $existing = null;
             }
 
-            dump($now, $article->getExpiryDate(), $existing, $now >= $article->getExpiryDate() && !$existing, true && !$existing);
             if($now >= $article->getExpiryDate() && !$existing) {
                 $alert = new Alert();
                 $alert->setArticle($article);
