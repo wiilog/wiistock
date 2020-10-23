@@ -277,7 +277,7 @@ class FreeField implements Serializable {
         return [
             'id' => $this->getId(),
             'label' => $this->getLabel(),
-            'elements' => Stream::from($this->getElements()),
+            'elements' => $this->getElements(),
             'typing' => $this->getTypage(),
             'defaultValue' => $this->getDefaultValue(),
             'requiredCreate' => $this->getRequiredCreate(),
