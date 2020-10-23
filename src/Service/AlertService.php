@@ -63,8 +63,8 @@ class AlertService {
             }
         }
 
-        foreach($managers as $manager => $articles) {
-            $this->sendExpiryMails($manager, $articles, $expiry);
+        foreach($managers as $managerString => $articles) {
+            $this->sendExpiryMails($managerString, $articles, $expiry);
         }
 
         $manager->flush();
