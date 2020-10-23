@@ -47,25 +47,17 @@ class TransferOrderController extends AbstractController {
 
     /**
      * @Route("/liste/{reception}", name="transfer_order_index", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
      * @param EntityManagerInterface $em
      * @param null $reception
      * @return Response
      */
-    public function index(Request $request,
-                          EntityManagerInterface $em,
+    public function index(EntityManagerInterface $em,
                           $reception = null): Response {
         if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS)) {
             return $this->redirectToRoute('access_denied');
         }
 
         $statusRepository = $em->getRepository(Statut::class);
-
-        $transfer = new TransferRequest();
-
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
-        $transfer->setRequester($currentUser);
 
         return $this->render('transfer/order/index.html.twig', [
             'statuts' => $statusRepository->findByCategorieName(CategorieStatut::TRANSFER_ORDER),

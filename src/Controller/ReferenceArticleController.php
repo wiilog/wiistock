@@ -795,17 +795,21 @@ class ReferenceArticleController extends AbstractController
             }
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
+            /** @var ReferenceArticle $refArticle */
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
-            $entityManager = $this->getDoctrine()->getManager();
-            if (count($refArticle->getCollecteReferences()) > 0
-                || count($refArticle->getLigneArticles()) > 0
-                || count($refArticle->getReceptionReferenceArticles()) > 0
-                || count($refArticle->getMouvements()) > 0
-                || count($refArticle->getArticlesFournisseur()) > 0) {
+            if (!($refArticle->getCollecteReferences()->isEmpty())
+                || !($refArticle->getLigneArticles()->isEmpty())
+                || !($refArticle->getReceptionReferenceArticles()->isEmpty())
+                || !($refArticle->getMouvements()->isEmpty())
+                || !($refArticle->getArticlesFournisseur()->isEmpty())
+                || !($refArticle->getTransferRequests()->isEmpty())
+                || !($refArticle->getTransferRequests()->isEmpty())
+                || $refArticle->getTrackingPack()
+                || $refArticle->hasTrackingMovements()) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => '
-                        Cet article est lié à une collecte, une livraison, une réception ou un article fournisseur.<br>
+                        Cet article est lié à un colis, des mouvements, une collecte, une livraison, une réception ou un article fournisseur.<br>
                         Vous ne pouvez donc pas le supprimer.
                     '
                 ]);
