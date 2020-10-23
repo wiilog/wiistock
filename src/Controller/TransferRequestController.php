@@ -47,6 +47,8 @@ class TransferRequestController extends AbstractController {
 
     /**
      * @Route("/liste", name="transfer_request_index", options={"expose"=true}, methods={"GET", "POST"})
+     * @param EntityManagerInterface $em
+     * @return Response
      */
     public function index(EntityManagerInterface $em): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)) {
@@ -325,7 +327,10 @@ class TransferRequestController extends AbstractController {
                 return $this->json([
                     "success" => true,
                     "html" => $this->renderView("transfer/request/article/select_article_form.html.twig", [
-                        "articles" => $articles
+                        "articles" => $articles,
+                        'articleAlreadyInRequest' => $transfer->getArticles()->map(function (Article $article) {
+                            return $article->getId();
+                        })
                     ])
                 ]);
             } else {

@@ -2,10 +2,14 @@
 
 namespace App\Service;
 
+use App\Entity\Alert;
 use App\Entity\Article;
+use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\Stream;
+use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment;
 
 class AlertService {
@@ -16,6 +20,72 @@ class AlertService {
     public function __construct(MailerService $mailer, Environment $templating) {
         $this->mailer = $mailer;
         $this->templating = $templating;
+    }
+
+    public function generateAlerts(EntityManagerInterface $manager) {
+        $now = new DateTime("now", new \DateTimeZone("Europe/Paris"));
+        $parametrage = $manager->getRepository(ParametrageGlobal::class);
+
+        $expiry = $parametrage->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);
+
+        $expired = $manager->getRepository(Article::class)->findExpiredToGenerate($expiry);
+        $noLongerExpired = $manager->getRepository(Alert::class)->findNoLongerExpired();
+
+        foreach ($noLongerExpired as $alert) {
+            $manager->remove($alert);
+        }
+
+        $managers = [];
+        /** @var Article $article */
+        foreach($expired as $article) {
+            $hasExistingAlert = !(
+            Stream::from($article->getAlerts())
+                ->filter(function (Alert $alert) {
+                    return $alert->getType() === Alert::EXPIRY;
+                })->isEmpty()
+            );
+
+            if (!$hasExistingAlert) {
+                $alert = new Alert();
+                $alert->setArticle($article);
+                $alert->setType(Alert::EXPIRY);
+                $alert->setDate($now);
+
+                $manager->persist($alert);
+            }
+            $recipients = $article->getArticleFournisseur()
+                ->getReferenceArticle()
+                ->getManagers();
+
+            foreach ($recipients as $recipient) {
+                $this->addArticle($managers, $recipient->getEmail(), $article);
+                $this->addArticle($managers, $recipient->getSecondaryEmails(), $article);
+            }
+        }
+
+        foreach($managers as $managerString => $articles) {
+            $this->sendExpiryMails($managerString, $articles, $expiry);
+        }
+
+        $manager->flush();
+    }
+
+    private function addArticle(array &$emails, $recipients, Article $article) {
+        if(!is_array($recipients)) {
+            $recipients = [$recipients];
+        }
+
+        foreach($recipients as $email) {
+            if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                continue;
+            }
+
+            if(!isset($emails[$email])) {
+                $emails[$email] = [];
+            }
+
+            $emails[$email][] = $article;
+        }
     }
 
     public function sendThresholdMails(ReferenceArticle $reference) {

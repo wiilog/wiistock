@@ -70,7 +70,7 @@
         <div class="form-group col">
             <label for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? '*' : '' }}</label>
             <select
-                class="form-control ajax-autocomplete-fournisseur-edit data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? 'needed' : '' }}"
+                class="w-100 form-control ajax-autocomplete-fournisseur-edit data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? 'needed' : '' }}"
                 name="fournisseur" id='fournisseur'>
                 <option
                     value="{{ reception.fournisseur ? reception.fournisseur.id : '' }}">{{ reception.fournisseur ? reception.fournisseur.nom : '' }}</option>
@@ -89,7 +89,7 @@
         <div class="form-group col">
             <label for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? '*' : '' }}</label>
             <select
-                class="form-control data ajax-autocomplete-transporteur-edit {{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? 'needed' : '' }}"
+                class="w-100 form-control data ajax-autocomplete-transporteur-edit {{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? 'needed' : '' }}"
                 name="transporteur" id="transporteur">
                 <option
                     value="{{ reception.transporteur ? reception.transporteur.id : '' }}">{{ reception.transporteur ? reception.transporteur.label : '' }}</option>

@@ -26,13 +26,15 @@ class RefArticleQuantityNotifier {
     }
 
     private function handleReference(ReferenceArticle $referenceArticle) {
-        $this->refArticleService->treatAlert($referenceArticle);
-        $this->manager->flush();
+        if ($this->manager->isOpen()) {
+            $this->refArticleService->treatAlert($referenceArticle);
+            $this->manager->flush();
 
-        $available = $referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee();
-        $referenceArticle->setQuantiteDisponible($available);
+            $available = $referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee();
+            $referenceArticle->setQuantiteDisponible($available);
 
-        $this->manager->flush();
+            $this->manager->flush();
+        }
     }
 
 }

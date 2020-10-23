@@ -5,7 +5,7 @@
             class="form-control">
         <option value="">Sélectionner un article à transférer</option>
         {% for article in articles %}
-            <option value="{{ article.id }}">{{ article.barCode }}</option>
+            <option class="{{ (article.id in articleAlreadyInRequest) ? 'd-none' : '' }}" value="{{ article.id }}">{{ article.barCode }}</option>
         {% endfor %}
     </select>
 </div>

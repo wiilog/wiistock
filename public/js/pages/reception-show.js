@@ -164,7 +164,7 @@ function initEditReception() {
 
     Select2.provider($('.ajax-autocomplete-fournisseur-edit'));
     Select2.location($('.ajax-autocomplete-location-edit'));
-    Select2.carrier($modal.find('.ajax-autocomplete-transporteur-edit'));
+    Select2.carrier($('.ajax-autocomplete-transporteur-edit'));
 }
 
 function initDateTimePickerReception() {
@@ -572,6 +572,10 @@ function initNewLigneReception($button) {
         Select2.initValues($('#storage'), $('#storageTransfer'));
     }
 
+    if ($('#originTransfer').length > 0) {
+        Select2.initValues($('#origin'), $('#originTransfer'));
+    }
+
     let urlNewLigneReception = Routing.generate(
         'reception_new_with_packing',
         {reception: $modalNewLigneReception.find('input[type="hidden"][name="reception"]').val()},
@@ -751,6 +755,7 @@ function toggleForm($content, $input, force = false) {
             if ($content.hasClass('transfer-form')) {
                 $('.demande-form').addClass('d-none');
                 $('.demande-form').find('.data').attr('disabled', 'disabled');
+                $('.demande-form').find('.wii-switch').removeClass('needed');
                 $('input[name="create-demande"]').prop('checked', false);
             } else {
                 $('.transfer-form').addClass('d-none');

@@ -111,7 +111,7 @@ class PreparationController extends AbstractController
         $locationEndPrepa = $emplacementRepository->find($request->request->get('emplacement'));
 
         try {
-            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser());
+            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager);
         }
         catch(NegativeQuantityException $exception) {
             $barcode = $exception->getArticle()->getBarCode();

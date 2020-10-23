@@ -1846,6 +1846,7 @@ class ReceptionController extends AbstractController {
             $articles = $data['conditionnement'];
 
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
@@ -1883,7 +1884,7 @@ class ReceptionController extends AbstractController {
                 // optionnel : crée l'ordre de prépa
                 $paramCreatePrepa = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
                 $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
-                $data['needPrepa'] = $needCreatePrepa;
+                $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
 
                 $demande = $demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
                 $entityManager->persist($demande);
@@ -1895,7 +1896,7 @@ class ReceptionController extends AbstractController {
 
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
-                    $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser);
+                    $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
 
                     $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
                     $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation);
@@ -1928,6 +1929,7 @@ class ReceptionController extends AbstractController {
                 $toTreat = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
                 $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
                 $destination = $emplacementRepository->find($data['storage']);
+                $origin = $emplacementRepository->find($data['origin']);
                 $transfer = new TransferRequest();
                 $transfer
                     ->setStatus($toTreat)
@@ -1935,6 +1937,7 @@ class ReceptionController extends AbstractController {
                     ->setValidationDate($now)
                     ->setNumber(TransferRequestController::createNumber($entityManager, $now))
                     ->setDestination($destination)
+                    ->setOrigin($origin)
                     ->setReception($reception)
                     ->setRequester($this->getUser());
                 $order = new TransferOrder();
@@ -2017,6 +2020,7 @@ class ReceptionController extends AbstractController {
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
 
                 $mailContent = $this->render('mails/contents/mailArticleUrgentReceived.html.twig', [
+                    'emergency' => $article->getReceptionReferenceArticle()->getEmergencyComment(),
                     'article' => $article,
                     'title' => 'Votre article urgent a bien été réceptionné.',
                 ])->getContent();
