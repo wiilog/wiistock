@@ -12,6 +12,7 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Article;
 use App\Entity\Utilisateur;
+use App\Helper\Stream;
 use App\Service\MouvementStockService;
 use App\Service\TransferOrderService;
 use DateTime;
@@ -91,7 +92,7 @@ class TransferOrderController extends AbstractController {
         }
     }
 
-    public static function createNumber($entityManager, $date) {
+    public static function createNumber(EntityManagerInterface $entityManager, $date) {
         $dateStr = $date->format('Ymd');
 
         $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
@@ -319,11 +320,9 @@ class TransferOrderController extends AbstractController {
             $transferOrderService->releaseRefsAndArticles($locationTo, $transferOrder, $currentUser, $entityManager);
 
             foreach ($transferOrder->getStockMovements() as $mouvementStock) {
-                $mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager);
-                $entityManager->flush();
-                $transferOrder->removeStockMovement($mouvementStock);
-                $entityManager->remove($mouvementStock);
+                $mouvementStock->setTransferOrder(null);
             }
+            $entityManager->flush();
 
             $requestId = $transferOrder->getRequest()->getId();
 
@@ -360,25 +359,55 @@ class TransferOrderController extends AbstractController {
         if(isset($dateTimeMin, $dateTimeMax)) {
             $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
 
-            $transfers = $entityManager->getRepository(TransferOrder::class)->getByDates($dateTimeMin, $dateTimeMax);
+            $transferRepository = $entityManager->getRepository(TransferOrder::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+            $transfers = $transferRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $articlesByRequest = $articleRepository->getArticlesGroupedByTransfer($transfers, false);
+            $referenceArticlesByRequest = $referenceArticleRepository->getReferenceArticlesGroupedByTransfer($transfers, false);
 
             $header = [
-                "numéro demande",
                 "numéro ordre",
+                "numéro demande",
                 "statut",
                 "demandeur",
                 "opérateur",
+                "origine",
                 "destination",
                 "date de création",
                 "date de transfert",
                 "commentaire",
+                "référence",
+                "code barre"
             ];
 
             return $CSVExportService->createBinaryResponseFromData(
                 "export_ordre_transfert" . $now->format("d_m_Y") . ".csv",
                 $transfers,
                 $header,
-                CSVExportService::$SERIALIZABLE
+                function (TransferOrder $transferOrder) use ($articlesByRequest, $referenceArticlesByRequest) {
+                    $requestId = $transferOrder->getId();
+                    $baseRow = $transferOrder->serialize();
+                    $articles = $articlesByRequest[$requestId] ?? [];
+                    $referenceArticles = $referenceArticlesByRequest[$requestId] ?? [];
+                    if (!empty($articles) || !empty($referenceArticles)) {
+                        return Stream::from($articles, $referenceArticles)
+                            ->map(function ($article) use ($baseRow) {
+                                return array_merge(
+                                    $baseRow,
+                                    [
+                                        $article['reference'],
+                                        $article['barCode']
+                                    ]
+                                );
+                            })
+                            ->toArray();
+                    }
+                    else {
+                        return [$baseRow];
+                    }
+                }
             );
         }
 

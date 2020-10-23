@@ -98,7 +98,16 @@ class ReceptionService
         $ransporteurRepository = $entityManager->getRepository(Transporteur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
-        $statusCode = !empty($data['anomalie']) ? ($data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE) : Reception::STATUT_EN_ATTENTE;
+        if(!empty($data['anomalie'])) {
+            $anomaly = filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN);
+
+            $statusCode = $anomaly
+                ? Reception::STATUT_ANOMALIE
+                : Reception::STATUT_EN_ATTENTE;
+        } else {
+            $statusCode = Reception::STATUT_EN_ATTENTE;
+        }
+
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
         $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
 
@@ -136,8 +145,8 @@ class ReceptionService
             $reception->setStorageLocation($storageLocation);
         }
 
-        if(!empty($data['emergency'])) {
-            $reception->setManualUrgent($data['emergency']);
+        if(!empty($data['manualUrgent'])) {
+            $reception->setManualUrgent(filter_var($data['manualUrgent']));
         }
 
         $reception

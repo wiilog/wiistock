@@ -42,11 +42,15 @@ class AlertService {
                     "type" => $type
                 ]);
 
-                $this->mailer->sendMail("FOLLOW GT // Seuil de péremption atteint", $content, $email);
+                $this->mailer->sendMail("FOLLOW GT // $type atteint", $content, $email);
             });
     }
 
     public function sendExpiryMails($manager, $articles, $delay) {
+        if(!is_array($articles)) {
+            $articles = [$articles];
+        }
+
         $content = $this->templating->render('mails/contents/mailExpiredArticle.html.twig', [
             "articles" => $articles,
             "delay" => $delay,

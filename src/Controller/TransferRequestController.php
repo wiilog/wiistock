@@ -12,6 +12,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Article;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Helper\Stream;
 use App\Service\TransferRequestService;
 use DateTime;
 use App\Service\CSVExportService;
@@ -84,7 +85,7 @@ class TransferRequestController extends AbstractController {
         }
     }
 
-    public static function createNumber($entityManager, $date) {
+    public static function createNumber(EntityManagerInterface $entityManager, $date) {
         $dateStr = $date->format('Ymd');
 
         $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
@@ -129,6 +130,7 @@ class TransferRequestController extends AbstractController {
             $draft = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::DRAFT);
             $transfer = new TransferRequest();
             $destination = $emplacementRepository->find($data['destination']);
+            $origin = $emplacementRepository->find($data['origin']);
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
@@ -137,6 +139,7 @@ class TransferRequestController extends AbstractController {
                 ->setStatus($draft)
                 ->setNumber(self::createNumber($entityManager, $date))
                 ->setDestination($destination)
+                ->setOrigin($origin)
                 ->setCreationDate($date)
                 ->setRequester($currentUser)
                 ->setComment($data['comment']);
@@ -313,16 +316,24 @@ class TransferRequestController extends AbstractController {
         }
 
         if(isset($content->fetchOnly) && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            $locationLabel = $transfer->getOrigin()->getLabel();
             $articles = $this->getDoctrine()
                 ->getRepository(Article::class)
-                ->findForReferenceWithoutTransfer($reference);
+                ->findForReferenceWithoutTransfer($reference, $transfer->getOrigin());
 
-            return $this->json([
-                "success" => true,
-                "html" => $this->renderView("transfer/request/article/select_article_form.html.twig", [
-                    "articles" => $articles
-                ])
-            ]);
+            if (!empty($articles)) {
+                return $this->json([
+                    "success" => true,
+                    "html" => $this->renderView("transfer/request/article/select_article_form.html.twig", [
+                        "articles" => $articles
+                    ])
+                ]);
+            } else {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Aucun article lié à cette référence présent sur $locationLabel."
+                ]);
+            }
         }
         if(!isset($content->fetchOnly) && $article && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             if($transfer->getArticles()->contains($article)) {
@@ -456,12 +467,19 @@ class TransferRequestController extends AbstractController {
         if(isset($dateTimeMin, $dateTimeMax)) {
             $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
 
-            $transfers = $entityManager->getRepository(TransferRequest::class)->getByDates($dateTimeMin, $dateTimeMax);
+            $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+            $transfers = $transferRequestRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $articlesByRequest = $articleRepository->getArticlesGroupedByTransfer($transfers);
+            $referenceArticlesByRequest = $referenceArticleRepository->getReferenceArticlesGroupedByTransfer($transfers);
 
             $header = [
                 "numéro demande",
                 "statut",
                 "demandeur",
+                "origine",
                 "destination",
                 "date de création",
                 "date de validation",
@@ -474,19 +492,27 @@ class TransferRequestController extends AbstractController {
                 "export_demande_transfert" . $now->format("d_m_Y") . ".csv",
                 $transfers,
                 $header,
-                function ($transferRequest) {
-                    $row = [];
-                    $row[] = $transferRequest['number'] ?? '';
-                    $row[] = $transferRequest['status'] ?? '';
-                    $row[] = $transferRequest['requester'] ?? '';
-                    $row[] = $transferRequest['destination'] ?? '';
-                    $row[] = $transferRequest['creationDate'] ? $transferRequest['creationDate']->format('d/m/Y H:i:s') : '';
-                    $row[] = $transferRequest['validationDate'] ? $transferRequest['validationDate']->format('d/m/Y H:i:s') : '';
-                    $row[] = $transferRequest['comment'] ? strip_tags($transferRequest['comment']) : '';
-                    $row[] = $transferRequest['reference'] ?? '';
-                    $row[] = $transferRequest['barcode'] ?? '';
-
-                    return [$row];
+                function (TransferRequest $transferRequest) use ($articlesByRequest, $referenceArticlesByRequest) {
+                    $requestId = $transferRequest->getId();
+                    $baseRow = $transferRequest->serialize();
+                    $articles = $articlesByRequest[$requestId] ?? [];
+                    $referenceArticles = $referenceArticlesByRequest[$requestId] ?? [];
+                    if (!empty($articles) || !empty($referenceArticles)) {
+                        return Stream::from($articles, $referenceArticles)
+                            ->map(function ($article) use ($baseRow) {
+                                return array_merge(
+                                    $baseRow,
+                                    [
+                                        $article['reference'],
+                                        $article['barCode']
+                                    ]
+                                );
+                            })
+                            ->toArray();
+                    }
+                    else {
+                        return [$baseRow];
+                    }
                 }
             );
         }

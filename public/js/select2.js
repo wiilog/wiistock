@@ -135,13 +135,14 @@ class Select2 {
         this.init(select, '', 1, {route: 'get_transporteurs'});
     }
 
-    static articleReference(select, typeQuantity = null, field = 'reference', placeholder = '', activeOnly = 1) {
+    static articleReference(select, typeQuantity = null, field = 'reference', placeholder = '', activeOnly = 1, locationFilter = null) {
         this.init(select, placeholder, 1, {
             route: 'get_ref_articles',
             param: {
                 activeOnly,
                 field,
-                typeQuantity
+                ...(typeQuantity ? {typeQuantity} : {}),
+                locationFilter
             }
         });
     }

@@ -38,9 +38,6 @@ class GenerateAlertsCommand extends Command {
         if($expiry = $parametrage->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY)) {
             $this->sendExpiry = true;
             $this->expiryDelay = $expiry;
-            $this->expiryDelay = str_replace("s", "week", $this->expiryDelay);
-            $this->expiryDelay = str_replace("j", "day", $this->expiryDelay);
-            $this->expiryDelay = str_replace("h", "hour", $this->expiryDelay);
         } else {
             $this->sendExpiry = false;
         }
@@ -63,9 +60,9 @@ class GenerateAlertsCommand extends Command {
 
         $managers = [];
         /** @var Article $article */
-        foreach($expired as $alert) {
+        foreach($expired as $article) {
             $hasExistingAlert = !(
-                Stream::from($alert->getAlerts())
+                Stream::from($article->getAlerts())
                     ->filter(function (Alert $alert) {
                         return $alert->getType() === Alert::EXPIRY;
                     })->isEmpty()
@@ -73,19 +70,19 @@ class GenerateAlertsCommand extends Command {
 
             if (!$hasExistingAlert) {
                 $alert = new Alert();
-                $alert->setArticle($alert);
+                $alert->setArticle($article);
                 $alert->setType(Alert::EXPIRY);
                 $alert->setDate($now);
 
                 $this->manager->persist($alert);
             }
-            $recipients = $alert->getArticleFournisseur()
+            $recipients = $article->getArticleFournisseur()
                 ->getReferenceArticle()
                 ->getManagers();
 
             foreach ($recipients as $recipient) {
-                $this->addArticle($managers, $recipient->getEmail(), $alert);
-                $this->addArticle($managers, $recipient->getSecondaryEmails(), $alert);
+                $this->addArticle($managers, $recipient->getEmail(), $article);
+                $this->addArticle($managers, $recipient->getSecondaryEmails(), $article);
             }
         }
 
@@ -111,15 +108,6 @@ class GenerateAlertsCommand extends Command {
 
             $emails[$email][] = $article;
         }
-    }
-
-    private function displayExpiry() {
-        $expiry = $this->expiryDelay;
-        $expiry = str_replace("week", " semaines", $expiry);
-        $expiry = str_replace("day", " jours", $expiry);
-        $expiry = str_replace("hour", " heures", $expiry);
-
-        return $expiry;
     }
 
 }

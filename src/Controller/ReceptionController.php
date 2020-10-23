@@ -66,6 +66,7 @@ use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -187,7 +188,7 @@ class ReceptionController extends AbstractController {
             return new JsonResponse($data);
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1740,27 +1741,15 @@ class ReceptionController extends AbstractController {
                 'code-barre article',
             ];
             $nowStr = date("d-m-Y_H:i");
+            $addedRefs = [];
 
             return $CSVExportService->createBinaryResponseFromData(
                 "export-" . str_replace(["/", "\\"], "-", $translator->trans('réception.réception')) . "-" . $nowStr  . ".csv",
                 $receptions,
                 $csvHeader,
-                function($reception) {
+                function($reception) use (&$addedRefs) {
                     $rows = [];
                     if($reception['articleId'] || $reception['referenceArticleId']) {
-                        if($reception['referenceArticleId']) {
-                            $row = $this->serializeReception($reception);
-
-                            $row[] = '';
-                            $row[] = $reception['referenceArticleReference'] ?: '';
-                            $row[] = $reception['referenceArticleLibelle'] ?: '';
-                            $row[] = $reception['referenceArticleQuantiteStock'] ?: '';
-                            $row[] = $reception['referenceArticleTypeLabel'] ?: '';
-                            $row[] = $reception['referenceArticleBarcode'] ?: '';
-
-                            $rows[] = $row;
-                        }
-
                         if($reception['articleId']) {
                             $row = $this->serializeReception($reception);
 
@@ -1773,6 +1762,22 @@ class ReceptionController extends AbstractController {
                             $row[] = $reception['articleBarcode'] ?: '';
 
                             $rows[] = $row;
+                        }
+
+                        if($reception['referenceArticleId']) {
+                            if (!isset($addedRefs[$reception['referenceArticleId']])) {
+                                $addedRefs[$reception['referenceArticleId']] = true;
+                                $row = $this->serializeReception($reception);
+
+                                $row[] = '';
+                                $row[] = $reception['referenceArticleReference'] ?: '';
+                                $row[] = $reception['referenceArticleLibelle'] ?: '';
+                                $row[] = $reception['referenceArticleQuantiteStock'] ?: '';
+                                $row[] = $reception['referenceArticleTypeLabel'] ?: '';
+                                $row[] = $reception['referenceArticleBarcode'] ?: '';
+
+                                $rows[] = $row;
+                            }
                         }
                     } else {
                         $rows[] = $this->serializeReception($reception);

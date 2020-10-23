@@ -68,19 +68,23 @@ class TransferOrderRepository extends EntityRepository {
                 if (!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb
-                        ->join('transfer_order.request', 'search_request')
-                        ->andWhere(
+                        ->andWhere('(' .
                             $exprBuilder->orX(
                                 'search_request.number LIKE :value',
                                 'search_requester.username LIKE :value',
                                 'search_operator.username LIKE :value',
+                                'search_destination.label LIKE :value',
+                                'search_origin.label LIKE :value',
                                 'search_status.nom LIKE :value'
                             )
-                        )
-                        ->setParameter('value', '%' . $search . '%')
+                        . ')')
+                        ->join('transfer_order.request', 'search_request')
                         ->leftJoin('search_request.requester', 'search_requester')
                         ->leftJoin('transfer_order.operator', 'search_operator')
-                        ->leftJoin('search_request.status', 'search_status');
+                        ->leftJoin('search_request.status', 'search_status')
+                        ->leftJoin('search_request.destination', 'search_destination')
+                        ->leftJoin('search_request.origin', 'search_origin')
+                        ->setParameter('value', '%' . $search . '%');
                 }
             }
 
@@ -99,17 +103,23 @@ class TransferOrderRepository extends EntityRepository {
                                 ->leftJoin('transfer_order.status', 'order_status')
                                 ->orderBy('order_status.nom', $order);
                             break;
+                        case 'origin':
+                            $qb
+                                ->leftJoin('transfer_order.request', 'order_requestOrigin')
+                                ->leftJoin('order_requestOrigin.origin', 'order_requestOrigin_location')
+                                ->orderBy('order_requestOrigin_location.label', $order);
+                            break;
                         case 'destination':
                             $qb
-                                ->leftJoin('transfer_order.request', 'order_request')
-                                ->leftJoin('order_request.destination', 'order_requestDestination')
-                                ->orderBy('order_requestDestination.label', $order);
+                                ->leftJoin('transfer_order.request', 'order_requestDestination')
+                                ->leftJoin('order_requestDestination.destination', 'order_requestDestination_location')
+                                ->orderBy('order_requestDestination_location.label', $order);
                             break;
                         case 'requester':
                             $qb
-                                ->leftJoin('transfer_order.request', 'order_request')
-                                ->leftJoin('order_request.requester', 'order_requestRequester')
-                                ->orderBy('order_requestRequester.username', $order);
+                                ->leftJoin('transfer_order.request', 'order_requestRequester')
+                                ->leftJoin('order_requestRequester.requester', 'order_requestRequester_user')
+                                ->orderBy('order_requestRequester_user.username', $order);
                             break;
                         case 'creationDate':
                             $qb
@@ -117,8 +127,8 @@ class TransferOrderRepository extends EntityRepository {
                             break;
                         case 'validationDate':
                             $qb
-                                ->leftJoin('transfer_order.request', 'order_request')
-                                ->orderBy("order_request.validationDate", $order);
+                                ->leftJoin('transfer_order.request', 'order_requestValidationDate')
+                                ->orderBy("order_requestValidationDate.validationDate", $order);
                             break;
                         default:
                             $qb->orderBy('transfer_order.' . $column, $order);
@@ -144,16 +154,21 @@ class TransferOrderRepository extends EntityRepository {
     }
 
     public function getLastTransferNumberByPrefix($prefix) {
-        return $this->createQueryBuilder('transfer_order')
-                ->select('transfer_order.number')
-                ->where('transfer_order.number LIKE :value')
-                ->orderBy('transfer_order.creationDate', 'DESC')
-                ->setParameter('value', $prefix . '%')
-                ->getQuery()
-                ->getFirstResult()["number"] ?? null;
+        $qb = $this->createQueryBuilder('transfer_order');
+
+        $qb
+            ->select('transfer_order.number')
+            ->where('transfer_order.number LIKE :value')
+            ->orderBy('transfer_order.creationDate', 'DESC')
+            ->setParameter('value', $prefix . '%');
+
+        $result = $qb
+            ->getQuery()
+            ->getResult();
+        return $result ? $result[0]['number'] : null;
     }
 
-    public function getByDates($dateMin, $dateMax) {
+    public function findByDates($dateMin, $dateMax) {
 
         $qb = $this->createQueryBuilder("transfer_order");
 
@@ -174,11 +189,13 @@ class TransferOrderRepository extends EntityRepository {
             ->select('transferOrder.id AS id')
             ->addSelect('transferOrder.number AS number')
             ->addSelect('join_requester.username AS requester')
+            ->addSelect('join_origin.label AS origin')
             ->addSelect('join_destination.label AS destination')
             ->join('transferOrder.status', 'join_orderStatus')
             ->join('transferOrder.request', 'join_transferRequest')
             ->join('join_transferRequest.requester', 'join_requester')
             ->join('join_transferRequest.destination', 'join_destination')
+            ->join('join_transferRequest.origin', 'join_origin')
             ->andWhere('join_orderStatus.nom = :toTreatStatusLabel')
             ->andWhere('transferOrder.operator IS NULL OR transferOrder.operator = :operator')
             ->setParameters([

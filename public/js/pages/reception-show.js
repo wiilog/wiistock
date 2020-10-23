@@ -161,6 +161,10 @@ function InitPageDataTable() {
 function initEditReception() {
     initDateTimePickerReception();
     initOnTheFlyCopies($('.copyOnTheFly'));
+
+    Select2.provider($('.ajax-autocomplete-fournisseur-edit'));
+    Select2.location($('.ajax-autocomplete-location-edit'));
+    Select2.carrier($modal.find('.ajax-autocomplete-transporteur-edit'));
 }
 
 function initDateTimePickerReception() {

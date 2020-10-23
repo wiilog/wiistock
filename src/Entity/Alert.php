@@ -13,7 +13,13 @@ class Alert {
     const TYPE_LABELS = [
         self::SECURITY => "Seuil de sécurité",
         self::WARNING => "Seuil d'alerte",
-        self::EXPIRY => "Date de péremption",
+        self::EXPIRY => "Péremption",
+    ];
+
+    const TYPE_LABELS_IDS = [
+        'expiration' => self::EXPIRY,
+        'alert' => self::WARNING,
+        'security' => self::SECURITY,
     ];
 
     const SECURITY = 1;

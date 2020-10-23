@@ -903,22 +903,24 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete-ref/{activeOnly}/type/{field}/{typeQuantity}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
+     * @Route("/autocomplete-ref", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param bool $activeOnly
-     * @param null $typeQuantity
-     * @param string $field
      * @return JsonResponse
      */
-    public function getRefArticles(Request $request, EntityManagerInterface $entityManager, $activeOnly = false, $typeQuantity = null, $field = 'reference')
+    public function getRefArticles(Request $request,
+                                   EntityManagerInterface $entityManager)
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-            $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity, $field);
+            $activeOnly = $request->query->getBoolean('activeOnly', false);
+            $typeQuantity = $request->query->get('typeQuantity', -1);
+            $field = $request->query->get('field', 'reference');
+            $locationFilter = $request->query->get('locationFilter', null);
+            $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity, $field, $locationFilter);
             return new JsonResponse(['results' => $refArticles]);
         }
         throw new NotFoundHttpException("404");
