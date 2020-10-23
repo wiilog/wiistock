@@ -801,7 +801,6 @@ class ReferenceArticleController extends AbstractController
                 || count($refArticle->getLigneArticles()) > 0
                 || count($refArticle->getReceptionReferenceArticles()) > 0
                 || count($refArticle->getMouvements()) > 0
-                || count($refArticle->getTrackingMovements()) > 0
                 || count($refArticle->getArticlesFournisseur()) > 0) {
                 return new JsonResponse([
                     'success' => false,
