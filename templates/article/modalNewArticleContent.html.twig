@@ -2,9 +2,9 @@
 {% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
 {% set disabled = editable ? '' : 'disabled' %}
 <div class="row">
-    <div class="form-group w-100 col-4">
-        <label>Référence fournisseur*
-            <select class="form-control data needed select2" name="articleFournisseur">
+    <div class="form-group col-md-4 col-12">
+        <label for="supplier-reference">Référence fournisseur*</label>
+            <select id="supplier-reference" class="form-control data needed select2" name="articleFournisseur">
                 {% if references is defined and references %}
                     {% if (defaultArticleFournisseurReference is not defined or defaultArticleFournisseurReference is empty)
                         and references|length > 1 %}
@@ -18,23 +18,22 @@
                     {% endfor %}
                 {% endif %}
             </select>
-        </label>
     </div>
     {% if easyForm %}
-        <div class="form-group w-100 col-4">
+        <div class="form-group col-md-4 col-12">
             <label>Lot</label>
             <input class="form-control data" type="text" name="batch">
         </div>
-        <div class="form-group col-4 w-100">
+        <div class="form-group col-md-4 col-12">
             <label>Date de péremption</label>
             <input type="date" class="form-control data" name="expiry"/>
         </div>
     {% else %}
-        <div class="form-group col-6">
+        <div class="form-group col-md-4 col-12">
             <label for="libelle">Libellé*</label>
             <input class="form-control data needed" type="text" name="libelle" id="libelle">
         </div>
-        <div class="form-group col-6">
+        <div class="form-group col-md-4 col-12">
             <label for="libelle">Type</label>
             <input class="form-control data" type="text" disabled value="{{ typeArticle }}" name="type" id="type">
         </div>
@@ -81,7 +80,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="form-group col-6 w-100">
+        <div class="form-group col-12">
             <label>Date de péremption</label>
             <input type="date" class="form-control data" name="expiry"/>
         </div>
