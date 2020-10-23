@@ -146,7 +146,7 @@ class ReceptionService
         }
 
         if(!empty($data['manualUrgent'])) {
-            $reception->setManualUrgent(filter_var($data['manualUrgent']));
+            $reception->setManualUrgent(filter_var($data['manualUrgent'], FILTER_VALIDATE_BOOLEAN));
         }
 
         $reception
