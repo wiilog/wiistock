@@ -755,6 +755,7 @@ function toggleForm($content, $input, force = false) {
             if ($content.hasClass('transfer-form')) {
                 $('.demande-form').addClass('d-none');
                 $('.demande-form').find('.data').attr('disabled', 'disabled');
+                $('.demande-form').find('.wii-switch').removeClass('needed');
                 $('input[name="create-demande"]').prop('checked', false);
             } else {
                 $('.transfer-form').addClass('d-none');
