@@ -40,8 +40,9 @@
         </div>
     </div>
     <div class="form-group w-fit-content mt-2">
-        <label>Délais alerte de péremption (jous)</label>
-        <input type="text" class="form-control data"
+        <label>Délais alerte de péremption (jours)</label>
+        <input type="number" class="form-control data"
+               min="0" max="365"
                name="expirationDelay"
                value="{{ expirationDelay }}">
     </div>
