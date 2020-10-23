@@ -1928,6 +1928,7 @@ class ReceptionController extends AbstractController {
                 $toTreat = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
                 $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
                 $destination = $emplacementRepository->find($data['storage']);
+                $origin = $emplacementRepository->find($data['origin']);
                 $transfer = new TransferRequest();
                 $transfer
                     ->setStatus($toTreat)
@@ -1935,6 +1936,7 @@ class ReceptionController extends AbstractController {
                     ->setValidationDate($now)
                     ->setNumber(TransferRequestController::createNumber($entityManager, $now))
                     ->setDestination($destination)
+                    ->setOrigin($origin)
                     ->setReception($reception)
                     ->setRequester($this->getUser());
                 $order = new TransferOrder();

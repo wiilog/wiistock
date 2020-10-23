@@ -572,6 +572,10 @@ function initNewLigneReception($button) {
         Select2.initValues($('#storage'), $('#storageTransfer'));
     }
 
+    if ($('#originTransfer').length > 0) {
+        Select2.initValues($('#origin'), $('#originTransfer'));
+    }
+
     let urlNewLigneReception = Routing.generate(
         'reception_new_with_packing',
         {reception: $modalNewLigneReception.find('input[type="hidden"][name="reception"]').val()},
