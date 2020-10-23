@@ -900,7 +900,7 @@ class ImportService
         }
         if (isset($data['dateLastInventory'])) {
             try {
-                $refArt->setDateLastInventory(DateTime::createFromFormat('d/m/Y', $data['dateLastInventory']));
+                $refArt->setDateLastInventory(DateTime::createFromFormat('d/m/Y', $data['dateLastInventory']) ?: null);
             } catch (Exception $e) {
                 $this->throwError('La date de dernier inventaire doit être au format JJ/MM/AAAA.');
             }
