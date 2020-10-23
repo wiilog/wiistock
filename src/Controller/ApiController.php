@@ -1144,7 +1144,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $demandeArray['demandeur'] = $nomadUser;
 
             $freeFields = json_decode($demandeArray["freeFields"], true);
-            dump($freeFields, json_last_error_msg());
+
             if(is_array($freeFields)) {
                 foreach($freeFields as $key => $value) {
                     $demandeArray[(int)$key] = $value;
@@ -1152,7 +1152,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             }
 
             unset($demandeArray["freeFields"]);
-dump($demandeArray);
+
             $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate(
                 $entityManager,
                 $demandeArray,
