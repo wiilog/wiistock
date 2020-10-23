@@ -81,7 +81,7 @@ class InventoryService
 			$quantity = $refOrArt->getQuantite();
 		}
 
-		$diff = $newQuantity - $quantity;
+		$diff = ($newQuantity - $quantity);
 
 		if ($diff != 0) {
 		    $statusRequired = $isRef ? [ReferenceArticle::STATUT_ACTIF] : [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE];
@@ -121,15 +121,28 @@ class InventoryService
 		}
 
 		$entry = $inventoryEntryRepository->find($idEntry);
-		$entry
-            ->setQuantity($newQuantity)
-            ->setAnomaly(false);
+        $allEntriesToTreat = $inventoryEntryRepository->findBy([
+            'refArticle' => $entry->getRefArticle(),
+            'article' => $entry->getArticle(),
+            'anomaly' => true
+        ]);
+
+        $treatedEntries = [];
+        foreach ($allEntriesToTreat as $entryToTreat) {
+            $treatedEntries[] = $entryToTreat->getId();
+            $entryToTreat
+                ->setQuantity($newQuantity)
+                ->setAnomaly(false);
+        }
 
 		$refOrArt->setDateLastInventory(new DateTime('now'));
 
         $this->entityManager->flush();
 
-		return $quantitiesAreEqual;
+		return [
+		    'treatedEntries' => $treatedEntries,
+		    'quantitiesAreEqual' => $quantitiesAreEqual
+        ];
 	}
 
 	/**

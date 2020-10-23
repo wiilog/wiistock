@@ -133,7 +133,7 @@ class InventoryAnomalyController extends AbstractController
 			}
 
             try {
-                $quantitiesAreEqual = $this->inventoryService->doTreatAnomaly(
+                $res = $this->inventoryService->doTreatAnomaly(
                     $data['id'],
                     $data['barCode'],
                     $data['isRef'],
@@ -144,7 +144,7 @@ class InventoryAnomalyController extends AbstractController
 
                 $responseData = [
                     'success' => true,
-                    'msg' => $quantitiesAreEqual
+                    'msg' => $res['quantitiesAreEqual']
                         ? 'L\'anomalie a bien été traitée.'
                         : 'Un mouvement de stock correctif vient d\'être créé.'
                 ];
