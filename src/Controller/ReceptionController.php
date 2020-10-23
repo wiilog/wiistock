@@ -2019,6 +2019,7 @@ class ReceptionController extends AbstractController {
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
 
                 $mailContent = $this->render('mails/contents/mailArticleUrgentReceived.html.twig', [
+                    'emergency' => $ref->getEmergencyComment(),
                     'article' => $article,
                     'title' => 'Votre article urgent a bien été réceptionné.',
                 ])->getContent();
