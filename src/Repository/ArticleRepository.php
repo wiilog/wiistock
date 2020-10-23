@@ -65,9 +65,7 @@ class ArticleRepository extends EntityRepository
 
     public function findExpiredToGenerate($delay = 0) {
         $since = new DateTime("now", new DateTimeZone("Europe/Paris"));
-        if($delay) {
-            $since->modify($delay);
-        }
+        $since->modify("+{$delay}day");
 
         return $this->createQueryBuilder("a")
             ->where("a.expiryDate <= :since")

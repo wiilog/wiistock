@@ -90,7 +90,8 @@ class ArticleQuantityNotifier {
     private function treatAlert(Article $article) {
         if($article->getExpiryDate()) {
             $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
-            $now->modify("{$this->expiryDelay}day");
+            $expires = clone $now;
+            $expires->modify("{$this->expiryDelay}day");
 
             $existing = $this->entityManager->getRepository(Alert::class)->findForArticle($article, Alert::EXPIRY);
 
@@ -103,12 +104,11 @@ class ArticleQuantityNotifier {
                 $existing = null;
             }
 
-            dump($now, $article->getExpiryDate(), $existing, $now >= $article->getExpiryDate() && !$existing, true && !$existing);
             if($now >= $article->getExpiryDate() && !$existing) {
                 $alert = new Alert();
                 $alert->setArticle($article);
                 $alert->setType(Alert::EXPIRY);
-                $alert->setDate($now);
+                $alert->setDate($expires);
 
                 $this->entityManager->persist($alert);
 
