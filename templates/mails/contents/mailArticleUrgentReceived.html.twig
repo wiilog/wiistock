@@ -1,7 +1,6 @@
 {% extends 'mails/template.html.twig' %}
 
 {% block content %}
-
     {% set rra = article.receptionReferenceArticle %}
     <div>Code article : {{ article.reference }}</div>
     <div>Article de référence : {{ rra ? rra.referenceArticle.reference }}</div>

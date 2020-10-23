@@ -1846,6 +1846,7 @@ class ReceptionController extends AbstractController {
             $articles = $data['conditionnement'];
 
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
@@ -2019,7 +2020,7 @@ class ReceptionController extends AbstractController {
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
 
                 $mailContent = $this->render('mails/contents/mailArticleUrgentReceived.html.twig', [
-                    'emergency' => $ref->getEmergencyComment(),
+                    'emergency' => $article->getReceptionReferenceArticle()->getEmergencyComment(),
                     'article' => $article,
                     'title' => 'Votre article urgent a bien été réceptionné.',
                 ])->getContent();
