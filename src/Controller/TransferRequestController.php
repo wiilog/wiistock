@@ -47,21 +47,15 @@ class TransferRequestController extends AbstractController {
 
     /**
      * @Route("/liste", name="transfer_request_index", options={"expose"=true}, methods={"GET", "POST"})
-     * @param EntityManagerInterface $em
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function index(EntityManagerInterface $em): Response {
+    public function index(EntityManagerInterface $entityManager): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $statusRepository = $em->getRepository(Statut::class);
-
-        $transfer = new TransferRequest();
-
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
-        $transfer->setRequester($currentUser);
+        $statusRepository = $entityManager->getRepository(Statut::class);
 
         return $this->render('transfer/request/index.html.twig', [
             'statuts' => $statusRepository->findByCategorieName(CategorieStatut::TRANSFER_REQUEST),
