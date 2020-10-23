@@ -14,7 +14,10 @@
                 <select class="form-control ajax-autocomplete-location d-block" id="receptionLocation">
                 </select>
             </div>
-            <input hidden id="receptionLocationValue" data-id="{{ receptionLocation ? receptionLocation.id }}" data-text="{{ receptionLocation ? receptionLocation.text }}">
+            <input hidden id="receptionLocationValue"
+                   data-id="{{ receptionLocation ? receptionLocation.id }}"
+                   data-text="{{ receptionLocation ? receptionLocation.text }}"
+                   data-label="{{ constant('App\\Entity\\ParametrageGlobal::DEFAULT_LOCATION_RECEPTION') }}">
         </div>
     </div>
     <div class="row mt-2">

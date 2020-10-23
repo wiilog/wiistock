@@ -31,13 +31,14 @@ InitModal(modalEditDays, submitEditDays, urlEditDays, {tables: [tableDays]});
 
 $(function () {
     Select2.init($('#locationArrivageDest'));
+    Select2.init($('[name=param-default-location-if-custom]'))
+    Select2.init($('[name=param-default-location-if-emergency]'))
     Select2.init($('#listNaturesColis'));
     Select2.initFree($('select[name="businessUnit"]'));
     Select2.initFree($('select[name="dispatchEmergencies"]'));
     Select2.location($('.ajax-autocomplete-location'));
     Select2.carrier($('.ajax-autocomplete-transporteur'));
     Select2.initValues($('#receptionLocation'), $('#receptionLocationValue'));
-    $('#receptionLocation').on('change', editDefaultLocationValue);
 
     updateImagePreview('#preview-label-logo', '#upload-label-logo');
     updateImagePreview('#preview-emergency-icon', '#upload-emergency-icon');
@@ -48,9 +49,25 @@ $(function () {
 
     // config tableau de bord : emplacements
     initValuesForDashboard();
-    $('#locationArrivageDest').on('change', editArrivageDestination);
+
+    $('#receptionLocation').on('change', function () {
+        editParamLocations($(this), $('#receptionLocationValue'));
+    });
+
+    $('#locationArrivageDest').on('change', function () {
+        editParamLocations($(this), $('#locationArrivageDestValue'))
+    });
+
+    $('[name=param-default-location-if-custom]').on('change', function () {
+        editParamLocations($(this), $('#customsArrivalsLocation'))
+    });
+
+    $('[name=param-default-location-if-emergency]').on('change', function () {
+        editParamLocations($(this), $('#emergenciesArrivalsLocation'))
+    });
+
     $('#locationDemandeLivraison').on('change', function() {
-        editDemandeLivraisonDestination($(this));
+        editParamLocations($(this), $('#locationDemandeLivraisonValue'));
     });
     // config tableau de bord : transporteurs
 
@@ -92,7 +109,12 @@ function initValuesForDashboard() {
     Select2.initValues($('#locationUrgences'), $( '#locationUrgencesValue'));
     Select2.initValues($('#locationsFirstGraph'), $( '#locationsFirstGraphValue'));
     Select2.initValues($('#locationsSecondGraph'), $( '#locationsSecondGraphValue'));
+
+    // Set location values for arrivals
     Select2.initValues($('#locationArrivageDest'), $( '#locationArrivageDestValue'));
+    Select2.initValues($('[name=param-default-location-if-custom]'), $( '#customsArrivalsLocation'));
+    Select2.initValues($('[name=param-default-location-if-emergency]'), $( '#emergenciesArrivalsLocation'));
+
     Select2.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
     Select2.initValues($('#packaging1'), $('#packagingLocation1'));
     Select2.initValues($('#packaging2'), $('#packagingLocation2'));
@@ -295,7 +317,7 @@ function ajaxEncodage() {
     });
 }
 
-function editDefaultLocationValue() {
+/*function editDefaultLocationValue() {
     let path = Routing.generate('edit_reception_location', true);
     const locationValue = $(this).val();
     let param = {
@@ -309,7 +331,7 @@ function editDefaultLocationValue() {
             showBSAlert("Une erreur est survenue lors de la mise à jour de l'emplacement de réception.", 'danger');
         }
     });
-}
+}*/
 
 function editDashboardParams() {
     let path = Routing.generate('edit_dashboard_params', true);
@@ -348,24 +370,17 @@ function editFont() {
     });
 }
 
-function editArrivageDestination() {
-    $.post(Routing.generate('set_arrivage_default_dest'), $(this).val(), (resp) => {
-        if (resp) {
-            showBSAlert("la destination des arrivages a bien été mise à jour.", 'success');
-        } else {
-            showBSAlert("Une erreur est survenue lors de la mise à jour de la destination des arrivages.", 'danger');
-        }
-    });
-}
-
-function editDemandeLivraisonDestination($select) {
-    $.post(Routing.generate('edit_demande_livraison_default_dest'), $select.val(), (resp) => {
-        if (resp) {
-            showBSAlert("La destination des demandes de livraison a bien été mise à jour.", 'success');
-        } else {
-            showBSAlert("Une erreur est survenue lors de la mise à jour de la destination des demandes de livraison.", 'danger');
-        }
-    });
+function editParamLocations($select, $inputValue) {
+    const data = $inputValue.data();
+    if (data && data.label) {
+        $.post(Routing.generate('edit_param_location', {label: data.label}), $select.val(), (resp) => {
+            if (resp) {
+                showBSAlert("L\'emplacement a bien été mis à jour.", 'success');
+            } else {
+                showBSAlert("Une erreur est survenue lors de la mise à jour de l\'emplacement.", 'danger');
+            }
+        });
+    }
 }
 
 function editReceptionStatus() {

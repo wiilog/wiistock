@@ -12,6 +12,7 @@ use App\Entity\Emplacement;
 use App\Entity\LigneArticle;
 use App\Entity\Livraison;
 use App\Entity\Menu;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Article;
@@ -309,7 +310,7 @@ class DemandeController extends AbstractController
             'types' => $types,
             'filterStatus' => $filter,
             'receptionFilter' => $reception,
-            'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation()
+            'livraisonLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON)
         ]);
     }
 

@@ -231,25 +231,41 @@ Class PackService
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $natureRepository = $this->entityManager->getRepository(Nature::class);
-        $defaultEmpForMvt = ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) && $arrivage->getDestinataire())
-            ? $emplacementRepository->findOneByLabel(SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE)
-            : null;
-        if (!isset($defaultEmpForMvt)) {
-            $defaultEmpForMvtParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
-            $defaultEmpForMvt = !empty($defaultEmpForMvtParam)
-                ? $emplacementRepository->find($defaultEmpForMvtParam)
-                : null;
+
+        $specificArrivalLocationSED = $emplacementRepository->findOneByLabel(SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE);
+
+        $defaultArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+        $customsArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS);
+        $emergenciesArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY);
+
+        if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) && $arrivage->getDestinataire()) {
+            $location = $specificArrivalLocationSED ?? null;
         }
+        else if ($arrivage->getCustoms()
+            && $arrivage->getIsUrgent()
+            && !empty($customsArrivalsLocation)) {
+            $location = $emplacementRepository->find($customsArrivalsLocation);
+        }
+        else if (!empty($customsArrivalsLocation) && $arrivage->getCustoms()) {
+            $location = $emplacementRepository->find($customsArrivalsLocation);
+        }
+        else if (!empty($emergenciesArrivalsLocation) && $arrivage->getIsUrgent()) {
+            $location = $emplacementRepository->find($emergenciesArrivalsLocation);
+        }
+        else {
+            $location = !empty($defaultArrivalsLocation) ? $emplacementRepository->find($defaultArrivalsLocation) : null;
+        }
+
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
         $createdPacks = [];
         foreach ($colisByNatures as $natureId => $number) {
             $nature = $natureRepository->find($natureId);
             for ($i = 0; $i < $number; $i++) {
                 $pack = $this->createPack(['arrival' => $arrivage, 'nature' => $nature]);
-                if ($defaultEmpForMvt) {
+                if ($location) {
                     $mouvementDepose = $this->trackingMovementService->createTrackingMovement(
                         $pack,
-                        $defaultEmpForMvt,
+                        $location,
                         $user,
                         $now,
                         false,

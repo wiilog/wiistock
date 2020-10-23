@@ -171,6 +171,8 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => [],
             ParametrageGlobal::DASHBOARD_CARRIER_DOCK => [],
             ParametrageGlobal::MVT_DEPOSE_DESTINATION => [],
+            ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS => [],
+            ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY => [],
             ParametrageGlobal::LABEL_LOGO => [],
             ParametrageGlobal::EMERGENCY_ICON => [],
             ParametrageGlobal::CUSTOM_ICON => [],
