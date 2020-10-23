@@ -1883,7 +1883,7 @@ class ReceptionController extends AbstractController {
                 // optionnel : crée l'ordre de prépa
                 $paramCreatePrepa = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
                 $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
-                $data['needPrepa'] = $needCreatePrepa;
+                $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
 
                 $demande = $demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
                 $entityManager->persist($demande);
