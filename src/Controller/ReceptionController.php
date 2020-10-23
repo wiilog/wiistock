@@ -1895,7 +1895,7 @@ class ReceptionController extends AbstractController {
 
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
-                    $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser);
+                    $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
 
                     $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
                     $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation);

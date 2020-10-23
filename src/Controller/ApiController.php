@@ -635,9 +635,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $preparationsManager->treatMouvementQuantities($mouvementNomade, $preparation);
                                 // on crée les mouvements de livraison
                                 if (empty($articlesToKeep)) {
-                                    $articlesToKeep = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser);
+                                    $articlesToKeep = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser, $entityManager);
                                 } else {
-                                    $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser);
+                                    $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser, $entityManager);
                                 }
                                 $emplacement = $emplacementRepository->findOneByLabel($mouvementNomade['location']);
                                 $preparationsManager->createMouvementLivraison(
