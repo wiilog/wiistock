@@ -311,16 +311,17 @@ class ReferenceArticleRepository extends EntityRepository
                         case FreeField::TYPE_DATE:
                         case FreeField::TYPE_DATETIME:
                             $formattedDate = DateTime::createFromFormat('d/m/Y', $value) ?: $value;
-                            $value =  $formattedDate->format('Y-m-d');
+                             $value = $formattedDate ? $formattedDate->format('Y-m-d') : null;
                             if ($freeFieldType === FreeField::TYPE_DATETIME) {
                                 $value .= '%';
                             }
                             break;
                         case FreeField::TYPE_LIST:
                         case FreeField::TYPE_LIST_MULTIPLE:
-                            $value = array_map(function (string $value) {
-                                return '%' . $value . '%';
-                            }, json_decode($value));
+                            $value = Stream::from(json_decode($value) ?: [])
+                                ->map(function (?string $value) {
+                                    return '%' . ($value ?? '') . '%';
+                                });
                             break;
                         case FreeField::TYPE_NUMBER:
                             break;
@@ -329,14 +330,17 @@ class ReferenceArticleRepository extends EntityRepository
                         $value = [$value];
                     }
 
-                    $jsonSearchesQueryArray = array_map(function(string $item) use ($clId, $freeFieldType) {
-                        $conditionType = ' IS NOT NULL';
-                        if ($item === "0" && $freeFieldType === FreeField::TYPE_BOOL) {
-                            $item = "1";
-                            $conditionType = ' IS NULL';
-                        }
-                        return "JSON_SEARCH(ra.freeFields, 'one', '${item}', NULL, '$.\"${clId}\"')" . $conditionType;
-                    }, $value);
+                    $jsonSearchesQueryArray = Stream::from($value)
+                        ->map(function(?string $item) use ($clId, $freeFieldType) {
+                            $item = isset($item) ? $item : '';
+                            $conditionType = ' IS NOT NULL';
+                            if ($item === "0" && $freeFieldType === FreeField::TYPE_BOOL) {
+                                $item = "1";
+                                $conditionType = ' IS NULL';
+                            }
+                            return "JSON_SEARCH(ra.freeFields, 'one', '${item}', NULL, '$.\"${clId}\"')" . $conditionType;
+                        })
+                        ->toArray();
 
                     $jsonSearchesQueryString = '(' . implode(' OR ', $jsonSearchesQueryArray) . ')';
 
