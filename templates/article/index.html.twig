@@ -94,8 +94,20 @@
     {% include "article/modalShowArticle.html.twig" %}
     {% include "article/modalNewArticle.html.twig" %}
     {% include "article/modalDeleteArticle.html.twig" %}
-    {% include "article/modalRapidSearch.html.twig" %}
-    {% include "article/modalVisibleColumns.html.twig" %}
+
+    {% include "rapid_search.html.twig" with {
+        'fields': fields,
+        'searches': searches,
+        'table': 'tableArticle',
+        'route': 'update_user_searches_for_article',
+    } %}
+
+    {% include "visible_columns.html.twig" with {
+        'fields': fields,
+        'visibleColumns': visibleColumns,
+        'table': 'tableArticle',
+        'route': 'save_column_visible_for_article',
+    } %}
     <div class="d-none" id="barcodes"></div>
     <input type="hidden" id="listArticleIdToPrint">
 {% endblock %}

@@ -132,48 +132,45 @@ class TrackingMovementService
         $category = CategoryType::MOUVEMENT_TRACA;
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
 
-        $rowCL = [];
-        /** @var FreeField $freeField */
-        foreach ($freeFields as $freeField) {
-            $rowCL[$freeField['label']] = $this->freeFieldService->serializeValue([
-                'valeur' => $movement->getFreeFieldValue($freeField['id']),
-                "typage" => $freeField['typage'],
-            ]);
-        }
-
         $trackingPack = $movement->getPack();
         $packCode = $trackingPack->getCode();
 
         $rows = [
-            'id' => $movement->getId(),
-            'date' => $movement->getDatetime() ? $movement->getDatetime()->format('d/m/Y H:i') : '',
-            'code' => $packCode,
-            'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', [
+            "id" => $movement->getId(),
+            "date" => $movement->getDatetime() ? $movement->getDatetime()->format('d/m/Y H:i') : '',
+            "code" => $packCode,
+            "origin" => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', [
                 'from' => $originFrom,
                 'fromLabel' => $fromLabel,
                 'entityPath' => $fromPath,
                 'entityId' => $fromEntityId
             ]),
-            'location' => $movement->getEmplacement() ? $movement->getEmplacement()->getLabel() : '',
-            'reference' => $movement->getReferenceArticle()
+            "location" => $movement->getEmplacement() ? $movement->getEmplacement()->getLabel() : '',
+            "reference" => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getReference()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
                     : ''),
-            'label' => $movement->getReferenceArticle()
+            "label" => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getLibelle()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getLabel()
                     : ''),
-            'quantity' => $movement->getQuantity() ? $movement->getQuantity() : '',
-            'type' => $movement->getType() ? $movement->getType()->getNom() : '',
-            'operateur' => $movement->getOperateur() ? $movement->getOperateur()->getUsername() : '',
-            'actions' => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
+            "quantity" => $movement->getQuantity() ? $movement->getQuantity() : '',
+            "type" => $movement->getType() ? $movement->getType()->getNom() : '',
+            "operator" => $movement->getOperateur() ? $movement->getOperateur()->getUsername() : '',
+            "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
                 'mvt' => $movement,
             ])
         ];
 
-        $rows = array_merge($rowCL, $rows);
+        foreach ($freeFields as $freeField) {
+            $rows[$freeField["id"]] = $this->freeFieldService->serializeValue([
+                "valeur" => $movement->getFreeFieldValue($freeField["id"]),
+                "typage" => $freeField["typage"],
+            ]);
+        }
+
         return $rows;
     }
 
@@ -482,39 +479,38 @@ class TrackingMovementService
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::MOUVEMENT_TRACA, $categorieCL);
 
         $columns = [
-            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
-            ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
-            ['title' => 'Date', 'name' => 'date'],
-            ['title' => 'mouvement de traçabilité.Colis', 'name' => 'code', 'translated' => true],
-            ['title' => 'Référence', 'name' => 'reference'],
-            ['title' => 'Libellé',  'name' => 'label'],
-            ['title' => 'Quantité', 'name' => 'quantity'],
-            ['title' => 'Emplacement', 'name' => 'location'],
-            ['title' => 'Type', 'name' => 'type'],
-            ['title' => 'Opérateur', 'name' => 'operateur'],
+            "actions" => ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
+            "issuer" => ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
+            "date" => ['title' => 'Date', 'name' => 'date'],
+            "pack" => ['title' => 'mouvement de traçabilité.Colis', 'name' => 'code', 'translated' => true],
+            "reference" => ['title' => 'Référence', 'name' => 'reference'],
+            "label" => ['title' => 'Libellé',  'name' => 'label'],
+            "quantity" => ['title' => 'Quantité', 'name' => 'quantity'],
+            "location" => ['title' => 'Emplacement', 'name' => 'location'],
+            "type" => ['title' => 'Type', 'name' => 'type'],
+            "operator" => ['title' => 'Opérateur', 'name' => 'operator'],
         ];
 
-        return array_merge(
-            array_map(function (array $column) use ($columnsVisible) {
-                return [
-                    'title' => $column['title'],
-                    'alwaysVisible' => $column['alwaysVisible'] ?? false,
-                    'orderable' => $column['orderable'] ?? true,
-                    'data' => $column['name'],
-                    'name' => $column['name'],
-                    'translated' => $column['translated'] ?? false,
-                    'class' => $column['class'] ?? (in_array($column['name'], $columnsVisible) ? 'display' : 'hide')
-                ];
-            }, $columns),
-            array_map(function (array $freeField) use ($columnsVisible) {
-                return [
-                    'title' => ucfirst(mb_strtolower($freeField['label'])),
-                    'data' => $freeField['label'],
-                    'name' => $freeField['label'],
-                    'class' => (in_array($freeField['label'], $columnsVisible) ? 'display' : 'hide'),
-                ];
-            }, $freeFields)
-        );
+        foreach($freeFields as $freeField) {
+            $columns[$freeField["id"]] = [
+                "title" => $freeField["label"],
+                "name" => (string)$freeField["id"],
+            ];
+        }
+
+        $columns = array_map(function (array $column) use ($columnsVisible) {
+            return [
+                "title" => $column["title"],
+                "alwaysVisible" => $column["alwaysVisible"] ?? false,
+                "orderable" => $column["orderable"] ?? true,
+                "data" => $column["name"],
+                "name" => $column["name"],
+                "translated" => $column["translated"] ?? false,
+                "class" => $column["class"] ?? (in_array($column["name"], $columnsVisible) ? "display" : "hide")
+            ];
+        }, $columns);
+
+        return $columns;
     }
 
 }

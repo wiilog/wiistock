@@ -119,9 +119,7 @@ class ArticleController extends AbstractController
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function index(EntityManagerInterface $entityManager,
-                          ArticleDataService $articleDataService): Response
-    {
+    public function index(EntityManagerInterface $entityManager, ArticleDataService $articleDataService): Response {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -134,167 +132,46 @@ class ArticleController extends AbstractController
         $user = $this->getUser();
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
         $category = CategoryType::ARTICLE;
-        $champL = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $champF[] = [
-            'label' => 'Actions',
-            'id' => 0,
-            'typage' => ''
-        ];
-        $champF[] = [
-            'label' => 'Libellé',
-            'id' => 0,
-            'typage' => 'text'
 
-        ];
-        $champF[] = [
-            'label' => 'Référence article',
-            'id' => 0,
-            'typage' => 'text'
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
+        $fields = [
+            "actions" => ["title" => "Actions"],
+            "label" => ["title" => "Libellé"],
+            "reference" => ["title" => "Référence article"],
+            "supplierReference" => ["title" => "Référence fournisseur"],
+            "barCode" => ["title" => "Code barre"],
+            "type" => ["title" => "Type"],
+            "status" => ["title" => "Statut"],
+            "quantity" => ["title" => "Quantité"],
+            "location" => ["title" => "Emplacement"],
+            "unitPrice" => ["title" => "Prix unitaire"],
+            "dateLastInventory" => ["title" => "Dernier inventaire"],
+            "batch" => ["title" => "Lot"],
+            "stockEntryDate" => ["title" => "Date d'entrée en stock"],
+            "expiryDate" => ["title" => "Date d'expiration"],
+            "comment" => ["title" => "Commentaire"],
         ];
-        $champF[] = [
-            'label' => 'Code barre',
-            'id' => 0,
-            'typage' => 'text'
 
-        ];
-        $champF[] = [
-            'label' => 'Type',
-            'id' => 0,
-            'typage' => 'list'
-        ];
-        $champF[] = [
-            'label' => 'Statut',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Quantité',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champF[] = [
-            'label' => 'Emplacement',
-            'id' => 0,
-            'typage' => 'list'
-        ];
-        $champF[] = [
-            'label' => 'Date et heure',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Commentaire',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Prix unitaire',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champF[] = [
-            'label' => 'Dernier inventaire',
-            'id' => 0,
-            'typage' => 'date'
-        ];
-        $champF[] = [
-            'label' => 'Lot',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Date d\'entrée en stock',
-            'id' => 0,
-            'typage' => 'date'
-        ];
-        $champF[] = [
-            'label' => 'Date de péremption',
-            'id' => 0,
-            'typage' => 'date'
-        ];
-        $champsFText = [];
+        foreach($freeFields as $field) {
+            $fields[$field["id"]] = [
+                "title" => $field["label"],
+            ];
+        }
 
-        $champsFText[] = [
-            'label' => 'Libellé',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-//        $champsFText[] = [
-//            'label' => 'Référence',
-//            'id' => 0,
-//            'typage' => 'text'
-//
-//        ];
-		$champsFText[] = [
-			'label' => 'Référence article',
-			'id' => 0,
-			'typage' => 'text'
-
-		];
-		$champsFText[] = [
-            'label' => 'Code barre',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champsFText[] = [
-            'label' => 'Type',
-            'id' => 0,
-            'typage' => 'list'
-        ];
-        $champsFText[] = [
-            'label' => 'Statut',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champsFText[] = [
-            'label' => 'Quantité',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champsFText[] = [
-            'label' => 'Emplacement',
-            'id' => 0,
-            'typage' => 'list'
-        ];
-        $champsFText[] = [
-            'label' => 'Date et heure',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champsFText[] = [
-            'label' => 'Commentaire',
-            'id' => 0,
-            'typage' => 'text',
-            'isNeededNotEmpty' => true,
-        ];
-        $champsFText[] = [
-            'label' => 'Prix unitaire',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champsFText[] = [
-            'label' => 'Dernier inventaire',
-            'id' => 0,
-            'typage' => 'date'
-        ];
-        $champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_TEXT);
-        $champsLTList = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_LIST);
-        $champs = array_merge($champF, $champL);
-        $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
+        uasort($fields, function ($a, $b) {
+            return strcasecmp($a["title"], $b["title"]);
+        });
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
         $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $currentUser);
 
         return $this->render('article/index.html.twig', [
-            'champsSearch' => $champsSearch,
-            'recherches' => $user->getRechercheForArticle(),
-            'champs' => $champs,
-            'columnsVisibles' => $user->getColumnsVisibleForArticle(),
-            'activeOnly' => !empty($filter) && ($filter->getValue() === $articleDataService->getActiveArticleFilterValue())
+            "fields" => $fields,
+            "visibleColumns" => $user->getColumnsVisibleForArticle(),
+            "searches" => $user->getRechercheForArticle(),
+            "activeOnly" => !empty($filter) && ($filter->getValue() === $articleDataService->getActiveArticleFilterValue())
         ]);
     }
 
@@ -387,101 +264,89 @@ class ArticleController extends AbstractController
             $columns = [
                 [
                     "title" => 'Actions',
-                    "data" => 'Actions',
-                    'name' => 'Actions',
+                    "data" => 'actions',
                     'orderable' => false,
-                    "class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
+                    "class" => (in_array('actions', $columnsVisible) ? 'display' : 'hide'),
                 ],
                 [
                     "title" => 'Libellé',
-                    "data" => 'Libellé',
-                    'name' => 'Libellé',
-                    "class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
-
+                    "data" => 'label',
+                    "class" => (in_array('label', $columnsVisible) ? 'display' : 'hide'),
 				],
-				[
-					"title" => 'Référence article',
-					"data" => 'Référence article',
-					'name' => 'Référence article',
-					"class" => (in_array('Référence article', $columnsVisible) ? 'display' : 'hide'),
-				],
+                [
+                    "title" => 'Référence article',
+                    "data" => 'reference',
+                    "class" => (in_array('reference', $columnsVisible) ? 'display' : 'hide'),
+                ],
+                [
+                    "title" => 'Référence fournisseur',
+                    "data" => 'supplierReference',
+                    "class" => (in_array('supplierReference', $columnsVisible) ? 'display' : 'hide'),
+                ],
 				[
 					"title" => 'Code barre',
-					"data" => 'Code barre',
-					'name' => 'Code barre',
-					"class" => (in_array('Code barre', $columnsVisible) ? 'display' : 'hide'),
-
+					"data" => 'barCode',
+					"class" => (in_array('barCode', $columnsVisible) ? 'display' : 'hide'),
 				],
 				[
 					"title" => 'Type',
-					"data" => 'Type',
-					'name' => 'Type',
-					"class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
+					"data" => 'type',
+					"class" => (in_array('type', $columnsVisible) ? 'display' : 'hide'),
 				],
 				[
 					"title" => 'Statut',
-					"data" => 'Statut',
-					'name' => 'Statut',
-					"class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
+					"data" => 'status',
+					"class" => (in_array('status', $columnsVisible) ? 'display' : 'hide'),
 				],
 				[
 					"title" => 'Quantité',
-					"data" => 'Quantité',
-					'name' => 'Quantité',
-					"class" => (in_array('Quantité', $columnsVisible) ? 'display' : 'hide'),
+					"data" => 'quantity',
+					"class" => (in_array('quantity', $columnsVisible) ? 'display' : 'hide'),
 				],
 				[
 					"title" => 'Emplacement',
-					"data" => 'Emplacement',
-					'name' => 'Emplacement',
-					"class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Commentaire',
-					"data" => 'Commentaire',
-					'name' => 'Commentaire',
-					"class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
-                    'isNeededNotEmpty' => true,
+					"data" => 'location',
+					"class" => (in_array('location', $columnsVisible) ? 'display' : 'hide'),
 				],
 				[
 					"title" => 'Prix unitaire',
-					"data" => 'Prix unitaire',
-					'name' => 'Prix unitaire',
-					"class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
+					"data" => 'unitPrice',
+					"class" => (in_array('unitPrice', $columnsVisible) ? 'display' : 'hide'),
 				],
 				[
 					"title" => 'Dernier inventaire',
-					"data" => 'Dernier inventaire',
-					'name' => 'Dernier inventaire',
-					"class" => (in_array('Dernier inventaire', $columnsVisible) ? 'display' : 'hide'),
+					"data" => "dateLastInventory",
+					"class" => (in_array("dateLastInventory", $columnsVisible) ? 'display' : 'hide'),
 				],
 				[
 					"title" => 'Lot',
-					"data" => 'Lot',
-					'name' => 'Lot',
-					"class" => (in_array('Lot', $columnsVisible) ? 'display' : 'hide'),
+					"data" => 'batch',
+					"class" => (in_array('batch', $columnsVisible) ? 'display' : 'hide'),
 				],
 				[
 					"title" => "Date d'entrée en stock",
-					"data" => "Date d'entrée en stock",
-					'name' => "Date d'entrée en stock",
-					"class" => (in_array("Date d'entrée en stock", $columnsVisible) ? 'display' : 'hide'),
+					"data" => "stockEntryDate",
+					"class" => (in_array("stockEntryDate", $columnsVisible) ? 'display' : 'hide'),
 				],
 				[
 					"title" => 'Date de péremption',
-					"data" => 'Date de péremption',
-					'name' => 'Date de péremption',
-					"class" => (in_array('Date de péremption', $columnsVisible) ? 'display' : 'hide'),
+					"data" => 'expiryDate',
+					"class" => (in_array('expiryDate', $columnsVisible) ? 'display' : 'hide'),
 				],
 			];
+
 			foreach ($champs as $champ) {
 				$columns[] = [
-					"title" => ucfirst(mb_strtolower($champ['label'])),
-					"data" => $champ['label'],
-					'name' => $champ['label'],
-					"class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
+					"title" => $champ["label"],
+					"data" => (string)$champ["id"],
+					"class" => (in_array($champ["id"], $columnsVisible) ? 'display' : 'hide'),
 				];
 			}
+
+			foreach($columns as &$column) {
+			    $column["name"] = $column["data"];
+            }
+
             return new JsonResponse($columns);
         }
         throw new NotFoundHttpException("404");

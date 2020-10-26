@@ -12,6 +12,7 @@ use Exception;
 use IteratorAggregate;
 use RecursiveArrayIterator;
 use RecursiveIteratorIterator;
+use ReflectionFunction;
 use RuntimeException;
 use Traversable;
 
@@ -119,6 +120,31 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         return $this;
     }
 
+    public function keymap(Closure $closure): self {
+        if(!isset($this->elements)) {
+            throw new Error(self::INVALID_STREAM);
+        }
+
+        $mapped = [];
+
+        if(self::params($closure) == 1) {
+            foreach($this->elements as $element) {
+                [$key, $element] = $closure($element);
+
+                $mapped[$key] = $element;
+            }
+        } else {
+            foreach($this->elements as $key => $element) {
+                [$key, $element] = $closure($key, $element);
+
+                $mapped[$key] = $element;
+            }
+        }
+
+        $this->elements = $mapped;
+        return $this;
+    }
+
     public function reduce(Closure $closure, $carry) {
         if(isset($this->elements)) {
             return array_reduce($this->elements, $closure, $carry);
@@ -162,6 +188,21 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         }
 
         return $this;
+    }
+
+    public function join($glue = ", "): string {
+        $result = "";
+
+        $last = array_key_last($this->elements);
+        foreach($this->elements as $key => $element) {
+            $result .= $element;
+
+            if($key !== $last) {
+                $result .= $glue;
+            }
+        }
+
+        return $result;
     }
 
     public function toArray(): array {
@@ -215,6 +256,10 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
 
     public function offsetUnset($offset) {
         unset($this->elements[$offset]);
+    }
+
+    private static function params(Closure $closure): int {
+        return (new ReflectionFunction($closure))->getNumberOfRequiredParameters();
     }
 
 }

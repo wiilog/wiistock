@@ -135,15 +135,6 @@ class DispatchService {
         $category = CategoryType::DEMANDE_DISPATCH;
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
 
-        $rowCL = [];
-        /** @var FreeField $freeField */
-        foreach ($freeFields as $freeField) {
-            $rowCL[$freeField['label']] = $this->freeFieldService->serializeValue([
-                'valeur' => $dispatch->getFreeFieldValue($freeField['id']),
-                "typage" => $freeField['typage'],
-            ]);
-        }
-
         $row = [
             'id' => $dispatch->getId() ?? 'Non défini',
             'number' => $dispatch->getNumber() ?? '',
@@ -168,7 +159,14 @@ class DispatchService {
             ]),
         ];
 
-        return array_merge($rowCL, $row);
+        foreach ($freeFields as $freeField) {
+            $row[$freeField["id"]] = $this->freeFieldService->serializeValue([
+                "valeur" => $dispatch->getFreeFieldValue($freeField["id"]),
+                "typage" => $freeField["typage"],
+            ]);
+        }
+
+        return $row;
     }
 
     public function getNewDispatchConfig(StatutRepository $statutRepository,
@@ -563,26 +561,23 @@ class DispatchService {
             ['title' => 'Traité par', 'name' => 'treatedBy'],
         ];
 
-        return array_merge(
-            array_map(function (array $column) use ($columnsVisible) {
-                return [
-                    'title' => $column['title'],
-                    'alwaysVisible' => $column['alwaysVisible'] ?? false,
-                    'orderable' => $column['orderable'] ?? true,
-                    'data' => $column['name'],
-                    'name' => $column['name'],
-                    'translated' => $column['translated'] ?? false,
-                    'class' => $column['class'] ?? (in_array($column['name'], $columnsVisible) ? 'display' : 'hide')
-                ];
-            }, $columns),
-            array_map(function (array $freeField) use ($columnsVisible) {
-                return [
-                    'title' => ucfirst(mb_strtolower($freeField['label'])),
-                    'data' => $freeField['label'],
-                    'name' => $freeField['label'],
-                    'class' => (in_array($freeField['label'], $columnsVisible) ? 'display' : 'hide'),
-                ];
-            }, $freeFields)
-        );
+        foreach($freeFields as $freeField) {
+            $columns[$freeField["id"]] = [
+                "title" => $freeField["label"],
+                "name" => (string)$freeField["id"],
+            ];
+        }
+
+        return array_map(function (array $column) use ($columnsVisible) {
+            return [
+                'title' => $column['title'],
+                'alwaysVisible' => $column['alwaysVisible'] ?? false,
+                'orderable' => $column['orderable'] ?? true,
+                'data' => $column['name'],
+                'name' => $column['name'],
+                'translated' => $column['translated'] ?? false,
+                'class' => $column['class'] ?? (in_array($column['name'], $columnsVisible) ? 'display' : 'hide')
+            ];
+        }, $columns);
     }
 }

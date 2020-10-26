@@ -1,8 +1,6 @@
 let tableArticles;
 
 $(document).ready(() => {
-
-
     $('#modalDeleteTransferWithLocation').on('show.bs.modal', function (e) {
         Select2.location($('.ajax-autocomplete-location'));
     })

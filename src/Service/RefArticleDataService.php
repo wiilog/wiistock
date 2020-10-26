@@ -21,6 +21,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
+use App\Helper\FormatHelper;
 use App\Helper\Stream;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
@@ -107,7 +108,7 @@ class RefArticleDataService {
     public function getRefArticleDataByParams($params = null) {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
-        $champs = $this->freeFieldService->getFreeFieldLabelToId($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
+        $champs = $this->freeFieldService->getFreeFieldsById($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
 
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
@@ -359,57 +360,52 @@ class RefArticleDataService {
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
         $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
 
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $ffCategory = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $ffCategory);
 
-        $category = CategoryType::ARTICLE;
-        $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $rowCL = [];
-        /** @var FreeField $champ */
-        foreach($champs as $champ) {
-            $rowCL[strval($champ['label'])] = $this->freeFieldService->serializeValue([
-                'valeur' => $refArticle->getFreeFieldValue($champ['id']),
-                "typage" => $champ['typage'],
+        $row = [
+            "id" => $refArticle->getId(),
+            "label" => $refArticle->getLibelle() ?? "Non défini",
+            "reference" => $refArticle->getReference() ?? "Non défini",
+            "quantityType" => $refArticle->getTypeQuantite() ?? "Non défini",
+            "type" => FormatHelper::type($refArticle->getType()),
+            "location" => FormatHelper::location($refArticle->getEmplacement()),
+            "availableQuantity" => $refArticle->getQuantiteDisponible() ?? 0,
+            "stockQuantity" => $refArticle->getQuantiteStock() ?? 0,
+            "emergencyComment" => $refArticle->getEmergencyComment(),
+            "barCode" => $refArticle->getBarCode() ?? "Non défini",
+            "comment" => $refArticle->getCommentaire(),
+            "status" => FormatHelper::status($refArticle->getStatut()),
+            "securityThreshold" => $refArticle->getLimitSecurity() ?? "Non défini",
+            "warningThreshold" => $refArticle->getLimitWarning() ?? "Non défini",
+            "unitPrice" => $refArticle->getPrixUnitaire(),
+            "emergency" => FormatHelper::bool($refArticle->getIsUrgent()),
+            "mobileSync" => FormatHelper::bool($refArticle->getNeedsMobileSync()),
+            "lastInventory" => FormatHelper::date($refArticle->getDateLastInventory()),
+            "stockManagement" => $refArticle->getStockManagement(),
+            "managers" => Stream::from($refArticle->getManagers())
+                ->map(function(Utilisateur $manager) {
+                    return $manager->getUsername() ?: '';
+                })
+                ->filter(function(string $username) {
+                    return !empty($username);
+                })
+                ->unique()
+                ->join(),
+            "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
+                "reference_id" => $refArticle->getId(),
+                "active" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
+            ]),
+        ];
+
+        foreach($freeFields as $freeField) {
+            $row[$freeField["id"]] = $this->freeFieldService->serializeValue([
+                "valeur" => $refArticle->getFreeFieldValue($freeField["id"]),
+                "typage" => $freeField["typage"],
             ]);
         }
 
-        $availableQuantity = $refArticle->getQuantiteDisponible();
-        $quantityStock = $refArticle->getQuantiteStock();
-
-        $rowCF = [
-            "id" => $refArticle->getId(),
-            "Libellé" => $refArticle->getLibelle() ? $refArticle->getLibelle() : 'Non défini',
-            "Référence" => $refArticle->getReference() ? $refArticle->getReference() : 'Non défini',
-            "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
-            "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
-            "Quantité disponible" => $availableQuantity ?? 0,
-            "Quantité stock" => $quantityStock ?? 0,
-            'Commentaire d\'urgence' => $refArticle->getEmergencyComment(),
-            "Code barre" => $refArticle->getBarCode() ?? 'Non défini',
-            "Commentaire" => $refArticle->getCommentaire() ?? '',
-            "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
-            "limitSecurity" => $refArticle->getLimitSecurity() ?? "Non défini",
-            "limitWarning" => $refArticle->getLimitWarning() ?? "Non défini",
-            "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
-            'Urgence' => $refArticle->getIsUrgent() ? 'Oui' : 'Non',
-            'Synchronisation nomade' => $refArticle->getNeedsMobileSync() ? 'Oui' : 'Non',
-            "Dernier inventaire" => $refArticle->getDateLastInventory() ? $refArticle->getDateLastInventory()->format('d/m/Y') : '',
-            'stockManagement' => $refArticle->getStockManagement() ?? '',
-            'managers' => implode(', ', array_unique(
-                    $refArticle->getManagers()
-                        ->map(function(Utilisateur $manager) {
-                            return $manager->getUsername() ?: '';
-                        })
-                        ->filter(function(string $username) {
-                            return !empty($username);
-                        })
-                        ->toArray())
-            ),
-            "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
-                'idRefArticle' => $refArticle->getId(),
-                'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
-            ]),
-        ];
-        return array_merge($rowCL, $rowCF);
+        return $row;
     }
 
     /**

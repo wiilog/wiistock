@@ -142,7 +142,7 @@ class TrackingMovementController extends AbstractController
 
             $columns = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
-            return $this->json($columns);
+            return $this->json(array_values($columns));
         }
 
         throw new NotFoundHttpException("404");

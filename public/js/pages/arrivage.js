@@ -1,8 +1,5 @@
 $('.select2').select2();
 
-let modalColumnVisible = $('#modalColumnVisibleArrivage');
-let submitColumnVisible = $('#submitColumnVisibleArrivage');
-let urlColumnVisible = Routing.generate('save_column_visible_for_arrivage', true);
 let onFlyFormOpened = {};
 let clicked = false;
 let pageLength;
@@ -17,8 +14,6 @@ $(function () {
 
     initTableArrival().then((returnedArrivalsTable) => {
         arrivalsTable = returnedArrivalsTable;
-        let urlColumnVisible = Routing.generate('save_column_visible_for_arrivage', true);
-        InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible, {tables: [arrivalsTable]});
 
         let $modalNewArrivage = $("#modalNewArrivage");
         let submitNewArrivage = $("#submitNewArrivage");
@@ -61,7 +56,7 @@ $(function () {
     pageLength = Number($('#pageLengthForArrivage').val());
     Select2.user($('.filters .ajax-autocomplete-user'), 'Destinataires');
     Select2.provider($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
-    $('select[name="tableArrivages_length"]').on('change', function () {
+    $('select[name="arrivalsTable_length"]').on('change', function () {
         let newValue = Number($(this).val());
         if (newValue && newValue !== pageLength) {
             $.post(Routing.generate('update_user_page_length_for_arrivage'), JSON.stringify(newValue));
@@ -115,12 +110,12 @@ function initTableArrival() {
                 ],
                 hideColumnConfig: {
                     columns,
-                    tableFilter: 'tableArrival'
+                    tableFilter: 'arrivalsTable'
                 },
                 'lengthMenu': [10, 25, 50, 100],
             };
 
-            const arrivalsTable = initDataTable('tableArrivages', tableArrivageConfig);
+            const arrivalsTable = initDataTable('arrivalsTable', tableArrivageConfig);
             arrivalsTable.on('responsive-resize', function () {
                 resizeTable(arrivalsTable);
             });

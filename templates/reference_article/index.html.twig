@@ -110,13 +110,25 @@
     {% include "reference_article/modalShowRefArticle.html.twig" %}
     {% include "reference_article/modalNewFilter.html.twig" %}
 
-    {% include "reference_article/modalVisibleColumns.html.twig" %}
-    {% include "reference_article/modalRapidSearch.html.twig" %}
     {% include "reference_article/modalPlusDemande.html.twig" %}
     {% include "reference_article/modalConfirmDeleteBox.html.twig" %}
 
     {% include "reference_article/modalShowMouvements.html.twig" %}
     {% include "reference_article/modalCannotDelete.html.twig" %}
+
+    {% include "rapid_search.html.twig" with {
+        'fields': fields,
+        'searches': searches,
+        'table': 'pageTables',
+        'route': 'update_user_searches',
+    } %}
+
+    {% include "visible_columns.html.twig" with {
+        'fields': fields,
+        'visibleColumns': visibleColumns,
+        'table': 'pageTables',
+        'route': 'save_column_visible',
+    } %}
     <button id="cannotDelete" hidden data-toggle="modal" data-target="#modalCannotDelete"></button>
     <div hidden id="barcodes"></div>
 {% endblock %}

@@ -85,7 +85,6 @@ function showOrHideColumn(check, concernedTable) {
     let column = concernedTable.column(columnName + ':name');
     column.visible(!column.visible());
     check.toggleClass('data');
-    // initActionOnCell(column);
 }
 
 function manageArticleAndRefSearch($input, $printButton) {
@@ -123,7 +122,7 @@ function manageArticleAndRefSearch($input, $printButton) {
 
 function toggleInputRadioOnRow(tr) {
     const $checkbox = $(tr).find('input[type="checkbox"]');
-    $checkbox.prop('checked', !$checkbox.is(':checked')).change();
+    $checkbox.prop('checked', !$checkbox.is(':checked')).trigger("change");
 }
 
 function createDatatableDomFooter({information, length, pagination}) {
@@ -386,28 +385,6 @@ function initSearchDate(table) {
             return false;
         }
     );
-}
-
-
-function addToRapidSearch(checkbox) {
-    let alreadySearched = [];
-    $('#rapidSearch tbody td').each(function () {
-        alreadySearched.push($(this).html());
-    });
-    if (!alreadySearched.includes(checkbox.data('name'))) {
-        let tr = '<tr><td>' + checkbox.data('name') + '</td></tr>';
-        $('#rapidSearch tbody').append(tr);
-    } else {
-        $('#rapidSearch tbody tr').each(function () {
-            if ($(this).find('td').html() === checkbox.data('name')) {
-                if ($('#rapidSearch tbody tr').length > 1) {
-                    $(this).remove();
-                } else {
-                    checkbox.prop("checked", true);
-                }
-            }
-        });
-    }
 }
 
 function hideAndShowColumns(columns, table) {

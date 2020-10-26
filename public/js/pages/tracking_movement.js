@@ -21,9 +21,9 @@ $(function () {
     Select2.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     initNewModal($modalNewMvtTraca);
 
-    $
-        .post(Routing.generate('tracking_movement_api_columns'))
+    $.post(Routing.generate('tracking_movement_api_columns'))
         .then((columns) => {
+            console.log(columns);
             let config = {
                 responsive: true,
                 serverSide: true,
@@ -42,8 +42,8 @@ $(function () {
                 columns: columns.map(function (column) {
                     return {
                         ...column,
-                        class: column.title === 'Actions' ? 'noVis' : undefined,
-                        title: column.title === 'Actions' ? '' : column.title
+                        class: column.name === 'actions' ? 'noVis' : undefined,
+                        title: column.name === 'actions' ? '' : column.title
                     }
                 }),
                 hideColumnConfig: {
@@ -76,11 +76,6 @@ $.fn.dataTable.ext.search.push(
 
 
 function initPageModal(tableMvt) {
-    let modalColumnVisible = $('#modalColumnVisibleTrackingMovement');
-    let submitColumnVisible = $('#submitColumnVisibleTrackingMovement');
-    let urlColumnVisible = Routing.generate('save_column_visible_for_tracking_movement', true);
-    InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
-
     let $modalEditMvtTraca = $("#modalEditMvtTraca");
     let $submitEditMvtTraca = $("#submitEditMvtTraca");
     let urlEditMvtTraca = Routing.generate('mvt_traca_edit', true);

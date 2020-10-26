@@ -105,25 +105,22 @@ class LitigeController extends AbstractController
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
-        $fieldsInTab = [
-            ["key" => 'disputeNumber', 'label' => 'Numéro du litige'],
-            ["key" => 'type', 'label' => 'Type'],
-            ["key" => 'arrivalNumber', 'label' => $this->translator->trans('arrivage.n° d\'arrivage')],
-            ["key" => 'receptionNumber', 'label' => $this->translator->trans('réception.n° de réception')],
-            ["key" => 'buyers', 'label' => 'Acheteur'],
-            ["key" => 'numCommandeBl', 'label' => 'N° commande / BL'],
-            ["key" => 'declarant', 'label' => 'Déclarant'],
-            ["key" => 'command', 'label' => 'N° ligne'],
-            ["key" => 'provider', 'label' => 'Fournisseur'],
-            ["key" => 'references', 'label' => 'Référence'],
-            ["key" => 'lastHistoric', 'label' => 'Dernier historique'],
-            ["key" => 'creationDate', 'label' => 'Créé le'],
-            ["key" => 'updateDate', 'label' => 'Modifié le'],
-            ["key" => 'status', 'label' => 'Statut'],
+        $fields = [
+            ["name" => 'disputeNumber', 'title' => 'Numéro du litige'],
+            ["name" => 'type', 'title' => 'Type'],
+            ["name" => 'arrivalNumber', 'title' => 'arrivage.n° d\'arrivage', "translated" => true],
+            ["name" => 'receptionNumber', 'title' => 'réception.n° de réception', "translated" => true],
+            ["name" => 'buyers', 'title' => 'Acheteur'],
+            ["name" => 'numCommandeBl', 'title' => 'N° commande / BL'],
+            ["name" => 'declarant', 'title' => 'Déclarant'],
+            ["name" => 'command', 'title' => 'N° ligne'],
+            ["name" => 'provider', 'title' => 'Fournisseur'],
+            ["name" => 'references', 'title' => 'Référence'],
+            ["name" => 'lastHistoric', 'title' => 'Dernier historique'],
+            ["name" => 'creationDate', 'title' => 'Créé le'],
+            ["name" => 'updateDate', 'title' => 'Modifié le'],
+            ["name" => 'status', 'title' => 'Statut'],
         ];
-        $fieldsCl = [];
-        $champs = array_merge($fieldsInTab,$fieldsCl);
-
 
         return $this->render('litige/index.html.twig',[
             'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
@@ -131,8 +128,8 @@ class LitigeController extends AbstractController
             'types' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
 			'litigeOrigins' => $litigeService->getLitigeOrigin(),
 			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS),
-            'champs' => $champs,
-            'columnsVisibles' => $user->getColumnsVisibleForLitige()
+            'fields' => $fields,
+            'visibleColumns' => $user->getColumnsVisibleForLitige()
 		]);
     }
 

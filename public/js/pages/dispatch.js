@@ -67,10 +67,5 @@ function initPage() {
             let $submitNewDispatch = $("#submitNewDispatch");
             let urlDispatchNew = Routing.generate('dispatch_new', true);
             InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew, {tables: [tableDispatches]});
-
-            let modalColumnVisible = $('#modalColumnVisibleDispatch');
-            let submitColumnVisible = $('#submitColumnVisibleDispatch');
-            let urlColumnVisible = Routing.generate('save_column_visible_for_dispatch', true);
-            InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
         });
 }

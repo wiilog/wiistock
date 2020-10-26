@@ -35,22 +35,32 @@ class TrackingMovementRepository extends EntityRepository
         'operateur' => 'user',
         'quantity' => 'quantity'
     ];
+    private const FIELD_ENTITY_NAME = [
+        "label" => "libelle",
+        "warningThreshold" => "limitWarning",
+        "securityThreshold" => "limitSecurity",
+        "emergency" => "isUrgent",
+        "availableQuantity" => "quantiteDisponible",
+        "stockQuantity" => "quantiteStock",
+        "location" => "emplacement",
+        "quantityType" => "typeQuantite",
+        "lastInventory" => "dateLastInventory",
+        "mobileSync" => "needsMobileSync",
+        "supplier" => "fournisseur",
+        "unitPrice" => "prixUnitaire",
+        "comment" => "commentaire",
+    ];
 
     /**
      * @param $uniqueId
      * @return TrackingMovement
      * @throws NonUniqueResultException
      */
-    public function findOneByUniqueIdForMobile($uniqueId)
-    {
-        $qb = $this->createQueryBuilder('tracking_movement');
-
-        $qb
+    public function findOneByUniqueIdForMobile($uniqueId) {
+        return $this->createQueryBuilder('tracking_movement')
             ->select('tracking_movement')
             ->where('tracking_movement.uniqueIdForMobile = :uniqueId')
-            ->setParameter('uniqueId', $uniqueId);
-
-        return $qb
+            ->setParameter('uniqueId', $uniqueId)
             ->getQuery()
             ->getOneOrNullResult();
     }

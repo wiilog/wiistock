@@ -27,6 +27,14 @@ class FormatHelper {
         return $user ? $user->getUsername() : $else;
     }
 
+    public static function bool(?bool $bool, $else = null) {
+        if($else !== null && $bool === null) {
+            return $else;
+        } else {
+            return $bool ? "Oui" : "Non";
+        }
+    }
+
     public static function date(?DateTimeInterface $date, $else = "") {
         return $date ? $date->format("d/m/Y") : $else;
     }
