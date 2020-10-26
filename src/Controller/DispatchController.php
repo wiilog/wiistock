@@ -45,6 +45,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -130,7 +131,7 @@ class DispatchController extends AbstractController {
             return $this->json($columns);
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -178,7 +179,7 @@ class DispatchController extends AbstractController {
             return $this->json(['results' => $results]);
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -201,7 +202,7 @@ class DispatchController extends AbstractController {
 
             return new JsonResponse($data);
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -386,7 +387,7 @@ class DispatchController extends AbstractController {
                 'msg' => $translator->trans('acheminement.L\'acheminement a bien été créé') . '.'
             ]);
         }
-        throw new NotFoundHttpException('404 not found');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -442,7 +443,10 @@ class DispatchController extends AbstractController {
                                             PDFGeneratorService $PDFGenerator,
                                             TranslatorInterface $translator): ?Response {
         if ($dispatch->getDispatchPacks()->isEmpty()) {
-            throw new NotFoundHttpException($translator->trans('acheminement.Le bon d\'acheminement n\'existe pas pour cet acheminement'));
+            return $this->json([
+                "success" => false,
+                "msg" => $translator->trans('acheminement.Le bon d\'acheminement n\'existe pas pour cet acheminement')
+            ]);
         }
 
         $packsConfig = $dispatch->getDispatchPacks()
@@ -631,7 +635,7 @@ class DispatchController extends AbstractController {
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -678,7 +682,7 @@ class DispatchController extends AbstractController {
             ]);
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -882,7 +886,7 @@ class DispatchController extends AbstractController {
             ]);
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1084,7 +1088,7 @@ class DispatchController extends AbstractController {
                 }
             );
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -1264,7 +1268,10 @@ class DispatchController extends AbstractController {
                                       KernelInterface $kernel,
                                       Attachment $attachment): Response {
         if (!$dispatch->getDeliveryNoteData()) {
-            throw new NotFoundHttpException($trans->trans('acheminement.Le bon de livraison n\'existe pas pour cet acheminement'));
+            return $this->json([
+                "success" => false,
+                "msg" => $trans->trans('acheminement.Le bon de livraison n\'existe pas pour cet acheminement')
+            ]);
         }
 
         $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
@@ -1488,7 +1495,10 @@ class DispatchController extends AbstractController {
                                      Attachment $attachment,
                                      KernelInterface $kernel): Response {
         if (!$dispatch->getWaybillData()) {
-            throw new NotFoundHttpException($trans->trans('acheminement.La lettre de voiture n\'existe pas pour cet acheminement'));
+            return $this->json([
+                "success" => false,
+                "msg" => $trans->trans('acheminement.La lettre de voiture n\'existe pas pour cet acheminement'),
+            ]);
         }
 
         $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));

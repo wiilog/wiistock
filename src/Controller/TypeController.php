@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -94,7 +94,7 @@ class TypeController extends AbstractController
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -142,7 +142,7 @@ class TypeController extends AbstractController
 				]);
             }
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -171,7 +171,7 @@ class TypeController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -217,7 +217,7 @@ class TypeController extends AbstractController
 				]);
             }
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -245,7 +245,7 @@ class TypeController extends AbstractController
 
             return new JsonResponse(['delete' => $canDelete, 'html' => $html]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -271,6 +271,6 @@ class TypeController extends AbstractController
                 'msg' => 'Le type <strong>' . $typeLabel . '</strong> a bien été supprimé.'
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 }

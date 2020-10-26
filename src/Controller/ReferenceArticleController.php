@@ -29,6 +29,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Twig\Environment as Twig_Environment;
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
@@ -43,7 +44,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
@@ -271,7 +272,8 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse($columns);
         }
-        throw new NotFoundHttpException("404");
+
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -289,10 +291,10 @@ class ReferenceArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $data = $this->refArticleDataService->getRefArticleDataByParams($request->request);
-            return new JsonResponse($data);
+            return $this->json($this->refArticleDataService->getRefArticleDataByParams($request->request));
         }
-        throw new NotFoundHttpException("404");
+
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -352,6 +354,7 @@ class ReferenceArticleController extends AbstractController
                 case 'article':
                     $typeArticle = ReferenceArticle::TYPE_QUANTITE_ARTICLE;
                     break;
+                case 'reference':
                 default:
                     $typeArticle = ReferenceArticle::TYPE_QUANTITE_REFERENCE;
                     break;
@@ -449,7 +452,7 @@ class ReferenceArticleController extends AbstractController
             $champLibreService->manageFreeFields($refArticle, $data, $entityManager);
 
             $entityManager->flush();
-            return new JsonResponse([
+            return $this->json([
                 'success' => true,
                 'msg' => 'La référence ' . $refArticle->getReference() . ' a bien été créée',
                 'data' => [ // for reference created in reception-show
@@ -458,15 +461,15 @@ class ReferenceArticleController extends AbstractController
                 ]
             ]);
         }
-        throw new NotFoundHttpException("404");
+
+        throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/", name="reference_article_index",  methods="GET|POST", options={"expose"=true})
      * @return Response
      */
-    public function index(): Response
-    {
+    public function index(): Response {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -722,7 +725,7 @@ class ReferenceArticleController extends AbstractController
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -778,7 +781,7 @@ class ReferenceArticleController extends AbstractController
             }
             return new JsonResponse($response);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -819,7 +822,7 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse(['success' => true]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -872,7 +875,7 @@ class ReferenceArticleController extends AbstractController
             ]);
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -902,7 +905,7 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse($quantity);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -926,7 +929,7 @@ class ReferenceArticleController extends AbstractController
             $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity, $field, $locationFilter);
             return new JsonResponse(['results' => $refArticles]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -949,7 +952,7 @@ class ReferenceArticleController extends AbstractController
 
 			return new JsonResponse(['results' => array_merge($articles, $refArticles)]);
 		}
-		throw new NotFoundHttpException("404");
+		throw new BadRequestHttpException();
 	}
 
     /**
@@ -1061,7 +1064,7 @@ class ReferenceArticleController extends AbstractController
             ]);
 
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1138,7 +1141,7 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1162,7 +1165,7 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse(['success' => true]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1190,7 +1193,7 @@ class ReferenceArticleController extends AbstractController
                 : false;
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
 
@@ -1329,7 +1332,7 @@ class ReferenceArticleController extends AbstractController
 
 			return new JsonResponse($quantityType);
 		}
-		throw new NotFoundHttpException('404');
+		throw new BadRequestHttpException();
 	}
 
     /**
@@ -1362,7 +1365,7 @@ class ReferenceArticleController extends AbstractController
             ]);
         }
 
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1485,7 +1488,7 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1507,7 +1510,7 @@ class ReferenceArticleController extends AbstractController
                'refLabel' => $name?? ''
            ]));
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1554,7 +1557,7 @@ class ReferenceArticleController extends AbstractController
             );
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**

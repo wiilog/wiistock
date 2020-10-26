@@ -33,7 +33,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
@@ -84,7 +84,7 @@ class HandlingController extends AbstractController
 
 			return new JsonResponse($data);
 		} else {
-			throw new NotFoundHttpException('404');
+			throw new BadRequestHttpException();
 		}
     }
 
@@ -221,7 +221,7 @@ class HandlingController extends AbstractController
                     ]) . '.'
             ]);
         }
-        throw new NotFoundHttpException('404 not found');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -267,7 +267,7 @@ class HandlingController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -417,7 +417,7 @@ class HandlingController extends AbstractController
             ]);
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -499,7 +499,7 @@ class HandlingController extends AbstractController
                 }
             );
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 

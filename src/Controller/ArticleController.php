@@ -36,7 +36,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
@@ -341,7 +341,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -357,7 +357,7 @@ class ArticleController extends AbstractController
             $data = $this->articleDataService->getDataForDatatable($request->request, $this->getUser());
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -484,7 +484,7 @@ class ArticleController extends AbstractController
 			}
             return new JsonResponse($columns);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -517,7 +517,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -562,7 +562,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse(!empty($article));
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -597,7 +597,7 @@ class ArticleController extends AbstractController
             }
             return new JsonResponse($response);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -687,7 +687,7 @@ class ArticleController extends AbstractController
                 'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> a bien été supprimé.'
             ]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -755,7 +755,7 @@ class ArticleController extends AbstractController
                 }
             }
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -795,7 +795,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse(['results' => $articles]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -824,7 +824,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -851,7 +851,7 @@ class ArticleController extends AbstractController
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -876,7 +876,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -905,7 +905,7 @@ class ArticleController extends AbstractController
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -951,7 +951,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -983,7 +983,7 @@ class ArticleController extends AbstractController
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**

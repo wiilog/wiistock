@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -96,7 +96,7 @@ class RoleController extends AbstractController
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -165,7 +165,7 @@ class RoleController extends AbstractController
                 ]);
             }
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -202,7 +202,7 @@ class RoleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -260,7 +260,7 @@ class RoleController extends AbstractController
                 'msg' => 'Le rôle <strong>' . $role->getLabel() . '</strong> a bien été modifié.'
             ]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -294,7 +294,7 @@ class RoleController extends AbstractController
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -334,6 +334,6 @@ class RoleController extends AbstractController
             }
             return new JsonResponse($resp);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 }

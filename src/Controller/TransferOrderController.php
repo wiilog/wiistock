@@ -27,9 +27,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
@@ -80,7 +79,7 @@ class TransferOrderController extends AbstractController {
 
             return new JsonResponse($data);
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -165,7 +164,7 @@ class TransferOrderController extends AbstractController {
                 'redirect' => $this->generateUrl('transfer_order_show', ['id' => $transfer->getId()]),
             ]);
         }
-        throw new NotFoundHttpException('404 not found');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -228,7 +227,7 @@ class TransferOrderController extends AbstractController {
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**

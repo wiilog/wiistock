@@ -15,7 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -87,7 +87,7 @@ class ReceptionTracaController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -107,7 +107,7 @@ class ReceptionTracaController extends AbstractController
             return new JsonResponse();
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -145,6 +145,6 @@ class ReceptionTracaController extends AbstractController
             return new JsonResponse();
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 }

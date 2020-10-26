@@ -13,7 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 
@@ -75,7 +75,7 @@ class ChauffeurController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -129,7 +129,7 @@ class ChauffeurController extends AbstractController
                 'text' => $data['nom']
             ]);
         }
-        throw new NotFoundHttpException('404 not found');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -155,7 +155,7 @@ class ChauffeurController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -190,7 +190,7 @@ class ChauffeurController extends AbstractController
                 'msg' => 'Le chauffeur a bien été modifié.'
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -223,7 +223,7 @@ class ChauffeurController extends AbstractController
 			return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     public function isChauffeurUsed($chauffeur)
@@ -270,7 +270,7 @@ class ChauffeurController extends AbstractController
                 'msg' => 'Le chauffeur ' .$chauffeur->getNom(). ' ' .$chauffeur->getPrenom(). ' a bien été supprimé.'
             ]);
 		}
-		throw new NotFoundHttpException("404");
+		throw new BadRequestHttpException();
 	}
 
     /**
@@ -287,7 +287,7 @@ class ChauffeurController extends AbstractController
             $transporteur = $this->transporteurRepository->getIdAndLibelleBySearch($search);
             return new JsonResponse(['results' => $transporteur]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -304,6 +304,6 @@ class ChauffeurController extends AbstractController
             $chauffeur = $chauffeurRepository->getIdAndLibelleBySearch($search);
             return new JsonResponse(['results' => $chauffeur]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 }
