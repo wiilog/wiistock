@@ -1525,7 +1525,7 @@ class ArrivageController extends AbstractController
         $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'arrivage');
 
         return new PdfResponse(
-            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs, $arrivage),
             $fileName
         );
     }

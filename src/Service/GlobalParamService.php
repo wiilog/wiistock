@@ -36,8 +36,7 @@ Class GlobalParamService
 	/**
 	 * @param bool $includeNullDimensions
 	 * @return array
-	 * @throws NonUniqueResultException
-	 */
+     */
 	public function getDimensionAndTypeBarcodeArray(bool $includeNullDimensions = true) {
         $dimensionsEtiquettesRepository = $this->em->getRepository(DimensionsEtiquettes::class);
         $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
@@ -45,6 +44,8 @@ Class GlobalParamService
 		$dimension = $dimensionsEtiquettesRepository->findOneDimension();
 		$response = [];
 		$response['logo'] = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
+		$response['emergency-icon'] = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_ICON);
+		$response['custom-icon'] = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_ICON);
 		if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth()))
 		{
 			$response['height'] = $dimension->getHeight();

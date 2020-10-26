@@ -84,6 +84,8 @@ class ParametrageGlobalController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $labelLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
+        $emergencyIcon = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_ICON);
+        $customIcon = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_ICON);
         $deliveryNoteLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
         $waybillLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
 
@@ -102,6 +104,10 @@ class ParametrageGlobalController extends AbstractController
         return $this->render('parametrage_global/index.html.twig',
             [
                 'logo' => ($labelLogo && file_exists(getcwd() . "/uploads/attachements/" . $labelLogo) ? $labelLogo : null),
+                'emergencyIcon' => ($emergencyIcon && file_exists(getcwd() . "/uploads/attachements/" . $emergencyIcon) ? $emergencyIcon : null),
+                'customIcon' => ($customIcon && file_exists(getcwd() . "/uploads/attachements/" . $customIcon) ? $customIcon : null),
+                'titleEmergencyLabel' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_TEXT_LABEL),
+                'titleCustomLabel' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_TEXT_LABEL),
                 'dimensions_etiquettes' => $dimensionsEtiquettesRepository->findOneDimension(),
                 'paramDocuments' => [
                     'deliveryNoteLogo' => ($deliveryNoteLogo && file_exists(getcwd() . "/uploads/attachements/" . $deliveryNoteLogo) ? $deliveryNoteLogo : null),
@@ -166,6 +172,8 @@ class ParametrageGlobalController extends AbstractController
                 ],
                 'wantsRecipient' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL),
                 'wantsDZLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL),
+                'wantsCustoms' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_CUSTOMS_IN_LABEL),
+                'wantsEmergency' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EMERGENCY_IN_LABEL),
                 'wantsCommandAndProjectNumber' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL),
                 'wantsDestinationLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL),
                 'wantsRecipientArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL),
@@ -343,9 +351,45 @@ class ParametrageGlobalController extends AbstractController
         }
         $parametrageGlobalCL->setValue($data['param-cl-etiquette']);
 
+        $textEmergencyGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::EMERGENCY_TEXT_LABEL);
+
+        if (empty($textEmergencyGlobalSettings)) {
+            $textEmergencyGlobalSettings = new ParametrageGlobal();
+            $textEmergencyGlobalSettings->setLabel(ParametrageGlobal::EMERGENCY_TEXT_LABEL);
+            $entityManager->persist($textEmergencyGlobalSettings);
+        }
+        $textEmergencyGlobalSettings->setValue($data['emergency-title-label']);
+
+        $textCustomGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CUSTOM_TEXT_LABEL);
+
+        if (empty($textCustomGlobalSettings)) {
+            $textCustomGlobalSettings = new ParametrageGlobal();
+            $textCustomGlobalSettings->setLabel(ParametrageGlobal::CUSTOM_TEXT_LABEL);
+            $entityManager->persist($textCustomGlobalSettings);
+        }
+        $textCustomGlobalSettings->setValue($data['custom-title-label']);
+
+        $includeEmergencyInLabelGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_EMERGENCY_IN_LABEL);
+
+        if (empty($includeEmergencyInLabelGlobalSettings)) {
+            $includeEmergencyInLabelGlobalSettings = new ParametrageGlobal();
+            $includeEmergencyInLabelGlobalSettings->setLabel(ParametrageGlobal::INCLUDE_EMERGENCY_IN_LABEL);
+            $entityManager->persist($includeEmergencyInLabelGlobalSettings);
+        }
+        $includeEmergencyInLabelGlobalSettings->setValue((int) ($data['param-emergency-etiquette'] === 'true'));
+
+        $includeCustomInLabelGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_CUSTOMS_IN_LABEL);
+
+        if (empty($includeCustomInLabelGlobalSettings)) {
+            $includeCustomInLabelGlobalSettings = new ParametrageGlobal();
+            $includeCustomInLabelGlobalSettings->setLabel(ParametrageGlobal::INCLUDE_CUSTOMS_IN_LABEL);
+            $entityManager->persist($includeCustomInLabelGlobalSettings);
+        }
+        $includeCustomInLabelGlobalSettings->setValue((int) ($data['param-custom-etiquette'] === 'true'));
+
         $parametrageGlobalLogo = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::LABEL_LOGO);
 
-        if (!empty($request->files->all())) {
+        if (!empty($request->files->all()['logo'])) {
             $fileName = $attachmentService->saveFile($request->files->all()['logo'], AttachmentService::LABEL_LOGO);
             if (empty($parametrageGlobalLogo)) {
                 $parametrageGlobalLogo = new ParametrageGlobal();
@@ -354,6 +398,32 @@ class ParametrageGlobalController extends AbstractController
                 $entityManager->persist($parametrageGlobalLogo);
             }
             $parametrageGlobalLogo->setValue($fileName[array_key_first($fileName)]);
+        }
+
+        $customIconGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CUSTOM_ICON);
+
+        if (!empty($request->files->all()['custom-icon'])) {
+            $fileName = $attachmentService->saveFile($request->files->all()['custom-icon'], AttachmentService::CUSTOM_ICON);
+            if (empty($customIconGlobalSettings)) {
+                $customIconGlobalSettings = new ParametrageGlobal();
+                $customIconGlobalSettings
+                    ->setLabel(ParametrageGlobal::CUSTOM_ICON);
+                $entityManager->persist($customIconGlobalSettings);
+            }
+            $customIconGlobalSettings->setValue($fileName[array_key_first($fileName)]);
+        }
+
+        $emergencyIconGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::EMERGENCY_ICON);
+
+        if (!empty($request->files->all()['emergency-icon'])) {
+            $fileName = $attachmentService->saveFile($request->files->all()['emergency-icon'], AttachmentService::EMERGENCY_ICON);
+            if (empty($emergencyIconGlobalSettings)) {
+                $emergencyIconGlobalSettings = new ParametrageGlobal();
+                $emergencyIconGlobalSettings
+                    ->setLabel(ParametrageGlobal::EMERGENCY_ICON);
+                $entityManager->persist($emergencyIconGlobalSettings);
+            }
+            $emergencyIconGlobalSettings->setValue($fileName[array_key_first($fileName)]);
         }
         $entityManager->flush();
 

@@ -53,6 +53,35 @@
             margin-left: 2%;
         }
 
+        .emergency-icon {
+            height: 15%;
+            width: 8vw;
+            margin-left: 75%;
+            position: absolute;
+        }
+
+        .custom-icon {
+            height: 15%;
+            width: 8vw;
+            margin-left: 75%;
+            position: absolute;
+            margin-top: 20%;
+        }
+
+        .custom-text {
+            margin-left: 75%;
+            position: absolute;
+            margin-top: 35%;
+            font-size: 4px;
+        }
+
+        .emergency-text {
+            margin-left: 75%;
+            position: absolute;
+            margin-top: 15%;
+            font-size: 4px;
+        }
+
         * {
             color: black !important;
             font-family: Arial, sans-serif;
@@ -85,6 +114,16 @@
 
         {% if logo %}
             <img class="logo" src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ logo }}" alt="logo">
+        {% endif %}
+
+        {% if (showCustomIcon and customIcon and arrival.customs) %}
+            <img class="custom-icon" src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ customIcon }}" alt="icone douane">
+            <span class="custom-text">{{ customText }}</span>
+        {% endif %}
+
+        {% if (showEmergencyIcon and emergencyIcon and arrival.isUrgent) %}
+            <img class="emergency-icon" src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ emergencyIcon }}" alt="icone urgence">
+            <span class="emergency-text">{{ emergencyText }}</span>
         {% endif %}
 
         <div class="barcode"
