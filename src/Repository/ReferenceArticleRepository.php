@@ -18,6 +18,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
+use App\Helper\Stream;
 
 /**
  * @method ReferenceArticle|null find($id, $lockMode = null, $lockVersion = null)
@@ -356,7 +357,8 @@ class ReferenceArticleRepository extends EntityRepository
                             $value = Stream::from(json_decode($value) ?: [])
                                 ->map(function (?string $value) {
                                     return '%' . ($value ?? '') . '%';
-                                });
+                                })
+                                ->toArray();
                             break;
                         case FreeField::TYPE_NUMBER:
                             break;
