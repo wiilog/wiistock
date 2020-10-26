@@ -510,6 +510,7 @@ class TrackingMovementService
                 return [
                     'title' => ucfirst(mb_strtolower($freeField['label'])),
                     'data' => $freeField['label'],
+                    'orderable' => false,
                     'name' => $freeField['label'],
                     'class' => (in_array($freeField['label'], $columnsVisible) ? 'display' : 'hide'),
                 ];
