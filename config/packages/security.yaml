@@ -28,6 +28,7 @@ security:
             pattern: ^/telecharger/nomade.apk$
             security: false
         main:
+            provider: our_db_provider
             pattern: ^/
             form_login:
                 login_path: login
@@ -41,6 +42,7 @@ security:
                 lifetime: 604800 # 1 semaine
             logout: true
             anonymous: true
+            switch_user: true
 #            access_denied_handler: App\Security\AccessDeniedHandler
 
         # default:
