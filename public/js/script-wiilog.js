@@ -63,7 +63,9 @@ function openQueryModal(query = null, event) {
     if (query["open-modal"] === openModalNew
         || query["open-modal"] === openModalEdit) {
         if (query["open-modal"] === openModalNew) {
-            $('[data-modal-type="new"]').first().modal("show");
+            const $modal = $('[data-modal-type="new"]').first();
+            clearModal($modal)
+            $modal.modal("show");
         } else { // edit
             const $openModal = $(`.open-modal-edit`);
             $openModal.data('id', query['modal-edit-id']);
@@ -246,13 +248,16 @@ function initEditor(div) {
 
 //FONCTION REFARTICLE
 
-function typeChoice($select, text, $freeFieldsContainer = null) {
+function typeChoice($select, $freeFieldsContainer = null) {
     if(!$freeFieldsContainer) {
-        $freeFieldsContainer = $select.siblings('.modal').find('.free-fields-container');
+        $freeFieldsContainer = $select.closest('.modal').find('.free-fields-container');
     }
-
     $freeFieldsContainer.children().addClass('d-none');
-    $('#' + $select.val() + text).removeClass('d-none');
+
+    const typeId = $select.val();
+    if (typeId) {
+        $freeFieldsContainer.children(`[data-type="${typeId}"]`).removeClass('d-none');
+    }
 }
 
 function updateQuantityDisplay($elem) {
@@ -283,13 +288,8 @@ function toggleRequiredChampsLibres($select, require, $freeFieldContainer = null
     const bloc = $freeFieldContainer
         ? $freeFieldContainer
         : $select
-            .parents('.modal')
+            .closest('.modal')
             .find('.free-fields-container');
-
-    if (!$freeFieldContainer) {
-        bloc.children()
-            .addClass('d-none');
-    }
 
     const typeId = $select.val();
 
@@ -310,7 +310,8 @@ function toggleRequiredChampsLibres($select, require, $freeFieldContainer = null
                 .removeClass('data')
 
             bloc
-                .find(`#${typeId}-new .free-field-data`)
+                .children(`[data-type="${typeId}"]`)
+                .find('.free-field-data')
                 .removeClass('free-field-data')
                 .addClass('data');
         }
@@ -359,7 +360,7 @@ function displayError(modal, msg, success) {
 }
 
 function clearModal(modal) {
-    let $modal = $(modal);
+    let $modal = typeof modal === 'string' ? $(modal) : modal;
 
     let switches = $modal.find('.wii-switch').find('input[type="radio"]');
     switches.each(function() {
@@ -1190,7 +1191,7 @@ function onTypeChange($select) {
     const $freeFieldsContainer = $modal.find('.free-fields-container');
 
     toggleRequiredChampsLibres($select, 'create', $freeFieldsContainer);
-    typeChoice($select, '-new', $freeFieldsContainer);
+    typeChoice($select, $freeFieldsContainer);
 
     const type = parseInt($select.val());
 
