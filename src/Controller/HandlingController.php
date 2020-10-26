@@ -442,7 +442,7 @@ class HandlingController extends AbstractController
         } catch (Throwable $throwable) {
         }
 
-        if (isset($dateTimeMin) && isset($dateTimeMax)) {
+        if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $handlingsRepository = $entityManager->getRepository(Handling::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
