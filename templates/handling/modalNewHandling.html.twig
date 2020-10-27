@@ -104,6 +104,13 @@
                 </div>
                 {% endif %}
 
+                {% if fieldsParam|isFieldRequired('carriedOutOperationCount', 'displayedFormsCreate') %}
+                    <div class="form-group col-md-6 col-12">
+                        <label for="carriedOutOperationCount">Nombre d'opération(s) réalisée(s){{ fieldsParam|isFieldRequired('carriedOutOperationCount', 'mustToCreate') ? '*' : '' }}</label>
+                        <input type="number" class="form-control data {{ fieldsParam|isFieldRequired('carriedOutOperationCount', 'mustToCreate') ? 'needed' : '' }}" name="carriedOutOperationCount">
+                    </div>
+                {% endif %}
+
                     <!-- CHAMPS LIBRES -->
                     <div class="col-12">
                         <span class="toggle-collapsible expanded">Champs libres</span>

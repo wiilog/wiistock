@@ -110,6 +110,14 @@
     </div>
 {% endif %}
 
+{% if fieldsParam|isFieldRequired('carriedOutOperationCount', 'displayedFormsEdit') %}
+    {% set carriedOutOperationCount = handling.carriedOutOperationCount is null ? '' : handling.carriedOutOperationCount %}
+    <div class="form-group col-md-6 col-12">
+        <label for="carriedOutOperationCount">Nombre d'opération(s) réalisée(s){{ fieldsParam|isFieldRequired('carriedOutOperationCount', 'mustToModify') ? '*' : '' }}</label>
+        <input type="number" class="form-control data {{ fieldsParam|isFieldRequired('carriedOutOperationCount', 'mustToModify') ? 'needed' : '' }} input" value="{{ carriedOutOperationCount }}" name="carriedOutOperationCount">
+    </div>
+{% endif %}
+
     {% if handling.type is not null and handling.type.champsLibres.count > 0 %}
         <div class="col-12">
             <span class="toggle-collapsible expanded">Champs libres</span>

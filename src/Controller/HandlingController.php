@@ -185,7 +185,8 @@ class HandlingController extends AbstractController
                 ->setStatus($status)
                 ->setDesiredDate($desiredDate)
 				->setComment($post->get('comment'))
-                ->setEmergency($post->get('emergency'));
+                ->setEmergency($post->get('emergency'))
+                ->setCarriedOutOperationCount(is_numeric($post->get('carriedOutOperationCount')) ? (int) $post->get('carriedOutOperationCount') : null);
 
             if ($status && $status->isTreated()) {
                 $handling->setValidationDate($date);
@@ -319,7 +320,14 @@ class HandlingController extends AbstractController
             ->setDestination($post->get('destination') ?? $handling->getDestination())
             ->setDesiredDate($desiredDate)
             ->setComment($post->get('comment') ?: '')
-            ->setEmergency($post->get('emergency'));
+            ->setEmergency($post->get('emergency'))
+            ->setCarriedOutOperationCount((is_numeric($post->get('carriedOutOperationCount'))
+                ? $post->get('carriedOutOperationCount')
+                : (!empty($post->get('carriedOutOperationCount'))
+                    ? $handling->getCarriedOutOperationCount()
+                    : null
+                )
+            ));
 
         if (!$handling->getValidationDate() && $newStatus->isTreated()) {
             $handling->setValidationDate($date);
@@ -462,6 +470,7 @@ class HandlingController extends AbstractController
                     'statut',
                     'commentaire',
                     'urgence',
+                    'nombre d\'opération(s) réalisée(s)',
                     'traité par'
                 ],
                 $freeFieldsConfig['freeFieldsHeader']
@@ -486,6 +495,7 @@ class HandlingController extends AbstractController
                     $row[] = $handling['status'] ?? '';
                     $row[] = strip_tags($handling['comment']) ?? '';
                     $row[] = $handling['emergency'] ?? '';
+                    $row[] = $handling['carriedOutOperationCount'] ?? '';
                     $row[] = $handling['treatedBy'] ?? '';
 
                     foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
