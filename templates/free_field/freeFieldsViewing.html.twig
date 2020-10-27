@@ -1,6 +1,9 @@
+{% set disabledNeeded = disabledNeeded is defined ? disabledNeeded : false %}
+
 {% if freeFields|length > 0 %}
     <div class="row">
         {% for freeField in freeFields %}
+            {% set needed = not disabledNeeded and attribute(freeField, requiredType) %}
             {% set entityValue = freeFieldValues[freeField.id] is defined
                 ? freeFieldValues[freeField.id]
                 : ( freeField.defaultValue is defined
@@ -13,12 +16,12 @@
                         <div class="col-12">
                             <label>
                                 {{ freeField.label }}
-                                {{ attribute(freeField, requiredType) ? '*' : '' }}
+                                {{ needed ? '*' : '' }}
                             </label>
                         </div>
                         <div class="col-12">
                             {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
-                                <div class="wii-switch {{ attribute(freeField, requiredType) ? 'needed' }}" data-title="{{ freeField.label }}">
+                                <div class="wii-switch {{ needed ? 'needed' }}" data-title="{{ freeField.label }}">
                                     {% set entityValue = freeFieldValues[freeField.id] is defined
                                         ? freeFieldValues[freeField.id]
                                         : ( freeField.defaultValue is defined
@@ -30,13 +33,13 @@
                                 </div>
                             {% elseif  freeField.typage == constant('App\\Entity\\FreeField::TYPE_NUMBER') %}
                                 <input type="number"
-                                       class="form-control data needs-default {{ attribute(freeField, requiredType) ? 'needed' }}"
+                                       class="form-control data needs-default {{ needed ? 'needed' }}"
                                        data-init="{{ entityValue }}"
                                        value="{{ entityValue }}"
                                        name="{{ freeField.id }}">
 
                             {% elseif  freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST') %}
-                                <select class="form-control data {{ attribute(freeField, requiredType) ? 'needed' : '' }} w-100"
+                                <select class="form-control data {{ needed ? 'needed' : '' }} w-100"
                                         name="{{ freeField.id }}">
                                     <option value="">aucune selection...</option>
                                     {% for elem in freeField.elements %}
@@ -47,7 +50,7 @@
                                 </select>
 
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
-                                <select class="form-control data list-multiple {{ attribute(freeField, requiredType) ? 'needed' : '' }} w-100"
+                                <select class="form-control data list-multiple {{ needed ? 'needed' : '' }} w-100"
                                         name="{{ freeField.id }}" multiple="multiple">
                                     {% set entityValuesArray = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id]|split(';') : [] %}
                                     {% for elem in freeField.elements %}
@@ -57,7 +60,7 @@
                                 </select>
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_TEXT') %}
                                 <input type="text"
-                                       class="form-control needs-default data {{ (attribute(freeField, requiredType)) ? 'needed' : '' }}"
+                                       class="form-control needs-default data {{ needed ? 'needed' : '' }}"
                                        value="{{ entityValue }}"
                                        data-init="{{ entityValue }}"
                                        name="{{ freeField.id }}">
@@ -65,13 +68,13 @@
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATETIME') %}
                                 <input type="datetime-local"
                                        name="{{ freeField.id }}"
-                                       class="form-control needs-default data {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
+                                       class="form-control needs-default data {{ needed ? 'needed' : '' }}"
                                        data-init="{{ entityValue }}"
                                        value="{{ entityValue ? ((entityValue | replace({'/': '-'}) ) | date('Y-m-d\\TH:i')) : '' }}">
 
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
                                 <input type="date"
-                                       class="form-control data needs-default {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
+                                       class="form-control data needs-default {{ needed ? 'needed' : '' }}"
                                        name="{{ freeField.id }}"
                                        data-init="{{ entityValue }}"
                                        value="{{ entityValue }}">
