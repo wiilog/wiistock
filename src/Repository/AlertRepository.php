@@ -4,16 +4,11 @@ namespace App\Repository;
 
 use App\Entity\Alert;
 use App\Entity\Article;
-use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\Query\Expr;
-use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Alert|null find($id, $lockMode = null, $lockVersion = null)
@@ -175,7 +170,7 @@ class AlertRepository extends EntityRepository {
                 "s.nom IN (:inactives)"
             ))
             ->setParameter("since", $since)
-            ->setParameter("inactives", [Article::STATUT_INACTIF]) //TODO: confirmer avec mehdi
+            ->setParameter("inactives", [Article::STATUT_INACTIF])
             ->getQuery()
             ->getResult();
     }
