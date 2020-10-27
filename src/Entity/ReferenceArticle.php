@@ -782,7 +782,7 @@ class ReferenceArticle extends FreeFieldEntity
     /**
      * @return null|Pack
      */
-    public function getTrackingPack(): Pack {
+    public function getTrackingPack(): ?Pack {
         return $this->trackingPack;
     }
 

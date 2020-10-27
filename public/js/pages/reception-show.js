@@ -751,7 +751,8 @@ function toggleForm($content, $input, force = false) {
     } else {
         if ($input.is(':checked')) {
             $content.removeClass('d-none');
-            $content.find('.data').attr('disabled', null);
+            $content.find('.data').prop('disabled', false);
+
             if ($content.hasClass('transfer-form')) {
                 $('.demande-form').addClass('d-none');
                 $('.demande-form').find('.data').attr('disabled', 'disabled');
@@ -765,7 +766,7 @@ function toggleForm($content, $input, force = false) {
             }
         } else {
             $content.addClass('d-none');
-            $content.find('.data').attr('disabled', 'disabled');
+            $content.find('.data').prop('disabled', true);
         }
     }
 }
