@@ -547,7 +547,9 @@ class LitigeController extends AbstractController
 
             $utilisateurRepository = $entityManager->getRepository(Litige::class);
             $user = $utilisateurRepository->getIdAndDisputeNumberBySearch($search);
-            return new JsonResponse(['results' => $user]);
+            return new JsonResponse([
+                'results' => $user
+            ]);
         }
         throw new BadRequestHttpException();
     }

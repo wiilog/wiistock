@@ -950,7 +950,9 @@ class ReferenceArticleController extends AbstractController
 			$refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly);
 			$articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly);
 
-			return new JsonResponse(['results' => array_merge($articles, $refArticles)]);
+			return new JsonResponse([
+			    'results' => array_merge($articles, $refArticles)
+            ]);
 		}
 		throw new BadRequestHttpException();
 	}

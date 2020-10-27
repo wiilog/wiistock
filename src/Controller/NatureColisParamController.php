@@ -216,7 +216,10 @@ class NatureColisParamController extends AbstractController
                 $html = $this->renderView('nature_param/modalDeleteNatureWrong.html.twig');
             }
 
-            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+            return new JsonResponse([
+                'delete' => $delete,
+                'html' => $html
+            ]);
         }
         throw new BadRequestHttpException();
     }

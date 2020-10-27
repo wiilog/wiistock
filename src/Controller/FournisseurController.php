@@ -114,7 +114,11 @@ class FournisseurController extends AbstractController
             $entityManager->persist($fournisseur);
             $entityManager->flush();
 
-			return new JsonResponse(['success' => true, 'id' => $fournisseur->getId(), 'text' => $fournisseur->getCodeReference()]);
+			return new JsonResponse([
+			    'success' => true,
+                'id' => $fournisseur->getId(),
+                'text' => $fournisseur->getCodeReference()
+            ]);
         }
 
         throw new BadRequestHttpException();
