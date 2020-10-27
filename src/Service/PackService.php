@@ -232,28 +232,19 @@ Class PackService
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $natureRepository = $this->entityManager->getRepository(Nature::class);
 
-        $specificArrivalLocationSED = $emplacementRepository->findOneByLabel(SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE);
-
-        $defaultArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
-        $customsArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS);
-        $emergenciesArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY);
-
         if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) && $arrivage->getDestinataire()) {
-            $location = $specificArrivalLocationSED ?? null;
+            $location = $emplacementRepository->findOneByLabel(SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE);
         }
-        else if ($arrivage->getCustoms()
-            && $arrivage->getIsUrgent()
-            && !empty($customsArrivalsLocation)) {
+        else if($arrivage->getCustoms() && $customsArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS)) {
             $location = $emplacementRepository->find($customsArrivalsLocation);
         }
-        else if (!empty($customsArrivalsLocation) && $arrivage->getCustoms()) {
-            $location = $emplacementRepository->find($customsArrivalsLocation);
-        }
-        else if (!empty($emergenciesArrivalsLocation) && $arrivage->getIsUrgent()) {
+        else if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY)) {
             $location = $emplacementRepository->find($emergenciesArrivalsLocation);
         }
-        else {
-            $location = !empty($defaultArrivalsLocation) ? $emplacementRepository->find($defaultArrivalsLocation) : null;
+        else if($defaultArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION)) {
+            $location = $emplacementRepository->find($defaultArrivalsLocation);
+        } else {
+            $location = null;
         }
 
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));

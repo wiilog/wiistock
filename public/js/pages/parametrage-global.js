@@ -31,8 +31,8 @@ InitModal(modalEditDays, submitEditDays, urlEditDays, {tables: [tableDays]});
 
 $(function () {
     Select2.init($('#locationArrivageDest'));
-    Select2.init($('[name=param-default-location-if-custom]'))
-    Select2.init($('[name=param-default-location-if-emergency]'))
+    Select2.location($('[name=param-default-location-if-custom]'))
+    Select2.location($('[name=param-default-location-if-emergency]'))
     Select2.init($('#listNaturesColis'));
     Select2.initFree($('select[name="businessUnit"]'));
     Select2.initFree($('select[name="dispatchEmergencies"]'));
