@@ -16,6 +16,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -59,11 +60,9 @@ class ReferenceArticleRepository extends EntityRepository
     }
 
 
-    public function getAllWithLimits(int $start, int $limit)
-    {
-        $queryBuilder = $this->createQueryBuilder('referenceArticle');
-        return $queryBuilder
-            ->addSelect('referenceArticle.id')
+    public function iterateAll() {
+        $iterator = $this->createQueryBuilder('referenceArticle')
+            ->select('referenceArticle.id')
             ->addSelect('referenceArticle.reference')
             ->addSelect('referenceArticle.libelle')
             ->addSelect('referenceArticle.quantiteStock')
@@ -86,10 +85,12 @@ class ReferenceArticleRepository extends EntityRepository
             ->leftJoin('referenceArticle.type', 'typeRef')
             ->leftJoin('referenceArticle.category', 'categoryRef')
             ->orderBy('referenceArticle.id', 'ASC')
-            ->setFirstResult($start)
-            ->setMaxResults($limit)
             ->getQuery()
-            ->execute();
+            ->iterate(null, Query::HYDRATE_ARRAY);
+
+        foreach($iterator as $item) {
+            yield array_pop($item);
+        }
     }
 
     public function getBetweenLimits($min, $step)
@@ -583,16 +584,11 @@ class ReferenceArticleRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function countAll()
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(ra)
-            FROM App\Entity\ReferenceArticle ra
-           "
-        );
-
-        return $query->getSingleScalarResult();
+    public function countAll(): int {
+        return $this->createQueryBuilder("r")
+            ->select("COUNT(r)")
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function countActiveTypeRefRef()
