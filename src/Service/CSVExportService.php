@@ -105,7 +105,7 @@ class CSVExportService {
         fputcsv($handle, $encodedRow, ';');
     }
 
-    public function stream(callable $generator, string $name, ?array $header = null): StreamedResponse {
+    public function streamResponse(callable $generator, string $name, ?array $header = null): StreamedResponse {
         $response = new StreamedResponse(function() use ($generator, $header) {
             $output = fopen("php://output", "wb");
             if($header) {

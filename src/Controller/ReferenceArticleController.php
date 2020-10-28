@@ -1238,7 +1238,7 @@ class ReferenceArticleController extends AbstractController
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
 
-        return $csvService->stream(function($output) use ($manager, $csvService, $ffService, $ffConfig) {
+        return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $ffConfig) {
             $raRepository = $manager->getRepository(ReferenceArticle::class);
             $managersByReference = $manager
                 ->getRepository(Utilisateur::class)

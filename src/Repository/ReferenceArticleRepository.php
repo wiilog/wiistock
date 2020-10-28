@@ -89,6 +89,7 @@ class ReferenceArticleRepository extends EntityRepository
             ->iterate(null, Query::HYDRATE_ARRAY);
 
         foreach($iterator as $item) {
+            // $item [index => reference array]
             yield array_pop($item);
         }
     }

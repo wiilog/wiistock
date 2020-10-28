@@ -1017,7 +1017,7 @@ class ArticleController extends AbstractController
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
 
-        return $csvService->stream(function($output) use ($manager, $csvService, $ffService, $ffConfig) {
+        return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $ffConfig) {
             $articleRepository = $manager->getRepository(Article::class);
 
             $articles = $articleRepository->iterateAll();

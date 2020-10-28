@@ -259,6 +259,7 @@ class ArticleRepository extends EntityRepository
             ->iterate(null, Query::HYDRATE_ARRAY);
 
         foreach($iterator as $item) {
+            // $item [index => article array]
             yield array_pop($item);
         }
     }
