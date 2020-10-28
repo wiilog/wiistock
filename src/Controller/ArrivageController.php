@@ -1001,14 +1001,10 @@ class ArrivageController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $packRepository = $entityManager->getRepository(Pack::class);
             $usersRepository = $entityManager->getRepository(Utilisateur::class);
-            $disputeRepository = $entityManager->getRepository(Litige::class);
 
             $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $dateStr = $now->format('Ymd');
-            $prefix = Litige::DISPUTE_ARRIVAL_PREFIX;
 
-            $lastDisputeNumber = $disputeRepository->getLastDisputeNumberByPrefixAndDate($prefix, $dateStr);
-            $disputeNumber = $uniqueNumberService->createUniqueNumber($prefix, UniqueNumberService::DATE_COUNTER_FORMAT, $lastDisputeNumber);
+            $disputeNumber = $uniqueNumberService->createUniqueNumber(Litige::DISPUTE_ARRIVAL_PREFIX, UniqueNumberService::DATE_COUNTER_FORMAT, Litige::class);
 
             $litige = new Litige();
             $litige

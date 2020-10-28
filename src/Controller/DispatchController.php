@@ -47,7 +47,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -244,7 +243,6 @@ class DispatchController extends AbstractController {
 
             $dispatch = new Dispatch();
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $prefix = Dispatch::PREFIX_NUMBER;
 
             $fileBag = $request->files->count() > 0 ? $request->files : null;
 
@@ -290,7 +288,7 @@ class DispatchController extends AbstractController {
                 ]);
             }
 
-            $dispatchNumber = $uniqueNumberService->createUniqueNumber($prefix, UniqueNumberService::DATE_COUNTER_FORMAT, Dispatch::class);
+            $dispatchNumber = $uniqueNumberService->createUniqueNumber(Dispatch::PREFIX_NUMBER, UniqueNumberService::DATE_COUNTER_FORMAT, Dispatch::class);
             $dispatch
                 ->setCreationDate($date)
                 ->setStatut($statutRepository->find($post->get('status')))

@@ -1223,9 +1223,8 @@ class ReceptionController extends AbstractController {
             $litige = new Litige();
 
             $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $prefix = Litige::DISPUTE_RECEPTION_PREFIX;
 
-            $disputeNumber = $uniqueNumberService->createUniqueNumber($prefix, UniqueNumberService::DATE_COUNTER_FORMAT, Litige::class);
+            $disputeNumber = $uniqueNumberService->createUniqueNumber(Litige::DISPUTE_RECEPTION_PREFIX, UniqueNumberService::DATE_COUNTER_FORMAT, Litige::class);
 
             $litige
                 ->setStatus($statutRepository->find($post->get('statutLitige')))
@@ -1827,11 +1826,13 @@ class ReceptionController extends AbstractController {
      * @param MouvementStockService $mouvementStockService
      * @param PreparationsManagerService $preparationsManagerService
      * @param LivraisonsManagerService $livraisonsManagerService
+     * @param UniqueNumberService $uniqueNumberService
      * @return Response
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \App\Exceptions\NegativeQuantityException
      * @throws Exception
      */
     public function newWithPacking(Request $request,
@@ -1843,7 +1844,8 @@ class ReceptionController extends AbstractController {
                                    TrackingMovementService $trackingMovementService,
                                    MouvementStockService $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
-                                   LivraisonsManagerService $livraisonsManagerService): Response {
+                                   LivraisonsManagerService $livraisonsManagerService,
+                                   UniqueNumberService $uniqueNumberService): Response {
 
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
         /** @var Utilisateur $currentUser */
@@ -1938,11 +1940,15 @@ class ReceptionController extends AbstractController {
                 $destination = $emplacementRepository->find($data['storage']);
                 $origin = $emplacementRepository->find($data['origin']);
                 $transfer = new TransferRequest();
+
+                $transferRequestNumber = $uniqueNumberService->createUniqueNumber(TransferRequest::NUMBER_PREFIX, UniqueNumberService::DATE_COUNTER_FORMAT, TransferRequest::class);
+                $transferOrderNumber = $uniqueNumberService->createUniqueNumber(TransferOrder::NUMBER_PREFIX, UniqueNumberService::DATE_COUNTER_FORMAT, TransferOrder::class);
+
                 $transfer
                     ->setStatus($toTreat)
                     ->setCreationDate($now)
                     ->setValidationDate($now)
-                    ->setNumber(TransferRequestController::createNumber($entityManager, $now))
+                    ->setNumber($transferRequestNumber)
                     ->setDestination($destination)
                     ->setOrigin($origin)
                     ->setReception($reception)
@@ -1950,7 +1956,7 @@ class ReceptionController extends AbstractController {
                 $order = new TransferOrder();
                 $order
                     ->setRequest($transfer)
-                    ->setNumber(TransferOrderController::createNumber($entityManager, $now))
+                    ->setNumber($transferOrderNumber)
                     ->setStatus($toTreatOrder)
                     ->setCreationDate($now);
 

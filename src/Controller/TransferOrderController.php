@@ -15,6 +15,7 @@ use App\Entity\Utilisateur;
 use App\Helper\Stream;
 use App\Service\MouvementStockService;
 use App\Service\TransferOrderService;
+use App\Service\UniqueNumberService;
 use DateTime;
 use App\Service\CSVExportService;
 use App\Service\UserService;
@@ -83,41 +84,20 @@ class TransferOrderController extends AbstractController {
         }
     }
 
-    public static function createNumber(EntityManagerInterface $entityManager, $date) {
-        $dateStr = $date->format('Ymd');
-
-        $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
-        $lastTransferOrderNumber = $transferOrderRepository->getLastTransferNumberByPrefix(TransferOrder::NUMBER_PREFIX . "-" . $dateStr);
-
-        if ($lastTransferOrderNumber) {
-            $lastCounter = (int) substr($lastTransferOrderNumber, -4, 4);
-            $currentCounter = ($lastCounter + 1);
-        } else {
-            $currentCounter = 1;
-        }
-
-        $currentCounterStr = (
-        $currentCounter < 10 ? ('000' . $currentCounter) :
-            ($currentCounter < 100 ? ('00' . $currentCounter) :
-                ($currentCounter < 1000 ? ('0' . $currentCounter) :
-                    $currentCounter))
-        );
-
-        return (TransferOrder::NUMBER_PREFIX . "-" . $dateStr . $currentCounterStr);
-    }
-
     /**
      * @Route("/creer{id}", name="transfer_order_new", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param TransferRequest $transferRequest
+     * @param UniqueNumberService $uniqueNumberService
      * @return Response
      * @throws NonUniqueResultException
      * @throws Exception
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
-                        TransferRequest $transferRequest): Response {
+                        TransferRequest $transferRequest,
+                        UniqueNumberService $uniqueNumberService): Response {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
@@ -151,8 +131,9 @@ class TransferOrderController extends AbstractController {
             $transferRequest->setStatus($toTreatRequest);
             $transferRequest->setValidationDate(new DateTime());
 
+            $transferOrderNumber = $uniqueNumberService->createUniqueNumber(TransferOrder::NUMBER_PREFIX, UniqueNumberService::DATE_COUNTER_FORMAT, TransferOrder::class);
             $transfer
-                ->setNumber(self::createNumber($entityManager, $date))
+                ->setNumber($transferOrderNumber)
                 ->setCreationDate($date)
                 ->setRequest($transferRequest)
                 ->setStatus($toTreatOrder);

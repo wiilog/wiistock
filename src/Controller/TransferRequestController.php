@@ -14,6 +14,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Helper\Stream;
 use App\Service\TransferRequestService;
+use App\Service\UniqueNumberService;
 use DateTime;
 use App\Service\CSVExportService;
 use App\Service\UserService;
@@ -80,38 +81,18 @@ class TransferRequestController extends AbstractController {
         }
     }
 
-    public static function createNumber(EntityManagerInterface $entityManager, $date) {
-        $dateStr = $date->format('Ymd');
-
-        $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
-        $lastDispatchNumber = $transferRequestRepository->getLastTransferNumberByPrefix(TransferRequest::NUMBER_PREFIX . "-" . $dateStr);
-
-        if($lastDispatchNumber) {
-            $lastCounter = (int)substr($lastDispatchNumber, -4, 4);
-            $currentCounter = ($lastCounter + 1);
-        } else {
-            $currentCounter = 1;
-        }
-
-        $currentCounterStr = (
-        $currentCounter < 10 ? ('000' . $currentCounter) :
-            ($currentCounter < 100 ? ('00' . $currentCounter) :
-                ($currentCounter < 1000 ? ('0' . $currentCounter) :
-                    $currentCounter))
-        );
-
-        return (TransferRequest::NUMBER_PREFIX . "-" . $dateStr . $currentCounterStr);
-    }
-
     /**
      * @Route("/creer", name="transfer_request_new", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param UniqueNumberService $uniqueNumberService
      * @return Response
      * @throws NonUniqueResultException
      * @throws Exception
      */
-    public function new(Request $request, EntityManagerInterface $entityManager): Response {
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager,
+                        UniqueNumberService $uniqueNumberService): Response {
         if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
@@ -129,10 +110,10 @@ class TransferRequestController extends AbstractController {
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
-
+            $transferRequestNumber = $uniqueNumberService->createUniqueNumber(TransferRequest::NUMBER_PREFIX, UniqueNumberService::DATE_COUNTER_FORMAT, TransferRequest::class);
             $transfer
                 ->setStatus($draft)
-                ->setNumber(self::createNumber($entityManager, $date))
+                ->setNumber($transferRequestNumber)
                 ->setDestination($destination)
                 ->setOrigin($origin)
                 ->setCreationDate($date)

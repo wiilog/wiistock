@@ -7,7 +7,6 @@ use App\Entity\LitigeHistoric;
 use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\QueryBuilder;
 use Exception;
 
@@ -32,7 +31,7 @@ class LitigeRepository extends EntityRepository
 		'updateDate' => 'updateDate',
         'status' => 'status',
         'urgence' => 'emergencyTriggered',
-        'disputeNumber' => 'disputeNumber',
+        'disputeNumber' => 'disputeNumber'
 	];
 
     public function findByStatutSendNotifToBuyer()
@@ -480,25 +479,12 @@ class LitigeRepository extends EntityRepository
 		return array_column($result, 'reference');
 	}
 
-    public function getLastNumeroLitigeByPrefixeAndDate($prefixe, $date)
+    public function getLastNumberByPrefixAndDate($prefix, $date)
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            'SELECT litige.numeroLitige as numeroLitige
-			FROM App\Entity\Litige litige
-			WHERE litige.numeroLitige LIKE :value
-			ORDER BY litige.creationDate DESC'
-        )->setParameter('value', $prefixe . $date . '%');
-    /**
-     * @param $prefix
-     * @param $date
-     * @return mixed|null
-     */
-    public function getLastNumberByPrefixAndDate($prefix, $date) {
         $qb = $this->createQueryBuilder('dispute');
 
-        $qb->select('dispute.numeroLitige')
+        $qb
+            ->select('dispute.numeroLitige')
             ->where('dispute.numeroLitige LIKE :value')
             ->orderBy('dispute.creationDate', 'DESC')
             ->setParameter('value', $prefix . '-' . $date . '%');

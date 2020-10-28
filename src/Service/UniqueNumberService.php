@@ -2,10 +2,8 @@
 
 namespace App\Service;
 
-use App\Entity\Statut;
 use DateTime;
 use DateTimeZone;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\Entity;
 use Exception;
@@ -24,15 +22,16 @@ class UniqueNumberService
 
 
     /**
+     * getLastNumberByPrefixAndDate() function must be implemented in current entity repository with $prefix and $date params
      * @param string $prefix - Prefix of the entity unique number => Available in choosen entity
      * @param string $format - Format of the entity unique number => Available in UniqueNumberService
-     * @param Entity $entity - Choosen entity to generate unique number => Format Entity::class
+     * @param string $entity - Choosen entity to generate unique number => Format Entity::class
      * @return string
      * @throws Exception
      */
     public function createUniqueNumber(string $prefix,
                                        string $format,
-                                       Entity $entity): string {
+                                       string $entity): string {
 
         $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
         $dateStr = $date->format('Ymd');
@@ -49,7 +48,7 @@ class UniqueNumberService
         $counterLen = strlen($counterFormat);
 
         $lastCounter = (
-            (!empty($lastNumber) && $counterLen <= strlen($lastNumber)) // TODO calculer la longueur du compteur d'un numéro unique
+            (!empty($lastNumber) && $counterLen <= strlen($lastNumber))
                 ? (int) substr($lastNumber, -$counterLen, $counterLen)
                 : 0
         );
