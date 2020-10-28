@@ -16,6 +16,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -59,11 +60,9 @@ class ReferenceArticleRepository extends EntityRepository
     }
 
 
-    public function getAllWithLimits(int $start, int $limit)
-    {
-        $queryBuilder = $this->createQueryBuilder('referenceArticle');
-        return $queryBuilder
-            ->addSelect('referenceArticle.id')
+    public function iterateAll() {
+        $iterator = $this->createQueryBuilder('referenceArticle')
+            ->select('referenceArticle.id')
             ->addSelect('referenceArticle.reference')
             ->addSelect('referenceArticle.libelle')
             ->addSelect('referenceArticle.quantiteStock')
@@ -86,10 +85,13 @@ class ReferenceArticleRepository extends EntityRepository
             ->leftJoin('referenceArticle.type', 'typeRef')
             ->leftJoin('referenceArticle.category', 'categoryRef')
             ->orderBy('referenceArticle.id', 'ASC')
-            ->setFirstResult($start)
-            ->setMaxResults($limit)
             ->getQuery()
-            ->execute();
+            ->iterate(null, Query::HYDRATE_ARRAY);
+
+        foreach($iterator as $item) {
+            // $item [index => reference array]
+            yield array_pop($item);
+        }
     }
 
     public function getBetweenLimits($min, $step)
@@ -239,7 +241,7 @@ class ReferenceArticleRepository extends EntityRepository
 
         // fait le lien entre intitulé champs dans datatable/filtres côté front
         // et le nom des attributs de l'entité ReferenceArticle (+ typage)
-        $linkChampLibreLabelToField = [
+        $linkFieldLabelToColumn = [
             'Libellé' => ['field' => 'libelle', 'typage' => 'text'],
             'Référence' => ['field' => 'reference', 'typage' => 'text'],
             'Type' => ['field' => 'type_id', 'typage' => 'list'],
@@ -251,8 +253,8 @@ class ReferenceArticleRepository extends EntityRepository
             'Quantité disponible' => ['field' => 'quantiteDisponible', 'typage' => 'text'],
             'Commentaire d\'urgence' => ['field' => 'emergencyComment', 'typage' => 'text'],
             'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'text'],
-            'limitWarning' => ['field' => 'Seuil d\'alerte', 'typage' => 'number'],
-            'limitSecurity' => ['field' => 'Seuil de securité', 'typage' => 'number'],
+            'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
+            'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
             'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
             'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text'],
@@ -282,7 +284,7 @@ class ReferenceArticleRepository extends EntityRepository
                         ->setParameter('reference', '%' . $filter['value'] . '%');
                 } // cas champ fixe
                 else if ($label = $filter['champFixe']) {
-                    $array = $linkChampLibreLabelToField[$label];
+                    $array = $linkFieldLabelToColumn[$label];
                     $field = $array['field'];
                     $typage = $array['typage'];
 
@@ -439,7 +441,7 @@ class ReferenceArticleRepository extends EntityRepository
                                 break;
                             default:
                                 $metadatas = $em->getClassMetadata(ReferenceArticle::class);
-                                $field = !empty($linkChampLibreLabelToField[$searchField]) ? $linkChampLibreLabelToField[$searchField]['field'] : '';
+                                $field = !empty($linkFieldLabelToColumn[$searchField]) ? $linkFieldLabelToColumn[$searchField]['field'] : '';
                                 // champs fixes
                                 if ($field !== '' && in_array($field, $metadatas->getFieldNames())) {
                                     $query[] = 'ra.' . $field . ' LIKE :valueSearch';
@@ -583,16 +585,11 @@ class ReferenceArticleRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function countAll()
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(ra)
-            FROM App\Entity\ReferenceArticle ra
-           "
-        );
-
-        return $query->getSingleScalarResult();
+    public function countAll(): int {
+        return $this->createQueryBuilder("r")
+            ->select("COUNT(r)")
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function countActiveTypeRefRef()

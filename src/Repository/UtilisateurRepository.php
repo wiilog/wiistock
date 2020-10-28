@@ -183,14 +183,11 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         }, []);
     }
 
-    public function getUsernameManagersGroupByReference()
-    {
-        $queryBuilder = $this->createQueryBuilder('utilisateur')
+    public function getUsernameManagersGroupByReference() {
+        $result = $this->createQueryBuilder('utilisateur')
             ->select('referencesArticle.id AS referencesArticleId')
             ->addSelect('utilisateur.username')
-            ->join('utilisateur.referencesArticle', 'referencesArticle');
-
-        $result = $queryBuilder
+            ->join('utilisateur.referencesArticle', 'referencesArticle')
             ->getQuery()
             ->getResult();
 
