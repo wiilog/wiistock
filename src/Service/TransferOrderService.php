@@ -150,6 +150,7 @@ class TransferOrderService {
                 $refOrArt,
                 MouvementStock::TYPE_TRANSFER
             );
+
             $trackingPick = $this->mouvementTracaService->createTrackingMovement(
                 $barcode,
                 $emplacementFrom,
@@ -165,7 +166,7 @@ class TransferOrderService {
             $entityManager->persist($trackingPick);
             $this->mouvementStockService->finishMouvementStock($newMouvementStock, new DateTime(), $locationTo);
             $trackingDrop = $this->mouvementTracaService->createTrackingMovement(
-                $barcode,
+                $trackingPick->getPack(),
                 $locationTo,
                 $utilisateur,
                 new DateTime(),

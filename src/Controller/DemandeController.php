@@ -35,7 +35,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -122,7 +122,7 @@ class DemandeController extends AbstractController
             );
             return new JsonResponse($responseAfterQuantitiesCheck);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -179,7 +179,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -243,7 +243,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse($response);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -267,7 +267,7 @@ class DemandeController extends AbstractController
                 'redirect' => $this->generateUrl('demande_show', ['id' => $demande->getId()]),
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -351,7 +351,7 @@ class DemandeController extends AbstractController
             }
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -374,7 +374,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse($data);
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -467,7 +467,7 @@ class DemandeController extends AbstractController
             $data['data'] = array_merge($rowsCA, $rowsRC);
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -511,7 +511,7 @@ class DemandeController extends AbstractController
             $entityManager->flush();
             return new JsonResponse($resp);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -544,7 +544,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -567,7 +567,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -603,7 +603,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -625,7 +625,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse($count > 0);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -766,7 +766,7 @@ class DemandeController extends AbstractController
                 }
             );
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -816,7 +816,7 @@ class DemandeController extends AbstractController
                 'results' => $demandeRepository->getIdAndLibelleBySearch($search)
             ]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
 }

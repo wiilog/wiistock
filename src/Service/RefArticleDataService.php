@@ -651,45 +651,48 @@ class RefArticleDataService {
      * @throws Exception
      */
     public function treatAlert(ReferenceArticle $reference): void {
-        if($reference->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF)
-            return;
+        if($reference->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF) {
+            foreach($reference->getAlerts() as $alert) {
+                $this->entityManager->remove($alert);
+            }
+        } else {
+            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+            $ar = $this->entityManager->getRepository(Alert::class);
 
-        $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
-        $ar = $this->entityManager->getRepository(Alert::class);
-
-        if($reference->getLimitSecurity() !== null && $reference->getLimitSecurity() >= $reference->getQuantiteDisponible()) {
-            $type = Alert::SECURITY;
-        } else if($reference->getLimitWarning() !== null && $reference->getLimitWarning() >= $reference->getQuantiteDisponible()) {
-            $type = Alert::WARNING;
-        }
-
-        $existing = $ar->findForReference($reference, [Alert::SECURITY, Alert::WARNING]);
-
-        //more than 1 security/warning alert is an invalid state -> reset
-        if(count($existing) > 1) {
-            foreach($existing as $remove) {
-                $this->entityManager->remove($remove);
+            if($reference->getLimitSecurity() !== null && $reference->getLimitSecurity() >= $reference->getQuantiteDisponible()) {
+                $type = Alert::SECURITY;
+            } else if($reference->getLimitWarning() !== null && $reference->getLimitWarning() >= $reference->getQuantiteDisponible()) {
+                $type = Alert::WARNING;
             }
 
-            $existing = null;
-        } else if(count($existing) == 1) {
-            $existing = $existing[0];
-        }
+            $existing = $ar->findForReference($reference, [Alert::SECURITY, Alert::WARNING]);
 
-        if($existing && (!isset($type) || $this->isDifferentThresholdType($existing, $type))) {
-            $this->entityManager->remove($existing);
-            $existing = null;
-        }
+            //more than 1 security/warning alert is an invalid state -> reset
+            if(count($existing) > 1) {
+                foreach($existing as $remove) {
+                    $this->entityManager->remove($remove);
+                }
 
-        if(isset($type) && !$existing) {
-            $alert = new Alert();
-            $alert->setReference($reference);
-            $alert->setType($type);
-            $alert->setDate($now);
+                $existing = null;
+            } else if(count($existing) == 1) {
+                $existing = $existing[0];
+            }
 
-            $this->entityManager->persist($alert);
+            if($existing && (!isset($type) || $this->isDifferentThresholdType($existing, $type))) {
+                $this->entityManager->remove($existing);
+                $existing = null;
+            }
 
-            $this->alertService->sendThresholdMails($reference);
+            if(isset($type) && !$existing) {
+                $alert = new Alert();
+                $alert->setReference($reference);
+                $alert->setType($type);
+                $alert->setDate($now);
+
+                $this->entityManager->persist($alert);
+
+                $this->alertService->sendThresholdMails($reference);
+            }
         }
     }
 

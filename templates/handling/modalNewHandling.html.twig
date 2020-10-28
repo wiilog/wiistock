@@ -109,13 +109,15 @@
                         <span class="toggle-collapsible expanded">Champs libres</span>
                         <div class="collapsible expanded free-fields-container mb-2">
                             {% for type in freeFieldsTypes %}
-                                <div class="d-none" id="{{ type.typeId }}-new">
+                                <div class="d-none"
+                                     data-type="{{ type.typeId }}">
                                     {% include 'free_field/freeFieldsViewing.html.twig' with {
                                         freeFields: type.freeFields,
                                         freeFieldValues: [],
                                         colType: 'col-md-6 col-12',
                                         requiredType: 'requiredCreate',
-                                        actionType: 'new'
+                                        actionType: 'new',
+                                        disabledNeeded: true
                                     } %}
                                 </div>
                             {% endfor %}

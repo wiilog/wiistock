@@ -27,9 +27,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
@@ -47,19 +46,15 @@ class TransferRequestController extends AbstractController {
 
     /**
      * @Route("/liste", name="transfer_request_index", options={"expose"=true}, methods={"GET", "POST"})
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function index(EntityManagerInterface $em): Response {
+    public function index(EntityManagerInterface $entityManager): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $statusRepository = $em->getRepository(Statut::class);
-
-        $transfer = new TransferRequest();
-
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
-        $transfer->setRequester($currentUser);
+        $statusRepository = $entityManager->getRepository(Statut::class);
 
         return $this->render('transfer/request/index.html.twig', [
             'statuts' => $statusRepository->findByCategorieName(CategorieStatut::TRANSFER_REQUEST),
@@ -81,7 +76,7 @@ class TransferRequestController extends AbstractController {
 
             return new JsonResponse($data);
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -150,7 +145,7 @@ class TransferRequestController extends AbstractController {
                 'redirect' => $this->generateUrl('transfer_request_show', ['id' => $transfer->getId()]),
             ]);
         }
-        throw new NotFoundHttpException('404 not found');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -191,7 +186,7 @@ class TransferRequestController extends AbstractController {
             return new JsonResponse($json);
         }
 
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -228,7 +223,7 @@ class TransferRequestController extends AbstractController {
                 'msg' => 'La demande de transfert a bien été modifiée.'
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -285,7 +280,7 @@ class TransferRequestController extends AbstractController {
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -325,7 +320,10 @@ class TransferRequestController extends AbstractController {
                 return $this->json([
                     "success" => true,
                     "html" => $this->renderView("transfer/request/article/select_article_form.html.twig", [
-                        "articles" => $articles
+                        "articles" => $articles,
+                        'articleAlreadyInRequest' => $transfer->getArticles()->map(function (Article $article) {
+                            return $article->getId();
+                        })
                     ])
                 ]);
             } else {
@@ -393,7 +391,7 @@ class TransferRequestController extends AbstractController {
             ]);
         }
 
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -444,7 +442,7 @@ class TransferRequestController extends AbstractController {
                 ]);
             }
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**

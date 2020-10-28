@@ -11,10 +11,9 @@ use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Throwable;
 
-class FreeFieldService
-{
-    public function serializeValue(array $valeurChampLibre): ?string
-    {
+class FreeFieldService {
+
+    public function serializeValue(array $valeurChampLibre): ?string {
         if (in_array($valeurChampLibre['typage'], [FreeField::TYPE_DATE, FreeField::TYPE_DATETIME])
             && !empty($valeurChampLibre['valeur'])) {
             try {

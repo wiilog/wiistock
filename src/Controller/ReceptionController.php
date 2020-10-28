@@ -66,10 +66,10 @@ use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 use Twig\Error\LoaderError;
@@ -272,7 +272,7 @@ class ReceptionController extends AbstractController {
             ];
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
 
@@ -333,7 +333,7 @@ class ReceptionController extends AbstractController {
             ]);
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -357,7 +357,7 @@ class ReceptionController extends AbstractController {
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -417,7 +417,7 @@ class ReceptionController extends AbstractController {
             $data['hasBarCodeToPrint'] = $hasBarCodeToPrint;
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -493,7 +493,7 @@ class ReceptionController extends AbstractController {
             ];
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -526,7 +526,7 @@ class ReceptionController extends AbstractController {
             ];
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -619,7 +619,7 @@ class ReceptionController extends AbstractController {
                 'msg' => 'La référence <strong>' . $ligneArticleLabel . '</strong> a bien été supprimée.'
             ]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -705,7 +705,7 @@ class ReceptionController extends AbstractController {
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -736,7 +736,7 @@ class ReceptionController extends AbstractController {
             );
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -867,7 +867,7 @@ class ReceptionController extends AbstractController {
                 ])
             ]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1047,7 +1047,7 @@ class ReceptionController extends AbstractController {
             ));
             return $response;
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1188,7 +1188,7 @@ class ReceptionController extends AbstractController {
                 'msg' => 'Le litige <strong>' . $litige->getNumeroLitige() . '</strong> a bien été modifié.'
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1273,7 +1273,7 @@ class ReceptionController extends AbstractController {
                 'msg' => 'Le litige <strong>' . $litige->getNumeroLitige() . '</strong> a bien été créé.'
             ]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1315,7 +1315,7 @@ class ReceptionController extends AbstractController {
 
             return new JsonResponse(['html' => $html, 'colis' => $colisCode, 'acheteurs' => $acheteursCode]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1353,7 +1353,7 @@ class ReceptionController extends AbstractController {
                 'msg' => 'Le litige <strong>' . $disputeNumber . '</strong> a bien été supprimé.'
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1409,7 +1409,7 @@ class ReceptionController extends AbstractController {
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1451,7 +1451,7 @@ class ReceptionController extends AbstractController {
                 }
             }
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1512,7 +1512,7 @@ class ReceptionController extends AbstractController {
                 ],
             ]));
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1644,7 +1644,7 @@ class ReceptionController extends AbstractController {
         if($request->isXmlHttpRequest()) {
             return new JsonResponse($this->renderView('reception/modalConditionnementRow.html.twig'));
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1665,7 +1665,7 @@ class ReceptionController extends AbstractController {
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1691,7 +1691,7 @@ class ReceptionController extends AbstractController {
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1787,7 +1787,7 @@ class ReceptionController extends AbstractController {
             );
 
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -1846,6 +1846,7 @@ class ReceptionController extends AbstractController {
             $articles = $data['conditionnement'];
 
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
@@ -1883,7 +1884,7 @@ class ReceptionController extends AbstractController {
                 // optionnel : crée l'ordre de prépa
                 $paramCreatePrepa = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
                 $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
-                $data['needPrepa'] = $needCreatePrepa;
+                $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
 
                 $demande = $demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
                 $entityManager->persist($demande);
@@ -1895,7 +1896,7 @@ class ReceptionController extends AbstractController {
 
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
-                    $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser);
+                    $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
 
                     $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
                     $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation);
@@ -1928,6 +1929,7 @@ class ReceptionController extends AbstractController {
                 $toTreat = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
                 $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
                 $destination = $emplacementRepository->find($data['storage']);
+                $origin = $emplacementRepository->find($data['origin']);
                 $transfer = new TransferRequest();
                 $transfer
                     ->setStatus($toTreat)
@@ -1935,6 +1937,7 @@ class ReceptionController extends AbstractController {
                     ->setValidationDate($now)
                     ->setNumber(TransferRequestController::createNumber($entityManager, $now))
                     ->setDestination($destination)
+                    ->setOrigin($origin)
                     ->setReception($reception)
                     ->setRequester($this->getUser());
                 $order = new TransferOrder();
@@ -2017,6 +2020,7 @@ class ReceptionController extends AbstractController {
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
 
                 $mailContent = $this->render('mails/contents/mailArticleUrgentReceived.html.twig', [
+                    'emergency' => $article->getReceptionReferenceArticle()->getEmergencyComment(),
                     'article' => $article,
                     'title' => 'Votre article urgent a bien été réceptionné.',
                 ])->getContent();
@@ -2075,7 +2079,7 @@ class ReceptionController extends AbstractController {
                 'msg' => 'La réception a bien été effectuée.'
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**

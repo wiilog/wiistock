@@ -214,7 +214,7 @@ class UtilisateurController extends AbstractController
                 'msg' => 'L\'utilisateur <strong>' . $data['username'] . '</strong> a bien été créé.'
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -258,7 +258,7 @@ class UtilisateurController extends AbstractController
                     ]
                     : null]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -422,7 +422,7 @@ class UtilisateurController extends AbstractController
                 'msg' => 'L\'utilisateur <strong>' . $utilisateur->getUsername() . '</strong> a bien été modifié.'
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -454,7 +454,7 @@ class UtilisateurController extends AbstractController
                 return new JsonResponse(false); //TODO gérer erreur
             }
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -472,7 +472,7 @@ class UtilisateurController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -499,7 +499,7 @@ class UtilisateurController extends AbstractController
 
 			return new JsonResponse(['delete' => $delete, 'html' => $html]);
 		}
-		throw new NotFoundHttpException('404');
+		throw new BadRequestHttpException();
 	}
 
     /**
@@ -536,7 +536,7 @@ class UtilisateurController extends AbstractController
                 'msg' => 'L\'utilisateur <strong>' . $username . '</strong> a bien été supprimé.'
             ]);
 		}
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -555,7 +555,7 @@ class UtilisateurController extends AbstractController
             $results = $utilisateurRepository->getIdAndLibelleBySearch($search);
             return new JsonResponse(['results' => $results]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -579,8 +579,7 @@ class UtilisateurController extends AbstractController
     /**
      * @Route("/recherchesArticle", name="update_user_searches_for_article", options={"expose"=true}, methods="GET|POST")
      */
-    public function updateSearchesArticle(Request $request)
-    {
+    public function updateSearchesArticle(Request $request) {
         if ($request->isXmlHttpRequest() && $data = $request->request->get("searches")) {
             $this->getUser()->setRechercheForArticle($data);
             $this->getDoctrine()->getManager()->flush();

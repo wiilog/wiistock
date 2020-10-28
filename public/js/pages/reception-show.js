@@ -164,7 +164,7 @@ function initEditReception() {
 
     Select2.provider($('.ajax-autocomplete-fournisseur-edit'));
     Select2.location($('.ajax-autocomplete-location-edit'));
-    Select2.carrier($modal.find('.ajax-autocomplete-transporteur-edit'));
+    Select2.carrier($('.ajax-autocomplete-transporteur-edit'));
 }
 
 function initDateTimePickerReception() {
@@ -572,6 +572,10 @@ function initNewLigneReception($button) {
         Select2.initValues($('#storage'), $('#storageTransfer'));
     }
 
+    if ($('#originTransfer').length > 0) {
+        Select2.initValues($('#origin'), $('#originTransfer'));
+    }
+
     let urlNewLigneReception = Routing.generate(
         'reception_new_with_packing',
         {reception: $modalNewLigneReception.find('input[type="hidden"][name="reception"]').val()},
@@ -604,13 +608,13 @@ function initNewLigneReception($button) {
 
     const $select = $modalNewLigneReception.find('.demande-form [name="type"]');
     toggleRequiredChampsLibres($select, 'create');
-    typeChoice($select, '-new')
+    typeChoice($select);
 }
 
 function onRequestTypeChange($select) {
     const $freeFieldContainer = $modalNewLigneReception.find('.demande-form .free-fields-container');
     toggleRequiredChampsLibres($select, 'create', $freeFieldContainer);
-    typeChoice($select, '-new', $freeFieldContainer);
+    typeChoice($select, $freeFieldContainer);
 }
 
 
@@ -747,10 +751,12 @@ function toggleForm($content, $input, force = false) {
     } else {
         if ($input.is(':checked')) {
             $content.removeClass('d-none');
-            $content.find('.data').attr('disabled', null);
+            $content.find('.data').prop('disabled', false);
+
             if ($content.hasClass('transfer-form')) {
                 $('.demande-form').addClass('d-none');
                 $('.demande-form').find('.data').attr('disabled', 'disabled');
+                $('.demande-form').find('.wii-switch').removeClass('needed');
                 $('input[name="create-demande"]').prop('checked', false);
             } else {
                 $('.transfer-form').addClass('d-none');
@@ -760,7 +766,7 @@ function toggleForm($content, $input, force = false) {
             }
         } else {
             $content.addClass('d-none');
-            $content.find('.data').attr('disabled', 'disabled');
+            $content.find('.data').prop('disabled', true);
         }
     }
 }

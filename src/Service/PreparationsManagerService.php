@@ -407,17 +407,14 @@ class PreparationsManagerService
     /**
      * @param Preparation $preparation
      * @param Utilisateur $user
+     * @param EntityManagerInterface $entityManager
      * @return array
-     * @throws NonUniqueResultException
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
      * @throws NegativeQuantityException
      */
-    public function createMouvementsPrepaAndSplit(Preparation $preparation, Utilisateur $user): array
+    public function createMouvementsPrepaAndSplit(Preparation $preparation, Utilisateur $user, EntityManagerInterface $entityManager): array
     {
-        $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
-        $statutRepository = $this->entityManager->getRepository(Statut::class);
+        $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
         $articlesSplittedToKeep = [];
         // modification des articles de la demande
         $articles = $preparation->getArticles();
@@ -451,7 +448,7 @@ class PreparationsManagerService
                             $newArticle[$clId] = $valeurChampLibre;
                         }
                         $insertedArticle = $this->articleDataService->newArticle($newArticle);
-                        $this->entityManager->flush();
+                        $entityManager->flush();
                         if ($selected) {
                             if ($article->getQuantitePrelevee() !== $article->getQuantiteAPrelever()) {
                                 $insertedArticle->setQuantiteAPrelever($article->getQuantiteAPrelever() - $article->getQuantitePrelevee());
@@ -474,7 +471,7 @@ class PreparationsManagerService
                             ->setEmplacementFrom($article->getEmplacement())
                             ->setType(MouvementStock::TYPE_TRANSFER)
                             ->setPreparationOrder($preparation);
-                        $this->entityManager->persist($mouvement);
+                        $entityManager->persist($mouvement);
                     }
                 }
                 else {
@@ -497,7 +494,7 @@ class PreparationsManagerService
                         ->setEmplacementFrom($articleRef->getEmplacement())
                         ->setType(MouvementStock::TYPE_TRANSFER)
                         ->setPreparationOrder($preparation);
-                    $this->entityManager->persist($mouvement);
+                    $entityManager->persist($mouvement);
                 }
                 else {
                     throw new NegativeQuantityException($articleRef);
@@ -505,7 +502,7 @@ class PreparationsManagerService
             }
         }
 
-        $this->entityManager->flush();
+        $entityManager->flush();
 
         if (!$preparation->getStatut() || !$preparation->getUtilisateur()) {
             // modif du statut de la préparation
@@ -513,7 +510,7 @@ class PreparationsManagerService
             $preparation
                 ->setStatut($statutEDP)
                 ->setUtilisateur($user);
-            $this->entityManager->flush();
+            $entityManager->flush();
         }
         return $articlesSplittedToKeep;
     }

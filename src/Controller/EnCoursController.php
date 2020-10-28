@@ -17,7 +17,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -115,7 +115,7 @@ class EnCoursController extends AbstractController
 
 			return new JsonResponse($nbEmptyTimes == 0);
 		}
-		throw new NotFoundHttpException("404");
+		throw new BadRequestHttpException();
 
 	}
 }

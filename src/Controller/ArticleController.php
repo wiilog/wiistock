@@ -36,7 +36,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
@@ -218,7 +218,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -234,7 +234,7 @@ class ArticleController extends AbstractController
             $data = $this->articleDataService->getDataForDatatable($request->request, $this->getUser());
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -349,7 +349,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse($columns);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -382,7 +382,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -427,7 +427,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse(!empty($article));
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -462,7 +462,7 @@ class ArticleController extends AbstractController
             }
             return new JsonResponse($response);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -552,7 +552,7 @@ class ArticleController extends AbstractController
                 'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> a bien été supprimé.'
             ]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -620,7 +620,7 @@ class ArticleController extends AbstractController
                 }
             }
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -660,7 +660,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse(['results' => $articles]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -689,7 +689,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -716,7 +716,7 @@ class ArticleController extends AbstractController
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -741,7 +741,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -770,7 +770,7 @@ class ArticleController extends AbstractController
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -816,7 +816,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -848,94 +848,79 @@ class ArticleController extends AbstractController
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/exporter-articles", name="export_all_arts", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
-     * @param FreeFieldService $freeFieldService
+     * @param FreeFieldService $ffService
      * @param CSVExportService $CSVExportService
      * @return Response
      */
-    public function exportAllArticles(EntityManagerInterface $entityManager,
-                                      FreeFieldService $freeFieldService,
-                                      CSVExportService $CSVExportService): Response
+    public function exportAllArticles(EntityManagerInterface $manager,
+                                      FreeFieldService $ffService,
+                                      CSVExportService $csvService): Response
     {
-        $articleRepository = $entityManager->getRepository(Article::class);
-        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE]);
+        $ffConfig = $ffService->createExportArrayConfig($manager, [CategorieCL::ARTICLE]);
 
-        $headers = array_merge(
-            [
-                'reference',
-                'libelle',
-                'quantité',
-                'type',
-                'statut',
-                'commentaire',
-                'emplacement',
-                'code barre',
-                'date dernier inventaire',
-                'lot',
-                'date d\'entrée en stock',
-                'date de péremption',
-            ],
-            $freeFieldsConfig['freeFieldsHeader']
-        );
+        $header = array_merge([
+            'reference',
+            'libelle',
+            'quantité',
+            'type',
+            'statut',
+            'commentaire',
+            'emplacement',
+            'code barre',
+            'date dernier inventaire',
+            'lot',
+            'date d\'entrée en stock',
+            'date de péremption',
+        ], $ffConfig['freeFieldsHeader']);
+
         $today = new DateTime();
-        $globalTitle = 'export-articles-' . $today->format('d-m-Y H:i:s') . '.csv';
-        $articlesExportFiles = [];
-        $allArticlesCount = intval($articleRepository->countAll());
-        $step = self::MAX_CSV_FILE_LENGTH;
-        $start = 0;
-        do {
-            $articles = $articleRepository->getAllWithLimits($start, $step);
-            $articlesExportFiles[] = $this->generateArtsCSVFile($CSVExportService, $freeFieldService, $articles, ($start === 0 ? $headers : null), $freeFieldsConfig);
-            $articles = null;
-            $start += $step;
-        } while ($start < $allArticlesCount);
+        $today = $today->format("d-m-Y H:i:s");
 
-        return $CSVExportService->createBinaryResponseFromFile(
-            $CSVExportService->mergeCSVFiles($articlesExportFiles),
-            $globalTitle
-        );
+        return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $ffConfig) {
+            $articleRepository = $manager->getRepository(Article::class);
+
+            $articles = $articleRepository->iterateAll();
+            foreach($articles as $article) {
+                $this->putArticleLine($output, $csvService, $ffService, $ffConfig, $article);
+            }
+        }, "export-articles-$today.csv", $header);
     }
 
 
-    private function generateArtsCSVFile(CSVExportService $CSVExportService,
-                                         FreeFieldService $freeFieldService,
-                                         array $articles,
-                                         ?array $headers,
-                                         array $freeFieldsConfig): string {
-        return $CSVExportService->createCsvFile(
-            $articles,
-            $headers,
-            function ($article) use ($freeFieldsConfig, $freeFieldService) {
-                $articleArray = [
-                    $article['reference'],
-                    $article['label'],
-                    $article['quantite'],
-                    $article['typeLabel'],
-                    $article['statutName'],
-                    $article['commentaire'] ? strip_tags($article['commentaire']) : '',
-                    $article['empLabel'],
-                    $article['barCode'],
-                    $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
-                    $article['batch'],
-                    $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
-                    $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
-                ];
+    private function putArticleLine($handle,
+                                    CSVExportService $csvService,
+                                    FreeFieldService $ffService,
+                                    array $ffConfig,
+                                    array $article) {
+        $line = [
+            $article['reference'],
+            $article['label'],
+            $article['quantite'],
+            $article['typeLabel'],
+            $article['statutName'],
+            $article['commentaire'] ? strip_tags($article['commentaire']) : '',
+            $article['empLabel'],
+            $article['barCode'],
+            $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
+            $article['batch'],
+            $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
+            $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
+        ];
 
-                foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                    $articleArray[] = $freeFieldService->serializeValue([
-                        'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                        'valeur' => $article['freeFields'][$freeFieldId] ?? ''
-                    ]);
-                }
+        foreach ($ffConfig['freeFieldIds'] as $freeFieldId) {
+            $articleArray[] = $ffService->serializeValue([
+                'typage' => $ffConfig['freeFieldsIdToTyping'][$freeFieldId],
+                'valeur' => $article['freeFields'][$freeFieldId] ?? ''
+            ]);
+        }
 
-                return [$articleArray];
-            }
-        );
+        $csvService->putLine($handle, $line);
     }
 
     /**
