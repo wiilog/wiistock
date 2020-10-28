@@ -51,6 +51,10 @@ $(function () {
 
     $('[type=datetime-local]').attr('max', MAX_DATETIME_HTML_INPUT);
     $('[type=date]').attr('max', MAX_DATE_HTML_INPUT);
+
+    // Override Symfony Form content
+    $('.form-error-icon').text('Erreur');
+    $('.removeRequired, .form-group, label').removeClass('required');
 });
 
 function openQueryModal(query = null, event) {

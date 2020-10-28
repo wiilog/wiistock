@@ -17,34 +17,16 @@ class UtilisateurType extends AbstractType
     {
         $builder
             ->add('email', EmailType::class, array(
-                'label' => "Adresse email"
+                'label' => "Adresse email*"
             ))
             ->add('username', TextType::class, array(
-                'label' => "Nom d'utilisateur",
+                'label' => "Nom d'utilisateur*",
             ))
             ->add('plainPassword', RepeatedType::class, array(
                 'type' => PasswordType::class,
-                'first_options'  => array('label' => 'Mot de Passe'),
-                'second_options' => array('label' => 'Confirmer Mot de Passe'),
-            ))
-            // ->add('groupe', EntityType::class, array(
-            //     'class' => 'App\Entity\Groupes',
-            //     'choice_label' => 'nom',
-            //     'multiple' => false,
-            //     ))
-
-            // ->add('roles', ChoiceType::class, array(
-            //     'label' => "Rôles",
-            //     'choices' => array(
-            //         'ROLE_PARC' => 'ROLE_PARC',
-            //         'ROLE_USER' => 'ROLE_USER',
-            //         'ROLE_ADMIN' => 'ROLE_ADMIN',
-            //         'ROLE_PARC_ADMIN' => 'ROLE_PARC_ADMIN',
-            //         'ROLE_API' => 'ROLE_API',
-            //         ),
-            //     'multiple' => true,
-            //     ))
-        ;
+                'first_options'  => array('label' => 'Mot de Passe*'),
+                'second_options' => array('label' => 'Confirmer Mot de Passe*'),
+            ));
     }
 
     public function configureOptions(OptionsResolver $resolver)

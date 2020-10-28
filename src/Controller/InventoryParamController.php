@@ -13,7 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Menu;
 use App\Entity\InventoryCategory;
@@ -91,7 +91,7 @@ class InventoryParamController extends AbstractController
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -135,7 +135,7 @@ class InventoryParamController extends AbstractController
                 ]);
             }
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -162,7 +162,7 @@ class InventoryParamController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -207,7 +207,7 @@ class InventoryParamController extends AbstractController
                 ]);
             }
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -236,7 +236,7 @@ class InventoryParamController extends AbstractController
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -260,7 +260,7 @@ class InventoryParamController extends AbstractController
             $entityManager->flush();
             return new JsonResponse();
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -301,7 +301,7 @@ class InventoryParamController extends AbstractController
                 ]);
             }
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -335,7 +335,7 @@ class InventoryParamController extends AbstractController
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -358,7 +358,7 @@ class InventoryParamController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -400,7 +400,7 @@ class InventoryParamController extends AbstractController
                 ]);
             }
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -429,7 +429,7 @@ class InventoryParamController extends AbstractController
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -451,7 +451,7 @@ class InventoryParamController extends AbstractController
             $entityManager->flush();
             return new JsonResponse();
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
 
@@ -559,6 +559,6 @@ class InventoryParamController extends AbstractController
 
             return new JsonResponse(['results' => $results]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 }
