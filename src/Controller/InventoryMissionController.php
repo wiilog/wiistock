@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\InventoryEntry;
 use App\Entity\Menu;
 use App\Entity\InventoryMission;
 
@@ -329,10 +330,32 @@ class InventoryMissionController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function getMouvementIntels(Request $request): Response
+    public function getCSVForInventoryMission(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
         	$mission = $this->inventoryMissionRepository->find($data['param']);
+            $inventoryEntries = $mission->getEntries()->toArray();
+
+        	$articleInventoryEntry = array_reduce($inventoryEntries, function (array $acc, $carry) {
+        	    $article = $carry->getArticle();
+                if (isset($article)) {
+                    $barcode = $article->getBarCode();
+                    $acc[$barcode] = $carry;
+                }
+                return $acc;
+            }, []);
+
+        	$refArticleInventoryEntry = array_reduce($inventoryEntries, function (array $acc, $carry) {
+                $refArticle = $carry->getRefArticle();
+                if (isset($refArticle)) {
+                    $barcode = $refArticle->getBarCode();
+                    $acc[$barcode] = $carry;
+                }
+                return $acc;
+            }, []);
+
+        	dump($articleInventoryEntry);
+        	dump($refArticleInventoryEntry);
 
             $articles = $mission->getArticles();
             $refArticles = $mission->getRefArticles();
@@ -340,7 +363,14 @@ class InventoryMissionController extends AbstractController
             $missionEndDate = $mission->getEndPrevDate();
 
             $missionHeader = ['MISSION DU ' . $missionStartDate->format('d/m/Y') . ' AU ' . $missionEndDate->format('d/m/Y')];
-            $headers = ['référence', 'label', 'quantité', 'emplacement'];
+            $headers = [
+                'référence',
+                'label',
+                'quantité',
+                'emplacement',
+                'date dernier inventaire',
+                'anomalie'
+            ];
 
             $data = [];
             $data[] = $missionHeader;
@@ -353,6 +383,7 @@ class InventoryMissionController extends AbstractController
                 $articleData[] = $article->getLabel();
                 $articleData[] = $article->getQuantite();
                 $articleData[] = $article->getEmplacement()->getLabel();
+                $articleData[] = $article->getDateLastInventory() ? $article->getDateLastInventory()->format('Y/m/d') : '';
 
                 $data[] = $articleData;
             }
@@ -364,6 +395,7 @@ class InventoryMissionController extends AbstractController
                 $refArticleData[] = $refArticle->getLibelle();
                 $refArticleData[] = $refArticle->getQuantiteStock();
                 $refArticleData[] = $refArticle->getEmplacement()->getLabel();
+                $refArticleData[] = $refArticle->getDateLastInventory() ? $refArticle->getDateLastInventory()->format('Y/m/d') : '';
 
                 $data[] = $refArticleData;
             }
