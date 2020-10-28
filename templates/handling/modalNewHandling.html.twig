@@ -90,26 +90,32 @@
                         </div>
                     {% endif %}
 
-                {% if fieldsParam|isFieldRequired('loadingZone', 'displayedFormsCreate') %}
-                <div class="form-group col-md-6 col-12">
-                    <label for="source">Chargement{{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? '*' : '' }}</label>
-                    <input class="form-control data {{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? 'needed' : '' }}" name="source">
-                </div>
-                {% endif %}
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOADING_ZONE') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                        <div class="form-group col-md-6 col-12">
+                            <label for="source">Chargement{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}</label>
+                            <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}" name="source">
+                        </div>
+                    {% endif %}
 
-                {% if fieldsParam|isFieldRequired('unloadingZone', 'displayedFormsCreate') %}
-                <div class="form-group col-md-6 col-12">
-                    <label for="destination">Déchargement{{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? '*' : '' }}</label>
-                    <input class="form-control data {{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? 'needed' : '' }}" name="destination">
-                </div>
-                {% endif %}
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_UNLOADING_ZONE') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                        <div class="form-group col-md-6 col-12">
+                            <label for="destination">Déchargement{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}</label>
+                            <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}" name="destination">
+                        </div>
+                    {% endif %}
 
-                {% if fieldsParam|isFieldRequired('carriedOutOperationCount', 'displayedFormsCreate') %}
-                    <div class="form-group col-md-6 col-12">
-                        <label for="carriedOutOperationCount">Nombre d'opération(s) réalisée(s){{ fieldsParam|isFieldRequired('carriedOutOperationCount', 'mustToCreate') ? '*' : '' }}</label>
-                        <input type="number" class="form-control data {{ fieldsParam|isFieldRequired('carriedOutOperationCount', 'mustToCreate') ? 'needed' : '' }}" name="carriedOutOperationCount">
-                    </div>
-                {% endif %}
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                        <div class="form-group col-md-6 col-12">
+                            <label for="carriedOutOperationCount">Nombre d'opération(s) réalisée(s){{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' }}</label>
+                            <input type="number"
+                                   min="0"
+                                   class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' }}"
+                                   name="carriedOutOperationCount">
+                        </div>
+                    {% endif %}
 
                     <!-- CHAMPS LIBRES -->
                     <div class="col-12">

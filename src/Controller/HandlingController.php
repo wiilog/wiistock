@@ -174,6 +174,8 @@ class HandlingController extends AbstractController
             /** @var Utilisateur $requester */
             $requester = $this->getUser();
 
+            $carriedOutOperationCount = $post->get('carriedOutOperationCount');
+
             $handling
                 ->setNumber($number)
                 ->setCreationDate($date)
@@ -186,7 +188,7 @@ class HandlingController extends AbstractController
                 ->setDesiredDate($desiredDate)
 				->setComment($post->get('comment'))
                 ->setEmergency($post->get('emergency'))
-                ->setCarriedOutOperationCount(is_numeric($post->get('carriedOutOperationCount')) ? (int) $post->get('carriedOutOperationCount') : null);
+                ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
 
             if ($status && $status->isTreated()) {
                 $handling->setValidationDate($date);
@@ -314,19 +316,20 @@ class HandlingController extends AbstractController
             $newStatus = null;
         }
 
+        $carriedOutOperationCount = $post->get('carriedOutOperationCount');
         $handling
             ->setSubject(substr($post->get('subject'), 0, 64))
             ->setSource($post->get('source') ?? $handling->getSource())
             ->setDestination($post->get('destination') ?? $handling->getDestination())
             ->setDesiredDate($desiredDate)
             ->setComment($post->get('comment') ?: '')
-            ->setEmergency($post->get('emergency'))
-            ->setCarriedOutOperationCount((is_numeric($post->get('carriedOutOperationCount'))
-                ? $post->get('carriedOutOperationCount')
-                : (!empty($post->get('carriedOutOperationCount'))
-                    ? $handling->getCarriedOutOperationCount()
-                    : null
-                )
+            ->setEmergency($post->get('emergency') ?? $handling->getEmergency())
+            ->setCarriedOutOperationCount(
+                (is_numeric($carriedOutOperationCount)
+                    ? $carriedOutOperationCount
+                    : (!empty($carriedOutOperationCount)
+                        ? $handling->getCarriedOutOperationCount()
+                        : null)
             ));
 
         if (!$handling->getValidationDate() && $newStatus->isTreated()) {
