@@ -3,14 +3,12 @@
 namespace App\Repository;
 
 use App\Entity\Alert;
-use App\Entity\ReferenceArticle;
+use App\Entity\Article;
 use App\Helper\QueryCounter;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 
 /**
  * @method Alert|null find($id, $lockMode = null, $lockVersion = null)
@@ -161,12 +159,18 @@ class AlertRepository extends EntityRepository {
     public function findNoLongerExpired() {
         $since = new DateTime("now", new DateTimeZone("Europe/Paris"));
 
-        return $this->createQueryBuilder("a")
-            ->join("a.article", "ar")
+        $qb = $this->createQueryBuilder("a");
+
+        return $qb->join("a.article", "ar")
+            ->join("ar.statut", "s")
             ->where("ar.id IS NOT NULL")
             ->andWhere("a.type = " . Alert::EXPIRY)
-            ->andWhere("ar.expiryDate > :since OR ar.expiryDate IS NULL")
+            ->andWhere($qb->expr()->orX(
+                "ar.expiryDate > :since OR ar.expiryDate IS NULL",
+                "s.nom IN (:inactives)"
+            ))
             ->setParameter("since", $since)
+            ->setParameter("inactives", [Article::STATUT_INACTIF])
             ->getQuery()
             ->getResult();
     }

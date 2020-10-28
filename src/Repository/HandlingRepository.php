@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Handling;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use DateTime;
@@ -33,6 +34,7 @@ class HandlingRepository extends EntityRepository
         'emergency' => 'emergency',
         'treatedBy' => 'treatedBy',
         'treatmentDelay' => 'treatmentDelay',
+        'carriedOutOperationCount' => 'carriedOutOperationCount'
     ];
 
     /**
@@ -138,6 +140,7 @@ class HandlingRepository extends EntityRepository
             ->addSelect('handling.emergency AS emergency')
             ->addSelect('join_treatedByHandling.username AS treatedBy')
             ->addSelect('handling.freeFields')
+            ->addSelect('handling.carriedOutOperationCount AS carriedOutOperationCount')
 
             ->leftJoin('handling.requester', 'join_requester')
             ->leftJoin('handling.type', 'join_type')
@@ -234,6 +237,7 @@ class HandlingRepository extends EntityRepository
                             OR handling.validationDate LIKE :search_value
                             OR search_status.nom LIKE :search_value
                             OR search_treatedBy.username LIKE :search_value
+                            OR handling.carriedOutOperationCount LIKE :search_value
 						)')
 						->setParameter('search_value', '%' . $search . '%');
 				}
@@ -244,13 +248,7 @@ class HandlingRepository extends EntityRepository
                 if (!empty($order))
                 {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-                    if ($column === 'number') {
-                        $qb
-                            ->orderBy('handling.number', $order);
-                    } else if ($column === 'creationDate') {
-                        $qb
-                            ->orderBy('handling.creationDate', $order);
-                    }else if ($column === 'type') {
+                    if ($column === 'type') {
                         $qb
                             ->leftJoin('handling.type', 'order_type')
                             ->orderBy('order_type.label', $order);
@@ -258,32 +256,19 @@ class HandlingRepository extends EntityRepository
                         $qb
                             ->leftJoin('handling.requester', 'order_requester')
                             ->orderBy('order_requester.username', $order);
-                    } else if ($column === 'subject') {
-                        $qb
-                            ->orderBy('handling.subject', $order);
-                    } else if ($column === 'desiredDate') {
-                        $qb
-                            ->orderBy('handling.desiredDate', $order);
-                    } else if ($column === 'validationDate') {
-                        $qb
-                            ->orderBy('handling.validationDate', $order);
                     } else if ($column === 'status') {
                         $qb
                             ->leftJoin('handling.status', 'order_status')
                             ->orderBy('order_status.nom', $order);
-                    } else if ($column === 'emergency') {
-                        $qb
-                            ->orderBy('handling.emergency', $order);
-                    } else if ($column === 'treatmentDelay') {
-                        $qb
-                            ->orderBy('handling.treatmentDelay', $order);
                     } else if ($column === 'treatedBy') {
                         $qb
                             ->leftJoin('handling.treatedByHandling', 'order_treatedByHandling')
                             ->orderBy('order_treatedByHandling.username', $order);
                     } else {
-                        $qb
-                            ->orderBy('handling.' . $column, $order);
+                        if (property_exists(Handling::class, $column)) {
+                            $qb
+                                ->orderBy('handling.' . $column, $order);
+                        }
                     }
                 }
             }

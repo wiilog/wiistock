@@ -317,17 +317,20 @@ class ArticleDataService
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
-        $price = max(0, $data['prix']);
 
         $article = $articleRepository->find($data['article']);
         if ($article) {
             if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
+
+                $expiryDate = !empty($data['expiry']) ? DateTime::createFromFormat("Y-m-d", $data['expiry']) : null;
+                $price = max(0, $data['prix']);
+
                 $article
                     ->setPrixUnitaire($price)
                     ->setLabel($data['label'])
                     ->setConform(!$data['conform'])
                     ->setBatch($data['batch'] ?? null)
-                    ->setExpiryDate(DateTime::createFromFormat("Y-m-d", $data['expiry']))
+                    ->setExpiryDate($expiryDate ? $expiryDate : null)
                     ->setCommentaire($data['commentaire']);
 
                 if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
