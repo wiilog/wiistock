@@ -33,7 +33,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
@@ -84,7 +84,7 @@ class HandlingController extends AbstractController
 
 			return new JsonResponse($data);
 		} else {
-			throw new NotFoundHttpException('404');
+			throw new BadRequestHttpException();
 		}
     }
 
@@ -174,6 +174,8 @@ class HandlingController extends AbstractController
             /** @var Utilisateur $requester */
             $requester = $this->getUser();
 
+            $carriedOutOperationCount = $post->get('carriedOutOperationCount');
+
             $handling
                 ->setNumber($number)
                 ->setCreationDate($date)
@@ -185,7 +187,8 @@ class HandlingController extends AbstractController
                 ->setStatus($status)
                 ->setDesiredDate($desiredDate)
 				->setComment($post->get('comment'))
-                ->setEmergency($post->get('emergency'));
+                ->setEmergency($post->get('emergency'))
+                ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
 
             if ($status && $status->isTreated()) {
                 $handling->setValidationDate($date);
@@ -221,7 +224,7 @@ class HandlingController extends AbstractController
                     ]) . '.'
             ]);
         }
-        throw new NotFoundHttpException('404 not found');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -267,7 +270,7 @@ class HandlingController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -313,13 +316,21 @@ class HandlingController extends AbstractController
             $newStatus = null;
         }
 
+        $carriedOutOperationCount = $post->get('carriedOutOperationCount');
         $handling
             ->setSubject(substr($post->get('subject'), 0, 64))
             ->setSource($post->get('source') ?? $handling->getSource())
             ->setDestination($post->get('destination') ?? $handling->getDestination())
             ->setDesiredDate($desiredDate)
             ->setComment($post->get('comment') ?: '')
-            ->setEmergency($post->get('emergency'));
+            ->setEmergency($post->get('emergency') ?? $handling->getEmergency())
+            ->setCarriedOutOperationCount(
+                (is_numeric($carriedOutOperationCount)
+                    ? $carriedOutOperationCount
+                    : (!empty($carriedOutOperationCount)
+                        ? $handling->getCarriedOutOperationCount()
+                        : null)
+            ));
 
         if (!$handling->getValidationDate() && $newStatus->isTreated()) {
             $handling->setValidationDate($date);
@@ -417,7 +428,7 @@ class HandlingController extends AbstractController
             ]);
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -442,7 +453,7 @@ class HandlingController extends AbstractController
         } catch (Throwable $throwable) {
         }
 
-        if (isset($dateTimeMin) && isset($dateTimeMax)) {
+        if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $handlingsRepository = $entityManager->getRepository(Handling::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
@@ -462,6 +473,7 @@ class HandlingController extends AbstractController
                     'statut',
                     'commentaire',
                     'urgence',
+                    'nombre d\'opération(s) réalisée(s)',
                     'traité par'
                 ],
                 $freeFieldsConfig['freeFieldsHeader']
@@ -486,6 +498,7 @@ class HandlingController extends AbstractController
                     $row[] = $handling['status'] ?? '';
                     $row[] = strip_tags($handling['comment']) ?? '';
                     $row[] = $handling['emergency'] ?? '';
+                    $row[] = $handling['carriedOutOperationCount'] ?? '';
                     $row[] = $handling['treatedBy'] ?? '';
 
                     foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
@@ -499,7 +512,7 @@ class HandlingController extends AbstractController
                 }
             );
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 

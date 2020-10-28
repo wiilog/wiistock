@@ -28,9 +28,10 @@ use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -83,7 +84,7 @@ class EmplacementController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -162,7 +163,7 @@ class EmplacementController extends AbstractController
             return new JsonResponse(true);
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -191,7 +192,7 @@ class EmplacementController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -243,7 +244,7 @@ class EmplacementController extends AbstractController
             $entityManager->flush();
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -273,7 +274,7 @@ class EmplacementController extends AbstractController
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -355,7 +356,7 @@ class EmplacementController extends AbstractController
 
             return new JsonResponse($response);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -375,7 +376,7 @@ class EmplacementController extends AbstractController
             $emplacement = $emplacementRepository->getIdAndLabelActiveBySearch($search);
             return new JsonResponse(['results' => $emplacement]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -412,8 +413,7 @@ class EmplacementController extends AbstractController
                 $PDFGeneratorService->generatePDFBarCodes($fileName, $barCodeConfigs),
                 $fileName
             );
-        }
-        else {
+        } else {
             throw new NotFoundHttpException('Aucune étiquette à imprimer');
         }
     }

@@ -89,6 +89,41 @@ class TrackingMovementService
         ];
     }
 
+
+    public function getFromColumnData(?TrackingMovement $movement): array
+    {
+        $data = [
+            'entityPath' => null,
+            'entityId' => null,
+            'fromLabel' => null,
+            'from' => '-',
+        ];
+        if (isset($movement)) {
+            if ($movement->getArrivage()) {
+                $data ['entityPath'] = 'arrivage_show';
+                $data ['fromLabel'] = 'arrivage.arrivage';
+                $data ['entityId'] = $movement->getArrivage()->getId();
+                $data ['from'] = $movement->getArrivage()->getNumeroArrivage();
+            } else if ($movement->getReception()) {
+                $data ['entityPath'] = 'reception_show';
+                $data ['fromLabel'] = 'réception.réception';
+                $data ['entityId'] = $movement->getReception()->getId();
+                $data ['from'] = $movement->getReception()->getNumeroReception();
+            } else if ($movement->getDispatch()) {
+                $data ['entityPath'] = 'dispatch_show';
+                $data ['fromLabel'] = 'acheminement.Acheminement';
+                $data ['entityId'] = $movement->getDispatch()->getId();
+                $data ['from'] = $movement->getDispatch()->getNumber();
+            } else if ($movement->getMouvementStock() && $movement->getMouvementStock()->getTransferOrder()) {
+                $data ['entityPath'] = 'transfer_order_show';
+                $data ['fromLabel'] = 'Transfert de stock';
+                $data ['entityId'] = $movement->getMouvementStock()->getTransferOrder()->getId();
+                $data ['from'] = $movement->getMouvementStock()->getTransferOrder()->getNumber();
+            }
+        }
+        return $data;
+    }
+
     /**
      * @param TrackingMovement $movement
      * @return array
@@ -98,32 +133,7 @@ class TrackingMovementService
      */
     public function dataRowMouvement(TrackingMovement $movement)
     {
-        if ($movement->getArrivage()) {
-            $fromPath = 'arrivage_show';
-            $fromLabel = 'arrivage.arrivage';
-            $fromEntityId = $movement->getArrivage()->getId();
-            $originFrom = $movement->getArrivage()->getNumeroArrivage();
-        } else if ($movement->getReception()) {
-            $fromPath = 'reception_show';
-            $fromLabel = 'réception.réception';
-            $fromEntityId = $movement->getReception()->getId();
-            $originFrom = $movement->getReception()->getNumeroReception();
-        } else if ($movement->getDispatch()) {
-            $fromPath = 'dispatch_show';
-            $fromLabel = 'acheminement.Acheminement';
-            $fromEntityId = $movement->getDispatch()->getId();
-            $originFrom = $movement->getDispatch()->getNumber();
-        } else if ($movement->getMouvementStock() && $movement->getMouvementStock()->getTransferOrder()) {
-            $fromPath = 'transfer_order_show';
-            $fromLabel = 'Transfert de stock';
-            $fromEntityId = $movement->getMouvementStock()->getTransferOrder()->getId();
-            $originFrom = $movement->getMouvementStock()->getTransferOrder()->getNumber();
-        } else {
-            $fromPath = null;
-            $fromEntityId = null;
-            $fromLabel = null;
-            $originFrom = '-';
-        }
+        $fromColumnData = $this->getFromColumnData($movement);
 
         $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
         $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
@@ -148,12 +158,7 @@ class TrackingMovementService
             'id' => $movement->getId(),
             'date' => $movement->getDatetime() ? $movement->getDatetime()->format('d/m/Y H:i') : '',
             'code' => $packCode,
-            'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', [
-                'from' => $originFrom,
-                'fromLabel' => $fromLabel,
-                'entityPath' => $fromPath,
-                'entityId' => $fromEntityId
-            ]),
+            'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'location' => $movement->getEmplacement() ? $movement->getEmplacement()->getLabel() : '',
             'reference' => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getReference()
@@ -510,6 +515,7 @@ class TrackingMovementService
                 return [
                     'title' => ucfirst(mb_strtolower($freeField['label'])),
                     'data' => $freeField['label'],
+                    'orderable' => false,
                     'name' => $freeField['label'],
                     'class' => (in_array($freeField['label'], $columnsVisible) ? 'display' : 'hide'),
                 ];

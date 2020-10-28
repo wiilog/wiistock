@@ -33,6 +33,7 @@ let tableHandlingConfig = {
         { "data": 'status', 'name': 'status', 'title': 'Statut' },
         { "data": 'emergency', 'name': 'emergency', 'title': 'Urgence' },
         { "data": 'treatmentDelay', 'name': 'treatmentDelay', 'title': 'Temps de traitement' },
+        { "data": 'carriedOutOperationCount', 'name': 'carriedOutOperationCount', 'title': 'Nb d\'opération(s) réalisée(s)' },
         { "data": 'treatedBy', 'name': 'treatedBy', 'title': 'Traité par' },
     ]
 };

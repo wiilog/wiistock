@@ -3,6 +3,12 @@
 {% block title %}Paramétrage | Utilisateurs{% endblock %}
 
 {% block page_content %}
+    <input type="hidden"
+           data-id=""
+           data-target='#modalEditUser'
+           data-toggle='modal'
+           onclick="editRowUser($(this))"
+           class="d-none open-modal-edit"/>
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">

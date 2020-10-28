@@ -6,10 +6,9 @@
                 <div class="dashboard-box d-flex justify-content-start">
                     <p class="title">Arrivages quotidiens</p>
                     {% if not isDashboardExt %}
-                        <div class="points">
-                            <i class="fa fa-question has-tooltip"
-                               title="{{ 'arrivage.arrivages'|trans }} et nombre {{ 'arrivage.de colis'|trans }} réceptionnés par jour.">
-                            </i>
+                        <div class="points has-tooltip"
+                             title="{{ 'arrivage.arrivages'|trans }} et nombre {{ 'arrivage.de colis'|trans }} réceptionnés par jour.">
+                            <i class="fa fa-question"></i>
                         </div>
                     {% endif %}
                     <div class="h-100">
@@ -21,9 +20,9 @@
                 <div class="dashboard-box justify-content-start">
                     <p class="title">Arrivages hebdomadaires</p>
                     {% if not isDashboardExt %}
-                        <div class="points">
-                            <i class="fa fa-question has-tooltip"
-                               title="{{ 'arrivage.arrivages'|trans }} et nombre de colis réceptionnés par semaine."></i>
+                        <div class="points has-tooltip"
+                             title="{{ 'arrivage.arrivages'|trans }} et nombre de colis réceptionnés par semaine.">
+                            <i class="fa fa-question"></i>
                         </div>
                     {% endif %}
                     <div class="h-100">
@@ -124,10 +123,9 @@
                         Nombre de {{ 'arrivage.colis'|trans }} distribués en Drop zone<br>
                     </p>
                     {% if not isDashboardExt %}
-                        <div class="points">
-                            <i class="fa fa-question has-tooltip"
-                               title="{{ 'arrivage.colis'|trans }} actuellement présents sur l'emplacement drop zone (paramétrable).">
-                            </i>
+                        <div class="points has-tooltip"
+                             title="{{ 'arrivage.colis'|trans }} actuellement présents sur l'emplacement drop zone (paramétrable).">
+                            <i class="fa fa-question"></i>
                         </div>
                     {% endif %}
                     <div class="h-100">
@@ -143,9 +141,9 @@
                 Suivi des transporteurs
             </div>
             {% if not isDashboardExt %}
-                <div class="points">
-                    <i class="fa fa-question has-tooltip ml-1"
-                       title="Transporteurs ayant effectué un {{ 'arrivage.arrivage'|trans }} aujourd'hui."></i>
+                <div class="points has-tooltip"
+                     title="Transporteurs ayant effectué un {{ 'arrivage.arrivage'|trans }} aujourd'hui.">
+                    <i class="fa fa-question ml-1"></i>
                 </div>
             {% endif %}
             <ul class="text-center" id="statistics-arrival-carriers"></ul>

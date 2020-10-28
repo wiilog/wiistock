@@ -80,17 +80,9 @@ Class PackService
      */
     public function dataRowPack(Pack $pack)
     {
-        if ($pack->getArrivage()) {
-            $fromPath = 'arrivage_show';
-            $fromLabel = 'arrivage.arrivage';
-            $fromEntityId = $pack->getArrivage()->getId();
-            $originFrom = $pack->getArrivage()->getNumeroArrivage();
-        } else {
-            $fromPath = null;
-            $fromEntityId = null;
-            $fromLabel = null;
-            $originFrom = '-';
-        }
+        $firstMovement = $pack->getTrackingMovements('ASC')->first();
+        $fromColumnData  = $this->trackingMovementService->getFromColumnData($firstMovement ?: null);
+
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
@@ -106,12 +98,7 @@ Class PackService
                     ? $lastPackMovement->getDatetime()->format('d/m/Y \à H:i:s')
                     : '')
                 : '',
-            'packOrigin' => $this->template->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', [
-                'from' => $originFrom,
-                'fromLabel' => $fromLabel,
-                'entityPath' => $fromPath,
-                'entityId' => $fromEntityId
-            ]),
+            'packOrigin' => $this->template->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'packLocation' => $lastPackMovement
                 ? ($lastPackMovement->getEmplacement()
                     ? $lastPackMovement->getEmplacement()->getLabel()

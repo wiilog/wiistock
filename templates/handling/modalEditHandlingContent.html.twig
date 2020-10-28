@@ -96,17 +96,36 @@
            disabled>
 </div>
 
-{% if fieldsParam|isFieldRequired('loadingZone', 'displayedFormsEdit') %}
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOADING_ZONE') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
     <div class="form-group col-md-6 col-12">
-        <label for="source">Chargement{{ fieldsParam|isFieldRequired('loadingZone', 'mustToModify') ? '*' : '' }}</label>
-        <input class="form-control data {{ fieldsParam|isFieldRequired('loadingZone', 'mustToModify') ? 'needed' : '' }} input" value="{{ handling.source }}" name="source">
+        <label for="source">Chargement{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
+        <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }} input"
+               value="{{ handling.source }}"
+               name="source">
     </div>
 {% endif %}
 
-{% if fieldsParam|isFieldRequired('unloadingZone', 'displayedFormsEdit') %}
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_UNLOADING_ZONE') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
     <div class="form-group col-md-6 col-12">
-        <label for="destination">Déchargement{{ fieldsParam|isFieldRequired('unloadingZone', 'mustToModify') ? '*' : '' }}</label>
-        <input class="form-control data {{ fieldsParam|isFieldRequired('unloadingZone', 'mustToModify') ? 'needed' : '' }} input" value="{{ handling.destination }}" name="destination">
+        <label for="destination">Déchargement{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
+        <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }} input"
+               value="{{ handling.destination }}"
+               name="destination">
+    </div>
+{% endif %}
+
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
+    {% set carriedOutOperationCount = handling.carriedOutOperationCount is null ? '' : handling.carriedOutOperationCount %}
+    <div class="form-group col-md-6 col-12">
+        <label for="carriedOutOperationCount">Nombre d'opération(s) réalisée(s){{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' }}</label>
+        <input type="number"
+               min="0"
+               class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' }} input"
+               value="{{ carriedOutOperationCount }}"
+               name="carriedOutOperationCount">
     </div>
 {% endif %}
 
