@@ -251,8 +251,8 @@ class ReferenceArticleRepository extends EntityRepository
             'Quantité disponible' => ['field' => 'quantiteDisponible', 'typage' => 'text'],
             'Commentaire d\'urgence' => ['field' => 'emergencyComment', 'typage' => 'text'],
             'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'text'],
-            'limitWarning' => ['field' => 'Seuil d\'alerte', 'typage' => 'number'],
-            'limitSecurity' => ['field' => 'Seuil de securité', 'typage' => 'number'],
+            'Seuil d\'alerte' => ['field' => 'Seuil d\'alerte', 'typage' => 'number'],
+            'Seuil de securité' => ['field' => 'Seuil de securité', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
             'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
             'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text'],
@@ -273,6 +273,14 @@ class ReferenceArticleRepository extends EntityRepository
                 $qb->leftJoin('ra.managers', 'managers')
                     ->andWhere('managers.username LIKE :username')
                     ->setParameter('username', '%' . $filter['value'] . '%');
+            } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_LIMIT_SECURITY) {
+                $qb
+                    ->andWhere('ra.limitSecurity = :limitSecurity')
+                    ->setParameter('limitSecurity', $filter['value']);
+            } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_LIMIT_WARNING) {
+                $qb
+                    ->andWhere('ra.limitWarning = :limitWarning')
+                    ->setParameter('limitWarning', $filter['value']);
             } else {
                 // cas particulier champ référence article fournisseur
                 if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_REF_ART_FOURN) {
