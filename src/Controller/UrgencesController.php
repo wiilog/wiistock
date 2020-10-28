@@ -16,7 +16,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 
@@ -68,7 +68,7 @@ class UrgencesController extends AbstractController
             $data = $this->urgenceService->getDataForDatatable($request->request);
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -112,13 +112,13 @@ class UrgencesController extends AbstractController
 
         if ($sameUrgentCounter > 0) {
             $response['success'] = false;
-            $response['message'] = $this->getErrorMessageForDuplicate($isSEDCurrentClient);
+            $response['msg'] = $this->getErrorMessageForDuplicate($isSEDCurrentClient);
         }
         else {
             $entityManager->persist($urgence);
             $entityManager->flush();
             $response['success'] = true;
-            $response['message'] = "L'urgence a été créée avec succès.";
+            $response['msg'] = "L'urgence a été créée avec succès.";
         }
         return new JsonResponse($response);
     }
@@ -148,7 +148,7 @@ class UrgencesController extends AbstractController
             return new JsonResponse();
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -172,7 +172,7 @@ class UrgencesController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -215,17 +215,17 @@ class UrgencesController extends AbstractController
 
             if ($sameUrgentCounter > 0) {
                 $response['success'] = false;
-                $response['message'] = $this->getErrorMessageForDuplicate($isSEDCurrentClient);;
+                $response['msg'] = $this->getErrorMessageForDuplicate($isSEDCurrentClient);;
             }
             else {
                 $entityManager->flush();
                 $response['success'] = true;
-                $response['message'] = "L'urgence a été modifiée avec succès.";
+                $response['msg'] = "L'urgence a été modifiée avec succès.";
             }
         }
         else {
             $response['success'] = false;
-            $response['message'] = "Une erreur est survenue lors de la modification de l'urgence.";
+            $response['msg'] = "Une erreur est survenue lors de la modification de l'urgence.";
         }
 
         return new JsonResponse($response);
@@ -320,7 +320,7 @@ class UrgencesController extends AbstractController
 
             return new JsonResponse($data);
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 

@@ -8,13 +8,11 @@
 <div class="main-header">
     <div class="col-12">
         <div class="row align-items-center {{ withOnlyLogo ? 'justify-content-center' }}">
-            <div class="col-2">
-                <div class="d-flex">
-                    <a class="position-relative" href="{{ path('accueil') }}">
-                        <img src="{{ asset('img/followGTwhite.svg') }}" alt="Follow GT" class="w-100"/>
-                        <span class="web-version small">{{ web_version }}</span>
-                    </a>
-                </div>
+            <div class="d-flex">
+                <a class="position-relative" href="{{ path('accueil') }}">
+                    <img src="{{ asset('img/followGTwhite.svg') }}" alt="Follow GT" class="w-100"/>
+                    <span class="web-version small">{{ web_version }}</span>
+                </a>
             </div>
 
             {% if not withOnlyLogo %}
@@ -30,7 +28,7 @@
                                                 {% if titleLink is not empty %}<a href="{{ titleLink }}" class="header-title-link"><span>{% endif %}
                                                 {% for titlePart in titleSplit[:(titleSplit|length - 1)] %}
                                                     {{ (titlePart | trim) | raw }}
-                                                    {{ not loop.last ? '|'}}
+                                                    {{ not loop.last ? '|' }}
                                                 {% endfor %}
                                                 {% if titleLink is not empty %}</span></a>{% endif %}
                                                 {% if titleSplit|length > 1 %}<span>|</span>{% endif %}
@@ -49,39 +47,84 @@
                     </div>
                 {% endif %}
 
-                <div data-target="#quick-create">
-                    <div class="plus-btn">
+                {% if not isDashboardExt %}
+                    <div class="dropdown mr-4">
+                    <button class="quick-plus" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="icon"></span>
-                    </div>
-                    <div id="quick-create" class="collapse indicators d-none">
-                            <a href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
-                                Demande de collecte
+                    </button>
+                    <div id="quick-menu" class="dropdown-menu p-0 mt-3">
+                        <p class="mx-3 quick-menu-title user-select-none">Nouvelle demande</p>
+
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR'))
+                              and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
+                            {% set isCurrentPage = (app.request.attributes.get('_route') == 'demande_index') %}
+                            <a class="d-flex align-items-start"
+                               onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                               href="{{ path('demande_index', {'open-modal': 'new'}) }}">
+                                <span class="wii-icon wii-icon-delivery quick-menu-icon mx-2"></span>
+                                <span class="flex-fill align-self-center">Livraison</span>
                             </a>
-                            <a href="{{ path('demande_index', {'open-modal': 'new'}) }}">
-                                Demande de livraison
+                        {% endif %}
+
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL'))
+                              and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
+                            {% set isCurrentPage = (app.request.attributes.get('_route') == 'collecte_index') %}
+                            <a class="d-flex align-items-start"
+                               onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                               href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
+                                <span class="wii-icon wii-icon-import quick-menu-icon mx-2"></span>
+                                <span class="flex-fill align-self-center">Collecte</span>
                             </a>
-                            <a href="{{ path('dispatch_index', {'open-modal': 'new'}) }}" title="Acheminement">
-                                {{ 'acheminement.Acheminement' | trans }}
+                        {% endif %}
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_HAND'))
+                              and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
+                            {% set isCurrentPage = (app.request.attributes.get('_route') == 'handling_index') %}
+                            <a class="d-flex align-items-start"
+                               onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                               href="{{ path('handling_index', {'open-modal': 'new'}) }}"
+                               title="Service">
+                                <span class="wii-icon wii-icon-handling quick-menu-icon mx-2"></span>
+                                <span class="flex-fill align-self-center">{{ 'services.Service' | trans }}</span>
                             </a>
-                            <a href="{{ path('handling_index', {'open-modal': 'new'}) }}" title="Service">
-                                {{ 'services.Service' | trans }}
+                        {% endif %}
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_ACHE'))
+                              and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
+                            {% set isCurrentPage = (app.request.attributes.get('_route') == 'dispatch_index') %}
+                            <a class="d-flex align-items-start"
+                               onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                               href="{{ path('dispatch_index', {'open-modal': 'new'}) }}"
+                               title="Acheminements">
+                                <span class="wii-icon wii-icon-way quick-menu-icon mx-2"></span>
+                                <span class="flex-fill align-self-center">{{ 'acheminement.Acheminement' | trans }}</span>
                             </a>
-                            {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}
-                                <div class="btn border-radius-light">
-                                    <a href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u" >
-                                        Demander la création d'un article
-                                    </a>
-                                </div>
-                            {% endif %}
+                        {% endif %}
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_TRANSFER_REQ')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
+                            {% set isCurrentPage = (app.request.attributes.get('_route') == 'transfer_request_index') %}
+                            <a
+                                onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                                href="{{ path('transfer_request_index', {'open-modal': 'new'}) }}"
+                                title="Transfert">
+                                <span class="wii-icon wii-icon-transfer quick-menu-icon mx-2"></span>
+                                <span class="flex-fill align-self-center">Transfert</span>
+                            </a>
+                        {% endif %}
+                        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}
+                            <a class="d-flex align-items-start" href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u" >
+                                <span class="wii-icon wii-icon-add quick-menu-icon mx-2"></span>
+                                <span class="flex-fill align-self-center">Créer un article</span>
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
+                {% endif %}
 
                 {% if not isDashboardExt
-                      and app.user is defined
-                      and app.user
-                      and app.user.username is defined %}
-                    <div class="text-white col-auto h6 my-0 ml-auto">
-                        <span>{{app.user.username}}</span>
+                    and app.user is defined
+                    and app.user
+                    and app.user.username is defined %}
+                    <div class="user">
+                        <div class="profile-picture">{{ app.user.username | first | upper }}</div>
+                        <span>{{ app.user.username }}</span>
                     </div>
                     <nav id="main-nav" class="text-white col-auto dropdown dropleft">
                         <div class="menu-button rounded pointer"

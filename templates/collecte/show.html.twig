@@ -54,7 +54,7 @@
                 </div>
             </div>
         </div>
-        <button class="btn" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
+        <button class="btn btn-secondary" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
     </div>
 
     {% include "collecte/modalNewArticle.html.twig" %}
@@ -72,6 +72,6 @@
     <script>
         let id = {{ collecte.id }};
     </script>
-    <script src="{{ asset('js/pages/collecte.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/collecte-show.js') }}?{{ app_last_cache_clear }}"></script>
 
 {% endblock %}

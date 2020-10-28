@@ -56,12 +56,13 @@ class PreparationRepository extends EntityRepository
             ->addSelect('dest.label as destination')
             ->addSelect('user.username as requester')
             ->addSelect('t.label as type')
+            ->addSelect('d.commentaire as comment')
             ->join('p.statut', 's')
             ->join('p.demande', 'd')
             ->join('d.destination', 'dest')
             ->join('d.type', 't')
             ->join('d.utilisateur', 'user')
-            ->andWhere('s.nom = :toTreatStatusLabel or (s.nom = :inProgressStatusLabel AND p.utilisateur = :user)')
+            ->andWhere('(s.nom = :toTreatStatusLabel OR (s.nom = :inProgressStatusLabel AND p.utilisateur = :user))')
             ->andWhere('t.id IN (:type)')
             ->setParameters([
                 'toTreatStatusLabel' => Preparation::STATUT_A_TRAITER,
@@ -110,7 +111,7 @@ class PreparationRepository extends EntityRepository
 	{
 		$qb = $this->createQueryBuilder("p");
 
-		$countTotal = QueryCounter::count($qb);
+		$countTotal = QueryCounter::count($qb, 'p');
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -204,7 +205,7 @@ class PreparationRepository extends EntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered = QueryCounter::count($qb);
+		$countFiltered = QueryCounter::count($qb, 'p');
 
 		if ($params) {
 			if (!empty($params->get('start'))) {

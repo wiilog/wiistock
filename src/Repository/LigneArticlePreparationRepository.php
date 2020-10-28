@@ -4,8 +4,8 @@ namespace App\Repository;
 
 use App\Entity\LigneArticlePreparation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method LigneArticlePreparation|null find($id, $lockMode = null, $lockVersion = null)

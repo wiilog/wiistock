@@ -8,7 +8,7 @@ use App\Entity\Collecte;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\MouvementStock;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
 use App\Entity\ReferenceArticle;
@@ -60,17 +60,17 @@ class OrdreCollecteService
 	 */
 	private $router;
 
-	private $mouvementTracaService;
+	private $trackingMovementService;
 	private $mouvementStockService;
 	private $stringService;
 
     public function __construct(RouterInterface $router,
-    							TokenStorageInterface $tokenStorage,
-								MailerServerRepository $mailerServerRepository,
+                                TokenStorageInterface $tokenStorage,
+                                MailerServerRepository $mailerServerRepository,
                                 MailerService $mailerService,
                                 MouvementStockService $mouvementStockService,
                                 EntityManagerInterface $entityManager,
-                                MouvementTracaService $mouvementTracaService,
+                                TrackingMovementService $trackingMovementService,
                                 StringService $stringService,
                                 Twig_Environment $templating)
 	{
@@ -79,7 +79,7 @@ class OrdreCollecteService
 		$this->templating = $templating;
 		$this->entityManager = $entityManager;
 		$this->mailerService = $mailerService;
-		$this->mouvementTracaService = $mouvementTracaService;
+		$this->trackingMovementService = $trackingMovementService;
 		$this->user = $tokenStorage->getToken()->getUser();
 		$this->router = $router;
 		$this->mouvementStockService = $mouvementStockService;
@@ -190,7 +190,7 @@ class OrdreCollecteService
 		$ordreCollecte
 			->setUtilisateur($user)
 			->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
-			->setDate($date);
+			->setTreatingDate($date);
 
 		// on modifie la quantité des articles de référence liés à la collecte
 		$collecteReferences = $ordreCollecteReferenceRepository->findByOrdreCollecte($ordreCollecte);
@@ -358,20 +358,20 @@ class OrdreCollecteService
         $this->entityManager->persist($mouvementStock);
 
         // Mouvement traca prise
-        $createdMvt = $this->mouvementTracaService->createTrackingMovement(
+        $createdMvt = $this->trackingMovementService->createTrackingMovement(
             $article->getBarCode(),
             $locationFrom,
             $user,
             $date,
             $fromNomade,
             !$fromNomade,
-            MouvementTraca::TYPE_PRISE,
+            TrackingMovement::TYPE_PRISE,
             [
                 'mouvementStock' => $mouvementStock,
                 'quantity' => $mouvementStock->getQuantity()
             ]
         );
-        $this->mouvementTracaService->persistSubEntities($this->entityManager, $createdMvt);
+        $this->trackingMovementService->persistSubEntities($this->entityManager, $createdMvt);
         $this->entityManager->persist($createdMvt);
 
         // si on est sur la supervision
@@ -381,20 +381,20 @@ class OrdreCollecteService
             $deposeDate = clone $date;
             $deposeDate->modify('+1 second');
             // mouvement de traca de dépose
-            $createdMvt = $this->mouvementTracaService->createTrackingMovement(
+            $createdMvt = $this->trackingMovementService->createTrackingMovement(
                 $createdPack,
                 $locationTo,
                 $user,
                 $deposeDate,
                 $fromNomade,
                 !$fromNomade,
-                MouvementTraca::TYPE_DEPOSE,
+                TrackingMovement::TYPE_DEPOSE,
                 [
                     'mouvementStock' => $mouvementStock,
                     'quantity' => $mouvementStock->getQuantity()
                 ]
             );
-            $this->mouvementTracaService->persistSubEntities($this->entityManager, $createdMvt);
+            $this->trackingMovementService->persistSubEntities($this->entityManager, $createdMvt);
             $this->entityManager->persist($createdMvt);
 
             // On fini le mouvement de stock
@@ -406,7 +406,8 @@ class OrdreCollecteService
         $demande = $ordreCollecte->getDemandeCollecte();
         $requester = $demande ? $demande->getDemandeur() : null;
         $pointCollecte = $demande ? $demande->getPointCollecte() : null;
-        $dateCollecte = $ordreCollecte->getDate();
+        $dateCreation = $ordreCollecte->getDate();
+        $dateCollecte = $ordreCollecte->getTreatingDate();
         $comment = $demande->getCommentaire();
 
         return [
@@ -416,6 +417,7 @@ class OrdreCollecteService
             [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
             [ 'label' => 'Destination', 'value' => $demande->isStock() ? 'Mise en stock' : 'Destruction' ],
             [ 'label' => 'Point de collecte', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
+            [ 'label' => 'Date de création', 'value' => $dateCreation ? $dateCreation->format('d/m/Y H:i') : '' ],
             [ 'label' => 'Date de collecte', 'value' => $dateCollecte ? $dateCollecte->format('d/m/Y H:i') : '' ],
             [
                 'label' => 'Commentaire',
@@ -472,8 +474,7 @@ class OrdreCollecteService
             $statutCollecte = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_COLLECTE);
             // cas de collecte totale
             $demandeCollecte
-                ->setStatut($statutCollecte)
-                ->setValidationDate($dateNow);
+                ->setStatut($statutCollecte);
         }
     }
 }

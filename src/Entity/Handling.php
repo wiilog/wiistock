@@ -34,6 +34,11 @@ class Handling extends FreeFieldEntity
     private $subject;
 
     /**
+     * @ORM\Column(type="integer", nullable=true, options={"unsigned": true})
+     */
+    private $treatmentDelay;
+
+    /**
      * @ORM\Column(type="text", nullable=true)
      */
     private $comment;
@@ -87,7 +92,7 @@ class Handling extends FreeFieldEntity
     private $emergency;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="handling")
+     * @ORM\OneToMany(targetEntity="Attachment", mappedBy="handling")
      */
     private $attachments;
 
@@ -252,14 +257,14 @@ class Handling extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|PieceJointe[]
+     * @return Collection|Attachment[]
      */
     public function getAttachments(): Collection
     {
         return $this->attachments;
     }
 
-    public function addAttachment(PieceJointe $attachment): self
+    public function addAttachment(Attachment $attachment): self
     {
         if (!$this->attachments->contains($attachment)) {
             $this->attachments[] = $attachment;
@@ -269,7 +274,7 @@ class Handling extends FreeFieldEntity
         return $this;
     }
 
-    public function removeAttachment(PieceJointe $attachment): self
+    public function removeAttachment(Attachment $attachment): self
     {
         if ($this->attachments->contains($attachment)) {
             $this->attachments->removeElement($attachment);
@@ -292,5 +297,14 @@ class Handling extends FreeFieldEntity
     public function getTreatedByHandling(): ?Utilisateur
     {
         return $this->treatedByHandling;
+    }
+
+    public function setTreatmentDelay(?int $treatmentDelay): self {
+        $this->treatmentDelay = $treatmentDelay;
+        return $this;
+    }
+
+    public function getTreatmentDelay(): ?int {
+        return $this->treatmentDelay;
     }
 }

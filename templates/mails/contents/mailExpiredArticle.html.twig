@@ -1,0 +1,54 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+    <p>Bonjour,</p>
+    <p>Les articles suivants ont atteint le seuil d'expiration et expireront dans {{ delay }} jour{{ delay != 1 ? 's' }} ou moins.
+        Les articles ayant déjà dépassé la date de péremption apparaissent en rouge.</p>
+
+    <table class="table" style="border: 1px solid black;border-collapse: collapse;">
+        <thead>
+        <tr>
+            <th class="th" style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Code
+            </th>
+            <th class="th" style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Libellé
+            </th>
+            <th class="th" style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Référence
+            </th>
+            <th class="th" style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Quantité
+            </th>
+            <th class="th" style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Date de péremption
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for article in articles %}
+            {% set color = article.expired ? "red" : "black" %}
+
+
+            <tr style="color: {{ color }}">
+                <td class="td" style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.barCode }}
+                </td>
+                <td class="td" style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.label }}
+                </td>
+                <td class="td" style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.reference }}
+                </td>
+                <td class="td" style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.quantite }}
+                </td>
+                <td class="td" style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.expiryDate | date('d/m/Y') }}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+{% endblock %}

@@ -55,7 +55,7 @@
                  onclick="updateQuantity({{ idRefArticle }})"
                  data-id='update{{ idRefArticle }}'
                  data-toggle='modal'>
-                <i class='fa fa-refresh mr-2'></i>Recalculer les quantités
+                <i class='fa fa-sync-alt mr-2'></i>Recalculer les quantités
             </div>
 
             {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}

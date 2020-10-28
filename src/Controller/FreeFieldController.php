@@ -21,7 +21,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
@@ -78,7 +78,10 @@ class FreeFieldController extends AbstractController {
 
                 $defaultValue = $champLibre->getDefaultValue();
                 if ($champLibre->getTypage() == FreeField::TYPE_BOOL) {
-                    $defaultValue = $champLibre->getDefaultValue() ? 'oui' : 'non';
+                    $defaultValue = $champLibre->getDefaultValue() === null ?
+                        "" : ($champLibre->getDefaultValue()
+                            ? "Oui"
+                            : "Non");
                 } else if ($champLibre->getTypage() === FreeField::TYPE_DATETIME
                     || $champLibre->getTypage() === FreeField::TYPE_DATE) {
                     $defaultValueDate = new DateTime(str_replace('/', '-', $defaultValue));
@@ -103,7 +106,7 @@ class FreeFieldController extends AbstractController {
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -203,7 +206,7 @@ class FreeFieldController extends AbstractController {
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -231,6 +234,7 @@ class FreeFieldController extends AbstractController {
 			->setRequiredEdit($data['requiredEdit'])
 			->setDisplayedCreate($data['displayedCreate'])
 			->setTypage($data['typage']);
+
 		if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
 			$champLibre
 				->setElements(array_filter(explode(';', $data['elem'])))
@@ -238,10 +242,11 @@ class FreeFieldController extends AbstractController {
 		} else {
 			$champLibre
 				->setElements(null)
-				->setDefaultValue($data['valeur']);
+				->setDefaultValue($data['typage'] === FreeField::TYPE_BOOL && $data['valeur'] == -1 ? null : $data['valeur']);
 		}
-		$em = $this->getDoctrine()->getManager();
-		$em->flush();
+
+		$this->getDoctrine()->getManager()->flush();
+
         return $this->json([
             'success' => true,
             'msg' => 'Le champ libre <strong>' . $data['label'] . '</strong> a bien été modifié.'
@@ -316,6 +321,6 @@ class FreeFieldController extends AbstractController {
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 }

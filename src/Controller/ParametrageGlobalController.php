@@ -23,6 +23,7 @@ use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
+use App\Service\AlertService;
 use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
 use App\Service\StatusService;
@@ -35,7 +36,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -123,7 +124,13 @@ class ParametrageGlobalController extends AbstractController
                     'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
                     'location' => $globalParamService->getMvtDeposeArrival(),
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
-                    'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL)
+                    'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
+                    'printTwice' =>$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PRINT_TWICE_CUSTOMS)
+                ],
+                'paramStock' => [
+                    'alertThreshold' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_WARNING_THRESHOLD),
+                    'securityThreshold' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_SECURITY_THRESHOLD),
+                    'expirationDelay' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY)
                 ],
                 'paramDispatches' => [
                     'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
@@ -161,6 +168,11 @@ class ParametrageGlobalController extends AbstractController
                 'wantsRecipient' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL),
                 'wantsDZLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL),
                 'wantsCommandAndProjectNumber' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL),
+                'wantsDestinationLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL),
+                'wantsRecipientArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL),
+                'wantsDropzoneLocationArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL),
+                'wantsBatchNumberArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL),
+                'wantsExpirationDateArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL),
                 'wantsPackCount' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL),
             ]);
     }
@@ -227,6 +239,61 @@ class ParametrageGlobalController extends AbstractController
 
         $parametrageGlobalDZLocation
             ->setValue((int) ($data['param-dz-location-etiquette'] === 'true'));
+
+        $globalSettingsDestinationLocation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
+
+        if (empty($globalSettingsDestinationLocation)) {
+            $globalSettingsDestinationLocation = new ParametrageGlobal();
+            $globalSettingsDestinationLocation->setLabel(ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
+            $entityManager->persist($globalSettingsDestinationLocation);
+        }
+
+        $globalSettingsDestinationLocation
+            ->setValue((int) ($data['param-add-destination-location-article-label'] === 'true'));
+
+        $globalSettingsRecipientOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL);
+
+        if (empty($globalSettingsRecipientOnArticleLabel)) {
+            $globalSettingsRecipientOnArticleLabel = new ParametrageGlobal();
+            $globalSettingsRecipientOnArticleLabel->setLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL);
+            $entityManager->persist($globalSettingsRecipientOnArticleLabel);
+        }
+
+        $globalSettingsRecipientOnArticleLabel
+            ->setValue((int) ($data['param-add-recipient-article-label'] === 'true'));
+
+        $globalSettingsRecipientDropzoneOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL);
+
+        if (empty($globalSettingsRecipientDropzoneOnArticleLabel)) {
+            $globalSettingsRecipientDropzoneOnArticleLabel = new ParametrageGlobal();
+            $globalSettingsRecipientDropzoneOnArticleLabel->setLabel(ParametrageGlobal::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL);
+            $entityManager->persist($globalSettingsRecipientDropzoneOnArticleLabel);
+        }
+
+        $globalSettingsRecipientDropzoneOnArticleLabel
+            ->setValue((int) ($data['param-add-recipient-dropzone-location-article-label'] === 'true'));
+
+        $globalSettingsBatchNumberOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
+
+        if (empty($globalSettingsBatchNumberOnArticleLabel)) {
+            $globalSettingsBatchNumberOnArticleLabel = new ParametrageGlobal();
+            $globalSettingsBatchNumberOnArticleLabel->setLabel(ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
+            $entityManager->persist($globalSettingsBatchNumberOnArticleLabel);
+        }
+
+        $globalSettingsBatchNumberOnArticleLabel
+            ->setValue((int) ($data['param-add-batch-number-article-label'] === 'true'));
+
+        $globalSettingsExpirationDateOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
+
+        if (empty($globalSettingsExpirationDateOnArticleLabel)) {
+            $globalSettingsExpirationDateOnArticleLabel = new ParametrageGlobal();
+            $globalSettingsExpirationDateOnArticleLabel->setLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
+            $entityManager->persist($globalSettingsExpirationDateOnArticleLabel);
+        }
+
+        $globalSettingsExpirationDateOnArticleLabel
+            ->setValue((int) ($data['param-add-expiration-date-article-label'] === 'true'));
 
         $parametrageGlobalCommandAndProjectNumbers = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
 
@@ -373,7 +440,34 @@ class ParametrageGlobalController extends AbstractController
             $em->flush();
             return new JsonResponse(['typeDemande' => $data['typeDemande'], 'prefixe' => $data['prefixe']]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/ajax-update-expiration-delay", name="ajax_update_expiration_delay",  options={"expose"=true},  methods="POST")
+     */
+    public function updateExpirationDelay(Request $request,
+                                          EntityManagerInterface $manager,
+                                          AlertService $service) {
+        $expirationDelay = $request->request->get('expirationDelay');
+
+        $parametrageGlobalRepository = $manager->getRepository(ParametrageGlobal::class);
+        $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);
+
+        if (empty($setting)) {
+            $setting = new ParametrageGlobal();
+            $setting->setLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);
+            $manager->persist($setting);
+        }
+
+        $setting->setValue($expirationDelay);
+        $manager->flush();
+
+        $service->generateAlerts($manager);
+
+        return $this->json([
+            'success' => true
+        ]);
     }
 
     /**
@@ -383,16 +477,14 @@ class ParametrageGlobalController extends AbstractController
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
-    public function getPrefixDemand(Request $request,
-                                    PrefixeNomDemandeRepository $prefixeNomDemandeRepository)
-    {
+    public function getPrefixDemand(Request $request, PrefixeNomDemandeRepository $prefixeNomDemandeRepository) {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $prefixeNomDemande = $prefixeNomDemandeRepository->findOneByTypeDemande($data);
             $prefix = $prefixeNomDemande ? $prefixeNomDemande->getPrefixe() : '';
 
             return new JsonResponse($prefix);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -433,7 +525,7 @@ class ParametrageGlobalController extends AbstractController
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -463,7 +555,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -522,7 +614,7 @@ class ParametrageGlobalController extends AbstractController
                 'msg' => 'Le jour "' . $this->engDayToFr[$dayName] . '" a bien été modifié.'
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -562,7 +654,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -592,7 +684,7 @@ class ParametrageGlobalController extends AbstractController
             }
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -625,7 +717,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -682,7 +774,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -710,7 +802,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -742,7 +834,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -759,7 +851,7 @@ class ParametrageGlobalController extends AbstractController
             $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
             return new JsonResponse($parametrageGlobal ? $parametrageGlobal->getValue() : true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -775,7 +867,7 @@ class ParametrageGlobalController extends AbstractController
             $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
             return new JsonResponse($parametrageGlobal128 ? $parametrageGlobal128->getValue() : true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
 
@@ -848,7 +940,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**

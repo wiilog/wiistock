@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\AttachmentTrait;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -15,6 +17,8 @@ class Reception extends FreeFieldEntity
     const STATUT_RECEPTION_PARTIELLE = 'réception partielle';
     const STATUT_RECEPTION_TOTALE = 'réception totale';
     const STATUT_ANOMALIE = 'anomalie';
+
+    use AttachmentTrait;
 
     /**
      * @ORM\Id()
@@ -68,7 +72,7 @@ class Reception extends FreeFieldEntity
     /**
      * @ORM\Column(type="string", nullable=true)
      */
-    private $reference;
+    private $orderNumber;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="reception")
@@ -95,6 +99,11 @@ class Reception extends FreeFieldEntity
      */
     private $demandes;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\TransferRequest", mappedBy="reception")
+     */
+    private $transferRequests;
+
 	/**
 	 * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="receptionOrder")
 	 */
@@ -106,21 +115,32 @@ class Reception extends FreeFieldEntity
 	private $location;
 
     /**
-     * @ORM\Column(type="boolean", nullable=true)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement")
      */
-    private $emergencyTriggered;
+    private $storageLocation;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="reception")
+     * @ORM\Column(type="boolean", nullable=true)
      */
-    private $mouvementsTraca;
+    private $urgentArticles;
+
+    /**
+     * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="reception")
+     */
+    private $trackingMovements;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $manualUrgent;
 
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->demandes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
-        $this->mouvementsTraca = new ArrayCollection();
+        $this->trackingMovements = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -158,12 +178,12 @@ class Reception extends FreeFieldEntity
         return $this->commentaire ?? '';
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getDate(): ?DateTimeInterface
     {
         return $this->date;
     }
 
-    public function setDate(?\DateTimeInterface $date): self
+    public function setDate(?DateTimeInterface $date): self
     {
         $this->date = $date;
 
@@ -206,38 +226,38 @@ class Reception extends FreeFieldEntity
         return $this;
     }
 
-    public function getDateAttendue(): ?\DateTimeInterface
+    public function getDateAttendue(): ?DateTimeInterface
     {
         return $this->dateAttendue;
     }
 
-    public function setDateAttendue(?\DateTimeInterface $dateAttendue): self
+    public function setDateAttendue(?DateTimeInterface $dateAttendue): self
     {
         $this->dateAttendue = $dateAttendue;
 
         return $this;
     }
 
-    public function getDateCommande(): ?\DateTimeInterface
+    public function getDateCommande(): ?DateTimeInterface
     {
         return $this->dateCommande;
     }
 
-    public function setDateCommande(?\DateTimeInterface $dateCommande): self
+    public function setDateCommande(?DateTimeInterface $dateCommande): self
     {
         $this->dateCommande = $dateCommande;
 
         return $this;
     }
 
-    public function getReference(): ?string
+    public function getOrderNumber(): ?string
     {
-        return $this->reference;
+        return $this->orderNumber;
     }
 
-    public function setReference(?string $reference): self
+    public function setOrderNumber(?string $orderNumber): self
     {
-        $this->reference = $reference;
+        $this->orderNumber = $orderNumber;
 
         return $this;
     }
@@ -286,14 +306,45 @@ class Reception extends FreeFieldEntity
         return $this;
     }
 
-    public function getDateFinReception(): ?\DateTimeInterface
+    public function getDateFinReception(): ?DateTimeInterface
     {
         return $this->dateFinReception;
     }
 
-    public function setDateFinReception(?\DateTimeInterface $dateFinReception): self
+    public function setDateFinReception(?DateTimeInterface $dateFinReception): self
     {
         $this->dateFinReception = $dateFinReception;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Demande[]
+     */
+    public function getTransferRequest(): Collection
+    {
+        return $this->transferRequests;
+    }
+
+    public function addTransferRequest(TransferRequest $request): self
+    {
+        if (!$this->transferRequests->contains($request)) {
+            $this->transferRequests[] = $request;
+            $request->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransferRequest(TransferRequest $request): self
+    {
+        if ($this->transferRequests->contains($request)) {
+            $this->transferRequests->removeElement($request);
+            // set the owning side to null (unless already changed)
+            if ($request->getReception() === $this) {
+                $request->setReception(null);
+            }
+        }
 
         return $this;
     }
@@ -384,43 +435,64 @@ class Reception extends FreeFieldEntity
         return $this;
     }
 
-    public function getEmergencyTriggered(): ?bool
+    public function getStorageLocation(): ?Emplacement
     {
-        return $this->emergencyTriggered;
+        return $this->storageLocation;
     }
 
-    public function setEmergencyTriggered(?bool $emergencyTriggered): self
+    public function setStorageLocation(?Emplacement $storageLocation): self
     {
-        $this->emergencyTriggered = $emergencyTriggered;
+        $this->storageLocation = $storageLocation;
+
+        return $this;
+    }
+
+    public function isManualUrgent(): ?bool {
+        return $this->manualUrgent;
+    }
+
+    public function setManualUrgent(?bool $manualUrgent): self {
+        $this->manualUrgent = $manualUrgent;
+        return $this;
+    }
+
+    public function hasUrgentArticles(): ?bool
+    {
+        return $this->urgentArticles;
+    }
+
+    public function setUrgentArticles(?bool $urgentArticles): self
+    {
+        $this->urgentArticles = $urgentArticles;
 
         return $this;
     }
 
     /**
-     * @return Collection|MouvementTraca[]
+     * @return Collection|TrackingMovement[]
      */
-    public function getMouvementsTraca(): Collection
+    public function getTrackingMovements(): Collection
     {
-        return $this->mouvementsTraca;
+        return $this->trackingMovements;
     }
 
-    public function addMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self
     {
-        if (!$this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca[] = $mouvementsTraca;
-            $mouvementsTraca->setReception($this);
+        if (!$this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements[] = $trackingMovement;
+            $trackingMovement->setReception($this);
         }
 
         return $this;
     }
 
-    public function removeMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self
     {
-        if ($this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca->removeElement($mouvementsTraca);
+        if ($this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements->removeElement($trackingMovement);
             // set the owning side to null (unless already changed)
-            if ($mouvementsTraca->getReception() === $this) {
-                $mouvementsTraca->setReception(null);
+            if ($trackingMovement->getReception() === $this) {
+                $trackingMovement->setReception(null);
             }
         }
 

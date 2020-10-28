@@ -8,6 +8,7 @@ use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 class TranslationFixtures extends Fixture implements FixtureGroupInterface
 {
@@ -29,6 +30,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
      */
     public function load(ObjectManager $manager)
     {
+        $output = new ConsoleOutput();
+
         $isCurrentClientCEA = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI);
         $translations = [
             'natures' => [
@@ -88,6 +91,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Des colis sont nécessaires pour générer un bon de livraison" => "Des colis sont nécessaires pour générer un bon de livraison",
                 "Des colis sont nécessaires pour générer une lettre de voiture" => "Des colis sont nécessaires pour générer une lettre de voiture",
                 "Acheminement {numéro} traité le {date}" => "Acheminement {numéro} traité le {date}",
+                "Acheminement {numéro} traité partiellement le {date}" => "Acheminement {numéro} traité partiellement le {date}",
                 "L'acheminement contient plus de {nombre} colis" => "L'acheminement contient plus de {nombre} colis",
                 'Générer un bon d\'acheminement' => 'Générer un bon d\'acheminement',
                 'Générer un bon de livraison' => 'Générer un bon de livraison',
@@ -112,7 +116,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'articles' => 'articles',
                 "l'article" => "l'article",
                 "d'article" => "d'article",
-                "d'articles" => "d'articles"
+                "d'articles" => "d'articles",
+                'Cette réception est urgente' => 'Cette réception est urgente',
+                'Une ou plusieurs références liées à cette réception sont urgentes' => 'Une ou plusieurs références liées à cette réception sont urgentes',
+                'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes' => 'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes'
             ],
             'urgences' => [
                 'urgence' => 'urgence',
@@ -174,7 +181,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Demande de service effectuée' => 'Demande de service effectuée',
                 'Type de demande de service' => 'Type de demande de service',
                 "Changement de statut d'une demande de service" => "Changement de statut d'une demande de service",
-                "Une demande de service vous concernant a changé de statut" => "Une demande de service vous concernant a changé de statut"
+                "Une demande de service vous concernant a changé de statut" => "Une demande de service vous concernant a changé de statut",
+                "Votre demande de service a été créée" => "Votre demande de service a été créée",
+                "Création d'une demande de service" => "Création d'une demande de service",
             ]
         ];
 
@@ -187,7 +196,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
             if (!isset($translations[$menu][$label])) {
                 $manager->remove($savedTranslation);
-                dump("Suppression de la traduction :  $menu / $label");
+                $output->writeln("Suppression de la traduction :  $menu / $label");
             }
         }
 
@@ -214,7 +223,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ->setTranslation($translatedLabel)
                         ->setUpdated(true);
                     $manager->persist($translationObject);
-                    dump("Ajout de la traduction :  $menu / $label ==> $translatedLabel");
+                    $output->writeln("Ajout de la traduction :  $menu / $label ==> $translatedLabel");
                 }
             }
         }

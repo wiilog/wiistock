@@ -17,7 +17,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
@@ -62,7 +62,7 @@ class FournisseurController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -114,10 +114,14 @@ class FournisseurController extends AbstractController
             $entityManager->persist($fournisseur);
             $entityManager->flush();
 
-			return new JsonResponse(['success' => true, 'id' => $fournisseur->getId(), 'text' => $fournisseur->getCodeReference()]);
+			return new JsonResponse([
+			    'success' => true,
+                'id' => $fournisseur->getId(),
+                'text' => $fournisseur->getCodeReference()
+            ]);
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -141,7 +145,7 @@ class FournisseurController extends AbstractController
             ]);
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -167,7 +171,7 @@ class FournisseurController extends AbstractController
             $em->flush();
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
 
@@ -196,7 +200,7 @@ class FournisseurController extends AbstractController
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -257,7 +261,7 @@ class FournisseurController extends AbstractController
             }
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -277,7 +281,7 @@ class FournisseurController extends AbstractController
 
             return new JsonResponse(['results' => $fournisseur]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**

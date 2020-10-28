@@ -43,9 +43,8 @@ $(function () {
     updateImagePreview('#preview-delivery-note-logo', '#upload-delivery-note-logo');
     updateImagePreview('#preview-waybill-logo', '#upload-waybill-logo');
 
-    $('.image-upload').change(() => fileToImagePreview($(this)));
     // config tableau de bord : emplacements
-    initSelect2ValuesForDashboard();
+    initValuesForDashboard();
     $('#locationArrivageDest').on('change', editArrivageDestination);
     $('#locationDemandeLivraison').on('change', function() {
         editDemandeLivraisonDestination($(this));
@@ -219,6 +218,28 @@ function updatePrefixDemand() {
         });
     }
     $('.error-msg').html(msg);
+}
+
+function updateStockParam() {
+    let expirationDelay = $('[name="expirationDelay"]').val();
+
+    Promise
+        .all([
+            $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'SEND_MAIL_MANAGER_WARNING_THRESHOLD', val: $('[name="param-security-threshold"]').val()})),
+            $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'SEND_MAIL_MANAGER_SECURITY_THRESHOLD', val: $('[name="param-alert-threshold"]').val()})),
+            $.post(Routing.generate('ajax_update_expiration_delay', true), {expirationDelay})
+        ])
+        .then(([successAlert, successSecurity, {success: successDelay, msg: msgDelay}]) => {
+            if (successAlert && successSecurity && successDelay) {
+                showBSAlert('Vos paramétrages ont bien été mis à jour.', 'success');
+            }
+            else if (!successDelay) {
+                showBSAlert(msgDelay, 'danger');
+            }
+            else {
+                showBSAlert('Erreur, il y a eu un problème lors de la sauvegarde de vos paramètres', 'danger');
+            }
+        });
 }
 
 function getPrefixDemand(select) {
@@ -443,4 +464,14 @@ function saveDispatchesParam() {
                 showBSAlert("Une erreur est survenue lors de la mise à jour des paramétrages d'acheminements.", 'danger');
             }
         });
+}
+
+function toggleRecipient($checkbox) {
+     if ($checkbox.attr('name') === 'param-add-destination-location-article-label'
+        && $checkbox.prop('checked')) {
+        $('.checkbox[name="param-add-recipient-dropzone-location-article-label"]').prop('checked', false);
+    } else if ($checkbox.attr('name') === 'param-add-recipient-dropzone-location-article-label'
+        && $checkbox.prop('checked')) {
+        $('.checkbox[name="param-add-destination-location-article-label"]').prop('checked', false);
+    }
 }

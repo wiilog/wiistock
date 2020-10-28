@@ -57,9 +57,9 @@
                             <option value=""></option>
                             {% for state in statusStates %}
                                 <option value="{{ state.id }}"
-                                        data-needs-nomad-sync="{{ state.id == constant('App\\Entity\\Statut::NOT_TREATED') }}"
+                                        data-needs-nomad-sync="{{ state.id == constant('App\\Entity\\Statut::NOT_TREATED') or state.id == constant('App\\Entity\\Statut::PARTIAL') }}"
                                         class="{{
-                                            state.id == constant('App\\Entity\\Statut::DRAFT') ? 'dispatch-fields' :
+                                            (state.id == constant('App\\Entity\\Statut::DRAFT') or state.id == constant('App\\Entity\\Statut::PARTIAL')) ? 'dispatch-fields' :
                                             state.id == constant('App\\Entity\\Statut::DISPUTE') ? 'arrival-fields'
                                         }}">
                                     {{ state.label }}
@@ -116,8 +116,8 @@
             </div>
             <div class="error-msg"></div>
             <div class="modal-footer">
-                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitNewStatus" type="button" class="btn btn-success">Enregistrer</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button id="submitNewStatus" type="button" class="btn btn-primary">Enregistrer</button>
             </div>
         </div>
     </div>

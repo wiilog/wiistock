@@ -220,18 +220,15 @@ class FreeFieldRepository extends EntityRepository
 	 * @param string[] $categoryTypeLabels
 	 * @return FreeField[]
 	 */
-	public function findByCategoryTypeLabels($categoryTypeLabels)
+	public function findByCategoryTypeLabels(array $categoryTypeLabels)
 	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-            "SELECT c
-            FROM App\Entity\FreeField c
-            JOIN c.type t
-            JOIN t.category cat
-            WHERE cat.label in (:categoryTypeLabels)"
-		)->setParameter('categoryTypeLabels', $categoryTypeLabels, Connection::PARAM_STR_ARRAY);
-
-		return $query->execute();
+	    return $this->createQueryBuilder('free_field')
+            ->join('free_field.type', 'type')
+            ->join('type.category', 'category')
+            ->where('category.label IN (:categoryTypeLabels)')
+            ->setParameter('categoryTypeLabels', $categoryTypeLabels, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->execute();
 	}
 
     /**

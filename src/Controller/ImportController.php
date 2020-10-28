@@ -7,26 +7,33 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
+use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Fournisseur;
 use App\Entity\Import;
 use App\Entity\Menu;
+use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Exceptions\ImportException;
+use App\Repository\FieldsParamRepository;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
+use Doctrine\ORM\TransactionRequiredException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -87,6 +94,7 @@ class ImportController extends AbstractController
      * @param AttachmentService $attachmentService
      * @param ImportService $importService
      * @return Response
+     * @throws NonUniqueResultException
      */
     public function new(Request $request,
                         UserService $userService,
@@ -100,6 +108,7 @@ class ImportController extends AbstractController
         $post = $request->request;
         $em = $this->getDoctrine()->getManager();
         $statusRepository = $em->getRepository(Statut::class);
+        $fieldsParamRepository = $em->getRepository(FieldsParam::class);
 
         $import = new Import();
         $import
@@ -153,13 +162,14 @@ class ImportController extends AbstractController
                         Import::ENTITY_ART => Article::class,
                         Import::ENTITY_REF => ReferenceArticle::class,
                         Import::ENTITY_FOU => Fournisseur::class,
-                        Import::ENTITY_ART_FOU => ArticleFournisseur::class
+                        Import::ENTITY_ART_FOU => ArticleFournisseur::class,
+                        Import::ENTITY_RECEPTION => Reception::class
                     ];
                     $attributes = $em->getClassMetadata($entityCodeToClass[$entity]);
 
                     $fieldsToHide = ['id', 'barCode', 'reference', 'conform', 'quantiteAPrelever', 'quantitePrelevee',
-                        'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible', 'freeFields',
-                        'quantiteReservee'];
+                        'dateEmergencyTriggered', 'isUrgent', 'quantiteDisponible', 'freeFields', 'urgentArticles',
+                        'quantiteReservee', 'dateAttendue', 'dateFinReception', 'dateCommande', 'numeroReception', 'date', 'emergencyTriggered'];
                     $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
                     switch ($entity) {
                         case Import::ENTITY_ART:
@@ -174,6 +184,10 @@ class ImportController extends AbstractController
                             break;
                         case Import::ENTITY_ART_FOU:
                             $fieldsToAdd = ['référence article de référence', 'référence fournisseur', 'reference'];
+                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
+                            break;
+                        case Import::ENTITY_RECEPTION:
+                            $fieldsToAdd = ['anomalie', 'fournisseur', 'transporteur', 'référence', 'location', 'quantité à recevoir'];
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                     }
@@ -198,13 +212,30 @@ class ImportController extends AbstractController
                         $columnsToFields = $copiedImport->getColumnToField();
                     }
 
+                    $fieldsNeeded = Import::FIELDS_NEEDED[$entity];
+
+                    if ($entity === Import::ENTITY_RECEPTION) {
+                        foreach ($fields as $field) {
+                            $fieldParamCode = isset(Import::IMPORT_FIELDS_TO_FIELDS_PARAM[$field]) ? Import::IMPORT_FIELDS_TO_FIELDS_PARAM[$field] : null;
+                            if ($fieldParamCode) {
+                                $fieldParam = $fieldsParamRepository->findOneBy([
+                                    'fieldCode' => $fieldParamCode,
+                                    'entityCode' => FieldsParam::ENTITY_CODE_RECEPTION,
+                                ]);
+                                if ($fieldParam && $fieldParam->getMustToCreate()) {
+                                    $fieldsNeeded[] = $field;
+                                }
+                            }
+                        }
+                    }
+
                     $response = [
                         'success' => true,
                         'importId' => $import->getId(),
                         'html' => $this->renderView('import/modalNewImportSecond.html.twig', [
                             'data' => $data ?? [],
                             'fields' => $fields ?? [],
-                            'fieldsNeeded' => Import::FIELDS_NEEDED[$entity],
+                            'fieldsNeeded' => $fieldsNeeded,
                             'fieldPK' => Import::FIELD_PK[$entity],
                             'columnsToFields' => $columnsToFields ?? null
                         ])
@@ -258,9 +289,12 @@ class ImportController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param ImportService $importService
      * @return JsonResponse
-     * @throws NoResultException
+     * @throws ImportException
      * @throws NonUniqueResultException
      * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws TransactionRequiredException
+     * @throws Throwable
      */
 	public function launchImport(Request $request,
                                  EntityManagerInterface $entityManager,
@@ -272,7 +306,7 @@ class ImportController extends AbstractController
 
         if ($import) {
             $importModeTodo = ($force ? ImportService::IMPORT_MODE_FORCE_PLAN : ImportService::IMPORT_MODE_PLAN);
-            $importModeDone = $importService->treatImport($import, $importModeTodo);
+            $importModeDone = $importService->treatImport($import, $this->getUser(), $importModeTodo);
 
             $success = true;
             $message = (

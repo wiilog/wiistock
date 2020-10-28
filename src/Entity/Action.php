@@ -41,8 +41,9 @@ class Action
 	const TREAT_LITIGE = 'traiter les litiges';
 
 	// menu demande
-	const DISPLAY_DEM_COLL = 'afficher collectes';
+	const DISPLAY_TRANSFER_REQ = 'afficher transferts';
 	const DISPLAY_DEM_LIVR = 'afficher livraisons';
+	const DISPLAY_DEM_COLL = 'afficher collectes';
     const DISPLAY_HAND = 'afficher services';
     const TREAT_HANDLING = 'traiter services';
     const DISPLAY_ACHE = 'afficher acheminements';
@@ -52,6 +53,7 @@ class Action
     const EDIT_PROCESSED_DISPATCH = 'modifier acheminements traités';
     const DELETE_DRAFT_DISPATCH = 'supprimer acheminements brouillons';
     const DELETE_UNPROCESSED_DISPATCH = 'supprimer acheminements à traiter';
+    const DELETE_UNPROCESSED_HANDLING = 'supprimer services à traiter';
     const SHOW_CARRIER_FIELD = 'afficher le champ transporteur';
     const GENERATE_DELIVERY_NOTE = 'générer un bon de livraison';
     const GENERATE_WAY_BILL = 'générer une lettre de voiture';
@@ -60,7 +62,8 @@ class Action
 
 	// menu ordre
 	const DISPLAY_ORDRE_COLL = 'afficher collectes';
-	const DISPLAY_ORDRE_LIVR = 'afficher livraisons';
+    const DISPLAY_ORDRE_LIVR = 'afficher livraisons';
+    const DISPLAY_ORDRE_TRANS = 'afficher transferts';
 	const DISPLAY_PREPA = 'afficher préparations';
 	const DISPLAY_RECE = 'afficher réceptions';
 	const CREATE_REF_FROM_RECEP = 'création référence depuis réception';

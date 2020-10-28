@@ -13,6 +13,7 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\CollecteReference;
@@ -28,6 +29,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Twig\Environment as Twig_Environment;
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
@@ -37,14 +39,12 @@ use App\Service\ArticleDataService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
@@ -213,13 +213,13 @@ class ReferenceArticleController extends AbstractController
                 ],
 				[
 					"title" => 'Seuil d\'alerte',
-					"data" => 'Seuil d\'alerte',
+					"data" => 'limitWarning',
 					'name' => 'Seuil d\'alerte',
 					"class" => (in_array('Seuil d\'alerte', $columnsVisible) ? 'display' : 'hide'),
 				],
 				[
 					"title" => 'Seuil de sécurité',
-					"data" => 'Seuil de sécurité',
+					"data" => 'limitSecurity',
 					'name' => 'Seuil de sécurité',
 					"class" => (in_array('Seuil de sécurité', $columnsVisible) ? 'display' : 'hide'),
 				],
@@ -247,10 +247,23 @@ class ReferenceArticleController extends AbstractController
                     'name' => 'Synchronisation nomade',
                     "class" => (in_array('Synchronisation nomade', $columnsVisible) ? 'display' : 'hide'),
                 ],
+                [
+                    "title" => 'Gestion de stock',
+                    "data" => 'stockManagement',
+                    'name' => 'Gestion de stock',
+                    "class" => (in_array('Gestion de stock', $columnsVisible) ? 'display' : 'hide'),
+                ],
+                [
+                    "title" => 'Gestionnaire(s)',
+                    "data" => 'managers',
+                    'name' => 'Gestionnaire(s)',
+                    'orderable' => false,
+                    "class" => (in_array('Gestionnaire(s)', $columnsVisible) ? 'display' : 'hide'),
+                ]
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
-					"title" => ucfirst(mb_strtolower($champ['label'])),
+					"title" => $champ['label'],
 					"data" => $champ['label'],
 					'name' => $champ['label'],
 					"class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
@@ -259,14 +272,14 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse($columns);
         }
-        throw new NotFoundHttpException("404");
+
+        throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/api", name="ref_article_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @return Response
-     * @throws DBALException
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
@@ -278,10 +291,10 @@ class ReferenceArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $data = $this->refArticleDataService->getRefArticleDataByParams($request->request);
-            return new JsonResponse($data);
+            return $this->json($this->refArticleDataService->getRefArticleDataByParams($request->request));
         }
-        throw new NotFoundHttpException("404");
+
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -293,6 +306,7 @@ class ReferenceArticleController extends AbstractController
      * @param ArticleFournisseurService $articleFournisseurService
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function new(Request $request,
                         FreeFieldService $champLibreService,
@@ -313,6 +327,7 @@ class ReferenceArticleController extends AbstractController
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+            $userRepository = $entityManager->getRepository(Utilisateur::class);
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
@@ -331,7 +346,7 @@ class ReferenceArticleController extends AbstractController
                 $emplacement = $emplacementRepository->find($data['emplacement']);
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
-            };
+            }
 
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
 
@@ -339,6 +354,7 @@ class ReferenceArticleController extends AbstractController
                 case 'article':
                     $typeArticle = ReferenceArticle::TYPE_QUANTITE_ARTICLE;
                     break;
+                case 'reference':
                 default:
                     $typeArticle = ReferenceArticle::TYPE_QUANTITE_REFERENCE;
                     break;
@@ -382,6 +398,13 @@ class ReferenceArticleController extends AbstractController
                 $refArticle->setQuantiteStock(0);
             }
             $refArticle->setQuantiteReservee(0);
+            $refArticle->setStockManagement($data['stockManagement'] ?? null);
+
+            $managers = (array) $data['managers'];
+            if (isset($data['managers'])) {
+                foreach ($managers as $manager)
+                    $refArticle->addManager($userRepository->find($manager));
+            }
 
             if (!empty($data['frl'])) {
                 foreach ($data['frl'] as $frl) {
@@ -429,7 +452,7 @@ class ReferenceArticleController extends AbstractController
             $champLibreService->manageFreeFields($refArticle, $data, $entityManager);
 
             $entityManager->flush();
-            return new JsonResponse([
+            return $this->json([
                 'success' => true,
                 'msg' => 'La référence ' . $refArticle->getReference() . ' a bien été créée',
                 'data' => [ // for reference created in reception-show
@@ -438,15 +461,15 @@ class ReferenceArticleController extends AbstractController
                 ]
             ]);
         }
-        throw new NotFoundHttpException("404");
+
+        throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/", name="reference_article_index",  methods="GET|POST", options={"expose"=true})
      * @return Response
      */
-    public function index(): Response
-    {
+    public function index(): Response {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -562,6 +585,16 @@ class ReferenceArticleController extends AbstractController
             'id' => 0,
             'typage' => 'date'
         ];
+        $champF[] = [
+            'label' => 'Gestion de stock',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champF[] = [
+            'label' => 'Gestionnaire(s)',
+            'id' => 0,
+            'typage' => 'text'
+        ];
 
         // champs pour recherche personnalisée (uniquement de type texte ou liste)
 		$champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_TEXT);
@@ -604,6 +637,18 @@ class ReferenceArticleController extends AbstractController
             'typage' => 'text'
 
         ];
+        $champsFText[] = [
+            'label' => 'Gestion de stock',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champsFText[] = [
+            'label' => 'Gestionnaire(s)',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
 
         $champs = array_merge($champF, $champL);
         $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
@@ -630,7 +675,10 @@ class ReferenceArticleController extends AbstractController
             ];
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
-        $filter = $filtreRefRepository->findOneByUserAndChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT);
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $filter = $filtreRefRepository->findOneByUserAndChampFixe($currentUser, FiltreRef::CHAMP_FIXE_STATUT);
 
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
@@ -643,7 +691,11 @@ class ReferenceArticleController extends AbstractController
             'typeQuantite' => $typeQuantite,
             'filters' => $filtreRefRepository->findByUserExceptChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT),
             'categories' => $inventoryCategories,
-            'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF
+            'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF,
+            'stockManagement' => [
+                ReferenceArticle::STOCK_MANAGEMENT_FEFO,
+                ReferenceArticle::STOCK_MANAGEMENT_FIFO
+            ],
         ]);
     }
 
@@ -673,7 +725,7 @@ class ReferenceArticleController extends AbstractController
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -682,9 +734,7 @@ class ReferenceArticleController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $champLibreService
      * @return Response
-     * @throws DBALException
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -710,7 +760,9 @@ class ReferenceArticleController extends AbstractController
             }
             if ($refArticle) {
                 try {
-                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser(), $champLibreService);
+                    /** @var Utilisateur $currentUser */
+                    $currentUser = $this->getUser();
+                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $currentUser, $champLibreService);
                 }
                 catch (ArticleNotAvailableException $exception) {
                     $response = [
@@ -729,7 +781,7 @@ class ReferenceArticleController extends AbstractController
             }
             return new JsonResponse($response);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -746,18 +798,21 @@ class ReferenceArticleController extends AbstractController
             }
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
+            /** @var ReferenceArticle $refArticle */
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
-            $entityManager = $this->getDoctrine()->getManager();
-            if (count($refArticle->getCollecteReferences()) > 0
-                || count($refArticle->getLigneArticles()) > 0
-                || count($refArticle->getReceptionReferenceArticles()) > 0
-                || count($refArticle->getMouvements()) > 0
-                || count($refArticle->getMouvementTracas()) > 0
-                || count($refArticle->getArticlesFournisseur()) > 0) {
+            if (!($refArticle->getCollecteReferences()->isEmpty())
+                || !($refArticle->getLigneArticles()->isEmpty())
+                || !($refArticle->getReceptionReferenceArticles()->isEmpty())
+                || !($refArticle->getMouvements()->isEmpty())
+                || !($refArticle->getArticlesFournisseur()->isEmpty())
+                || !($refArticle->getTransferRequests()->isEmpty())
+                || !($refArticle->getTransferRequests()->isEmpty())
+                || $refArticle->getTrackingPack()
+                || $refArticle->hasTrackingMovements()) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => '
-                        Cet article est lié à une collecte, une livraison, une réception ou un article fournisseur.<br>
+                        Cet article est lié à un colis, des mouvements, une collecte, une livraison, une réception ou un article fournisseur.<br>
                         Vous ne pouvez donc pas le supprimer.
                     '
                 ]);
@@ -767,7 +822,7 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse(['success' => true]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -820,7 +875,7 @@ class ReferenceArticleController extends AbstractController
             ]);
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -850,29 +905,31 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse($quantity);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
-     * @Route("/autocomplete-ref/{activeOnly}/type/{field}/{typeQuantity}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
+     * @Route("/autocomplete-ref", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param bool $activeOnly
-     * @param null $typeQuantity
-     * @param string $field
      * @return JsonResponse
      */
-    public function getRefArticles(Request $request, EntityManagerInterface $entityManager, $activeOnly = false, $typeQuantity = null, $field = 'reference')
+    public function getRefArticles(Request $request,
+                                   EntityManagerInterface $entityManager)
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-            $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity, $field);
+            $activeOnly = $request->query->getBoolean('activeOnly', false);
+            $typeQuantity = $request->query->get('typeQuantity', -1);
+            $field = $request->query->get('field', 'reference');
+            $locationFilter = $request->query->get('locationFilter', null);
+            $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity, $field, $locationFilter);
             return new JsonResponse(['results' => $refArticles]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -893,9 +950,11 @@ class ReferenceArticleController extends AbstractController
 			$refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly);
 			$articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly);
 
-			return new JsonResponse(['results' => array_merge($articles, $refArticles)]);
+			return new JsonResponse([
+			    'results' => array_merge($articles, $refArticles)
+            ]);
 		}
-		throw new NotFoundHttpException("404");
+		throw new BadRequestHttpException();
 	}
 
     /**
@@ -909,6 +968,7 @@ class ReferenceArticleController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function plusDemande(EntityManagerInterface $entityManager,
                                 Request $request,
@@ -918,19 +978,36 @@ class ReferenceArticleController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
+            $transfertRepository = $entityManager->getRepository(TransferRequest::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
 
             $success = true;
 
             $refArticle = (isset($data['refArticle']) ? $referenceArticleRepository->find($data['refArticle']) : '');
+            $article = (isset($data['article']) ? $articleRepository->find($data['article']) : '');
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $statusName = $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : '';
+
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
-				if (array_key_exists('livraison', $data) && $data['livraison']) {
+                if (array_key_exists('transfert', $data) && $data['transfert']) {
+                    $transfert = $transfertRepository->find($data['transfert']);
+
+                    if ($article) {
+                        $transfert
+                            ->addArticle($article);
+                    } else {
+                        $transfert
+                            ->addReference($refArticle);
+                    }
+                } else if (array_key_exists('livraison', $data) && $data['livraison']) {
 				    $demande = $demandeRepository->find($data['livraison']);
                     $success = $this->refArticleDataService->addRefToDemand(
                         $data,
                         $refArticle,
-                        $this->getUser(),
+                        $currentUser,
                         false,
                         $entityManager,
                         $demande,
@@ -955,15 +1032,16 @@ class ReferenceArticleController extends AbstractController
                         }
 					}
 
-				} elseif (array_key_exists('collecte', $data) && $data['collecte']) {
+				} else if (array_key_exists('collecte', $data) && $data['collecte']) {
 					$collecte = $collecteRepository->find($data['collecte']);
 					if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
 						//TODO patch temporaire CEA
-                        $data['quantity-to-pick'] = $data['quantite'];
-                        $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
-						//TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
-						//                    $article = $this->articleRepository->find($data['article']);
-						//                    $collecte->addArticle($article);
+                        if (!isset($article)) {
+                            $data['quantity-to-pick'] = $data['quantite'];
+                            $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
+                        } else {
+                            $collecte->addArticle($article);
+                        }
 					}
 					elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
 						$collecteReference = new CollecteReference();
@@ -988,7 +1066,7 @@ class ReferenceArticleController extends AbstractController
             ]);
 
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1009,6 +1087,7 @@ class ReferenceArticleController extends AbstractController
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
+            $transfersRepository = $entityManager->getRepository(TransferRequest::class);
 
             $refArticle = $referenceArticleRepository->find($data['id']);
             if ($refArticle) {
@@ -1016,6 +1095,7 @@ class ReferenceArticleController extends AbstractController
 
                 $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
                 $demandes = $demandeRepository->findByStatutAndUser($statutD, $this->getUser());
+                $transfers = $transfersRepository->findByStatutLabelAndUser(TransferRequest::DRAFT, $this->getUser());
 
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($refArticle) {
@@ -1048,6 +1128,7 @@ class ReferenceArticleController extends AbstractController
                         'articleOrNo' => $articleOrNo,
                         'collectes' => $collectes,
                         'demandes' => $demandes,
+                        'transfers' => $transfers,
                         'demandeType' => $data['demande']
                     ]),
                     'editChampLibre' => $editChampLibre,
@@ -1062,11 +1143,13 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/colonne-visible", name="save_column_visible", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function saveColumnVisible(Request $request): Response
     {
@@ -1084,7 +1167,7 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse(['success' => true]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1112,7 +1195,7 @@ class ReferenceArticleController extends AbstractController
                 : false;
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
 
@@ -1147,11 +1230,13 @@ class ReferenceArticleController extends AbstractController
                 'code barre',
                 'catégorie inventaire',
                 'date dernier inventaire',
-                'synchronisation nomade'
+                'synchronisation nomade',
+                'gestion de stock',
+                'gestionnaire(s)'
             ],
             $freeFieldsConfig['freeFieldsHeader']
         );
-        $today = new \DateTime();
+        $today = new DateTime();
         $globalTitle = 'export-references-' . $today->format('d-m-Y H:i:s') . '.csv';
         $referencesExportFiles = [];
         $allReferencesCount = intval($referenceArticleRepository->countAll());
@@ -1159,7 +1244,7 @@ class ReferenceArticleController extends AbstractController
         $start = 0;
         do {
             $references = $referenceArticleRepository->getAllWithLimits($start, $step);
-            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $freeFieldService, $references, ($start === 0 ? $headers : null), $freeFieldsConfig);
+            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $freeFieldService, $references, ($start === 0 ? $headers : null), $freeFieldsConfig, $entityManager);
             $references = null;
             $start += $step;
         } while ($start < $allReferencesCount);
@@ -1174,11 +1259,18 @@ class ReferenceArticleController extends AbstractController
                                          FreeFieldService $freeFieldService,
                                          array $references,
                                          ?array $headers,
-                                         array $freeFieldsConfig): string {
+                                         array $freeFieldsConfig,
+                                         $entityManager): string {
+
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+
+        $managersByReferenceArticle = $userRepository->getUsernameManagersGroupByReference();
+
         return $CSVExportService->createCsvFile(
             $references,
             $headers,
-            function ($reference) use ($freeFieldService, $freeFieldsConfig) {
+            function ($reference) use ($freeFieldService, $freeFieldsConfig, $managersByReferenceArticle) {
+                $referenceArticleId = (int) $reference['id'];
                 $referenceArray = [
                     $reference['reference'],
                     $reference['libelle'],
@@ -1195,6 +1287,8 @@ class ReferenceArticleController extends AbstractController
                     $reference['category'],
                     $reference['dateLastInventory'] ? $reference['dateLastInventory']->format('d/m/Y H:i:s') : '',
                     $reference['needsMobileSync'],
+                    $reference['stockManagement'],
+                    $managersByReferenceArticle[$referenceArticleId] ?? ''
                 ];
 
                 foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
@@ -1240,7 +1334,7 @@ class ReferenceArticleController extends AbstractController
 
 			return new JsonResponse($quantityType);
 		}
-		throw new NotFoundHttpException('404');
+		throw new BadRequestHttpException();
 	}
 
     /**
@@ -1257,18 +1351,23 @@ class ReferenceArticleController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
+            $transferRepository = $entityManager->getRepository(TransferRequest::class);
 
             $statutDemande = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
             $demandes = $demandeRepository->findByStatutAndUser($statutDemande, $this->getUser());
             $collectes = $collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
+            $transfers = $transferRepository->findByStatutLabelAndUser(TransferRequest::DRAFT, $this->getUser());
 
             return $this->json([
-                "success" => $demandes || $collectes,
+                "success" =>
+                    ($data['typeDemande'] === 'livraison' && $demandes) ||
+                    ($data['typeDemande'] === 'collecte' && $collectes) ||
+                    ($data['typeDemande'] === 'transfert' && $transfers),
                 "msg" => "Vous n'avez créé aucune demande de {$data['typeDemande']}"
             ]);
         }
 
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1391,7 +1490,7 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1413,7 +1512,7 @@ class ReferenceArticleController extends AbstractController
                'refLabel' => $name?? ''
            ]));
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1460,7 +1559,7 @@ class ReferenceArticleController extends AbstractController
             );
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1475,8 +1574,6 @@ class ReferenceArticleController extends AbstractController
      * @param ReferenceArticle $referenceArticle
      * @param RefArticleDataService $refArticleDataService
      * @return JsonResponse
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      * @throws Exception
      */
     public function updateQuantity(EntityManagerInterface $entityManager,

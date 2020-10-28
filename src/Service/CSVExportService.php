@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Interfaces\Serializable;
 use App\Entity\ParametrageGlobal;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -9,6 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class CSVExportService {
+
+    public static $SERIALIZABLE;
 
     private $entityManager;
 
@@ -48,8 +51,7 @@ class CSVExportService {
         return $tmpCsvFileName;
     }
 
-
-    public function createCsvFile(array $data, array $csvHeader = null, callable $flatMapper = null): string {
+    public function createCsvFile(array $data, ?array $csvHeader = null, ?callable $flatMapper = null): string {
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
         $wantsUFT8 = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::USES_UTF8) ?? true;
 
@@ -99,3 +101,7 @@ class CSVExportService {
         fputcsv($file, $encodedRow, ';');
     }
 }
+
+CSVExportService::$SERIALIZABLE = function(Serializable $serializable) {
+    return [$serializable->serialize()];
+};

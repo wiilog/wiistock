@@ -47,7 +47,7 @@ function typeSelectChange($typeSelect, $modal) {
         $mailCheckContainer.addClass('d-none');
     }
     if ($selectedOption.data('needs-default-locations')) {
-        ajaxAutoCompleteEmplacementInit($defaultLocations.find('.ajax-autocompleteEmplacement'));
+        Select2.location($defaultLocations.find('.ajax-autocomplete-location'))
         $defaultLocations.removeClass('d-none');
     } else {
         $defaultLocations.addClass('d-none');
@@ -56,5 +56,5 @@ function typeSelectChange($typeSelect, $modal) {
 
 function initTypeLocations($modal) {
     const $defaultLocations = $modal.find('.needs-default-locations');
-    ajaxAutoCompleteEmplacementInit($defaultLocations.find('.ajax-autocompleteEmplacement'));
+    Select2.location($defaultLocations.find('.ajax-autocomplete-location'));
 }

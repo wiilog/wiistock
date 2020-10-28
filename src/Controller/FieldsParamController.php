@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -24,7 +24,7 @@ class FieldsParamController extends AbstractController
 
     private $filteredFields = [
         // Arrivages
-        FieldsParam::FIELD_CODE_DUTY_ARRIVAGE,
+        FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE,
         FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE,
         FieldsParam::FIELD_CODE_FOURNISSEUR,
         FieldsParam::FIELD_CODE_TRANSPORTEUR,
@@ -93,7 +93,7 @@ class FieldsParamController extends AbstractController
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -121,7 +121,7 @@ class FieldsParamController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -171,6 +171,6 @@ class FieldsParamController extends AbstractController
             ]);
         }
 
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 }

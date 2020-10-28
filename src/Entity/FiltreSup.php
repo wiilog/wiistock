@@ -32,14 +32,18 @@ class FiltreSup
 	const FIELD_LITIGE_DISPUTE_NUMBER = 'disputeNumber';
 	const FIELD_NUM_ARRIVAGE = 'numArrivage';
 	const FIELD_NATURES = 'natures';
-	const FIELD_DUTY = 'duty';
+	const FIELD_CUSTOMS = 'customs';
 	const FIELD_FROZEN = 'frozen';
 	const FIELD_STATUS_ENTITY = 'statusEntity';
 	const FIELD_MULTIPLE_TYPES = 'multipleTypes';
-	const FIELD_RECEIVERS = 'receivers';
-	const FIELD_REQUESTERS = 'requesters';
+    const FIELD_RECEIVERS = 'receivers';
+    const FIELD_OPERATORS = 'operators';
+    const FIELD_REQUESTERS = 'requesters';
+    const FIELD_ALERT = 'alert';
 	const FIELD_DISPATCH_NUMBER = 'dispatchNumber';
 
+	const PAGE_TRANSFER_REQUEST = 'rtransfer';
+	const PAGE_TRANSFER_ORDER = 'otransfer';
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';
     const PAGE_HAND = 'handling';
@@ -63,23 +67,6 @@ class FiltreSup
     const PAGE_ALERTE = 'alerte';
     const PAGE_ENCOURS = 'encours';
     const PAGE_IMPORT = 'import';
-
-
-    const PAGE_TO_CATEGORY = [
-        self::PAGE_DEM_COLLECTE => CategorieStatut::DEM_COLLECTE,
-        self::PAGE_DEM_LIVRAISON => CategorieStatut::DEM_LIVRAISON,
-        self::PAGE_HAND => CategorieStatut::HANDLING,
-        self::PAGE_RECEPTION => CategorieStatut::RECEPTION,
-        self::PAGE_ORDRE_COLLECTE => CategorieStatut::ORDRE_COLLECTE,
-        self::PAGE_ORDRE_LIVRAISON => CategorieStatut::ORDRE_LIVRAISON,
-        self::PAGE_PREPA => CategorieStatut::PREPARATION,
-        self::PAGE_ARRIVAGE => CategorieStatut::ARRIVAGE,
-        self::PAGE_MVT_STOCK => CategorieStatut::MVT_STOCK,
-        self::PAGE_MVT_TRACA => CategorieStatut::MVT_TRACA,
-        self::PAGE_DISPATCH => CategorieStatut::DISPATCH,
-        self::PAGE_LITIGE => CategorieStatut::LITIGE_ARR,
-        self::PAGE_ARTICLE => CategorieStatut::ARTICLE
-    ];
 
     /**
      * @ORM\Id()

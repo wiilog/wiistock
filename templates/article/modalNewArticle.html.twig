@@ -2,18 +2,16 @@
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Nouvel Article</h5>
+                <h5 class="modal-title">Nouvel article</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body container-fluid">
-                <form class="row ">
+                <form class="row">
                     <div class="col-12">
                         <div class="form-group w-100">
-                            <label for="reference" title="référence">
-                                {{ 'reference.référence'|trans }}*
-                            </label>
+                            <label for="reference" title="Référence">{{ 'reference.référence' | trans }}*</label>
                             <select class="ajax-autocomplete data form-control needed"
                                 onchange="ajaxGetFournisseurByRefArticle($(this))" id="referenceCEA" name="refArticle">
                             </select>
@@ -27,18 +25,16 @@
                             </select>
                         </div>
                     </div>
-                    <div id='newContent' class="col-12">
-
-                    </div>
+                    <div id="newContent" class="col-12"></div>
                 </form>
             </div>
 
             <div class="error-msg"></div>
             <div class="modal-footer">
-                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
                 <button type="button"
                         id="submitNewArticle"
-                        class="btn btn-success data"
+                        class="btn btn-primary data"
                         onclick="resetNewArticle($('#fournisseurAdd'))">
                     Enregistrer
                 </button>

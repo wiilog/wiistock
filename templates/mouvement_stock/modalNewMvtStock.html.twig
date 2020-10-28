@@ -91,8 +91,8 @@
                                 name="chosen-type-mvt"
                                 onchange="newMvtStockTypeChanged($(this))">
                             {% for typeMvt in typesMvt %}
-                                {% set needsLocationShow = (typeMvt == constant('App\\Entity\\MouvementStock::TYPE_TRANSFERT')) %}
-                                {% set needsQuantityShow = (typeMvt != constant('App\\Entity\\MouvementStock::TYPE_TRANSFERT')) %}
+                                {% set needsLocationShow = (typeMvt == constant('App\\Entity\\MouvementStock::TYPE_TRANSFER')) %}
+                                {% set needsQuantityShow = (typeMvt != constant('App\\Entity\\MouvementStock::TYPE_TRANSFER')) %}
                                 {% set needsQuantityCap = (typeMvt == constant('App\\Entity\\MouvementStock::TYPE_SORTIE')) %}
                                 <option value="{{ typeMvt }}"
                                         data-needs-location="{{ needsLocationShow }}"
@@ -134,13 +134,13 @@
             </div>
             <div class="error-msg"></div>
             <div class="modal-footer">
-                <button type="button" class="btn"
+                <button type="button" class="btn btn-secondary"
                         data-dismiss="modal">
                     Annuler
                 </button>
                 <button id="submitNewMvtStock"
                         type="button"
-                        class="btn btn-success">
+                        class="btn btn-primary">
                     Enregistrer
                 </button>
             </div>

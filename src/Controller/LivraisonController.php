@@ -27,7 +27,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
@@ -151,7 +151,7 @@ class LivraisonController extends AbstractController
             $data = $livraisonService->getDataForDatatable($request->request, $filterDemandId);
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -208,7 +208,7 @@ class LivraisonController extends AbstractController
             }
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -315,7 +315,7 @@ class LivraisonController extends AbstractController
 
             $data = [
                 'success' => true,
-                'redirect' => $this->generateUrl('preparation_show', [
+                'redirect' => $this->redirect('preparation_show', [
                     'id' => $preparation->getId()
                 ]),
             ];
@@ -365,7 +365,7 @@ class LivraisonController extends AbstractController
             }
             return new JsonResponse($data);
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 

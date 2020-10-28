@@ -24,10 +24,9 @@
                         <span class="fa fa-angle-down"></span>
                     </button>
                     <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-                        <a class="dropdown-item"
+                        <a class="dropdown-item pointer"
                            data-toggle="modal"
-                           data-target="#modalColumnVisibleLitige"
-                           href="#">
+                           data-target="#modalColumnVisibleLitige">
                             <span class="fas fa-cog mr-2"></span>
                             Gestion des colonnes
                         </a>
@@ -55,6 +54,6 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/form-litiges.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/pages/litiges.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/form-litiges.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/litiges.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

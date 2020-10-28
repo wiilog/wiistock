@@ -80,15 +80,20 @@ class FreeFieldService
             ->setFreeFields($freeFields);
     }
 
-    public function manageJSONFreeField(FreeField $champLibre, $value): string
-    {
-        $value = $champLibre->getTypage() === FreeField::TYPE_BOOL
-            ? empty($value) || $value === "false"
-                ? "0"
-                : "1"
-            : (is_array($value)
-                ? implode(';', $value)
-                : $value);
+    public function manageJSONFreeField(FreeField $champLibre, $value): string {
+        if($champLibre->getTypage() === FreeField::TYPE_BOOL) {
+            $value = empty($value) || $value === "false" ? "0" : "1";
+        } else if($champLibre->getTypage() === FreeField::TYPE_LIST_MULTIPLE) {
+            if (is_array($value)) {
+                $value = implode(';', $value);
+            }
+            else {
+                $decoded = json_decode($value, true);
+                $value = json_last_error() !== JSON_ERROR_NONE
+                    ? $value
+                    : implode(';', $decoded ?: []);
+            }
+        }
 
         return strval($value);
     }

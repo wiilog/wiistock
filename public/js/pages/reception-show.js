@@ -161,6 +161,10 @@ function InitPageDataTable() {
 function initEditReception() {
     initDateTimePickerReception();
     initOnTheFlyCopies($('.copyOnTheFly'));
+
+    Select2.provider($('.ajax-autocomplete-fournisseur-edit'));
+    Select2.location($('.ajax-autocomplete-location-edit'));
+    Select2.carrier($('.ajax-autocomplete-transporteur-edit'));
 }
 
 function initDateTimePickerReception() {
@@ -463,7 +467,7 @@ function clearModalLigneReception(modal) {
     $('.packing-title').addClass('d-none');
     clearModal(modal);
 
-    toggleDLForm();
+    toggleForm($('.transfer-form,.demande-form'), null, true);
     resetDefaultArticleFournisseur();
 }
 
@@ -552,6 +556,7 @@ function initNewLigneReception($button) {
         editorNewLivraisonAlreadyDoneForDL = true;
     }
     Select2.init($modalNewLigneReception.find('.ajax-autocomplete-location'), '', 1, {route: 'get_emplacement'});
+    Select2.location($('.ajax-autocomplete-location-edit'));
     Select2.init($('.select2-type'));
     Select2.user($modalNewLigneReception.find('.select2-user'));
     Select2.initValues($('#demandeurDL'), $( '#currentUser'));
@@ -559,8 +564,16 @@ function initNewLigneReception($button) {
         route: 'get_ref_article_reception',
         param: {reception: $('#receptionId').val()}
     });
+
     if ($('#locationDemandeLivraison').length > 0) {
         Select2.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
+    }
+    if ($('#storageTransfer').length > 0) {
+        Select2.initValues($('#storage'), $('#storageTransfer'));
+    }
+
+    if ($('#originTransfer').length > 0) {
+        Select2.initValues($('#origin'), $('#originTransfer'));
     }
 
     let urlNewLigneReception = Routing.generate(
@@ -570,6 +583,7 @@ function initNewLigneReception($button) {
     );
     let $submitNewReceptionButton = $modalNewLigneReception.find("#submitNewReceptionButton");
 
+    $submitNewReceptionButton.off('click');
     $submitNewReceptionButton.click(function () {
         const error = getErrorModalNewLigneReception();
         const $errorContainer = $modalNewLigneReception.find('.error-msg');
@@ -594,13 +608,13 @@ function initNewLigneReception($button) {
 
     const $select = $modalNewLigneReception.find('.demande-form [name="type"]');
     toggleRequiredChampsLibres($select, 'create');
-    typeChoice($select, '-new')
+    typeChoice($select);
 }
 
 function onRequestTypeChange($select) {
     const $freeFieldContainer = $modalNewLigneReception.find('.demande-form .free-fields-container');
     toggleRequiredChampsLibres($select, 'create', $freeFieldContainer);
-    typeChoice($select, '-new', $freeFieldContainer);
+    typeChoice($select, $freeFieldContainer);
 }
 
 
@@ -685,7 +699,6 @@ function createHandlerAddLigneArticleResponse($modal) {
                 showBSAlert(data.msg, 'danger');
             }
         } else {
-            showBSAlert('La référence a été ajoutée à la réception', 'success');
             $modal.find('.close').click();
             clearModal($modal);
         }
@@ -730,18 +743,31 @@ function updateQuantityToReceive($input) {
     $input.closest('.modal').find('[name="quantite"]').attr('max', $input.val());
 }
 
-function toggleDLForm() {
-    const $input = $('#modalNewLigneReception input[name="create-demande"]');
-    const $demandeForm = $input
-        .parents('form')
-        .find('.demande-form');
-
-    if ($input.is(':checked')) {
-        $demandeForm.removeClass('d-none');
-        $demandeForm.find('.data').attr('disabled', null);
+function toggleForm($content, $input, force = false) {
+    if (force) {
+        $content = $('.transfer-form');
+        $content.addClass('d-none');
+        $content.find('.data').attr('disabled', 'disabled');
     } else {
-        $demandeForm.addClass('d-none');
-        $demandeForm.find('.data').attr('disabled', 'disabled');
+        if ($input.is(':checked')) {
+            $content.removeClass('d-none');
+            $content.find('.data').prop('disabled', false);
+
+            if ($content.hasClass('transfer-form')) {
+                $('.demande-form').addClass('d-none');
+                $('.demande-form').find('.data').attr('disabled', 'disabled');
+                $('.demande-form').find('.wii-switch').removeClass('needed');
+                $('input[name="create-demande"]').prop('checked', false);
+            } else {
+                $('.transfer-form').addClass('d-none');
+                $('.transfer-form').find('.data').attr('disabled', 'disabled');
+                $('input[name="create-demande-transfert"]').prop('checked', false);
+
+            }
+        } else {
+            $content.addClass('d-none');
+            $content.find('.data').prop('disabled', true);
+        }
     }
 }
 
@@ -786,3 +812,4 @@ function resetDefaultArticleFournisseur(show = false) {
         $selectArticleFournisseurFormGroup.addClass('d-none');
     }
 }
+

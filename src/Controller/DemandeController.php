@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
@@ -17,6 +18,8 @@ use App\Entity\Article;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\ReceptionRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Service\ArticleDataService;
@@ -32,10 +35,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -99,13 +103,10 @@ class DemandeController extends AbstractController
      * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \App\Exceptions\ArticleNotAvailableException
-     * @throws \App\Exceptions\RequestNeedToBeProcessedException
      */
     public function compareStock(Request $request,
                                  DemandeLivraisonService $demandeLivraisonService,
@@ -121,7 +122,7 @@ class DemandeController extends AbstractController
             );
             return new JsonResponse($responseAfterQuantitiesCheck);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -129,7 +130,6 @@ class DemandeController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
@@ -179,7 +179,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -189,7 +189,6 @@ class DemandeController extends AbstractController
      * @param DemandeLivraisonService $demandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function edit(Request $request,
                          FreeFieldService $champLibreService,
@@ -244,7 +243,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse($response);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -268,7 +267,7 @@ class DemandeController extends AbstractController
                 'redirect' => $this->generateUrl('demande_show', ['id' => $demande->getId()]),
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -352,11 +351,13 @@ class DemandeController extends AbstractController
             }
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/api", options={"expose"=true}, name="demande_api", methods={"POST"})
+     * @param Request $request
+     * @return Response
      */
     public function api(Request $request): Response
     {
@@ -373,7 +374,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse($data);
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -466,7 +467,7 @@ class DemandeController extends AbstractController
             $data['data'] = array_merge($rowsCA, $rowsRC);
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -475,13 +476,10 @@ class DemandeController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $champLibreService
      * @return Response
-     * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \App\Exceptions\ArticleNotAvailableException
-     * @throws \App\Exceptions\RequestNeedToBeProcessedException
      */
     public function addArticle(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
     {
@@ -494,10 +492,13 @@ class DemandeController extends AbstractController
             $referenceArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $demande = $demandeRepository->find($data['livraison']);
+
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
             $resp = $this->refArticleDataService->addRefToDemand(
                 $data,
                 $referenceArticle,
-                $this->getUser(),
+                $currentUser,
                 false,
                 $entityManager,
                 $demande,
@@ -510,7 +511,7 @@ class DemandeController extends AbstractController
             $entityManager->flush();
             return new JsonResponse($resp);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -543,7 +544,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -566,7 +567,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -602,7 +603,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -624,7 +625,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse($count > 0);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -646,7 +647,7 @@ class DemandeController extends AbstractController
         try {
             $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
             $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
         }
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
@@ -765,7 +766,7 @@ class DemandeController extends AbstractController
                 }
             );
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -815,7 +816,7 @@ class DemandeController extends AbstractController
                 'results' => $demandeRepository->getIdAndLibelleBySearch($search)
             ]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
 }

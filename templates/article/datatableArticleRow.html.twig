@@ -17,10 +17,17 @@
                     </div>
                 </div>
             {% endif %}
-            <a class="dropdown-item"
-               href="{{ path('article_single_bar_code_print', {article: articleId}) }}">
-                <i class="fas fa-print mr-2"></i>Imprimer
-            </a>
+            {% if fromReception %}
+                <a class="dropdown-item"
+                   href="{{ path('reception_article_single_bar_code_print', {article: articleId, reception: receptionId}) }}">
+                    <i class="fas fa-print mr-2"></i>Imprimer
+                </a>
+            {% else %}
+                <a class="dropdown-item"
+                   href="{{ path('article_single_bar_code_print', {article: articleId}) }}">
+                    <i class="fas fa-print mr-2"></i>Imprimer
+                </a>
+            {% endif %}
             {% if demandeId is not null %}
                 <div class="dropdown-item" data-id='{{ articleId }}'
                      onclick='redirectToDemandeLivraison({{ demandeId }})'>

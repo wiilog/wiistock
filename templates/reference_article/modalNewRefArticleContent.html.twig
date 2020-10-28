@@ -43,9 +43,9 @@
 <div class="row">
     <div class="form-group col-4">
         <label for="type">Type*</label>
-        <select name="type" onclick="typeChoice($(this), '-new')"
-                onchange="toggleRequiredChampsLibres($(this),'create')"
-                class="form-control data d-block type needed" id="">
+        <select name="type"
+                onchange="typeChoice($(this)); toggleRequiredChampsLibres($(this),'create')"
+                class="form-control data d-block type needed">
             <option value="">Type à choisir...</option>
             {% for type in types %}
                 <option value="{{ type.id }}">{{ type.label }}</option>
@@ -60,6 +60,12 @@
             {% endfor %}
         </select>
     </div>
+
+    <div class="form-group col-4">
+        <label>Gestionnaires</label>
+        <select name="managers" class="form-control data ajax-autocomplete-user managers w-100" multiple>
+        </select>
+    </div>
 </div>
 <div class="row mb-4">
     <div class="form-group col-12">
@@ -70,10 +76,10 @@
         </div>
     </div>
 </div>
-<div class="row mt-10 mb-4">
+<div class="row mt-10">
     <div class="form-group col-4">
-        <div class="input-group radio-btn">
-            <label for="statut" class="my-auto mr-2">Gestion quantité</label>
+        <div class="radio-btn">
+            <label>Gestion quantité</label>
             <div onclick="updateQuantityDisplay($(this))">
                                 <span class="btn active" data-toggle="type_quantite" data-title="reference"
                                       onclick="toggleRequiredChampsFixes($(this)), toggleRadioButton($(this)) ">Par
@@ -86,15 +92,13 @@
 
         </div>
     </div>
-    <div class="form-group col-4 mt-4">
+    <div class="form-group col-4">
         <div class="article d-none">
-            <div class="d-flex align-items-center">
-                <label for="urgence">Urgence ? </label>
-                <label class="switch ml-3">
-                    <input class="checkbox" type="checkbox" name="urgence" onchange="toggleEmergency($(this))">
-                    <span class="slider round"></span>
-                </label>
-            </div>
+            <label>Urgence ?</label><br>
+            <label class="switch">
+                <input class="checkbox" type="checkbox" name="urgence" onchange="toggleEmergency($(this))">
+                <span class="slider round"></span>
+            </label>
         </div>
     </div>
     <div class="form-group col-4">
@@ -117,14 +121,26 @@
         <label for="quantite">Quantité*</label>
         <input class="form-control data needed" type="number" min="0" name="quantite" id="quantite">
     </div>
-    <div class="form-group col-4 article d-none">
-        <label for="quantite">Quantité</label>
-        <input disabled class="form-control" type="number">
-    </div>
     <div class="form-group col-4 reference">
         <label for="prix">Prix Unitaire (€)</label>
         <input class="form-control data" type="number" name="prix" min="0" step="0.01">
     </div>
+
+    <div class="form-group col-4 article d-none">
+        <label for="quantite">Quantité</label>
+        <input disabled class="form-control" type="number">
+    </div>
+
+    <div class="form-group col-4 article d-none">
+        <label>Gestion de stock</label>
+        <select name="stockManagement" class="form-control data">
+            <option value=""></option>
+            {% for value in stockManagement %}
+                <option value="{{ value }}">{{ value }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
     <div class="form-group col-4">
         <label for="limitWarning">Seuil d'alerte</label>
         <input class="form-control data" type="number" name="limitWarning" min="0">
@@ -139,13 +155,15 @@
 <span class="toggle-collapsible expanded">Champs libres</span>
 <div class="collapsible expanded free-fields-container">
     {% for type in typeChampsLibres %}
-        <div class="d-none" id="{{ type.typeId }}-new">
+        <div class="d-none"
+             data-type="{{ type.typeId }}">
             {% include 'free_field/freeFieldsViewing.html.twig' with {
                 freeFields: type.champsLibres,
                 freeFieldValues: [],
                 colType: 'col-md-4 col-12',
                 requiredType: 'requiredCreate',
-                actionType: 'new'
+                actionType: 'new',
+                disabledNeeded: true
             } %}
         </div>
     {% endfor %}

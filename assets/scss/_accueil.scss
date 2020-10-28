@@ -82,6 +82,12 @@
         background: $white;
         padding: 0.5rem;
 
+        &.pending-requests {
+            background: $mainGrey;
+            height: initial !important;
+            box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+        }
+
         &.dashboard-box-list {
             .title {
                 margin-bottom: 1.5rem;
@@ -93,14 +99,13 @@
         }
 
         .title {
+            @extend .h5;
             line-height: 0.7;
-            font-size: 1vw;
             margin-bottom: 0.3rem;
             padding: 0;
             color: $blackDashboard;
 
             .dashboard-ext & {
-                font-size: 2.2vh;
                 font-weight: bold;
             }
         }
@@ -226,16 +231,6 @@
     }
 }
 
-.page-item.active .page-link {
-    background-color: #130078 !important;
-    border-color: #130078 !important;
-    color: #fff !important;
-}
-
-.page-link {
-    color: #130078 !important;
-}
-
 .chart {
     height: 70%;
     width: 99%;
@@ -256,19 +251,7 @@
 }
 
 .plus-btn {
-    display: inline-block;
-    padding: 8px;
-    border-radius: 5px;
-    cursor: pointer;
-
-    .icon {
-        background-color: $white;
-        width: 20px;
-        height: 20px;
-        display: block;
-        -webkit-mask: url("../../public/svg/plusblanc.svg") no-repeat center;
-        mask: url("../../public/svg/plusblanc.svg") no-repeat center;
-    }
+    @include icon-button;
 
     &:hover {
         background-color: $white;

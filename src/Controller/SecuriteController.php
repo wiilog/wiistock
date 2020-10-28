@@ -18,7 +18,7 @@ use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use App\Service\PasswordService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use App\Service\UserService;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
@@ -309,7 +309,7 @@ class SecuriteController extends AbstractController
                 return new JsonResponse('access_denied');
             }
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -355,6 +355,6 @@ class SecuriteController extends AbstractController
 
             return new JsonResponse($errorCode);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 }

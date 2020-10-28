@@ -24,7 +24,7 @@ class AverageRequestTime
     private $type;
 
     /**
-     * @ORM\Column(type="dateinterval", nullable=true)
+     * @ORM\Column(type="integer", nullable=true)
      */
     private $average;
 
@@ -50,12 +50,12 @@ class AverageRequestTime
         return $this;
     }
 
-    public function getAverage(): ?\DateInterval
+    public function getAverage(): ?int
     {
         return $this->average;
     }
 
-    public function setAverage(?\DateInterval $average): self
+    public function setAverage(?int $average): self
     {
         $this->average = $average;
 

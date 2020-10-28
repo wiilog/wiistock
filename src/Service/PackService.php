@@ -7,7 +7,7 @@ use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Utilisateur;
@@ -29,17 +29,17 @@ Class PackService
     private $entityManager;
     private $security;
     private $template;
-    private $mouvementTracaService;
+    private $trackingMovementService;
     private $specificService;
 
-    public function __construct(MouvementTracaService $mouvementTracaService,
+    public function __construct(TrackingMovementService $trackingMovementService,
                                 SpecificService $specificService,
                                 Security $security,
                                 Twig_Environment $template,
                                 EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
         $this->specificService = $specificService;
-        $this->mouvementTracaService = $mouvementTracaService;
+        $this->trackingMovementService = $trackingMovementService;
         $this->security = $security;
         $this->template = $template;
     }
@@ -80,19 +80,11 @@ Class PackService
      */
     public function dataRowPack(Pack $pack)
     {
-        if ($pack->getArrivage()) {
-            $fromPath = 'arrivage_show';
-            $fromLabel = 'arrivage.arrivage';
-            $fromEntityId = $pack->getArrivage()->getId();
-            $originFrom = $pack->getArrivage()->getNumeroArrivage();
-        } else {
-            $fromPath = null;
-            $fromEntityId = null;
-            $fromLabel = null;
-            $originFrom = '-';
-        }
+        $firstMovement = $pack->getTrackingMovements('ASC')->first();
+        $fromColumnData  = $this->trackingMovementService->getFromColumnData($firstMovement ?: null);
 
-        /** @var MouvementTraca $lastPackMovement */
+
+        /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
         return [
             'actions' => $this->template->render('pack/datatablePackRow.html.twig', [
@@ -106,12 +98,7 @@ Class PackService
                     ? $lastPackMovement->getDatetime()->format('d/m/Y \à H:i:s')
                     : '')
                 : '',
-            'packOrigin' => $this->template->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', [
-                'from' => $originFrom,
-                'fromLabel' => $fromLabel,
-                'entityPath' => $fromPath,
-                'entityId' => $fromEntityId
-            ]),
+            'packOrigin' => $this->template->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'packLocation' => $lastPackMovement
                 ? ($lastPackMovement->getEmplacement()
                     ? $lastPackMovement->getEmplacement()->getLabel()
@@ -260,17 +247,17 @@ Class PackService
             for ($i = 0; $i < $number; $i++) {
                 $pack = $this->createPack(['arrival' => $arrivage, 'nature' => $nature]);
                 if ($defaultEmpForMvt) {
-                    $mouvementDepose = $this->mouvementTracaService->createTrackingMovement(
+                    $mouvementDepose = $this->trackingMovementService->createTrackingMovement(
                         $pack,
                         $defaultEmpForMvt,
                         $user,
                         $now,
                         false,
                         true,
-                        MouvementTraca::TYPE_DEPOSE,
+                        TrackingMovement::TYPE_DEPOSE,
                         ['from' => $arrivage]
                     );
-                    $this->mouvementTracaService->persistSubEntities($this->entityManager, $mouvementDepose);
+                    $this->trackingMovementService->persistSubEntities($this->entityManager, $mouvementDepose);
                     $this->entityManager->persist($mouvementDepose);
                 }
                 $entityManager->persist($pack);

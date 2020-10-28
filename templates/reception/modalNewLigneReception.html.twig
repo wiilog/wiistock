@@ -12,16 +12,16 @@
                 <!--
                 BLOCK DL
                 -->
-                    <label>Demande de livraison</label>
-                    <label class="switch">
-                        <input class="checkbox data needs-default"
-                               name="create-demande"
-                               onclick="toggleDLForm()"
-                               data-init="{{ createDL ? 1 : 0 }}"
-                               type="checkbox"/>
-                        <span class="slider round"></span>
-                    </label>
-                <div class="demande-form mt-2" style="background-color:#F8F8F8;padding:10px;border-radius:4px;">
+                <label>Demande de livraison</label>
+                <label class="switch">
+                    <input class="checkbox data needs-default"
+                           name="create-demande"
+                           onclick="toggleForm($('.demande-form'), $(this))"
+                           data-init="{{ createDL ? 1 : 0 }}"
+                           type="checkbox"/>
+                    <span class="slider round"></span>
+                </label>
+                <div class="demande-form mt-2 {{ not createDL ? 'd-none' }}" style="background-color:#F8F8F8;padding:10px;border-radius:4px;">
                     <div class="row">
                         <div class="col-4 form-group">
                             <label for="destination">Destination*</label>
@@ -53,17 +53,29 @@
                         </div>
                     </div>
 
+                    <div class="collapsible expanded mb-2 direct-delivery">
+                        <label>Livraison directe</label>
+                        <label class="switch">
+                            <input class="checkbox data needs-default"
+                                   name="direct-delivery"
+                                   type="checkbox"/>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
                     <!-- CHAMPS LIBRES -->
                     <span class="toggle-collapsible expanded">Champs libres</span>
                     <div class="collapsible expanded free-fields-container mb-2">
                         {% for type in typeChampsLibres %}
-                            <div class="d-none" id="{{ type.typeId }}-new">
+                            <div class="d-none"
+                                 data-type="{{ type.typeId }}">
                                 {% include 'free_field/freeFieldsViewing.html.twig' with {
                                     freeFields: type.champsLibres,
                                     freeFieldValues: [],
                                     colType: 'col-md-4 col-12',
                                     requiredType: 'requiredCreate',
-                                    actionType: 'new'
+                                    actionType: 'new',
+                                    disabledNeeded: true
                                 } %}
                             </div>
                         {% endfor %}
@@ -76,13 +88,44 @@
                            type="hidden"/>
                     <div class="editor-container" id="editor-container-new-demande"></div>
                 </div>
-
+                <div class="mt-2">
+                    <label>Demande de transfert</label>
+                    <label class="switch">
+                        <input class="checkbox data needs-default"
+                               name="create-demande-transfert"
+                               onclick="toggleForm($('.transfer-form'), $(this))"
+                               data-init="0"
+                               type="checkbox"/>
+                        <span class="slider round"></span>
+                    </label>
+                    <div class="transfer-form mt-4" style="background-color:#F8F8F8;padding:10px;border-radius:4px;">
+                        <div class="row">
+                            <div class="col-4 form-group">
+                                <label for="storage">Emplacement de stockage*</label>
+                                <select name="storage" class="data ajax-autocomplete-location-edit w-100 needed" id="storage">
+                                </select>
+                                <input hidden id="storageTransfer"
+                                       data-id="{{ reception.storageLocation ? reception.storageLocation.id }}"
+                                       data-text="{{ reception.storageLocation ? reception.storageLocation.label }}">
+                            </div>
+                            <div class="col-4 form-group">
+                                <label for="origin">Emplacement d'origine'*</label>
+                                <select name="origin" class="data ajax-autocomplete-location-edit w-100 needed" id="origin">
+                                </select>
+                                <input hidden id="originTransfer"
+                                       data-id="{{ reception.location ? reception.location.id }}"
+                                       data-text="{{ reception.location ? reception.location.label }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!--
                 BLOCK CONDITIONNEMENT
                 -->
                 <div class="bloc-packing mt-5">
                     <h5 class="bold mb-3">
-                        <span title="réception">{{ 'réception.réception'|trans }}</span> <span title="d'articles">{{ "réception.d'articles"|trans }}</span>
+                        <span title="réception">{{ 'réception.réception'|trans }}</span> <span
+                            title="d'articles">{{ "réception.d'articles"|trans }}</span>
                     </h5>
                     <div class="row align-items-center">
                         <div class="col-4">
@@ -122,7 +165,7 @@
                                            name="numberInPackage"/>
                                 </div>
                                 <div class="col-2 text-center">
-                                    <button class="btn btn-success"
+                                    <button class="btn btn-primary"
                                             type="button"
                                             onclick="validatePacking($(this))">
                                         <i class="fas fa-plus"></i>
@@ -140,8 +183,8 @@
             </div>
             <div class="p-4 error-msg"></div>
             <div class="modal-footer">
-                <div class="btn" data-dismiss="modal">Fermer</div>
-                <button id="submitNewReceptionButton" type="button" class="btn btn-success">Enregistrer</button>
+                <div class="btn btn-secondary" data-dismiss="modal">Fermer</div>
+                <button id="submitNewReceptionButton" type="button" class="btn btn-primary">Enregistrer</button>
             </div>
         </div>
     </div>

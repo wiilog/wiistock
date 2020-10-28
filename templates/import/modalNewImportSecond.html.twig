@@ -19,7 +19,7 @@
                             {% for fieldValue, fieldName in fields %}
                                 {% set needed = fieldValue in fieldsNeeded ? '*'%}
                                 {% set pk = (fieldValue == fieldPK) ? ' [clé unique]' %}
-                                {% set selected = (columnsToFields[i] is defined and fieldValue == columnsToFields[i]) ? 'selected' %}
+                                {% set selected = (data.headers[i]|lower in fieldName|lower) ? 'selected' %}
                                 <option value="{{ fieldValue }}" {{ selected }}>{{ fieldName|capitalize }}{{ needed }}{{ pk }}</option>
                             {% endfor %}
                         </select>

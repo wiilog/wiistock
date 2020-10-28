@@ -8,17 +8,8 @@
     <div class="form-group">
         <label for="label">Catégorie</label>
         <select name="category"
-                id="categories"
-                class="data form-control needed"
-                onchange="typeSelectChange($(this), $('#modalEditType'))">
-            {% for category in categories %}
-                {% set selected = (category.id == type.category.id ? 'selected') %}
-                    <option value="{{ category.id }}"
-                            {{ selected }}
-                            data-needs-default-locations="{{ category.label == constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH') }}"
-                            data-needs-send-mail="{{ category.label == constant('App\\Entity\\CategoryType::DEMANDE_LIVRAISON') }}">
-                        {{ category.label }}</option>
-            {% endfor %}
+                class="data form-control" disabled>
+            <option value="{{ type.category.id }}" selected>{{ type.category.label }}</option>
         </select>
     </div>
 

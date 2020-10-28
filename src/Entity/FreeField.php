@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\Serializable;
+use App\Helper\Stream;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -10,7 +12,7 @@ use App\Repository\FreeFieldRepository;
 /**
  * @ORM\Entity(repositoryClass=FreeFieldRepository::class)
  */
-class FreeField {
+class FreeField implements Serializable {
 
     const TYPE_BOOL = 'booleen';
     const TYPE_TEXT = 'text';
@@ -123,7 +125,7 @@ class FreeField {
         $this->filters = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->label;
     }
@@ -270,13 +272,18 @@ class FreeField {
     }
 
     public function serialize(): array {
+        $type = $this->getType();
+        $categoryType = $type ? $type->getCategory() : null;
         return [
             'id' => $this->getId(),
             'label' => $this->getLabel(),
             'elements' => $this->getElements(),
             'typing' => $this->getTypage(),
             'defaultValue' => $this->getDefaultValue(),
-            'required' => $this->getRequiredCreate()
+            'requiredCreate' => $this->getRequiredCreate(),
+            'requiredEdit' => $this->getRequiredEdit(),
+            'typeId' => $this->getType() ? $this->getType()->getId() : null,
+            'categoryType' => $categoryType ? $categoryType->getLabel() : null,
         ];
     }
 

@@ -12,18 +12,21 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class ActionsFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     private $encoder;
     private $specificService;
+    private $output;
 
     public function __construct(UserPasswordEncoderInterface $encoder,
                                 SpecificService $specificService)
     {
         $this->encoder = $encoder;
         $this->specificService = $specificService;
+        $this->output = new ConsoleOutput();
     }
 
     public function load(ObjectManager $manager)
@@ -55,6 +58,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::TREAT_LITIGE
 			],
 			Menu::DEM => [
+				Action::DISPLAY_TRANSFER_REQ,
 				Action::DISPLAY_DEM_COLL,
 				Action::DISPLAY_DEM_LIVR,
 				Action::DISPLAY_HAND,
@@ -71,8 +75,9 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 Action::TREAT_HANDLING,
 			],
 			Menu::ORDRE => [
-				Action::DISPLAY_ORDRE_COLL,
-				Action::DISPLAY_ORDRE_LIVR,
+                Action::DISPLAY_ORDRE_COLL,
+                Action::DISPLAY_ORDRE_LIVR,
+                Action::DISPLAY_ORDRE_TRANS,
 				Action::DISPLAY_PREPA,
 				Action::DISPLAY_RECE,
 				Action::CREATE_REF_FROM_RECEP,
@@ -131,7 +136,8 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 Action::DELETE => [
                     Action::DELETE_DRAFT_DISPATCH,
                     Action::DELETE_UNPROCESSED_DISPATCH,
-                    Action::DELETE_PROCESSED_DISPATCH
+                    Action::DELETE_PROCESSED_DISPATCH,
+                    Action::DELETE_UNPROCESSED_HANDLING
                 ],
                 Action::EDIT => [
                     Action::EDIT_DRAFT_DISPATCH,
@@ -202,7 +208,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                         }
                     }
                     $manager->persist($action);
-                    dump("création de l'action " . $menuCode . " / " . $actionLabel);
+                    $this->output->writeln("création de l'action " . $menuCode . " / " . $actionLabel);
                 }
                 $manager->flush();
                 if (!$action->getRoles()->isEmpty() && $hasSubActions) {
@@ -219,7 +225,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                                 $subAction->addRole($role);
                             }
                             $manager->persist($subAction);
-                            dump("création de l'action " . $menuCode . " / " . $subActionLabel);
+                            $this->output->writeln("création de l'action " . $menuCode . " / " . $subActionLabel);
                         }
                     }
                 }
@@ -256,12 +262,12 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
             if (!isset($menusToLower[$menuLabelToLower])) {
                 foreach ($menu->getActions() as $action) {
                     $manager->remove($action);
-                    dump("Suppression du droit :  $menuLabelToLower / $actionLabelToLower");
+                    $this->output->writeln("Suppression du droit :  $menuLabelToLower / $actionLabelToLower");
                 }
                 $manager->remove($menu);
             } else if (!in_array($actionLabelToLower, $menusToLower[$menuLabelToLower])) {
                 $manager->remove($savedAction);
-                dump("Suppression du droit :  $menuLabelToLower / $actionLabelToLower");
+                $this->output->writeln("Suppression du droit :  $menuLabelToLower / $actionLabelToLower");
             }
         }
     }

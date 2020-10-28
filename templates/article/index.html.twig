@@ -47,17 +47,15 @@
                                 Impression des étiquettes
                             </div>
                         {% endif %}
-                        <a class="dropdown-item"
+                        <a class="dropdown-item pointer"
                            data-toggle="modal"
-                           data-target="#modalColumnVisible"
-                           href="#">
+                           data-target="#modalColumnVisible">
                             <span class="fas fa-cog mr-2"></span>
                             Gestion des colonnes
                         </a>
-                        <a class="dropdown-item"
+                        <a class="dropdown-item pointer"
                            data-toggle="modal"
-                           data-target="#modalRapidSearch"
-                           href="#">
+                           data-target="#modalRapidSearch">
                             <span class="fa fa-search mr-2"></span>
                             Recherche rapide
                         </a>
@@ -104,5 +102,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/article.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/article.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

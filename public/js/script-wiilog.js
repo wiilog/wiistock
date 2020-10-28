@@ -1,3 +1,5 @@
+const PAGE_TRANSFER_REQUEST = 'rtransfer';
+const PAGE_TRANSFER_ORDER = 'otransfer';
 const PAGE_DEM_COLLECTE = 'dcollecte';
 const PAGE_DEM_LIVRAISON = 'dlivraison';
 const PAGE_HAND = 'handling';
@@ -32,6 +34,10 @@ const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \/\-]{1,24}$/;
 // alert modals config
 const AUTO_HIDE_DEFAULT_DELAY = 2000;
 
+// set max date for pickers
+const MAX_DATETIME_HTML_INPUT = '2100-12-31T23:59'
+const MAX_DATE_HTML_INPUT = '2100-12-31'
+
 $(function () {
     $(document).on('hide.bs.modal', function () {
         $('.select2-container.select2-container--open').remove();
@@ -39,28 +45,41 @@ $(function () {
 
     $('[data-toggle="popover"]').popover();
 
-    let $quickCreate = $('#quick-create');
-    $('[data-target="#quick-create"]')
-        .click(() => {
-            if ($quickCreate.hasClass('d-none')) {
-                $quickCreate.removeClass('d-none');
-                $quickCreate.fadeIn();
-            } else {
-                $quickCreate.fadeOut(() => {
-                    $quickCreate.addClass('d-none');
-                });
-            }
-        });
-
     setTimeout(() => {
-        let query = GetRequestQuery();
-        if(query["open-modal"] === "new") {
-            $('[data-modal-type="new"]').first().modal("show");
-            delete query["open-modal"];
-            SetRequestQuery(query);
-        }
+        openQueryModal();
     }, 200);
+
+    $('[type=datetime-local]').attr('max', MAX_DATETIME_HTML_INPUT);
+    $('[type=date]').attr('max', MAX_DATE_HTML_INPUT);
+
+    // Override Symfony Form content
+    $('.form-error-icon').text('Erreur');
+    $('.removeRequired, .form-group, label').removeClass('required');
 });
+
+function openQueryModal(query = null, event) {
+    if (event) {
+        event.preventDefault();
+    }
+    query = query || GetRequestQuery();
+    const openModalNew = 'new';
+    const openModalEdit = 'edit';
+    if (query["open-modal"] === openModalNew
+        || query["open-modal"] === openModalEdit) {
+        if (query["open-modal"] === openModalNew) {
+            const $modal = $('[data-modal-type="new"]').first();
+            clearModal($modal)
+            $modal.modal("show");
+        } else { // edit
+            const $openModal = $(`.open-modal-edit`);
+            $openModal.data('id', query['modal-edit-id']);
+            $openModal.trigger('click');
+            delete query['modal-edit-id'];
+        }
+        delete query["open-modal"];
+        SetRequestQuery(query);
+    }
+}
 
 //DELETE
 function deleteRow(button, modal, submit) {
@@ -164,7 +183,7 @@ function toggleRadioButton($button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-function toggleLivraisonCollecte($switch) {
+function toggleRequestType($switch) {
     let type = $switch.val();
 
     let path = Routing.generate('demande', true);
@@ -179,8 +198,10 @@ function toggleLivraisonCollecte($switch) {
             let pathIndex;
             if (type === 'livraison') {
                 pathIndex = Routing.generate('demande_index', false);
-            } else {
+            } else if (type === 'collecte') {
                 pathIndex = Routing.generate('collecte_index', false);
+            } else if (type === 'transfert') {
+                pathIndex = Routing.generate('transfer_request_index', false);
             }
 
             boutonNouvelleDemande.find('#creationDemande').html(
@@ -188,11 +209,17 @@ function toggleLivraisonCollecte($switch) {
             );
 
             $switch.closest('.modal').find('.plusDemandeContent').addClass('d-none');
+            $switch.closest('.modal').find('.editChampLibre').addClass('d-none');
+            $switch.closest('.modal').find('#submitPlusDemande').addClass('d-none');
+            $switch.closest('.modal').find('#submitPlusDemandeAndRedirect').addClass('d-none');
         } else {
             ajaxPlusDemandeContent($switch, type);
             $switch.closest('.modal').find('.boutonCreationDemande').addClass('d-none');
             $switch.closest('.modal').find('.plusDemandeContent').removeClass('d-none');
             $switch.closest('.modal').find('.editChampLibre').removeClass('d-none');
+            $switch.closest('.modal').find('#submitPlusDemande').removeClass('d-none');
+            $switch.closest('.modal').find('#submitPlusDemandeAndRedirect').removeClass('d-none');
+            $switch.closest('.modal').find('.error-msg').html('');
         }
     }, 'json');
 }
@@ -215,8 +242,7 @@ function initEditor(div) {
             formats: [
                 'header',
                 'bold', 'italic', 'underline', 'strike', 'blockquote',
-                'list', 'bullet', 'indent',
-                'link', 'image'
+                'list', 'bullet', 'indent', 'link', 'image'
             ],
             theme: 'snow'
         });
@@ -226,26 +252,39 @@ function initEditor(div) {
 
 //FONCTION REFARTICLE
 
-function typeChoice($select, text, $freeFieldsContainer = null) {
+function typeChoice($select, $freeFieldsContainer = null) {
     if(!$freeFieldsContainer) {
-        $freeFieldsContainer = $select.siblings('.modal').find('.free-fields-container');
+        $freeFieldsContainer = $select.closest('.modal').find('.free-fields-container');
     }
-
     $freeFieldsContainer.children().addClass('d-none');
-    $('#' + $select.val() + text).removeClass('d-none');
+
+    const typeId = $select.val();
+    if (typeId) {
+        $freeFieldsContainer.children(`[data-type="${typeId}"]`).removeClass('d-none');
+    }
 }
 
 function updateQuantityDisplay($elem) {
     let $modalBody = $elem.closest('.modal-body');
+    const $reference = $modalBody.find('.reference');
+    const $article = $modalBody.find('.article');
+    const $allArticle = $modalBody.find('.article, .emergency-comment');
     let typeQuantite = $modalBody.find('.type_quantite').val();
 
     if (typeQuantite == 'reference') {
-        $modalBody.find('.article').addClass('d-none');
-        $modalBody.find('.reference').removeClass('d-none');
+        $allArticle.addClass('d-none');
+        $reference.removeClass('d-none');
 
+        clearCheckboxes($allArticle);
+        $allArticle.find('input, select').val('');
+        $allArticle.find('select.select2-hidden-accessible').select2('val', '');
     } else if (typeQuantite == 'article') {
-        $modalBody.find('.reference').addClass('d-none');
-        $modalBody.find('.article').removeClass('d-none');
+        $reference.addClass('d-none');
+        $article.removeClass('d-none');
+
+        clearCheckboxes($reference);
+        $reference.find('input, select').val('');
+        $reference.find('select.select2-hidden-accessible').select2('val', '');
     }
 }
 
@@ -253,13 +292,8 @@ function toggleRequiredChampsLibres($select, require, $freeFieldContainer = null
     const bloc = $freeFieldContainer
         ? $freeFieldContainer
         : $select
-            .parents('.modal')
+            .closest('.modal')
             .find('.free-fields-container');
-
-    if (!$freeFieldContainer) {
-        bloc.children()
-            .addClass('d-none');
-    }
 
     const typeId = $select.val();
 
@@ -280,7 +314,8 @@ function toggleRequiredChampsLibres($select, require, $freeFieldContainer = null
                 .removeClass('data')
 
             bloc
-                .find(`#${typeId}-new .free-field-data`)
+                .children(`[data-type="${typeId}"]`)
+                .find('.free-field-data')
                 .removeClass('free-field-data')
                 .addClass('data');
         }
@@ -329,7 +364,7 @@ function displayError(modal, msg, success) {
 }
 
 function clearModal(modal) {
-    let $modal = $(modal);
+    let $modal = typeof modal === 'string' ? $(modal) : modal;
 
     let switches = $modal.find('.wii-switch').find('input[type="radio"]');
     switches.each(function() {
@@ -635,9 +670,9 @@ function redirectToDemandeLivraison(demandeId) {
 function onFlyFormToggle(id, button, forceHide = false) {
     let $toShow = $('#' + id);
     let $toAdd = $('#' + button);
+    const $flyForm = $toShow.closest('.fly-form');
     if (!forceHide && $toShow.hasClass('invisible')) {
-        $toShow.parent().parent().css("display", "flex");
-        $toShow.parent().parent().css("height", "auto");
+        $flyForm.css('height', 'auto');
         $toShow.css("height", "auto");
         $toShow.removeClass('invisible');
         $toAdd.removeClass('invisible');
@@ -647,10 +682,11 @@ function onFlyFormToggle(id, button, forceHide = false) {
             .addClass('invisible')
             .css("height", "0");
         $toAdd.addClass('invisible');
+        $flyForm.css('height', 0);
 
         // we reset all field
         $toShow
-            .find('.newFormulaire ')
+            .find('.newFormulaire')
             .each(function () {
                 const $fieldNext = $(this).next();
                 if ($fieldNext.is('.select2-container')) {
@@ -676,7 +712,7 @@ function onFlyFormToggle(id, button, forceHide = false) {
 
 
 function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
-    let inputs = button.closest('.formulaire').find(".newFormulaire");
+    let inputs = button.closest('.fly-form').find(".newFormulaire");
     let params = {};
     let formIsValid = true;
     inputs.each(function () {
@@ -698,11 +734,16 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
     });
     if (formIsValid) {
         $.post(path, JSON.stringify(params), function (response) {
-            if ($select) {
-                let option = new Option(response.text, response.id, true, true);
-                $select.append(option).trigger('change');
+            if (response && response.success) {
+                if ($select) {
+                    let option = new Option(response.text, response.id, true, true);
+                    $select.append(option).trigger('change');
+                }
+                onFlyFormToggle(toHide, buttonAdd, true);
             }
-            onFlyFormToggle(toHide, buttonAdd, true)
+            else if (response && response.msg) {
+                showBSAlert(response.msg, 'danger');
+            }
         });
     }
 }
@@ -811,6 +852,7 @@ function displayFiltersSup(data) {
             case 'multipleTypes':
             case 'receivers':
             case 'requesters':
+            case 'operators':
             case 'dispatchNumber':
             case 'emergencyMultiple':
                 let valuesElement = element.value.split(',');
@@ -850,7 +892,7 @@ function displayFiltersSup(data) {
                 break;
 
             case 'emergency':
-            case 'duty':
+            case 'customs':
             case 'frozen':
                 if (element.value === '1') {
                     $('#' + element.field + '-filter').attr('checked', 'checked');
@@ -1153,7 +1195,7 @@ function onTypeChange($select) {
     const $freeFieldsContainer = $modal.find('.free-fields-container');
 
     toggleRequiredChampsLibres($select, 'create', $freeFieldsContainer);
-    typeChoice($select, '-new', $freeFieldsContainer);
+    typeChoice($select, $freeFieldsContainer);
 
     const type = parseInt($select.val());
 
@@ -1173,7 +1215,7 @@ function onTypeChange($select) {
         $correspondingStatuses.removeClass('d-none');
         const defaultStatuses = JSON.parse($selectStatus.siblings('input[name="defaultStatuses"]').val() || '{}');
 
-        if ($correspondingStatuses.length !== 0) {
+        if ($correspondingStatuses.length > 1) {
             $selectStatus.removeClass('d-none');
             if (defaultStatuses[type]) {
                 $selectStatus.val(defaultStatuses[type]);
@@ -1182,6 +1224,10 @@ function onTypeChange($select) {
             } else {
                 $selectStatus.removeAttr('disabled');
             }
+        } else if($correspondingStatuses.length === 1) {
+            $selectStatus.val($modal.find('select[name="status"] option:not(.d-none):first').val())
+                .removeClass('d-none')
+                .prop('disabled', true);
         } else if (type) {
             $errorEmptyStatus.removeClass('d-none');
             $selectStatus.addClass('d-none');

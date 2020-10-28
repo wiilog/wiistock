@@ -10,7 +10,7 @@ use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\MouvementStock;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -36,7 +36,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
@@ -198,6 +198,21 @@ class ArticleController extends AbstractController
             'id' => 0,
             'typage' => 'date'
         ];
+        $champF[] = [
+            'label' => 'Lot',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champF[] = [
+            'label' => 'Date d\'entrée en stock',
+            'id' => 0,
+            'typage' => 'date'
+        ];
+        $champF[] = [
+            'label' => 'Date de péremption',
+            'id' => 0,
+            'typage' => 'date'
+        ];
         $champsFText = [];
 
         $champsFText[] = [
@@ -269,7 +284,10 @@ class ArticleController extends AbstractController
         $champsLTList = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_LIST);
         $champs = array_merge($champF, $champL);
         $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
-        $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $this->getUser());
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $currentUser);
 
         return $this->render('article/index.html.twig', [
             'champsSearch' => $champsSearch,
@@ -294,6 +312,7 @@ class ArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
 
+            /** @var Utilisateur $user */
             $user = $this->getUser();
 
             $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
@@ -322,7 +341,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -338,7 +357,7 @@ class ArticleController extends AbstractController
             $data = $this->articleDataService->getDataForDatatable($request->request, $this->getUser());
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -436,6 +455,24 @@ class ArticleController extends AbstractController
 					'name' => 'Dernier inventaire',
 					"class" => (in_array('Dernier inventaire', $columnsVisible) ? 'display' : 'hide'),
 				],
+				[
+					"title" => 'Lot',
+					"data" => 'Lot',
+					'name' => 'Lot',
+					"class" => (in_array('Lot', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => "Date d'entrée en stock",
+					"data" => "Date d'entrée en stock",
+					'name' => "Date d'entrée en stock",
+					"class" => (in_array("Date d'entrée en stock", $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Date de péremption',
+					"data" => 'Date de péremption',
+					'name' => 'Date de péremption',
+					"class" => (in_array('Date de péremption', $columnsVisible) ? 'display' : 'hide'),
+				],
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
@@ -447,7 +484,7 @@ class ArticleController extends AbstractController
 			}
             return new JsonResponse($columns);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -480,7 +517,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -525,7 +562,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse(!empty($article));
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -560,7 +597,7 @@ class ArticleController extends AbstractController
             }
             return new JsonResponse($response);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -589,6 +626,7 @@ class ArticleController extends AbstractController
 
             /** @var Article $article */
             $article = $articleRepository->find($data['article']);
+            $articleBarCode = $article->getBarCode();
 
             $receptionReferenceArticle = $article->getReceptionReferenceArticle();
             if (isset($receptionReferenceArticle)) {
@@ -600,9 +638,9 @@ class ArticleController extends AbstractController
             $rows = $article->getId();
 
             // Delete mvt traca
-            /** @var MouvementTraca $mouvementTraca */
-            foreach ($article->getMouvementTracas()->toArray() as $mouvementTraca) {
-                $entityManager->remove($mouvementTraca);
+            /** @var TrackingMovement $trackingMovement */
+            foreach ($article->getTrackingMovements()->toArray() as $trackingMovement) {
+                $entityManager->remove($trackingMovement);
             }
 
             // Delete mvt stock
@@ -643,9 +681,13 @@ class ArticleController extends AbstractController
             $entityManager->flush();
 
             $response['delete'] = $rows;
-            return new JsonResponse($response);
+            return new JsonResponse([
+                'delete' => $rows,
+                'success' => true,
+                'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> a bien été supprimé.'
+            ]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -684,7 +726,7 @@ class ArticleController extends AbstractController
                 $hasRightToDeleteTraca = $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE);
                 $hasRightToDeleteStock = $this->userService->hasRightFunction(Menu::STOCK, Action::DELETE);
 
-                $articlesMvtTracaIsEmpty = $article->getMouvementTracas()->isEmpty();
+                $articlesMvtTracaIsEmpty = $article->getTrackingMovements()->isEmpty();
                 $articlesMvtStockIsEmpty = $article->getMouvements()->isEmpty();
                 $articleRequest = $article->getDemande();
                 $articlePrepa = $article->getPreparation();
@@ -713,7 +755,7 @@ class ArticleController extends AbstractController
                 }
             }
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -753,7 +795,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse(['results' => $articles]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -782,7 +824,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -801,13 +843,15 @@ class ArticleController extends AbstractController
             $refArticle = $referenceArticleRepository->find($refArticle);
 
             if ($refArticle) {
-                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $this->getUser());
+                /** @var Utilisateur $currentUser */
+                $currentUser = $this->getUser();
+                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $currentUser);
             } else {
                 $json = false; //TODO gérer erreur retour
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -832,7 +876,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -861,7 +905,7 @@ class ArticleController extends AbstractController
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -907,7 +951,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -939,7 +983,7 @@ class ArticleController extends AbstractController
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -966,7 +1010,10 @@ class ArticleController extends AbstractController
                 'commentaire',
                 'emplacement',
                 'code barre',
-                'date dernier inventaire'
+                'date dernier inventaire',
+                'lot',
+                'date d\'entrée en stock',
+                'date de péremption',
             ],
             $freeFieldsConfig['freeFieldsHeader']
         );
@@ -1009,6 +1056,9 @@ class ArticleController extends AbstractController
                     $article['empLabel'],
                     $article['barCode'],
                     $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
+                    $article['batch'],
+                    $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
+                    $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
                 ];
 
                 foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {

@@ -17,17 +17,18 @@ use App\Entity\LitigeHistoric;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
+use App\Helper\Stream;
 use App\Repository\TransporteurRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\DispatchService;
-use App\Service\MouvementTracaService;
+use App\Service\TrackingMovementService;
 use App\Service\PackService;
 use App\Service\CSVExportService;
 use App\Service\DashboardService;
@@ -54,7 +55,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
@@ -210,7 +210,7 @@ class ArrivageController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -270,7 +270,7 @@ class ArrivageController extends AbstractController
                 ->setStatut($statutRepository->find($data['status']))
                 ->setUtilisateur($currentUser)
                 ->setNumeroArrivage($numeroArrivage)
-                ->setDuty(isset($data['duty']) ? $data['duty'] == 'true' : false)
+                ->setCustoms(isset($data['customs']) ? $data['customs'] == 'true' : false)
                 ->setFrozen(isset($data['frozen']) ? $data['frozen'] == 'true' : false)
                 ->setCommentaire($data['commentaire'] ?? null)
                 ->setType($typeRepository->find($data['type']));
@@ -373,7 +373,7 @@ class ArrivageController extends AbstractController
                 'alertConfigs' => $alertConfigs
             ]);
         }
-        throw new NotFoundHttpException('404 not found');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -394,7 +394,7 @@ class ArrivageController extends AbstractController
                 $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
                 $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
                 $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-                $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+                $attachmentRepository = $entityManager->getRepository(Attachment::class);
                 $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
                 $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -411,7 +411,7 @@ class ArrivageController extends AbstractController
 
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
-                    'attachments' => $pieceJointeRepository->findBy(['arrivage' => $arrivage]),
+                    'attachments' => $attachmentRepository->findBy(['arrivage' => $arrivage]),
                     'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                     'fournisseurs' => $fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
@@ -426,7 +426,7 @@ class ArrivageController extends AbstractController
 
             return new JsonResponse(['html' => $html, 'acheteurs' => $acheteursUsernames]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -543,7 +543,7 @@ class ArrivageController extends AbstractController
                 ->setTransporteur($transporteurId ? $this->transporteurRepository->find($transporteurId) : null)
                 ->setChauffeur($chauffeurId ? $chauffeurRepository->find($chauffeurId) : null)
                 ->setStatut($statutId ? $statutRepository->find($statutId) : null)
-                ->setDuty($post->get('duty') == 'true')
+                ->setCustoms($post->get('customs') == 'true')
                 ->setFrozen($post->get('frozen') == 'true')
                 ->setDestinataire($newDestinataire)
                 ->setBusinessUnit($post->get('businessUnit') ?? null)
@@ -572,7 +572,7 @@ class ArrivageController extends AbstractController
 
             $attachments = $arrivage->getAttachments()->toArray();
             foreach ($attachments as $attachment) {
-                /** @var PieceJointe $attachment */
+                /** @var Attachment $attachment */
                 if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
                     $this->attachmentService->removeAndDeleteAttachment($attachment, $arrivage);
                 }
@@ -595,24 +595,25 @@ class ArrivageController extends AbstractController
             ];
             return new JsonResponse($response);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/supprimer", name="arrivage_delete", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param MouvementTracaService $mouvementTracaService
+     * @param TrackingMovementService $trackingMovementService
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function delete(Request $request,
-                           EntityManagerInterface $entityManager,
-                           MouvementTracaService $mouvementTracaService): Response
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+
+            /** @var Arrivage $arrivage */
             $arrivage = $arrivageRepository->find($data['arrivage']);
 
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
@@ -639,10 +640,6 @@ class ArrivageController extends AbstractController
                     $urgence->setLastArrival(null);
                 }
 
-                foreach ($arrivage->getMouvementsTraca() as $mouvementTraca) {
-                    $entityManager->remove($mouvementTraca);
-                }
-
                 $entityManager->remove($arrivage);
                 $entityManager->flush();
                 $data = [
@@ -654,7 +651,7 @@ class ArrivageController extends AbstractController
             return new JsonResponse($data);
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -698,7 +695,7 @@ class ArrivageController extends AbstractController
 
             return new JsonResponse($html);
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -724,7 +721,7 @@ class ArrivageController extends AbstractController
 
             return new JsonResponse($response);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -747,7 +744,7 @@ class ArrivageController extends AbstractController
             return new JsonResponse($html);
 
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -780,18 +777,18 @@ class ArrivageController extends AbstractController
                         'pjName' => $filename,
                         'originalName' => $file->getClientOriginalName()
                     ]);
-                    $pj = new PieceJointe();
-                    $pj
+                    $attachment = new Attachment();
+                    $attachment
                         ->setOriginalName($file->getClientOriginalName())
                         ->setFileName($filename);
-                    $entityManager->persist($pj);
+                    $entityManager->persist($attachment);
                 }
                 $entityManager->flush();
             }
 
             return new JsonResponse($html);
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -880,7 +877,7 @@ class ArrivageController extends AbstractController
                     $row[] = !empty($arrival['numeroCommandeList']) ? implode(' / ', $arrival['numeroCommandeList']) : '';
                     $row[] = $arrival['type'] ?: '';
                     $row[] = $buyersByArrival[$arrivalId] ?? '';
-                    $row[] = $arrival['duty'] ? 'oui' : 'non';
+                    $row[] = $arrival['customs'] ? 'oui' : 'non';
                     $row[] = $arrival['frozen'] ? 'oui' : 'non';
                     $row[] = $arrival['statusName'] ?: '';
                     $row[] = $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '';
@@ -907,7 +904,7 @@ class ArrivageController extends AbstractController
                 }
             );
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -954,6 +951,7 @@ class ArrivageController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::LITIGE_ARR);
+
         return $this->render("arrivage/show.html.twig", [
             'arrivage' => $arrivage,
             'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
@@ -1076,7 +1074,7 @@ class ArrivageController extends AbstractController
 
             return new JsonResponse($response);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1101,7 +1099,7 @@ class ArrivageController extends AbstractController
             $entityManager->flush();
             return new JsonResponse();
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1141,7 +1139,7 @@ class ArrivageController extends AbstractController
                 'arrivage' => $arrivage->getNumeroArrivage()
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1181,7 +1179,7 @@ class ArrivageController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1200,7 +1198,7 @@ class ArrivageController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $litigeRepository = $entityManager->getRepository(Litige::class);
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-            $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentRepository = $entityManager->getRepository(Attachment::class);
             $usersRepository = $entityManager->getRepository(Utilisateur::class);
 
             $litige = $litigeRepository->find($data['litigeId']);
@@ -1220,13 +1218,13 @@ class ArrivageController extends AbstractController
                 'utilisateurs' => $usersRepository->getIdAndLibelleBySearch(''),
                 'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
-                'attachments' => $pieceJointeRepository->findBy(['litige' => $litige]),
+                'attachments' => $attachmentRepository->findBy(['litige' => $litige]),
                 'colis' => $arrivage->getPacks(),
             ]);
 
             return new JsonResponse(['html' => $html, 'colis' => $colisCode]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1339,7 +1337,7 @@ class ArrivageController extends AbstractController
 
             $attachments = $litige->getAttachments()->toArray();
             foreach ($attachments as $attachment) {
-                /** @var PieceJointe $attachment */
+                /** @var Attachment $attachment */
                 if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
                     $this->attachmentService->removeAndDeleteAttachment($attachment, $litige);
                 }
@@ -1358,7 +1356,7 @@ class ArrivageController extends AbstractController
 
             return new JsonResponse($response);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1402,7 +1400,7 @@ class ArrivageController extends AbstractController
 
             return new JsonResponse($html);
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -1439,7 +1437,7 @@ class ArrivageController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1475,6 +1473,7 @@ class ArrivageController extends AbstractController
         $dropzoneParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL);
         $packCountParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL);
         $commandAndProjectNumberIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
+        $printTwiceIfCustoms = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PRINT_TWICE_CUSTOMS);
 
         if (!isset($colis)) {
             $printColis = $request->query->getBoolean('printColis');
@@ -1497,7 +1496,7 @@ class ArrivageController extends AbstractController
             }
         } else {
             if (!$colis->getArrivage() || $colis->getArrivage()->getId() !== $arrivage->getId()) {
-                throw new NotFoundHttpException("404");
+                throw new BadRequestHttpException();
             }
 
             $total = $arrivage->getPacks()->count();
@@ -1512,6 +1511,15 @@ class ArrivageController extends AbstractController
                 $packCountParamIsDefined,
                 $commandAndProjectNumberIsDefined
             );
+        }
+
+        $printTwice = ($printTwiceIfCustoms && $arrivage->getCustoms());
+        if($printTwice) {
+            $barcodeConfigs = Stream::from($barcodeConfigs)
+                ->flatMap(function($barCodeConfig){
+                    return [$barCodeConfig, $barCodeConfig];
+                })
+                ->toArray();
         }
 
         if (empty($barcodeConfigs)) {
@@ -1698,7 +1706,7 @@ class ArrivageController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1744,6 +1752,6 @@ class ArrivageController extends AbstractController
             $columns = $arrivageDataService->getColumnVisibleConfig($entityManager, $currentUser);
             return new JsonResponse($columns);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 }
