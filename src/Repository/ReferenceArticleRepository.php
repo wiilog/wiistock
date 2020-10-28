@@ -239,7 +239,7 @@ class ReferenceArticleRepository extends EntityRepository
 
         // fait le lien entre intitulé champs dans datatable/filtres côté front
         // et le nom des attributs de l'entité ReferenceArticle (+ typage)
-        $linkChampLibreLabelToField = [
+        $linkFieldLabelToColumn = [
             'Libellé' => ['field' => 'libelle', 'typage' => 'text'],
             'Référence' => ['field' => 'reference', 'typage' => 'text'],
             'Type' => ['field' => 'type_id', 'typage' => 'list'],
@@ -251,8 +251,8 @@ class ReferenceArticleRepository extends EntityRepository
             'Quantité disponible' => ['field' => 'quantiteDisponible', 'typage' => 'text'],
             'Commentaire d\'urgence' => ['field' => 'emergencyComment', 'typage' => 'text'],
             'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'text'],
-            'Seuil d\'alerte' => ['field' => 'Seuil d\'alerte', 'typage' => 'number'],
-            'Seuil de securité' => ['field' => 'Seuil de securité', 'typage' => 'number'],
+            'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
+            'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
             'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
             'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text'],
@@ -273,14 +273,6 @@ class ReferenceArticleRepository extends EntityRepository
                 $qb->leftJoin('ra.managers', 'managers')
                     ->andWhere('managers.username LIKE :username')
                     ->setParameter('username', '%' . $filter['value'] . '%');
-            } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_LIMIT_SECURITY) {
-                $qb
-                    ->andWhere('ra.limitSecurity = :limitSecurity')
-                    ->setParameter('limitSecurity', $filter['value']);
-            } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_LIMIT_WARNING) {
-                $qb
-                    ->andWhere('ra.limitWarning = :limitWarning')
-                    ->setParameter('limitWarning', $filter['value']);
             } else {
                 // cas particulier champ référence article fournisseur
                 if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_REF_ART_FOURN) {
@@ -290,7 +282,7 @@ class ReferenceArticleRepository extends EntityRepository
                         ->setParameter('reference', '%' . $filter['value'] . '%');
                 } // cas champ fixe
                 else if ($label = $filter['champFixe']) {
-                    $array = $linkChampLibreLabelToField[$label];
+                    $array = $linkFieldLabelToColumn[$label];
                     $field = $array['field'];
                     $typage = $array['typage'];
 
@@ -447,7 +439,7 @@ class ReferenceArticleRepository extends EntityRepository
                                 break;
                             default:
                                 $metadatas = $em->getClassMetadata(ReferenceArticle::class);
-                                $field = !empty($linkChampLibreLabelToField[$searchField]) ? $linkChampLibreLabelToField[$searchField]['field'] : '';
+                                $field = !empty($linkFieldLabelToColumn[$searchField]) ? $linkFieldLabelToColumn[$searchField]['field'] : '';
                                 // champs fixes
                                 if ($field !== '' && in_array($field, $metadatas->getFieldNames())) {
                                     $query[] = 'ra.' . $field . ' LIKE :valueSearch';

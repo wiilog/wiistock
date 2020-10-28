@@ -12,8 +12,6 @@ class FiltreRef
     const CHAMP_FIXE_REF_ART_FOURN = 'référence article fournisseur';
     const CHAMP_FIXE_STATUT = 'Statut';
     const CHAMP_FIXE_MANAGERS = 'Gestionnaire(s)';
-    const CHAMP_FIXE_LIMIT_WARNING = 'Seuil d\'alerte';
-    const CHAMP_FIXE_LIMIT_SECURITY = 'Seuil de sécurité';
 
     /**
      * @ORM\Id()
