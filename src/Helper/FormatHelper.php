@@ -43,4 +43,8 @@ class FormatHelper {
         return $comment ? strip_tags($comment) : $else;
     }
 
+    public static function bool(?bool $bool, $else = "") {
+        return isset($bool) ? ($bool ? 'oui' : 'non') : $else;
+    }
+
 }

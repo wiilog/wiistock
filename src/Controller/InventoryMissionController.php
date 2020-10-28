@@ -10,6 +10,8 @@ use App\Entity\Menu;
 use App\Entity\InventoryMission;
 
 use App\Entity\ReferenceArticle;
+use App\Helper\FormatHelper;
+use App\Helper\Stream;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\InventoryEntryRepository;
 
@@ -334,28 +336,24 @@ class InventoryMissionController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
         	$mission = $this->inventoryMissionRepository->find($data['param']);
-            $inventoryEntries = $mission->getEntries()->toArray();
 
-        	$articleInventoryEntry = array_reduce($inventoryEntries, function (array $acc, $carry) {
-        	    $article = $carry->getArticle();
-                if (isset($article)) {
-                    $barcode = $article->getBarCode();
-                    $acc[$barcode] = $carry;
-                }
-                return $acc;
-            }, []);
+        	/** @var InventoryEntry[] $inventoryEntries */
+        	$inventoryEntries = Stream::from($mission->getEntries()->toArray())
+                ->reduce(function (array $carry, InventoryEntry $entry) {
+                    $article = $entry->getArticle();
+                    $refArticle = $entry->getRefArticle();
 
-        	$refArticleInventoryEntry = array_reduce($inventoryEntries, function (array $acc, $carry) {
-                $refArticle = $carry->getRefArticle();
-                if (isset($refArticle)) {
-                    $barcode = $refArticle->getBarCode();
-                    $acc[$barcode] = $carry;
-                }
-                return $acc;
-            }, []);
+                    if (isset($article)) {
+                        $barcode = $article->getBarCode();
+                        $carry[$barcode] = $entry;
+                    }
 
-        	dump($articleInventoryEntry);
-        	dump($refArticleInventoryEntry);
+                    if (isset($refArticle)) {
+                        $barcode = $refArticle->getBarCode();
+                        $carry[$barcode] = $entry;
+                    }
+                    return $carry;
+                }, []);
 
             $articles = $mission->getArticles();
             $refArticles = $mission->getRefArticles();
@@ -376,26 +374,39 @@ class InventoryMissionController extends AbstractController
             $data[] = $missionHeader;
             $data[] = $headers;
 
+            /** @var Article $article */
             foreach ($articles as $article) {
                 $articleData = [];
+                $barcode = $article->getBarCode();
 
-                $articleData[] = $article->getReference();
-                $articleData[] = $article->getLabel();
-                $articleData[] = $article->getQuantite();
-                $articleData[] = $article->getEmplacement()->getLabel();
-                $articleData[] = $article->getDateLastInventory() ? $article->getDateLastInventory()->format('Y/m/d') : '';
+                $articleFournisseur = $article->getArticleFournisseur();
+                $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+
+                $articleData[] = $referenceArticle ? $referenceArticle->getReference() : '';
+                $articleData[] = $referenceArticle ? $referenceArticle->getLibelle() : '';
+                $articleData[] = $article->getQuantite() ?? '';
+                $articleData[] = FormatHelper::location($article->getEmplacement());
+                if (isset($inventoryEntries[$barcode])) {
+                    $articleData[] = FormatHelper::date($inventoryEntries[$barcode]->getDate());
+                    $articleData[] = FormatHelper::bool($inventoryEntries[$barcode]->getAnomaly());
+                }
 
                 $data[] = $articleData;
             }
 
+            /** @var ReferenceArticle $refArticle */
             foreach ($refArticles as $refArticle) {
                 $refArticleData = [];
+                $barcode = $refArticle->getBarCode();
 
-                $refArticleData[] = $refArticle->getReference();
-                $refArticleData[] = $refArticle->getLibelle();
-                $refArticleData[] = $refArticle->getQuantiteStock();
-                $refArticleData[] = $refArticle->getEmplacement()->getLabel();
-                $refArticleData[] = $refArticle->getDateLastInventory() ? $refArticle->getDateLastInventory()->format('Y/m/d') : '';
+                $refArticleData[] = $refArticle->getReference() ?? '';
+                $refArticleData[] = $refArticle->getLibelle() ?? '';
+                $refArticleData[] = $refArticle->getQuantiteStock() ?? '';
+                $refArticleData[] = FormatHelper::location($refArticle->getEmplacement());
+                if (isset($inventoryEntries[$barcode])) {
+                    $refArticleData[] = FormatHelper::date($inventoryEntries[$barcode]->getDate());
+                    $refArticleData[] = FormatHelper::bool($inventoryEntries[$barcode]->getAnomaly());
+                }
 
                 $data[] = $refArticleData;
             }
