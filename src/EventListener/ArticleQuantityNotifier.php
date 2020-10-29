@@ -108,7 +108,7 @@ class ArticleQuantityNotifier {
                 $alert = new Alert();
                 $alert->setArticle($article);
                 $alert->setType(Alert::EXPIRY);
-                $alert->setDate($expires);
+                $alert->setDate($now);
 
                 $this->entityManager->persist($alert);
 
