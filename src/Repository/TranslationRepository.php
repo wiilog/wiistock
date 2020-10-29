@@ -20,21 +20,12 @@ class TranslationRepository extends ServiceEntityRepository
         parent::__construct($registry, Translation::class);
     }
 
-	/**
-	 * @return int
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
-    public function countUpdatedRows()
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT COUNT(t)
-			FROM App\Entity\Translation t
-			WHERE t.updated = 1");
-
-		return $query->getSingleScalarResult();
+    public function countUpdatedRows(): int {
+        return $this->createQueryBuilder("t")
+            ->select("COUNT(t)")
+            ->where("t.updated = 1")
+            ->getQuery()
+            ->getSingleScalarResult();
 	}
 
 	public function findAllObjects() {

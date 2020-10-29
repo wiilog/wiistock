@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-
 use App\Entity\Translation;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -12,7 +11,6 @@ use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
-
 
 class TranslationService {
 
@@ -48,7 +46,6 @@ class TranslationService {
 
             $translationRepository->clearUpdate();
 
-            $this->cacheClearWarmUp();
             $this->chmod($translationYAML, 'w');
             $this->chmod($translationJS, 'w');
         }
@@ -57,14 +54,11 @@ class TranslationService {
     private function generateYamlTranslations(string $directory, array $translations) {
         $menus = [];
         foreach($translations as $translation) {
-            $menus[$translation->getMenu()][$translation->getLabel()] = (
-            $translation->getTranslation() ?: $translation->getLabel()
-            );
+            $menus[$translation->getMenu()][$translation->getLabel()] =
+                $translation->getTranslation() ?: $translation->getLabel();
         }
 
-        $yaml = Yaml::dump($menus);
-
-        file_put_contents($directory, $yaml);
+        file_put_contents($directory, Yaml::dump($menus));
     }
 
     private function generateJavascriptTranslations(string $directory, array $translations) {
@@ -135,4 +129,5 @@ class TranslationService {
             rmdir($dir);
         }
     }
+
 }

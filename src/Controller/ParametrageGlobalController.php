@@ -715,6 +715,7 @@ class ParametrageGlobalController extends AbstractController
             $this->getDoctrine()->getManager()->flush();
 
             $translationService->generateTranslationsFile();
+            $translationService->cacheClearWarmUp();
 
             return new JsonResponse(true);
         }
