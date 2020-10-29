@@ -1205,9 +1205,9 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/exporter-refs", name="export_all_refs", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param FreeFieldService $freeFieldService
-     * @param CSVExportService $CSVExportService
+     * @param EntityManagerInterface $manager
+     * @param CSVExportService $csvService
+     * @param FreeFieldService $ffService
      * @return Response
      */
     public function exportAllRefs(EntityManagerInterface $manager,

@@ -20,6 +20,8 @@ use Symfony\Component\HttpKernel\KernelInterface;
 class AttachmentService
 {
     const LABEL_LOGO = 'logo_for_label';
+    const CUSTOM_ICON = 'icon_for_custom';
+    const EMERGENCY_ICON = 'icon_for_emergency';
     const DELIVERY_NOTE_LOGO = 'logo_for_delivery_note';
     const WAYBILL_LOGO = 'logo_for_waybill';
 
