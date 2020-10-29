@@ -317,22 +317,6 @@ function ajaxEncodage() {
     });
 }
 
-/*function editDefaultLocationValue() {
-    let path = Routing.generate('edit_reception_location', true);
-    const locationValue = $(this).val();
-    let param = {
-        value: locationValue
-    };
-
-    $.post(path, param, (resp) => {
-        if (resp) {
-            showBSAlert("L'emplacement de réception a bien été mis à jour.", 'success');
-        } else {
-            showBSAlert("Une erreur est survenue lors de la mise à jour de l'emplacement de réception.", 'danger');
-        }
-    });
-}*/
-
 function editDashboardParams() {
     let path = Routing.generate('edit_dashboard_params', true);
     let data = $('#paramDashboard').find('.data');

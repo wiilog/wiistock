@@ -843,34 +843,6 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/emplacement-reception", name="edit_reception_location", options={"expose"=true}, methods="POST")
-     * @param Request $request
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function editReceptionLocation(Request $request,
-                                          ParametrageGlobalRepository $parametrageGlobalRepository): Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $post = $request->request;
-            $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION);
-            $em = $this->getDoctrine()->getManager();
-            if (empty($parametrageGlobal)) {
-                $parametrageGlobal = new ParametrageGlobal();
-                $parametrageGlobal->setLabel(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION);
-                $em->persist($parametrageGlobal);
-            }
-            $parametrageGlobal->setValue($post->get('value'));
-
-            $em->flush();
-
-            return new JsonResponse(true);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/police", name="edit_font", options={"expose"=true}, methods="POST")
      * @param Request $request
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
