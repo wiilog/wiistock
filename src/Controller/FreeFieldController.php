@@ -78,7 +78,7 @@ class FreeFieldController extends AbstractController {
 
                 $defaultValue = $champLibre->getDefaultValue();
                 if ($champLibre->getTypage() == FreeField::TYPE_BOOL) {
-                    $defaultValue = $champLibre->getDefaultValue() === null ?
+                    $defaultValue = $champLibre->getDefaultValue() === null ||$champLibre->getDefaultValue() === "" ?
                         "" : ($champLibre->getDefaultValue()
                             ? "Oui"
                             : "Non");
@@ -167,7 +167,7 @@ class FreeFieldController extends AbstractController {
 			} else {
 				$champLibre
 					->setElements(null)
-					->setDefaultValue($data['valeur']);
+					->setDefaultValue($data['typage'] === FreeField::TYPE_BOOL && $data['valeur'] == -1 ? null : $data['valeur']);
 			}
 			$entityManager->persist($champLibre);
             $entityManager->flush();

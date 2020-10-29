@@ -20,9 +20,13 @@ class FreeFieldService {
                 $champLibreDateTime = new DateTime($valeurChampLibre['valeur'], new DateTimeZone('Europe/Paris'));
                 $hourFormat = ($valeurChampLibre['typage'] === FreeField::TYPE_DATETIME) ? ' H:i' : '';
                 $formattedValue = $champLibreDateTime->format("d/m/Y$hourFormat");
-            } catch (Throwable $ignored) {
+            } catch(Throwable $ignored) {
                 $formattedValue = $valeurChampLibre['valeur'];
             }
+        } else if($valeurChampLibre['typage'] == FreeField::TYPE_BOOL) {
+            $formattedValue = $valeurChampLibre['valeur'] === null
+                ? "Non défini"
+                : ($valeurChampLibre['valeur'] ? "Oui" : "Non");
         } else {
             $formattedValue = $valeurChampLibre['valeur'];
         }
@@ -127,7 +131,7 @@ class FreeFieldService {
 
         $detailsChampLibres = [];
         foreach ($freeFieldEntity->getFreeFields() as $freeFieldId => $freeFieldValue) {
-            if ($freeFieldValue && isset($freeFields[$freeFieldId])) {
+            if ($freeFieldValue !== "" && $freeFieldValue !== null && isset($freeFields[$freeFieldId])) {
                 $detailsChampLibres[] = [
                     'label' => $freeFields[$freeFieldId]['label'],
                     'value' => $this->serializeValue([

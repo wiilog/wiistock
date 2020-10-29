@@ -368,7 +368,11 @@ function clearModal(modal) {
 
     let switches = $modal.find('.wii-switch').find('input[type="radio"]');
     switches.each(function() {
-        $(this).prop('checked', false);
+        if($(this).data("init") === "checked") {
+            $(this).prop('checked', true);
+        } else {
+            $(this).prop('checked', false);
+        }
     })
 
     let inputs = $modal.find('.modal-body').find(".data");
