@@ -25,10 +25,8 @@
                                     {% if freeFieldValues[freeField.id] is defined %}
                                         {% set entityValue = freeFieldValues[freeField.id] %}
                                     {% elseif freeField.defaultValue is defined %}
-                                        {{ dump(freeField.defaultValue) }}
                                         {% set entityValue = freeField.defaultValue %}
                                     {% else %}
-                                        {{ dump("f") }}
                                         {% set entityValue = 0 %}
                                     {% endif %}
 
