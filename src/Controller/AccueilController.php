@@ -77,7 +77,6 @@ class AccueilController extends AbstractController
      *     methods={"GET"},
      *     requirements={
      *         "page" = "(quai)|(admin)|(emballage)",
-     *         "token" = "%dashboardToken%"
      *     }
      * )
      * @param EntityManagerInterface $entityManager
@@ -89,8 +88,12 @@ class AccueilController extends AbstractController
      */
     public function dashboardExt(EntityManagerInterface $entityManager,
                                  DashboardService $dashboardService,
-                                 string $page): Response
-    {
+                                 string $token,
+                                 string $page): Response {
+        if($token != $_SERVER["APP_DASHBOARD_TOKEN"]) {
+            return $this->redirectToRoute("access_denied");
+        }
+
         $data = $this->getDashboardData($entityManager, true);
         $data['page'] = $page;
         $data['pageData'] = ($page === 'emballage')
