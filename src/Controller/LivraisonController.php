@@ -13,6 +13,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\NegativeQuantityException;
+use App\Helper\FormatHelper;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PreparationsManagerService;
@@ -258,6 +259,7 @@ class LivraisonController extends AbstractController
 
     /**
      * @Route("/{livraison}", name="livraison_delete", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
+     * @param Request $request
      * @param Livraison $livraison
      * @param LivraisonsManagerService $livraisonsManager
      * @param PreparationsManagerService $preparationsManager
@@ -350,6 +352,9 @@ class LivraisonController extends AbstractController
                 'date de livraison',
                 'opérateur',
                 'type',
+                'demandeur',
+                'date de validation',
+                'commentaire',
                 'référence',
                 'libellé',
                 'emplacement',
@@ -382,6 +387,9 @@ class LivraisonController extends AbstractController
                 $livraison->getDateFin() ? $livraison->getDateFin()->format('d/m/Y H:i') : '',
                 $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
                 $demande ? $demande->getType() ? $demande->getType()->getLabel() : '' : '',
+                $demande->getUtilisateur() ? FormatHelper::user($demande->getUtilisateur()) : '',
+                $demande->getValidationDate() ? FormatHelper::date($demande->getValidationDate()) : '',
+                $demande->getCommentaire() ? strip_tags($demande->getCommentaire()) : ''
             ];
 
             foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
