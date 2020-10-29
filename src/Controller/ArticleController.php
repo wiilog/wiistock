@@ -138,7 +138,8 @@ class ArticleController extends AbstractController
         $fields = [
             "actions" => ["title" => "Actions"],
             "label" => ["title" => "Libellé"],
-            "reference" => ["title" => "Référence article"],
+            "reference" => ["title" => "Référence"],
+            "articleReference" => ["title" => "Référence article"],
             "supplierReference" => ["title" => "Référence fournisseur"],
             "barCode" => ["title" => "Code barre"],
             "type" => ["title" => "Type"],
@@ -274,9 +275,14 @@ class ArticleController extends AbstractController
                     "class" => (in_array('label', $columnsVisible) ? 'display' : 'hide'),
 				],
                 [
-                    "title" => 'Référence article',
+                    "title" => 'Référence',
                     "data" => 'reference',
                     "class" => (in_array('reference', $columnsVisible) ? 'display' : 'hide'),
+                ],
+                [
+                    "title" => 'Référence article',
+                    "data" => 'articleReference',
+                    "class" => (in_array('articleReference', $columnsVisible) ? 'display' : 'hide'),
                 ],
                 [
                     "title" => 'Référence fournisseur',
@@ -333,6 +339,11 @@ class ArticleController extends AbstractController
 					"data" => 'expiryDate',
 					"class" => (in_array('expiryDate', $columnsVisible) ? 'display' : 'hide'),
 				],
+                [
+                    "title" => 'Commentaire',
+                    "data" => 'comment',
+                    "class" => (in_array('comment', $columnsVisible) ? 'display' : 'hide'),
+                ],
 			];
 
 			foreach ($champs as $champ) {

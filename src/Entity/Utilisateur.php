@@ -16,13 +16,13 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  */
 class Utilisateur implements UserInterface, EquatableInterface
 {
-	const COL_VISIBLE_ARTICLES_DEFAULT = ["Actions", "Libellé", "Référence", "Référence article", "Type", "Quantité", "Emplacement"];
-    const COL_VISIBLE_REF_DEFAULT = ["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"];
+	const COL_VISIBLE_ARTICLES_DEFAULT = ["actions", "label", "reference", "articleReference", "type", "quantity", "location"];
+    const COL_VISIBLE_REF_DEFAULT = ["actions", "label", "reference", "type", "quantity", "location"];
     const COL_VISIBLE_ARR_DEFAULT = ["date", "numeroArrivage", "transporteur", "chauffeur", "noTracking", "NumeroCommandeList", "fournisseur", "destinataire", "acheteurs", "NbUM", "customs", "frozen", "Statut", "Utilisateur", "urgent", "actions"];
     const COL_VISIBLE_DISPATCH_DEFAULT = ["number", "creationDate", "validationDate", "treatmentDate", "type", "requester", "receiver", "locationFrom", "locationTo", "nbPacks", "status", "emergency", "actions"];
     const COL_VISIBLE_TRACKING_MOVEMENT_DEFAULT = ["origin", "date", "colis", "reference", "label", "quantity", "location", "type", "operateur"];
     const COL_VISIBLE_LIT_DEFAULT = ["type", "arrivalNumber", "receptionNumber", "buyers", "numCommandeBl", "command", "provider", "references", "lastHistorique", "creationDate", "updateDate", "status", "actions"];
-	const SEARCH_DEFAULT = ["Libellé", "Référence"];
+	const SEARCH_DEFAULT = ["label", "reference"];
 
     /**
      * @ORM\Id()

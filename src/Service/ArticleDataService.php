@@ -523,11 +523,15 @@ class ArticleDataService
             $status = '';
         }
 
+        $supplierArticle = $article->getArticleFournisseur();
+        $referenceArticle = $supplierArticle ? $supplierArticle->getReferenceArticle() : null;
+
         $row = [
             "id" => $article->getId() ?? "Non défini",
             "label" => $article->getLabel() ?? "Non défini",
             "reference" => $article->getReference() ?? "Non défini",
-            "supplierReference" => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+            "articleReference" => $referenceArticle ? $referenceArticle->getReference() : "Non défini",
+            "supplierReference" => $supplierArticle ? $supplierArticle->getReference() : "Non défini",
             "barCode" => $article->getBarCode() ?? "Non défini",
             "type" => $article->getType() ? $article->getType()->getLabel() : '',
             "status" => $status,
@@ -538,6 +542,7 @@ class ArticleDataService
             "batch" => $article->getBatch(),
             "stockEntryDate" => $article->getStockEntryDate() ? $article->getStockEntryDate()->format('d/m/Y H:i') : '',
             "expiryDate" => $article->getExpiryDate() ? $article->getExpiryDate()->format('d/m/Y') : '',
+            "comment" => $article->getCommentaire(),
             "actions" => $this->templating->render('article/datatableArticleRow.html.twig', [
                 'url' => $url,
                 'articleId' => $article->getId(),
