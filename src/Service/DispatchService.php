@@ -357,32 +357,6 @@ class DispatchService {
         );
     }
 
-    public function createDispatchNumber(EntityManagerInterface $entityManager,
-                                         DateTime $date): string {
-
-        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-
-        $dateStr = $date->format('Ymd');
-
-        $lastDispatchNumber = $dispatchRepository->getLastDispatchNumberByPrefix(Dispatch::PREFIX_NUMBER . $dateStr);
-
-        if ($lastDispatchNumber) {
-            $lastCounter = (int) substr($lastDispatchNumber, -4, 4);
-            $currentCounter = ($lastCounter + 1);
-        } else {
-            $currentCounter = 1;
-        }
-
-        $currentCounterStr = (
-        $currentCounter < 10 ? ('000' . $currentCounter) :
-            ($currentCounter < 100 ? ('00' . $currentCounter) :
-                ($currentCounter < 1000 ? ('0' . $currentCounter) :
-                    $currentCounter))
-        );
-
-        return (Dispatch::PREFIX_NUMBER . $dateStr . $currentCounterStr);
-    }
-
     public function createDateFromStr(?string $dateStr): ?DateTime {
         $date = null;
         foreach (['Y-m-d', 'd/m/Y'] as $format) {

@@ -15,6 +15,7 @@ use App\Entity\Utilisateur;
 use App\Helper\Stream;
 use App\Service\MouvementStockService;
 use App\Service\TransferOrderService;
+use App\Service\UniqueNumberService;
 use DateTime;
 use App\Service\CSVExportService;
 use App\Service\UserService;
@@ -83,32 +84,10 @@ class TransferOrderController extends AbstractController {
         }
     }
 
-    public static function createNumber(EntityManagerInterface $entityManager, $date) {
-        $dateStr = $date->format('Ymd');
-
-        $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
-        $lastTransferOrderNumber = $transferOrderRepository->getLastTransferNumberByPrefix(TransferOrder::NUMBER_PREFIX . "-" . $dateStr);
-
-        if ($lastTransferOrderNumber) {
-            $lastCounter = (int) substr($lastTransferOrderNumber, -4, 4);
-            $currentCounter = ($lastCounter + 1);
-        } else {
-            $currentCounter = 1;
-        }
-
-        $currentCounterStr = (
-        $currentCounter < 10 ? ('000' . $currentCounter) :
-            ($currentCounter < 100 ? ('00' . $currentCounter) :
-                ($currentCounter < 1000 ? ('0' . $currentCounter) :
-                    $currentCounter))
-        );
-
-        return (TransferOrder::NUMBER_PREFIX . "-" . $dateStr . $currentCounterStr);
-    }
-
     /**
      * @Route("/creer{id}", name="transfer_order_new", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
+     * @param TransferOrderService $transferOrderService
      * @param EntityManagerInterface $entityManager
      * @param TransferRequest $transferRequest
      * @return Response
@@ -116,6 +95,7 @@ class TransferOrderController extends AbstractController {
      * @throws Exception
      */
     public function new(Request $request,
+                        TransferOrderService $transferOrderService,
                         EntityManagerInterface $entityManager,
                         TransferRequest $transferRequest): Response {
         if ($request->isXmlHttpRequest()) {
@@ -129,7 +109,7 @@ class TransferOrderController extends AbstractController {
 
             $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
             $toTreatRequest = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
-            $transfer = new TransferOrder();
+
 
             $transitStatusForArticles = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::ARTICLE,
@@ -151,17 +131,13 @@ class TransferOrderController extends AbstractController {
             $transferRequest->setStatus($toTreatRequest);
             $transferRequest->setValidationDate(new DateTime());
 
-            $transfer
-                ->setNumber(self::createNumber($entityManager, $date))
-                ->setCreationDate($date)
-                ->setRequest($transferRequest)
-                ->setStatus($toTreatOrder);
-            $entityManager->persist($transfer);
+            $transferOrder = $transferOrderService->createTransferOrder($entityManager, $toTreatOrder, $transferRequest);
+            $entityManager->persist($transferOrder);
             $entityManager->flush();
 
             return new JsonResponse([
                 'success' => true,
-                'redirect' => $this->generateUrl('transfer_order_show', ['id' => $transfer->getId()]),
+                'redirect' => $this->generateUrl('transfer_order_show', ['id' => $transferOrder->getId()]),
             ]);
         }
         throw new BadRequestHttpException();

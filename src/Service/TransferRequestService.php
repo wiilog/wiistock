@@ -3,10 +3,16 @@
 namespace App\Service;
 
 use App\Controller\TransferRequestController;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\Statut;
 use App\Entity\TransferRequest;
+use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Environment as Twig_Environment;
@@ -18,13 +24,16 @@ class TransferRequestService {
     private $user;
     private $em;
     private $userService;
+    private $uniqueNumberService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
+                                UniqueNumberService $uniqueNumberService,
                                 RouterInterface $router,
                                 UserService $userService,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating) {
         $this->templating = $templating;
+        $this->uniqueNumberService = $uniqueNumberService;
         $this->em = $entityManager;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
@@ -90,6 +99,38 @@ class TransferRequestService {
                 'isNeededNotEmpty' => true
             ]
         ];
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Statut|null $status
+     * @param Emplacement|null $origin
+     * @param Emplacement|null $destination
+     * @param Utilisateur|null $requester
+     * @param string|null $comment
+     * @return TransferRequest
+     * @throws Exception
+     */
+    public function createTransferRequest(EntityManagerInterface $entityManager,
+                                          ?Statut $status,
+                                          ?Emplacement $origin,
+                                          ?Emplacement $destination,
+                                          ?Utilisateur $requester,
+                                          ?string $comment = null): TransferRequest {
+        $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $transferRequestNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, TransferRequest::NUMBER_PREFIX, TransferRequest::class);
+
+        $transfer = new TransferRequest();
+        $transfer
+            ->setStatus($status)
+            ->setCreationDate($now)
+            ->setNumber($transferRequestNumber)
+            ->setDestination($destination)
+            ->setOrigin($origin)
+            ->setRequester($requester)
+            ->setComment($comment);
+
+        return $transfer;
     }
 
 }

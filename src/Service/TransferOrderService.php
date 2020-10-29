@@ -17,6 +17,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Helper\Stream;
 use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -33,8 +34,10 @@ class TransferOrderService {
     private $userService;
     private $mouvementTracaService;
     private $mouvementStockService;
+    private $uniqueNumberService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
+                                UniqueNumberService $uniqueNumberService,
                                 RouterInterface $router,
                                 UserService $userService,
                                 EntityManagerInterface $entityManager,
@@ -42,6 +45,7 @@ class TransferOrderService {
                                 MouvementStockService $mouvementStockService,
                                 Twig_Environment $templating) {
         $this->templating = $templating;
+        $this->uniqueNumberService = $uniqueNumberService;
         $this->em = $entityManager;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
@@ -229,4 +233,29 @@ class TransferOrderService {
             ]
         ];
     }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Statut|null $status
+     * @param TransferRequest|null $request
+     * @return TransferOrder
+     * @throws Exception
+     */
+    public function createTransferOrder(EntityManagerInterface $entityManager,
+                                        ?Statut $status,
+                                        ?TransferRequest $request): TransferOrder {
+        $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+
+        $transferOrderNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, TransferOrder::NUMBER_PREFIX, TransferOrder::class);
+
+        $transfer = new TransferOrder();
+        $transfer
+            ->setRequest($request)
+            ->setNumber($transferOrderNumber)
+            ->setStatus($status)
+            ->setCreationDate($now);
+
+        return $transfer;
+    }
+
 }
