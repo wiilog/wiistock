@@ -166,7 +166,7 @@ class TrackingMovementController extends AbstractController
         $fields[] = "actions";
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-dump($fields);
+
         $currentUser->setColumnsVisibleForTrackingMovement($fields);
         $entityManager->flush();
 
