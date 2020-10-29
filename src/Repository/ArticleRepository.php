@@ -24,6 +24,7 @@ use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 
+use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -65,9 +66,7 @@ class ArticleRepository extends EntityRepository
 
     public function findExpiredToGenerate($delay = 0) {
         $since = new DateTime("now", new DateTimeZone("Europe/Paris"));
-        if($delay) {
-            $since->modify($delay);
-        }
+        $since->modify("+{$delay}day");
 
         return $this->createQueryBuilder("a")
             ->where("a.expiryDate <= :since")
@@ -236,11 +235,9 @@ class ArticleRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function getAllWithLimits(int $start, int $limit)
-    {
-        $queryBuilder = $this->createQueryBuilder('article');
-        return $queryBuilder
-            ->addSelect('referenceArticle.reference')
+    public function iterateAll() {
+        $iterator = $this->createQueryBuilder('article')
+            ->select('referenceArticle.reference')
             ->addSelect('article.label')
             ->addSelect('article.quantite')
             ->addSelect('type.label as typeLabel')
@@ -258,10 +255,13 @@ class ArticleRepository extends EntityRepository
             ->leftJoin('article.type', 'type')
             ->leftJoin('article.statut', 'statut')
             ->leftJoin('articleFournisseur.referenceArticle', 'referenceArticle')
-            ->setFirstResult($start)
-            ->setMaxResults($limit)
             ->getQuery()
-            ->execute();
+            ->iterate(null, Query::HYDRATE_ARRAY);
+
+        foreach($iterator as $item) {
+            // $item [index => article array]
+            yield array_pop($item);
+        }
     }
 
 	public function getIdAndRefBySearch($search, $activeOnly = false, $field = 'reference', $referenceArticleReference = null, $activeReferenceOnly = false)

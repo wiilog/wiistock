@@ -14,7 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -73,7 +73,7 @@ class ArticleFournisseurController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -134,7 +134,7 @@ class ArticleFournisseurController extends AbstractController
             ]);
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -171,7 +171,7 @@ class ArticleFournisseurController extends AbstractController
                 'msg' => 'L\'article fournisseur '.$articleFournisseur->getLabel(). ' a bien été modifié.'
             ]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -206,7 +206,7 @@ class ArticleFournisseurController extends AbstractController
                 'msg' => 'L\'article fournisseur ' .$articleFournisseur->getLabel(). ' a bien été supprimé.'
             ]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -231,7 +231,7 @@ class ArticleFournisseurController extends AbstractController
             }
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -276,6 +276,6 @@ class ArticleFournisseurController extends AbstractController
 
             return new JsonResponse(['results' => $articleFournisseurs]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 }

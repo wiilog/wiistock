@@ -40,6 +40,7 @@ use App\Repository\InventoryMissionRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\TrackingMovementRepository;
 use App\Repository\ReferenceArticleRepository;
+use App\Service\CSVExportService;
 use App\Service\DispatchService;
 use App\Service\AttachmentService;
 use App\Service\DemandeLivraisonService;
@@ -635,9 +636,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $preparationsManager->treatMouvementQuantities($mouvementNomade, $preparation);
                                 // on crée les mouvements de livraison
                                 if (empty($articlesToKeep)) {
-                                    $articlesToKeep = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser);
+                                    $articlesToKeep = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser, $entityManager);
                                 } else {
-                                    $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser);
+                                    $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser, $entityManager);
                                 }
                                 $emplacement = $emplacementRepository->findOneByLabel($mouvementNomade['location']);
                                 $preparationsManager->createMouvementLivraison(
@@ -1141,6 +1142,17 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($nomadUser) {
             $demandeArray = json_decode($request->request->get('demande'), true);
             $demandeArray['demandeur'] = $nomadUser;
+
+            $freeFields = json_decode($demandeArray["freeFields"], true);
+
+            if(is_array($freeFields)) {
+                foreach($freeFields as $key => $value) {
+                    $demandeArray[(int)$key] = $value;
+                }
+            }
+
+            unset($demandeArray["freeFields"]);
+
             $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate(
                 $entityManager,
                 $demandeArray,
@@ -1502,6 +1514,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     'label' => $type->getLabel(),
                 ];
             }, $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]));
+
+            $deliveryFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
         }
 
         if ($rights['tracking']) {
@@ -1524,7 +1538,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
-            'freeFields' => Stream::from($trackingFreeFields ?? [], $requestFreeFields ?? [])
+            'freeFields' => Stream::from($trackingFreeFields ?? [], $requestFreeFields ?? [], $deliveryFreeFields ?? [])
                 ->map(function (FreeField $freeField) {
                     return $freeField->serialize();
                 })
@@ -1632,9 +1646,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
             $anomalies = json_decode($request->request->get('anomalies'), true);
             $errors = [];
+            $success = [];
             foreach ($anomalies as $anomaly) {
                 try {
-                    $this->inventoryService->doTreatAnomaly(
+                     $res = $this->inventoryService->doTreatAnomaly(
                         $anomaly['id'],
                         $anomaly['reference'],
                         $anomaly['is_ref'],
@@ -1642,6 +1657,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $anomaly['comment'],
                         $nomadUser
                     );
+
+                    $success = array_merge($success, $res['treatedEntries']);
+
                     $numberOfRowsInserted++;
                 }
                 catch (ArticleNotAvailableException|RequestNeedToBeProcessedException $exception) {
@@ -1650,7 +1668,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             }
 
             $s = $numberOfRowsInserted > 1 ? 's' : '';
-            $this->successDataMsg['success'] = true;
+            $this->successDataMsg['success'] = $success;
             $this->successDataMsg['errors'] = $errors;
             $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0)
                 ? ($anomalies > 0

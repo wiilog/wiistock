@@ -11,6 +11,7 @@ use App\Entity\FiltreRef;
 use App\Entity\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
+use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TransferRequest;
@@ -21,6 +22,7 @@ use App\Entity\CategorieCL;
 use App\Entity\Collecte;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
+use App\Helper\Stream;
 use App\Service\DemandeCollecteService;
 use App\Service\MouvementStockService;
 use App\Service\FreeFieldService;
@@ -28,7 +30,11 @@ use App\Service\ArticleFournisseurService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Twig\Environment as Twig_Environment;
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
@@ -43,7 +49,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
@@ -271,7 +277,8 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse($columns);
         }
-        throw new NotFoundHttpException("404");
+
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -289,10 +296,10 @@ class ReferenceArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $data = $this->refArticleDataService->getRefArticleDataByParams($request->request);
-            return new JsonResponse($data);
+            return $this->json($this->refArticleDataService->getRefArticleDataByParams($request->request));
         }
-        throw new NotFoundHttpException("404");
+
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -352,6 +359,7 @@ class ReferenceArticleController extends AbstractController
                 case 'article':
                     $typeArticle = ReferenceArticle::TYPE_QUANTITE_ARTICLE;
                     break;
+                case 'reference':
                 default:
                     $typeArticle = ReferenceArticle::TYPE_QUANTITE_REFERENCE;
                     break;
@@ -449,7 +457,7 @@ class ReferenceArticleController extends AbstractController
             $champLibreService->manageFreeFields($refArticle, $data, $entityManager);
 
             $entityManager->flush();
-            return new JsonResponse([
+            return $this->json([
                 'success' => true,
                 'msg' => 'La référence ' . $refArticle->getReference() . ' a bien été créée',
                 'data' => [ // for reference created in reception-show
@@ -458,15 +466,15 @@ class ReferenceArticleController extends AbstractController
                 ]
             ]);
         }
-        throw new NotFoundHttpException("404");
+
+        throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/", name="reference_article_index",  methods="GET|POST", options={"expose"=true})
      * @return Response
      */
-    public function index(): Response
-    {
+    public function index(): Response {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -722,7 +730,7 @@ class ReferenceArticleController extends AbstractController
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -778,7 +786,7 @@ class ReferenceArticleController extends AbstractController
             }
             return new JsonResponse($response);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -795,18 +803,21 @@ class ReferenceArticleController extends AbstractController
             }
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
+            /** @var ReferenceArticle $refArticle */
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
-            $entityManager = $this->getDoctrine()->getManager();
-            if (count($refArticle->getCollecteReferences()) > 0
-                || count($refArticle->getLigneArticles()) > 0
-                || count($refArticle->getReceptionReferenceArticles()) > 0
-                || count($refArticle->getMouvements()) > 0
-                || count($refArticle->getTrackingMovements()) > 0
-                || count($refArticle->getArticlesFournisseur()) > 0) {
+            if (!($refArticle->getCollecteReferences()->isEmpty())
+                || !($refArticle->getLigneArticles()->isEmpty())
+                || !($refArticle->getReceptionReferenceArticles()->isEmpty())
+                || !($refArticle->getMouvements()->isEmpty())
+                || !($refArticle->getArticlesFournisseur()->isEmpty())
+                || !($refArticle->getTransferRequests()->isEmpty())
+                || !($refArticle->getTransferRequests()->isEmpty())
+                || $refArticle->getTrackingPack()
+                || $refArticle->hasTrackingMovements()) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => '
-                        Cet article est lié à une collecte, une livraison, une réception ou un article fournisseur.<br>
+                        Cet article est lié à un colis, des mouvements, une collecte, une livraison, une réception ou un article fournisseur.<br>
                         Vous ne pouvez donc pas le supprimer.
                     '
                 ]);
@@ -816,7 +827,7 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse(['success' => true]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -869,7 +880,7 @@ class ReferenceArticleController extends AbstractController
             ]);
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -899,7 +910,7 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse($quantity);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -923,7 +934,7 @@ class ReferenceArticleController extends AbstractController
             $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity, $field, $locationFilter);
             return new JsonResponse(['results' => $refArticles]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -944,9 +955,11 @@ class ReferenceArticleController extends AbstractController
 			$refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly);
 			$articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly);
 
-			return new JsonResponse(['results' => array_merge($articles, $refArticles)]);
+			return new JsonResponse([
+			    'results' => array_merge($articles, $refArticles)
+            ]);
 		}
-		throw new NotFoundHttpException("404");
+		throw new BadRequestHttpException();
 	}
 
     /**
@@ -1058,7 +1071,7 @@ class ReferenceArticleController extends AbstractController
             ]);
 
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1135,7 +1148,7 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1159,7 +1172,7 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse(['success' => true]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1174,8 +1187,7 @@ class ReferenceArticleController extends AbstractController
      */
     public function show(Request $request,
                          RefArticleDataService $refArticleDataService,
-                         EntityManagerInterface $entityManager): Response
-    {
+                         EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
@@ -1187,9 +1199,9 @@ class ReferenceArticleController extends AbstractController
                 : false;
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
-    }
 
+        throw new BadRequestHttpException();
+    }
 
     /**
      * @Route("/exporter-refs", name="export_all_refs", options={"expose"=true}, methods="GET|POST")
@@ -1198,101 +1210,83 @@ class ReferenceArticleController extends AbstractController
      * @param CSVExportService $CSVExportService
      * @return Response
      */
-    public function exportAllRefs(EntityManagerInterface $entityManager,
-                                  FreeFieldService $freeFieldService,
-                                  CSVExportService $CSVExportService): Response
-    {
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+    public function exportAllRefs(EntityManagerInterface $manager,
+                                  CSVExportService $csvService,
+                                  FreeFieldService $ffService): Response {
+        $ffConfig = $ffService->createExportArrayConfig($manager, [CategorieCL::REFERENCE_ARTICLE]);
 
-        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::REFERENCE_ARTICLE]);
+        $header = array_merge([
+            'reference',
+            'libellé',
+            'quantité',
+            'type',
+            'type quantité',
+            'statut',
+            'commentaire',
+            'emplacement',
+            'seuil sécurite',
+            'seuil alerte',
+            'prix unitaire',
+            'code barre',
+            'catégorie inventaire',
+            'date dernier inventaire',
+            'synchronisation nomade',
+            'gestion de stock',
+            'gestionnaire(s)'
+        ], $ffConfig['freeFieldsHeader']);
 
-        $headers = array_merge(
-            [
-                'reference',
-                'libellé',
-                'quantité',
-                'type',
-                'type quantité',
-                'statut',
-                'commentaire',
-                'emplacement',
-                'seuil sécurite',
-                'seuil alerte',
-                'prix unitaire',
-                'code barre',
-                'catégorie inventaire',
-                'date dernier inventaire',
-                'synchronisation nomade',
-                'gestion de stock',
-                'gestionnaire(s)'
-            ],
-            $freeFieldsConfig['freeFieldsHeader']
-        );
         $today = new DateTime();
-        $globalTitle = 'export-references-' . $today->format('d-m-Y H:i:s') . '.csv';
-        $referencesExportFiles = [];
-        $allReferencesCount = intval($referenceArticleRepository->countAll());
-        $step = self::MAX_CSV_FILE_LENGTH;
-        $start = 0;
-        do {
-            $references = $referenceArticleRepository->getAllWithLimits($start, $step);
-            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $freeFieldService, $references, ($start === 0 ? $headers : null), $freeFieldsConfig, $entityManager);
-            $references = null;
-            $start += $step;
-        } while ($start < $allReferencesCount);
-        $masterCSVFileName = $CSVExportService
-            ->mergeCSVFiles($referencesExportFiles);
-        return $CSVExportService
-            ->createBinaryResponseFromFile($masterCSVFileName, $globalTitle);
+        $today = $today->format("d-m-Y H:i:s");
+
+        return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $ffConfig) {
+            $raRepository = $manager->getRepository(ReferenceArticle::class);
+            $managersByReference = $manager
+                ->getRepository(Utilisateur::class)
+                ->getUsernameManagersGroupByReference();
+
+            $references = $raRepository->iterateAll();
+            foreach($references as $reference) {
+                $this->putReferenceLine($output, $csvService, $ffService, $ffConfig, $managersByReference, $reference);
+            }
+        }, "export-references-$today.csv", $header);
     }
 
+    private function putReferenceLine($handle,
+                                      CSVExportService $csvService,
+                                      FreeFieldService $ffService,
+                                      array $ffConfig,
+                                      array $managersByReference,
+                                      array $reference) {
+        $id = (int)$reference['id'];
 
-    private function generateRefsCSVFile(CSVExportService $CSVExportService,
-                                         FreeFieldService $freeFieldService,
-                                         array $references,
-                                         ?array $headers,
-                                         array $freeFieldsConfig,
-                                         $entityManager): string {
+        $line = [
+            $reference['reference'],
+            $reference['libelle'],
+            $reference['quantiteStock'],
+            $reference['type'],
+            $reference['typeQuantite'],
+            $reference['statut'],
+            $reference['commentaire'] ? strip_tags($reference['commentaire']) : "",
+            $reference['emplacement'],
+            $reference['limitSecurity'],
+            $reference['limitWarning'],
+            $reference['prixUnitaire'],
+            $reference['barCode'],
+            $reference['category'],
+            $reference['dateLastInventory'] ? $reference['dateLastInventory']->format("d/m/Y H:i:s") : "",
+            $reference['needsMobileSync'],
+            $reference['stockManagement'],
+            $managersByReference[$id] ?? ""
+        ];
 
-        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        foreach($ffConfig['freeFieldIds'] as $freeFieldId) {
+            $line[] = $ffService->serializeValue([
+                'typage' => $ffConfig['freeFieldsIdToTyping'][$freeFieldId],
+                'valeur' => $reference['freeFields'][$freeFieldId] ?? ''
+            ]);
+        }
 
-        $managersByReferenceArticle = $userRepository->getUsernameManagersGroupByReference();
-
-        return $CSVExportService->createCsvFile(
-            $references,
-            $headers,
-            function ($reference) use ($freeFieldService, $freeFieldsConfig, $managersByReferenceArticle) {
-                $referenceArticleId = (int) $reference['id'];
-                $referenceArray = [
-                    $reference['reference'],
-                    $reference['libelle'],
-                    $reference['quantiteStock'],
-                    $reference['type'],
-                    $reference['typeQuantite'],
-                    $reference['statut'],
-                    $reference['commentaire'] ? strip_tags($reference['commentaire']) : '',
-                    $reference['emplacement'],
-                    $reference['limitSecurity'],
-                    $reference['limitWarning'],
-                    $reference['prixUnitaire'],
-                    $reference['barCode'],
-                    $reference['category'],
-                    $reference['dateLastInventory'] ? $reference['dateLastInventory']->format('d/m/Y H:i:s') : '',
-                    $reference['needsMobileSync'],
-                    $reference['stockManagement'],
-                    $managersByReferenceArticle[$referenceArticleId] ?? ''
-                ];
-
-                foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                    $referenceArray[] = $freeFieldService->serializeValue([
-                        'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                        'valeur' => $reference['freeFields'][$freeFieldId] ?? ''
-                    ]);
-                }
-
-                return [$referenceArray];
-            }
-        );
+        $csvService->putLine($handle, $line);
     }
 
     /**
@@ -1326,7 +1320,7 @@ class ReferenceArticleController extends AbstractController
 
 			return new JsonResponse($quantityType);
 		}
-		throw new NotFoundHttpException('404');
+		throw new BadRequestHttpException();
 	}
 
     /**
@@ -1359,7 +1353,7 @@ class ReferenceArticleController extends AbstractController
             ]);
         }
 
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1482,7 +1476,7 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1504,7 +1498,7 @@ class ReferenceArticleController extends AbstractController
                'refLabel' => $name?? ''
            ]));
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -1551,7 +1545,7 @@ class ReferenceArticleController extends AbstractController
             );
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**

@@ -220,7 +220,7 @@ class ArticleDataService
                 $management = $refArticle->getStockManagement();
                 $articleToPreselect = null;
                 if ($management) {
-                    $articleToPreselect = Stream::from($articles)
+                    $articles = Stream::from($articles)
                         ->sort(function (Article $article1, Article $article2) use ($management) {
                             $datesToCompare = [];
                             if ($management === ReferenceArticle::STOCK_MANAGEMENT_FIFO) {
@@ -241,14 +241,12 @@ class ArticleDataService
                                 return 1;
                             }
                             return 0;
-                        })
-                        ->first()
-                        ->getId();
+                        })->toArray();
                 }
                 $data = [
                     'selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
                         'articles' => $articles,
-                        'articleToPreselect' => $articleToPreselect ?? null,
+                        'preselect' => isset($management),
                         'maximum' => $availableQuantity,
                     ])
                 ];
@@ -319,17 +317,20 @@ class ArticleDataService
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
-        $price = max(0, $data['prix']);
 
         $article = $articleRepository->find($data['article']);
         if ($article) {
             if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
+
+                $expiryDate = !empty($data['expiry']) ? DateTime::createFromFormat("Y-m-d", $data['expiry']) : null;
+                $price = max(0, $data['prix']);
+
                 $article
                     ->setPrixUnitaire($price)
                     ->setLabel($data['label'])
                     ->setConform(!$data['conform'])
                     ->setBatch($data['batch'] ?? null)
-                    ->setExpiryDate(DateTime::createFromFormat("Y-m-d", $data['expiry']))
+                    ->setExpiryDate($expiryDate ? $expiryDate : null)
                     ->setCommentaire($data['commentaire']);
 
                 if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut

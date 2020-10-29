@@ -200,10 +200,13 @@
     line-height: 40px;
     padding-left: 1px;
     padding-right: 15px;
-    user-select: none;
 
     &:hover {
         background-color: rgba(255, 255, 255, 0.2);
+
+        span {
+            color: white;
+        }
     }
 }
 

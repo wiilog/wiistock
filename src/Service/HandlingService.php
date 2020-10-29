@@ -121,6 +121,7 @@ class HandlingService
             'emergency' => $handling->getEmergency() ?? '',
             'treatedBy' => $handling->getTreatedByHandling() ? $handling->getTreatedByHandling()->getUsername() : '',
             'treatmentDelay' => $treatmentDelayStr,
+            'carriedOutOperationCount' => is_int($handling->getCarriedOutOperationCount()) ? $handling->getCarriedOutOperationCount() : '',
             'Actions' => $this->templating->render('handling/datatableHandlingRow.html.twig', [
                 'handling' => $handling
             ]),

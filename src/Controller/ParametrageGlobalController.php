@@ -23,6 +23,7 @@ use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
+use App\Service\AlertService;
 use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
 use App\Service\StatusService;
@@ -35,7 +36,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -509,38 +510,30 @@ class ParametrageGlobalController extends AbstractController
             $em->flush();
             return new JsonResponse(['typeDemande' => $data['typeDemande'], 'prefixe' => $data['prefixe']]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/ajax-update-expiration-delay", name="ajax_update_expiration_delay",  options={"expose"=true},  methods="POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
-     * @throws NonUniqueResultException
      */
     public function updateExpirationDelay(Request $request,
-                                          EntityManagerInterface $entityManager) {
-
+                                          EntityManagerInterface $manager,
+                                          AlertService $service) {
         $expirationDelay = $request->request->get('expirationDelay');
 
-        if($expirationDelay && !preg_match('/(\d+s)? *(\d+j)? *(\d+h)?/', $expirationDelay)) {
-            return $this->json([
-                'success' => false,
-                'msg' => "Le délai de péremption doit être renseigné au format \"1s 4d 18h\""
-            ]);
+        $parametrageGlobalRepository = $manager->getRepository(ParametrageGlobal::class);
+        $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);
+
+        if (empty($setting)) {
+            $setting = new ParametrageGlobal();
+            $setting->setLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);
+            $manager->persist($setting);
         }
 
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $expirationDelayParam = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);
+        $setting->setValue($expirationDelay);
+        $manager->flush();
 
-        if (empty($expirationDelayParam)) {
-            $expirationDelayParam = new ParametrageGlobal();
-            $expirationDelayParam->setLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);
-            $entityManager->persist($expirationDelayParam);
-        }
-        $expirationDelayParam->setValue($expirationDelay);
-        $entityManager->flush();
+        $service->generateAlerts($manager);
 
         return $this->json([
             'success' => true
@@ -554,16 +547,14 @@ class ParametrageGlobalController extends AbstractController
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
-    public function getPrefixDemand(Request $request,
-                                    PrefixeNomDemandeRepository $prefixeNomDemandeRepository)
-    {
+    public function getPrefixDemand(Request $request, PrefixeNomDemandeRepository $prefixeNomDemandeRepository) {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $prefixeNomDemande = $prefixeNomDemandeRepository->findOneByTypeDemande($data);
             $prefix = $prefixeNomDemande ? $prefixeNomDemande->getPrefixe() : '';
 
             return new JsonResponse($prefix);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -604,7 +595,7 @@ class ParametrageGlobalController extends AbstractController
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -634,7 +625,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -693,7 +684,7 @@ class ParametrageGlobalController extends AbstractController
                 'msg' => 'Le jour "' . $this->engDayToFr[$dayName] . '" a bien été modifié.'
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -733,7 +724,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -763,7 +754,7 @@ class ParametrageGlobalController extends AbstractController
             }
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -796,7 +787,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -853,7 +844,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -881,7 +872,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -913,7 +904,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -930,7 +921,7 @@ class ParametrageGlobalController extends AbstractController
             $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
             return new JsonResponse($parametrageGlobal ? $parametrageGlobal->getValue() : true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -946,7 +937,7 @@ class ParametrageGlobalController extends AbstractController
             $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
             return new JsonResponse($parametrageGlobal128 ? $parametrageGlobal128->getValue() : true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
 
@@ -1019,7 +1010,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**

@@ -22,7 +22,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Error\LoaderError;
@@ -115,7 +115,7 @@ class StatusController extends AbstractController {
             $data = $this->statusService->getDataForDatatable($request->request);
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -181,7 +181,7 @@ class StatusController extends AbstractController {
                 'msg' => $message
             ]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -224,7 +224,7 @@ class StatusController extends AbstractController {
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -290,7 +290,7 @@ class StatusController extends AbstractController {
                 'msg' => $message
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -322,7 +322,7 @@ class StatusController extends AbstractController {
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
 
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -358,7 +358,7 @@ class StatusController extends AbstractController {
                 'msg' => 'Le statut <strong>' . $statusLabel . '</strong> a bien été supprimé.'
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
 }

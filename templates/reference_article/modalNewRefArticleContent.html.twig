@@ -43,9 +43,9 @@
 <div class="row">
     <div class="form-group col-4">
         <label for="type">Type*</label>
-        <select name="type" onclick="typeChoice($(this), '-new')"
-                onchange="toggleRequiredChampsLibres($(this),'create')"
-                class="form-control data d-block type needed" id="">
+        <select name="type"
+                onchange="typeChoice($(this)); toggleRequiredChampsLibres($(this),'create')"
+                class="form-control data d-block type needed">
             <option value="">Type à choisir...</option>
             {% for type in types %}
                 <option value="{{ type.id }}">{{ type.label }}</option>
@@ -155,13 +155,15 @@
 <span class="toggle-collapsible expanded">Champs libres</span>
 <div class="collapsible expanded free-fields-container">
     {% for type in typeChampsLibres %}
-        <div class="d-none" id="{{ type.typeId }}-new">
+        <div class="d-none"
+             data-type="{{ type.typeId }}">
             {% include 'free_field/freeFieldsViewing.html.twig' with {
                 freeFields: type.champsLibres,
                 freeFieldValues: [],
                 colType: 'col-md-4 col-12',
                 requiredType: 'requiredCreate',
-                actionType: 'new'
+                actionType: 'new',
+                disabledNeeded: true
             } %}
         </div>
     {% endfor %}

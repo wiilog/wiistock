@@ -301,10 +301,9 @@ class DemandeLivraisonService
             ->setDestination($destination)
             ->setNumero($numero)
             ->setCommentaire($data['commentaire']);
-        if (!$fromNomade) {
-            // enregistrement des champs libres
-            $champLibreService->manageFreeFields($demande, $data, $entityManager);
-        }
+
+        $champLibreService->manageFreeFields($demande, $data, $entityManager);
+
         // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
             $reception = $this->receptionRepository->find(intval($data['reception']));

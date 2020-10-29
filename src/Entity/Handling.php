@@ -97,6 +97,11 @@ class Handling extends FreeFieldEntity
     private $attachments;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $carriedOutOperationCount;
+
+    /**
      * @var Utilisateur|null
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="treatedHandlings")
      */
@@ -306,5 +311,14 @@ class Handling extends FreeFieldEntity
 
     public function getTreatmentDelay(): ?int {
         return $this->treatmentDelay;
+    }
+
+    public function setCarriedOutOperationCount(?int $carriedOutOperationCount): self {
+        $this->carriedOutOperationCount = $carriedOutOperationCount;
+        return $this;
+    }
+
+    public function getCarriedOutOperationCount(): ?int {
+        return $this->carriedOutOperationCount;
     }
 }

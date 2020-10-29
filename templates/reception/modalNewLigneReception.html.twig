@@ -67,13 +67,15 @@
                     <span class="toggle-collapsible expanded">Champs libres</span>
                     <div class="collapsible expanded free-fields-container mb-2">
                         {% for type in typeChampsLibres %}
-                            <div class="d-none" id="{{ type.typeId }}-new">
+                            <div class="d-none"
+                                 data-type="{{ type.typeId }}">
                                 {% include 'free_field/freeFieldsViewing.html.twig' with {
                                     freeFields: type.champsLibres,
                                     freeFieldValues: [],
                                     colType: 'col-md-4 col-12',
                                     requiredType: 'requiredCreate',
-                                    actionType: 'new'
+                                    actionType: 'new',
+                                    disabledNeeded: true
                                 } %}
                             </div>
                         {% endfor %}
@@ -105,6 +107,14 @@
                                 <input hidden id="storageTransfer"
                                        data-id="{{ reception.storageLocation ? reception.storageLocation.id }}"
                                        data-text="{{ reception.storageLocation ? reception.storageLocation.label }}">
+                            </div>
+                            <div class="col-4 form-group">
+                                <label for="origin">Emplacement d'origine'*</label>
+                                <select name="origin" class="data ajax-autocomplete-location-edit w-100 needed" id="origin">
+                                </select>
+                                <input hidden id="originTransfer"
+                                       data-id="{{ reception.location ? reception.location.id }}"
+                                       data-text="{{ reception.location ? reception.location.label }}">
                             </div>
                         </div>
                     </div>

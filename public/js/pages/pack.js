@@ -33,7 +33,7 @@ $(function() {
             {"data": 'packNature', 'name': 'packNature', 'title': 'natures.Nature de colis', translated: true},
             {"data": "quantity", 'name': 'quantity', 'title': 'Quantité'},
             {"data": 'packLastDate', 'name': 'packLastDate', 'title': 'Date du dernier mouvement'},
-            {"data": "packOrigin", 'name': 'packOrigin', 'title': 'Issu de', className: 'noVis'},
+            {"data": "packOrigin", 'name': 'packOrigin', 'title': 'Issu de', className: 'noVis', orderable: false},
             {"data": "packLocation", 'name': 'packLocation', 'title': 'Emplacement'}
         ]
     });

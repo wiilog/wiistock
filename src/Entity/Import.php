@@ -89,6 +89,7 @@ class Import
         'batch' => 'Lot',
         'location' => 'Emplacement',
         'manualUrgent' => 'Urgence',
+        'stockManagement' => 'Gestion de stock',
         'expiryDate' => 'Date de péremption (jj/mm/AAAA)',
         'stockEntryDate' => 'Date d\'entrée en stock (jj/mm/AAAA hh:MM)',
 	];
