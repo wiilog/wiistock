@@ -433,16 +433,10 @@ class ArrivageRepository extends EntityRepository
                             ->leftJoin('a.statut', 'order_status')
                             ->orderBy('order_status.nom', $order);
                     } else {
-                        if (property_exists(Arrivage::class, $column)) {
-                            $qb
-                                ->orderBy('a.' . $column, $order);
-                        } else {
-                            $clId = $freeFieldLabelsToIds[trim(mb_strtolower($column))] ?? null;
-                            if ($clId) {
-                                $jsonOrderQuery = "CAST(JSON_EXTRACT(a.freeFields, '$.\"${clId}\"') AS CHAR)";
-                                $qb
-                                    ->orderBy($jsonOrderQuery, $order);
-                            }
+                        if(is_numeric($column)) {
+                            $qb->orderBy("JSON_EXTRACT(a.freeFields, '$.\"$column\"')", $order);
+                        } else if (property_exists(Arrivage::class, $column)) {
+                            $qb->orderBy("a.$column", $order);
                         }
                     }
                 }

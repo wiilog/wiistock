@@ -214,7 +214,7 @@ class TrackingMovementRepository extends EntityRepository
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']] ?? $params->get('columns')[$params->get('order')[0]['column']]['data'];
 
                     if ($column === 'emplacement') {
                         $qb
@@ -249,8 +249,11 @@ class TrackingMovementRepository extends EntityRepository
                             ->leftJoin('tracking_movement.pack', 'order_pack')
                             ->orderBy('order_pack.code', $order);
                     } else {
-                        $qb
-                            ->orderBy('tracking_movement.' . $column, $order);
+                        if(is_numeric($column)) {
+                            $qb->orderBy("JSON_EXTRACT(tracking_movement.freeFields, '$.\"$column\"')", $order);
+                        } else if (property_exists(TrackingMovement::class, $column)) {
+                            $qb->orderBy("a.$column", $order);
+                        }
                     }
 
                     $orderId = ($column === 'datetime')
