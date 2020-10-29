@@ -350,10 +350,10 @@ class LivraisonController extends AbstractController
                 'statut',
                 'date création',
                 'date de livraison',
+                'date de la demande',
+                'demandeur',
                 'opérateur',
                 'type',
-                'demandeur',
-                'date de validation',
                 'commentaire',
                 'référence',
                 'libellé',
@@ -385,10 +385,10 @@ class LivraisonController extends AbstractController
                 $livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
                 $livraison->getDate() ? $livraison->getDate()->format('d/m/Y H:i') : '',
                 $livraison->getDateFin() ? $livraison->getDateFin()->format('d/m/Y H:i') : '',
+                $demande->getValidationDate() ? FormatHelper::date($demande->getValidationDate()) : '',
+                $demande->getUtilisateur() ? FormatHelper::user($demande->getUtilisateur()) : '',
                 $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
                 $demande ? $demande->getType() ? $demande->getType()->getLabel() : '' : '',
-                $demande->getUtilisateur() ? FormatHelper::user($demande->getUtilisateur()) : '',
-                $demande->getValidationDate() ? FormatHelper::date($demande->getValidationDate()) : '',
                 $demande->getCommentaire() ? strip_tags($demande->getCommentaire()) : ''
             ];
 
