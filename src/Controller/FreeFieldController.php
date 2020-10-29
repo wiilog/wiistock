@@ -78,10 +78,9 @@ class FreeFieldController extends AbstractController {
 
                 $defaultValue = $champLibre->getDefaultValue();
                 if ($champLibre->getTypage() == FreeField::TYPE_BOOL) {
-                    $defaultValue = $champLibre->getDefaultValue() === null ||$champLibre->getDefaultValue() === "" ?
-                        "" : ($champLibre->getDefaultValue()
-                            ? "Oui"
-                            : "Non");
+                    $defaultValue = ($champLibre->getDefaultValue() === null || $champLibre->getDefaultValue() === "")
+                        ? ""
+                        : ($champLibre->getDefaultValue() ? "Oui" : "Non");
                 } else if ($champLibre->getTypage() === FreeField::TYPE_DATETIME
                     || $champLibre->getTypage() === FreeField::TYPE_DATE) {
                     $defaultValueDate = new DateTime(str_replace('/', '-', $defaultValue));

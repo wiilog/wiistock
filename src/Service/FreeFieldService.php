@@ -24,7 +24,7 @@ class FreeFieldService {
                 $formattedValue = $valeurChampLibre['valeur'];
             }
         } else if($valeurChampLibre['typage'] == FreeField::TYPE_BOOL) {
-            $formattedValue = $valeurChampLibre['valeur'] === null
+            $formattedValue = ($valeurChampLibre['valeur'] === null || $valeurChampLibre['valeur'] === '')
                 ? "Non défini"
                 : ($valeurChampLibre['valeur'] ? "Oui" : "Non");
         } else {
