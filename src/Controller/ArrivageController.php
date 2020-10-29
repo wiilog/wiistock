@@ -1467,6 +1467,29 @@ class ArrivageController extends AbstractController
         $commandAndProjectNumberIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
         $printTwiceIfCustoms = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PRINT_TWICE_CUSTOMS);
 
+
+        $firstCustomIconInclude = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_CUSTOMS_IN_LABEL);
+        $firstCustomIconName = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_ICON);
+        $firstCustomIconText = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_TEXT_LABEL);
+
+        $firstCustomIconConfig = ($firstCustomIconInclude && $firstCustomIconName && $firstCustomIconText)
+            ? [
+                'icon' => $firstCustomIconName,
+                'text' => $firstCustomIconText
+            ]
+            : null;
+
+        $firstCustomIconInclude = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EMERGENCY_IN_LABEL);
+        $secondCustomIconName = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_ICON);;
+        $secondCustomIconText = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_TEXT_LABEL);
+
+        $secondCustomIconConfig = ($firstCustomIconInclude && $secondCustomIconName && $secondCustomIconText)
+            ? [
+                'icon' => $secondCustomIconName,
+                'text' => $secondCustomIconText
+            ]
+            : null;
+
         if (!isset($colis)) {
             $printColis = $request->query->getBoolean('printColis');
             $printArrivage = $request->query->getBoolean('printArrivage');
@@ -1477,7 +1500,9 @@ class ArrivageController extends AbstractController
                     $usernameParamIsDefined,
                     $dropzoneParamIsDefined,
                     $packCountParamIsDefined,
-                    $commandAndProjectNumberIsDefined
+                    $commandAndProjectNumberIsDefined,
+                    $firstCustomIconConfig,
+                    $secondCustomIconConfig
                 );
             }
 
@@ -1501,7 +1526,9 @@ class ArrivageController extends AbstractController
                 $usernameParamIsDefined,
                 $dropzoneParamIsDefined,
                 $packCountParamIsDefined,
-                $commandAndProjectNumberIsDefined
+                $commandAndProjectNumberIsDefined,
+                $firstCustomIconConfig,
+                $secondCustomIconConfig
             );
         }
 
@@ -1521,7 +1548,7 @@ class ArrivageController extends AbstractController
         $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'arrivage');
 
         return new PdfResponse(
-            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs, $arrivage),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
             $fileName
         );
     }
@@ -1551,9 +1578,13 @@ class ArrivageController extends AbstractController
         return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService);
     }
 
-    private function getBarcodeConfigPrintAllColis(Arrivage $arrivage, ?bool $usernameParamIsDefined,
-                                                   ?bool $dropzoneParamIsDefined, bool $packCountParamIsDefined, bool $commandAndProjectNumberIsDefined) {
-        //1
+    private function getBarcodeConfigPrintAllColis(Arrivage $arrivage,
+                                                   ?bool $usernameParamIsDefined = false,
+                                                   ?bool $dropzoneParamIsDefined = false,
+                                                   ?bool $packCountParamIsDefined = false,
+                                                   ?bool $commandAndProjectNumberIsDefined = false,
+                                                   ?array $firstCustomIconConfig = null,
+                                                   ?array $secondCustomIconConfig = null) {
         $total = $arrivage->getPacks()->count();
         $packs = [];
 
@@ -1566,7 +1597,9 @@ class ArrivageController extends AbstractController
                 $usernameParamIsDefined,
                 $dropzoneParamIsDefined,
                 $packCountParamIsDefined,
-                $commandAndProjectNumberIsDefined
+                $commandAndProjectNumberIsDefined,
+                $firstCustomIconConfig,
+                $secondCustomIconConfig
             );
         }
 
@@ -1579,7 +1612,9 @@ class ArrivageController extends AbstractController
                                            ?bool $usernameParamIsDefined = false,
                                            ?bool $dropzoneParamIsDefined = false,
                                            ?bool $packCountParamIsDefined = false,
-                                           ?bool $commandAndProjectNumberIsDefined = false)
+                                           ?bool $commandAndProjectNumberIsDefined = false,
+                                           ?array $firstCustomIconConfig = null,
+                                           ?array $secondCustomIconConfig = null)
     {
 
         $arrival = $colis->getArrivage();
@@ -1625,7 +1660,9 @@ class ArrivageController extends AbstractController
 
         return [
             'code' => $colis->getCode(),
-            'labels' => $labels
+            'labels' => $labels,
+            'firstCustomIcon' => $arrival->getCustoms() ? $firstCustomIconConfig : null,
+            'secondCustomIcon' => $arrival->getIsUrgent() ? $secondCustomIconConfig : null
         ];
     }
 

@@ -44,8 +44,6 @@ Class GlobalParamService
 		$dimension = $dimensionsEtiquettesRepository->findOneDimension();
 		$response = [];
 		$response['logo'] = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
-		$response['emergency-icon'] = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_ICON);
-		$response['custom-icon'] = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_ICON);
 		if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth()))
 		{
 			$response['height'] = $dimension->getHeight();

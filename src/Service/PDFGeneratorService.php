@@ -52,16 +52,14 @@ Class PDFGeneratorService
     /**
      * @param string $title
      * @param array $barcodeConfigs Array of ['code' => string, 'labels' => array]. labels optional
-     * @param null $arrival
      * @return string
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function generatePDFBarCodes(string $title, array $barcodeConfigs, $arrival = null): string
+    public function generatePDFBarCodes(string $title, array $barcodeConfigs): string
     {
         $barcodeConfig = $this->globalParamService->getDimensionAndTypeBarcodeArray(true);
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
 
         $height = $barcodeConfig['height'];
         $width = $barcodeConfig['width'];
@@ -86,7 +84,9 @@ Class PDFGeneratorService
                     'height' => 48,
                     'longestLabel' => $longestLabel
                 ],
-                'labels' => $labels
+                'labels' => $labels,
+                'firstCustomIcon' => $config['firstCustomIcon'] ?? null,
+                'secondCustomIcon' => $config['secondCustomIcon'] ?? null
             ];
         }, $barcodeConfigs);
 
@@ -94,32 +94,9 @@ Class PDFGeneratorService
                 ? $barcodeConfig['logo']
                 : null);
 
-        $showCustomIcon = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_CUSTOMS_IN_LABEL);
-
-        $customIcon = ($barcodeConfig['custom-icon'] && file_exists(getcwd() . "/uploads/attachements/" . $barcodeConfig['custom-icon'])
-            ? $barcodeConfig['custom-icon']
-            : null);
-
-        $customText = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_TEXT_LABEL);
-
-        $showEmergencyIcon = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EMERGENCY_IN_LABEL);
-
-        $emergencyIcon = ($barcodeConfig['emergency-icon'] && file_exists(getcwd() . "/uploads/attachements/" . $barcodeConfig['emergency-icon'])
-            ? $barcodeConfig['emergency-icon']
-            : null);
-
-        $emergencyText = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_TEXT_LABEL);
-
         return $this->PDFGenerator->getOutputFromHtml(
             $this->templating->render('prints/barcode-template.html.twig', [
                 'logo' => $logo,
-                'showCustomIcon' => $showCustomIcon,
-                'showEmergencyIcon' => $showEmergencyIcon,
-                'customIcon' => $customIcon,
-                'customText' => $customText,
-                'emergencyIcon' => $emergencyIcon,
-                'emergencyText' => $emergencyText,
-                'arrival' => $arrival,
                 'title' => $title,
                 'height' => $height,
                 'width' => $width,
