@@ -87,17 +87,17 @@ class TransferOrderController extends AbstractController {
     /**
      * @Route("/creer{id}", name="transfer_order_new", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
+     * @param TransferOrderService $transferOrderService
      * @param EntityManagerInterface $entityManager
      * @param TransferRequest $transferRequest
-     * @param UniqueNumberService $uniqueNumberService
      * @return Response
      * @throws NonUniqueResultException
      * @throws Exception
      */
     public function new(Request $request,
+                        TransferOrderService $transferOrderService,
                         EntityManagerInterface $entityManager,
-                        TransferRequest $transferRequest,
-                        UniqueNumberService $uniqueNumberService): Response {
+                        TransferRequest $transferRequest): Response {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
@@ -109,7 +109,7 @@ class TransferOrderController extends AbstractController {
 
             $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
             $toTreatRequest = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
-            $transfer = new TransferOrder();
+
 
             $transitStatusForArticles = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::ARTICLE,
@@ -131,18 +131,13 @@ class TransferOrderController extends AbstractController {
             $transferRequest->setStatus($toTreatRequest);
             $transferRequest->setValidationDate(new DateTime());
 
-            $transferOrderNumber = $uniqueNumberService->createUniqueNumber(TransferOrder::NUMBER_PREFIX, UniqueNumberService::DATE_COUNTER_FORMAT, TransferOrder::class);
-            $transfer
-                ->setNumber($transferOrderNumber)
-                ->setCreationDate($date)
-                ->setRequest($transferRequest)
-                ->setStatus($toTreatOrder);
-            $entityManager->persist($transfer);
+            $transferOrder = $transferOrderService->createTransferOrder($entityManager, $toTreatOrder, $transferRequest);
+            $entityManager->persist($transferOrder);
             $entityManager->flush();
 
             return new JsonResponse([
                 'success' => true,
-                'redirect' => $this->generateUrl('transfer_order_show', ['id' => $transfer->getId()]),
+                'redirect' => $this->generateUrl('transfer_order_show', ['id' => $transferOrder->getId()]),
             ]);
         }
         throw new BadRequestHttpException();

@@ -84,15 +84,14 @@ class TransferRequestController extends AbstractController {
     /**
      * @Route("/creer", name="transfer_request_new", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
+     * @param TransferRequestService $transferRequestService
      * @param EntityManagerInterface $entityManager
-     * @param UniqueNumberService $uniqueNumberService
      * @return Response
      * @throws NonUniqueResultException
-     * @throws Exception
      */
     public function new(Request $request,
-                        EntityManagerInterface $entityManager,
-                        UniqueNumberService $uniqueNumberService): Response {
+                        TransferRequestService $transferRequestService,
+                        EntityManagerInterface $entityManager): Response {
         if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
@@ -101,24 +100,16 @@ class TransferRequestController extends AbstractController {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
-            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-
             $draft = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::DRAFT);
-            $transfer = new TransferRequest();
+
             $destination = $emplacementRepository->find($data['destination']);
             $origin = $emplacementRepository->find($data['origin']);
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
-            $transferRequestNumber = $uniqueNumberService->createUniqueNumber(TransferRequest::NUMBER_PREFIX, UniqueNumberService::DATE_COUNTER_FORMAT, TransferRequest::class);
-            $transfer
-                ->setStatus($draft)
-                ->setNumber($transferRequestNumber)
-                ->setDestination($destination)
-                ->setOrigin($origin)
-                ->setCreationDate($date)
-                ->setRequester($currentUser)
-                ->setComment($data['comment']);
+
+            $transfer = $transferRequestService->createTransferRequest($entityManager, $draft, $origin, $destination, $currentUser, $data['comment']);
+
             $entityManager->persist($transfer);
             $entityManager->flush();
 

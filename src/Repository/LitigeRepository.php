@@ -479,17 +479,12 @@ class LitigeRepository extends EntityRepository
 		return array_column($result, 'reference');
 	}
 
-    public function getLastNumberByPrefixAndDate($prefix, $date)
-    {
-        $qb = $this->createQueryBuilder('dispute');
-
-        $qb
+    public function getLastNumberByDate(string $date, string $prefix): ?string {
+        $result = $this->createQueryBuilder('dispute')
             ->select('dispute.numeroLitige')
             ->where('dispute.numeroLitige LIKE :value')
             ->orderBy('dispute.creationDate', 'DESC')
-            ->setParameter('value', $prefix . '-' . $date . '%');
-
-        $result = $qb
+            ->setParameter('value', $prefix . '-' . $date . '%')
             ->getQuery()
             ->execute();
         return $result ? $result[0]['numeroLitige'] : null;

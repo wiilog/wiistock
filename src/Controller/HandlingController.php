@@ -170,14 +170,13 @@ class HandlingController extends AbstractController
 
             $handling = new Handling();
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $prefix = Handling::PREFIX_NUMBER;
 
             $status = $statutRepository->find($post->get('status'));
             $type = $typeRepository->find($post->get('type'));
             $desiredDate = $post->get('desired-date') ? new DateTime($post->get('desired-date')) : null;
             $fileBag = $request->files->count() > 0 ? $request->files : null;
 
-            $handlingNumber = $uniqueNumberService->createUniqueNumber($prefix, UniqueNumberService::DATE_COUNTER_FORMAT, Handling::class);
+            $handlingNumber = $uniqueNumberService->createUniqueNumber($entityManager, Handling::PREFIX_NUMBER, Handling::class);
 
             /** @var Utilisateur $requester */
             $requester = $this->getUser();

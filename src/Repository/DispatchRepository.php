@@ -217,19 +217,15 @@ class DispatchRepository extends EntityRepository
     }
 
     /**
-     * @param $prefix
      * @param $date
      * @return mixed|null
      */
-    public function getLastNumberByPrefixAndDate($prefix, $date) {
-        $qb = $this->createQueryBuilder('dispatch');
-
-        $qb->select('dispatch.number')
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('dispatch')
+            ->select('dispatch.number')
             ->where('dispatch.number LIKE :value')
             ->orderBy('dispatch.creationDate', 'DESC')
-            ->setParameter('value', $prefix . '-' . $date . '%');
-
-        $result = $qb
+            ->setParameter('value', Dispatch::PREFIX_NUMBER . '-' . $date . '%')
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;

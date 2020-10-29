@@ -153,16 +153,12 @@ class TransferOrderRepository extends EntityRepository {
         ];
     }
 
-    public function getLastNumberByPrefixAndDate($prefix, $date) {
-        $qb = $this->createQueryBuilder('transfer_order');
-
-        $qb
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('transfer_order')
             ->select('transfer_order.number')
             ->where('transfer_order.number LIKE :value')
             ->orderBy('transfer_order.creationDate', 'DESC')
-            ->setParameter('value', $prefix . '-' . $date . '%');
-
-        $result = $qb
+            ->setParameter('value', TransferOrder::NUMBER_PREFIX . '-' . $date . '%')
             ->getQuery()
             ->getResult();
         return $result ? $result[0]['number'] : null;
