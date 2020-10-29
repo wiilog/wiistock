@@ -17,9 +17,9 @@ final class Version20201027131155 extends AbstractMigration {
             $references = $this->connection->executeQuery("SELECT ra.id, ra.quantite_disponible, ra.limit_warning, ra.limit_security, ra.date_emergency_triggered
                                                             FROM tmp_reference_article AS ra
                                                             LEFT JOIN alert a on ra.id = a.reference_id
-                                                            WHERE a.date < '2020-10-27 00:01'");
-
-            $this->addSql("DELETE FROM alert WHERE date < '2020-10-27 00:01'");
+                                                            INNER JOIN statut ON ra.statut_id = statut.id
+                                                            WHERE a.id IS NULL
+                                                              AND statut.nom <> 'inactif'");
 
             $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
             $now = $now->format("Y-m-d H:i:s");

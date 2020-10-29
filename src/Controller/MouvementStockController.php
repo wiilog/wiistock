@@ -210,7 +210,7 @@ class MouvementStockController extends AbstractController
                 } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFER) {
                     $chosenLocation = $emplacementRepository->find($chosenMvtLocation);
                     if ($chosenArticleToMove->isUsedInQuantityChangingProcesses()) {
-                        $response['msg'] = 'La référence saisie est présente dans une demande livraison/collecte en cours de traitement, impossible de la transférer.';
+                        $response['msg'] = 'La référence saisie est présente dans une demande de livraison/collecte/transfert en cours de traitement, impossible de la transférer.';
                     } else if (empty($chosenLocation)) {
                         $response['msg'] = 'L\'emplacement saisi est inconnu.';
                     } else {

@@ -51,7 +51,7 @@ td {
 a, a:link, a:visited {
     text-decoration: none;
 
-    &:hover {
+    &:hover(:not(.btn-secondary)) {
         color: inherit;
     }
 }

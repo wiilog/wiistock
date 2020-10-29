@@ -94,6 +94,12 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL => [
                 'default' => true,
             ],
+            ParametrageGlobal::INCLUDE_EMERGENCY_IN_LABEL => [
+                'default' => false,
+            ],
+            ParametrageGlobal::INCLUDE_CUSTOMS_IN_LABEL => [
+                'default' => false,
+            ],
             ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL => [
                 'default' => true,
             ],
@@ -166,6 +172,10 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::DASHBOARD_CARRIER_DOCK => [],
             ParametrageGlobal::MVT_DEPOSE_DESTINATION => [],
             ParametrageGlobal::LABEL_LOGO => [],
+            ParametrageGlobal::EMERGENCY_ICON => [],
+            ParametrageGlobal::CUSTOM_ICON => [],
+            ParametrageGlobal::CUSTOM_TEXT_LABEL => [],
+            ParametrageGlobal::EMERGENCY_TEXT_LABEL => [],
             ParametrageGlobal::DELIVERY_NOTE_LOGO => [],
             ParametrageGlobal::WAYBILL_LOGO => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_1 => [],

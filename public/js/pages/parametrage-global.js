@@ -40,6 +40,9 @@ $(function () {
     $('#receptionLocation').on('change', editDefaultLocationValue);
 
     updateImagePreview('#preview-label-logo', '#upload-label-logo');
+    updateImagePreview('#preview-emergency-icon', '#upload-emergency-icon');
+    updateImagePreview('#preview-custom-icon', '#upload-custom-icon');
+
     updateImagePreview('#preview-delivery-note-logo', '#upload-delivery-note-logo');
     updateImagePreview('#preview-waybill-logo', '#upload-waybill-logo');
 
@@ -146,7 +149,10 @@ function ajaxMailerServer() {
 }
 
 function ajaxDims() {
-    let $fileInput = $('#upload-label-logo');
+    const $logoFile = $('#upload-label-logo');
+    const $customIconFile = $('#upload-custom-icon');
+    const $emergencyIconFile = $('#upload-emergency-icon');
+
     let data = new FormData();
     let dataInputs = $('#dimsForm').find('.data');
     dataInputs.each(function () {
@@ -154,8 +160,14 @@ function ajaxDims() {
         let name = $(this).attr("name");
         data.append(name, val);
     });
-    if ($fileInput[0].files && $fileInput[0].files[0]) {
-        data.append('logo', $fileInput[0].files[0]);
+    if ($logoFile[0].files && $logoFile[0].files[0]) {
+        data.append('logo', $logoFile[0].files[0]);
+    }
+    if ($customIconFile[0].files && $customIconFile[0].files[0]) {
+        data.append('custom-icon', $customIconFile[0].files[0]);
+    }
+    if ($emergencyIconFile[0].files && $emergencyIconFile[0].files[0]) {
+        data.append('emergency-icon', $emergencyIconFile[0].files[0]);
     }
     $.ajax({
         url: Routing.generate('ajax_dimensions_etiquettes', true),

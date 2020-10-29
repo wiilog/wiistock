@@ -57,7 +57,10 @@ class ArticleController extends AbstractController
         Article::USED_ASSOC_LITIGE => "Cet article est lié à un ou plusieurs litiges.",
         Article::USED_ASSOC_INVENTORY => "Cet article est lié à une ou plusieurs missions d'inventaire.",
         Article::USED_ASSOC_STATUT_NOT_AVAILABLE => "Cet article n'est pas disponible.",
-        Article::USED_ASSOC_PREPA_IN_PROGRESS => "Cet article est dans une préparation en cours de traitement."
+        Article::USED_ASSOC_PREPA_IN_PROGRESS => "Cet article est dans une préparation en cours de traitement.",
+        Article::USED_ASSOC_TRANSFERT_REQUEST => "Cet article est dans une ou plusieurs demande(s) de transfert.",
+        Article::USED_ASSOC_COLLECT_ORDER => "Cet article est dans un ou plusieurs ordre(s) de collecte.",
+        Article::USED_ASSOC_INVENTORY_ENTRY => "Cet article est dans une ou plusieurs entrée(s) d'inventaire."
     ];
 
     /**
@@ -628,64 +631,87 @@ class ArticleController extends AbstractController
             $article = $articleRepository->find($data['article']);
             $articleBarCode = $article->getBarCode();
 
-            $receptionReferenceArticle = $article->getReceptionReferenceArticle();
-            if (isset($receptionReferenceArticle)) {
-                $articleQuantity = $article->getQuantite();
-                $receivedQuantity = $receptionReferenceArticle->getQuantite();
-                $receptionReferenceArticle->setQuantite(max($receivedQuantity - $articleQuantity, 0));
-            }
+            $trackingPack = $article->getTrackingPack();
 
-            $rows = $article->getId();
+            if ($article->getCollectes()->isEmpty()
+                && $article->getOrdreCollecte()->isEmpty()
+                && $article->getTransferRequests()->isEmpty()
+                && $article->getInventoryMissions()->isEmpty()
+                && $article->getInventoryEntries()) {
 
-            // Delete mvt traca
-            /** @var TrackingMovement $trackingMovement */
-            foreach ($article->getTrackingMovements()->toArray() as $trackingMovement) {
-                $entityManager->remove($trackingMovement);
-            }
-
-            // Delete mvt stock
-            /** @var MouvementStock $mouvementStock */
-            foreach ($article->getMouvements()->toArray() as $mouvementStock) {
-                $mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager);
-                $article->removeMouvement($mouvementStock);
-                $entityManager->remove($mouvementStock);
-            }
-            $entityManager->flush();
-
-            // Delete prepa
-            $preparation = $article->getPreparation();
-            if ($preparation) {
-                $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager);
-                $entityManager->flush();
-                $entityManager->remove($preparation);
-
-                // il faut que la preparation soit supprimée avant une maj des articles
-                $entityManager->flush();
-
-                foreach ($refToUpdate as $reference) {
-                    $refArticleDataService->updateRefArticleQuantities($reference);
+                if ($trackingPack) {
+                    if (!$trackingPack->getDispatchPacks()->isEmpty()
+                        || !$trackingPack->getLitiges()->isEmpty()
+                        || $trackingPack->getArrivage()) {
+                        $trackingPack->setArticle(null);
+                    }
                 }
 
+                $receptionReferenceArticle = $article->getReceptionReferenceArticle();
+                if (isset($receptionReferenceArticle)) {
+                    $articleQuantity = $article->getQuantite();
+                    $receivedQuantity = $receptionReferenceArticle->getQuantite();
+                    $receptionReferenceArticle->setQuantite(max($receivedQuantity - $articleQuantity, 0));
+                }
+
+                $rows = $article->getId();
+
+                // Delete mvt traca
+                /** @var TrackingMovement $trackingMovement */
+                foreach ($article->getTrackingMovements()->toArray() as $trackingMovement) {
+                    $entityManager->remove($trackingMovement);
+                }
+
+                // Delete mvt stock
+                /** @var MouvementStock $mouvementStock */
+                foreach ($article->getMouvements()->toArray() as $mouvementStock) {
+                    $mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager);
+                    $article->removeMouvement($mouvementStock);
+                    $entityManager->remove($mouvementStock);
+                }
                 $entityManager->flush();
-            }
-            // Delete demande
 
-            $demande = $article->getDemande();
-            if ($demande) {
-                $demandeLivraisonService->managePreRemoveDeliveryRequest($demande, $entityManager);
-                $entityManager->remove($demande);
+                // Delete prepa
+                $preparation = $article->getPreparation();
+                if ($preparation) {
+                    $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager);
+                    $entityManager->flush();
+                    $entityManager->remove($preparation);
+
+                    // il faut que la preparation soit supprimée avant une maj des articles
+                    $entityManager->flush();
+
+                    foreach ($refToUpdate as $reference) {
+                        $refArticleDataService->updateRefArticleQuantities($reference);
+                    }
+
+                    $entityManager->flush();
+                }
+                // Delete demande
+
+                $demande = $article->getDemande();
+                if ($demande) {
+                    $demandeLivraisonService->managePreRemoveDeliveryRequest($demande, $entityManager);
+                    $entityManager->remove($demande);
+                    $entityManager->flush();
+                }
+
+                $entityManager->remove($article);
                 $entityManager->flush();
+
+                $response['delete'] = $rows;
+                return new JsonResponse([
+                    'delete' => $rows,
+                    'success' => true,
+                    'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> a bien été supprimé.'
+                ]);
             }
-
-            $entityManager->remove($article);
-            $entityManager->flush();
-
-            $response['delete'] = $rows;
-            return new JsonResponse([
-                'delete' => $rows,
-                'success' => true,
-                'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> a bien été supprimé.'
-            ]);
+            else {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> est utilisé, vous ne pouvez pas le supprimer.'
+                ]);
+            }
         }
         throw new BadRequestHttpException();
     }
@@ -989,88 +1015,73 @@ class ArticleController extends AbstractController
     /**
      * @Route("/exporter-articles", name="export_all_arts", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
-     * @param FreeFieldService $freeFieldService
+     * @param FreeFieldService $ffService
      * @param CSVExportService $CSVExportService
      * @return Response
      */
-    public function exportAllArticles(EntityManagerInterface $entityManager,
-                                      FreeFieldService $freeFieldService,
-                                      CSVExportService $CSVExportService): Response
+    public function exportAllArticles(EntityManagerInterface $manager,
+                                      FreeFieldService $ffService,
+                                      CSVExportService $csvService): Response
     {
-        $articleRepository = $entityManager->getRepository(Article::class);
-        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE]);
+        $ffConfig = $ffService->createExportArrayConfig($manager, [CategorieCL::ARTICLE]);
 
-        $headers = array_merge(
-            [
-                'reference',
-                'libelle',
-                'quantité',
-                'type',
-                'statut',
-                'commentaire',
-                'emplacement',
-                'code barre',
-                'date dernier inventaire',
-                'lot',
-                'date d\'entrée en stock',
-                'date de péremption',
-            ],
-            $freeFieldsConfig['freeFieldsHeader']
-        );
+        $header = array_merge([
+            'reference',
+            'libelle',
+            'quantité',
+            'type',
+            'statut',
+            'commentaire',
+            'emplacement',
+            'code barre',
+            'date dernier inventaire',
+            'lot',
+            'date d\'entrée en stock',
+            'date de péremption',
+        ], $ffConfig['freeFieldsHeader']);
+
         $today = new DateTime();
-        $globalTitle = 'export-articles-' . $today->format('d-m-Y H:i:s') . '.csv';
-        $articlesExportFiles = [];
-        $allArticlesCount = intval($articleRepository->countAll());
-        $step = self::MAX_CSV_FILE_LENGTH;
-        $start = 0;
-        do {
-            $articles = $articleRepository->getAllWithLimits($start, $step);
-            $articlesExportFiles[] = $this->generateArtsCSVFile($CSVExportService, $freeFieldService, $articles, ($start === 0 ? $headers : null), $freeFieldsConfig);
-            $articles = null;
-            $start += $step;
-        } while ($start < $allArticlesCount);
+        $today = $today->format("d-m-Y H:i:s");
 
-        return $CSVExportService->createBinaryResponseFromFile(
-            $CSVExportService->mergeCSVFiles($articlesExportFiles),
-            $globalTitle
-        );
+        return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $ffConfig) {
+            $articleRepository = $manager->getRepository(Article::class);
+
+            $articles = $articleRepository->iterateAll();
+            foreach($articles as $article) {
+                $this->putArticleLine($output, $csvService, $ffService, $ffConfig, $article);
+            }
+        }, "export-articles-$today.csv", $header);
     }
 
 
-    private function generateArtsCSVFile(CSVExportService $CSVExportService,
-                                         FreeFieldService $freeFieldService,
-                                         array $articles,
-                                         ?array $headers,
-                                         array $freeFieldsConfig): string {
-        return $CSVExportService->createCsvFile(
-            $articles,
-            $headers,
-            function ($article) use ($freeFieldsConfig, $freeFieldService) {
-                $articleArray = [
-                    $article['reference'],
-                    $article['label'],
-                    $article['quantite'],
-                    $article['typeLabel'],
-                    $article['statutName'],
-                    $article['commentaire'] ? strip_tags($article['commentaire']) : '',
-                    $article['empLabel'],
-                    $article['barCode'],
-                    $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
-                    $article['batch'],
-                    $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
-                    $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
-                ];
+    private function putArticleLine($handle,
+                                    CSVExportService $csvService,
+                                    FreeFieldService $ffService,
+                                    array $ffConfig,
+                                    array $article) {
+        $line = [
+            $article['reference'],
+            $article['label'],
+            $article['quantite'],
+            $article['typeLabel'],
+            $article['statutName'],
+            $article['commentaire'] ? strip_tags($article['commentaire']) : '',
+            $article['empLabel'],
+            $article['barCode'],
+            $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
+            $article['batch'],
+            $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
+            $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
+        ];
 
-                foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                    $articleArray[] = $freeFieldService->serializeValue([
-                        'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                        'valeur' => $article['freeFields'][$freeFieldId] ?? ''
-                    ]);
-                }
+        foreach ($ffConfig['freeFieldIds'] as $freeFieldId) {
+            $articleArray[] = $ffService->serializeValue([
+                'typage' => $ffConfig['freeFieldsIdToTyping'][$freeFieldId],
+                'valeur' => $article['freeFields'][$freeFieldId] ?? ''
+            ]);
+        }
 
-                return [$articleArray];
-            }
-        );
+        $csvService->putLine($handle, $line);
     }
 
     /**
