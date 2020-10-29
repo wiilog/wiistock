@@ -176,34 +176,15 @@ Class GlobalParamService
         return $resp ?? [];
     }
 
-	/**
-	 * @throws NonUniqueResultException
-	 */
-	public function generateScssFile()
-    {
-        $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
-
+	public function generateScssFile() {
         $projectDir = $this->kernel->getProjectDir();
-		$scssFile = $projectDir . '/assets/scss/_customFont.scss';
+        $scssFile =  "$projectDir/assets/scss/_customFont.scss";
 
+        $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
 		$param = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
 		$font = $param ? $param->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY;
 
-		$scssText = '$mainFont: "' . $font . '";';
-		file_put_contents($scssFile, $scssText);
-
-		$this->compileScss();
-	}
-
-	/**
-	 * @throws Exception
-	 */
-	private function compileScss() {
-		$env = $this->kernel->getEnvironment();
-
-		$command = $env == 'dev' ? 'dev' : 'production';
-		$process = Process::fromShellCommandline('yarn build:only:' . $command);
-		$process->run();
+		file_put_contents($scssFile, "\$mainFont: \"$font\";");
 	}
 
     /**

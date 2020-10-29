@@ -37,6 +37,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -815,9 +816,7 @@ class ParametrageGlobalController extends AbstractController
      */
     public function editFont(Request $request,
                              ParametrageGlobalRepository $parametrageGlobalRepository,
-                             GlobalParamService $globalParamService
-    ): Response
-    {
+                             GlobalParamService $globalParamService): Response {
         if ($request->isXmlHttpRequest()) {
             $post = $request->request;
             $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
@@ -831,6 +830,10 @@ class ParametrageGlobalController extends AbstractController
             $em->flush();
 
             $globalParamService->generateScssFile();
+
+            $env = $_SERVER["APP_ENV"] == "dev" ? "dev" : "production";
+            $process = Process::fromShellCommandline("yarn build:only:$env");
+            $process->run();
 
             return new JsonResponse(true);
         }
