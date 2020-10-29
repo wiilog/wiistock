@@ -887,6 +887,15 @@ class ReferenceArticle extends FreeFieldEntity
                     break;
                 }
             }
+            if (!$inProgress) {
+                $transfers = $this->getTransferRequests();
+                foreach ($transfers as $transfer) {
+                    if ($transfer->needsToBeProcessed()) {
+                        $inProgress = true;
+                        break;
+                    }
+                }
+            }
         }
         return $inProgress;
     }

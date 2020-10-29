@@ -662,6 +662,7 @@ class Article extends FreeFieldEntity
 
     public function isUsedInQuantityChangingProcesses(): bool {
         $demande = $this->getDemande();
+        $transfers = $this->getTransferRequests();
         $inProgress = $demande ? $demande->needsToBeProcessed() : false;
         if (!$inProgress) {
             $collectes = $this->getOrdreCollecte();
@@ -670,6 +671,14 @@ class Article extends FreeFieldEntity
                 if ($collecte->needsToBeProcessed()) {
                     $inProgress = true;
                     break;
+                }
+            }
+            if (!$inProgress) {
+                foreach ($transfers as $transfer) {
+                    if ($transfer->needsToBeProcessed()) {
+                        $inProgress = true;
+                        break;
+                    }
                 }
             }
         }
