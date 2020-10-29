@@ -105,6 +105,7 @@
         {% set hideSendNotifToBuyer = (
             status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING')
             or status.categorie.nom == constant('App\\Entity\\CategorieStatut::ARRIVAGE')
+            or status.categorie.nom == constant('App\\Entity\\CategorieStatut::LITIGE_RECEPT')
         ) %}
         <div class="col-12 form-group {{ hideSendNotifToBuyer ? 'd-none' }}">
             <label>Envoi de mails au destinataire ?</label>
