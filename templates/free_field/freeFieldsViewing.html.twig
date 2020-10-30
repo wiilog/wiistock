@@ -3,7 +3,7 @@
 {% if freeFields|length > 0 %}
     <div class="row">
         {% for freeField in freeFields %}
-            {% set needed = not disabledNeeded and attribute(freeField, requiredType) %}
+            {% set needed = disabledNeeded and attribute(freeField, requiredType) %}
             {% set entityValue = freeFieldValues[freeField.id] is defined
                 ? freeFieldValues[freeField.id]
                 : ( freeField.defaultValue is defined
