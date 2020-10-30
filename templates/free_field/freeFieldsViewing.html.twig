@@ -19,7 +19,7 @@
                                 {{ needed ? '*' : '' }}
                             </label>
                         </div>
-                        <div class="col-12">
+                        <div class="col-12 d-flex">
                             {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
                                 <div class="wii-switch {{ needed ? 'needed' }}" data-title="{{ freeField.label }}">
                                     {% set entityValue = freeFieldValues[freeField.id] is defined
@@ -71,6 +71,9 @@
                                        class="form-control needs-default data {{ needed ? 'needed' : '' }}"
                                        data-init="{{ entityValue }}"
                                        value="{{ entityValue ? ((entityValue | replace({'/': '-'}) ) | date('Y-m-d\\TH:i')) : '' }}">
+                                <button class="btn" type="button" title="Vider le champ {{ freeField.label }}"
+                                        onclick="$('[name={{ freeField.id }}]').val('')"><i class="fas fa-times"></i>
+                                </button>
 
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
                                 <input type="date"
@@ -78,6 +81,9 @@
                                        name="{{ freeField.id }}"
                                        data-init="{{ entityValue }}"
                                        value="{{ entityValue }}">
+                                <button class="btn" type="button" title="Vider le champ {{ freeField.label }}"
+                                        onclick="$('[name={{ freeField.id }}]').val('')"><i class="fas fa-times"></i>
+                                </button>
                             {% endif %}
                         </div>
                     </div>

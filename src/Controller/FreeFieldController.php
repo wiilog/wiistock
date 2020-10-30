@@ -85,7 +85,7 @@ class FreeFieldController extends AbstractController {
                 } else if ($champLibre->getTypage() === FreeField::TYPE_DATETIME
                     || $champLibre->getTypage() === FreeField::TYPE_DATE) {
                     $defaultValueDate = new DateTime(str_replace('/', '-', $defaultValue));
-                    $defaultValue = $defaultValueDate->format('d/m/Y H:i');
+                    $defaultValue = $defaultValue ? $defaultValueDate->format('d/m/Y H:i') : '';
                 }
 
                 $rows[] =
