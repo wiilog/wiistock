@@ -346,13 +346,12 @@ class ArrivageController extends AbstractController
                 ]);
             }
 
-            $colisService->persistMultiPacks($arrivage, $natures, $currentUser, $entityManager);
-
             $champLibreService->manageFreeFields($arrivage, $data, $entityManager);
 
             $entityManager->flush();
 
             $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
+            $colisService->persistMultiPacks($arrivage, $natures, $currentUser, $entityManager);
             $entityManager->flush();
             if ($sendMail) {
                 $arrivageDataService->sendArrivalEmails($arrivage);
