@@ -48,10 +48,12 @@ td {
     font-size: 0.8em;
 }
 
-a, a:link, a:visited {
-    text-decoration: none;
+a:not(.btn) {
+    &, &:link, &:visited {
+        text-decoration: none;
+    }
 
-    &:hover(:not(.btn-secondary)) {
+    &:hover {
         color: inherit;
     }
 }
