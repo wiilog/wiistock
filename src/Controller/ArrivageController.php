@@ -267,7 +267,6 @@ class ArrivageController extends AbstractController
             $arrivage
                 ->setIsUrgent(false)
                 ->setDate($date)
-//                ->setStatut($statutRepository->find($data['status']))
                 ->setUtilisateur($currentUser)
                 ->setNumeroArrivage($numeroArrivage)
                 ->setCustoms(isset($data['customs']) ? $data['customs'] == 'true' : false)
