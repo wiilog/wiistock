@@ -31,6 +31,7 @@ class EmplacementRepository extends EntityRepository
         return $this->createQueryBuilder('location')
             ->select('location.id')
             ->addSelect('location.label')
+            ->where('location.isActive = true')
             ->getQuery()
             ->getResult();
     }
