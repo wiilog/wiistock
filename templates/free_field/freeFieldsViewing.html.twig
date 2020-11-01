@@ -3,7 +3,7 @@
 {% if freeFields|length > 0 %}
     <div class="row">
         {% for freeField in freeFields %}
-            {% set needed = disabledNeeded and attribute(freeField, requiredType) %}
+            {% set needed = not disabledNeeded and attribute(freeField, requiredType) %}
             {% set entityValue = freeFieldValues[freeField.id] is defined
                 ? freeFieldValues[freeField.id]
                 : ( freeField.defaultValue is defined
@@ -12,11 +12,11 @@
             %}
             {% if (actionType == 'new' and freeField.displayedCreate) or actionType == 'edit' %}
                 <div class="{{ colType is defined ? colType }} my-2">
-                    <div class="row form-group">
+                    <div class="row form-group free-field">
                         <div class="col-12">
                             <label>
                                 {{ freeField.label }}
-                                {{ needed ? '*' : '' }}
+                                <span class="is-required-label {{ not needed ? 'd-none' }}">*</span>
                             </label>
                         </div>
                         <div class="col-12">
