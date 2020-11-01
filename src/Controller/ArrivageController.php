@@ -267,13 +267,22 @@ class ArrivageController extends AbstractController
             $arrivage
                 ->setIsUrgent(false)
                 ->setDate($date)
-                ->setStatut($statutRepository->find($data['status']))
                 ->setUtilisateur($currentUser)
                 ->setNumeroArrivage($numeroArrivage)
                 ->setCustoms(isset($data['customs']) ? $data['customs'] == 'true' : false)
                 ->setFrozen(isset($data['frozen']) ? $data['frozen'] == 'true' : false)
                 ->setCommentaire($data['commentaire'] ?? null)
                 ->setType($typeRepository->find($data['type']));
+
+            $status = !empty($data['status']) ? $statutRepository->find($data['status']) : null;
+            if (!empty($status)) {
+                $arrivage->setStatut($status);
+            } else {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => "Veuillez renseigner le statut."
+                ]);
+            }
 
             if (!empty($data['fournisseur'])) {
                 $arrivage->setFournisseur($fournisseurRepository->find($data['fournisseur']));
@@ -320,11 +329,11 @@ class ArrivageController extends AbstractController
                 $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
             }
 
-            /** @noinspection PhpRedundantCatchClauseInspection */
+                /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([
                     'success' => false,
-                    'msg' => "Une création d'arrivage était déjà en cours, veuillez réessayer.<br>"
+                    'msg' => "Une création d'arrivage était déjà en cours, veuillez réessayer."
                 ]);
             }
 
