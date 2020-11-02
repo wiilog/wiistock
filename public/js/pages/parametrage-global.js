@@ -43,6 +43,9 @@ $(function () {
     updateImagePreview('#preview-label-logo', '#upload-label-logo');
     updateImagePreview('#preview-emergency-icon', '#upload-emergency-icon');
     updateImagePreview('#preview-custom-icon', '#upload-custom-icon');
+    updateImagePreview('#preview-website-icon', '#upload-website-icon');
+    updateImagePreview('#preview-email-icon', '#upload-email-icon');
+    updateImagePreview('#preview-mobile-icon', '#upload-mobile-icon');
 
     updateImagePreview('#preview-delivery-note-logo', '#upload-delivery-note-logo');
     updateImagePreview('#preview-waybill-logo', '#upload-waybill-logo');
@@ -337,21 +340,44 @@ function editDashboardParams() {
     });
 }
 
-function editFont() {
-    let path = Routing.generate('edit_font', true);
-    let param = {
-        value: $('select[name="param-font-family"]').val()
-    };
+function editAppearance() {
+    let path = Routing.generate('edit_appearance', true);
 
+    let data = new FormData();
+    data.append("font-family", $('select[name="param-font-family"]').val());
 
-    showBSAlert("Mise à jour de la police en cours. Veuillez patienter.", 'success', false);
-    $.post(path, param, (resp) => {
-        if (resp) {
-            location.reload();
-        } else {
-            showBSAlert("Une erreur est survenue lors de la mise à jour du choix de la police.", 'danger');
+    const $websiteLogo = $('#upload-website-logo');
+    if ($websiteLogo[0].files && $websiteLogo[0].files[0]) {
+        data.append("website-logo", $websiteLogo[0].files[0]);
+    }
+
+    const $emailLogo = $('#upload-email-logo');
+    if ($emailLogo[0].files && $emailLogo[0].files[0]) {
+        data.append("email-logo", $emailLogo[0].files[0]);
+    }
+
+    const $mobileLogo = $('#upload-mobile-logo');
+    if ($mobileLogo[0].files && $mobileLogo[0].files[0]) {
+        data.append("mobile-logo", $mobileLogo[0].files[0]);
+    }
+
+    showBSAlert("Mise à jour de l'apparence. Veuillez patienter.", 'success', false);
+
+    $.ajax(path, {
+        data: data,
+        type: 'POST',
+        contentType: false,
+        processData: false,
+        cache: false,
+        dataType: 'json',
+        success: (response) => {
+            if (response.success) {
+                location.reload();
+            } else {
+                showBSAlert("Une erreur est survenue lors de la mise à jour du choix de l'apparence", "danger");
+            }
         }
-    });
+    })
 }
 
 function editParamLocations($select, $inputValue) {

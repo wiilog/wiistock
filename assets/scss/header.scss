@@ -22,10 +22,8 @@
 
     .web-version {
         color: white;
-        bottom: 0.1vh;
-        position: absolute;
-        font-size: 2vh;
-        right: 1vw;
+        font-size: 0.6rem;
+        margin-top: -4px;
     }
 
     & ~ .container-fluid {
