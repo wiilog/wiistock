@@ -34,9 +34,19 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
                         // si c'est la dernière modale on ferme la modale d'alerte et on traite la création d'arrivage sinon
                         if (nextAlertConfigs.length === 0) {
                             if (isCreation) {
-                                treatArrivalCreation(response, arrivalsDatatable, success);
+                                $modal.find('.modal-footer-wrapper').addClass('d-none');
+                                loadSpinner($modal.find('.spinner'));
+
+                                treatArrivalCreation(response, arrivalsDatatable, () => {
+                                    if (success) {
+                                        success();
+                                    }
+                                    $modal.modal('hide');
+                                });
                             }
-                            $modal.modal('hide');
+                            else {
+                                $modal.modal('hide');
+                            }
                         }
                         else {
                             arrivalCallback(isCreation, {alertConfigs: nextAlertConfigs, ...response}, arrivalsDatatable);
@@ -127,19 +137,23 @@ function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseC
     });
 }
 
-function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId}, arrivalsDatatable, success = null) {
-    if (!redirectAfterAlert) {
-        if (arrivalsDatatable) {
-            arrivalsDatatable.ajax.reload();
-        }
+function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId}, arrivalsDatatable, $modal, success = null) {
+    $
+        .post(Routing.generate('post_arrival_tracking_movements', {arrival: arrivageId}))
+        .then(() => {
+            if (!redirectAfterAlert) {
+                if (arrivalsDatatable) {
+                    arrivalsDatatable.ajax.reload();
+                }
 
-        if (success) {
-            success();
-        }
-    }
-    else {
-        window.location.href = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage)
-    }
+                if (success) {
+                    success();
+                }
+            }
+            else {
+                window.location.href = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage)
+            }
+        });
 }
 
 function createArrivageShowUrl(arrivageShowUrl, printColis, printArrivage) {
