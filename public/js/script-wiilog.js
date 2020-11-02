@@ -289,7 +289,7 @@ function updateQuantityDisplay($elem) {
 }
 
 function toggleRequiredChampsLibres($select, require, $freeFieldContainer = null) {
-    const bloc = $freeFieldContainer
+    const $bloc = $freeFieldContainer
         ? $freeFieldContainer
         : $select
             .closest('.modal')
@@ -299,37 +299,41 @@ function toggleRequiredChampsLibres($select, require, $freeFieldContainer = null
 
     let params = {};
     if (typeId) {
-        bloc
+        $bloc
             .find('.data')
             .removeClass('needed');
 
-        bloc
+        $bloc
             .find('.wii-switch')
             .removeClass('needed');
 
         if (require === 'create') { // we don't save free field which are hidden
-            bloc
+            $bloc
                 .find('.data')
                 .addClass('free-field-data')
                 .removeClass('data')
 
-            bloc
+            $bloc
                 .children(`[data-type="${typeId}"]`)
                 .find('.free-field-data')
                 .removeClass('free-field-data')
                 .addClass('data');
         }
 
-        bloc.find('span.is-required-label').remove();
+        $bloc
+            .find('span.is-required-label')
+            .addClass('d-none');
         params[require] = typeId;
         let path = Routing.generate('display_required_champs_libres', true);
 
         $.post(path, JSON.stringify(params), function (data) {
             if (data) {
                 data.forEach(function (element) {
-                    const $formControl = bloc.find('[name="' + element + '"], .wii-switch:has(input[name="' + element + '"])');
-                    const $label = $formControl.siblings('label');
-                    $label.append($('<span class="is-required-label">&nbsp;*</span>'));
+                    const $formControl = $bloc.find('[name="' + element + '"], .wii-switch:has(input[name="' + element + '"])');
+                    const $label = $formControl.closest('.free-field').find('label');
+                    $label
+                        .find('span.is-required-label')
+                        .removeClass('d-none');
                     $formControl.addClass('needed');
                 });
             }
