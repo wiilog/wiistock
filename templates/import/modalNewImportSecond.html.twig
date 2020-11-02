@@ -12,7 +12,7 @@
             {% for i in 0..(data.headers|length -  1) %}
                 <tr>
                     <td>{{ data.headers[i] }}</td>
-                    <td>{{ data.firstRow[i] is defined ? data.firstRow[i] }}</td>
+                    <td>{{ data.firstRow[i] is defined ? data.firstRow[i] | ellipsis(35) }}</td>
                     <td>
                         <select class="form-control data no-clear" name="{{ i }}" onchange="updateOptions($(this))">
                             <option></option>

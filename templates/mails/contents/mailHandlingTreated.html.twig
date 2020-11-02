@@ -43,6 +43,9 @@
     <div>Traité par :
         <strong>{{ treatedBy }}</strong>
     </div>
+    <div>Temps de traitement opérateur :
+        <strong>{{ handling.treatmentDelay ? handling.treatmentDelay|date('H\\h i\\m s\\s') : '' }}</strong>
+    </div>
     {% if (handling.comment is not empty and handling.comment != '<p><br></p>') %}
         <div>Commentaire : {{ handling.comment|raw }}</div>
     {% endif %}
