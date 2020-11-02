@@ -34,7 +34,7 @@
             <div class="row">
                 <div class="box-login wii-page-card">
                     <div class="col-md-12 login-header">
-                        Connexion
+                        Connexion<i class='ml-2 fas fa-barcode' data-toggle="popover-hover" data-img="{{ asset('img/scan.PNG') }}"></i>
                     </div>
                     <form class="form-signin " action="{{ path('login') }}" method="post">
                         <div class="form-group">
@@ -66,4 +66,5 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{asset('js/pages/login.js')}}?{{ app_last_cache_clear }}"></script>
+    <script src="{{asset('js/popover.js')}}?{{ app_last_cache_clear }}"></script>
 {% endblock %}
