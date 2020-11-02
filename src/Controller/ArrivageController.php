@@ -469,7 +469,6 @@ class ArrivageController extends AbstractController
     public function patchUrgentArrival(Arrivage $arrival,
                                        Request $request,
                                        ArrivageDataService $arrivageDataService,
-                                       TrackingMovementService $trackingMovementService,
                                        EntityManagerInterface $entityManager): Response
     {
         $urgenceRepository = $entityManager->getRepository(Urgence::class);

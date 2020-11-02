@@ -27,7 +27,6 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
                                 isCreation,
                                 arrivalsDatatable
                             );
-                            initNewArrivageEditor('#modalNewArrivage');
                         }
                     }
                     else {
@@ -42,6 +41,7 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
                                         success();
                                     }
                                     $modal.modal('hide');
+                                    hideSpinner($modal.find('.spinner'));
                                 });
                             }
                             else {
@@ -137,7 +137,7 @@ function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseC
     });
 }
 
-function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId}, arrivalsDatatable, $modal, success = null) {
+function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId}, arrivalsDatatable, success = null) {
     $
         .post(Routing.generate('post_arrival_tracking_movements', {arrival: arrivageId}))
         .then(() => {
@@ -151,8 +151,11 @@ function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, ar
                 }
             }
             else {
-                window.location.href = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage)
+                window.location.href = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage);
             }
+        })
+        .catch(() => {
+            showBSAlert('Erreur lors de la création des mouvements de tracaçabilité', 'danger');
         });
 }
 
