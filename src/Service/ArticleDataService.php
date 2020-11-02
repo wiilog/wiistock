@@ -324,19 +324,20 @@ class ArticleDataService
 
                 $expiryDate = !empty($data['expiry']) ? DateTime::createFromFormat("Y-m-d", $data['expiry']) : null;
                 $price = max(0, $data['prix'] ?? 0);
+                if (isset($data['label'])) {
+                    $article
+                        ->setPrixUnitaire($price)
+                        ->setLabel($data['label'])
+                        ->setConform(!$data['conform'])
+                        ->setBatch($data['batch'] ?? null)
+                        ->setExpiryDate($expiryDate ? $expiryDate : null)
+                        ->setCommentaire($data['commentaire']);
 
-                $article
-                    ->setPrixUnitaire($price)
-                    ->setLabel($data['label'])
-                    ->setConform(!$data['conform'])
-                    ->setBatch($data['batch'] ?? null)
-                    ->setExpiryDate($expiryDate ? $expiryDate : null)
-                    ->setCommentaire($data['commentaire']);
-
-                if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
-                    $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $data['statut']);
-                    if ($statut) {
-                        $article->setStatut($statut);
+                    if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
+                        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $data['statut']);
+                        if ($statut) {
+                            $article->setStatut($statut);
+                        }
                     }
                 }
             }
