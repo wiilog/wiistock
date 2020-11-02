@@ -323,7 +323,7 @@ class ArticleDataService
             if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
 
                 $expiryDate = !empty($data['expiry']) ? DateTime::createFromFormat("Y-m-d", $data['expiry']) : null;
-                $price = max(0, $data['prix']);
+                $price = max(0, $data['prix'] ?? 0);
 
                 $article
                     ->setPrixUnitaire($price)
