@@ -46,7 +46,6 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\ORMException;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -61,6 +60,7 @@ use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Entity;
 
 /**
  * @Route("/arrivage")
@@ -228,7 +228,6 @@ class ArrivageController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws ORMException
      * @throws Exception
      */
     public function new(Request $request,
@@ -355,14 +354,21 @@ class ArrivageController extends AbstractController
                 ]);
             }
 
-            $colisService->persistMultiPacks($arrivage, $natures, $currentUser, $entityManager);
-
             $champLibreService->manageFreeFields($arrivage, $data, $entityManager);
 
+            $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
+
+            // persist packs after set arrival urgent
+            $colisService->persistMultiPacks(
+                $entityManager,
+                $arrivage,
+                $natures,
+                $currentUser,
+                false
+            );
+
             $entityManager->flush();
 
-            $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
-            $entityManager->flush();
             if ($sendMail) {
                 $arrivageDataService->sendArrivalEmails($arrivage);
             }
@@ -446,6 +452,7 @@ class ArrivageController extends AbstractController
      *     methods="PATCH",
      *     condition="request.isXmlHttpRequest() && '%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_ED')"
      * )
+     * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
      *
      * @param Arrivage $arrival
      * @param Request $request
@@ -455,9 +462,9 @@ class ArrivageController extends AbstractController
      * @return Response
      *
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function patchUrgentArrival(Arrivage $arrival,
                                        Request $request,
@@ -493,6 +500,50 @@ class ArrivageController extends AbstractController
         ];
 
         return new JsonResponse($response);
+    }
+
+    /**
+     * @Route(
+     *     "/{arrival}/tracking-movements",
+     *     name="post_arrival_tracking_movements",
+     *     options={"expose"=true},
+     *     methods="POST",
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
+     *
+     * @param Arrivage $arrival
+     * @param ArrivageDataService $arrivageDataService
+     * @param TrackingMovementService $trackingMovementService
+     * @param EntityManagerInterface $entityManager
+     *
+     * @return Response
+     *
+     * @throws Exception
+     */
+    public function postArrivalTrackingMovements(Arrivage $arrival,
+                                                 ArrivageDataService $arrivageDataService,
+                                                 TrackingMovementService $trackingMovementService,
+                                                 EntityManagerInterface $entityManager): Response
+    {
+        $location = $arrivageDataService->getLocationForTracking($entityManager, $arrival);
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        foreach ($arrival->getPacks() as $pack) {
+            $trackingMovementService->persistTrackingForArrivalPack(
+                $entityManager,
+                $pack,
+                $location,
+                $user,
+                $now,
+                $arrival
+            );
+        }
+
+        $entityManager->flush();
+
+        return new JsonResponse(['success' => true]);
     }
 
     /**
@@ -576,7 +627,6 @@ class ArrivageController extends AbstractController
                 $arrivageDataService->sendArrivalEmails($arrivage);
             }
 
-
             $listAttachmentIdToKeep = $post->get('files') ?? [];
 
             $attachments = $arrivage->getAttachments()->toArray();
@@ -611,7 +661,6 @@ class ArrivageController extends AbstractController
      * @Route("/supprimer", name="arrivage_delete", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param TrackingMovementService $trackingMovementService
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
@@ -1133,7 +1182,7 @@ class ArrivageController extends AbstractController
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
 
-            $persistedColis = $colisService->persistMultiPacks($arrivage, $natures, $currentUser, $entityManager);
+            $persistedColis = $colisService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser);
             $entityManager->flush();
 
             return new JsonResponse([

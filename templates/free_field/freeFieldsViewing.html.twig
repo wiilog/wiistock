@@ -73,18 +73,19 @@
                                        class="form-control needs-default data {{ needed ? 'needed' : '' }}"
                                        data-init="{{ entityValue }}"
                                        value="{{ entityValue ? ((entityValue | replace({'/': '-'}) ) | date('Y-m-d\\TH:i')) : '' }}">
-                                <button class="btn" type="button" title="Vider le champ {{ freeField.label }}"
-                                        onclick="$('[name={{ freeField.id }}]').val('')"><i class="fas fa-times"></i>
+                                <button class="btn btn-light" type="button" title="Vider le champ {{ freeField.label }}"
+                                        onclick="$(this).siblings('[name={{ freeField.id }}]').val('')">
+                                    <i class="fas fa-times"></i>
                                 </button>
-
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
                                 <input type="date"
                                        class="form-control data needs-default {{ needed ? 'needed' : '' }}"
                                        name="{{ freeField.id }}"
                                        data-init="{{ entityValue }}"
                                        value="{{ entityValue }}">
-                                <button class="btn" type="button" title="Vider le champ {{ freeField.label }}"
-                                        onclick="$('[name={{ freeField.id }}]').val('')"><i class="fas fa-times"></i>
+                                <button class="btn btn-light" type="button" title="Vider le champ {{ freeField.label }}"
+                                        onclick="$(this).siblings('[name={{ freeField.id }}]').val('')">
+                                    <i class="fas fa-times"></i>
                                 </button>
                             {% endif %}
                         </div>
