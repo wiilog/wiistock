@@ -90,7 +90,7 @@ function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseC
     $.ajax({
         type: 'PATCH',
         url: patchArrivalUrgentUrl,
-        data: {numeroCommande, postNb},
+        data: {numeroCommande, postNb, isCreation},
         success: (secondResponse) => {
             arrivageUrgentLoading = false;
             if (secondResponse.success) {
