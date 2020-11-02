@@ -3,6 +3,6 @@ function initImagePopovers() {
         html: true,
         trigger: 'hover',
         placement: 'bottom',
-        content: function () { return '<img src="' + $(this).data('img') + '" />'; }
+        content: function () { return '<img src="' + $(this).data('img') + '" width="400" />'; }
     });
 }
