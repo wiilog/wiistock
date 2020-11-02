@@ -1,4 +1,5 @@
 $(document).ready(function() {
+    initImagePopovers();
     let isChromium = window.chrome;
     let winNav = window.navigator;
     let vendorName = winNav.vendor;
