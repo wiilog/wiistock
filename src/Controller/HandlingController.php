@@ -443,12 +443,14 @@ class HandlingController extends AbstractController
      * @param Request $request
      * @param CSVExportService $CSVExportService
      * @param FreeFieldService $freeFieldService
+     * @param DateService $dateService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function getHandlingsIntels(Request $request,
                                        CSVExportService $CSVExportService,
                                        FreeFieldService $freeFieldService,
+                                       DateService $dateService,
                                        EntityManagerInterface $entityManager): Response
     {
         $dateMin = $request->query->get('dateMin');
@@ -481,7 +483,8 @@ class HandlingController extends AbstractController
                     'commentaire',
                     'urgence',
                     'nombre d\'opération(s) réalisée(s)',
-                    'traité par'
+                    'traité par',
+                    'Temps de traitement opérateur'
                 ],
                 $freeFieldsConfig['freeFieldsHeader']
             );
@@ -491,7 +494,10 @@ class HandlingController extends AbstractController
                 $globalTitle,
                 $handlings,
                 $csvHeader,
-                function ($handling) use ($freeFieldService, $freeFieldsConfig) {
+                function ($handling) use ($freeFieldService, $freeFieldsConfig, $dateService) {
+                    $treatmentDelay = $handling['treatmentDelay'];
+                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
+                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
                     $row = [];
                     $row[] = $handling['number'] ?? '';
                     $row[] = $handling['creationDate']->format('d/m/Y H:i:s') ?? '';
@@ -507,6 +513,7 @@ class HandlingController extends AbstractController
                     $row[] = $handling['emergency'] ?? '';
                     $row[] = $handling['carriedOutOperationCount'] ?? '';
                     $row[] = $handling['treatedBy'] ?? '';
+                    $row[] = $treatmentDelayStr;
 
                     foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
                         $row[] = $freeFieldService->serializeValue([

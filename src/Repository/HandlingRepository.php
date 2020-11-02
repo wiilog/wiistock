@@ -139,6 +139,7 @@ class HandlingRepository extends EntityRepository
             ->addSelect('handling.comment AS comment')
             ->addSelect('handling.emergency AS emergency')
             ->addSelect('join_treatedByHandling.username AS treatedBy')
+            ->addSelect('handling.treatmentDelay AS treatmentDelay')
             ->addSelect('handling.freeFields')
             ->addSelect('handling.carriedOutOperationCount AS carriedOutOperationCount')
 
