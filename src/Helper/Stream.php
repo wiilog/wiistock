@@ -4,11 +4,8 @@ namespace App\Helper;
 
 use ArrayAccess;
 use ArrayIterator;
-use Closure;
 use Countable;
-use Doctrine\Common\Collections\ArrayCollection;
 use Error;
-use Exception;
 use IteratorAggregate;
 use RecursiveArrayIterator;
 use RecursiveIteratorIterator;
@@ -17,7 +14,7 @@ use Traversable;
 
 class Stream implements Countable, IteratorAggregate, ArrayAccess {
 
-    private const INVALID_STREAM = 'The toArray method was called on this stream, therefore it is no longer usable.';
+    private const INVALID_STREAM = "Stream already got consumed";
 
     /**
      * @var array $elements
@@ -30,6 +27,22 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
      */
     private function __construct(array $array) {
         $this->elements = $array;
+    }
+
+    public static function explode($delimiters, string $value): Stream {
+        if(is_array($delimiters)) {
+            if(!count($delimiters)) {
+                throw new RuntimeException("Empty delimiters array");
+            }
+
+            $delimiter = array_shift($delimiters);
+            $value = str_replace($delimiters, $delimiter, $value);
+            $exploded = explode($delimiter, $value);
+        } else {
+            $exploded = explode($delimiters, $value);
+        }
+
+        return new Stream($exploded);
     }
 
     /**
@@ -74,9 +87,9 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         return $this;
     }
 
-    public function filter(Closure $closure): Stream {
+    public function filter(callable $callable): Stream {
         if(isset($this->elements)) {
-            $this->elements = array_filter($this->elements, $closure);
+            $this->elements = array_filter($this->elements, $callable);
         } else {
             throw new Error(self::INVALID_STREAM);
         }
@@ -84,21 +97,20 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
     }
 
     /**
-     * @param Closure $closure
+     * @param callable $callable
      * @return Stream
      */
-    public function sort(Closure $closure): Stream
-    {
-        if (isset($this->elements)) {
-            usort($this->elements, $closure);
+    public function sort(callable $callable): Stream {
+        if(isset($this->elements)) {
+            usort($this->elements, $callable);
         } else {
             throw new Error($this::INVALID_STREAM);
         }
         return $this;
     }
-    public function first()
-    {
-        if (isset($this->elements)) {
+
+    public function first() {
+        if(isset($this->elements)) {
             return $this->elements[0];
         } else {
             throw new Error($this::INVALID_STREAM);
@@ -106,22 +118,21 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
     }
 
     /**
-     * @param Closure $closure
+     * @param callable $callable
      * @return Stream
      */
-    public function map(Closure $closure): Stream
-    {
-        if (isset($this->elements)) {
-            $this->elements = array_map($closure, $this->elements);
+    public function map(callable $callable): Stream {
+        if(isset($this->elements)) {
+            $this->elements = array_map($callable, $this->elements);
         } else {
             throw new Error(self::INVALID_STREAM);
         }
         return $this;
     }
 
-    public function reduce(Closure $closure, $carry) {
+    public function reduce(callable $callable, $carry) {
         if(isset($this->elements)) {
-            return array_reduce($this->elements, $closure, $carry);
+            return array_reduce($this->elements, $callable, $carry);
         } else {
             throw new Error(self::INVALID_STREAM);
         }
@@ -154,9 +165,9 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         return $this;
     }
 
-    public function each(Closure $closure): self {
+    public function each(callable $callable): self {
         if(isset($this->elements)) {
-            array_walk($this->elements, $closure);
+            array_walk($this->elements, $callable);
         } else {
             throw new Error(self::INVALID_STREAM);
         }
@@ -179,12 +190,12 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
     }
 
     /**
-     * @param Closure $closure
+     * @param callable $callable
      * @return $this
      */
-    public function flatMap(Closure $closure) {
+    public function flatMap(callable $callable) {
         if(isset($this->elements)) {
-            $mappedArray = $this->map($closure)->toArray();
+            $mappedArray = $this->map($callable)->toArray();
             $this->elements = array_merge(...$mappedArray);
         } else {
             throw new Error($this::INVALID_STREAM);

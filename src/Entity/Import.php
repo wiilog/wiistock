@@ -92,6 +92,7 @@ class Import
         'stockManagement' => 'Gestion de stock',
         'expiryDate' => 'Date de péremption (jj/mm/AAAA)',
         'stockEntryDate' => 'Date d\'entrée en stock (jj/mm/AAAA hh:MM)',
+        'managers' => 'Gestionnaire(s)',
 	];
 
 	public CONST IMPORT_FIELDS_TO_FIELDS_PARAM = [

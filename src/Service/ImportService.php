@@ -22,6 +22,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ImportException;
+use App\Helper\Stream;
 use DateTimeZone;
 use Doctrine\ORM\EntityManager;
 use DateTime;
@@ -595,6 +596,10 @@ class ImportService
                     'needsMobileSync' => [
                         'needed' => $this->fieldIsNeeded('needsMobileSync', Import::ENTITY_REF),
                         'value' => isset($corresp['needsMobileSync']) ? $corresp['needsMobileSync'] : null,
+                    ],
+                    'managers' => [
+                        'needed' => $this->fieldIsNeeded('managers', Import::ENTITY_REF),
+                        'value' => isset($corresp['managers']) ? $corresp['managers'] : null,
                     ]
                 ];
                 break;
@@ -872,6 +877,7 @@ class ImportService
     {
         $isNewEntity = false;
         $refArtRepository = $this->em->getRepository(ReferenceArticle::class);
+        $userRepository = $this->em->getRepository(Utilisateur::class);
         $refArt = $refArtRepository->findOneBy(['reference' => $data['reference']]);
 
         if (!$refArt) {
@@ -889,6 +895,19 @@ class ImportService
                 $refArt->setNeedsMobileSync($value === 'oui');
             }
         }
+
+        if (isset($data['managers'])) {
+            $emails = Stream::explode([";", ",", " "], $data["managers"])
+                ->unique()
+                ->map("trim")
+                ->toArray();
+
+            $managers = $userRepository->findByEmails($emails);
+            foreach($managers as $manager) {
+                $refArt->addManager($manager);
+            }
+        }
+
         if (isset($data['reference'])) {
             $refArt->setReference($data['reference']);
         }

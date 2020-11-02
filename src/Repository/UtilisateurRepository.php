@@ -183,25 +183,17 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         }, []);
     }
 
-    public function getUsernameManagersGroupByReference() {
-        $result = $this->createQueryBuilder('utilisateur')
-            ->select('referencesArticle.id AS referencesArticleId')
-            ->addSelect('utilisateur.username')
-            ->join('utilisateur.referencesArticle', 'referencesArticle')
-            ->getQuery()
-            ->getResult();
+    public function findByEmails(array $emails) {
+        $result = $this->createQueryBuilder("u")
+            ->where("u.email IN (:emails)")
+            ->setParameter("emails", $emails);
 
-        return array_reduce($result, function ($acc, $attachment) {
-            $referenceArticleId = (int)$attachment['referencesArticleId'];
-            if (empty($acc[$referenceArticleId])) {
-                $acc[$referenceArticleId] = '';
-            } else {
-                $acc[$referenceArticleId] .= ', ';
-            }
+        foreach($emails as $i => $email) {
+            $result->orWhere("JSON_SEARCH(u.secondaryEmails, 'one', :email$i) IS NOT NULL")
+                ->setParameter("email$i", "%$email%");
+        }
 
-            $acc[$referenceArticleId] .= $attachment['username'];
-            return $acc;
-        }, []);
+        return $result->getQuery()->getResult();
     }
 
     public function getUserMailByIsMailSendRole()
