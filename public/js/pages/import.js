@@ -92,10 +92,52 @@ function displaySecondModal(data) {
             urlNewImportSecond,
             {
                 keepModal: true,
-                success: (data) => displayConfirmationModal(importId, data)
+                success: (data) => displayConfirmationModal(importId, data),
+                validator: validateImport
             }
         );
+
+        updateOptions($(".import-options"));
     }
+}
+
+function validateImport() {
+    const selects = $('.import-options');
+    const first_select = selects.first();
+
+    const required = first_select.children()
+        .map(function() {
+            return $(this);
+        })
+        .filter((_, option) => option.html().includes("*"))
+        .map((_, option) => option.val())
+        .toArray();
+
+    selects.each(function() {
+        const value = $(this).val();
+        let index;
+
+        if(value && (index = required.indexOf(value)) !== -1) {
+            required.splice(index, 1);
+        }
+    });
+
+    if(required.length) {
+        let error = "Les valeurs suivantes ne sont pas renseignées : ";
+
+        let iterations = required.length;
+        for(let value of required) {
+            error += $(`.import-options option[value="${value}"]`).html();
+
+            if (--iterations) {
+                error += ", ";
+            }
+        }
+
+        $('.error-msg').text(error);
+    }
+
+    return false;
 }
 
 function displayConfirmationModal(importId, data) {
@@ -174,6 +216,7 @@ function launchImport(importId, force = false) {
             importId,
             force: Number(Boolean(force))
         };
+
         $.post(Routing.generate('import_launch'), params, (resp) => {
             if (!force) {
                 $modalNewImport.modal('hide');
