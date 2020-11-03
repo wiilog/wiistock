@@ -49,6 +49,7 @@ class ArticleDataService
 	private $typeCLOnLabel;
 	private $freeFieldService;
     private $mouvementStockService;
+    private $visibleColumnService;
 
     public function __construct(FreeFieldService $champLibreService,
                                 MailerService $mailerService,
@@ -57,6 +58,7 @@ class ArticleDataService
                                 UserService $userService,
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager,
+                                VisibleColumnService $visibleColumnService,
                                 MouvementStockService $mouvementStockService,
                                 Twig_Environment $templating) {
         $this->refArticleDataService = $refArticleDataService;
@@ -68,6 +70,7 @@ class ArticleDataService
         $this->mailerService = $mailerService;
         $this->freeFieldService = $champLibreService;
         $this->mouvementStockService = $mouvementStockService;
+        $this->visibleColumnService = $visibleColumnService;
     }
 
     /**
@@ -530,7 +533,6 @@ class ArticleDataService
         $row = [
             "id" => $article->getId() ?? "Non défini",
             "label" => $article->getLabel() ?? "Non défini",
-            "reference" => $article->getReference() ?? "Non défini",
             "articleReference" => $referenceArticle ? $referenceArticle->getReference() : "Non défini",
             "supplierReference" => $supplierArticle ? $supplierArticle->getReference() : "Non défini",
             "barCode" => $article->getBarCode() ?? "Non défini",
@@ -555,8 +557,10 @@ class ArticleDataService
         ];
 
         foreach ($freeFields as $field) {
-            $row[$field["id"]] = $this->freeFieldService->serializeValue([
-                "valeur" => $article->getFreeFieldValue($field["id"]),
+            $freeFieldId = $field["id"];
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $row[$freeFieldName] = $this->freeFieldService->serializeValue([
+                "valeur" => $article->getFreeFieldValue($freeFieldId),
                 "typage" => $field["typage"],
             ]);
         }
@@ -703,5 +707,35 @@ class ArticleDataService
 
     public function articleCanBeAddedInDispute(Article $article): bool {
         return in_array($article->getStatut()->getNom(), [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]);
+    }
+
+    public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
+                                           Utilisateur $currentUser): array {
+
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $categorieCL);
+
+        $fieldConfig = [
+            ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
+            ["title" => "Libellé", "name" => "label"],
+            ["title" => "Référence article", "name" => "articleReference"],
+            ["title" => "Référence fournisseur", "name" => "supplierReference"],
+            ["title" => "Code barre", "name" => "barCode"],
+            ["title" => "Type", "name" => "type"],
+            ["title" => "Statut", "name" => "status"],
+            ["title" => "Quantité", "name" => "quantity"],
+            ["title" => "Emplacement", "name" => "location"],
+            ["title" => "Prix unitaire", "name" => "unitPrice"],
+            ["title" => "Dernier inventaire", "name" => "dateLastInventory"],
+            ["title" => "Lot", "name" => "batch"],
+            ["title" => "Date d'entrée en stock", "name" => "stockEntryDate"],
+            ["title" => "Date d'expiration", "name" => "expiryDate"],
+            ["title" => "Commentaire", "name" => "comment"]
+        ];
+
+        return $this->visibleColumnService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getColumnsVisibleForArticle());
     }
 }

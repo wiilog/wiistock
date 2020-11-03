@@ -105,7 +105,6 @@ class DispatchController extends AbstractController {
             'types' => $types,
             'fieldsParam' => $fieldsParam,
             'fields' => $fields,
-            'visibleColumns' => $currentUser->getColumnsVisibleForDispatch(),
             'modalNewConfig' => $service->getNewDispatchConfig($statutRepository, $champLibreRepository, $fieldsParamRepository, $types)
         ]);
     }

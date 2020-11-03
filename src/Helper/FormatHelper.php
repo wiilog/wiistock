@@ -27,12 +27,8 @@ class FormatHelper {
         return $user ? $user->getUsername() : $else;
     }
 
-    public static function bool(?bool $bool, $else = null) {
-        if($else !== null && $bool === null) {
-            return $else;
-        } else {
-            return $bool ? "Oui" : "Non";
-        }
+    public static function bool(?bool $bool, $else = "") {
+        return isset($bool) ? ($bool ? 'oui' : 'non') : $else;
     }
 
     public static function date(?DateTimeInterface $date, $else = "") {
@@ -49,10 +45,6 @@ class FormatHelper {
 
     public static function html(?string $comment, $else = "") {
         return $comment ? strip_tags($comment) : $else;
-    }
-
-    public static function bool(?bool $bool, $else = "") {
-        return isset($bool) ? ($bool ? 'oui' : 'non') : $else;
     }
 
 }

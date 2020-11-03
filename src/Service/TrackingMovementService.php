@@ -42,6 +42,7 @@ class TrackingMovementService
     private $attachmentService;
     private $freeFieldService;
     private $locationClusterService;
+    private $visibleColumnService;
 
     public function __construct(UserService $userService,
                                 RouterInterface $router,
@@ -50,6 +51,7 @@ class TrackingMovementService
                                 Twig_Environment $templating,
                                 FreeFieldService $freeFieldService,
                                 Security $security,
+                                VisibleColumnService $visibleColumnService,
                                 AttachmentService $attachmentService)
     {
         $this->templating = $templating;
@@ -60,6 +62,7 @@ class TrackingMovementService
         $this->attachmentService = $attachmentService;
         $this->locationClusterService = $locationClusterService;
         $this->freeFieldService = $freeFieldService;
+        $this->visibleColumnService = $visibleColumnService;
     }
 
     /**
@@ -170,7 +173,8 @@ class TrackingMovementService
         ];
 
         foreach ($freeFields as $freeField) {
-            $rows[$freeField["id"]] = $this->freeFieldService->serializeValue([
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeField['id']);
+            $rows[$freeFieldName] = $this->freeFieldService->serializeValue([
                 "valeur" => $movement->getFreeFieldValue($freeField["id"]),
                 "typage" => $freeField["typage"],
             ]);
@@ -484,38 +488,19 @@ class TrackingMovementService
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::MOUVEMENT_TRACA, $categorieCL);
 
         $columns = [
-            "actions" => ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
-            "issuer" => ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
-            "date" => ['title' => 'Date', 'name' => 'date'],
-            "pack" => ['title' => 'mouvement de traçabilité.Colis', 'name' => 'code', 'translated' => true],
-            "reference" => ['title' => 'Référence', 'name' => 'reference'],
-            "label" => ['title' => 'Libellé',  'name' => 'label'],
-            "quantity" => ['title' => 'Quantité', 'name' => 'quantity'],
-            "location" => ['title' => 'Emplacement', 'name' => 'location'],
-            "type" => ['title' => 'Type', 'name' => 'type'],
-            "operator" => ['title' => 'Opérateur', 'name' => 'operator'],
+            ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
+            ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
+            ['title' => 'Date', 'name' => 'date'],
+            ['title' => 'mouvement de traçabilité.Colis', 'name' => 'code', 'translated' => true],
+            ['title' => 'Référence', 'name' => 'reference'],
+            ['title' => 'Libellé',  'name' => 'label'],
+            ['title' => 'Quantité', 'name' => 'quantity'],
+            ['title' => 'Emplacement', 'name' => 'location'],
+            ['title' => 'Type', 'name' => 'type'],
+            ['title' => 'Opérateur', 'name' => 'operator'],
         ];
 
-        foreach($freeFields as $freeField) {
-            $columns[$freeField["id"]] = [
-                "title" => $freeField["label"],
-                "name" => (string)$freeField["id"],
-            ];
-        }
-
-        $columns = array_map(function (array $column) use ($columnsVisible) {
-            return [
-                "title" => $column["title"],
-                "alwaysVisible" => $column["alwaysVisible"] ?? false,
-                "orderable" => $column["orderable"] ?? true,
-                "data" => $column["name"],
-                "name" => $column["name"],
-                "translated" => $column["translated"] ?? false,
-                "class" => $column["class"] ?? (in_array($column["name"], $columnsVisible) ? "display" : "hide")
-            ];
-        }, $columns);
-
-        return $columns;
+        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
     /**

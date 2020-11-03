@@ -83,13 +83,7 @@ function initTableArrival() {
                         'clicked': () => clicked,
                     }
                 },
-                columns: columns.map(function (column) {
-                    return {
-                        ...column,
-                        class: column.title === 'Actions' ? 'noVis' : undefined,
-                        title: column.title === 'Actions' ? '' : column.title
-                    }
-                }),
+                columns,
                 drawConfig: {
                     needsResize: true,
                     needsSearchOverride: true,

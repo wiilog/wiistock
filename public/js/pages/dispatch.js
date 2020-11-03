@@ -31,6 +31,7 @@ function initPage() {
     return $
         .post(Routing.generate('dispatch_api_columns'))
         .then((columns) => {
+            console.log(columns)
             let tableDispatchesConfig = {
                 serverSide: true,
                 processing: true,
@@ -48,13 +49,7 @@ function initPage() {
                 drawConfig: {
                     needsSearchOverride: true,
                 },
-                columns: columns.map(function (column) {
-                    return {
-                        ...column,
-                        class: column.title === 'Actions' ? 'noVis' : undefined,
-                        title: column.title === 'Actions' ? '' : column.title
-                    }
-                }),
+                columns,
                 hideColumnConfig: {
                     columns,
                     tableFilter: 'tableDispatches'

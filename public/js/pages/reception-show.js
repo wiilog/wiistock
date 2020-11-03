@@ -266,12 +266,12 @@ function initDatatableConditionnement() {
         },
         order: [1, 'asc'],
         columns: [
-            {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'Code barre', 'name': 'Code barre', 'title': 'Code article'},
-            {"data": "Statut", 'name': 'Statut', 'title': 'Statut'},
-            {"data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé'},
-            {"data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article'},
-            {"data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité'},
+            {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
+            {"data": 'barCode', 'name': 'barCode', 'title': 'Code article'},
+            {"data": "status", 'name': 'status', 'title': 'Statut'},
+            {"data": 'label', 'name': 'label', 'title': 'Libellé'},
+            {"data": 'articleReference', 'name': 'articleReference', 'title': 'Référence article'},
+            {"data": 'quantity', 'name': 'quantity', 'title': 'Quantité'},
         ],
         aoColumnDefs: [{
             'sType': 'natural',

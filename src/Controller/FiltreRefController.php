@@ -10,6 +10,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Repository\FiltreRefRepository;
 use App\Service\RefArticleDataService;
+use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -50,10 +51,12 @@ class FiltreRefController extends AbstractController
     /**
      * @Route("/creer", name="filter_ref_new", options={"expose"=true})
      * @param Request $request
+     * @param RefArticleDataService $refArticleDataService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function new(Request $request,
+                        RefArticleDataService $refArticleDataService,
                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -69,17 +72,30 @@ class FiltreRefController extends AbstractController
             if($existingFilter == 0) {
                 $filter = new FiltreRef();
 
+                $unknownField = false;
+
 				// champ Champ Libre
                 if (isset($data['field'])) {
                     $field = $data['field'];
-
-                    if (intval($field) != 0) {
-                        $champLibre = $champLibreRepository->find(intval($field));
+                    preg_match("/" . VisibleColumnService::FREE_FIELD_NAME_PREFIX . "_(\d+)/", $field, $matches);
+                    if (!empty($matches)) {
+                        $freeFieldId = intval($matches[1]);
+                        $champLibre = $champLibreRepository->find($freeFieldId);
                         $filter->setChampLibre($champLibre);
                     } else {
-                        $filter->setChampFixe($data['field']);
+                        $title = $refArticleDataService->getFieldTitle($data['field']);
+                        if (!empty($title)) {
+                            $filter->setChampFixe($title);
+                        }
+                        else {
+                            $unknownField = true;
+                        }
                     }
                 } else {
+                    $unknownField = true;
+                }
+
+                if ($unknownField) {
                     return new JsonResponse([
                         'success' => false,
                         'msg' => 'Champ inconnu.'
@@ -161,22 +177,29 @@ class FiltreRefController extends AbstractController
 
 			$value = $data['value'];
 			$multiple = false;
-			if ($value === 'Emplacement') {
+			if ($value === 'location') {
 				$emplacements = $emplacementRepository->findBy(['isActive' => true],['label'=> 'ASC']);
 				$options = [];
 				foreach ($emplacements as $emplacement) {
 					$options[] = $emplacement->getLabel();
 				}
-			} else if ($value === 'Type') {
+			} else if ($value === 'type') {
 				$types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE], 'asc');
 				$options = [];
 				foreach ($types as $type) {
 					$options[] = $type->getLabel();
 				}
 			} else {
-				$cl = $champLibreRepository->find(intval($value)); /** @var $cl FreeField */
-				$options = $cl->getElements();
-				$multiple = true;
+                preg_match("/" . VisibleColumnService::FREE_FIELD_NAME_PREFIX . "_(\d+)/", $value, $matches);
+                $options = [];
+                if (!empty($matches)) {
+                    $freeFieldId = intval($matches[1]);
+
+                    /** @var $cl FreeField */
+                    $cl = $champLibreRepository->find($freeFieldId);
+                    $options = $cl->getElements();
+                    $multiple = true;
+                }
 			}
 
 			$view = $this->renderView('reference_article/selectInFilter.html.twig', [

@@ -13,7 +13,7 @@ function initTableArticle() {
             serverSide: true,
             processing: true,
             paging: true,
-            order: [[1, 'asc']],
+            order: [[1, 'desc']],
             ajax: {
                 "url": pathArticle,
                 "type": "POST",
@@ -25,13 +25,7 @@ function initTableArticle() {
                     return json.data;
                 }
             },
-            columns: columns.map(function (column) {
-                return {
-                    ...column,
-                    class: column.title === 'Actions' ? 'noVis' : undefined,
-                    title: column.title === 'Actions' ? '' : column.title
-                }
-            }),
+            columns,
             drawConfig: {
                 needsResize: true
             },

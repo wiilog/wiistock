@@ -128,53 +128,14 @@ class ArticleController extends AbstractController
         }
 
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
-        $category = CategoryType::ARTICLE;
-
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-
-        $fields = [
-            "actions" => ["title" => "Actions"],
-            "label" => ["title" => "Libellé"],
-            "reference" => ["title" => "Référence"],
-            "articleReference" => ["title" => "Référence article"],
-            "supplierReference" => ["title" => "Référence fournisseur"],
-            "barCode" => ["title" => "Code barre"],
-            "type" => ["title" => "Type"],
-            "status" => ["title" => "Statut"],
-            "quantity" => ["title" => "Quantité"],
-            "location" => ["title" => "Emplacement"],
-            "unitPrice" => ["title" => "Prix unitaire"],
-            "dateLastInventory" => ["title" => "Dernier inventaire"],
-            "batch" => ["title" => "Lot"],
-            "stockEntryDate" => ["title" => "Date d'entrée en stock"],
-            "expiryDate" => ["title" => "Date d'expiration"],
-            "comment" => ["title" => "Commentaire"],
-        ];
-
-        foreach($freeFields as $field) {
-            $fields[$field["id"]] = [
-                "title" => $field["label"],
-            ];
-        }
-
-        uasort($fields, function ($a, $b) {
-            return strcasecmp($a["title"], $b["title"]);
-        });
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
         $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $currentUser);
 
         return $this->render('article/index.html.twig', [
-            "fields" => $fields,
-            "visibleColumns" => $user->getColumnsVisibleForArticle(),
-            "searches" => $user->getRechercheForArticle(),
+            "fields" => $articleDataService->getColumnVisibleConfig($entityManager, $currentUser),
+            "searches" => $currentUser->getRechercheForArticle(),
             "activeOnly" => !empty($filter) && ($filter->getValue() === $articleDataService->getActiveArticleFilterValue())
         ]);
     }
@@ -242,128 +203,24 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/api-columns", name="article_api_columns", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
+     * @Route("/api-columns", name="article_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param ArticleDataService $articleDataService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function apiColumns(Request $request,
+    public function apiColumns(ArticleDataService $articleDataService,
                                EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $champLibreRepository = $entityManager->getRepository(FreeField::class);
-            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-
-            $currentUser = $this->getUser();
-            /** @var Utilisateur $currentUser */
-            $columnsVisible = $currentUser->getColumnsVisibleForArticle();
-            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
-            $category = CategoryType::ARTICLE;
-            $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-
-            $columns = [
-                [
-                    "title" => 'Actions',
-                    "data" => 'actions',
-                    'orderable' => false,
-                    "class" => (in_array('actions', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Libellé',
-                    "data" => 'label',
-                    "class" => (in_array('label', $columnsVisible) ? 'display' : 'hide'),
-				],
-                [
-                    "title" => 'Référence',
-                    "data" => 'reference',
-                    "class" => (in_array('reference', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Référence article',
-                    "data" => 'articleReference',
-                    "class" => (in_array('articleReference', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Référence fournisseur',
-                    "data" => 'supplierReference',
-                    "class" => (in_array('supplierReference', $columnsVisible) ? 'display' : 'hide'),
-                ],
-				[
-					"title" => 'Code barre',
-					"data" => 'barCode',
-					"class" => (in_array('barCode', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Type',
-					"data" => 'type',
-					"class" => (in_array('type', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Statut',
-					"data" => 'status',
-					"class" => (in_array('status', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Quantité',
-					"data" => 'quantity',
-					"class" => (in_array('quantity', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Emplacement',
-					"data" => 'location',
-					"class" => (in_array('location', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Prix unitaire',
-					"data" => 'unitPrice',
-					"class" => (in_array('unitPrice', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Dernier inventaire',
-					"data" => "dateLastInventory",
-					"class" => (in_array("dateLastInventory", $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Lot',
-					"data" => 'batch',
-					"class" => (in_array('batch', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => "Date d'entrée en stock",
-					"data" => "stockEntryDate",
-					"class" => (in_array("stockEntryDate", $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Date de péremption',
-					"data" => 'expiryDate',
-					"class" => (in_array('expiryDate', $columnsVisible) ? 'display' : 'hide'),
-				],
-                [
-                    "title" => 'Commentaire',
-                    "data" => 'comment',
-                    "class" => (in_array('comment', $columnsVisible) ? 'display' : 'hide'),
-                ],
-			];
-
-			foreach ($champs as $champ) {
-				$columns[] = [
-					"title" => $champ["label"],
-					"data" => (string)$champ["id"],
-					"class" => (in_array($champ["id"], $columnsVisible) ? 'display' : 'hide'),
-				];
-			}
-
-			foreach($columns as &$column) {
-			    $column["name"] = $column["data"];
-            }
-
-            return new JsonResponse($columns);
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
+            return $this->redirectToRoute('access_denied');
         }
-        throw new BadRequestHttpException();
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        return new JsonResponse(
+            $articleDataService->getColumnVisibleConfig($entityManager, $currentUser)
+        );
     }
 
     /**

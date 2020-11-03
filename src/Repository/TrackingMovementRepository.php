@@ -252,7 +252,7 @@ class TrackingMovementRepository extends EntityRepository
                         if(is_numeric($column)) {
                             $qb->orderBy("JSON_EXTRACT(tracking_movement.freeFields, '$.\"$column\"')", $order);
                         } else if (property_exists(TrackingMovement::class, $column)) {
-                            $qb->orderBy("a.$column", $order);
+                            $qb->orderBy("tracking_movement.$column", $order);
                         }
                     }
 

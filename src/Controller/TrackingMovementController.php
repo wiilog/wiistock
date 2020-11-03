@@ -112,8 +112,7 @@ class TrackingMovementController extends AbstractController
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
             'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true),
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
-            'fields' => $fields,
-            'visibleColumns' => $currentUser->getColumnsVisibleForTrackingMovement(),
+            'fields' => $fields
         ]);
     }
 

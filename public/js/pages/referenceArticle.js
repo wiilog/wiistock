@@ -18,43 +18,44 @@ $(function () {
         activeFilter = false;
     }
     managePrintButtonTooltip(activeFilter, $printTag.is('button') ? $printTag.parent() : $printTag);
-    initTableRefArticle();
+    initTableRefArticle().then((table) => {
+        initPageModals(table);
+    });
     displayActifOrInactif($('#toggleActivOrInactiv'), true);
     registerNumberInputProtection($('#modalNewRefArticle').find('input[type="number"]'));
 
-    initPageModals();
 });
 
-function initPageModals() {
+function initPageModals(table) {
     let modalRefArticleNew = $("#modalNewRefArticle");
     let submitNewRefArticle = $("#submitNewRefArticle");
     let urlRefArticleNew = Routing.generate('reference_article_new', true);
-    InitModal(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, {tables: [pageTables]});
+    InitModal(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, {tables: [table]});
     Select2.user(modalRefArticleNew.find('.ajax-autocomplete-user[name=managers]'))
 
     let modalDeleteRefArticle = $("#modalDeleteRefArticle");
     let SubmitDeleteRefArticle = $("#submitDeleteRefArticle");
     let urlDeleteRefArticle = Routing.generate('reference_article_delete', true);
-    InitModal(modalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArticle, {tables: [pageTables], clearOnClose: true});
+    InitModal(modalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArticle, {tables: [table], clearOnClose: true});
 
     let modalModifyRefArticle = $('#modalEditRefArticle');
     let submitModifyRefArticle = $('#submitEditRefArticle');
     let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
-    InitModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, {tables: [pageTables], clearOnClose: true});
+    InitModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, {tables: [table], clearOnClose: true});
     Select2.user(modalModifyRefArticle.find('.ajax-autocomplete-user-edit'));
 
     let $modalPlusDemande = $('#modalPlusDemande');
     let $submitPlusDemande = $('#submitPlusDemande');
     let $submitPlusDemandeAndRedirect = $('#submitPlusDemandeAndRedirect');
     let urlPlusDemande = Routing.generate('plus_demande', true);
-    InitModal($modalPlusDemande, $submitPlusDemande, urlPlusDemande, {tables: [pageTables], clearOnClose: true});
+    InitModal($modalPlusDemande, $submitPlusDemande, urlPlusDemande, {tables: [table], clearOnClose: true});
     InitModal($modalPlusDemande, $submitPlusDemandeAndRedirect, urlPlusDemande, {keepForm: true, success: redirectToDemande($modalPlusDemande)});
 
     let modalNewFilter = $('#modalNewFilter');
     let submitNewFilter = $('#submitNewFilter');
     let urlNewFilter = Routing.generate('filter_ref_new', true);
     InitModal(modalNewFilter, submitNewFilter, urlNewFilter, {
-        tables: [pageTables],
+        tables: [table],
         clearOnClose: true,
         success: displayNewFilter
     });
@@ -105,44 +106,47 @@ function clearDemandeContent() {
 
 function initTableRefArticle() {
     let url = Routing.generate('ref_article_api', true);
-    $.post(Routing.generate('ref_article_api_columns'), function (columns) {
-        let tableRefArticleConfig = {
-            processing: true,
-            serverSide: true,
-            paging: true,
-            order: [[1, 'asc']],
-            ajax: {
-                'url': url,
-                'type': 'POST',
-                'dataSrc': function (json) {
-                    return json.data;
-                }
-            },
-            length: 10,
-            columns: columns.map(function (column) {
-                return {
-                    ...column,
-                    class: column.title === 'actions' ? 'noVis' : undefined,
-                    title: column.title === 'actions' ? '' : column.title
-                }
-            }),
-            drawConfig: {
-                needsResize: true
-            },
-            rowConfig: {
-                needsRowClickAction: true
-            },
-            hideColumnConfig: {
-                columns,
-                tableFilter: 'tableRefArticle_id_filter'
-            },
-        };
+    return $
+        .post(Routing.generate('ref_article_api_columns'))
+        .then(function (columns) {
+            let tableRefArticleConfig = {
+                processing: true,
+                serverSide: true,
+                paging: true,
+                order: [[1, 'asc']],
+                ajax: {
+                    'url': url,
+                    'type': 'POST',
+                    'dataSrc': function (json) {
+                        return json.data;
+                    }
+                },
+                length: 10,
+                columns: columns.map(function (column) {
+                    return {
+                        ...column,
+                        class: column.title === 'actions' ? 'noVis' : undefined,
+                        title: column.title === 'actions' ? '' : column.title
+                    }
+                }),
+                drawConfig: {
+                    needsResize: true
+                },
+                rowConfig: {
+                    needsRowClickAction: true
+                },
+                hideColumnConfig: {
+                    columns,
+                    tableFilter: 'tableRefArticle_id_filter'
+                },
+            };
 
-        pageTables = initDataTable('tableRefArticle_id', tableRefArticleConfig);
-        pageTables.on('responsive-resize', function () {
-            resizeTable();
+            pageTables = initDataTable('tableRefArticle_id', tableRefArticleConfig);
+            pageTables.on('responsive-resize', function () {
+                resizeTable();
+            });
+            return pageTables;
         });
-    });
 }
 
 function resizeTable() {

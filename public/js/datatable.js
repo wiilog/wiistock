@@ -81,7 +81,6 @@ function initActionOnRow(row) {
 
 function showOrHideColumn(check, concernedTable) {
     let columnName = check.data('name');
-
     let column = concernedTable.column(columnName + ':name');
     column.visible(!column.visible());
     check.toggleClass('data');
@@ -272,39 +271,36 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             console.log('An error has been reported by DataTables: ', message, e, dtId);
         })
         .DataTable({
-    fixedColumns:   {
-
-        heightMatch: 'auto'
-
-    },
-
-
-    autoWidth: true,
-            scrollX: true,
-            language: {
-                url: "/js/i18n/dataTableLanguage.json",
+            fixedColumns:   {
+                heightMatch: 'auto'
             },
-            dom: getAppropriateDom(domConfig || {}),
-            rowCallback: getAppropriateRowCallback(rowConfig || {}),
-            drawCallback: (response) => {
-                datatableDrawCallback({
-                    table: datatableToReturn,
-                    response,
-                    $tableDom,
-                    ...(drawConfig || {})
+
+            autoWidth: true,
+                    scrollX: true,
+                    language: {
+                        url: "/js/i18n/dataTableLanguage.json",
+                    },
+                    dom: getAppropriateDom(domConfig || {}),
+                    rowCallback: getAppropriateRowCallback(rowConfig || {}),
+                    drawCallback: (response) => {
+                        datatableDrawCallback({
+                            table: datatableToReturn,
+                            response,
+                            $tableDom,
+                            ...(drawConfig || {})
+                        });
+                    },
+                    initComplete: () => {
+                        let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
+                        moveSearchInputToHeader($searchInputContainer);
+                        tableCallback(hideColumnConfig || {}, datatableToReturn);
+                        if (initCompleteCallback) {
+                            initCompleteCallback();
+                        }
+                        attachDropdownToBodyOnDropdownOpening($tableDom);
+                    },
+                    ...config
                 });
-            },
-            initComplete: () => {
-                let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
-                moveSearchInputToHeader($searchInputContainer);
-                tableCallback(hideColumnConfig || {}, datatableToReturn);
-                if (initCompleteCallback) {
-                    initCompleteCallback();
-                }
-                attachDropdownToBodyOnDropdownOpening($tableDom);
-            },
-            ...config
-        });
     return datatableToReturn;
 }
 
@@ -391,7 +387,7 @@ function initSearchDate(table) {
 
 function hideAndShowColumns(columns, table) {
     table.columns().every(function (index) {
-        this.visible(columns[index].class !== 'hide');
+        this.visible(columns[index].isColumnVisible);
     });
 }
 

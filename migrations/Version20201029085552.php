@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\Utilisateur;
+use App\Service\VisibleColumnService;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -57,12 +58,35 @@ final class Version20201029085552 extends AbstractMigration {
         $this->initializeFreeFields();
 
         foreach($users as $user) {
-            $references = $this->adapt(self::REFERENCES, Utilisateur::COL_VISIBLE_REF_DEFAULT, $user["column_visible"]);
-            $articles = $this->adapt(self::ARTICLES, Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT, $user["columns_visible_for_article"]);
             $referencesSearch = $this->adapt(self::REFERENCES, Utilisateur::SEARCH_DEFAULT, $user["recherche"]);
             $articlesSearch = $this->adapt(self::ARTICLES, Utilisateur::SEARCH_DEFAULT, $user["recherche_for_article"]);
 
-            $this->addSql("UPDATE utilisateur SET column_visible = '$references', columns_visible_for_article = '$articles', recherche = '$referencesSearch', recherche_for_article = '$articlesSearch' WHERE id = {$user['id']}");
+            $references = $this->adapt(self::REFERENCES, Utilisateur::COL_VISIBLE_REF_DEFAULT, $user["column_visible"]);
+            $articles = $this->adapt(self::ARTICLES, Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT, $user["columns_visible_for_article"]);
+            $dispatch = $this->adapt(null, Utilisateur::COL_VISIBLE_DISPATCH_DEFAULT, $user["columns_visible_for_dispatch"]);
+            $trackingMovement = $this->adapt(null, Utilisateur::COL_VISIBLE_TRACKING_MOVEMENT_DEFAULT, $user["columns_visible_for_tracking_movement"]);
+            $arrival = $this->adapt(null, Utilisateur::COL_VISIBLE_ARR_DEFAULT, $user["columns_visible_for_arrivage"]);
+            $dispute = $this->adapt(null, Utilisateur::COL_VISIBLE_LIT_DEFAULT, $user["columns_visible_for_litige"]);
+
+            $referencesStr = ($references && $references !== 'null') ? "'$references'" : 'NULL';
+            $articlesStr = ($articles && $articles !== 'null') ? "'$articles'" : 'NULL';
+            $dispatchStr = ($dispatch && $dispatch !== 'null') ? "'$dispatch'" : 'NULL';
+            $trackingMovementStr = ($trackingMovement && $trackingMovement !== 'null') ? "'$trackingMovement'" : 'NULL';
+            $arrivalStr = ($arrival && $arrival !== 'null') ? "'$arrival'" : 'NULL';
+            $disputeStr = ($dispute && $dispute !== 'null') ? "'$dispute'" : 'NULL';
+
+            $this->addSql("
+                UPDATE utilisateur
+                SET column_visible = {$referencesStr},
+                    columns_visible_for_article = {$articlesStr},
+                    columns_visible_for_dispatch = {$dispatchStr},
+                    columns_visible_for_tracking_movement = {$trackingMovementStr},
+                    columns_visible_for_arrivage = {$arrivalStr},
+                    columns_visible_for_litige = {$disputeStr},
+                    recherche = '$referencesSearch',
+                    recherche_for_article = '$articlesSearch'
+                WHERE id = {$user['id']}
+            ");
         }
     }
 
@@ -71,13 +95,13 @@ final class Version20201029085552 extends AbstractMigration {
         $adapted = [];
 
         foreach($ff as $field) {
-            $adapted[$field["label"]] = (int)$field["id"];
+            $adapted[$field["label"]] = 'free_field_' . $field["id"];
         }
 
         $this->ff = $adapted;
     }
 
-    private function adapt(array $template, array $default, ?string $items): ?string {
+    private function adapt(?array $template, array $default, ?string $items): ?string {
         if($items == null) {
             return json_encode($default);
         }
@@ -86,7 +110,7 @@ final class Version20201029085552 extends AbstractMigration {
         $items = json_decode($items);
 
         foreach($items as $item) {
-            $item = $template[$item] ?? $this->ff[$item] ?? null;
+            $item = $template[$item] ?? $this->ff[$item] ?? ($template ? null : $item);
 
             if($item) {
                 $output[] = $item;

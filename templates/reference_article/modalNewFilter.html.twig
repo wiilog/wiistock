@@ -12,9 +12,9 @@
                     <label for="field">Champ</label>
                     <select class="form-control data needed" id="field" name="field" onchange="displayFilterValue($(this))">
                         <option disabled selected> </option>
-                        {% for name, field in fields %}
-                            {% if name not in ['actions', 'comment', 'status'] %}
-                                <option value="{{ name }}" data-type="{{ field.type }}">{{ field.title }}</option>
+                        {% for field in fields %}
+                            {% if field.name not in ['actions', 'comment', 'status'] %}
+                                <option value="{{ field.name }}" data-type="{{ field.type }}">{{ field.title }}</option>
                             {% endif %}
                         {% endfor %}
                     </select>

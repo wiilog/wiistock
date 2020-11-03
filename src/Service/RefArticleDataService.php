@@ -42,6 +42,28 @@ use Twig\Error\SyntaxError;
 
 class RefArticleDataService {
 
+    private const REF_ARTICLE_FIELDS = [
+        ["name" => "actions", "class" => "noVis", "alwaysVisible" => true, "orderable" => false],
+        ["title" => "Libellé", "name" => "label", "type" => "text"],
+        ["title" => "Référence", "name" => "reference", "type" => "text"],
+        ["title" => "Code barre", "name" => "barCode", "type" => "text"],
+        ["title" => "Urgence", "name" => "emergency", "type" => "booleen"],
+        ["title" => "Type", "name" => "type", "type" => "list"],
+        ["title" => "Statut", "name" => "status", "type" => "list"],
+        ["title" => "Quantité stock", "name" => "stockQuantity", "type" => "number"],
+        ["title" => "Quantité disponible", "name" => "availableQuantity", "type" => "number"],
+        ["title" => "Emplacement", "name" => "location", "type" => "list"],
+        ["title" => "Seuil de sécurité", "name" => "securityThreshold", "type" => "number"],
+        ["title" => "Seuil d'alerte", "name" => "warningThreshold", "type" => "number"],
+        ["title" => "Prix unitaire", "name" => "unitPrice", "type" => "number"],
+        ["title" => "Synchronisation nomade", "name" => "mobileSync", "type" => "booleen"],
+        ["title" => "Dernier inventaire", "name" => "lastInventory", "type" => "date"],
+        ["title" => "Gestion de stock", "name" => "stockManagement", "type" => "text"],
+        ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
+        ["title" => "Commentaire", "name" => "comment", "type" => "text"],
+        ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text"]
+    ];
+
     /**
      * @var FiltreRefRepository
      */
@@ -76,12 +98,14 @@ class RefArticleDataService {
     private $freeFieldService;
     private $articleFournisseurService;
     private $alertService;
+    private $visibleColumnService;
 
     public function __construct(RouterInterface $router,
                                 UserService $userService,
                                 FreeFieldService $champLibreService,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
+                                VisibleColumnService $visibleColumnService,
                                 TokenStorageInterface $tokenStorage,
                                 ArticleFournisseurService $articleFournisseurService,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository,
@@ -96,6 +120,7 @@ class RefArticleDataService {
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->articleFournisseurService = $articleFournisseurService;
         $this->alertService = $alertService;
+        $this->visibleColumnService = $visibleColumnService;
     }
 
     /**
@@ -399,8 +424,10 @@ class RefArticleDataService {
         ];
 
         foreach($freeFields as $freeField) {
-            $row[$freeField["id"]] = $this->freeFieldService->serializeValue([
-                "valeur" => $refArticle->getFreeFieldValue($freeField["id"]),
+            $freeFieldId = $freeField["id"];
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $row[$freeFieldName] = $this->freeFieldService->serializeValue([
+                "valeur" => $refArticle->getFreeFieldValue($freeFieldId),
                 "typage" => $freeField["typage"],
             ]);
         }
@@ -699,6 +726,29 @@ class RefArticleDataService {
     private function isDifferentThresholdType($alert, $type) {
         return $alert->getType() == Alert::WARNING && $type == Alert::SECURITY ||
             $alert->getType() == Alert::SECURITY && $type == Alert::WARNING;
+    }
+
+    public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
+                                           Utilisateur $currentUser): array {
+
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $freeFields = $freeFieldRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $categorieCL);
+
+        return $this->visibleColumnService->getArrayConfig(self::REF_ARTICLE_FIELDS, $freeFields, $currentUser->getColumnVisible());
+    }
+
+    public function getFieldTitle(string $fieldName): ?string {
+        $title = null;
+        foreach (self::REF_ARTICLE_FIELDS as $field) {
+            if ($field['name'] === $fieldName) {
+                $title = $field['title'] ?? null;
+                break;
+            }
+        }
+        return $title;
     }
 
 }

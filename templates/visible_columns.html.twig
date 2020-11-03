@@ -11,7 +11,7 @@
                 <table class="table" style="width:100%">
                     <thead>
                     <tr>
-                        <th>Fields</th>
+                        <th>Champs</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
@@ -33,11 +33,11 @@
                                 </td>
                                 <td>
                                     <div class="checkbox d-inline-block pointer no-data">
-                                        {% set checked = name in visibleColumns ? 'checked' %}
-                                        <input class="form-check-input {{ checked == 'checked' ? 'data' }}"
+                                        <input class="form-check-input {{ field.isColumnVisible ? 'data' }}"
                                                name="{{ name }}"
                                                onchange="showOrHideColumn($(this), {{ table }})"
-                                               type="checkbox" {{ checked }}
+                                               type="checkbox"
+                                               {{ field.isColumnVisible ? 'checked' }}
                                                id="cv_{{ table }}_{{ loop.index }}"
                                                data-column="{{ loop.index0 }}" data-name="{{ name }}">
                                         <label for="cv_{{ table }}_{{ loop.index }}" class="pointer"></label>
@@ -67,7 +67,7 @@
             if(initialized || {{ table }} === undefined) {
                 return;
             }
-
+            console.log({{ table }})
             InitModal(modal, button, '{{ path(route) }}', {tables: [{{ table }}]});
             initialized = true;
         })

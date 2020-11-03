@@ -56,6 +56,7 @@ class DispatchService {
     private $mailerService;
     private $trackingMovementService;
     private $fieldsParamService;
+    private $visibleColumnService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
@@ -65,6 +66,7 @@ class DispatchService {
                                 TranslatorInterface $translator,
                                 TrackingMovementService $trackingMovementService,
                                 MailerService $mailerService,
+                                VisibleColumnService $visibleColumnService,
                                 FieldsParamService $fieldsParamService) {
         $this->templating = $templating;
         $this->trackingMovementService = $trackingMovementService;
@@ -75,6 +77,7 @@ class DispatchService {
         $this->translator = $translator;
         $this->mailerService = $mailerService;
         $this->fieldsParamService = $fieldsParamService;
+        $this->visibleColumnService = $visibleColumnService;
     }
 
     /**
@@ -160,7 +163,8 @@ class DispatchService {
         ];
 
         foreach ($freeFields as $freeField) {
-            $row[$freeField["id"]] = $this->freeFieldService->serializeValue([
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeField['id']);
+            $row[$freeFieldName] = $this->freeFieldService->serializeValue([
                 "valeur" => $dispatch->getFreeFieldValue($freeField["id"]),
                 "typage" => $freeField["typage"],
             ]);
@@ -335,13 +339,13 @@ class DispatchService {
             ($this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsCreate')
                 || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsEdit'))
                 ? [[
-                'label' => 'Commentaire',
-                'value' => $comment ?: '',
-                'isRaw' => true,
-                'colClass' => 'col-sm-6 col-12',
-                'isScrollable' => true,
-                'isNeededNotEmpty' => true
-            ]]
+                    'label' => 'Commentaire',
+                    'value' => $comment ?: '',
+                    'isRaw' => true,
+                    'colClass' => 'col-sm-6 col-12',
+                    'isScrollable' => true,
+                    'isNeededNotEmpty' => true
+                ]]
                 : [],
             ($this->fieldsParamService->isFieldRequired($fieldsParam, 'attachments', 'displayedFormsCreate')
             || $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachments', 'displayedFormsEdit'))
@@ -516,7 +520,7 @@ class DispatchService {
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, $categorieCL);
 
         $columns = [
-            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
+            ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => 'Numéro demande', 'name' => 'number'],
             ['title' => 'acheminement.Transporteur', 'name' => 'carrier', 'translated' => true],
             ['title' => 'acheminement.Numéro de tracking transporteur', 'name' => 'carrierTrackingNumber', 'translated' => true],
@@ -535,23 +539,6 @@ class DispatchService {
             ['title' => 'Traité par', 'name' => 'treatedBy'],
         ];
 
-        foreach($freeFields as $freeField) {
-            $columns[$freeField["id"]] = [
-                "title" => $freeField["label"],
-                "name" => (string)$freeField["id"],
-            ];
-        }
-
-        return array_map(function (array $column) use ($columnsVisible) {
-            return [
-                'title' => $column['title'],
-                'alwaysVisible' => $column['alwaysVisible'] ?? false,
-                'orderable' => $column['orderable'] ?? true,
-                'data' => $column['name'],
-                'name' => $column['name'],
-                'translated' => $column['translated'] ?? false,
-                'class' => $column['class'] ?? (in_array($column['name'], $columnsVisible) ? 'display' : 'hide')
-            ];
-        }, $columns);
+        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 }

@@ -23,7 +23,6 @@ $(function () {
 
     $.post(Routing.generate('tracking_movement_api_columns'))
         .then((columns) => {
-            console.log(columns);
             let config = {
                 responsive: true,
                 serverSide: true,
@@ -39,13 +38,7 @@ $(function () {
                 rowConfig: {
                     needsRowClickAction: true
                 },
-                columns: columns.map(function (column) {
-                    return {
-                        ...column,
-                        class: column.name === 'actions' ? 'noVis' : undefined,
-                        title: column.name === 'actions' ? '' : column.title
-                    }
-                }),
+                columns,
                 hideColumnConfig: {
                     columns,
                     tableFilter: 'tableMvts'

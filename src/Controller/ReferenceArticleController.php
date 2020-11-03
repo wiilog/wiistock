@@ -122,125 +122,23 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/api-columns", name="ref_article_api_columns", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-columns", name="ref_article_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param RefArticleDataService $refArticleDataService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function apiColumns(Request $request, EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $champLibreRepository = $entityManager->getRepository(FreeField::class);
-            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-
-            $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
-            $columnsVisible = $currentUser->getColumnVisible();
-            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-
-            $category = CategoryType::ARTICLE;
-            $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-
-			$columns = [[
-					"title" => 'Actions',
-					"data" => 'actions',
-                    'orderable' => false,
-					"class" => (in_array('actions', $columnsVisible) ? 'display' : 'hide'),
-				], [
-					"title" => 'Libellé',
-					"data" => 'label',
-					"class" => (in_array('label', $columnsVisible) ? 'display' : 'hide'),
-				], [
-					"title" => 'Référence',
-					"data" => 'reference',
-					"class" => (in_array('reference', $columnsVisible) ? 'display' : 'hide'),
-				], [
-					"title" => 'Type',
-					"data" => 'type',
-					"class" => (in_array('type', $columnsVisible) ? 'display' : 'hide'),
-				], [
-					"title" => 'Statut',
-					"data" => 'status',
-					"class" => (in_array('status', $columnsVisible) ? 'display' : 'hide'),
-				], [
-					"title" => 'Type quantité',
-					"data" => 'quantityType',
-					"class" => (in_array('quantityType', $columnsVisible) ? 'display' : 'hide'),
-				], [
-					"title" => 'Quantité disponible',
-					"data" => 'availableQuantity',
-					"class" => (in_array('availableQuantity', $columnsVisible) ? 'display' : 'hide'),
-				], [
-					"title" => 'Quantité en stock',
-					"data" => 'stockQuantity',
-					"class" => (in_array('stockQuantity', $columnsVisible) ? 'display' : 'hide'),
-				], [
-                    "title" => 'Code barre',
-                    "data" => 'barCode',
-                    "class" => (in_array('barCode', $columnsVisible) ? 'display' : 'hide'),
-                ], [
-					"title" => 'Emplacement',
-					"data" => 'location',
-					"class" => (in_array('location', $columnsVisible) ? 'display' : 'hide'),
-				], [
-					"title" => 'Commentaire',
-					"data" => 'comment',
-					"class" => (in_array('comment', $columnsVisible) ? 'display' : 'hide'),
-				], [
-                    "title" => 'Commentaire d\'urgence',
-                    "data" => 'emergencyComment',
-                    "class" => (in_array('emergencyComment', $columnsVisible) ? 'display' : 'hide'),
-                ], [
-					"title" => 'Seuil d\'alerte',
-					"data" => 'warningThreshold',
-					"class" => (in_array('warningThreshold', $columnsVisible) ? 'display' : 'hide'),
-				], [
-					"title" => 'Seuil de sécurité',
-					"data" => 'securityThreshold',
-					"class" => (in_array('securityThreshold', $columnsVisible) ? 'display' : 'hide'),
-				], [
-					"title" => 'Prix unitaire',
-					"data" => 'unitPrice',
-					"class" => (in_array('unitPrice', $columnsVisible) ? 'display' : 'hide'),
-				], [
-					"title" => 'Dernier inventaire',
-					"data" => 'lastInventory',
-					"class" => (in_array('lastInventory', $columnsVisible) ? 'display' : 'hide'),
-				], [
-					"title" => 'Urgence',
-					"data" => 'emergency',
-					"class" => (in_array('emergency', $columnsVisible) ? 'display' : 'hide'),
-				], [
-                    "title" => 'Synchronisation nomade',
-                    "data" => 'mobileSync',
-                    "class" => (in_array('mobileSync', $columnsVisible) ? 'display' : 'hide'),
-                ], [
-                    "title" => 'Gestion de stock',
-                    "data" => 'stockManagement',
-                    "class" => (in_array('stockManagement', $columnsVisible) ? 'display' : 'hide'),
-                ], [
-                    "title" => 'Gestionnaire(s)',
-                    "data" => 'managers',
-                    'orderable' => false,
-                    "class" => (in_array('managers', $columnsVisible) ? 'display' : 'hide'),
-                ]
-			];
-
-			foreach ($freeFields as $freeField) {
-				$columns[] = [
-					"title" => $freeField["label"],
-					"data" => (string)$freeField["id"],
-					"class" => (in_array($freeField["id"], $columnsVisible) ? "display" : "hide"),
-				];
-			}
-
-			foreach($columns as &$column) {
-			    $column["name"] = $column["data"];
-            }
-
-            return $this->json($columns);
+    public function apiColumns(RefArticleDataService $refArticleDataService,
+                               EntityManagerInterface $entityManager): Response {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
+            return $this->redirectToRoute('access_denied');
         }
 
-        throw new BadRequestHttpException();
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $fields = $refArticleDataService->getColumnVisibleConfig($entityManager, $currentUser);
+
+        return $this->json($fields);
     }
 
     /**
@@ -433,19 +331,24 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/", name="reference_article_index",  methods="GET|POST", options={"expose"=true})
+     * @param RefArticleDataService $refArticleDataService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function index(): Response {
+    public function index(RefArticleDataService $refArticleDataService,
+                          EntityManagerInterface $entityManager): Response {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
             return $this->redirectToRoute('access_denied');
         }
-
-        $entityManager = $this->getDoctrine()->getManager();
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+
 
         $typeQuantite = [
             [
@@ -458,41 +361,7 @@ class ReferenceArticleController extends AbstractController
             ]
         ];
 
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-        $freeFields = $freeFieldRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $categorieCL);
-
-        $fields = [
-            "actions" => ["title" => "Actions"],
-            "label" => ["title" => "Libellé", "type" => "text"],
-            "reference" => ["title" => "Référence", "type" => "text"],
-            "barCode" => ["title" => "Code barre", "type" => "text"],
-            "emergency" => ["title" => "Urgence", "type" => "booleen"],
-            "type" => ["title" => "Type", "type" => "list"],
-            "status" => ["title" => "Statut", "type" => "list"],
-            "stockQuantity" => ["title" => "Quantité stock", "type" => "number"],
-            "availableQuantity" => ["title" => "Quantité disponible", "type" => "number"],
-            "location" => ["title" => "Emplacement", "type" => "list"],
-            "securityThreshold" => ["title" => "Seuil de sécurité", "type" => "number"],
-            "warningThreshold" => ["title" => "Seuil d'alerte", "type" => "number"],
-            "unitPrice" => ["title" => "Prix unitaire", "type" => "number"],
-            "mobileSync" => ["title" => "Synchronisation nomade", "type" => "booleen"],
-            "lastInventory" => ["title" => "Dernier inventaire", "type" => "date"],
-            "stockManagement" => ["title" => "Gestion de stock", "type" => "text"],
-            "managers" => ["title" => "Gestionnaire(s)", "type" => "text"],
-            "comment" => ["title" => "Commentaire", "type" => "text"],
-            "emergencyComment" => ["title" => "Commentaire d'urgence", "type" => "text"],
-        ];
-
-        foreach($freeFields as $field) {
-            $fields[$field["id"]] = [
-                "title" => $field["label"],
-                "type" => $field["typage"],
-            ];
-        }
-
-        uasort($fields, function ($a, $b) {
-			return strcasecmp($a["title"], $b["title"]);
-        });
+        $fields = $refArticleDataService->getColumnVisibleConfig($entityManager, $user);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $inventoryCategories = $inventoryCategoryRepository->findAll();
@@ -509,13 +378,10 @@ class ReferenceArticleController extends AbstractController
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
 
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
         $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::CHAMP_FIXE_STATUT);
 
         return $this->render('reference_article/index.html.twig', [
             "fields" => $fields,
-            "visibleColumns" => $user->getColumnVisible(),
             "searches" => $user->getRecherche(),
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
             'columnsVisibles' => $this->getUser()->getColumnVisible(),

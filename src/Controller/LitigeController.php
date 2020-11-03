@@ -105,22 +105,6 @@ class LitigeController extends AbstractController
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
-        $fields = [
-            ["name" => 'disputeNumber', 'title' => 'Numéro du litige'],
-            ["name" => 'type', 'title' => 'Type'],
-            ["name" => 'arrivalNumber', 'title' => 'arrivage.n° d\'arrivage', "translated" => true],
-            ["name" => 'receptionNumber', 'title' => 'réception.n° de réception', "translated" => true],
-            ["name" => 'buyers', 'title' => 'Acheteur'],
-            ["name" => 'numCommandeBl', 'title' => 'N° commande / BL'],
-            ["name" => 'declarant', 'title' => 'Déclarant'],
-            ["name" => 'command', 'title' => 'N° ligne'],
-            ["name" => 'provider', 'title' => 'Fournisseur'],
-            ["name" => 'references', 'title' => 'Référence'],
-            ["name" => 'lastHistoric', 'title' => 'Dernier historique'],
-            ["name" => 'creationDate', 'title' => 'Créé le'],
-            ["name" => 'updateDate', 'title' => 'Modifié le'],
-            ["name" => 'status', 'title' => 'Statut'],
-        ];
 
         return $this->render('litige/index.html.twig',[
             'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
@@ -128,8 +112,7 @@ class LitigeController extends AbstractController
             'types' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
 			'litigeOrigins' => $litigeService->getLitigeOrigin(),
 			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS),
-            'fields' => $fields,
-            'visibleColumns' => $user->getColumnsVisibleForLitige()
+            'fields' => $litigeService->getColumnVisibleConfig($user)
 		]);
     }
 
