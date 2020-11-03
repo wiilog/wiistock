@@ -5,10 +5,13 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\InventoryEntry;
 use App\Entity\Menu;
 use App\Entity\InventoryMission;
 
 use App\Entity\ReferenceArticle;
+use App\Helper\FormatHelper;
+use App\Helper\Stream;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\InventoryEntryRepository;
 
@@ -329,10 +332,28 @@ class InventoryMissionController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function getMouvementIntels(Request $request): Response
+    public function getCSVForInventoryMission(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
         	$mission = $this->inventoryMissionRepository->find($data['param']);
+
+        	/** @var InventoryEntry[] $inventoryEntries */
+        	$inventoryEntries = Stream::from($mission->getEntries()->toArray())
+                ->reduce(function (array $carry, InventoryEntry $entry) {
+                    $article = $entry->getArticle();
+                    $refArticle = $entry->getRefArticle();
+
+                    if (isset($article)) {
+                        $barcode = $article->getBarCode();
+                        $carry[$barcode] = $entry;
+                    }
+
+                    if (isset($refArticle)) {
+                        $barcode = $refArticle->getBarCode();
+                        $carry[$barcode] = $entry;
+                    }
+                    return $carry;
+                }, []);
 
             $articles = $mission->getArticles();
             $refArticles = $mission->getRefArticles();
@@ -340,30 +361,52 @@ class InventoryMissionController extends AbstractController
             $missionEndDate = $mission->getEndPrevDate();
 
             $missionHeader = ['MISSION DU ' . $missionStartDate->format('d/m/Y') . ' AU ' . $missionEndDate->format('d/m/Y')];
-            $headers = ['référence', 'label', 'quantité', 'emplacement'];
+            $headers = [
+                'référence',
+                'label',
+                'quantité',
+                'emplacement',
+                'date dernier inventaire',
+                'anomalie'
+            ];
 
             $data = [];
             $data[] = $missionHeader;
             $data[] = $headers;
 
+            /** @var Article $article */
             foreach ($articles as $article) {
                 $articleData = [];
+                $barcode = $article->getBarCode();
 
-                $articleData[] = $article->getReference();
-                $articleData[] = $article->getLabel();
-                $articleData[] = $article->getQuantite();
-                $articleData[] = $article->getEmplacement()->getLabel();
+                $articleFournisseur = $article->getArticleFournisseur();
+                $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+
+                $articleData[] = $referenceArticle ? $referenceArticle->getReference() : '';
+                $articleData[] = $referenceArticle ? $referenceArticle->getLibelle() : '';
+                $articleData[] = $article->getQuantite() ?? '';
+                $articleData[] = FormatHelper::location($article->getEmplacement());
+                if (isset($inventoryEntries[$barcode])) {
+                    $articleData[] = FormatHelper::date($inventoryEntries[$barcode]->getDate());
+                    $articleData[] = FormatHelper::bool($inventoryEntries[$barcode]->getAnomaly());
+                }
 
                 $data[] = $articleData;
             }
 
+            /** @var ReferenceArticle $refArticle */
             foreach ($refArticles as $refArticle) {
                 $refArticleData = [];
+                $barcode = $refArticle->getBarCode();
 
-                $refArticleData[] = $refArticle->getReference();
-                $refArticleData[] = $refArticle->getLibelle();
-                $refArticleData[] = $refArticle->getQuantiteStock();
-                $refArticleData[] = $refArticle->getEmplacement()->getLabel();
+                $refArticleData[] = $refArticle->getReference() ?? '';
+                $refArticleData[] = $refArticle->getLibelle() ?? '';
+                $refArticleData[] = $refArticle->getQuantiteStock() ?? '';
+                $refArticleData[] = FormatHelper::location($refArticle->getEmplacement());
+                if (isset($inventoryEntries[$barcode])) {
+                    $refArticleData[] = FormatHelper::date($inventoryEntries[$barcode]->getDate());
+                    $refArticleData[] = FormatHelper::bool($inventoryEntries[$barcode]->getAnomaly());
+                }
 
                 $data[] = $refArticleData;
             }

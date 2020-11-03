@@ -15,6 +15,9 @@ class Litige
     const ORIGIN_RECEPTION = 'REC';
     const ORIGIN_ARRIVAGE = 'ARR';
 
+    const DISPUTE_ARRIVAL_PREFIX = 'LA';
+    const DISPUTE_RECEPTION_PREFIX = 'LR';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

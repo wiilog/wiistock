@@ -25,8 +25,8 @@
             {% endfor %}
         </select>
     </div>
-    <span class="toggle-collapsible expanded">Arrivages</span>
-    <div class="collapsible expanded mb-2">
+    <span class="toggle-collapsible">Arrivages</span>
+    <div class="collapsible mb-2">
         <div class="row mt-2">
             <div class="form-group col-6">
                 <label for="param-bl-etiquette">Champ libre <span class="blChosen">"{{ blChosen }}"</span> sur les étiquettes</label>
@@ -73,10 +73,54 @@
                 </label>
             </div>
         </div>
+        <div class="row">
+            <div class="form-group col-6">
+                <label for="param-emergency-etiquette">Afficher "Urgence" si une urgence est détectée dans un arrivage</label>
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3 data"
+                           name="param-emergency-etiquette" {{ wantsEmergency ? 'checked' : '' }}>
+                    <span class="slider round"></span>
+                </label>
+                <div class="form-group w-fit-content mt-2">
+                    <label for="">Intitulé urgence sur étiquette</label>
+                    <input type="text" class="form-control data" name="emergency-title-label" maxlength="10"
+                           value="{{ titleEmergencyLabel ? titleEmergencyLabel : '' }}">
+                </div>
+                <div class="form-group d-flex">
+                    <img src="{{ emergencyIcon ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ emergencyIcon : '' }}"
+                         id="preview-emergency-icon" alt="Logo douane" height="50px" class="{{ emergencyIcon ? '' : 'd-none' }}"/>
+
+                    <button class="btn btn-primary" onclick="$('#upload-emergency-icon').click();">{{ emergencyIcon ? "<i class='fas fa-pencil-alt'></i> ": ' Choisir un icône'}}</button>
+
+                    <input type="file" id="upload-emergency-icon" name="emergency-icon" accept="image/png, image/jpeg, image/jpg" hidden>
+                </div>
+            </div>
+            <div class="form-group col-6">
+                <label for="param-custom-etiquette">Afficher "Douane" si la douane est cochée dans un arrivage</label>
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3 data"
+                           name="param-custom-etiquette" {{ wantsCustoms ? 'checked' : '' }}>
+                    <span class="slider round"></span>
+                </label>
+                <div class="form-group w-fit-content mt-2">
+                    <label for="">Intitulé douane sur étiquette</label>
+                    <input type="text" class="form-control data" name="custom-title-label" maxlength="10"
+                           value="{{ titleCustomLabel ? titleCustomLabel : '' }}">
+                </div>
+                <div class="form-group d-flex">
+                    <img src="{{ customIcon ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ customIcon : '' }}"
+                         id="preview-custom-icon" alt="Logo urgence" height="50px" class="{{ customIcon ? '' : 'd-none' }}"/>
+
+                    <button class="btn btn-primary" onclick="$('#upload-custom-icon').click();">{{ customIcon ? "<i class='fas fa-pencil-alt'></i> ": ' Choisir un icône'}}</button>
+
+                    <input type="file" id="upload-custom-icon" name="custom-icon" accept="image/png, image/jpeg, image/jpg" hidden>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <span class="toggle-collapsible expanded">Articles</span>
-    <div class="collapsible expanded mb-2">
+    <span class="toggle-collapsible">Articles</span>
+    <div class="collapsible mb-2">
         <div class="row mt-2">
             <div class="form-group col-6">
                 <label for="param-add-destination-location-article-label">Afficher l’emplacement de destination sur étiquette article de réception</label>

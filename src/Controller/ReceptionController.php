@@ -32,7 +32,7 @@ use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\CategoryType;
-use App\Helper\Stream;
+use App\Exceptions\NegativeQuantityException;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\TransporteurRepository;
@@ -51,6 +51,9 @@ use App\Service\ReceptionService;
 use App\Service\AttachmentService;
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
+use App\Service\TransferOrderService;
+use App\Service\TransferRequestService;
+use App\Service\UniqueNumberService;
 use App\Service\UserService;
 
 use App\Service\FreeFieldService;
@@ -60,7 +63,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
 use Doctrine\ORM\NoResultException;
-use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -454,7 +456,7 @@ class ReceptionController extends AbstractController {
             'typeChampLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParam,
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
-            'receptionLocation' => $this->globalParamService->getReceptionDefaultLocation()
+            'receptionLocation' => $this->globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION)
         ]);
     }
 
@@ -916,7 +918,7 @@ class ReceptionController extends AbstractController {
             'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
-            'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
+            'livraisonLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
             'needsCurrentUser' => $needsCurrentUser,
             'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
@@ -1197,15 +1199,19 @@ class ReceptionController extends AbstractController {
      * @param LitigeService $litigeService
      * @param ArticleDataService $articleDataService
      * @param Request $request
+     * @param UniqueNumberService $uniqueNumberService
      * @return Response
+     * @throws NonUniqueResultException
      * @throws Exception
      */
     public function newLitige(EntityManagerInterface $entityManager,
                               LitigeService $litigeService,
                               ArticleDataService $articleDataService,
-                              Request $request): Response {
-        if($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::QUALI, Action::CREATE)) {
+                              Request $request,
+                              UniqueNumberService $uniqueNumberService): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -1219,7 +1225,8 @@ class ReceptionController extends AbstractController {
 
             $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
-            $disputeNumber = $litigeService->createDisputeNumber($entityManager, 'LR', $now);
+            $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Litige::DISPUTE_RECEPTION_PREFIX, Litige::class);
+
             $litige
                 ->setStatus($statutRepository->find($post->get('statutLitige')))
                 ->setType($typeRepository->find($post->get('typeLitige')))
@@ -1811,6 +1818,8 @@ class ReceptionController extends AbstractController {
     /**
      * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
      * @param Request $request
+     * @param TransferRequestService $transferRequestService
+     * @param TransferOrderService $transferOrderService
      * @param DemandeLivraisonService $demandeLivraisonService
      * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
@@ -1820,14 +1829,17 @@ class ReceptionController extends AbstractController {
      * @param MouvementStockService $mouvementStockService
      * @param PreparationsManagerService $preparationsManagerService
      * @param LivraisonsManagerService $livraisonsManagerService
+     * @param UniqueNumberService $uniqueNumberService
      * @return Response
      * @throws LoaderError
+     * @throws NegativeQuantityException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws Exception
      */
     public function newWithPacking(Request $request,
+                                   TransferRequestService $transferRequestService,
+                                   TransferOrderService $transferOrderService,
                                    DemandeLivraisonService $demandeLivraisonService,
                                    TranslatorInterface $translator,
                                    EntityManagerInterface $entityManager,
@@ -1836,7 +1848,8 @@ class ReceptionController extends AbstractController {
                                    TrackingMovementService $trackingMovementService,
                                    MouvementStockService $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
-                                   LivraisonsManagerService $livraisonsManagerService): Response {
+                                   LivraisonsManagerService $livraisonsManagerService,
+                                   UniqueNumberService $uniqueNumberService): Response {
 
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
         /** @var Utilisateur $currentUser */
@@ -1846,7 +1859,6 @@ class ReceptionController extends AbstractController {
             $articles = $data['conditionnement'];
 
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
@@ -1876,7 +1888,7 @@ class ReceptionController extends AbstractController {
             $needCreateLivraison = (bool)$data['create-demande'];
             $needCreateTransfer = (bool)$data['create-demande-transfert'];
 
-            $transfer = null;
+            $request = null;
 
             $createDirectDelivery = (bool)$data['direct-delivery'];
 
@@ -1892,7 +1904,6 @@ class ReceptionController extends AbstractController {
                 if ($createDirectDelivery) {
                     $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true);
                     $preparation = $demande->getPreparations()->first();
-                    // TODO : Treat validation request response
 
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
@@ -1924,33 +1935,23 @@ class ReceptionController extends AbstractController {
                     }
                 }
             } else if ($needCreateTransfer) {
-                $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
-
-                $toTreat = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
+                $toTreatRequest = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
                 $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
-                $destination = $emplacementRepository->find($data['storage']);
                 $origin = $emplacementRepository->find($data['origin']);
-                $transfer = new TransferRequest();
-                $transfer
-                    ->setStatus($toTreat)
-                    ->setCreationDate($now)
-                    ->setValidationDate($now)
-                    ->setNumber(TransferRequestController::createNumber($entityManager, $now))
-                    ->setDestination($destination)
-                    ->setOrigin($origin)
-                    ->setReception($reception)
-                    ->setRequester($this->getUser());
-                $order = new TransferOrder();
-                $order
-                    ->setRequest($transfer)
-                    ->setNumber(TransferOrderController::createNumber($entityManager, $now))
-                    ->setStatus($toTreatOrder)
-                    ->setCreationDate($now);
+                $destination = $emplacementRepository->find($data['storage']);
 
-                $entityManager->persist($transfer);
+                /** @var Utilisateur $requester */
+                $requester = $this->getUser();
+                $request = $transferRequestService->createTransferRequest($entityManager, $toTreatRequest, $origin, $destination, $requester);
+                $request
+                    ->setReception($reception)
+                    ->setValidationDate($now);
+
+                $order = $transferOrderService->createTransferOrder($entityManager, $toTreatOrder, $request);;
+
+                $entityManager->persist($request);
                 $entityManager->persist($order);
             }
-
 
             $receptionLocation = $reception->getLocation();
             // crée les articles et les ajoute à la demande, à la réception, crée les urgences
@@ -1964,7 +1965,7 @@ class ReceptionController extends AbstractController {
 
                 $noCommande = isset($article['noCommande']) ? $article['noCommande'] : null;
                 $article = $this->articleDataService->newArticle($article, $demande ?? null);
-                if ($transfer) $transfer->addArticle($article);
+                if ($request) $request->addArticle($article);
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
                 $rra = $receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $ref->getId());
                 $article->setReceptionReferenceArticle($rra);

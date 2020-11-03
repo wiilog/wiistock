@@ -48,8 +48,10 @@ td {
     font-size: 0.8em;
 }
 
-a, a:link, a:visited {
-    text-decoration: none;
+a:not(.btn) {
+    &, &:link, &:visited {
+        text-decoration: none;
+    }
 
     &:hover {
         color: inherit;
@@ -365,4 +367,8 @@ label.required:after {
         -webkit-mask: url("../../public/svg/plusblanc.svg") no-repeat center;
         mask: url("../../public/svg/plusblanc.svg") no-repeat center;
     }
+}
+
+.popover{
+    max-width: 100%;
 }

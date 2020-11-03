@@ -28,6 +28,7 @@ use App\Service\FreeFieldService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
+use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use App\Service\DispatchService;
 
@@ -46,7 +47,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -214,6 +214,7 @@ class DispatchController extends AbstractController {
      * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
      * @param TranslatorInterface $translator
+     * @param UniqueNumberService $uniqueNumberService
      * @return Response
      * @throws Exception
      */
@@ -222,7 +223,8 @@ class DispatchController extends AbstractController {
                         DispatchService $dispatchService,
                         AttachmentService $attachmentService,
                         EntityManagerInterface $entityManager,
-                        TranslatorInterface $translator): Response {
+                        TranslatorInterface $translator,
+                        UniqueNumberService $uniqueNumberService): Response {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
                 !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
@@ -277,7 +279,7 @@ class DispatchController extends AbstractController {
 
             $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
             $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
-            $number = $dispatchService->createDispatchNumber($entityManager, $date);
+
 
             if ($startDate && $endDate && $startDate > $endDate) {
                 return new JsonResponse([
@@ -286,6 +288,7 @@ class DispatchController extends AbstractController {
                 ]);
             }
 
+            $dispatchNumber = $uniqueNumberService->createUniqueNumber($entityManager, Dispatch::PREFIX_NUMBER, Dispatch::class);
             $dispatch
                 ->setCreationDate($date)
                 ->setStatut($statutRepository->find($post->get('status')))
@@ -294,7 +297,7 @@ class DispatchController extends AbstractController {
                 ->setLocationFrom($locationTake)
                 ->setLocationTo($locationDrop)
                 ->setBusinessUnit($businessUnit)
-                ->setNumber($number);
+                ->setNumber($dispatchNumber);
 
             if (!empty($comment)) {
                 $dispatch->setCommentaire($comment);

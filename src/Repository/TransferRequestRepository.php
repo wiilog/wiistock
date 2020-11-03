@@ -155,16 +155,12 @@ class TransferRequestRepository extends EntityRepository {
         return $query->execute();
     }
 
-    public function getLastTransferNumberByPrefix($prefix) {
-        $qb = $this->createQueryBuilder('transfer_request');
-
-        $qb
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('transfer_request')
             ->select('transfer_request.number')
             ->where('transfer_request.number LIKE :value')
             ->orderBy('transfer_request.creationDate', 'DESC')
-            ->setParameter('value', $prefix . '%');
-
-        $result = $qb
+            ->setParameter('value', TransferRequest::NUMBER_PREFIX . '-' . $date . '%')
             ->getQuery()
             ->getResult();
         return $result ? $result[0]['number'] : null;

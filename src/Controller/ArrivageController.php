@@ -36,6 +36,7 @@ use App\Service\GlobalParamService;
 use App\Service\LitigeService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
+use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use App\Service\FreeFieldService;
@@ -45,7 +46,6 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\ORMException;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -60,6 +60,7 @@ use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Entity;
 
 /**
  * @Route("/arrivage")
@@ -227,7 +228,6 @@ class ArrivageController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws ORMException
      * @throws Exception
      */
     public function new(Request $request,
@@ -266,13 +266,22 @@ class ArrivageController extends AbstractController
             $arrivage
                 ->setIsUrgent(false)
                 ->setDate($date)
-                ->setStatut($statutRepository->find($data['status']))
                 ->setUtilisateur($currentUser)
                 ->setNumeroArrivage($numeroArrivage)
                 ->setCustoms(isset($data['customs']) ? $data['customs'] == 'true' : false)
                 ->setFrozen(isset($data['frozen']) ? $data['frozen'] == 'true' : false)
                 ->setCommentaire($data['commentaire'] ?? null)
                 ->setType($typeRepository->find($data['type']));
+
+            $status = !empty($data['status']) ? $statutRepository->find($data['status']) : null;
+            if (!empty($status)) {
+                $arrivage->setStatut($status);
+            } else {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => "Veuillez renseigner le statut."
+                ]);
+            }
 
             if (!empty($data['fournisseur'])) {
                 $arrivage->setFournisseur($fournisseurRepository->find($data['fournisseur']));
@@ -319,11 +328,11 @@ class ArrivageController extends AbstractController
                 $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
             }
 
-            /** @noinspection PhpRedundantCatchClauseInspection */
+                /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([
                     'success' => false,
-                    'msg' => "Une création d'arrivage était déjà en cours, veuillez réessayer.<br>"
+                    'msg' => "Une création d'arrivage était déjà en cours, veuillez réessayer."
                 ]);
             }
 
@@ -345,14 +354,21 @@ class ArrivageController extends AbstractController
                 ]);
             }
 
-            $colisService->persistMultiPacks($arrivage, $natures, $currentUser, $entityManager);
-
             $champLibreService->manageFreeFields($arrivage, $data, $entityManager);
 
+            $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
+
+            // persist packs after set arrival urgent
+            $colisService->persistMultiPacks(
+                $entityManager,
+                $arrivage,
+                $natures,
+                $currentUser,
+                false
+            );
+
             $entityManager->flush();
 
-            $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
-            $entityManager->flush();
             if ($sendMail) {
                 $arrivageDataService->sendArrivalEmails($arrivage);
             }
@@ -436,6 +452,7 @@ class ArrivageController extends AbstractController
      *     methods="PATCH",
      *     condition="request.isXmlHttpRequest() && '%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_ED')"
      * )
+     * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
      *
      * @param Arrivage $arrival
      * @param Request $request
@@ -445,9 +462,9 @@ class ArrivageController extends AbstractController
      * @return Response
      *
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function patchUrgentArrival(Arrivage $arrival,
                                        Request $request,
@@ -483,6 +500,50 @@ class ArrivageController extends AbstractController
         ];
 
         return new JsonResponse($response);
+    }
+
+    /**
+     * @Route(
+     *     "/{arrival}/tracking-movements",
+     *     name="post_arrival_tracking_movements",
+     *     options={"expose"=true},
+     *     methods="POST",
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
+     *
+     * @param Arrivage $arrival
+     * @param ArrivageDataService $arrivageDataService
+     * @param TrackingMovementService $trackingMovementService
+     * @param EntityManagerInterface $entityManager
+     *
+     * @return Response
+     *
+     * @throws Exception
+     */
+    public function postArrivalTrackingMovements(Arrivage $arrival,
+                                                 ArrivageDataService $arrivageDataService,
+                                                 TrackingMovementService $trackingMovementService,
+                                                 EntityManagerInterface $entityManager): Response
+    {
+        $location = $arrivageDataService->getLocationForTracking($entityManager, $arrival);
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        foreach ($arrival->getPacks() as $pack) {
+            $trackingMovementService->persistTrackingForArrivalPack(
+                $entityManager,
+                $pack,
+                $location,
+                $user,
+                $now,
+                $arrival
+            );
+        }
+
+        $entityManager->flush();
+
+        return new JsonResponse(['success' => true]);
     }
 
     /**
@@ -566,7 +627,6 @@ class ArrivageController extends AbstractController
                 $arrivageDataService->sendArrivalEmails($arrivage);
             }
 
-
             $listAttachmentIdToKeep = $post->get('files') ?? [];
 
             $attachments = $arrivage->getAttachments()->toArray();
@@ -601,7 +661,6 @@ class ArrivageController extends AbstractController
      * @Route("/supprimer", name="arrivage_delete", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param TrackingMovementService $trackingMovementService
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
@@ -977,6 +1036,7 @@ class ArrivageController extends AbstractController
      * @param ArrivageDataService $arrivageDataService
      * @param LitigeService $litigeService
      * @param EntityManagerInterface $entityManager
+     * @param UniqueNumberService $uniqueNumberService
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
@@ -985,7 +1045,8 @@ class ArrivageController extends AbstractController
     public function newLitige(Request $request,
                               ArrivageDataService $arrivageDataService,
                               LitigeService $litigeService,
-                              EntityManagerInterface $entityManager): Response
+                              EntityManagerInterface $entityManager,
+                              UniqueNumberService $uniqueNumberService): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
@@ -1000,7 +1061,8 @@ class ArrivageController extends AbstractController
             $usersRepository = $entityManager->getRepository(Utilisateur::class);
 
             $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $disputeNumber = $litigeService->createDisputeNumber($entityManager, 'LA', $now);
+
+            $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Litige::DISPUTE_ARRIVAL_PREFIX, Litige::class);
 
             $litige = new Litige();
             $litige
@@ -1120,7 +1182,7 @@ class ArrivageController extends AbstractController
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
 
-            $persistedColis = $colisService->persistMultiPacks($arrivage, $natures, $currentUser, $entityManager);
+            $persistedColis = $colisService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser);
             $entityManager->flush();
 
             return new JsonResponse([
@@ -1467,6 +1529,29 @@ class ArrivageController extends AbstractController
         $commandAndProjectNumberIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
         $printTwiceIfCustoms = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PRINT_TWICE_CUSTOMS);
 
+
+        $firstCustomIconInclude = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_CUSTOMS_IN_LABEL);
+        $firstCustomIconName = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_ICON);
+        $firstCustomIconText = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_TEXT_LABEL);
+
+        $firstCustomIconConfig = ($firstCustomIconInclude && $firstCustomIconName && $firstCustomIconText)
+            ? [
+                'icon' => $firstCustomIconName,
+                'text' => $firstCustomIconText
+            ]
+            : null;
+
+        $firstCustomIconInclude = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EMERGENCY_IN_LABEL);
+        $secondCustomIconName = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_ICON);;
+        $secondCustomIconText = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_TEXT_LABEL);
+
+        $secondCustomIconConfig = ($firstCustomIconInclude && $secondCustomIconName && $secondCustomIconText)
+            ? [
+                'icon' => $secondCustomIconName,
+                'text' => $secondCustomIconText
+            ]
+            : null;
+
         if (!isset($colis)) {
             $printColis = $request->query->getBoolean('printColis');
             $printArrivage = $request->query->getBoolean('printArrivage');
@@ -1477,7 +1562,9 @@ class ArrivageController extends AbstractController
                     $usernameParamIsDefined,
                     $dropzoneParamIsDefined,
                     $packCountParamIsDefined,
-                    $commandAndProjectNumberIsDefined
+                    $commandAndProjectNumberIsDefined,
+                    $firstCustomIconConfig,
+                    $secondCustomIconConfig
                 );
             }
 
@@ -1501,7 +1588,9 @@ class ArrivageController extends AbstractController
                 $usernameParamIsDefined,
                 $dropzoneParamIsDefined,
                 $packCountParamIsDefined,
-                $commandAndProjectNumberIsDefined
+                $commandAndProjectNumberIsDefined,
+                $firstCustomIconConfig,
+                $secondCustomIconConfig
             );
         }
 
@@ -1551,9 +1640,13 @@ class ArrivageController extends AbstractController
         return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService);
     }
 
-    private function getBarcodeConfigPrintAllColis(Arrivage $arrivage, ?bool $usernameParamIsDefined,
-                                                   ?bool $dropzoneParamIsDefined, bool $packCountParamIsDefined, bool $commandAndProjectNumberIsDefined) {
-        //1
+    private function getBarcodeConfigPrintAllColis(Arrivage $arrivage,
+                                                   ?bool $usernameParamIsDefined = false,
+                                                   ?bool $dropzoneParamIsDefined = false,
+                                                   ?bool $packCountParamIsDefined = false,
+                                                   ?bool $commandAndProjectNumberIsDefined = false,
+                                                   ?array $firstCustomIconConfig = null,
+                                                   ?array $secondCustomIconConfig = null) {
         $total = $arrivage->getPacks()->count();
         $packs = [];
 
@@ -1566,7 +1659,9 @@ class ArrivageController extends AbstractController
                 $usernameParamIsDefined,
                 $dropzoneParamIsDefined,
                 $packCountParamIsDefined,
-                $commandAndProjectNumberIsDefined
+                $commandAndProjectNumberIsDefined,
+                $firstCustomIconConfig,
+                $secondCustomIconConfig
             );
         }
 
@@ -1579,7 +1674,9 @@ class ArrivageController extends AbstractController
                                            ?bool $usernameParamIsDefined = false,
                                            ?bool $dropzoneParamIsDefined = false,
                                            ?bool $packCountParamIsDefined = false,
-                                           ?bool $commandAndProjectNumberIsDefined = false)
+                                           ?bool $commandAndProjectNumberIsDefined = false,
+                                           ?array $firstCustomIconConfig = null,
+                                           ?array $secondCustomIconConfig = null)
     {
 
         $arrival = $colis->getArrivage();
@@ -1625,7 +1722,9 @@ class ArrivageController extends AbstractController
 
         return [
             'code' => $colis->getCode(),
-            'labels' => $labels
+            'labels' => $labels,
+            'firstCustomIcon' => $arrival->getCustoms() ? $firstCustomIconConfig : null,
+            'secondCustomIcon' => $arrival->getIsUrgent() ? $secondCustomIconConfig : null
         ];
     }
 

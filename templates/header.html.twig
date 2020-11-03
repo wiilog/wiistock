@@ -122,10 +122,13 @@
                     and app.user is defined
                     and app.user
                     and app.user.username is defined %}
-                    <div class="user">
+                    {% set isCurrentPage = (app.request.attributes.get('_route') == 'user_index') %}
+                    <a class="user"
+                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'edit'}, event)" }}"
+                       href="{{ path('user_index', {'open-modal': 'edit', 'modal-edit-id': app.user.id }) }}">
                         <div class="profile-picture">{{ app.user.username | first | upper }}</div>
                         <span>{{ app.user.username }}</span>
-                    </div>
+                    </a>
                     <nav id="main-nav" class="text-white col-auto dropdown dropleft">
                         <div class="menu-button rounded pointer"
                              data-toggle="dropdown"

@@ -14,7 +14,7 @@ class Handling extends FreeFieldEntity
 {
     const CATEGORIE = 'service';
 
-    const PREFIX_NUMBER = 'S-';
+    const PREFIX_NUMBER = 'S';
 
     /**
      * @ORM\Id()
@@ -95,6 +95,11 @@ class Handling extends FreeFieldEntity
      * @ORM\OneToMany(targetEntity="Attachment", mappedBy="handling")
      */
     private $attachments;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $carriedOutOperationCount;
 
     /**
      * @var Utilisateur|null
@@ -306,5 +311,14 @@ class Handling extends FreeFieldEntity
 
     public function getTreatmentDelay(): ?int {
         return $this->treatmentDelay;
+    }
+
+    public function setCarriedOutOperationCount(?int $carriedOutOperationCount): self {
+        $this->carriedOutOperationCount = $carriedOutOperationCount;
+        return $this;
+    }
+
+    public function getCarriedOutOperationCount(): ?int {
+        return $this->carriedOutOperationCount;
     }
 }

@@ -78,29 +78,27 @@ class FreeFieldController extends AbstractController {
 
                 $defaultValue = $champLibre->getDefaultValue();
                 if ($champLibre->getTypage() == FreeField::TYPE_BOOL) {
-                    $defaultValue = $champLibre->getDefaultValue() === null ?
-                        "" : ($champLibre->getDefaultValue()
-                            ? "Oui"
-                            : "Non");
+                    $defaultValue = ($champLibre->getDefaultValue() === null || $champLibre->getDefaultValue() === "")
+                        ? ""
+                        : ($champLibre->getDefaultValue() ? "Oui" : "Non");
                 } else if ($champLibre->getTypage() === FreeField::TYPE_DATETIME
                     || $champLibre->getTypage() === FreeField::TYPE_DATE) {
-                    $defaultValueDate = new DateTime(str_replace('/', '-', $defaultValue));
-                    $defaultValue = $defaultValueDate->format('d/m/Y H:i');
+                    $defaultValueDate = $defaultValue ? new DateTime(str_replace('/', '-', $defaultValue)) : null;
+                    $defaultValue = ($defaultValueDate && $defaultValue) ? $defaultValueDate->format('d/m/Y H:i') : '';
                 }
 
-                $rows[] =
-                    [
-                        'id' => ($champLibre->getId() ? $champLibre->getId() : 'Non défini'),
-                        'Label' => ($champLibre->getLabel() ? $champLibre->getLabel() : 'Non défini'),
-                        "S'applique à" => ($champLibre->getCategorieCL() ? $champLibre->getCategorieCL()->getLabel() : ''),
-                        'Typage' => $typageCLFr,
-                        'Affiché à la création' => ($champLibre->getDisplayedCreate() ? "oui" : "non"),
-                        'Obligatoire à la création' => ($champLibre->getRequiredCreate() ? "oui" : "non"),
-                        'Obligatoire à la modification' => ($champLibre->getRequiredEdit() ? "oui" : "non"),
-                        'Valeur par défaut' => $defaultValue,
-                        'Elements' => $champLibre->getTypage() == FreeField::TYPE_LIST || $champLibre->getTypage() == FreeField::TYPE_LIST_MULTIPLE ? $this->renderView('free_field/freeFieldElems.html.twig', ['elems' => $champLibre->getElements()]) : '',
-                        'Actions' => $this->renderView('free_field/datatableFreeFieldRow.html.twig', ['idChampLibre' => $champLibre->getId()]),
-                    ];
+                $rows[] = [
+                    'id' => ($champLibre->getId() ? $champLibre->getId() : 'Non défini'),
+                    'Label' => ($champLibre->getLabel() ? $champLibre->getLabel() : 'Non défini'),
+                    "S'applique à" => ($champLibre->getCategorieCL() ? $champLibre->getCategorieCL()->getLabel() : ''),
+                    'Typage' => $typageCLFr,
+                    'Affiché à la création' => ($champLibre->getDisplayedCreate() ? "oui" : "non"),
+                    'Obligatoire à la création' => ($champLibre->getRequiredCreate() ? "oui" : "non"),
+                    'Obligatoire à la modification' => ($champLibre->getRequiredEdit() ? "oui" : "non"),
+                    'Valeur par défaut' => $defaultValue,
+                    'Elements' => $champLibre->getTypage() == FreeField::TYPE_LIST || $champLibre->getTypage() == FreeField::TYPE_LIST_MULTIPLE ? $this->renderView('free_field/freeFieldElems.html.twig', ['elems' => $champLibre->getElements()]) : '',
+                    'Actions' => $this->renderView('free_field/datatableFreeFieldRow.html.twig', ['idChampLibre' => $champLibre->getId()]),
+                ];
             }
             $data['data'] = $rows;
 
@@ -167,7 +165,7 @@ class FreeFieldController extends AbstractController {
 			} else {
 				$champLibre
 					->setElements(null)
-					->setDefaultValue($data['valeur']);
+					->setDefaultValue($data['typage'] === FreeField::TYPE_BOOL && $data['valeur'] == -1 ? null : $data['valeur']);
 			}
 			$entityManager->persist($champLibre);
             $entityManager->flush();

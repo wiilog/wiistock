@@ -87,7 +87,7 @@ class Pack
     private $dispatchPacks;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="pack", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="pack", cascade={"remove"})
      */
     private $locationClusterRecords;
 

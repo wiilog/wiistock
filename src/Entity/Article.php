@@ -30,6 +30,9 @@ class Article extends FreeFieldEntity
     const USED_ASSOC_INVENTORY = 2;
     const USED_ASSOC_STATUT_NOT_AVAILABLE = 3;
     const USED_ASSOC_PREPA_IN_PROGRESS = 4;
+    const USED_ASSOC_TRANSFERT_REQUEST = 5;
+    const USED_ASSOC_COLLECT_ORDER = 6;
+    const USED_ASSOC_INVENTORY_ENTRY = 7;
 
     const BARCODE_PREFIX = 'ART';
 
@@ -147,7 +150,7 @@ class Article extends FreeFieldEntity
     private $ordreCollecte;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="articles")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="articles", cascade={"remove"})
      */
     private $litiges;
 
@@ -158,7 +161,7 @@ class Article extends FreeFieldEntity
     private $preparation;
 
     /**
-     * @ORM\OneToOne(targetEntity=Pack::class, mappedBy="article", cascade={"remove"})
+     * @ORM\OneToOne(targetEntity=Pack::class, mappedBy="article")
      */
     private $trackingPack;
 
@@ -168,7 +171,7 @@ class Article extends FreeFieldEntity
     private $transferRequests;
 
     /**
-     * @ORM\OneToMany(targetEntity=Alert::class, mappedBy="article")
+     * @ORM\OneToMany(targetEntity=Alert::class, mappedBy="article", cascade={"remove"})
      */
     private $alerts;
 
@@ -626,21 +629,31 @@ class Article extends FreeFieldEntity
                 ? $this->getPreparation()->getStatut()->getNom() !== Preparation::STATUT_A_TRAITER
                 : false;
         return (
-            count($this->getCollectes()) > 0
+            ($this->getCollectes()->isEmpty())
                 ? self::USED_ASSOC_COLLECTE
-                : (count($this->getLitiges()) > 0
+                : ((!$this->getLitiges()->isEmpty())
                     ? self::USED_ASSOC_LITIGE
-                    : (count($this->getInventoryEntries()) > 0
+                    : (($this->getInventoryEntries()->isEmpty())
                         ? self::USED_ASSOC_INVENTORY
                         : ($this->getStatut()->getNom() === self::STATUT_INACTIF
                             ? self::USED_ASSOC_STATUT_NOT_AVAILABLE
                             : ($preparationCannotBeDeleted
                                 ? self::USED_ASSOC_PREPA_IN_PROGRESS
-                                : null
+                                : (($this->getTransferRequests()->isEmpty())
+                                    ? self::USED_ASSOC_TRANSFERT_REQUEST
+                                    : (($this->getOrdreCollecte()->isEmpty())
+                                        ? self::USED_ASSOC_COLLECT_ORDER
+                                        : (($this->getInventoryEntries()->isEmpty())
+                                            ? self::USED_ASSOC_INVENTORY_ENTRY
+                                            : null
+                                        )
+                                    )
+                                )
                             )
                         )
                     )
                 )
+
         );
     }
 
@@ -662,6 +675,7 @@ class Article extends FreeFieldEntity
 
     public function isUsedInQuantityChangingProcesses(): bool {
         $demande = $this->getDemande();
+        $transfers = $this->getTransferRequests();
         $inProgress = $demande ? $demande->needsToBeProcessed() : false;
         if (!$inProgress) {
             $collectes = $this->getOrdreCollecte();
@@ -670,6 +684,14 @@ class Article extends FreeFieldEntity
                 if ($collecte->needsToBeProcessed()) {
                     $inProgress = true;
                     break;
+                }
+            }
+            if (!$inProgress) {
+                foreach ($transfers as $transfer) {
+                    if ($transfer->needsToBeProcessed()) {
+                        $inProgress = true;
+                        break;
+                    }
                 }
             }
         }

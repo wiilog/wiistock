@@ -20,10 +20,10 @@
         <strong>{{ handling.subject }}</strong>
     </div>
     <div>Chargement :
-        <strong>{{ handling.source ?? '' }}</strong>
+        <strong>{{ handling.source }}</strong>
     </div>
     <div>Déchargement :
-        <strong>{{ handling.destination ?? '' }}</strong>
+        <strong>{{ handling.destination }}</strong>
     </div>
     <div>Date attendue :
         <strong>{{ handling.desiredDate|date('Y-m-d à H:i:s') }}</strong>
@@ -37,8 +37,14 @@
     <div>Urgence :
         <strong>{{ emergency }}</strong>
     </div>
+    <div>Nombre d'opération(s) réalisée(s) :
+        <strong>{{ handling.carriedOutOperationCount }}</strong>
+    </div>
     <div>Traité par :
         <strong>{{ treatedBy }}</strong>
+    </div>
+    <div>Temps de traitement opérateur :
+        <strong>{{ handling.treatmentDelay ? handling.treatmentDelay|date('H\\h i\\m s\\s') : '' }}</strong>
     </div>
     {% if (handling.comment is not empty and handling.comment != '<p><br></p>') %}
         <div>Commentaire : {{ handling.comment|raw }}</div>

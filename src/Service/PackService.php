@@ -6,10 +6,8 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\Pack;
-use App\Entity\Emplacement;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
-use App\Entity\ParametrageGlobal;
 use App\Entity\Utilisateur;
 use App\Repository\NatureRepository;
 use DateTime;
@@ -30,9 +28,11 @@ Class PackService
     private $security;
     private $template;
     private $trackingMovementService;
+    private $arrivageDataService;
     private $specificService;
 
     public function __construct(TrackingMovementService $trackingMovementService,
+                                ArrivageDataService $arrivageDataService,
                                 SpecificService $specificService,
                                 Security $security,
                                 Twig_Environment $template,
@@ -40,6 +40,7 @@ Class PackService
         $this->entityManager = $entityManager;
         $this->specificService = $specificService;
         $this->trackingMovementService = $trackingMovementService;
+        $this->arrivageDataService = $arrivageDataService;
         $this->security = $security;
         $this->template = $template;
     }
@@ -217,48 +218,40 @@ Class PackService
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param Arrivage $arrivage
      * @param array $colisByNatures
      * @param Utilisateur $user
-     * @param EntityManagerInterface $entityManager
+     * @param bool $persistTrackingMovements
      * @return Pack[]
      * @throws Exception
      */
-    public function persistMultiPacks(Arrivage $arrivage,
+    public function persistMultiPacks(EntityManagerInterface $entityManager,
+                                      Arrivage $arrivage,
                                       array $colisByNatures,
                                       $user,
-                                      EntityManagerInterface $entityManager): array {
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
-        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
-        $natureRepository = $this->entityManager->getRepository(Nature::class);
-        $defaultEmpForMvt = ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) && $arrivage->getDestinataire())
-            ? $emplacementRepository->findOneByLabel(SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE)
+                                      bool $persistTrackingMovements = true): array {
+        $natureRepository = $entityManager->getRepository(Nature::class);
+
+        $location = $persistTrackingMovements
+            ? $this->arrivageDataService->getLocationForTracking($entityManager, $arrivage)
             : null;
-        if (!isset($defaultEmpForMvt)) {
-            $defaultEmpForMvtParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
-            $defaultEmpForMvt = !empty($defaultEmpForMvtParam)
-                ? $emplacementRepository->find($defaultEmpForMvtParam)
-                : null;
-        }
+
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
         $createdPacks = [];
         foreach ($colisByNatures as $natureId => $number) {
             $nature = $natureRepository->find($natureId);
             for ($i = 0; $i < $number; $i++) {
                 $pack = $this->createPack(['arrival' => $arrivage, 'nature' => $nature]);
-                if ($defaultEmpForMvt) {
-                    $mouvementDepose = $this->trackingMovementService->createTrackingMovement(
+                if ($persistTrackingMovements && isset($location)) {
+                    $this->trackingMovementService->persistTrackingForArrivalPack(
+                        $entityManager,
                         $pack,
-                        $defaultEmpForMvt,
+                        $location,
                         $user,
                         $now,
-                        false,
-                        true,
-                        TrackingMovement::TYPE_DEPOSE,
-                        ['from' => $arrivage]
+                        $arrivage
                     );
-                    $this->trackingMovementService->persistSubEntities($this->entityManager, $mouvementDepose);
-                    $this->entityManager->persist($mouvementDepose);
                 }
                 $entityManager->persist($pack);
                 $createdPacks[] = $pack;

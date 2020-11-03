@@ -518,4 +518,33 @@ class TrackingMovementService
         return $columns;
     }
 
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Pack $pack
+     * @param Emplacement $location
+     * @param Utilisateur $user
+     * @param DateTime $date
+     * @param Arrivage $arrivage
+     * @throws Exception
+     */
+    public function persistTrackingForArrivalPack(EntityManagerInterface $entityManager,
+                                                  Pack $pack,
+                                                  Emplacement $location,
+                                                  Utilisateur $user,
+                                                  DateTime $date,
+                                                  Arrivage $arrivage) {
+
+        $mouvementDepose = $this->createTrackingMovement(
+            $pack,
+            $location,
+            $user,
+            $date,
+            false,
+            true,
+            TrackingMovement::TYPE_DEPOSE,
+            ['from' => $arrivage]
+        );
+        $this->persistSubEntities($entityManager, $mouvementDepose);
+        $entityManager->persist($mouvementDepose);
+    }
 }

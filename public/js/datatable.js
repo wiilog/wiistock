@@ -243,6 +243,8 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
         if (column.translated) {
             tooltips.push({id, text: Trans.original(column.title)});
             column.title = Trans.translated(column.title);
+        } else if (column.tooltip) {
+            tooltips.push({id, text: column.tooltip});
         }
     });
 

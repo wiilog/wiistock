@@ -21,6 +21,7 @@ use App\Service\CSVExportService;
 use App\Service\DateService;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
+use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use App\Service\HandlingService;
 
@@ -142,7 +143,11 @@ class HandlingController extends AbstractController
      * @param FreeFieldService $freeFieldService
      * @param AttachmentService $attachmentService
      * @param TranslatorInterface $translator
+     * @param UniqueNumberService $uniqueNumberService
      * @return Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      * @throws Exception
      */
     public function new(EntityManagerInterface $entityManager,
@@ -150,7 +155,8 @@ class HandlingController extends AbstractController
                         HandlingService $handlingService,
                         FreeFieldService $freeFieldService,
                         AttachmentService $attachmentService,
-                        TranslatorInterface $translator): Response
+                        TranslatorInterface $translator,
+                        UniqueNumberService $uniqueNumberService): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
@@ -163,19 +169,22 @@ class HandlingController extends AbstractController
             $post = $request->request;
 
             $handling = new Handling();
-            $date = (new DateTime('now', new DateTimeZone('Europe/Paris')));
+            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
             $status = $statutRepository->find($post->get('status'));
             $type = $typeRepository->find($post->get('type'));
             $desiredDate = $post->get('desired-date') ? new DateTime($post->get('desired-date')) : null;
             $fileBag = $request->files->count() > 0 ? $request->files : null;
-            $number = $handlingService->createHandlingNumber($entityManager, $date);
+
+            $handlingNumber = $uniqueNumberService->createUniqueNumber($entityManager, Handling::PREFIX_NUMBER, Handling::class);
 
             /** @var Utilisateur $requester */
             $requester = $this->getUser();
 
+            $carriedOutOperationCount = $post->get('carriedOutOperationCount');
+
             $handling
-                ->setNumber($number)
+                ->setNumber($handlingNumber)
                 ->setCreationDate($date)
                 ->setType($type)
                 ->setRequester($requester)
@@ -185,7 +194,8 @@ class HandlingController extends AbstractController
                 ->setStatus($status)
                 ->setDesiredDate($desiredDate)
 				->setComment($post->get('comment'))
-                ->setEmergency($post->get('emergency'));
+                ->setEmergency($post->get('emergency'))
+                ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
 
             if ($status && $status->isTreated()) {
                 $handling->setValidationDate($date);
@@ -313,13 +323,21 @@ class HandlingController extends AbstractController
             $newStatus = null;
         }
 
+        $carriedOutOperationCount = $post->get('carriedOutOperationCount');
         $handling
             ->setSubject(substr($post->get('subject'), 0, 64))
             ->setSource($post->get('source') ?? $handling->getSource())
             ->setDestination($post->get('destination') ?? $handling->getDestination())
             ->setDesiredDate($desiredDate)
             ->setComment($post->get('comment') ?: '')
-            ->setEmergency($post->get('emergency'));
+            ->setEmergency($post->get('emergency') ?? $handling->getEmergency())
+            ->setCarriedOutOperationCount(
+                (is_numeric($carriedOutOperationCount)
+                    ? $carriedOutOperationCount
+                    : (!empty($carriedOutOperationCount)
+                        ? $handling->getCarriedOutOperationCount()
+                        : null)
+            ));
 
         if (!$handling->getValidationDate() && $newStatus->isTreated()) {
             $handling->setValidationDate($date);
@@ -425,12 +443,14 @@ class HandlingController extends AbstractController
      * @param Request $request
      * @param CSVExportService $CSVExportService
      * @param FreeFieldService $freeFieldService
+     * @param DateService $dateService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function getHandlingsIntels(Request $request,
                                        CSVExportService $CSVExportService,
                                        FreeFieldService $freeFieldService,
+                                       DateService $dateService,
                                        EntityManagerInterface $entityManager): Response
     {
         $dateMin = $request->query->get('dateMin');
@@ -462,7 +482,9 @@ class HandlingController extends AbstractController
                     'statut',
                     'commentaire',
                     'urgence',
-                    'traité par'
+                    'nombre d\'opération(s) réalisée(s)',
+                    'traité par',
+                    'Temps de traitement opérateur'
                 ],
                 $freeFieldsConfig['freeFieldsHeader']
             );
@@ -472,7 +494,10 @@ class HandlingController extends AbstractController
                 $globalTitle,
                 $handlings,
                 $csvHeader,
-                function ($handling) use ($freeFieldService, $freeFieldsConfig) {
+                function ($handling) use ($freeFieldService, $freeFieldsConfig, $dateService) {
+                    $treatmentDelay = $handling['treatmentDelay'];
+                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
+                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
                     $row = [];
                     $row[] = $handling['number'] ?? '';
                     $row[] = $handling['creationDate']->format('d/m/Y H:i:s') ?? '';
@@ -486,7 +511,9 @@ class HandlingController extends AbstractController
                     $row[] = $handling['status'] ?? '';
                     $row[] = strip_tags($handling['comment']) ?? '';
                     $row[] = $handling['emergency'] ?? '';
+                    $row[] = $handling['carriedOutOperationCount'] ?? '';
                     $row[] = $handling['treatedBy'] ?? '';
+                    $row[] = $treatmentDelayStr;
 
                     foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
                         $row[] = $freeFieldService->serializeValue([

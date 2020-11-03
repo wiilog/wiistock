@@ -5,13 +5,13 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -313,7 +313,7 @@ class ArrivageDataService
             'emergencyAlert' => $isArrivalUrgent,
             'numeroCommande' => $numeroCommande,
             'postNb' => $postNb,
-            'arrivalId' => $arrivage->getId()
+            'arrivalId' => $arrivage->getId() ? $arrivage->getId() : $arrivage->getNumeroArrivage()
         ];
     }
 
@@ -541,5 +541,30 @@ class ArrivageDataService
                 ];
             }, $freeFields)
         );
+    }
+
+    public function getLocationForTracking(EntityManagerInterface $entityManager,
+                                           Arrivage $arrivage): ?Emplacement {
+
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+
+        if($arrivage->getCustoms() && $customsArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS)) {
+            $location = $emplacementRepository->find($customsArrivalsLocation);
+        }
+        else if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY)) {
+            $location = $emplacementRepository->find($emergenciesArrivalsLocation);
+        }
+        else if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) && $arrivage->getDestinataire()) {
+            $location = $emplacementRepository->findOneByLabel(SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE);
+        }
+        else if($defaultArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION)) {
+            $location = $emplacementRepository->find($defaultArrivalsLocation);
+        }
+        else {
+            $location = null;
+        }
+
+        return $location;
     }
 }

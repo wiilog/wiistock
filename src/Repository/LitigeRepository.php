@@ -31,7 +31,7 @@ class LitigeRepository extends EntityRepository
 		'updateDate' => 'updateDate',
         'status' => 'status',
         'urgence' => 'emergencyTriggered',
-        'disputeNumber' => 'disputeNumber',
+        'disputeNumber' => 'disputeNumber'
 	];
 
     public function findByStatutSendNotifToBuyer()
@@ -479,18 +479,14 @@ class LitigeRepository extends EntityRepository
 		return array_column($result, 'reference');
 	}
 
-    public function getLastNumeroLitigeByPrefixeAndDate($prefixe, $date)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            'SELECT litige.numeroLitige as numeroLitige
-			FROM App\Entity\Litige litige
-			WHERE litige.numeroLitige LIKE :value
-			ORDER BY litige.creationDate DESC'
-        )->setParameter('value', $prefixe . $date . '%');
-
-        $result = $query->execute();
+    public function getLastNumberByDate(string $date, string $prefix): ?string {
+        $result = $this->createQueryBuilder('dispute')
+            ->select('dispute.numeroLitige')
+            ->where('dispute.numeroLitige LIKE :value')
+            ->orderBy('dispute.creationDate', 'DESC')
+            ->setParameter('value', $prefix . '-' . $date . '%')
+            ->getQuery()
+            ->execute();
         return $result ? $result[0]['numeroLitige'] : null;
     }
 

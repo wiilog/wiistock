@@ -57,7 +57,10 @@ class ArticleController extends AbstractController
         Article::USED_ASSOC_LITIGE => "Cet article est lié à un ou plusieurs litiges.",
         Article::USED_ASSOC_INVENTORY => "Cet article est lié à une ou plusieurs missions d'inventaire.",
         Article::USED_ASSOC_STATUT_NOT_AVAILABLE => "Cet article n'est pas disponible.",
-        Article::USED_ASSOC_PREPA_IN_PROGRESS => "Cet article est dans une préparation en cours de traitement."
+        Article::USED_ASSOC_PREPA_IN_PROGRESS => "Cet article est dans une préparation en cours de traitement.",
+        Article::USED_ASSOC_TRANSFERT_REQUEST => "Cet article est dans une ou plusieurs demande(s) de transfert.",
+        Article::USED_ASSOC_COLLECT_ORDER => "Cet article est dans un ou plusieurs ordre(s) de collecte.",
+        Article::USED_ASSOC_INVENTORY_ENTRY => "Cet article est dans une ou plusieurs entrée(s) d'inventaire."
     ];
 
     /**
@@ -504,64 +507,87 @@ class ArticleController extends AbstractController
             $article = $articleRepository->find($data['article']);
             $articleBarCode = $article->getBarCode();
 
-            $receptionReferenceArticle = $article->getReceptionReferenceArticle();
-            if (isset($receptionReferenceArticle)) {
-                $articleQuantity = $article->getQuantite();
-                $receivedQuantity = $receptionReferenceArticle->getQuantite();
-                $receptionReferenceArticle->setQuantite(max($receivedQuantity - $articleQuantity, 0));
-            }
+            $trackingPack = $article->getTrackingPack();
 
-            $rows = $article->getId();
+            if ($article->getCollectes()->isEmpty()
+                && $article->getOrdreCollecte()->isEmpty()
+                && $article->getTransferRequests()->isEmpty()
+                && $article->getInventoryMissions()->isEmpty()
+                && $article->getInventoryEntries()) {
 
-            // Delete mvt traca
-            /** @var TrackingMovement $trackingMovement */
-            foreach ($article->getTrackingMovements()->toArray() as $trackingMovement) {
-                $entityManager->remove($trackingMovement);
-            }
-
-            // Delete mvt stock
-            /** @var MouvementStock $mouvementStock */
-            foreach ($article->getMouvements()->toArray() as $mouvementStock) {
-                $mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager);
-                $article->removeMouvement($mouvementStock);
-                $entityManager->remove($mouvementStock);
-            }
-            $entityManager->flush();
-
-            // Delete prepa
-            $preparation = $article->getPreparation();
-            if ($preparation) {
-                $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager);
-                $entityManager->flush();
-                $entityManager->remove($preparation);
-
-                // il faut que la preparation soit supprimée avant une maj des articles
-                $entityManager->flush();
-
-                foreach ($refToUpdate as $reference) {
-                    $refArticleDataService->updateRefArticleQuantities($reference);
+                if ($trackingPack) {
+                    if (!$trackingPack->getDispatchPacks()->isEmpty()
+                        || !$trackingPack->getLitiges()->isEmpty()
+                        || $trackingPack->getArrivage()) {
+                        $trackingPack->setArticle(null);
+                    }
                 }
 
+                $receptionReferenceArticle = $article->getReceptionReferenceArticle();
+                if (isset($receptionReferenceArticle)) {
+                    $articleQuantity = $article->getQuantite();
+                    $receivedQuantity = $receptionReferenceArticle->getQuantite();
+                    $receptionReferenceArticle->setQuantite(max($receivedQuantity - $articleQuantity, 0));
+                }
+
+                $rows = $article->getId();
+
+                // Delete mvt traca
+                /** @var TrackingMovement $trackingMovement */
+                foreach ($article->getTrackingMovements()->toArray() as $trackingMovement) {
+                    $entityManager->remove($trackingMovement);
+                }
+
+                // Delete mvt stock
+                /** @var MouvementStock $mouvementStock */
+                foreach ($article->getMouvements()->toArray() as $mouvementStock) {
+                    $mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager);
+                    $article->removeMouvement($mouvementStock);
+                    $entityManager->remove($mouvementStock);
+                }
                 $entityManager->flush();
-            }
-            // Delete demande
 
-            $demande = $article->getDemande();
-            if ($demande) {
-                $demandeLivraisonService->managePreRemoveDeliveryRequest($demande, $entityManager);
-                $entityManager->remove($demande);
+                // Delete prepa
+                $preparation = $article->getPreparation();
+                if ($preparation) {
+                    $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager);
+                    $entityManager->flush();
+                    $entityManager->remove($preparation);
+
+                    // il faut que la preparation soit supprimée avant une maj des articles
+                    $entityManager->flush();
+
+                    foreach ($refToUpdate as $reference) {
+                        $refArticleDataService->updateRefArticleQuantities($reference);
+                    }
+
+                    $entityManager->flush();
+                }
+                // Delete demande
+
+                $demande = $article->getDemande();
+                if ($demande) {
+                    $demandeLivraisonService->managePreRemoveDeliveryRequest($demande, $entityManager);
+                    $entityManager->remove($demande);
+                    $entityManager->flush();
+                }
+
+                $entityManager->remove($article);
                 $entityManager->flush();
+
+                $response['delete'] = $rows;
+                return new JsonResponse([
+                    'delete' => $rows,
+                    'success' => true,
+                    'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> a bien été supprimé.'
+                ]);
             }
-
-            $entityManager->remove($article);
-            $entityManager->flush();
-
-            $response['delete'] = $rows;
-            return new JsonResponse([
-                'delete' => $rows,
-                'success' => true,
-                'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> a bien été supprimé.'
-            ]);
+            else {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> est utilisé, vous ne pouvez pas le supprimer.'
+                ]);
+            }
         }
         throw new BadRequestHttpException();
     }

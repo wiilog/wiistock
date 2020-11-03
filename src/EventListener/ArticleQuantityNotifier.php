@@ -104,11 +104,11 @@ class ArticleQuantityNotifier {
                 $existing = null;
             }
 
-            if($now >= $article->getExpiryDate() && !$existing) {
+            if($expires >= $article->getExpiryDate() && !$existing) {
                 $alert = new Alert();
                 $alert->setArticle($article);
                 $alert->setType(Alert::EXPIRY);
-                $alert->setDate($expires);
+                $alert->setDate($now);
 
                 $this->entityManager->persist($alert);
 
