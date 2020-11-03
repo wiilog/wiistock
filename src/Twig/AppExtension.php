@@ -7,6 +7,7 @@ use App\Service\FieldsParamService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Twig\Markup;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
@@ -18,15 +19,18 @@ class AppExtension extends AbstractExtension {
     private $userService;
     private $specificService;
     private $fieldsParamService;
+    private $kernel;
 
     public function __construct(EntityManagerInterface $manager,
                                 SpecificService $specificService,
                                 FieldsParamService $fieldsParamService,
-                                UserService $userService) {
+                                UserService $userService,
+                                KernelInterface $kernel) {
         $this->manager = $manager;
         $this->userService = $userService;
         $this->specificService = $specificService;
         $this->fieldsParamService = $fieldsParamService;
+        $this->kernel = $kernel;
     }
 
     public function getFunctions() {
@@ -64,7 +68,19 @@ class AppExtension extends AbstractExtension {
         return $this->fieldsParamService->isFieldRequired($config, $fieldName, $action);
     }
 
-    public function logo(string $platform): ?string {
+    public function base64(string $relativePath) {
+        $absolutePath = $this->kernel->getProjectDir() . "/$relativePath";
+        $type = pathinfo($absolutePath, PATHINFO_EXTENSION);
+        $content = base64_encode(file_get_contents($absolutePath));
+
+        if($type == "svg") {
+            $type = "svg+xml";
+        }
+
+        return "data:image/$type;base64,$content";
+    }
+
+    public function logo(string $platform, bool $file = false): ?string {
         $pgr = $this->manager->getRepository(ParametrageGlobal::class);
 
         switch($platform) {
@@ -72,15 +88,19 @@ class AppExtension extends AbstractExtension {
                 $logo = $pgr->getOneParamByLabel(ParametrageGlobal::WEBSITE_LOGO);
                 break;
             case "email":
-                $logo = $pgr->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO);
+                $logo = $pgr->getOneParamByLabel(ParametrageGlobal::EMAIL_LOGO);
                 break;
             case "mobile":
-                $logo = $pgr->getOneParamByLabel(ParametrageGlobal::EMAIL_LOGO);
+                $logo = $pgr->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO);
                 break;
         }
 
         if(isset($logo)) {
-            return $_SERVER["APP_URL"] . "/uploads/attachements/$logo";
+            if($file) {
+                return $this->base64("public/$logo");
+            } else {
+                return $_SERVER["APP_URL"] . "/$logo";
+            }
         } else {
             return null;
         }

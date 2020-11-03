@@ -11,7 +11,7 @@
     <div class="form-group w-fit-content">
         <label for="param-type-encodage">Choix du logo</label>
         <div class="form-group d-flex">
-            <img src="{{ website_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ website_logo : '' }}"
+            <img src="{{ website_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ website_logo : '' }}"
                  id="preview-website-logo" alt="Logo choisi" height="50px" class="{{ not website_logo ? 'd-none' }}"/>
 
             <button class="btn btn-primary" onclick="$('#upload-website-logo').click();">{{ website_logo ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo'}}</button>
@@ -23,7 +23,7 @@
     <div class="form-group w-fit-content">
         <label for="param-type-encodage">Logo sur les emails</label>
         <div class="form-group d-flex">
-            <img src="{{ email_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ email_logo : '' }}"
+            <img src="{{ email_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ email_logo : '' }}"
                  id="preview-email-logo" alt="Logo choisi" height="50px" class="{{ not email_logo ? 'd-none' }}"/>
 
             <button class="btn btn-primary" onclick="$('#upload-email-logo').click();">{{ email_logo ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo'}}</button>
@@ -35,7 +35,7 @@
     <div class="form-group w-fit-content">
         <label for="param-type-encodage">Logo du nomade</label>
         <div class="form-group d-flex">
-            <img src="{{ mobile_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ mobile_logo : '' }}"
+            <img src="{{ mobile_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ mobile_logo : '' }}"
                  id="preview-mobile-logo" alt="Logo choisi" height="50px" class="{{ not mobile_logo ? 'd-none' }}"/>
 
             <button class="btn btn-primary" onclick="$('#upload-mobile-logo').click();">{{ mobile_logo ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo'}}</button>

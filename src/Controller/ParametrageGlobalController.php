@@ -160,9 +160,9 @@ class ParametrageGlobalController extends AbstractController {
                 'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
                 'fonts' => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
                 'fontFamily' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FONT_FAMILY) ?? ParametrageGlobal::DEFAULT_FONT_FAMILY,
-                'website_logo' => ($websiteLogo && file_exists(getcwd() . "/uploads/attachements/" . $websiteLogo) ? $websiteLogo : null),
-                'email_logo' => ($emailLogo && file_exists(getcwd() . "/uploads/attachements/" . $emailLogo) ? $emailLogo : null),
-                'mobile_logo' => ($mobileLogo && file_exists(getcwd() . "/uploads/attachements/" . $mobileLogo) ? $mobileLogo : null),
+                'website_logo' => ($websiteLogo && file_exists(getcwd() . "/" . $websiteLogo) ? $websiteLogo : null),
+                'email_logo' => ($emailLogo && file_exists(getcwd() . "/" . $emailLogo) ? $emailLogo : null),
+                'mobile_logo' => ($mobileLogo && file_exists(getcwd() . "/" . $mobileLogo) ? $mobileLogo : null),
                 'redirectMvtTraca' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT),
                 'workFreeDays' => $workFreeDays,
                 'paramDashboard' => [
@@ -856,7 +856,7 @@ class ParametrageGlobalController extends AbstractController {
                 $em->persist($setting);
             }
 
-            $setting->setValue($fileName[array_key_first($fileName)]);
+            $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         }
 
         if($request->files->has("email-logo")) {
@@ -870,7 +870,7 @@ class ParametrageGlobalController extends AbstractController {
                 $em->persist($setting);
             }
 
-            $setting->setValue($fileName[array_key_first($fileName)]);
+            $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         }
 
         if($request->files->has("mobile-logo")) {
@@ -884,7 +884,7 @@ class ParametrageGlobalController extends AbstractController {
                 $em->persist($setting);
             }
 
-            $setting->setValue($fileName[array_key_first($fileName)]);
+            $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         }
 
         if($request->request->has("font-family")) {
