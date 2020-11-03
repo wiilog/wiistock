@@ -252,7 +252,7 @@ class ImportController extends AbstractController
                             }
                         }
                     }
-dump($preselection);
+
                     $response = [
                         'success' => true,
                         'importId' => $import->getId(),

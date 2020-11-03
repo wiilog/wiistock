@@ -93,13 +93,17 @@ function displaySecondModal(data) {
             {
                 keepModal: true,
                 success: (data) => displayConfirmationModal(importId, data),
-                validator: validateImport
+                // WIIS-3187 validator: validateImport
             }
         );
 
         updateOptions($(".import-options"));
     }
 }
+
+/*
+WIIS-3187
+Validator si sélection de doublons dans les champs
 
 function validateImport() {
     const selects = $('.import-options');
@@ -139,6 +143,7 @@ function validateImport() {
 
     return false;
 }
+*/
 
 function displayConfirmationModal(importId, data) {
     $modalNewImport.find('.modal-body').html(data.html);
