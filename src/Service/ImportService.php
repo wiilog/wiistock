@@ -1166,7 +1166,7 @@ class ImportService
             $this->throwError($message);
         }
 
-        $freeFieldsToInsert = [];
+        $freeFieldsToInsert = $refOrArt->getFreeFields();
 
         foreach ($colChampsLibres as $clId => $col) {
             /** @var FreeField $champLibre */
