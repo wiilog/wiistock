@@ -534,7 +534,7 @@ class TrackingMovementService
      */
     public function persistTrackingForArrivalPack(EntityManagerInterface $entityManager,
                                                   Pack $pack,
-                                                  Emplacement $location,
+                                                  ?Emplacement $location,
                                                   Utilisateur $user,
                                                   DateTime $date,
                                                   Arrivage $arrivage) {
