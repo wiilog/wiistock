@@ -12,6 +12,8 @@ class FiltreRef
     const CHAMP_FIXE_REF_ART_FOURN = 'référence article fournisseur';
     const CHAMP_FIXE_STATUT = 'Statut';
     const CHAMP_FIXE_MANAGERS = 'Gestionnaire(s)';
+    const CHAMP_FIXE_PROVIDER_CODE = 'Code Fournisseur';
+    const CHAMP_FIXE_PROVIDER_LABEL = 'Label Fournisseur';
 
     /**
      * @ORM\Id()

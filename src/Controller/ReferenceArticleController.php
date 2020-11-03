@@ -204,6 +204,20 @@ class ReferenceArticleController extends AbstractController
 					'name' => 'Emplacement',
 					"class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
 				],
+                [
+                    "title" => 'Code Fournisseur',
+                    "data" => 'Code Fournisseur',
+                    'name' => 'Code Fournisseur',
+                    "class" => (in_array('Code Fournisseur', $columnsVisible) ? 'display' : 'hide'),
+                    "orderable" => false
+                ],
+                [
+                    "title" => 'Label Fournisseur',
+                    "data" => 'Label Fournisseur',
+                    'name' => 'Label Fournisseur',
+                    "class" => (in_array('Label Fournisseur', $columnsVisible) ? 'display' : 'hide'),
+                    "orderable" => false
+                ],
 				[
 					"title" => 'Commentaire',
 					"data" => 'Commentaire',
@@ -544,6 +558,16 @@ class ReferenceArticleController extends AbstractController
             'label' => 'Quantité stock',
             'id' => 0,
             'typage' => 'number'
+        ];
+        $champF[] = [
+            'label' => 'Label Fournisseur',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champF[] = [
+            'label' => 'Code Fournisseur',
+            'id' => 0,
+            'typage' => 'text'
         ];
         $champF[] = [
             'label' => 'Quantité disponible',
@@ -1460,7 +1484,7 @@ class ReferenceArticleController extends AbstractController
             $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::CHAMP_FIXE_STATUT);
 
             $em = $this->getDoctrine()->getManager();
-            if($filter == null){
+            if($filter == null) {
                 $filter = new FiltreRef();
                 $filter
                     ->setUtilisateur($user)

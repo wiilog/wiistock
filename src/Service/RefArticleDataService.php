@@ -375,6 +375,20 @@ class RefArticleDataService {
         $availableQuantity = $refArticle->getQuantiteDisponible();
         $quantityStock = $refArticle->getQuantiteStock();
 
+        $providerCodes = Stream::from($refArticle->getArticlesFournisseur())
+            ->map(function(ArticleFournisseur $articleFournisseur) {
+                return $articleFournisseur->getFournisseur() ? $articleFournisseur->getFournisseur()->getCodeReference() : '';
+            })
+            ->unique()
+            ->toArray();
+
+        $providerLabels = Stream::from($refArticle->getArticlesFournisseur())
+            ->map(function(ArticleFournisseur $articleFournisseur) {
+                return $articleFournisseur->getFournisseur() ? $articleFournisseur->getFournisseur()->getNom() : '';
+            })
+            ->unique()
+            ->toArray();
+
         $rowCF = [
             "id" => $refArticle->getId(),
             "Libellé" => $refArticle->getLibelle() ? $refArticle->getLibelle() : 'Non défini',
@@ -391,6 +405,8 @@ class RefArticleDataService {
             "limitWarning" => $refArticle->getLimitWarning() ?? "Non défini",
             "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
             'Urgence' => $refArticle->getIsUrgent() ? 'Oui' : 'Non',
+            'Label Fournisseur' => implode(",", $providerLabels),
+            'Code Fournisseur' => implode(",", $providerCodes),
             'Synchronisation nomade' => $refArticle->getNeedsMobileSync() ? 'Oui' : 'Non',
             "Dernier inventaire" => $refArticle->getDateLastInventory() ? $refArticle->getDateLastInventory()->format('d/m/Y') : '',
             'stockManagement' => $refArticle->getStockManagement() ?? '',
