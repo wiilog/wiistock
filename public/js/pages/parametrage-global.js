@@ -43,9 +43,9 @@ $(function () {
     updateImagePreview('#preview-label-logo', '#upload-label-logo');
     updateImagePreview('#preview-emergency-icon', '#upload-emergency-icon');
     updateImagePreview('#preview-custom-icon', '#upload-custom-icon');
-    updateImagePreview('#preview-website-icon', '#upload-website-icon');
-    updateImagePreview('#preview-email-icon', '#upload-email-icon');
-    updateImagePreview('#preview-mobile-icon', '#upload-mobile-icon');
+    updateImagePreview('#preview-website-logo', '#upload-website-logo');
+    updateImagePreview('#preview-email-logo', '#upload-email-logo');
+    updateImagePreview('#preview-mobile-logo', '#upload-mobile-logo');
 
     updateImagePreview('#preview-delivery-note-logo', '#upload-delivery-note-logo');
     updateImagePreview('#preview-waybill-logo', '#upload-waybill-logo');
@@ -418,6 +418,7 @@ function updateImagePreview(preview, upload) {
     let $upload = $(upload)[0];
 
     $(upload).change(() => {
+        console.log('gdgd');
         if ($upload.files && $upload.files[0]) {
             let fileNameWithExtension = $upload.files[0].name.split('.');
             let extension = fileNameWithExtension[fileNameWithExtension.length - 1];
