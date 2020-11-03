@@ -371,9 +371,10 @@ class ReferenceArticleRepository extends EntityRepository {
                         })
                         ->toArray();
 
-                    $jsonSearchesQueryString = '(' . implode(' OR ', $jsonSearchesQueryArray) . ')';
-
-                    $qb->andWhere($jsonSearchesQueryString);
+                    if (!empty($jsonSearchesQueryArray)) {
+                        $jsonSearchesQueryString = '(' . implode(' OR ', $jsonSearchesQueryArray) . ')';
+                        $qb->andWhere($jsonSearchesQueryString);
+                    }
                 }
             }
         }
