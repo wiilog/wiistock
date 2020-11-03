@@ -6,6 +6,7 @@ use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -146,8 +147,9 @@ class DispatchRepository extends EntityRepository
                             ->leftJoin('d.locationTo', 'sort_locationTo')
                             ->orderBy('sort_locationTo.label', $order);
                     } else {
-                        if(is_numeric($column)) {
-                            $qb->orderBy("JSON_EXTRACT(d.freeFields, '$.\"$column\"')", $order);
+                        $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                        if(is_numeric($freeFieldId)) {
+                            $qb->orderBy("JSON_EXTRACT(d.freeFields, '$.\"$freeFieldId\"')", $order);
                         } else if (property_exists(Dispatch::class, $column)) {
                             $qb->orderBy("d.$column", $order);
                         }

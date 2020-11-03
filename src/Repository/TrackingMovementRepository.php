@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -249,8 +250,9 @@ class TrackingMovementRepository extends EntityRepository
                             ->leftJoin('tracking_movement.pack', 'order_pack')
                             ->orderBy('order_pack.code', $order);
                     } else {
-                        if(is_numeric($column)) {
-                            $qb->orderBy("JSON_EXTRACT(tracking_movement.freeFields, '$.\"$column\"')", $order);
+                        $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                        if(is_numeric($freeFieldId)) {
+                            $qb->orderBy("JSON_EXTRACT(tracking_movement.freeFields, '$.\"$freeFieldId\"')", $order);
                         } else if (property_exists(TrackingMovement::class, $column)) {
                             $qb->orderBy("tracking_movement.$column", $order);
                         }

@@ -8,7 +8,6 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Repository\FiltreRefRepository;
 use App\Service\RefArticleDataService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,46 +27,28 @@ class FiltreRefController extends AbstractController
 {
 
     /**
-     * @var FiltreRefRepository
-     */
-    private $filtreRefRepository;
-
-    /**
-     * @var RefArticleDataService
-     */
-    private $refArticleDataService;
-
-	/**
-	 * FiltreRefController constructor.
-	 * @param FiltreRefRepository $filtreRefRepository
-	 * @param RefArticleDataService $refArticleDataService
-	 */
-    public function __construct(EntityManagerInterface $manager, RefArticleDataService $refArticleDataService)
-    {
-        $this->filtreRefRepository = $manager->getRepository(FiltreRef::class);
-        $this->refArticleDataService = $refArticleDataService;
-    }
-
-    /**
      * @Route("/creer", name="filter_ref_new", options={"expose"=true})
      * @param Request $request
+     * @param VisibleColumnService $visibleColumnService
      * @param RefArticleDataService $refArticleDataService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function new(Request $request,
+                        VisibleColumnService $visibleColumnService,
                         RefArticleDataService $refArticleDataService,
                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
+            $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
 
             /** @var Utilisateur $user */
             $user = $this->getUser();
 
             // on vérifie qu'il n'existe pas déjà un filtre sur le même champ
             $userId = $user->getId();
-            $existingFilter = $this->filtreRefRepository->countByChampAndUser($data['field'], $userId);
+            $existingFilter = $filtreRefRepository->countByChampAndUser($data['field'], $userId);
 
             if($existingFilter == 0) {
                 $filter = new FiltreRef();
@@ -77,9 +58,8 @@ class FiltreRefController extends AbstractController
 				// champ Champ Libre
                 if (isset($data['field'])) {
                     $field = $data['field'];
-                    preg_match("/" . VisibleColumnService::FREE_FIELD_NAME_PREFIX . "_(\d+)/", $field, $matches);
-                    if (!empty($matches)) {
-                        $freeFieldId = intval($matches[1]);
+                    $freeFieldId = $visibleColumnService->extractFreeFieldId($field);
+                    if (!empty($freeFieldId)) {
                         $champLibre = $champLibreRepository->find($freeFieldId);
                         $filter->setChampLibre($champLibre);
                     } else {
@@ -138,15 +118,18 @@ class FiltreRefController extends AbstractController
     /**
      * @Route("/supprimer", name="filter_ref_delete", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         $filterId = $request->request->get('filterId');
         $success = false;
         $message = "Le filtre n'a pas pu être supprimé";
         if ($filterId) {
-            $filter = $this->filtreRefRepository->find($filterId);
+            $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
+            $filter = $filtreRefRepository->find($filterId);
 
             if ($filter) {
                 $em = $this->getDoctrine()->getManager();
@@ -163,10 +146,12 @@ class FiltreRefController extends AbstractController
     /**
      * @Route("/affiche-liste", name="display_field_elements", options={"expose"=true}, methods={"GET","POST"})
      * @param Request $request
+     * @param VisibleColumnService $visibleColumnService
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      */
 	public function displayFieldElements(Request $request,
+                                         VisibleColumnService $visibleColumnService,
                                          EntityManagerInterface $entityManager)
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -190,11 +175,9 @@ class FiltreRefController extends AbstractController
 					$options[] = $type->getLabel();
 				}
 			} else {
-                preg_match("/" . VisibleColumnService::FREE_FIELD_NAME_PREFIX . "_(\d+)/", $value, $matches);
+                $freeFieldId = $visibleColumnService->extractFreeFieldId($value);
                 $options = [];
-                if (!empty($matches)) {
-                    $freeFieldId = intval($matches[1]);
-
+                if (!empty($freeFieldId)) {
                     /** @var $cl FreeField */
                     $cl = $champLibreRepository->find($freeFieldId);
                     $options = $cl->getElements();

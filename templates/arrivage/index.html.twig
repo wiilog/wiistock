@@ -88,7 +88,7 @@
     {% include "arrivage/modalNewArrivage.html.twig" with modalNewConfig %}
     {% include "arrivage/modalDeleteArrivage.html.twig" %}
     {% include "arrivage/modalListColis.html.twig" %}
-    {% include "visible_columns.html.twig" with {
+    {% include "utils/visible_columns.html.twig" with {
         'fields': fields,
         'table': 'arrivalsTable',
         'route': 'save_column_visible_for_arrivage'

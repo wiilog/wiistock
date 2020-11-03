@@ -11,6 +11,7 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
 use App\Helper\Stream;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -479,14 +480,12 @@ class ReferenceArticleRepository extends EntityRepository {
                         case "unitPrice":
                             $qb->orderBy('ra.prixUnitaire', $order);
                             break;
-                        case "stockManagement":
-                            $qb->orderBy('ra.stockManagement', $order);
-                            break;
                         default:
                             $column = self::FIELD_ENTITY_NAME[$column] ?? $column;
 
-                            if(is_numeric($column)) {
-                                $qb->orderBy("JSON_EXTRACT(ra.freeFields, '$.\"$column\"')", $order);
+                            $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                            if(is_numeric($freeFieldId)) {
+                                $qb->orderBy("JSON_EXTRACT(ra.freeFields, '$.\"$freeFieldId\"')", $order);
                             } else if (property_exists(ReferenceArticle::class, $column)) {
                                 $qb->orderBy("ra.$column", $order);
                             }

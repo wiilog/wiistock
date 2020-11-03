@@ -116,14 +116,14 @@
     {% include "reference_article/modalShowMouvements.html.twig" %}
     {% include "reference_article/modalCannotDelete.html.twig" %}
 
-    {% include "rapid_search.html.twig" with {
+    {% include "utils/rapid_search.html.twig" with {
         'fields': fields,
         'searches': searches,
         'table': 'pageTables',
         'route': 'update_user_searches',
     } %}
 
-    {% include "visible_columns.html.twig" with {
+    {% include "utils/visible_columns.html.twig" with {
         'fields': fields,
         'table': 'pageTables',
         'route': 'save_column_visible',

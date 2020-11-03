@@ -15,6 +15,7 @@ use App\Entity\Utilisateur;
 
 use App\Helper\QueryCounter;
 use App\Helper\Stream;
+use App\Service\VisibleColumnService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\Connection;
@@ -558,8 +559,6 @@ class ArticleRepository extends EntityRepository {
                     $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
 
                     switch ($column) {
-                        case "actions":
-                            break;
                         case "type":
                             $qb->leftJoin('a.type', 't')
                                 ->orderBy('t.label', $order);
@@ -583,9 +582,10 @@ class ArticleRepository extends EntityRepository {
                             break;
                         default:
                             $field = self::FIELD_ENTITY_NAME[$column] ?? $column;
+                            $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
 
-                            if(is_numeric($column)) {
-                                $qb->orderBy("JSON_EXTRACT(a.freeFields, '$.\"$column\"')", $order);
+                            if(is_numeric($freeFieldId)) {
+                                $qb->orderBy("JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"')", $order);
                             } else if (property_exists(Article::class, $field)) {
                                 $qb->orderBy("a.$field", $order);
                             }
