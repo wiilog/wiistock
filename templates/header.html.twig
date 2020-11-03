@@ -47,7 +47,7 @@
                     </div>
                 {% endif %}
 
-                {% if not isDashboardExt %}
+                {% if not isDashboardExt and app.user%}
                     <div class="dropdown mr-4">
                     <button class="quick-plus" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="icon"></span>
