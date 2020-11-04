@@ -64,7 +64,7 @@ class ExceptionListener {
         }
 
         try {
-            $this->client->request("POST", $_SERVER["APP_LOGGER"], [
+            $this->client->request("POST", $_SERVER["APP_LOGGER"] ?? "http://logger.follow-gt.fr/api/log", [
                 "body" => [
                     "instance" => $_SERVER["APP_INSTANCE"],
                     "context" => [

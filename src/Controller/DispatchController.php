@@ -90,12 +90,6 @@ class DispatchController extends AbstractController {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
 
-        try {
-            throw new \RuntimeException("ff");
-        } catch(Exception $e) {
-            throw new \RuntimeException("ok", 1, $e);
-        }
-
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
