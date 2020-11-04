@@ -5,93 +5,60 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
         const alertConfig = alertConfigs[0];
         const {autoHide, message, modalType, arrivalId, iconType, autoPrint} = alertConfig;
         const nextAlertConfigs = alertConfigs.slice(1, alertConfigs.length);
+        const isLastModal = (modalType !== 'yes-no-question' && nextAlertConfigs.length === 0);
 
-        if (modalType !== 'yes-no-question' && nextAlertConfigs.length === 0 && autoPrint) {
-            printArrival(response);
+        const buttonConfigs = createButtonConfigs({
+            modalType,
+            arrivalId,
+            alertConfig,
+            nextAlertConfigs,
+            response,
+            isCreation,
+            arrivalsDatatable,
+            success,
+            autoPrint
+        });
+
+        const displayCurrentModal = () => {
+            displayAlertModal(
+                undefined,
+                $('<div/>', {
+                    class: 'text-center',
+                    html: message
+                }),
+                buttonConfigs,
+                iconType,
+                autoHide
+            );
         }
-        const buttonConfigs = [
-            {
-                class: 'btn btn-primary m-0 btn-action-on-hide',
-                text: (modalType === 'yes-no-question' ? 'Oui' : 'Continuer'),
-                action: ($modal) => {
-                    if (modalType === 'yes-no-question') {
-                        if (!arrivageUrgentLoading) {
-                            arrivageUrgentLoading = true;
-                            $modal.find('.modal-footer-wrapper').addClass('d-none');
-                            loadSpinner($modal.find('.spinner'));
-                            setArrivalUrgent(
-                                arrivalId,
-                                alertConfig.numeroCommande,
-                                alertConfig.postNb,
-                                {alertConfigs: nextAlertConfigs, success, ...response},
-                                isCreation,
-                                arrivalsDatatable
-                            );
-                        }
-                    }
-                    else {
-                        // si c'est la dernière modale on ferme la modale d'alerte et on traite la création d'arrivage sinon
-                        if (nextAlertConfigs.length === 0) {
-                            if (isCreation) {
-                                $modal.find('.modal-footer-wrapper').addClass('d-none');
-                                loadSpinner($modal.find('.spinner'));
 
-                                treatArrivalCreation(response, arrivalsDatatable, () => {
-                                    if (success) {
-                                        success();
-                                    }
-                                    $modal.modal('hide');
-                                    hideSpinner($modal.find('.spinner'));
-                                });
-                            }
-                            else {
-                                $modal.modal('hide');
-                            }
-                        }
-                        else {
-                            arrivalCallback(isCreation, {alertConfigs: nextAlertConfigs, ...response}, arrivalsDatatable);
-                        }
-                    }
-                }
+        if (isLastModal) {
+            const $alertModal = getBSAlertModal();
+            if ($alertModal.hasClass('show')) {
+                $alertModal
+                    .find('.modal-footer-wrapper')
+                    .addClass('d-none');
+                loadSpinner($alertModal.find('.spinner'));
             }
-        ];
 
-        if (modalType === 'yes-no-question') {
-            buttonConfigs.unshift({
-                class: 'btn btn-secondary m-0',
-                text: 'Non',
-                action: () => {
-                    arrivalCallback(
-                        isCreation,
-                        {
-                            alertConfigs: nextAlertConfigs.length > 0
-                                ? nextAlertConfigs
-                                : [{
-                                        autoHide: false,
-                                        autoPrint,
-                                        message: 'Arrivage enregistré avec succès',
-                                        modalType: 'info',
-                                        iconType: 'success',
-                                        arrivalId
-                                    }],
-                            ...response
-                        },
-                        arrivalsDatatable
-                    );
-                }
-            });
+            const {arrivageId} = response;
+
+            $
+                .post(Routing.generate('post_arrival_tracking_movements', {arrival: arrivageId}))
+                .then(() => {
+                    displayCurrentModal();
+
+                    if (autoPrint) {
+                        printArrival(response);
+                    }
+                })
+                .catch(() => {
+                    showBSAlert('Erreur lors de la création des mouvements de tracaçabilité', 'danger');
+                });
         }
-
-        displayAlertModal(
-            undefined,
-            $('<div/>', {
-                class: 'text-center',
-                html: message
-            }),
-            buttonConfigs,
-            iconType,
-            autoHide
-        );
+        else {
+            displayCurrentModal();
+        }
     }
 }
 
@@ -138,25 +105,18 @@ function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseC
 }
 
 function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId}, arrivalsDatatable, success = null) {
-    $
-        .post(Routing.generate('post_arrival_tracking_movements', {arrival: arrivageId}))
-        .then(() => {
-            if (!redirectAfterAlert) {
-                if (arrivalsDatatable) {
-                    arrivalsDatatable.ajax.reload();
-                }
+    if (!redirectAfterAlert) {
+        if (arrivalsDatatable) {
+            arrivalsDatatable.ajax.reload();
+        }
 
-                if (success) {
-                    success();
-                }
-            }
-            else {
-                window.location.href = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage);
-            }
-        })
-        .catch(() => {
-            showBSAlert('Erreur lors de la création des mouvements de tracaçabilité', 'danger');
-        });
+        if (success) {
+            success();
+        }
+    }
+    else {
+        window.location.href = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage);
+    }
 }
 
 function createArrivageShowUrl(arrivageShowUrl, printColis, printArrivage) {
@@ -174,4 +134,71 @@ function printArrival({arrivageId, printColis, printArrivage}) {
         };
         window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
     }
+}
+
+function createButtonConfigs({modalType, arrivalId, alertConfig, nextAlertConfigs, response, isCreation, arrivalsDatatable, success, autoPrint}) {
+
+    const buttonConfigs = [
+        {
+            class: 'btn btn-primary m-0 btn-action-on-hide',
+            text: (modalType === 'yes-no-question' ? 'Oui' : 'Continuer'),
+            action: ($modal) => {
+                if (modalType === 'yes-no-question') {
+                    if (!arrivageUrgentLoading) {
+                        arrivageUrgentLoading = true;
+                        $modal.find('.modal-footer-wrapper').addClass('d-none');
+                        loadSpinner($modal.find('.spinner'));
+                        setArrivalUrgent(
+                            arrivalId,
+                            alertConfig.numeroCommande,
+                            alertConfig.postNb,
+                            {alertConfigs: nextAlertConfigs, success, ...response},
+                            isCreation,
+                            arrivalsDatatable
+                        );
+                    }
+                }
+                else {
+                    // si c'est la dernière modale on ferme la modale d'alerte et on traite la création d'arrivage sinon
+                    if (nextAlertConfigs.length === 0) {
+                        if (isCreation) {
+                            treatArrivalCreation(response, arrivalsDatatable, success);
+                        }
+                        $modal.modal('hide');
+                    }
+                    else {
+                        arrivalCallback(isCreation, {alertConfigs: nextAlertConfigs, ...response}, arrivalsDatatable);
+                    }
+                }
+            }
+        }
+    ];
+
+    if (modalType === 'yes-no-question') {
+        buttonConfigs.unshift({
+            class: 'btn btn-secondary m-0',
+            text: 'Non',
+            action: () => {
+                arrivalCallback(
+                    isCreation,
+                    {
+                        alertConfigs: nextAlertConfigs.length > 0
+                            ? nextAlertConfigs
+                            : [{
+                                autoHide: false,
+                                autoPrint,
+                                message: 'Arrivage enregistré avec succès',
+                                modalType: 'info',
+                                iconType: 'success',
+                                arrivalId
+                            }],
+                        ...response
+                    },
+                    arrivalsDatatable
+                );
+            }
+        });
+    }
+
+    return buttonConfigs;
 }
