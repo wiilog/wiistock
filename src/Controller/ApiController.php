@@ -702,7 +702,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             }
 
             if (!empty($insertedPrepasIds)) {
-                $resData['data']['preparations'] = $preparationRepository->getMobilePreparations($nomadUser, $insertedPrepasIds);
+                $resData['data']['preparations'] = Stream::from($preparationRepository->getMobilePreparations($nomadUser, $insertedPrepasIds))
+                    ->map(function ($preparationArray) {
+                        if (!empty($preparationArray['comment'])) {
+                            $preparationArray['comment'] = substr(strip_tags($preparationArray['comment']), 0, 200);
+                        }
+                        return $preparationArray;
+                    })
+                    ->toArray();
                 $resData['data']['articlesPrepa'] = $this->getArticlesPrepaArrays($insertedPrepasIds, true);
                 $resData['data']['articlesPrepaByRefArticle'] = $articleRepository->getArticlePrepaForPickingByUser($nomadUser, $insertedPrepasIds);
             }
