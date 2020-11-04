@@ -15,10 +15,9 @@ class AttachmentRepository extends EntityRepository
 {
     public function findOneByFileName($fileName)
 	{
-	    $qb = $this->createQueryBuilder('piece_jointe');
+	    $qb = $this->createQueryBuilder('attachment');
 
 	    $qb
-            ->select('attachment')
             ->where('attachment.fileName = :fileName')
             ->setParameter('filename', $fileName);
 
