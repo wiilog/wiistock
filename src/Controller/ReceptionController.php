@@ -1964,19 +1964,14 @@ class ReceptionController extends AbstractController {
                 }
 
                 $noCommande = isset($article['noCommande']) ? $article['noCommande'] : null;
-                $article = $this->articleDataService->newArticle($article, $demande ?? null);
+                $article = $this->articleDataService->newArticle($article, $entityManager, $demande ?? null);
                 if ($request) $request->addArticle($article);
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
                 $rra = $receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $ref->getId());
                 $article->setReceptionReferenceArticle($rra);
-
+                $ref = $rra->getReferenceArticle();
                 if($ref->getIsUrgent()) {
                     $emergencies[] = $article;
-
-                    $ref
-                        ->setIsUrgent(false)
-                        ->setUserThatTriggeredEmergency(null)
-                        ->setEmergencyComment('');
                 }
 
                 $mouvementStock = $mouvementStockService->createMouvementStock(
@@ -2013,15 +2008,14 @@ class ReceptionController extends AbstractController {
 
                 $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                 $entityManager->persist($createdMvt);
-
                 $entityManager->flush();
             }
 
             foreach($emergencies as $article) {
-                $ref = $article->getArticleFournisseur()->getReferenceArticle();
+                $ref = $article->getReceptionReferenceArticle()->getReferenceArticle();
 
                 $mailContent = $this->render('mails/contents/mailArticleUrgentReceived.html.twig', [
-                    'emergency' => $article->getReceptionReferenceArticle()->getEmergencyComment(),
+                    'emergency' => $ref->getEmergencyComment(),
                     'article' => $article,
                     'title' => 'Votre article urgent a bien été réceptionné.',
                 ])->getContent();
@@ -2050,6 +2044,10 @@ class ReceptionController extends AbstractController {
                         $destinataires
                     );
                 }
+                $ref
+                    ->setIsUrgent(false)
+                    ->setUserThatTriggeredEmergency(null)
+                    ->setEmergencyComment('');
             }
 
             if(isset($demande) && $demande->getType()->getSendMail()) {

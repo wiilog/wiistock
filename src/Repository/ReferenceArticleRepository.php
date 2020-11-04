@@ -25,9 +25,9 @@ use Doctrine\ORM\QueryBuilder;
  * @method ReferenceArticle[]    findAll()
  * @method ReferenceArticle[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ReferenceArticleRepository extends EntityRepository
-{
-    private const DtToDbLabels = [
+class ReferenceArticleRepository extends EntityRepository {
+
+    private const FIELD_ENTITY_NAME = [
         'Label' => 'libelle',
         'Libellé' => 'libelle',
         'Référence' => 'reference',
@@ -46,6 +46,18 @@ class ReferenceArticleRepository extends EntityRepository
         'Dernier inventaire' => 'dateLastInventory',
         'Synchronisation nomade' => 'needsMobileSync',
         'Prix unitaire' => 'prixUnitaire',
+        "warningThreshold" => "limitWarning",
+        "securityThreshold" => "limitSecurity",
+        "emergency" => "isUrgent",
+        "availableQuantity" => "quantiteDisponible",
+        "stockQuantity" => "quantiteStock",
+        "location" => "emplacement",
+        "quantityType" => "typeQuantite",
+        "lastInventory" => "dateLastInventory",
+        "mobileSync" => "needsMobileSync",
+        "supplier" => "fournisseur",
+        "unitPrice" => "prixUnitaire",
+        "comment" => "commentaire",
     ];
 
     public function getIdAndLibelle()
