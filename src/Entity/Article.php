@@ -356,6 +356,8 @@ class Article extends FreeFieldEntity
     public function setDemande(?Demande $demande): self
     {
         $this->demande = $demande;
+        $demande->addArticle($this);
+
         return $this;
     }
 
