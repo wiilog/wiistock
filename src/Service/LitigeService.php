@@ -2,7 +2,10 @@
 
 namespace App\Service;
 
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField;
 use App\Entity\Litige;
 use App\Entity\Utilisateur;
 use DateTime;
@@ -42,6 +45,7 @@ class LitigeService
     private $entityManager;
     private $translator;
     private $mailerService;
+    private $visibleColumnService;
 
     public function __construct(UserService $userService,
                                 RouterInterface $router,
@@ -49,6 +53,7 @@ class LitigeService
                                 Twig_Environment $templating,
                                 TranslatorInterface $translator,
                                 MailerService $mailerService,
+                                VisibleColumnService $visibleColumnService,
                                 Security $security)
     {
         $this->templating = $templating;
@@ -58,6 +63,7 @@ class LitigeService
         $this->userService = $userService;
         $this->security = $security;
         $this->mailerService = $mailerService;
+        $this->visibleColumnService = $visibleColumnService;
     }
 
     /**
@@ -201,30 +207,27 @@ class LitigeService
         }
     }
 
-    public function createDisputeNumber(EntityManagerInterface $entityManager,
-                                        string $prefix,
-                                        DateTime $date): string {
-
-        $litigeRepository = $entityManager->getRepository(Litige::class);
-
-        $dateStr = $date->format('ymd');
-
-        $lastNumeroLitige = $litigeRepository->getLastNumeroLitigeByPrefixeAndDate($prefix, $dateStr);
-        if ($lastNumeroLitige) {
-            $lastCounter = (int) substr($lastNumeroLitige, -4, 4);
-            $currentCounter = ($lastCounter + 1);
-        }
-        else {
-            $currentCounter = 1;
-        }
-
-        $currentCounterStr = (
-            $currentCounter < 10 ? ('000' . $currentCounter) :
-            ($currentCounter < 100 ? ('00' . $currentCounter) :
-            ($currentCounter < 1000 ? ('0' . $currentCounter) :
-            $currentCounter))
+    public function getColumnVisibleConfig(Utilisateur $currentUser): array {
+        $columnsVisible = $currentUser->getColumnsVisibleForLitige();
+        return $this->visibleColumnService->getArrayConfig(
+            [
+                ["name" => 'disputeNumber', 'title' => 'Numéro du litige'],
+                ["name" => 'type', 'title' => 'Type'],
+                ["name" => 'arrivalNumber', 'title' => 'arrivage.n° d\'arrivage', "translated" => true],
+                ["name" => 'receptionNumber', 'title' => 'réception.n° de réception', "translated" => true],
+                ["name" => 'buyers', 'title' => 'Acheteur'],
+                ["name" => 'numCommandeBl', 'title' => 'N° commande / BL'],
+                ["name" => 'declarant', 'title' => 'Déclarant'],
+                ["name" => 'command', 'title' => 'N° ligne'],
+                ["name" => 'provider', 'title' => 'Fournisseur'],
+                ["name" => 'references', 'title' => 'Référence'],
+                ["name" => 'lastHistoric', 'title' => 'Dernier historique'],
+                ["name" => 'creationDate', 'title' => 'Créé le'],
+                ["name" => 'updateDate', 'title' => 'Modifié le'],
+                ["name" => 'status', 'title' => 'Statut'],
+            ],
+            [],
+            $columnsVisible
         );
-
-        return ($prefix . $dateStr . $currentCounterStr);
     }
 }

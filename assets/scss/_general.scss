@@ -48,8 +48,10 @@ td {
     font-size: 0.8em;
 }
 
-a, a:link, a:visited {
-    text-decoration: none;
+a:not(.btn) {
+    &, &:link, &:visited {
+        text-decoration: none;
+    }
 
     &:hover {
         color: inherit;
@@ -342,29 +344,31 @@ select.is-invalid {
     background-image: linear-gradient(15.7deg, $backgroundBodyColorLight, $backgroundBodyColorDark);
 }
 
-#quick-create {
-    width: auto;
-    background: #FFF;
-    box-shadow: 1px 1px 4px #333;
-    padding: 8px 6px;
-    border-radius: 4px;
-
-    & > a {
-        display: block;
-        padding: 0.2rem 0.5rem;
-        font-size: 0.8rem;
-
-        &:hover {
-            @extend .bg-primary-followgt;
-
-            border-radius: 5px;
-            color: white;
-            cursor: pointer !important;
-        }
-    }
-}
-
 .dataTables_processing {
     background: rgba(255, 255, 255, 0.5) !important;
     height: 60px !important;
+}
+
+label.required:after {
+    content: "* ";
+}
+
+@mixin icon-button {
+    display: inline-block;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+
+    .icon {
+        background-color: $white;
+        width: 20px;
+        height: 20px;
+        display: block;
+        -webkit-mask: url("../../public/svg/plusblanc.svg") no-repeat center;
+        mask: url("../../public/svg/plusblanc.svg") no-repeat center;
+    }
+}
+
+.popover{
+    max-width: 100%;
 }

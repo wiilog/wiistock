@@ -105,6 +105,7 @@
         {% set hideSendNotifToBuyer = (
             status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING')
             or status.categorie.nom == constant('App\\Entity\\CategorieStatut::ARRIVAGE')
+            or status.categorie.nom == constant('App\\Entity\\CategorieStatut::LITIGE_RECEPT')
         ) %}
         <div class="col-12 form-group {{ hideSendNotifToBuyer ? 'd-none' }}">
             <label>Envoi de mails au destinataire ?</label>
@@ -116,8 +117,11 @@
 
         {% set showNeedMobileSync = (
             (
-                status.categorie.nom == constant('App\\Entity\\CategorieStatut::DISPATCH') and
-                status.state == constant('App\\Entity\\Statut::NOT_TREATED')
+                status.categorie.nom == constant('App\\Entity\\CategorieStatut::DISPATCH')
+                and (
+                    status.state == constant('App\\Entity\\Statut::NOT_TREATED')
+                    or status.state == constant('App\\Entity\\Statut::PARTIAL')
+                )
             )
             or status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING')
         ) %}

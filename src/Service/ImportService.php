@@ -15,7 +15,8 @@ use App\Entity\Import;
 use App\Entity\InventoryCategory;
 use App\Entity\MouvementStock;
 use App\Entity\ParametrageGlobal;
-use App\Entity\PieceJointe;
+use App\Entity\ReceptionReferenceArticle;
+use App\Entity\Attachment;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -65,6 +66,7 @@ class ImportService
     private $mouvementStockService;
     private $logger;
     private $attachmentService;
+    private $receptionService;
     private $articleFournisseurService;
 
     /** @var Import */
@@ -78,6 +80,7 @@ class ImportService
                                 ArticleDataService $articleDataService,
                                 RefArticleDataService $refArticleDataService,
                                 ArticleFournisseurService $articleFournisseurService,
+                                ReceptionService $receptionService,
                                 MouvementStockService $mouvementStockService)
     {
 
@@ -91,6 +94,7 @@ class ImportService
         $this->logger = $logger;
         $this->attachmentService = $attachmentService;
         $this->articleFournisseurService = $articleFournisseurService;
+        $this->receptionService = $receptionService;
     }
 
     /**
@@ -168,10 +172,10 @@ class ImportService
     }
 
     /**
-     * @param PieceJointe $attachment
+     * @param Attachment $attachment
      * @return array
      */
-    public function getImportConfig(PieceJointe $attachment)
+    public function getImportConfig(Attachment $attachment)
     {
         $path = $this->attachmentService->getServerPath($attachment);
 
@@ -198,15 +202,17 @@ class ImportService
 
     /**
      * @param Import $import
+     * @param Utilisateur|null $user
      * @param int $mode IMPORT_MODE_RUN ou IMPORT_MODE_FORCE_PLAN ou IMPORT_MODE_PLAN
      * @return int Used mode
+     * @throws ImportException
      * @throws NonUniqueResultException
      * @throws ORMException
      * @throws OptimisticLockException
+     * @throws Throwable
      * @throws TransactionRequiredException
-     * @throws Exception
      */
-    public function treatImport(Import $import, int $mode = self::IMPORT_MODE_PLAN): int
+    public function treatImport(Import $import, ?Utilisateur $user, int $mode = self::IMPORT_MODE_PLAN): int
     {
         $this->currentImport = $import;
 
@@ -231,6 +237,7 @@ class ImportService
         $headers = null;
         $logRows = [];
         $refToUpdate = [];
+        $receptionsWithCommand = [];
         $stats = [
             'news' => 0,
             'updates' => 0,
@@ -283,7 +290,18 @@ class ImportService
             // les premières lignes <= MAX_LINES_AUTO_FORCED_IMPORT
             $index = 0;
             foreach ($firstRows as $row) {
-                $logRows[] = $this->treatImportRow($row, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats, false, $index);
+                $logRows[] = $this->treatImportRow(
+                    $row,
+                    $headers,
+                    $dataToCheck,
+                    $colChampsLibres,
+                    $refToUpdate,
+                    $stats,
+                    false,
+                    $receptionsWithCommand,
+                    $user,
+                    $index
+                );
                 $index++;
             }
             $this->clearEntityManagerAndRetrieveImport();
@@ -298,6 +316,8 @@ class ImportService
                         $refToUpdate,
                         $stats,
                         ($index % 500 === 0),
+                        $receptionsWithCommand,
+                        $user,
                         $index
                     );
                     $index++;
@@ -341,10 +361,15 @@ class ImportService
      * @param array $refToUpdate
      * @param array $stats
      * @param bool $needsUnitClear
+     * @param array $receptionsWithCommand
+     * @param Utilisateur $user
      * @param int $rowIndex
      * @return array
+     * @throws ImportException
+     * @throws NonUniqueResultException
      * @throws ORMException
      * @throws OptimisticLockException
+     * @throws Throwable
      * @throws TransactionRequiredException
      */
     private function treatImportRow(array $row,
@@ -354,12 +379,23 @@ class ImportService
                                     array &$refToUpdate,
                                     array &$stats,
                                     bool $needsUnitClear,
+                                    array &$receptionsWithCommand,
+                                    ?Utilisateur $user,
                                     int $rowIndex): array
     {
         try {
-            $this->em->transactional(function () use ($dataToCheck, $row, $headers, $colChampsLibres, &$refToUpdate, &$stats, $rowIndex) {
+            $this->em->transactional(function () use (
+                $dataToCheck,
+                $row,
+                $headers,
+                $colChampsLibres,
+                &$refToUpdate,
+                &$stats,
+                $rowIndex,
+                &$receptionsWithCommand,
+                $user
+            ) {
                 $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
-
                 switch ($this->currentImport->getEntity()) {
                     case Import::ENTITY_FOU:
                         $this->importFournisseurEntity($verifiedData, $stats);
@@ -369,6 +405,9 @@ class ImportService
                         break;
                     case Import::ENTITY_REF:
                         $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $stats);
+                        break;
+                    case Import::ENTITY_RECEPTION:
+                        $this->importReceptionEntity($verifiedData, $receptionsWithCommand, $user, $stats);
                         break;
                     case Import::ENTITY_ART:
                         $referenceArticle = $this->importArticleEntity($verifiedData, $colChampsLibres, $row, $stats, $rowIndex);
@@ -437,6 +476,42 @@ class ImportService
                         'needed' => $this->fieldIsNeeded('nom', Import::ENTITY_FOU),
                         'value' => isset($corresp['nom']) ? $corresp['nom'] : null
                     ],
+                ];
+                break;
+            case Import::ENTITY_RECEPTION:
+                $dataToCheck = [
+                    'orderNumber' => [
+                        'needed' => $this->fieldIsNeeded('orderNumber', Import::ENTITY_RECEPTION),
+                        'value' => isset($corresp['orderNumber']) ? $corresp['orderNumber'] : null
+                    ],
+                    'référence' => [
+                        'needed' => $this->fieldIsNeeded('référence', Import::ENTITY_RECEPTION),
+                        'value' => isset($corresp['référence']) ? $corresp['référence'] : null
+                    ],
+                    'location' => [
+                        'needed' => $this->fieldIsNeeded('location', Import::ENTITY_RECEPTION),
+                        'value' => isset($corresp['location']) ? $corresp['location'] : null
+                    ],
+                    'fournisseur' => [
+                        'needed' => $this->fieldIsNeeded('fournisseur', Import::ENTITY_RECEPTION),
+                        'value' => isset($corresp['fournisseur']) ? $corresp['fournisseur'] : null
+                    ],
+                    'transporteur' => [
+                        'needed' => $this->fieldIsNeeded('transporteur', Import::ENTITY_RECEPTION),
+                        'value' => isset($corresp['transporteur']) ? $corresp['transporteur'] : null
+                    ],
+                    'commentaire' => [
+                        'needed' => $this->fieldIsNeeded('commentaire', Import::ENTITY_RECEPTION),
+                        'value' => isset($corresp['commentaire']) ? $corresp['commentaire'] : null
+                    ],
+                    'anomalie' => [
+                        'needed' => $this->fieldIsNeeded('anomalie', Import::ENTITY_RECEPTION),
+                        'value' => isset($corresp['anomalie']) ? $corresp['anomalie'] : null
+                    ],
+                    'quantité à recevoir' => [
+                        'needed' => $this->fieldIsNeeded('quantité à recevoir', Import::ENTITY_RECEPTION),
+                        'value' => isset($corresp['quantité à recevoir']) ? $corresp['quantité à recevoir'] : null
+                    ]
                 ];
                 break;
             case Import::ENTITY_ART_FOU:
@@ -557,6 +632,18 @@ class ImportService
                         'needed' => $this->fieldIsNeeded('emplacement', Import::ENTITY_ART),
                         'value' => isset($corresp['emplacement']) ? $corresp['emplacement'] : null,
                     ],
+                    'batch' => [
+                        'needed' => $this->fieldIsNeeded('batch', Import::ENTITY_ART),
+                        'value' => $corresp['batch'] ?? null,
+                    ],
+                    'expiryDate' => [
+                        'needed' => $this->fieldIsNeeded('expiryDate', Import::ENTITY_ART),
+                        'value' => $corresp['expiryDate'] ?? null,
+                    ],
+                    'stockEntryDate' => [
+                        'needed' => $this->fieldIsNeeded('stockEntryDate', Import::ENTITY_ART),
+                        'value' => $corresp['stockEntryDate'] ?? null,
+                    ],
                 ];
                 break;
             default:
@@ -589,14 +676,14 @@ class ImportService
 
     /**
      * @param array $logRows
-     * @return PieceJointe
+     * @return Attachment
      * @throws NonUniqueResultException
      */
     private function persistLogFilePieceJointe(array $logRows)
     {
         $createdLogFile = $this->buildLogFile($logRows);
 
-        $pieceJointeForLogFile = new PieceJointe();
+        $pieceJointeForLogFile = new Attachment();
         $pieceJointeForLogFile
             ->setOriginalName($createdLogFile)
             ->setFileName($createdLogFile);
@@ -726,11 +813,56 @@ class ImportService
 
     /**
      * @param array $data
+     * @param array $receptionsWithCommand
+     * @param Utilisateur|null $user
+     * @param array $stats
+     * @throws NonUniqueResultException
+     * @throws ImportException
+     */
+    private function importReceptionEntity(array $data,
+                                           array &$receptionsWithCommand,
+                                           ?Utilisateur $user,
+                                           array &$stats)
+    {
+        $refArtRepository = $this->em->getRepository(ReferenceArticle::class);
+
+
+        $reception = $receptionsWithCommand[$data['orderNumber']] ?? null;
+        $newEntity = isset($reception);
+        if (!$reception) {
+            $reception = $this->receptionService->createAndPersistReception($this->em, $user, $data);
+            $receptionsWithCommand[$data['orderNumber']] = $reception;
+        }
+
+        if(!empty($data['référence'])) {
+            $refArt = $refArtRepository->findOneBy(['reference' => $data['référence']]);
+
+            if($refArt) {
+                if(isset($data['quantité à recevoir'])) {
+                    $receptionRefArticle = new ReceptionReferenceArticle();
+                    $receptionRefArticle
+                        ->setReception($reception)
+                        ->setReferenceArticle($refArt)
+                        ->setQuantiteAR($data['quantité à recevoir'])
+                        ->setCommande($reception->getOrderNumber())
+                        ->setQuantite(0);
+                    $this->em->persist($receptionRefArticle);
+                } else {
+                    $this->throwError('La quantité à recevoir doit être renseignée.');
+                }
+            }
+        }
+        if ($newEntity) {
+            $this->updateStats($stats, true);
+        }
+    }
+
+    /**
+     * @param array $data
      * @param array $colChampsLibres
      * @param array $row
      * @param array $stats
      * @throws ImportException
-     * @throws NonUniqueResultException
      * @throws Exception
      */
     private function importReferenceEntity(array $data,
@@ -768,7 +900,7 @@ class ImportService
         }
         if (isset($data['dateLastInventory'])) {
             try {
-                $refArt->setDateLastInventory(DateTime::createFromFormat('d/m/Y', $data['dateLastInventory']));
+                $refArt->setDateLastInventory(DateTime::createFromFormat('d/m/Y', $data['dateLastInventory']) ?: null);
             } catch (Exception $e) {
                 $this->throwError('La date de dernier inventaire doit être au format JJ/MM/AAAA.');
             }
@@ -930,9 +1062,33 @@ class ImportService
 
         if (isset($data['prixUnitaire'])) {
             if (!is_numeric($data['prixUnitaire'])) {
-                $this->throwError('La quantité doit être un nombre.');
+                $this->throwError('Le prix unitaire doit être un nombre.');
             }
             $article->setPrixUnitaire($data['prixUnitaire']);
+        }
+
+        if (isset($data['batch'])) {
+            $article->setBatch($data['batch']);
+        }
+
+        if (isset($data['expiryDate'])) {
+            if(str_contains($data['expiryDate'], ' ')) {
+                $date = DateTime::createFromFormat("d/m/Y H:i", $data['expiryDate']);
+            } else {
+                $date = DateTime::createFromFormat("d/m/Y", $data['expiryDate']);
+            }
+
+            $article->setExpiryDate($date);
+        }
+
+        if (isset($data['stockEntryDate'])) {
+            if(str_contains($data['stockEntryDate'], ' ')) {
+                $date = DateTime::createFromFormat("d/m/Y H:i", $data['stockEntryDate']);
+            } else {
+                $date = DateTime::createFromFormat("d/m/Y", $data['stockEntryDate']);
+            }
+
+            $article->setStockEntryDate($date);
         }
 
         if ($isNewEntity) {
@@ -1010,7 +1166,7 @@ class ImportService
             $this->throwError($message);
         }
 
-        $freeFieldsToInsert = [];
+        $freeFieldsToInsert = $refOrArt->getFreeFields();
 
         foreach ($colChampsLibres as $clId => $col) {
             /** @var FreeField $champLibre */

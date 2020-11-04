@@ -20,14 +20,12 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Repository\AverageRequestTimeRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\NonUniqueResultException;
-use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
@@ -172,16 +170,14 @@ class DemandeLivraisonService
         $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR);
         $hasRightToSeePrepaOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA);
         $hasRightToSeeDeliveryOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR);
-        $hasRightToSeeReception = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE);
 
         $requestStatus = $demande->getStatut() ? $demande->getStatut()->getNom() : '';
         $demandeType = $demande->getType() ? $demande->getType()->getLabel() : '';
 
-        if ($requestStatus === Demande::STATUT_BROUILLON && $hasRightToSeeRequest) {
-            $href = $this->router->generate('demande_show', ['id' => $demande->getId()]);
-        } else if ($requestStatus === Demande::STATUT_A_TRAITER && $hasRightToSeePrepaOrders && !$demande->getPreparations()->isEmpty()) {
+        if ($requestStatus === Demande::STATUT_A_TRAITER && $hasRightToSeePrepaOrders && !$demande->getPreparations()->isEmpty()) {
             $href = $this->router->generate('preparation_index', ['demandId' => $demande->getId()]);
-        } else if (
+        }
+        else if (
             (
                 $requestStatus === Demande::STATUT_LIVRE_INCOMPLETE ||
                 $requestStatus === Demande::STATUT_INCOMPLETE ||
@@ -190,8 +186,9 @@ class DemandeLivraisonService
             && $hasRightToSeeDeliveryOrders && !$demande->getLivraisons()->isEmpty()
         ) {
             $href = $this->router->generate('livraison_index', ['demandId' => $demande->getId()]);
-        } else if ($demande->getReception() && $hasRightToSeeReception) {
-            $href = $this->router->generate('reception_show', ['id' => $demande->getReception()->getId()]);
+        }
+        else if ($hasRightToSeeRequest) {
+            $href = $this->router->generate('demande_show', ['id' => $demande->getId()]);
         }
 
         $articlesCounter = ($demande->getArticles()->count() + $demande->getLigneArticle()->count());
@@ -201,15 +198,20 @@ class DemandeLivraisonService
         $typeId = $demande->getType() ? $demande->getType()->getId() : null;
         $averageTime = $averageRequestTimesByType[$typeId] ?? null;
 
-        $deliveryDateEstimated = 'Date de livraison non estimée';
+        $deliveryDateEstimated = 'Non estimée';
+        $estimatedFinishTimeLabel = 'Date de livraison non estimée';
+        $today = new DateTime();
 
         if (isset($averageTime)) {
             $expectedDate = (clone $demande->getDate())
                 ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
-            $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
-            $today = new DateTime();
-            if ($expectedDate < $today) {
-                $deliveryDateEstimated = $today->format('d/m/Y');
+            if ($expectedDate >= $today) {
+                $estimatedFinishTimeLabel = 'Date et heure de livraison prévue';
+                $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
+                if ($expectedDate->format('d/m/Y') === $today->format('d/m/Y')) {
+                    $estimatedFinishTimeLabel = 'Heure de livraison estimée';
+                    $deliveryDateEstimated = $expectedDate->format('H:i');
+                }
             }
         }
 
@@ -235,6 +237,7 @@ class DemandeLivraisonService
             'href' => $href ?? null,
             'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la demande de livraison',
             'estimatedFinishTime' => $deliveryDateEstimated,
+            'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
             'requestStatus' => $requestStatus,
             'requestBodyTitle' => $bodyTitle,
             'requestLocation' => $demande->getDestination() ? $demande->getDestination()->getLabel() : 'Non défini',
@@ -243,9 +246,10 @@ class DemandeLivraisonService
             'requestUser' => $demande->getUtilisateur() ? $demande->getUtilisateur()->getUsername() : 'Non défini',
             'cardColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'lightGrey' : 'white',
             'bodyColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
-            'topRightIcon' => 'fa-box',
+            'topRightIcon' => 'livreur.svg',
             'progress' => $statusesToProgress[$requestStatus] ?? 0,
             'progressBarColor' => '#2ec2ab',
+            'emergencyText' => '',
             'progressBarBGColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
         ];
     }
@@ -297,10 +301,9 @@ class DemandeLivraisonService
             ->setDestination($destination)
             ->setNumero($numero)
             ->setCommentaire($data['commentaire']);
-        if (!$fromNomade) {
-            // enregistrement des champs libres
-            $champLibreService->manageFreeFields($demande, $data, $entityManager);
-        }
+
+        $champLibreService->manageFreeFields($demande, $data, $entityManager);
+
         // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
             $reception = $this->receptionRepository->find(intval($data['reception']));
@@ -350,13 +353,10 @@ class DemandeLivraisonService
      * @param bool $fromNomade
      * @param FreeFieldService $champLibreService
      * @return array
-     * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \App\Exceptions\ArticleNotAvailableException
-     * @throws \App\Exceptions\RequestNeedToBeProcessedException
      */
     public function checkDLStockAndValidate(EntityManagerInterface $entityManager,
                                             array $demandeArray,
@@ -397,7 +397,7 @@ class DemandeLivraisonService
         }
         $response = [];
         $response['success'] = true;
-        $response['message'] = '';
+        $response['msg'] = '';
         // pour réf gérées par articles
         $articles = $demande->getArticles();
         foreach ($articles as $article) {
@@ -406,7 +406,7 @@ class DemandeLivraisonService
                 && $statutArticle->getNom() !== Article::STATUT_ACTIF) {
                 $response['success'] = false;
                 $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $article->getBarCode();
-                $response['message'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
+                $response['msg'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
             } else {
                 $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
                 $totalQuantity = $refArticle->getQuantiteDisponible();
@@ -416,7 +416,7 @@ class DemandeLivraisonService
                 if ($article->getQuantiteAPrelever() > $treshHold) {
                     $response['success'] = false;
                     $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $article->getBarCode();
-                    $response['message'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $treshHold . ").";
+                    $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $treshHold . ").";
                 }
             }
         }
@@ -427,7 +427,7 @@ class DemandeLivraisonService
             if ($ligne->getQuantite() > $articleRef->getQuantiteDisponible()) {
                 $response['success'] = false;
                 $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleRef->getBarCode();
-                $response['message'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $articleRef->getQuantiteDisponible() . ").";
+                $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $articleRef->getQuantiteDisponible() . ").";
             }
         }
         if ($response['success']) {
@@ -441,19 +441,21 @@ class DemandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @param Demande $demande
      * @param bool $fromNomade
+     * @param bool $simpleValidation
      * @return array
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    private function validateDLAfterCheck(EntityManagerInterface $entityManager,
-                                          Demande $demande,
-                                          bool $fromNomade = false): array
+    public function validateDLAfterCheck(EntityManagerInterface $entityManager,
+                                         Demande $demande,
+                                         bool $fromNomade = false,
+                                         bool $simpleValidation = false): array
     {
         $response = [];
         $response['success'] = true;
-        $response['message'] = '';
+        $response['msg'] = '';
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         // Creation d'une nouvelle preparation basée sur une selection de demandes
@@ -522,7 +524,7 @@ class DemandeLivraisonService
 
         if (!$requestPersisted) {
             $response['success'] = false;
-            $response['message'] = $response['nomadMessage'] = 'Impossible de créer la préparation, veuillez rééssayer ultérieurement';
+            $response['msg'] = $response['nomadMessage'] = 'Impossible de créer la préparation, veuillez rééssayer ultérieurement';
             return $response;
         }
 
@@ -530,7 +532,7 @@ class DemandeLivraisonService
             $this->refArticleDataService->updateRefArticleQuantities($refArticle);
         }
 
-        if ($demande->getType()->getSendMail()) {
+        if (!$simpleValidation && $demande->getType()->getSendMail()) {
             $nowDate = new DateTime('now');
             $this->mailerService->sendMail(
                 'FOLLOW GT // Validation d\'une demande vous concernant',
@@ -546,15 +548,15 @@ class DemandeLivraisonService
             );
         }
         $entityManager->flush();
-        if (!$fromNomade) {
-            $response['message'] = $this->templating->render('demande/demande-show-header.html.twig', [
+        if (!$simpleValidation && !$fromNomade) {
+            $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
                 'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
+            $response['msg'] = 'Votre demande de livraison a bien été validée';
             $response['demande'] = $demande;
         }
-        $entityManager->flush();
         return $response;
     }
 

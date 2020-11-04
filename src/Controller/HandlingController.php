@@ -11,16 +11,17 @@ use App\Entity\FieldsParam;
 use App\Entity\Menu;
 use App\Entity\Handling;
 
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Service\AttachmentService;
-use App\Service\AverageTimeService;
 use App\Service\CSVExportService;
+use App\Service\DateService;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
+use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use App\Service\HandlingService;
 
@@ -33,7 +34,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
@@ -84,7 +85,7 @@ class HandlingController extends AbstractController
 
 			return new JsonResponse($data);
 		} else {
-			throw new NotFoundHttpException('404');
+			throw new BadRequestHttpException();
 		}
     }
 
@@ -142,7 +143,11 @@ class HandlingController extends AbstractController
      * @param FreeFieldService $freeFieldService
      * @param AttachmentService $attachmentService
      * @param TranslatorInterface $translator
+     * @param UniqueNumberService $uniqueNumberService
      * @return Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      * @throws Exception
      */
     public function new(EntityManagerInterface $entityManager,
@@ -150,7 +155,8 @@ class HandlingController extends AbstractController
                         HandlingService $handlingService,
                         FreeFieldService $freeFieldService,
                         AttachmentService $attachmentService,
-                        TranslatorInterface $translator): Response
+                        TranslatorInterface $translator,
+                        UniqueNumberService $uniqueNumberService): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
@@ -163,19 +169,22 @@ class HandlingController extends AbstractController
             $post = $request->request;
 
             $handling = new Handling();
-            $date = (new DateTime('now', new DateTimeZone('Europe/Paris')));
+            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
             $status = $statutRepository->find($post->get('status'));
             $type = $typeRepository->find($post->get('type'));
             $desiredDate = $post->get('desired-date') ? new DateTime($post->get('desired-date')) : null;
             $fileBag = $request->files->count() > 0 ? $request->files : null;
-            $number = $handlingService->createHandlingNumber($entityManager, $date);
+
+            $handlingNumber = $uniqueNumberService->createUniqueNumber($entityManager, Handling::PREFIX_NUMBER, Handling::class);
 
             /** @var Utilisateur $requester */
             $requester = $this->getUser();
 
+            $carriedOutOperationCount = $post->get('carriedOutOperationCount');
+
             $handling
-                ->setNumber($number)
+                ->setNumber($handlingNumber)
                 ->setCreationDate($date)
                 ->setType($type)
                 ->setRequester($requester)
@@ -185,7 +194,8 @@ class HandlingController extends AbstractController
                 ->setStatus($status)
                 ->setDesiredDate($desiredDate)
 				->setComment($post->get('comment'))
-                ->setEmergency($post->get('emergency'));
+                ->setEmergency($post->get('emergency'))
+                ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
 
             if ($status && $status->isTreated()) {
                 $handling->setValidationDate($date);
@@ -212,7 +222,7 @@ class HandlingController extends AbstractController
             $entityManager->persist($handling);
             $entityManager->flush();
 
-            $handlingService->sendEmailsAccordingToStatus($handling);
+            $handlingService->sendEmailsAccordingToStatus($handling, !$status->isTreated());
 
             return new JsonResponse([
                 'success' => true,
@@ -221,16 +231,18 @@ class HandlingController extends AbstractController
                     ]) . '.'
             ]);
         }
-        throw new NotFoundHttpException('404 not found');
+        throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/api-modifier", name="handling_edit_api", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
+     * @param DateService $dateService
      * @param Request $request
      * @return Response
      */
     public function editApi(EntityManagerInterface $entityManager,
+                            DateService $dateService,
                             Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -240,7 +252,7 @@ class HandlingController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $handlingRepository = $entityManager->getRepository(Handling::class);
-            $attachmentsRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentsRepository = $entityManager->getRepository(Attachment::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
             $handling = $handlingRepository->find($data['id']);
@@ -248,8 +260,13 @@ class HandlingController extends AbstractController
             $statusTreated = $status && $status->isTreated();
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
 
+            $treatmentDelay = $handling->getTreatmentDelay();
+            $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
+            $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
+
             $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
                 'handling' => $handling,
+                'treatmentDelay' => $treatmentDelayStr,
                 'handlingStatus' => !$statusTreated
                     ? $statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType())
                     : [],
@@ -260,7 +277,7 @@ class HandlingController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -306,13 +323,21 @@ class HandlingController extends AbstractController
             $newStatus = null;
         }
 
+        $carriedOutOperationCount = $post->get('carriedOutOperationCount');
         $handling
             ->setSubject(substr($post->get('subject'), 0, 64))
             ->setSource($post->get('source') ?? $handling->getSource())
             ->setDestination($post->get('destination') ?? $handling->getDestination())
             ->setDesiredDate($desiredDate)
             ->setComment($post->get('comment') ?: '')
-            ->setEmergency($post->get('emergency'));
+            ->setEmergency($post->get('emergency') ?? $handling->getEmergency())
+            ->setCarriedOutOperationCount(
+                (is_numeric($carriedOutOperationCount)
+                    ? $carriedOutOperationCount
+                    : (!empty($carriedOutOperationCount)
+                        ? $handling->getCarriedOutOperationCount()
+                        : null)
+            ));
 
         if (!$handling->getValidationDate() && $newStatus->isTreated()) {
             $handling->setValidationDate($date);
@@ -325,7 +350,7 @@ class HandlingController extends AbstractController
 
         $attachments = $handling->getAttachments()->toArray();
         foreach ($attachments as $attachment) {
-            /** @var PieceJointe $attachment */
+            /** @var Attachment $attachment */
             if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
                 $attachmentService->removeAndDeleteAttachment($attachment, $handling);
             }
@@ -387,7 +412,7 @@ class HandlingController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
             $handlingRepository = $entityManager->getRepository(Handling::class);
-            $attachmentRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
             $handling = $handlingRepository->find($data['handling']);
             $handlingNumber = $handling->getNumber();
@@ -410,7 +435,7 @@ class HandlingController extends AbstractController
             ]);
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -418,12 +443,14 @@ class HandlingController extends AbstractController
      * @param Request $request
      * @param CSVExportService $CSVExportService
      * @param FreeFieldService $freeFieldService
+     * @param DateService $dateService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function getHandlingsIntels(Request $request,
                                        CSVExportService $CSVExportService,
                                        FreeFieldService $freeFieldService,
+                                       DateService $dateService,
                                        EntityManagerInterface $entityManager): Response
     {
         $dateMin = $request->query->get('dateMin');
@@ -435,7 +462,7 @@ class HandlingController extends AbstractController
         } catch (Throwable $throwable) {
         }
 
-        if (isset($dateTimeMin) && isset($dateTimeMax)) {
+        if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $handlingsRepository = $entityManager->getRepository(Handling::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
@@ -455,7 +482,9 @@ class HandlingController extends AbstractController
                     'statut',
                     'commentaire',
                     'urgence',
-                    'traité par'
+                    'nombre d\'opération(s) réalisée(s)',
+                    'traité par',
+                    'Temps de traitement opérateur'
                 ],
                 $freeFieldsConfig['freeFieldsHeader']
             );
@@ -465,7 +494,10 @@ class HandlingController extends AbstractController
                 $globalTitle,
                 $handlings,
                 $csvHeader,
-                function ($handling) use ($freeFieldService, $freeFieldsConfig) {
+                function ($handling) use ($freeFieldService, $freeFieldsConfig, $dateService) {
+                    $treatmentDelay = $handling['treatmentDelay'];
+                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
+                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
                     $row = [];
                     $row[] = $handling['number'] ?? '';
                     $row[] = $handling['creationDate']->format('d/m/Y H:i:s') ?? '';
@@ -479,7 +511,9 @@ class HandlingController extends AbstractController
                     $row[] = $handling['status'] ?? '';
                     $row[] = strip_tags($handling['comment']) ?? '';
                     $row[] = $handling['emergency'] ?? '';
+                    $row[] = $handling['carriedOutOperationCount'] ?? '';
                     $row[] = $handling['treatedBy'] ?? '';
+                    $row[] = $treatmentDelayStr;
 
                     foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
                         $row[] = $freeFieldService->serializeValue([
@@ -492,7 +526,7 @@ class HandlingController extends AbstractController
                 }
             );
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 

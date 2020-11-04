@@ -11,7 +11,7 @@ use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\LitigeHistoric;
 
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -31,7 +31,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -105,25 +105,6 @@ class LitigeController extends AbstractController
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
-        $fieldsInTab = [
-            ["key" => 'disputeNumber', 'label' => 'Numéro du litige'],
-            ["key" => 'type', 'label' => 'Type'],
-            ["key" => 'arrivalNumber', 'label' => $this->translator->trans('arrivage.n° d\'arrivage')],
-            ["key" => 'receptionNumber', 'label' => $this->translator->trans('réception.n° de réception')],
-            ["key" => 'buyers', 'label' => 'Acheteur'],
-            ["key" => 'numCommandeBl', 'label' => 'N° commande / BL'],
-            ["key" => 'declarant', 'label' => 'Déclarant'],
-            ["key" => 'command', 'label' => 'N° ligne'],
-            ["key" => 'provider', 'label' => 'Fournisseur'],
-            ["key" => 'references', 'label' => 'Référence'],
-            ["key" => 'lastHistoric', 'label' => 'Dernier historique'],
-            ["key" => 'creationDate', 'label' => 'Créé le'],
-            ["key" => 'updateDate', 'label' => 'Modifié le'],
-            ["key" => 'status', 'label' => 'Statut'],
-        ];
-        $fieldsCl = [];
-        $champs = array_merge($fieldsInTab,$fieldsCl);
-
 
         return $this->render('litige/index.html.twig',[
             'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
@@ -131,8 +112,7 @@ class LitigeController extends AbstractController
             'types' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
 			'litigeOrigins' => $litigeService->getLitigeOrigin(),
 			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS),
-            'champs' => $champs,
-            'columnsVisibles' => $user->getColumnsVisibleForLitige()
+            'fields' => $litigeService->getColumnVisibleConfig($user)
 		]);
     }
 
@@ -155,7 +135,7 @@ class LitigeController extends AbstractController
             $data['visible'] = $columnVisible;
 			return new JsonResponse($data);
 		}
-		throw new NotFoundHttpException('404');
+		throw new BadRequestHttpException();
 	}
 
     /**
@@ -327,7 +307,7 @@ class LitigeController extends AbstractController
 
 			return new JsonResponse($data);
 		} else {
-			throw new NotFoundHttpException('404');
+			throw new BadRequestHttpException();
 		}
 	}
 
@@ -342,9 +322,9 @@ class LitigeController extends AbstractController
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			$litigeId = (int)$data['litigeId'];
-			$pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+			$attachmentRepository = $entityManager->getRepository(Attachment::class);
 
-			$attachements = $pieceJointeRepository->findOneByFileNameAndLitigeId($data['pjName'], $litigeId);
+			$attachements = $attachmentRepository->findOneByFileNameAndLitigeId($data['pjName'], $litigeId);
 			if (!empty($attachements)) {
 			    foreach ($attachements as $attachement) {
                     $entityManager->remove($attachement);
@@ -357,7 +337,7 @@ class LitigeController extends AbstractController
 
 			return new JsonResponse($response);
 		} else {
-			throw new NotFoundHttpException('404');
+			throw new BadRequestHttpException();
 		}
 	}
 
@@ -386,7 +366,7 @@ class LitigeController extends AbstractController
             return new JsonResponse($data);
 
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -463,7 +443,7 @@ class LitigeController extends AbstractController
                 'request' => $request
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -490,7 +470,7 @@ class LitigeController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -547,8 +527,10 @@ class LitigeController extends AbstractController
 
             $utilisateurRepository = $entityManager->getRepository(Litige::class);
             $user = $utilisateurRepository->getIdAndDisputeNumberBySearch($search);
-            return new JsonResponse(['results' => $user]);
+            return new JsonResponse([
+                'results' => $user
+            ]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 }

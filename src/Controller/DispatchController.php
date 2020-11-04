@@ -16,7 +16,7 @@ use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\DispatchPack;
 use App\Entity\ParametrageGlobal;
-use App\Entity\PieceJointe;
+use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
@@ -28,6 +28,7 @@ use App\Service\FreeFieldService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
+use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use App\Service\DispatchService;
 
@@ -45,7 +46,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -110,7 +111,6 @@ class DispatchController extends AbstractController {
             'types' => $types,
             'fieldsParam' => $fieldsParam,
             'fields' => $fields,
-            'visibleColumns' => $currentUser->getColumnsVisibleForDispatch(),
             'modalNewConfig' => $service->getNewDispatchConfig($statutRepository, $champLibreRepository, $fieldsParamRepository, $types)
         ]);
     }
@@ -133,10 +133,10 @@ class DispatchController extends AbstractController {
 
             $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser);
 
-            return $this->json($columns);
+            return $this->json(array_values($columns));
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -184,7 +184,7 @@ class DispatchController extends AbstractController {
             return $this->json(['results' => $results]);
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -207,7 +207,7 @@ class DispatchController extends AbstractController {
 
             return new JsonResponse($data);
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -219,6 +219,7 @@ class DispatchController extends AbstractController {
      * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
      * @param TranslatorInterface $translator
+     * @param UniqueNumberService $uniqueNumberService
      * @return Response
      * @throws Exception
      */
@@ -227,7 +228,8 @@ class DispatchController extends AbstractController {
                         DispatchService $dispatchService,
                         AttachmentService $attachmentService,
                         EntityManagerInterface $entityManager,
-                        TranslatorInterface $translator): Response {
+                        TranslatorInterface $translator,
+                        UniqueNumberService $uniqueNumberService): Response {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
                 !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
@@ -282,7 +284,7 @@ class DispatchController extends AbstractController {
 
             $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
             $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
-            $number = $dispatchService->createDispatchNumber($entityManager, $date);
+
 
             if ($startDate && $endDate && $startDate > $endDate) {
                 return new JsonResponse([
@@ -291,6 +293,7 @@ class DispatchController extends AbstractController {
                 ]);
             }
 
+            $dispatchNumber = $uniqueNumberService->createUniqueNumber($entityManager, Dispatch::PREFIX_NUMBER, Dispatch::class);
             $dispatch
                 ->setCreationDate($date)
                 ->setStatut($statutRepository->find($post->get('status')))
@@ -299,7 +302,7 @@ class DispatchController extends AbstractController {
                 ->setLocationFrom($locationTake)
                 ->setLocationTo($locationDrop)
                 ->setBusinessUnit($businessUnit)
-                ->setNumber($number);
+                ->setNumber($dispatchNumber);
 
             if (!empty($comment)) {
                 $dispatch->setCommentaire($comment);
@@ -366,6 +369,7 @@ class DispatchController extends AbstractController {
                     $packDispatch = new DispatchPack();
                     $packDispatch
                         ->setPack($pack)
+                        ->setTreated(false)
                         ->setQuantity($packQuantity)
                         ->setDispatch($dispatch);
                     $entityManager->persist($packDispatch);
@@ -391,7 +395,7 @@ class DispatchController extends AbstractController {
                 'msg' => $translator->trans('acheminement.L\'acheminement a bien été créé') . '.'
             ]);
         }
-        throw new NotFoundHttpException('404 not found');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -447,7 +451,10 @@ class DispatchController extends AbstractController {
                                             PDFGeneratorService $PDFGenerator,
                                             TranslatorInterface $translator): ?Response {
         if ($dispatch->getDispatchPacks()->isEmpty()) {
-            throw new NotFoundHttpException($translator->trans('acheminement.Le bon d\'acheminement n\'existe pas pour cet acheminement'));
+            return $this->json([
+                "success" => false,
+                "msg" => $translator->trans('acheminement.Le bon d\'acheminement n\'existe pas pour cet acheminement')
+            ]);
         }
 
         $packsConfig = $dispatch->getDispatchPacks()
@@ -566,7 +573,7 @@ class DispatchController extends AbstractController {
 
         $attachments = $dispatch->getAttachments()->toArray();
         foreach ($attachments as $attachment) {
-            /** @var PieceJointe $attachment */
+            /** @var Attachment $attachment */
             if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
                 $this->attachmentService->removeAndDeleteAttachment($attachment, $dispatch);
             }
@@ -602,7 +609,7 @@ class DispatchController extends AbstractController {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-            $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
@@ -631,12 +638,12 @@ class DispatchController extends AbstractController {
                 'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
                 'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                 'statuses' => $statuses,
-                'attachments' => $pieceJointeRepository->findBy(['dispatch' => $dispatch])
+                'attachments' => $attachmentRepository->findBy(['dispatch' => $dispatch])
             ]);
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -651,7 +658,7 @@ class DispatchController extends AbstractController {
                            TranslatorInterface $translator): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-            $attachmentRepository = $entityManager->getRepository(PieceJointe::class);
+            $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
             $dispatch = $dispatchRepository->find($data['dispatch']);
 
@@ -683,7 +690,7 @@ class DispatchController extends AbstractController {
             ]);
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -720,6 +727,7 @@ class DispatchController extends AbstractController {
                         'lastMvtDate' => $lastTracking ? ($lastTracking->getDatetime() ? $lastTracking->getDatetime()->format('d/m/Y H:i') : '') : '',
                         'lastLocation' => $lastTracking ? ($lastTracking->getEmplacement() ? $lastTracking->getEmplacement()->getLabel() : '') : '',
                         'operator' => $lastTracking ? ($lastTracking->getOperateur() ? $lastTracking->getOperateur()->getUsername() : '') : '',
+                        'status' => $dispatchPack->isTreated() ? 'Traité' : 'A traiter',
                         'actions' => $this->renderView('dispatch/datatablePackRow.html.twig', [
                             'pack' => $pack,
                             'packDispatch' => $dispatchPack,
@@ -783,6 +791,7 @@ class DispatchController extends AbstractController {
             $packDispatch = new DispatchPack();
             $packDispatch
                 ->setPack($pack)
+                ->setTreated(false)
                 ->setDispatch($dispatch);
             $entityManager->persist($packDispatch);
 
@@ -885,7 +894,7 @@ class DispatchController extends AbstractController {
             ]);
         }
 
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -956,7 +965,7 @@ class DispatchController extends AbstractController {
                                             Dispatch $dispatch): Response {
         $status = $dispatch->getStatut();
 
-        if (!$status || $status->isNotTreated()) {
+        if (!$status || $status->isNotTreated() || $status->isPartial()) {
             $data = json_decode($request->getContent(), true);
             $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -969,7 +978,6 @@ class DispatchController extends AbstractController {
 
                 /** @var Utilisateur $loggedUser */
                 $loggedUser = $this->getUser();
-
                 $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser);
             } else {
                 return new JsonResponse([
@@ -1088,7 +1096,7 @@ class DispatchController extends AbstractController {
                 }
             );
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -1226,7 +1234,7 @@ class DispatchController extends AbstractController {
         $documentTitle = "BL - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}";
         $fileName = $pdf->generatePDFDeliveryNote($documentTitle, $logo, $dispatch);
 
-        $deliveryNoteAttachment = new PieceJointe();
+        $deliveryNoteAttachment = new Attachment();
         $deliveryNoteAttachment
             ->setDispatch($dispatch)
             ->setFileName($fileName)
@@ -1260,15 +1268,18 @@ class DispatchController extends AbstractController {
      * @param TranslatorInterface $trans
      * @param Dispatch $dispatch
      * @param KernelInterface $kernel
-     * @param PieceJointe $attachment
+     * @param Attachment $attachment
      * @return PdfResponse
      */
     public function printDeliveryNote(TranslatorInterface $trans,
                                       Dispatch $dispatch,
                                       KernelInterface $kernel,
-                                      PieceJointe $attachment): Response {
+                                      Attachment $attachment): Response {
         if (!$dispatch->getDeliveryNoteData()) {
-            throw new NotFoundHttpException($trans->trans('acheminement.Le bon de livraison n\'existe pas pour cet acheminement'));
+            return $this->json([
+                "success" => false,
+                "msg" => $trans->trans('acheminement.Le bon de livraison n\'existe pas pour cet acheminement')
+            ]);
         }
 
         $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
@@ -1450,7 +1461,7 @@ class DispatchController extends AbstractController {
         $title = "LDV - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}";
         $fileName = $pdf->generatePDFWaybill($title, $logo, $dispatch);
 
-        $wayBillAttachment = new PieceJointe();
+        $wayBillAttachment = new Attachment();
         $wayBillAttachment
             ->setDispatch($dispatch)
             ->setFileName($fileName)
@@ -1483,16 +1494,19 @@ class DispatchController extends AbstractController {
      * )
      * @param TranslatorInterface $trans
      * @param Dispatch $dispatch
-     * @param PieceJointe $attachment
+     * @param Attachment $attachment
      * @param KernelInterface $kernel
      * @return JsonResponse
      */
     public function printWaybillNote(TranslatorInterface $trans,
                                      Dispatch $dispatch,
-                                     PieceJointe $attachment,
+                                     Attachment $attachment,
                                      KernelInterface $kernel): Response {
         if (!$dispatch->getWaybillData()) {
-            throw new NotFoundHttpException($trans->trans('acheminement.La lettre de voiture n\'existe pas pour cet acheminement'));
+            return $this->json([
+                "success" => false,
+                "msg" => $trans->trans('acheminement.La lettre de voiture n\'existe pas pour cet acheminement'),
+            ]);
         }
 
         $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));

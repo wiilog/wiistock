@@ -31,23 +31,43 @@ InitModal(modalEditDays, submitEditDays, urlEditDays, {tables: [tableDays]});
 
 $(function () {
     Select2.init($('#locationArrivageDest'));
+    Select2.location($('[name=param-default-location-if-custom]'))
+    Select2.location($('[name=param-default-location-if-emergency]'))
     Select2.init($('#listNaturesColis'));
     Select2.initFree($('select[name="businessUnit"]'));
     Select2.initFree($('select[name="dispatchEmergencies"]'));
     Select2.location($('.ajax-autocomplete-location'));
     Select2.carrier($('.ajax-autocomplete-transporteur'));
     Select2.initValues($('#receptionLocation'), $('#receptionLocationValue'));
-    $('#receptionLocation').on('change', editDefaultLocationValue);
 
     updateImagePreview('#preview-label-logo', '#upload-label-logo');
+    updateImagePreview('#preview-emergency-icon', '#upload-emergency-icon');
+    updateImagePreview('#preview-custom-icon', '#upload-custom-icon');
+
     updateImagePreview('#preview-delivery-note-logo', '#upload-delivery-note-logo');
     updateImagePreview('#preview-waybill-logo', '#upload-waybill-logo');
 
     // config tableau de bord : emplacements
     initValuesForDashboard();
-    $('#locationArrivageDest').on('change', editArrivageDestination);
+
+    $('#receptionLocation').on('change', function () {
+        editParamLocations($(this), $('#receptionLocationValue'));
+    });
+
+    $('#locationArrivageDest').on('change', function () {
+        editParamLocations($(this), $('#locationArrivageDestValue'))
+    });
+
+    $('[name=param-default-location-if-custom]').on('change', function () {
+        editParamLocations($(this), $('#customsArrivalsLocation'))
+    });
+
+    $('[name=param-default-location-if-emergency]').on('change', function () {
+        editParamLocations($(this), $('#emergenciesArrivalsLocation'))
+    });
+
     $('#locationDemandeLivraison').on('change', function() {
-        editDemandeLivraisonDestination($(this));
+        editParamLocations($(this), $('#locationDemandeLivraisonValue'));
     });
     // config tableau de bord : transporteurs
 
@@ -89,7 +109,12 @@ function initValuesForDashboard() {
     Select2.initValues($('#locationUrgences'), $( '#locationUrgencesValue'));
     Select2.initValues($('#locationsFirstGraph'), $( '#locationsFirstGraphValue'));
     Select2.initValues($('#locationsSecondGraph'), $( '#locationsSecondGraphValue'));
+
+    // Set location values for arrivals
     Select2.initValues($('#locationArrivageDest'), $( '#locationArrivageDestValue'));
+    Select2.initValues($('[name=param-default-location-if-custom]'), $( '#customsArrivalsLocation'));
+    Select2.initValues($('[name=param-default-location-if-emergency]'), $( '#emergenciesArrivalsLocation'));
+
     Select2.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
     Select2.initValues($('#packaging1'), $('#packagingLocation1'));
     Select2.initValues($('#packaging2'), $('#packagingLocation2'));
@@ -146,7 +171,10 @@ function ajaxMailerServer() {
 }
 
 function ajaxDims() {
-    let $fileInput = $('#upload-label-logo');
+    const $logoFile = $('#upload-label-logo');
+    const $customIconFile = $('#upload-custom-icon');
+    const $emergencyIconFile = $('#upload-emergency-icon');
+
     let data = new FormData();
     let dataInputs = $('#dimsForm').find('.data');
     dataInputs.each(function () {
@@ -154,8 +182,14 @@ function ajaxDims() {
         let name = $(this).attr("name");
         data.append(name, val);
     });
-    if ($fileInput[0].files && $fileInput[0].files[0]) {
-        data.append('logo', $fileInput[0].files[0]);
+    if ($logoFile[0].files && $logoFile[0].files[0]) {
+        data.append('logo', $logoFile[0].files[0]);
+    }
+    if ($customIconFile[0].files && $customIconFile[0].files[0]) {
+        data.append('custom-icon', $customIconFile[0].files[0]);
+    }
+    if ($emergencyIconFile[0].files && $emergencyIconFile[0].files[0]) {
+        data.append('emergency-icon', $emergencyIconFile[0].files[0]);
     }
     $.ajax({
         url: Routing.generate('ajax_dimensions_etiquettes', true),
@@ -220,6 +254,28 @@ function updatePrefixDemand() {
     $('.error-msg').html(msg);
 }
 
+function updateStockParam() {
+    let expirationDelay = $('[name="expirationDelay"]').val();
+
+    Promise
+        .all([
+            $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'SEND_MAIL_MANAGER_WARNING_THRESHOLD', val: $('[name="param-security-threshold"]').val()})),
+            $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'SEND_MAIL_MANAGER_SECURITY_THRESHOLD', val: $('[name="param-alert-threshold"]').val()})),
+            $.post(Routing.generate('ajax_update_expiration_delay', true), {expirationDelay})
+        ])
+        .then(([successAlert, successSecurity, {success: successDelay, msg: msgDelay}]) => {
+            if (successAlert && successSecurity && successDelay) {
+                showBSAlert('Vos paramétrages ont bien été mis à jour.', 'success');
+            }
+            else if (!successDelay) {
+                showBSAlert(msgDelay, 'danger');
+            }
+            else {
+                showBSAlert('Erreur, il y a eu un problème lors de la sauvegarde de vos paramètres', 'danger');
+            }
+        });
+}
+
 function getPrefixDemand(select) {
     let typeDemande = select.val();
 
@@ -261,22 +317,6 @@ function ajaxEncodage() {
     });
 }
 
-function editDefaultLocationValue() {
-    let path = Routing.generate('edit_reception_location', true);
-    const locationValue = $(this).val();
-    let param = {
-        value: locationValue
-    };
-
-    $.post(path, param, (resp) => {
-        if (resp) {
-            showBSAlert("L'emplacement de réception a bien été mis à jour.", 'success');
-        } else {
-            showBSAlert("Une erreur est survenue lors de la mise à jour de l'emplacement de réception.", 'danger');
-        }
-    });
-}
-
 function editDashboardParams() {
     let path = Routing.generate('edit_dashboard_params', true);
     let data = $('#paramDashboard').find('.data');
@@ -314,24 +354,17 @@ function editFont() {
     });
 }
 
-function editArrivageDestination() {
-    $.post(Routing.generate('set_arrivage_default_dest'), $(this).val(), (resp) => {
-        if (resp) {
-            showBSAlert("la destination des arrivages a bien été mise à jour.", 'success');
-        } else {
-            showBSAlert("Une erreur est survenue lors de la mise à jour de la destination des arrivages.", 'danger');
-        }
-    });
-}
-
-function editDemandeLivraisonDestination($select) {
-    $.post(Routing.generate('edit_demande_livraison_default_dest'), $select.val(), (resp) => {
-        if (resp) {
-            showBSAlert("La destination des demandes de livraison a bien été mise à jour.", 'success');
-        } else {
-            showBSAlert("Une erreur est survenue lors de la mise à jour de la destination des demandes de livraison.", 'danger');
-        }
-    });
+function editParamLocations($select, $inputValue) {
+    const data = $inputValue.data();
+    if (data && data.label) {
+        $.post(Routing.generate('edit_param_location', {label: data.label}), $select.val(), (resp) => {
+            if (resp) {
+                showBSAlert("L\'emplacement a bien été mis à jour.", 'success');
+            } else {
+                showBSAlert("Une erreur est survenue lors de la mise à jour de l\'emplacement.", 'danger');
+            }
+        });
+    }
 }
 
 function editReceptionStatus() {
@@ -442,4 +475,14 @@ function saveDispatchesParam() {
                 showBSAlert("Une erreur est survenue lors de la mise à jour des paramétrages d'acheminements.", 'danger');
             }
         });
+}
+
+function toggleRecipient($checkbox) {
+     if ($checkbox.attr('name') === 'param-add-destination-location-article-label'
+        && $checkbox.prop('checked')) {
+        $('.checkbox[name="param-add-recipient-dropzone-location-article-label"]').prop('checked', false);
+    } else if ($checkbox.attr('name') === 'param-add-recipient-dropzone-location-article-label'
+        && $checkbox.prop('checked')) {
+        $('.checkbox[name="param-add-destination-location-article-label"]').prop('checked', false);
+    }
 }

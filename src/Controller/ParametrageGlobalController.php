@@ -23,19 +23,19 @@ use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
+use App\Service\AlertService;
 use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
-use App\Service\StatusService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -58,15 +58,13 @@ class ParametrageGlobalController extends AbstractController
      * @param UserService $userService
      * @param GlobalParamService $globalParamService
      * @param EntityManagerInterface $entityManager
-     * @param StatusService $statusService
      * @return Response
      * @throws NonUniqueResultException
      */
 
     public function index(UserService $userService,
                           GlobalParamService $globalParamService,
-                          EntityManagerInterface $entityManager,
-                          StatusService $statusService): Response
+                          EntityManagerInterface $entityManager): Response
     {
 
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
@@ -81,9 +79,10 @@ class ParametrageGlobalController extends AbstractController
         $categoryCLRepository = $entityManager->getRepository(CategorieCL::class);
         $translationRepository = $entityManager->getRepository(Translation::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $labelLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
+        $emergencyIcon = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_ICON);
+        $customIcon = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_ICON);
         $deliveryNoteLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
         $waybillLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
 
@@ -97,23 +96,25 @@ class ParametrageGlobalController extends AbstractController
             $workFreeDaysRepository->findAll()
         );
 
-        $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
-
         return $this->render('parametrage_global/index.html.twig',
             [
                 'logo' => ($labelLogo && file_exists(getcwd() . "/uploads/attachements/" . $labelLogo) ? $labelLogo : null),
+                'emergencyIcon' => ($emergencyIcon && file_exists(getcwd() . "/uploads/attachements/" . $emergencyIcon) ? $emergencyIcon : null),
+                'customIcon' => ($customIcon && file_exists(getcwd() . "/uploads/attachements/" . $customIcon) ? $customIcon : null),
+                'titleEmergencyLabel' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_TEXT_LABEL),
+                'titleCustomLabel' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_TEXT_LABEL),
                 'dimensions_etiquettes' => $dimensionsEtiquettesRepository->findOneDimension(),
                 'paramDocuments' => [
                     'deliveryNoteLogo' => ($deliveryNoteLogo && file_exists(getcwd() . "/uploads/attachements/" . $deliveryNoteLogo) ? $deliveryNoteLogo : null),
                     'waybillLogo' => ($waybillLogo && file_exists(getcwd() . "/uploads/attachements/" . $waybillLogo) ? $waybillLogo : null),
                 ],
                 'paramReceptions' => [
-                    'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
+                    'receptionLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION),
                     'listStatus' => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, true),
                     'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT)
                 ],
                 'paramLivraisons' => [
-                    'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
+                    'livraisonLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON),
                     'prepaAfterDl' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL),
                     'DLAfterRecep' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION),
                     'paramDemandeurLivraison' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEMANDEUR_DANS_DL),
@@ -121,9 +122,17 @@ class ParametrageGlobalController extends AbstractController
                 'paramArrivages' => [
                     'redirect' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL) ?? true,
                     'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
-                    'location' => $globalParamService->getMvtDeposeArrival(),
+                    'defaultArrivalsLocation' => $globalParamService->getParamLocation(ParametrageGlobal::MVT_DEPOSE_DESTINATION),
+                    'customsArrivalsLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS),
+                    'emergenciesArrivalsLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY),
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
-                    'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL)
+                    'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
+                    'printTwice' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PRINT_TWICE_CUSTOMS),
+                ],
+                'paramStock' => [
+                    'alertThreshold' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_WARNING_THRESHOLD),
+                    'securityThreshold' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_SECURITY_THRESHOLD),
+                    'expirationDelay' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY)
                 ],
                 'paramDispatches' => [
                     'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
@@ -160,7 +169,14 @@ class ParametrageGlobalController extends AbstractController
                 ],
                 'wantsRecipient' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL),
                 'wantsDZLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL),
+                'wantsCustoms' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_CUSTOMS_IN_LABEL),
+                'wantsEmergency' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EMERGENCY_IN_LABEL),
                 'wantsCommandAndProjectNumber' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL),
+                'wantsDestinationLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL),
+                'wantsRecipientArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL),
+                'wantsDropzoneLocationArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL),
+                'wantsBatchNumberArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL),
+                'wantsExpirationDateArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL),
                 'wantsPackCount' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL),
             ]);
     }
@@ -228,6 +244,61 @@ class ParametrageGlobalController extends AbstractController
         $parametrageGlobalDZLocation
             ->setValue((int) ($data['param-dz-location-etiquette'] === 'true'));
 
+        $globalSettingsDestinationLocation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
+
+        if (empty($globalSettingsDestinationLocation)) {
+            $globalSettingsDestinationLocation = new ParametrageGlobal();
+            $globalSettingsDestinationLocation->setLabel(ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
+            $entityManager->persist($globalSettingsDestinationLocation);
+        }
+
+        $globalSettingsDestinationLocation
+            ->setValue((int) ($data['param-add-destination-location-article-label'] === 'true'));
+
+        $globalSettingsRecipientOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL);
+
+        if (empty($globalSettingsRecipientOnArticleLabel)) {
+            $globalSettingsRecipientOnArticleLabel = new ParametrageGlobal();
+            $globalSettingsRecipientOnArticleLabel->setLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL);
+            $entityManager->persist($globalSettingsRecipientOnArticleLabel);
+        }
+
+        $globalSettingsRecipientOnArticleLabel
+            ->setValue((int) ($data['param-add-recipient-article-label'] === 'true'));
+
+        $globalSettingsRecipientDropzoneOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL);
+
+        if (empty($globalSettingsRecipientDropzoneOnArticleLabel)) {
+            $globalSettingsRecipientDropzoneOnArticleLabel = new ParametrageGlobal();
+            $globalSettingsRecipientDropzoneOnArticleLabel->setLabel(ParametrageGlobal::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL);
+            $entityManager->persist($globalSettingsRecipientDropzoneOnArticleLabel);
+        }
+
+        $globalSettingsRecipientDropzoneOnArticleLabel
+            ->setValue((int) ($data['param-add-recipient-dropzone-location-article-label'] === 'true'));
+
+        $globalSettingsBatchNumberOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
+
+        if (empty($globalSettingsBatchNumberOnArticleLabel)) {
+            $globalSettingsBatchNumberOnArticleLabel = new ParametrageGlobal();
+            $globalSettingsBatchNumberOnArticleLabel->setLabel(ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
+            $entityManager->persist($globalSettingsBatchNumberOnArticleLabel);
+        }
+
+        $globalSettingsBatchNumberOnArticleLabel
+            ->setValue((int) ($data['param-add-batch-number-article-label'] === 'true'));
+
+        $globalSettingsExpirationDateOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
+
+        if (empty($globalSettingsExpirationDateOnArticleLabel)) {
+            $globalSettingsExpirationDateOnArticleLabel = new ParametrageGlobal();
+            $globalSettingsExpirationDateOnArticleLabel->setLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
+            $entityManager->persist($globalSettingsExpirationDateOnArticleLabel);
+        }
+
+        $globalSettingsExpirationDateOnArticleLabel
+            ->setValue((int) ($data['param-add-expiration-date-article-label'] === 'true'));
+
         $parametrageGlobalCommandAndProjectNumbers = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
 
         if (empty($parametrageGlobalCommandAndProjectNumbers)) {
@@ -277,9 +348,45 @@ class ParametrageGlobalController extends AbstractController
         }
         $parametrageGlobalCL->setValue($data['param-cl-etiquette']);
 
+        $textEmergencyGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::EMERGENCY_TEXT_LABEL);
+
+        if (empty($textEmergencyGlobalSettings)) {
+            $textEmergencyGlobalSettings = new ParametrageGlobal();
+            $textEmergencyGlobalSettings->setLabel(ParametrageGlobal::EMERGENCY_TEXT_LABEL);
+            $entityManager->persist($textEmergencyGlobalSettings);
+        }
+        $textEmergencyGlobalSettings->setValue($data['emergency-title-label']);
+
+        $textCustomGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CUSTOM_TEXT_LABEL);
+
+        if (empty($textCustomGlobalSettings)) {
+            $textCustomGlobalSettings = new ParametrageGlobal();
+            $textCustomGlobalSettings->setLabel(ParametrageGlobal::CUSTOM_TEXT_LABEL);
+            $entityManager->persist($textCustomGlobalSettings);
+        }
+        $textCustomGlobalSettings->setValue($data['custom-title-label']);
+
+        $includeEmergencyInLabelGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_EMERGENCY_IN_LABEL);
+
+        if (empty($includeEmergencyInLabelGlobalSettings)) {
+            $includeEmergencyInLabelGlobalSettings = new ParametrageGlobal();
+            $includeEmergencyInLabelGlobalSettings->setLabel(ParametrageGlobal::INCLUDE_EMERGENCY_IN_LABEL);
+            $entityManager->persist($includeEmergencyInLabelGlobalSettings);
+        }
+        $includeEmergencyInLabelGlobalSettings->setValue((int) ($data['param-emergency-etiquette'] === 'true'));
+
+        $includeCustomInLabelGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_CUSTOMS_IN_LABEL);
+
+        if (empty($includeCustomInLabelGlobalSettings)) {
+            $includeCustomInLabelGlobalSettings = new ParametrageGlobal();
+            $includeCustomInLabelGlobalSettings->setLabel(ParametrageGlobal::INCLUDE_CUSTOMS_IN_LABEL);
+            $entityManager->persist($includeCustomInLabelGlobalSettings);
+        }
+        $includeCustomInLabelGlobalSettings->setValue((int) ($data['param-custom-etiquette'] === 'true'));
+
         $parametrageGlobalLogo = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::LABEL_LOGO);
 
-        if (!empty($request->files->all())) {
+        if (!empty($request->files->all()['logo'])) {
             $fileName = $attachmentService->saveFile($request->files->all()['logo'], AttachmentService::LABEL_LOGO);
             if (empty($parametrageGlobalLogo)) {
                 $parametrageGlobalLogo = new ParametrageGlobal();
@@ -288,6 +395,32 @@ class ParametrageGlobalController extends AbstractController
                 $entityManager->persist($parametrageGlobalLogo);
             }
             $parametrageGlobalLogo->setValue($fileName[array_key_first($fileName)]);
+        }
+
+        $customIconGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CUSTOM_ICON);
+
+        if (!empty($request->files->all()['custom-icon'])) {
+            $fileName = $attachmentService->saveFile($request->files->all()['custom-icon'], AttachmentService::CUSTOM_ICON);
+            if (empty($customIconGlobalSettings)) {
+                $customIconGlobalSettings = new ParametrageGlobal();
+                $customIconGlobalSettings
+                    ->setLabel(ParametrageGlobal::CUSTOM_ICON);
+                $entityManager->persist($customIconGlobalSettings);
+            }
+            $customIconGlobalSettings->setValue($fileName[array_key_first($fileName)]);
+        }
+
+        $emergencyIconGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::EMERGENCY_ICON);
+
+        if (!empty($request->files->all()['emergency-icon'])) {
+            $fileName = $attachmentService->saveFile($request->files->all()['emergency-icon'], AttachmentService::EMERGENCY_ICON);
+            if (empty($emergencyIconGlobalSettings)) {
+                $emergencyIconGlobalSettings = new ParametrageGlobal();
+                $emergencyIconGlobalSettings
+                    ->setLabel(ParametrageGlobal::EMERGENCY_ICON);
+                $entityManager->persist($emergencyIconGlobalSettings);
+            }
+            $emergencyIconGlobalSettings->setValue($fileName[array_key_first($fileName)]);
         }
         $entityManager->flush();
 
@@ -373,7 +506,34 @@ class ParametrageGlobalController extends AbstractController
             $em->flush();
             return new JsonResponse(['typeDemande' => $data['typeDemande'], 'prefixe' => $data['prefixe']]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/ajax-update-expiration-delay", name="ajax_update_expiration_delay",  options={"expose"=true},  methods="POST")
+     */
+    public function updateExpirationDelay(Request $request,
+                                          EntityManagerInterface $manager,
+                                          AlertService $service) {
+        $expirationDelay = $request->request->get('expirationDelay');
+
+        $parametrageGlobalRepository = $manager->getRepository(ParametrageGlobal::class);
+        $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);
+
+        if (empty($setting)) {
+            $setting = new ParametrageGlobal();
+            $setting->setLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);
+            $manager->persist($setting);
+        }
+
+        $setting->setValue($expirationDelay);
+        $manager->flush();
+
+        $service->generateAlerts($manager);
+
+        return $this->json([
+            'success' => true
+        ]);
     }
 
     /**
@@ -383,16 +543,14 @@ class ParametrageGlobalController extends AbstractController
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
-    public function getPrefixDemand(Request $request,
-                                    PrefixeNomDemandeRepository $prefixeNomDemandeRepository)
-    {
+    public function getPrefixDemand(Request $request, PrefixeNomDemandeRepository $prefixeNomDemandeRepository) {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $prefixeNomDemande = $prefixeNomDemandeRepository->findOneByTypeDemande($data);
             $prefix = $prefixeNomDemande ? $prefixeNomDemande->getPrefixe() : '';
 
             return new JsonResponse($prefix);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -433,7 +591,7 @@ class ParametrageGlobalController extends AbstractController
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -463,7 +621,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -522,7 +680,7 @@ class ParametrageGlobalController extends AbstractController
                 'msg' => 'Le jour "' . $this->engDayToFr[$dayName] . '" a bien été modifié.'
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -562,7 +720,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -592,7 +750,7 @@ class ParametrageGlobalController extends AbstractController
             }
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -601,8 +759,7 @@ class ParametrageGlobalController extends AbstractController
      * @param TranslationRepository $translationRepository
      * @param TranslationService $translationService
      * @return Response
-     * @throws NonUniqueResultException
-     * @throws NoResultException
+     * @throws Exception
      */
     public function saveTranslations(Request $request,
                                      TranslationRepository $translationRepository,
@@ -625,7 +782,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -682,35 +839,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route("/emplacement-reception", name="edit_reception_location", options={"expose"=true}, methods="POST")
-     * @param Request $request
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function editReceptionLocation(Request $request,
-                                          ParametrageGlobalRepository $parametrageGlobalRepository): Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $post = $request->request;
-            $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION);
-            $em = $this->getDoctrine()->getManager();
-            if (empty($parametrageGlobal)) {
-                $parametrageGlobal = new ParametrageGlobal();
-                $parametrageGlobal->setLabel(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION);
-                $em->persist($parametrageGlobal);
-            }
-            $parametrageGlobal->setValue($post->get('value'));
-
-            $em->flush();
-
-            return new JsonResponse(true);
-        }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -742,7 +871,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -759,7 +888,7 @@ class ParametrageGlobalController extends AbstractController
             $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
             return new JsonResponse($parametrageGlobal ? $parametrageGlobal->getValue() : true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -775,7 +904,7 @@ class ParametrageGlobalController extends AbstractController
             $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
             return new JsonResponse($parametrageGlobal128 ? $parametrageGlobal128->getValue() : true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
 
@@ -848,63 +977,36 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
-     * @Route("/modifier-destination-arrivage",
-     *     name="set_arrivage_default_dest",
+     * @Route("/edit-param-locations/{label}",
+     *     name="edit_param_location",
      *     options={"expose"=true},
      *     methods="GET|POST",
      *     condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @param $label
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function editArrivageDestination(Request $request,
-                                            ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    public function editParamLocation(Request $request,
+                                          ParametrageGlobalRepository $parametrageGlobalRepository,
+                                          string $label): Response
     {
         $value = json_decode($request->getContent(), true);
 
-        $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+        $parametrage = $parametrageGlobalRepository->findOneByLabel($label);
         $em = $this->getDoctrine()->getManager();
         if (!$parametrage) {
             $parametrage = new ParametrageGlobal();
-            $parametrage->setLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+            $parametrage->setLabel($label);
             $em->persist($parametrage);
         }
         $parametrage->setValue($value);
 
-        $em->flush();
-        return new JsonResponse(true);
-    }
-
-    /**
-     * @Route("/modifier-destination-demande-livraison",
-     *     name="edit_demande_livraison_default_dest",
-     *     options={"expose"=true},
-     *     methods="GET|POST",
-     *     condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function editDemandeLivraisonDestination(Request $request,
-                                                    ParametrageGlobalRepository $parametrageGlobalRepository): Response
-    {
-
-        $value = json_decode($request->getContent(), true);
-
-        $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
-        $em = $this->getDoctrine()->getManager();
-        if (!$parametrage) {
-            $parametrage = new ParametrageGlobal();
-            $parametrage->setLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
-            $em->persist($parametrage);
-        }
-        $parametrage->setValue($value);
         $em->flush();
         return new JsonResponse(true);
     }

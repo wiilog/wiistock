@@ -1,10 +1,13 @@
-// TODO AB
-// import Routing from '../../router';
-// import '../../form-reference-article';
 let $printTag;
-let pageTables = [];
+let pageTables;
 
 $(function () {
+    $('#modalNewFilter').on('hide.bs.modal', function(e) {
+        const $modal = $(e.currentTarget);
+        $modal.find('.input-group').html('');
+        $modal.find('.valueLabel').text('');
+    });
+
     $('.select2').select2();
     $printTag = $('#printTag');
     let activeFilter;
@@ -15,46 +18,44 @@ $(function () {
         activeFilter = false;
     }
     managePrintButtonTooltip(activeFilter, $printTag.is('button') ? $printTag.parent() : $printTag);
-    initTableRefArticle();
+    initTableRefArticle().then((table) => {
+        initPageModals(table);
+    });
     displayActifOrInactif($('#toggleActivOrInactiv'), true);
     registerNumberInputProtection($('#modalNewRefArticle').find('input[type="number"]'));
 
-    initPageModals();
 });
 
-function initPageModals() {
+function initPageModals(table) {
     let modalRefArticleNew = $("#modalNewRefArticle");
     let submitNewRefArticle = $("#submitNewRefArticle");
     let urlRefArticleNew = Routing.generate('reference_article_new', true);
-    InitModal(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, {tables: pageTables});
+    InitModal(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, {tables: [table]});
+    Select2.user(modalRefArticleNew.find('.ajax-autocomplete-user[name=managers]'))
 
     let modalDeleteRefArticle = $("#modalDeleteRefArticle");
     let SubmitDeleteRefArticle = $("#submitDeleteRefArticle");
     let urlDeleteRefArticle = Routing.generate('reference_article_delete', true);
-    InitModal(modalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArticle, {tables: pageTables, clearOnClose: true});
+    InitModal(modalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArticle, {tables: [table], clearOnClose: true});
 
     let modalModifyRefArticle = $('#modalEditRefArticle');
     let submitModifyRefArticle = $('#submitEditRefArticle');
     let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
-    InitModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, {tables: pageTables, clearOnClose: true});
+    InitModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, {tables: [table], clearOnClose: true});
+    Select2.user(modalModifyRefArticle.find('.ajax-autocomplete-user-edit'));
 
     let $modalPlusDemande = $('#modalPlusDemande');
     let $submitPlusDemande = $('#submitPlusDemande');
     let $submitPlusDemandeAndRedirect = $('#submitPlusDemandeAndRedirect');
     let urlPlusDemande = Routing.generate('plus_demande', true);
-    InitModal($modalPlusDemande, $submitPlusDemande, urlPlusDemande, {tables: pageTables, clearOnClose: true});
+    InitModal($modalPlusDemande, $submitPlusDemande, urlPlusDemande, {tables: [table], clearOnClose: true});
     InitModal($modalPlusDemande, $submitPlusDemandeAndRedirect, urlPlusDemande, {keepForm: true, success: redirectToDemande($modalPlusDemande)});
-
-    let modalColumnVisible = $('#modalColumnVisible');
-    let submitColumnVisible = $('#submitColumnVisible');
-    let urlColumnVisible = Routing.generate('save_column_visible', true);
-    InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
 
     let modalNewFilter = $('#modalNewFilter');
     let submitNewFilter = $('#submitNewFilter');
     let urlNewFilter = Routing.generate('filter_ref_new', true);
     InitModal(modalNewFilter, submitNewFilter, urlNewFilter, {
-        tables: pageTables,
+        tables: [table],
         clearOnClose: true,
         success: displayNewFilter
     });
@@ -96,85 +97,86 @@ function clearModalRefArticle(modal, data) {
 }
 
 function clearDemandeContent() {
-    $('.plusDemandeContent').find('#collecteShow, #livraisonShow').addClass('d-none');
-    $('.plusDemandeContent').find('#collecteShow, #livraisonShow').removeClass('d-block');
+    $('.plusDemandeContent')
+        .find('#collecteShow, #livraisonShow, #transfertShow')
+        .addClass('d-none')
+        .removeClass('d-block');
     //TODO supprimer partout où pas nécessaire d-block
 }
 
 function initTableRefArticle() {
     let url = Routing.generate('ref_article_api', true);
-    $.post(Routing.generate('ref_article_api_columns'), function (columns) {
-        let tableRefArticleConfig = {
-            processing: true,
-            serverSide: true,
-            paging: true,
-            order: [[1, 'asc']],
-            ajax: {
-                'url': url,
-                'type': 'POST',
-                'dataSrc': function (json) {
-                    return json.data;
-                }
-            },
-            length: 10,
-            columns: columns.map(function (column) {
-                return {
-                    ...column,
-                    class: column.title === 'Actions' ? 'noVis' : undefined,
-                    title: column.title === 'Actions' ? '' : column.title
-                }
-            }),
-            drawConfig: {
-                needsResize: true
-            },
-            rowConfig: {
-                needsRowClickAction: true
-            },
-            hideColumnConfig: {
-                columns,
-                tableFilter: 'tableRefArticle_id_filter'
-            },
-        };
-        const tableRefArticle = initDataTable('tableRefArticle_id', tableRefArticleConfig);
-        tableRefArticle.on('responsive-resize', function () {
-            resizeTable();
+    return $
+        .post(Routing.generate('ref_article_api_columns'))
+        .then(function (columns) {
+            let tableRefArticleConfig = {
+                processing: true,
+                serverSide: true,
+                paging: true,
+                order: [[1, 'asc']],
+                ajax: {
+                    'url': url,
+                    'type': 'POST',
+                    'dataSrc': function (json) {
+                        return json.data;
+                    }
+                },
+                length: 10,
+                columns: columns.map(function (column) {
+                    return {
+                        ...column,
+                        class: column.title === 'actions' ? 'noVis' : undefined,
+                        title: column.title === 'actions' ? '' : column.title
+                    }
+                }),
+                drawConfig: {
+                    needsResize: true
+                },
+                rowConfig: {
+                    needsRowClickAction: true
+                },
+                hideColumnConfig: {
+                    columns,
+                    tableFilter: 'tableRefArticle_id_filter'
+                },
+            };
+
+            pageTables = initDataTable('tableRefArticle_id', tableRefArticleConfig);
+            pageTables.on('responsive-resize', function () {
+                resizeTable();
+            });
+            return pageTables;
         });
-        pageTables.length = 0;
-        pageTables.push(tableRefArticle);
-    });
 }
 
 function resizeTable() {
-    pageTables[0]
+    pageTables
         .columns.adjust()
         .responsive.recalc();
 }
 
 function showDemande(bloc, type) {
-    let $livraisonShow = $('#livraisonShow');
-    let $collecteShow = $('#collecteShow');
+
+    let $blocChosen = null;
 
     if (type === "livraison") {
-        $collecteShow.removeClass('d-block');
-        $collecteShow.addClass('d-none');
-        $collecteShow.find('div').find('select, .quantite').removeClass('data');
-        $collecteShow.find('.data').removeClass('needed');
-
-        $livraisonShow.removeClass('d-none');
-        $livraisonShow.addClass('d-block');
-        $livraisonShow.find('div').find('select, .quantite').addClass('data');
-        $livraisonShow.find('.data').addClass('needed');
-        //setMaxQuantityByArtRef($livraisonShow.find('#quantity-to-deliver'));
+        $blocChosen = $('#livraisonShow');
     } else if (type === "collecte") {
-        $collecteShow.removeClass('d-none');
-        $collecteShow.addClass('d-block');
-        $collecteShow.find('div').find('select, .quantite').addClass('data');
-        $collecteShow.find('.data').addClass('needed');
+        $blocChosen = $('#collecteShow');
+    } else if (type === "transfert") {
+        $blocChosen = $('#transfertShow');
+    }
 
-        $livraisonShow.removeClass('d-block');
-        $livraisonShow.addClass('d-none');
-        $livraisonShow.find('div').find('select, .quantite').removeClass('data')
-        $livraisonShow.find('.data').removeClass('needed');
+    if ($blocChosen) {
+        $blocChosen.removeClass('d-block');
+        $blocChosen.addClass('d-none');
+        $blocChosen.find('div').find('select, .quantite').removeClass('data');
+        $blocChosen.find('.data').removeClass('needed');
+
+        $blocChosen.removeClass('d-none');
+        $blocChosen.addClass('d-block');
+        $blocChosen.find('div').find('select, .quantite').addClass('data');
+        $blocChosen.find('.data').addClass('needed');
     }
 }
 
@@ -204,8 +206,8 @@ function removeFilter($button, filterId) {
         data: {filterId},
         success: function(data) {
             if (data && data.success) {
-                pageTables[0].clear();
-                pageTables[0].ajax.reload();
+                pageTables.clear();
+                pageTables.ajax.reload();
 
                 const $filter = $button.closest('.filter');
                 $filter.tooltip('dispose');
@@ -345,7 +347,7 @@ let ajaxEditArticle = function ($select) {
                 $editChampLibre.html(data);
                 Select2.location($('.ajax-autocomplete-location-edit'));
                 toggleRequiredChampsLibres($select.closest('.modal').find('#type'), 'edit');
-                $('#livraisonShow').find('#quantityToTake').removeClass('d-none').addClass('data');
+                $('#quantityToTake').removeClass('d-none');
                 modalFooter.removeClass('d-none');
                 $editChampLibre.find('#quantite').attr('name', 'quantite');
                 setMaxQuantityByArtRef($('#livraisonShow').find('#quantity-to-deliver'));
@@ -418,17 +420,11 @@ function initRequiredChampsFixes(button) {
     }, 'json');
 }
 
-function toggleRequiredChampsFixes(button) {
-    let $modal = button.closest('.modal');
-    clearErrorMsg(button);
-    clearInvalidInputs($modal);
-    displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'), button);
-}
-
 function redirectToDemande($modal) {
     return () => {
         let livraisonId = $modal.find('.data[name="livraison"]').val();
         let collecteId = $modal.find('.data[name="collecte"]').val();
+        let transfertId = $modal.find('.data[name="transfert"]').val();
 
         let demandeId = null;
         let demandeType = null;
@@ -438,6 +434,9 @@ function redirectToDemande($modal) {
         } else if (livraisonId) {
             demandeId = livraisonId;
             demandeType = 'demande';
+        } else if (transfertId) {
+            demandeId = transfertId;
+            demandeType = 'transfer_request';
         }
 
         clearModal($modal);
@@ -447,29 +446,14 @@ function redirectToDemande($modal) {
     }
 }
 
-function saveRapidSearch() {
-    let searchesWanted = [];
-    $('#rapidSearch tbody td').each(function () {
-        searchesWanted.push($(this).html());
-    });
-    let params = {
-        recherches: searchesWanted
-    };
-    let json = JSON.stringify(params);
-    $.post(Routing.generate('update_user_searches', true), json, function (data) {
-        $("#modalRapidSearch").find('.close').click();
-        pageTables[0].search(pageTables[0].search()).draw();
-    });
-}
-
 function printReferenceArticleBarCode($button, event) {
     if (!$button.hasClass('disabled')) {
-        if (pageTables[0].data().count() > 0) {
+        if (pageTables.data().count() > 0) {
             window.location.href = Routing.generate(
                 'reference_article_bar_codes_print',
                 {
-                    length: pageTables[0].page.info().length,
-                    start: pageTables[0].page.info().start,
+                    length: pageTables.page.info().length,
+                    start: pageTables.page.info().start,
                     search: $('#tableRefArticle_id_filter input').val()
                 },
                 true
@@ -494,7 +478,7 @@ function displayActifOrInactif(select, onInit) {
     let path = Routing.generate('reference_article_actif_inactif');
 
     $.post(path, JSON.stringify(params), function () {
-        if (!onInit) pageTables[0].ajax.reload();
+        if (!onInit) pageTables.ajax.reload();
     });
 }
 
@@ -557,7 +541,7 @@ function updateQuantity(referenceArticleId) {
         dataType: 'json',
         success: (response) => {
             if (response.success) {
-                pageTables[0].ajax.reload();
+                pageTables.ajax.reload();
                 showBSAlert('Les quantités de la réference article ont bien été recalculées.', 'success');
             } else {
                 showBSAlert('Une erreur lors du calcul des quantités est survenue', 'danger');

@@ -1,26 +1,20 @@
 <input type="hidden" class="page-title" value="Dashboard | RÉCEPTION ARRIVAGE"/>
-<div class="row">
-    {% if extDashboard is not defined %}
-        <div class="col-12 pl-3 pr-3" id="blocIndicators">
-            <div class="plus-btn" id="btnIndicators" data-toggle="collapse" data-target="#indicators"
-                 aria-expanded="false" aria-controls="indicators">
-                <span class="icon"></span>
-            </div>
-            <div class="collapse indicators" id="indicators">
-                <div class="card card-body">
-                    {% include 'accueil/dashboardIndicatorsList.html.twig' %}
-                </div>
-            </div>
+
+{% if extDashboard is not defined %}
+    <div class="row">
+        <div class="col-12">
+            {% include 'accueil/buttonIndicator.html.twig' %}
         </div>
-    {% endif %}
-</div>
+    </div>
+{% endif %}
+
 <div class="row">
     <div class="dashboard-box-container col-6 pr-2 half-height">
         <div class="dashboard-box">
             <p class="title">Arrivage (UM)</p>
-            <div class="points">
-                <i class="fa fa-question has-tooltip"
-                   title="Nombre {{ 'arrivage.arrivages'|trans }} par jour."></i>
+            <div class="points has-tooltip"
+                 title="Nombre {{ 'arrivage.arrivages'|trans }} par jour.">
+                <i class="fa fa-question"></i>
             </div>
             <div class="h-100">
                 <canvas id="chartArrivalUm" width="300" height="90"></canvas>
@@ -42,9 +36,9 @@
     <div class="dashboard-box-container col-6 pl-2 half-height">
         <div class="dashboard-box">
             <p class="title">Réceptions (nombre d'associations)</p>
-            <div class="points">
-                <i class="fa fa-question has-tooltip"
-                   title="Nombre réceptions de traçabilité par jour."></i>
+            <div class="points has-tooltip"
+                 title="Nombre réceptions de traçabilité par jour.">
+                <i class="fa fa-question"></i>
             </div>
             <div class="h-100">
                 <canvas id="chartAssocRecep" width="300" height="90"></canvas>
@@ -68,10 +62,9 @@
     <div class="dashboard-box-container col-6 pr-2 half-height">
         <div class="dashboard-box justify-content-between">
             <p class="title mb-0 pb-0">Colis en retard</p>
-            <div class="points">
-                <i class="fa fa-question has-tooltip"
+            <div class="points has-tooltip"
                    title="Les 100 {{ 'arrivage.colis'|trans }} les plus anciens ayant dépassé le délai de présence sur son emplacement (paramétrable sur chaque emplacement).">
-                </i>
+                <i class="fa fa-question"></i>
             </div>
             <div class="dashboard-box-content pt-0 pb-0">
                 <table class="table retards-table w-100" id="table-retards">
@@ -83,11 +76,9 @@
         <div class="dashboard-box-container col-6 pl-2 half-height">
             <div id="dashboard-monetary" class="dashboard-box">
                 <p class="title">Fiabilité monétaire</p>
-                <div class="points">
-                    <i
-                        class="fa fa-question has-tooltip"
-                        title="Somme des quantités corrigées suite à un inventaire *
-                        prix unitaire de la référence/de l'article pour les 6 derniers mois"></i>
+                <div class="points has-tooltip"
+                     title="Somme des quantités corrigées suite à un inventaire *">
+                    <i class="fa fa-question"></i>
                 </div>
                 <div class="h-100">
                     <canvas id="chartMonetaryFiability" width="300" height="90"></canvas>

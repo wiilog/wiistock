@@ -14,8 +14,8 @@
                         Créer un compte
                     </div>
                     <div class="form-signin">
-                        {{ form_start(form) }}
-                        {{ form_row(form.username, {'attr': {'autofocus' : true} }) }}
+                        {{ form_start(form, {'attr': {'autofocus' : true, 'class': 'removeRequired'} }) }}
+                        {{ form_row(form.username) }}
                         {{ form_row(form.email) }}
                         {{ form_row(form.plainPassword.first) }}
                         {{ form_row(form.plainPassword.second) }}

@@ -16,22 +16,26 @@ class FieldsParam
     const FIELD_CODE_DATE_ATTENDUE = 'dateAttendue';
     const FIELD_CODE_DATE_COMMANDE = 'dateCommande';
     const FIELD_CODE_COMMENTAIRE = 'commentaire';
+    const FIELD_CODE_ATTACHMENTS = 'attachment';
     const FIELD_CODE_UTILISATEUR = 'utilisateur';
-    const FIELD_CODE_NUM_RECEPTION = 'numeroReception';
     const FIELD_CODE_TRANSPORTEUR = 'transporteur';
     const FIELD_CODE_EMPLACEMENT = 'emplacement';
     const FIELD_CODE_ANOMALIE = 'anomalie';
+    const FIELD_CODE_STORAGE_LOCATION = 'storageLocation';
+    const FIELD_CODE_EMERGENCY_REC = 'manualUrgent';
 
     const FIELD_LABEL_FOURNISSEUR = 'fournisseur';
     const FIELD_LABEL_NUM_COMMANDE = 'numéro de commande';
     const FIELD_LABEL_DATE_ATTENDUE = 'date attendue';
     const FIELD_LABEL_DATE_COMMANDE = 'date commande';
     const FIELD_LABEL_COMMENTAIRE = 'commentaire';
+    const FIELD_LABEL_ATTACHMENTS = 'pièces jointes';
     const FIELD_LABEL_UTILISATEUR = 'utilisateur';
-    const FIELD_LABEL_NUM_RECEPTION = 'numéro de réception';
 	const FIELD_LABEL_TRANSPORTEUR = 'transporteur';
 	const FIELD_LABEL_EMPLACEMENT = 'emplacement';
 	const FIELD_LABEL_ANOMALIE = 'anomalie';
+	const FIELD_LABEL_STORAGE_LOCATION = 'emplacement de stockage';
+	const FIELD_LABEL_EMERGENCY_REC = 'urgence';
 
 	const ENTITY_CODE_ARRIVAGE = 'arrivage';
 
@@ -45,7 +49,7 @@ class FieldsParam
     const FIELD_CODE_PRINT_ARRIVAGE = 'imprimerArrivage';
     const FIELD_CODE_COMMENTAIRE_ARRIVAGE = 'commentaire';
     const FIELD_CODE_PJ_ARRIVAGE = 'pj';
-    const FIELD_CODE_DUTY_ARRIVAGE = 'duty';
+    const FIELD_CODE_CUSTOMS_ARRIVAGE = 'customs';
     const FIELD_CODE_FROZEN_ARRIVAGE = 'frozen';
     const FIELD_CODE_PROJECT_NUMBER = 'projectNumber';
     const FIELD_CODE_BUSINESS_UNIT = 'businessUnit';
@@ -60,7 +64,7 @@ class FieldsParam
     const FIELD_LABEL_PRINT_ARRIVAGE = 'imprimer arrivage';
     const FIELD_LABEL_COMMENTAIRE_ARRIVAGE = 'commentaire';
     const FIELD_LABEL_PJ_ARRIVAGE = 'Pièces jointes';
-	const FIELD_LABEL_DUTY_ARRIVAGE = 'douane';
+	const FIELD_LABEL_CUSTOMS_ARRIVAGE = 'douane';
 	const FIELD_LABEL_FROZEN_ARRIVAGE = 'congelé';
     const FIELD_LABEL_PROJECT_NUMBER = 'numéro projet';
     const FIELD_LABEL_BUSINESS_UNIT = 'business unit';
@@ -93,9 +97,11 @@ class FieldsParam
 
     const FIELD_CODE_LOADING_ZONE = 'loadingZone';
     const FIELD_CODE_UNLOADING_ZONE = 'unloadingZone';
+    const FIELD_CODE_CARRIED_OUT_OPERATION_COUNT = 'carriedOutOperationCount';
 
     const FIELD_LABEL_LOADING_ZONE = 'chargement';
     const FIELD_LABEL_UNLOADING_ZONE = 'déchargement';
+    const FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT = 'nombre d\'opération(s) réalisée(s)';
 
 	/**
      * @ORM\Id()

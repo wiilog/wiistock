@@ -12,7 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
@@ -37,7 +37,7 @@ class AlertController extends AbstractController
      * @param UserService $userService
      * @return Response
      */
-    public function indexAlerte(UserService $userService): Response
+    public function index(UserService $userService): Response
     {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ALER)) {
             return $this->redirectToRoute('access_denied');
@@ -46,7 +46,12 @@ class AlertController extends AbstractController
         $typeRepository = $this->getDoctrine()->getRepository(Type::class);
 
         return $this->render('alerte_reference/index.html.twig', [
-            'types' => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE])
+            "types" => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]),
+            "alerts" => [
+                "security" => "Seuil de sécurité",
+                "alert" => "Seuil d'alerte",
+                "expiration" => "Péremption",
+            ]
         ]);
     }
 
@@ -69,6 +74,6 @@ class AlertController extends AbstractController
             $data = $refArticleDataService->getAlerteDataByParams($request->request, $this->getUser());
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 }

@@ -33,7 +33,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Service\ArticleDataService;
 use App\Entity\Demande;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -111,7 +111,7 @@ class PreparationController extends AbstractController
         $locationEndPrepa = $emplacementRepository->find($request->request->get('emplacement'));
 
         try {
-            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser());
+            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager);
         }
         catch(NegativeQuantityException $exception) {
             $barcode = $exception->getArticle()->getBarCode();
@@ -200,7 +200,7 @@ class PreparationController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
 
@@ -284,7 +284,7 @@ class PreparationController extends AbstractController
             }
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -338,9 +338,9 @@ class PreparationController extends AbstractController
      * @Route("/supprimer/{id}", name="preparation_delete", methods="GET|POST")
      * @param Preparation $preparation
      * @param EntityManagerInterface $entityManager
+     * @param PreparationsManagerService $preparationsManagerService
      * @param RefArticleDataService $refArticleDataService
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function delete(Preparation $preparation,
                            EntityManagerInterface $entityManager,
@@ -398,7 +398,7 @@ class PreparationController extends AbstractController
 
             return new JsonResponse($response);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -440,7 +440,7 @@ class PreparationController extends AbstractController
             }
             return new JsonResponse($resp);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -482,7 +482,7 @@ class PreparationController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -523,7 +523,7 @@ class PreparationController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -553,7 +553,7 @@ class PreparationController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -596,7 +596,7 @@ class PreparationController extends AbstractController
             }
             return new JsonResponse($data);
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 

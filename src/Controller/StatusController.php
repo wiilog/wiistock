@@ -22,7 +22,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Error\LoaderError;
@@ -115,7 +115,7 @@ class StatusController extends AbstractController {
             $data = $this->statusService->getDataForDatatable($request->request);
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -181,7 +181,7 @@ class StatusController extends AbstractController {
                 'msg' => $message
             ]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -224,7 +224,7 @@ class StatusController extends AbstractController {
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -261,6 +261,9 @@ class StatusController extends AbstractController {
             } else if ($data['defaultForCategory'] && $defaults > 0) {
                 $success = false;
                 $message = 'Vous ne pouvez pas créer un statut par défaut pour cette entité et ce type, il en existe déjà un.';
+            } else if (!$data['defaultForCategory'] && empty($defaults)) {
+                $success = false;
+                $message = 'Vous ne pouvez pas désactiver le paramétrage défaut de ce statut, il est le seul par défaut.';
             } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
                 $success = false;
                 $message = 'Vous ne pouvez pas ajouter un statut brouillon pour cette entité et ce type, il en existe déjà un.';
@@ -290,7 +293,7 @@ class StatusController extends AbstractController {
                 'msg' => $message
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -310,7 +313,17 @@ class StatusController extends AbstractController {
             $statutRepository = $entityManager->getRepository(Statut::class);
 
             $statusIsUsed = $statutRepository->countUsedById($statusId);
+            $statut = $statutRepository->find($statusId);
 
+            if ($statut->isDefaultForCategory()) {
+                $defaults = $statutRepository->countDefaults($statut->getCategorie(), $statut->getType(), $statut);
+                if (empty($defaults)) {
+                    return $this->json([
+                        'delete' => false,
+                        'html' => $this->renderView('status/modalDeleteStatusWrong.html.twig')
+                    ]);
+                }
+            }
             if (!$statusIsUsed) {
                 $delete = true;
                 $html = $this->renderView('status/modalDeleteStatusRight.html.twig');
@@ -322,7 +335,7 @@ class StatusController extends AbstractController {
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
 
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -358,7 +371,7 @@ class StatusController extends AbstractController {
                 'msg' => 'Le statut <strong>' . $statusLabel . '</strong> a bien été supprimé.'
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
 }

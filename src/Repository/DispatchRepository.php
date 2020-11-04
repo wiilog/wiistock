@@ -6,6 +6,7 @@ use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -117,11 +118,9 @@ class DispatchRepository extends EntityRepository
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
-            if (!empty($params->get('order')))
-            {
+            if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
-                if (!empty($order))
-                {
+                if (!empty($order)) {
                     $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
                     if ($column === 'status') {
                         $qb
@@ -148,14 +147,11 @@ class DispatchRepository extends EntityRepository
                             ->leftJoin('d.locationTo', 'sort_locationTo')
                             ->orderBy('sort_locationTo.label', $order);
                     } else {
-                        if (property_exists(Dispatch::class, $column)) {
-                            $qb->orderBy('d.' . $column, $order);
-                        } else {
-                            $clId = $freeFieldLabelsToIds[trim(mb_strtolower($column))] ?? null;
-                            if ($clId) {
-                                $jsonOrderQuery = "CAST(JSON_EXTRACT(d.freeFields, '$.\"${clId}\"') AS CHAR)";
-                                $qb->orderBy($jsonOrderQuery, $order);
-                            }
+                        $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                        if(is_numeric($freeFieldId)) {
+                            $qb->orderBy("JSON_EXTRACT(d.freeFields, '$.\"$freeFieldId\"')", $order);
+                        } else if (property_exists(Dispatch::class, $column)) {
+                            $qb->orderBy("d.$column", $order);
                         }
                     }
                 }
@@ -216,16 +212,16 @@ class DispatchRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getLastDispatchNumberByPrefix($prefix)
-    {
-        $queryBuilder = $this->createQueryBuilder('dispatch');
-        $queryBuilder
+    /**
+     * @param $date
+     * @return mixed|null
+     */
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('dispatch')
             ->select('dispatch.number')
             ->where('dispatch.number LIKE :value')
             ->orderBy('dispatch.creationDate', 'DESC')
-            ->setParameter('value', $prefix . '%');
-
-        $result = $queryBuilder
+            ->setParameter('value', Dispatch::PREFIX_NUMBER . '-' . $date . '%')
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;
@@ -254,7 +250,7 @@ class DispatchRepository extends EntityRepository
             ->where('status.needsMobileSync = 1')
             ->andWhere('status.state IN (:untreatedStates)')
             ->andWhere('type.id IN (:dispatchTypeIds)')
-            ->setParameter('untreatedStates', [Statut::DRAFT, Statut::NOT_TREATED])
+            ->setParameter('untreatedStates', [Statut::DRAFT, Statut::NOT_TREATED, Statut::PARTIAL])
             ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds());
 
         return $queryBuilder

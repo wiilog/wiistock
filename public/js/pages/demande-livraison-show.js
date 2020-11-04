@@ -23,11 +23,11 @@ function getCompareStock(submit) {
     })
         .then(function (response) {
             if (response.success) {
-                $('.zone-entete').html(response.message);
+                $('.zone-entete').html(response.entete);
                 $('#boutonCollecteSup, #boutonCollecteInf').addClass('d-none');
                 tableArticle.ajax.reload();
             } else {
-                showBSAlert(response.message, 'danger');
+                showBSAlert(response.msg, 'danger');
             }
         });
 }

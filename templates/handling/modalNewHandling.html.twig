@@ -27,8 +27,7 @@
 
                     <div class="form-group col-md-6 col-12">
                         <label for="type">Statut*</label>
-                        <select name="status"
-                                class="form-control data w-100 needed need-default">
+                        <select name="status" class="form-control data w-100 needed need-default">
                             <option value="">Choisir un statut...</option>
                             {% for status in handlingStatus %}
                                 {% if
@@ -91,32 +90,47 @@
                         </div>
                     {% endif %}
 
-                {% if fieldsParam|isFieldRequired('loadingZone', 'displayedFormsCreate') %}
-                <div class="form-group col-md-6 col-12">
-                    <label for="source">Chargement{{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? '*' : '' }}</label>
-                    <input class="form-control data {{ fieldsParam|isFieldRequired('loadingZone', 'mustToCreate') ? 'needed' : '' }}" name="source">
-                </div>
-                {% endif %}
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOADING_ZONE') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                        <div class="form-group col-md-6 col-12">
+                            <label for="source">Chargement{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}</label>
+                            <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}" name="source">
+                        </div>
+                    {% endif %}
 
-                {% if fieldsParam|isFieldRequired('unloadingZone', 'displayedFormsCreate') %}
-                <div class="form-group col-md-6 col-12">
-                    <label for="destination">Déchargement{{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? '*' : '' }}</label>
-                    <input class="form-control data {{ fieldsParam|isFieldRequired('unloadingZone', 'mustToCreate') ? 'needed' : '' }}" name="destination">
-                </div>
-                {% endif %}
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_UNLOADING_ZONE') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                        <div class="form-group col-md-6 col-12">
+                            <label for="destination">Déchargement{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}</label>
+                            <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}" name="destination">
+                        </div>
+                    {% endif %}
+
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                        <div class="form-group col-md-6 col-12">
+                            <label for="carriedOutOperationCount">Nombre d'opération(s) réalisée(s){{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' }}</label>
+                            <input type="number"
+                                   min="0"
+                                   class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' }}"
+                                   name="carriedOutOperationCount">
+                        </div>
+                    {% endif %}
 
                     <!-- CHAMPS LIBRES -->
                     <div class="col-12">
                         <span class="toggle-collapsible expanded">Champs libres</span>
                         <div class="collapsible expanded free-fields-container mb-2">
                             {% for type in freeFieldsTypes %}
-                                <div class="d-none" id="{{ type.typeId }}-new">
+                                <div class="d-none"
+                                     data-type="{{ type.typeId }}">
                                     {% include 'free_field/freeFieldsViewing.html.twig' with {
                                         freeFields: type.freeFields,
                                         freeFieldValues: [],
                                         colType: 'col-md-6 col-12',
                                         requiredType: 'requiredCreate',
-                                        actionType: 'new'
+                                        actionType: 'new',
+                                        disabledNeeded: true
                                     } %}
                                 </div>
                             {% endfor %}

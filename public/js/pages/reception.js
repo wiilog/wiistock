@@ -8,6 +8,7 @@ $(function () {
     initDateTimePicker();
     Select2.init($('#statut'), 'Statuts');
     initOnTheFlyCopies($('.copyOnTheFly'));
+    Select2.user($('.filters .ajax-autocomplete-user'), 'Destinataire(s)');
 
     // RECEPTION
     let pathTableReception = Routing.generate('reception_api', true);
@@ -31,17 +32,19 @@ $(function () {
             {"data": 'Date', 'name': 'date', 'title': 'Date création'},
             {"data": 'DateFin', 'name': 'dateFin', 'title': 'Date fin'},
             {"data": 'Numéro de commande', 'name': 'numCommande', 'title': 'Numéro commande'},
+            {"data": 'receiver', 'name': 'receiver', 'title': 'Destinataire(s)', orderable: false},
             {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
             {"data": 'Référence', 'name': 'reference', 'title': 'réception.n° de réception', translated: true},
             {"data": 'Statut', 'name': 'statut', 'title': 'Statut'},
+            {"data": 'storageLocation', 'name': 'storageLocation', 'title': 'Emplacement de stockage'},
             {"data": 'Commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
-            {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', visible: false},
+            {"data": 'emergency', 'name': 'emergency', 'title': 'urgence', visible: false},
         ],
         rowConfig: {
             needsColor: true,
             color: 'danger',
             needsRowClickAction: true,
-            dataToCheck: 'urgence'
+            dataToCheck: 'emergency'
         }
     };
     tableReception = initDataTable('tableReception_id', tableReceptionConfig);

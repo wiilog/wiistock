@@ -31,6 +31,7 @@ class EmplacementRepository extends EntityRepository
         return $this->createQueryBuilder('location')
             ->select('location.id')
             ->addSelect('location.label')
+            ->where('location.isActive = true')
             ->getQuery()
             ->getResult();
     }
@@ -181,7 +182,7 @@ class EmplacementRepository extends EntityRepository
             "
             SELECT e.id, e.label, (
                 SELECT COUNT(m)
-                FROM App\Entity\MouvementTraca AS m
+                FROM App\Entity\TrackingMovement AS m
                 JOIN m.emplacement e_other
                 JOIN m.type t
                 WHERE e_other.label = e.label AND t.nom LIKE 'depose'

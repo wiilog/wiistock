@@ -167,11 +167,11 @@ class InventoryMissionRepository extends ServiceEntityRepository
             ->select('ra')
             ->from('App\Entity\ReferenceArticle', 'ra')
             ->join('ra.inventoryMissions', 'm')
-			->leftJoin('ra.inventoryEntries', 'ie')
+			->leftJoin('ra.inventoryEntries', 'ie', Join::WITH, 'ie.mission = m')
             ->where('m = :mission')
             ->setParameter('mission', $mission);
 
-        $countQuery = $countTotal = QueryCounter::count($qb);
+        $countQuery = $countTotal = QueryCounter::count($qb, 'ra');
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -205,7 +205,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
                         ->andWhere('ra.libelle LIKE :value OR ra.reference LIKE :value OR ra.barCode LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
-                $countQuery = QueryCounter::count($qb);
+                $countQuery = QueryCounter::count($qb, 'ra');
             }
 
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
@@ -236,11 +236,11 @@ class InventoryMissionRepository extends ServiceEntityRepository
             ->select('a')
             ->from('App\Entity\Article', 'a')
             ->join('a.inventoryMissions', 'm')
-			->leftJoin('a.inventoryEntries', 'ie')
+            ->leftJoin('a.inventoryEntries', 'ie', Join::WITH, 'ie.mission = m')
             ->where('m = :mission')
             ->setParameter('mission', $mission);
 
-        $countQuery = $countTotal = QueryCounter::count($qb);
+        $countQuery = $countTotal = QueryCounter::count($qb, 'a');
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -274,7 +274,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
                         ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
-                $countQuery = QueryCounter::count($qb);
+                $countQuery = QueryCounter::count($qb, 'a');
             }
 
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
@@ -290,17 +290,18 @@ class InventoryMissionRepository extends ServiceEntityRepository
 		];
     }
 
-	/**
-	 * @param array $params
-	 * @param array $filters
-	 * @return array
-	 */
+    /**
+     * @param array $params
+     * @param array $filters
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function findMissionsByParamsAndFilters($params, $filters)
 	{
-		$em = $this->getEntityManager();
 		$qb = $this->createQueryBuilder("im");
 
-		$countTotal = QueryCounter::count($qb);
+		$countTotal = QueryCounter::count($qb, 'im');
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -348,7 +349,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered = QueryCounter::count($qb);
+		$countFiltered = QueryCounter::count($qb, 'im');
 
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

@@ -302,15 +302,20 @@ class DemandeCollecteService
 
         $averageTime = $averageRequestTimesByType[$typeId] ?? null;
 
-        $deliveryDateEstimated = 'Date de collecte non estimée';
+        $deliveryDateEstimated = 'Non estimée';
+        $estimatedFinishTimeLabel = 'Date de collecte non estimée';
+        $today = new DateTime();
 
         if (isset($averageTime)) {
             $expectedDate = (clone $request->getDate())
                 ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
-            $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
-            $today = new DateTime();
-            if ($expectedDate < $today) {
-                $deliveryDateEstimated = $today->format('d/m/Y');
+            if ($expectedDate >= $today) {
+                $estimatedFinishTimeLabel = 'Date et heure de collecte prévue';
+                $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
+                if ($expectedDate->format('d/m/Y') === $today->format('d/m/Y')) {
+                    $estimatedFinishTimeLabel = 'Heure de collecte estimée';
+                    $deliveryDateEstimated = $expectedDate->format('H:i');
+                }
             }
         }
 
@@ -334,6 +339,7 @@ class DemandeCollecteService
             'href' => $href ?? null,
             'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la collecte',
             'estimatedFinishTime' => $deliveryDateEstimated,
+            'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
             'requestStatus' => $requestStatus,
             'requestBodyTitle' => $bodyTitle,
             'requestLocation' => $request->getPointCollecte() ? $request->getPointCollecte()->getLabel() : 'Non défini',
@@ -342,7 +348,8 @@ class DemandeCollecteService
             'requestUser' => $request->getDemandeur() ? $request->getDemandeur()->getUsername() : 'Non défini',
             'cardColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'lightGrey' : 'white',
             'bodyColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'white' : 'lightGrey',
-            'topRightIcon' => 'fa-box',
+            'topRightIcon' => 'livreur.svg',
+            'emergencyText' => '',
             'progress' => $statusesToProgress[$requestStatus] ?? 0,
             'progressBarColor' => '#2ec2ab',
             'progressBarBGColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'white' : 'lightGrey',

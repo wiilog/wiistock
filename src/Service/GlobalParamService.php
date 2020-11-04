@@ -14,7 +14,6 @@ use App\Entity\Type;
 use App\Repository\CategoryTypeRepository;
 use App\Repository\EmplacementRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
@@ -36,8 +35,7 @@ Class GlobalParamService
 	/**
 	 * @param bool $includeNullDimensions
 	 * @return array
-	 * @throws NonUniqueResultException
-	 */
+     */
 	public function getDimensionAndTypeBarcodeArray(bool $includeNullDimensions = true) {
         $dimensionsEtiquettesRepository = $this->em->getRepository(DimensionsEtiquettes::class);
         $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
@@ -83,57 +81,16 @@ Class GlobalParamService
         }
     }
 
-	/**
-	 * @return array|null
-	 * @throws NonUniqueResultException
-	 */
-	public function getReceptionDefaultLocation() {
-	    $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
-	    $emplacementRepository = $this->em->getRepository(Emplacement::class);
-
-		$locationId = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION);
-
-		if ($locationId) {
-			$location = $emplacementRepository->find($locationId);
-
-			if ($location) {
-				$resp = [
-					'id' => $locationId,
-					'text' => $location->getLabel()
-				];
-			}
-		}
-		return $resp ?? null;
-	}
-
-	/**
-	 * @return array|null
-	 * @throws NonUniqueResultException
-	 */
-	public function getMvtDeposeArrival() {
-	    $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
-	    $emplacementRepository = $this->em->getRepository(Emplacement::class);
-
-		$locationId = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
-
-		if ($locationId) {
-			$location = $emplacementRepository->find($locationId);
-
-			if ($location) {
-				$resp = [
-					'id' => $locationId,
-					'text' => $location->getLabel()
-				];
-			}
-		}
-		return $resp ?? null;
-	}
-
-	public function getLivraisonDefaultLocation() {
+    /**
+     * Fonction générale de get d'un emplacement en fonction du label du paramétrage
+     * @param $label
+     * @return array|null
+     */
+	public function getParamLocation(string $label) {
         $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
         $emplacementRepository = $this->em->getRepository(Emplacement::class);
 
-        $locationId = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
+        $locationId = $parametrageGlobalRepository->getOneParamByLabel($label);
 
         if ($locationId) {
             $location = $emplacementRepository->find($locationId);
@@ -145,6 +102,7 @@ Class GlobalParamService
                 ];
             }
         }
+
         return $resp ?? null;
     }
 
@@ -177,8 +135,8 @@ Class GlobalParamService
     }
 
 	/**
-	 * @throws NonUniqueResultException
-	 */
+	 * @throws Exception
+     */
 	public function generateScssFile()
     {
         $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
@@ -272,7 +230,6 @@ Class GlobalParamService
 		foreach ($clusterCodes as $clusterCode) {
             $locationCluster = $locationClusterRepository->findOneBy(['code' => $clusterCode]);
             $resp[$clusterCode] = ['id' => '', 'text' => ''];
-dump($clusterCode, $locationCluster);
             if($locationCluster) {
                 /** @var Emplacement $location */
                 foreach($locationCluster->getLocations() as $location) {
@@ -296,8 +253,7 @@ dump($clusterCode, $locationCluster);
 
 	/**
 	 * @return array
-     * @throws NonUniqueResultException
-	 */
+     */
 	public function getDashboardListNatures() {
         $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
         $natureRepository = $this->em->getRepository(Nature::class);

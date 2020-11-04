@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use App\Service\UserService;
 
@@ -116,7 +116,7 @@ class InventoryAnomalyController extends AbstractController
                 'recordsTotal' => $anomaliesData['total'],
             ]);
 		}
-		throw new NotFoundHttpException("404");
+		throw new BadRequestHttpException();
 	}
 
     /**
@@ -133,7 +133,7 @@ class InventoryAnomalyController extends AbstractController
 			}
 
             try {
-                $quantitiesAreEqual = $this->inventoryService->doTreatAnomaly(
+                $res = $this->inventoryService->doTreatAnomaly(
                     $data['id'],
                     $data['barCode'],
                     $data['isRef'],
@@ -144,7 +144,7 @@ class InventoryAnomalyController extends AbstractController
 
                 $responseData = [
                     'success' => true,
-                    'msg' => $quantitiesAreEqual
+                    'msg' => $res['quantitiesAreEqual']
                         ? 'L\'anomalie a bien été traitée.'
                         : 'Un mouvement de stock correctif vient d\'être créé.'
                 ];
@@ -160,7 +160,7 @@ class InventoryAnomalyController extends AbstractController
 
 			return new JsonResponse($responseData);
 		}
-		throw new NotFoundHttpException("404");
+		throw new BadRequestHttpException();
 	}
 
 }

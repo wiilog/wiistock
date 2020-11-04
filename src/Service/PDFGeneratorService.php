@@ -4,6 +4,8 @@
 namespace App\Service;
 
 use App\Entity\Dispatch;
+use App\Entity\ParametrageGlobal;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,15 +32,19 @@ Class PDFGeneratorService
 
     private $kernel;
 
+    private $entityManager;
+
     public function __construct(GlobalParamService $globalParamService,
                                 PDFGenerator $PDFGenerator,
                                 KernelInterface $kernel,
-                                Twig_Environment $templating)
+                                Twig_Environment $templating,
+                                EntityManagerInterface $entityManager)
     {
         $this->globalParamService = $globalParamService;
         $this->templating = $templating;
         $this->PDFGenerator = $PDFGenerator;
         $this->kernel = $kernel;
+        $this->entityManager = $entityManager;
     }
 
     // TODO throw error if dimension do not exists
@@ -48,7 +54,6 @@ Class PDFGeneratorService
      * @param array $barcodeConfigs Array of ['code' => string, 'labels' => array]. labels optional
      * @return string
      * @throws LoaderError
-	 * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -79,7 +84,9 @@ Class PDFGeneratorService
                     'height' => 48,
                     'longestLabel' => $longestLabel
                 ],
-                'labels' => $labels
+                'labels' => $labels,
+                'firstCustomIcon' => $config['firstCustomIcon'] ?? null,
+                'secondCustomIcon' => $config['secondCustomIcon'] ?? null
             ];
         }, $barcodeConfigs);
 

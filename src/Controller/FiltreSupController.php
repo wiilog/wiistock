@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -39,7 +39,6 @@ class FiltreSupController extends AbstractController
             $user = $this->getUser();
 
             $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-
             $filterLabels = [
                 'dateMin' => FiltreSup::FIELD_DATE_MIN,
                 'dateMax' => FiltreSup::FIELD_DATE_MAX,
@@ -51,9 +50,10 @@ class FiltreSupController extends AbstractController
                 'commande' => FiltreSup::FIELD_COMMANDE,
                 'numArrivage' => FiltreSup::FIELD_NUM_ARRIVAGE,
                 'anomaly' => FiltreSup::FIELD_ANOMALY,
-                'duty' => FiltreSup::FIELD_DUTY,
+                'customs' => FiltreSup::FIELD_CUSTOMS,
                 'frozen' => FiltreSup::FIELD_FROZEN,
-                'statusEntity' => FiltreSup::FIELD_STATUS_ENTITY
+                'statusEntity' => FiltreSup::FIELD_STATUS_ENTITY,
+                'alert' => FiltreSup::FIELD_ALERT
             ];
 
             foreach ($filterLabels as $filterLabel => $filterName) {
@@ -96,6 +96,7 @@ class FiltreSupController extends AbstractController
                 'disputeNumber' => FiltreSup::FIELD_LITIGE_DISPUTE_NUMBER,
                 'receivers' => FiltreSup::FIELD_RECEIVERS,
                 'requesters' => FiltreSup::FIELD_REQUESTERS,
+                'operators' => FiltreSup::FIELD_OPERATORS,
                 'dispatchNumber' => FiltreSup::FIELD_DISPATCH_NUMBER,
                 'emergencyMultiple' => FiltreSup::FIELD_EMERGENCY_MULTIPLE
             ];
@@ -135,7 +136,7 @@ class FiltreSupController extends AbstractController
             $entityManager->flush();
             return new JsonResponse(true);
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -166,7 +167,7 @@ class FiltreSupController extends AbstractController
 
             return new JsonResponse($filters);
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 }

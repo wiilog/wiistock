@@ -10,7 +10,7 @@ use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\MouvementStock;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -36,7 +36,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
@@ -57,7 +57,10 @@ class ArticleController extends AbstractController
         Article::USED_ASSOC_LITIGE => "Cet article est lié à un ou plusieurs litiges.",
         Article::USED_ASSOC_INVENTORY => "Cet article est lié à une ou plusieurs missions d'inventaire.",
         Article::USED_ASSOC_STATUT_NOT_AVAILABLE => "Cet article n'est pas disponible.",
-        Article::USED_ASSOC_PREPA_IN_PROGRESS => "Cet article est dans une préparation en cours de traitement."
+        Article::USED_ASSOC_PREPA_IN_PROGRESS => "Cet article est dans une préparation en cours de traitement.",
+        Article::USED_ASSOC_TRANSFERT_REQUEST => "Cet article est dans une ou plusieurs demande(s) de transfert.",
+        Article::USED_ASSOC_COLLECT_ORDER => "Cet article est dans un ou plusieurs ordre(s) de collecte.",
+        Article::USED_ASSOC_INVENTORY_ENTRY => "Cet article est dans une ou plusieurs entrée(s) d'inventaire."
     ];
 
     /**
@@ -119,167 +122,21 @@ class ArticleController extends AbstractController
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function index(EntityManagerInterface $entityManager,
-                          ArticleDataService $articleDataService): Response
-    {
+    public function index(EntityManagerInterface $entityManager, ArticleDataService $articleDataService): Response {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
             return $this->redirectToRoute('access_denied');
         }
 
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
-        $category = CategoryType::ARTICLE;
-        $champL = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $champF[] = [
-            'label' => 'Actions',
-            'id' => 0,
-            'typage' => ''
-        ];
-        $champF[] = [
-            'label' => 'Libellé',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champF[] = [
-            'label' => 'Référence article',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champF[] = [
-            'label' => 'Code barre',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champF[] = [
-            'label' => 'Type',
-            'id' => 0,
-            'typage' => 'list'
-        ];
-        $champF[] = [
-            'label' => 'Statut',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Quantité',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champF[] = [
-            'label' => 'Emplacement',
-            'id' => 0,
-            'typage' => 'list'
-        ];
-        $champF[] = [
-            'label' => 'Date et heure',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Commentaire',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Prix unitaire',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champF[] = [
-            'label' => 'Dernier inventaire',
-            'id' => 0,
-            'typage' => 'date'
-        ];
-        $champsFText = [];
-
-        $champsFText[] = [
-            'label' => 'Libellé',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-//        $champsFText[] = [
-//            'label' => 'Référence',
-//            'id' => 0,
-//            'typage' => 'text'
-//
-//        ];
-		$champsFText[] = [
-			'label' => 'Référence article',
-			'id' => 0,
-			'typage' => 'text'
-
-		];
-		$champsFText[] = [
-            'label' => 'Code barre',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champsFText[] = [
-            'label' => 'Type',
-            'id' => 0,
-            'typage' => 'list'
-        ];
-        $champsFText[] = [
-            'label' => 'Statut',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champsFText[] = [
-            'label' => 'Quantité',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champsFText[] = [
-            'label' => 'Emplacement',
-            'id' => 0,
-            'typage' => 'list'
-        ];
-        $champsFText[] = [
-            'label' => 'Date et heure',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champsFText[] = [
-            'label' => 'Commentaire',
-            'id' => 0,
-            'typage' => 'text',
-            'isNeededNotEmpty' => true,
-        ];
-        $champsFText[] = [
-            'label' => 'Prix unitaire',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champsFText[] = [
-            'label' => 'Dernier inventaire',
-            'id' => 0,
-            'typage' => 'date'
-        ];
-        $champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_TEXT);
-        $champsLTList = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_LIST);
-        $champs = array_merge($champF, $champL);
-        $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
         $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $currentUser);
 
         return $this->render('article/index.html.twig', [
-            'champsSearch' => $champsSearch,
-            'recherches' => $user->getRechercheForArticle(),
-            'champs' => $champs,
-            'columnsVisibles' => $user->getColumnsVisibleForArticle(),
-            'activeOnly' => !empty($filter) && ($filter->getValue() === $articleDataService->getActiveArticleFilterValue())
+            "fields" => $articleDataService->getColumnVisibleConfig($entityManager, $currentUser),
+            "searches" => $currentUser->getRechercheForArticle(),
+            "activeOnly" => !empty($filter) && ($filter->getValue() === $articleDataService->getActiveArticleFilterValue())
         ]);
     }
 
@@ -326,7 +183,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -342,116 +199,28 @@ class ArticleController extends AbstractController
             $data = $this->articleDataService->getDataForDatatable($request->request, $this->getUser());
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
-     * @Route("/api-columns", name="article_api_columns", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
+     * @Route("/api-columns", name="article_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param ArticleDataService $articleDataService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function apiColumns(Request $request,
+    public function apiColumns(ArticleDataService $articleDataService,
                                EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $champLibreRepository = $entityManager->getRepository(FreeField::class);
-            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-
-            $currentUser = $this->getUser();
-            /** @var Utilisateur $currentUser */
-            $columnsVisible = $currentUser->getColumnsVisibleForArticle();
-            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
-            $category = CategoryType::ARTICLE;
-            $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-
-            $columns = [
-                [
-                    "title" => 'Actions',
-                    "data" => 'Actions',
-                    'name' => 'Actions',
-                    'orderable' => false,
-                    "class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Libellé',
-                    "data" => 'Libellé',
-                    'name' => 'Libellé',
-                    "class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
-
-				],
-				[
-					"title" => 'Référence article',
-					"data" => 'Référence article',
-					'name' => 'Référence article',
-					"class" => (in_array('Référence article', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Code barre',
-					"data" => 'Code barre',
-					'name' => 'Code barre',
-					"class" => (in_array('Code barre', $columnsVisible) ? 'display' : 'hide'),
-
-				],
-				[
-					"title" => 'Type',
-					"data" => 'Type',
-					'name' => 'Type',
-					"class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Statut',
-					"data" => 'Statut',
-					'name' => 'Statut',
-					"class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Quantité',
-					"data" => 'Quantité',
-					'name' => 'Quantité',
-					"class" => (in_array('Quantité', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Emplacement',
-					"data" => 'Emplacement',
-					'name' => 'Emplacement',
-					"class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Commentaire',
-					"data" => 'Commentaire',
-					'name' => 'Commentaire',
-					"class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
-                    'isNeededNotEmpty' => true,
-				],
-				[
-					"title" => 'Prix unitaire',
-					"data" => 'Prix unitaire',
-					'name' => 'Prix unitaire',
-					"class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Dernier inventaire',
-					"data" => 'Dernier inventaire',
-					'name' => 'Dernier inventaire',
-					"class" => (in_array('Dernier inventaire', $columnsVisible) ? 'display' : 'hide'),
-				],
-			];
-			foreach ($champs as $champ) {
-				$columns[] = [
-					"title" => ucfirst(mb_strtolower($champ['label'])),
-					"data" => $champ['label'],
-					'name' => $champ['label'],
-					"class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
-				];
-			}
-            return new JsonResponse($columns);
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
+            return $this->redirectToRoute('access_denied');
         }
-        throw new NotFoundHttpException("404");
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        return new JsonResponse(
+            $articleDataService->getColumnVisibleConfig($entityManager, $currentUser)
+        );
     }
 
     /**
@@ -484,7 +253,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -504,7 +273,7 @@ class ArticleController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
-            $article = $this->articleDataService->newArticle($data);
+            $article = $this->articleDataService->newArticle($data, $entityManager);
             $entityManager->flush();
 
             $quantity = $article->getQuantite();
@@ -529,7 +298,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse(!empty($article));
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -564,7 +333,7 @@ class ArticleController extends AbstractController
             }
             return new JsonResponse($response);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -595,66 +364,89 @@ class ArticleController extends AbstractController
             $article = $articleRepository->find($data['article']);
             $articleBarCode = $article->getBarCode();
 
-            $receptionReferenceArticle = $article->getReceptionReferenceArticle();
-            if (isset($receptionReferenceArticle)) {
-                $articleQuantity = $article->getQuantite();
-                $receivedQuantity = $receptionReferenceArticle->getQuantite();
-                $receptionReferenceArticle->setQuantite(max($receivedQuantity - $articleQuantity, 0));
-            }
+            $trackingPack = $article->getTrackingPack();
 
-            $rows = $article->getId();
+            if ($article->getCollectes()->isEmpty()
+                && $article->getOrdreCollecte()->isEmpty()
+                && $article->getTransferRequests()->isEmpty()
+                && $article->getInventoryMissions()->isEmpty()
+                && $article->getInventoryEntries()) {
 
-            // Delete mvt traca
-            /** @var MouvementTraca $mouvementTraca */
-            foreach ($article->getMouvementTracas()->toArray() as $mouvementTraca) {
-                $entityManager->remove($mouvementTraca);
-            }
-
-            // Delete mvt stock
-            /** @var MouvementStock $mouvementStock */
-            foreach ($article->getMouvements()->toArray() as $mouvementStock) {
-                $mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager);
-                $article->removeMouvement($mouvementStock);
-                $entityManager->remove($mouvementStock);
-            }
-            $entityManager->flush();
-
-            // Delete prepa
-            $preparation = $article->getPreparation();
-            if ($preparation) {
-                $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager);
-                $entityManager->flush();
-                $entityManager->remove($preparation);
-
-                // il faut que la preparation soit supprimée avant une maj des articles
-                $entityManager->flush();
-
-                foreach ($refToUpdate as $reference) {
-                    $refArticleDataService->updateRefArticleQuantities($reference);
+                if ($trackingPack) {
+                    if (!$trackingPack->getDispatchPacks()->isEmpty()
+                        || !$trackingPack->getLitiges()->isEmpty()
+                        || $trackingPack->getArrivage()) {
+                        $trackingPack->setArticle(null);
+                    }
                 }
 
+                $receptionReferenceArticle = $article->getReceptionReferenceArticle();
+                if (isset($receptionReferenceArticle)) {
+                    $articleQuantity = $article->getQuantite();
+                    $receivedQuantity = $receptionReferenceArticle->getQuantite();
+                    $receptionReferenceArticle->setQuantite(max($receivedQuantity - $articleQuantity, 0));
+                }
+
+                $rows = $article->getId();
+
+                // Delete mvt traca
+                /** @var TrackingMovement $trackingMovement */
+                foreach ($article->getTrackingMovements()->toArray() as $trackingMovement) {
+                    $entityManager->remove($trackingMovement);
+                }
+
+                // Delete mvt stock
+                /** @var MouvementStock $mouvementStock */
+                foreach ($article->getMouvements()->toArray() as $mouvementStock) {
+                    $mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager);
+                    $article->removeMouvement($mouvementStock);
+                    $entityManager->remove($mouvementStock);
+                }
                 $entityManager->flush();
-            }
-            // Delete demande
 
-            $demande = $article->getDemande();
-            if ($demande) {
-                $demandeLivraisonService->managePreRemoveDeliveryRequest($demande, $entityManager);
-                $entityManager->remove($demande);
+                // Delete prepa
+                $preparation = $article->getPreparation();
+                if ($preparation) {
+                    $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager);
+                    $entityManager->flush();
+                    $entityManager->remove($preparation);
+
+                    // il faut que la preparation soit supprimée avant une maj des articles
+                    $entityManager->flush();
+
+                    foreach ($refToUpdate as $reference) {
+                        $refArticleDataService->updateRefArticleQuantities($reference);
+                    }
+
+                    $entityManager->flush();
+                }
+                // Delete demande
+
+                $demande = $article->getDemande();
+                if ($demande) {
+                    $demandeLivraisonService->managePreRemoveDeliveryRequest($demande, $entityManager);
+                    $entityManager->remove($demande);
+                    $entityManager->flush();
+                }
+
+                $entityManager->remove($article);
                 $entityManager->flush();
+
+                $response['delete'] = $rows;
+                return new JsonResponse([
+                    'delete' => $rows,
+                    'success' => true,
+                    'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> a bien été supprimé.'
+                ]);
             }
-
-            $entityManager->remove($article);
-            $entityManager->flush();
-
-            $response['delete'] = $rows;
-            return new JsonResponse([
-                'delete' => $rows,
-                'success' => true,
-                'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> a bien été supprimé.'
-            ]);
+            else {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> est utilisé, vous ne pouvez pas le supprimer.'
+                ]);
+            }
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -693,7 +485,7 @@ class ArticleController extends AbstractController
                 $hasRightToDeleteTraca = $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE);
                 $hasRightToDeleteStock = $this->userService->hasRightFunction(Menu::STOCK, Action::DELETE);
 
-                $articlesMvtTracaIsEmpty = $article->getMouvementTracas()->isEmpty();
+                $articlesMvtTracaIsEmpty = $article->getTrackingMovements()->isEmpty();
                 $articlesMvtStockIsEmpty = $article->getMouvements()->isEmpty();
                 $articleRequest = $article->getDemande();
                 $articlePrepa = $article->getPreparation();
@@ -722,7 +514,7 @@ class ArticleController extends AbstractController
                 }
             }
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -762,7 +554,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse(['results' => $articles]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -791,7 +583,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -818,7 +610,7 @@ class ArticleController extends AbstractController
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -843,7 +635,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -872,7 +664,7 @@ class ArticleController extends AbstractController
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -918,7 +710,7 @@ class ArticleController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -950,88 +742,79 @@ class ArticleController extends AbstractController
             }
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/exporter-articles", name="export_all_arts", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
-     * @param FreeFieldService $freeFieldService
+     * @param FreeFieldService $ffService
      * @param CSVExportService $CSVExportService
      * @return Response
      */
-    public function exportAllArticles(EntityManagerInterface $entityManager,
-                                      FreeFieldService $freeFieldService,
-                                      CSVExportService $CSVExportService): Response
+    public function exportAllArticles(EntityManagerInterface $manager,
+                                      FreeFieldService $ffService,
+                                      CSVExportService $csvService): Response
     {
-        $articleRepository = $entityManager->getRepository(Article::class);
-        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE]);
+        $ffConfig = $ffService->createExportArrayConfig($manager, [CategorieCL::ARTICLE]);
 
-        $headers = array_merge(
-            [
-                'reference',
-                'libelle',
-                'quantité',
-                'type',
-                'statut',
-                'commentaire',
-                'emplacement',
-                'code barre',
-                'date dernier inventaire'
-            ],
-            $freeFieldsConfig['freeFieldsHeader']
-        );
+        $header = array_merge([
+            'reference',
+            'libelle',
+            'quantité',
+            'type',
+            'statut',
+            'commentaire',
+            'emplacement',
+            'code barre',
+            'date dernier inventaire',
+            'lot',
+            'date d\'entrée en stock',
+            'date de péremption',
+        ], $ffConfig['freeFieldsHeader']);
+
         $today = new DateTime();
-        $globalTitle = 'export-articles-' . $today->format('d-m-Y H:i:s') . '.csv';
-        $articlesExportFiles = [];
-        $allArticlesCount = intval($articleRepository->countAll());
-        $step = self::MAX_CSV_FILE_LENGTH;
-        $start = 0;
-        do {
-            $articles = $articleRepository->getAllWithLimits($start, $step);
-            $articlesExportFiles[] = $this->generateArtsCSVFile($CSVExportService, $freeFieldService, $articles, ($start === 0 ? $headers : null), $freeFieldsConfig);
-            $articles = null;
-            $start += $step;
-        } while ($start < $allArticlesCount);
+        $today = $today->format("d-m-Y H:i:s");
 
-        return $CSVExportService->createBinaryResponseFromFile(
-            $CSVExportService->mergeCSVFiles($articlesExportFiles),
-            $globalTitle
-        );
+        return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $ffConfig) {
+            $articleRepository = $manager->getRepository(Article::class);
+
+            $articles = $articleRepository->iterateAll();
+            foreach($articles as $article) {
+                $this->putArticleLine($output, $csvService, $ffService, $ffConfig, $article);
+            }
+        }, "export-articles-$today.csv", $header);
     }
 
 
-    private function generateArtsCSVFile(CSVExportService $CSVExportService,
-                                         FreeFieldService $freeFieldService,
-                                         array $articles,
-                                         ?array $headers,
-                                         array $freeFieldsConfig): string {
-        return $CSVExportService->createCsvFile(
-            $articles,
-            $headers,
-            function ($article) use ($freeFieldsConfig, $freeFieldService) {
-                $articleArray = [
-                    $article['reference'],
-                    $article['label'],
-                    $article['quantite'],
-                    $article['typeLabel'],
-                    $article['statutName'],
-                    $article['commentaire'] ? strip_tags($article['commentaire']) : '',
-                    $article['empLabel'],
-                    $article['barCode'],
-                    $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
-                ];
+    private function putArticleLine($handle,
+                                    CSVExportService $csvService,
+                                    FreeFieldService $ffService,
+                                    array $ffConfig,
+                                    array $article) {
+        $line = [
+            $article['reference'],
+            $article['label'],
+            $article['quantite'],
+            $article['typeLabel'],
+            $article['statutName'],
+            $article['commentaire'] ? strip_tags($article['commentaire']) : '',
+            $article['empLabel'],
+            $article['barCode'],
+            $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
+            $article['batch'],
+            $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
+            $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
+        ];
 
-                foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                    $articleArray[] = $freeFieldService->serializeValue([
-                        'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                        'valeur' => $article['freeFields'][$freeFieldId] ?? ''
-                    ]);
-                }
+        foreach ($ffConfig['freeFieldIds'] as $freeFieldId) {
+            $articleArray[] = $ffService->serializeValue([
+                'typage' => $ffConfig['freeFieldsIdToTyping'][$freeFieldId],
+                'valeur' => $article['freeFields'][$freeFieldId] ?? ''
+            ]);
+        }
 
-                return [$articleArray];
-            }
-        );
+        $csvService->putLine($handle, $line);
     }
 
     /**

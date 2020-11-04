@@ -47,17 +47,15 @@
                                 Impression des étiquettes
                             </div>
                         {% endif %}
-                        <a class="dropdown-item"
+                        <a class="dropdown-item pointer"
                            data-toggle="modal"
-                           data-target="#modalColumnVisible"
-                           href="#">
+                           data-target="#modalColumnVisible">
                             <span class="fas fa-cog mr-2"></span>
                             Gestion des colonnes
                         </a>
-                        <a class="dropdown-item"
+                        <a class="dropdown-item pointer"
                            data-toggle="modal"
-                           data-target="#modalRapidSearch"
-                           href="#">
+                           data-target="#modalRapidSearch">
                             <span class="fa fa-search mr-2"></span>
                             Recherche rapide
                         </a>
@@ -96,13 +94,24 @@
     {% include "article/modalShowArticle.html.twig" %}
     {% include "article/modalNewArticle.html.twig" %}
     {% include "article/modalDeleteArticle.html.twig" %}
-    {% include "article/modalRapidSearch.html.twig" %}
-    {% include "article/modalVisibleColumns.html.twig" %}
+
+    {% include "utils/rapid_search.html.twig" with {
+        'fields': fields,
+        'searches': searches,
+        'table': 'tableArticle',
+        'route': 'update_user_searches_for_article',
+    } %}
+
+    {% include "utils/visible_columns.html.twig" with {
+        'fields': fields,
+        'table': 'tableArticle',
+        'route': 'save_column_visible_for_article',
+    } %}
     <div class="d-none" id="barcodes"></div>
     <input type="hidden" id="listArticleIdToPrint">
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/article.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/article.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

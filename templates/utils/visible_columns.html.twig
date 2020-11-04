@@ -1,0 +1,75 @@
+<div class="modal fade" id="modalColumnVisible" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Gestion des colonnes</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table" style="width:100%">
+                    <thead>
+                    <tr>
+                        <th>Champs</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    {% for name, field in fields %}
+                        {% if field.name is defined %}
+                            {% set name = field.name %}
+                        {% endif %}
+
+                        {% if (field.alwaysVisible is not defined or not field.alwaysVisible) %}
+                            <tr class="pointer" onclick="toggleInputRadioOnRow(this)">
+                                {% set label = ((field.translated is defined and field.translated)
+                                    ? field.title|trans
+                                    : field.title) %}
+                                {% set tooltip = (field.translated is defined and field.translated) ? ('title="' ~ field.title ~ '"') %}
+                                <td>
+                                    <span {{ tooltip }}>{{ label | capitalize }}</span>
+                                </td>
+                                <td>
+                                    <div class="checkbox d-inline-block pointer no-data">
+                                        <input class="form-check-input {{ field.isColumnVisible ? 'data' }}"
+                                               name="{{ name }}"
+                                               onchange="showOrHideColumn($(this), {{ table }})"
+                                               type="checkbox"
+                                               {{ field.isColumnVisible ? 'checked' }}
+                                               id="cv_{{ table }}_{{ loop.index }}"
+                                               data-column="{{ loop.index0 }}" data-name="{{ name }}">
+                                        <label for="cv_{{ table }}_{{ loop.index }}" class="pointer"></label>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <div class="btn btn-secondary" data-dismiss="modal">Fermer</div>
+                <div class="btn btn-primary" id="submitColumnVisible">Enregistrer</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.addEventListener("load", function() {
+        const modal = $('#modalColumnVisible');
+        const button = $('#submitColumnVisible');
+        let initialized = false;
+
+        $('[data-target="#modalColumnVisible"]').click(() => {
+            if(initialized || {{ table }} === undefined) {
+                return;
+            }
+            console.log({{ table }})
+            InitModal(modal, button, '{{ path(route) }}', {tables: [{{ table }}]});
+            initialized = true;
+        })
+    });
+</script>

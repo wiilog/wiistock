@@ -29,10 +29,6 @@ use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
 
 
-/**
- * Class PreparationsManagerService
- * @package App\Service
- */
 class PreparationsManagerService
 {
 
@@ -89,7 +85,7 @@ class PreparationsManagerService
      * On termine les mouvements de prepa
      * @param Preparation $preparation
      * @param DateTime $date
-     * @param Emplacement $emplacement
+     * @param Emplacement|null $emplacement
      */
     public function closePreparationMouvement(Preparation $preparation, DateTime $date, Emplacement $emplacement = null): void
     {
@@ -144,7 +140,8 @@ class PreparationsManagerService
 
         $preparation
             ->setUtilisateur($userNomade)
-            ->setStatut($statutPreparePreparation);
+            ->setStatut($statutPreparePreparation)
+            ->setEndLocation($emplacement);
 
         // TODO get remaining articles and refs
         if (!$isPreparationComplete) {
@@ -160,7 +157,7 @@ class PreparationsManagerService
 
         $articles = $preparation->getArticles();
         foreach ($articles as $article) {
-            if ($article->getQuantitePrelevee() < $article->getQuantiteAPrelever()) {
+            if (($article->getQuantitePrelevee() < $article->getQuantiteAPrelever()) || empty($article->getQuantitePrelevee())) {
                 $complete = false;
                 break;
             }
@@ -256,7 +253,6 @@ class PreparationsManagerService
      * @param string $article
      * @param Preparation $preparation
      * @param bool $isSelectedByArticle
-     * @throws NonUniqueResultException
      */
     public function createMouvementLivraison(int $quantity,
                                              Utilisateur $userNomade,
@@ -298,12 +294,16 @@ class PreparationsManagerService
                 ? $article
                 : $articleRepository->findOneByReference($article);
             if ($article) {
+                /** @var MouvementStock $stockMovement */
+                $stockMovement = !$isSelectedByArticle
+                    ? $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId())
+                    : null;
                 // si c'est un article sélectionné par l'utilisateur :
                 // on prend la quantité donnée dans le mouvement
                 // sinon on prend la quantité spécifiée dans le mouvement de transfert (créé dans beginPrepa)
-                $mouvementQuantity = ($isSelectedByArticle
+                $mouvementQuantity = ($isSelectedByArticle || !isset($stockMovement))
                     ? $quantity
-                    : $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId())->getQuantity());
+                    : $stockMovement->getQuantity();
 
                 $mouvement
                     ->setArticle($article)
@@ -407,17 +407,14 @@ class PreparationsManagerService
     /**
      * @param Preparation $preparation
      * @param Utilisateur $user
+     * @param EntityManagerInterface $entityManager
      * @return array
-     * @throws NonUniqueResultException
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
      * @throws NegativeQuantityException
      */
-    public function createMouvementsPrepaAndSplit(Preparation $preparation, Utilisateur $user): array
+    public function createMouvementsPrepaAndSplit(Preparation $preparation, Utilisateur $user, EntityManagerInterface $entityManager): array
     {
-        $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
-        $statutRepository = $this->entityManager->getRepository(Statut::class);
+        $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
         $articlesSplittedToKeep = [];
         // modification des articles de la demande
         $articles = $preparation->getArticles();
@@ -450,9 +447,8 @@ class PreparationsManagerService
                         foreach ($article->getFreeFields() as $clId => $valeurChampLibre) {
                             $newArticle[$clId] = $valeurChampLibre;
                         }
-                        $insertedArticle = $this->articleDataService->newArticle($newArticle);
-                        $this->entityManager->flush();
-
+                        $insertedArticle = $this->articleDataService->newArticle($newArticle, $entityManager);
+                        $entityManager->flush();
                         if ($selected) {
                             if ($article->getQuantitePrelevee() !== $article->getQuantiteAPrelever()) {
                                 $insertedArticle->setQuantiteAPrelever($article->getQuantiteAPrelever() - $article->getQuantitePrelevee());
@@ -465,7 +461,6 @@ class PreparationsManagerService
                             $articlesSplittedToKeep[] = $article->getId();
                         }
                     }
-
                     if ($selected) {
                         // création des mouvements de préparation pour les articles
                         $mouvement = new MouvementStock();
@@ -474,9 +469,9 @@ class PreparationsManagerService
                             ->setArticle($article)
                             ->setQuantity($quantitePrelevee)
                             ->setEmplacementFrom($article->getEmplacement())
-                            ->setType(MouvementStock::TYPE_TRANSFERT)
+                            ->setType(MouvementStock::TYPE_TRANSFER)
                             ->setPreparationOrder($preparation);
-                        $this->entityManager->persist($mouvement);
+                        $entityManager->persist($mouvement);
                     }
                 }
                 else {
@@ -497,9 +492,9 @@ class PreparationsManagerService
                         ->setRefArticle($articleRef)
                         ->setQuantity($ligneArticle->getQuantitePrelevee())
                         ->setEmplacementFrom($articleRef->getEmplacement())
-                        ->setType(MouvementStock::TYPE_TRANSFERT)
+                        ->setType(MouvementStock::TYPE_TRANSFER)
                         ->setPreparationOrder($preparation);
-                    $this->entityManager->persist($mouvement);
+                    $entityManager->persist($mouvement);
                 }
                 else {
                     throw new NegativeQuantityException($articleRef);
@@ -507,7 +502,7 @@ class PreparationsManagerService
             }
         }
 
-        $this->entityManager->flush();
+        $entityManager->flush();
 
         if (!$preparation->getStatut() || !$preparation->getUtilisateur()) {
             // modif du statut de la préparation
@@ -515,7 +510,7 @@ class PreparationsManagerService
             $preparation
                 ->setStatut($statutEDP)
                 ->setUtilisateur($user);
-            $this->entityManager->flush();
+            $entityManager->flush();
         }
         return $articlesSplittedToKeep;
     }
@@ -588,18 +583,18 @@ class PreparationsManagerService
      */
     private function dataRowPreparation($preparation)
     {
-        $demande = $preparation->getDemande();
-        $url['show'] = $this->router->generate('preparation_show', ['id' => $preparation->getId()]);
-        $row = [
+        $request = $preparation->getDemande();
+
+        return [
             'Numéro' => $preparation->getNumero() ?? '',
             'Date' => $preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : '',
             'Opérateur' => $preparation->getUtilisateur() ? $preparation->getUtilisateur()->getUsername() : '',
             'Statut' => $preparation->getStatut() ? $preparation->getStatut()->getNom() : '',
-            'Type' => $demande && $demande->getType() ? $demande->getType()->getLabel() : '',
-            'Actions' => $this->templating->render('preparation/datatablePreparationRow.html.twig', ['url' => $url]),
+            'Type' => $request && $request->getType() ? $request->getType()->getLabel() : '',
+            'Actions' => $this->templating->render('preparation/datatablePreparationRow.html.twig', [
+                "url" => $this->router->generate('preparation_show', ["id" => $preparation->getId()])
+            ]),
         ];
-
-        return $row;
     }
 
 

@@ -20,6 +20,9 @@ class ReferenceArticle extends FreeFieldEntity
 
     const BARCODE_PREFIX = 'REF';
 
+    const STOCK_MANAGEMENT_FEFO = 'FEFO';
+    const STOCK_MANAGEMENT_FIFO = 'FIFO';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -113,11 +116,6 @@ class ReferenceArticle extends FreeFieldEntity
     private $mouvements;
 
     /**
-     * @ORM\Column(type="date", nullable=true)
-     */
-    private $expiryDate;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\InventoryCategory", inversedBy="refArticle")
      */
     private $category;
@@ -163,11 +161,6 @@ class ReferenceArticle extends FreeFieldEntity
     private $isUrgent;
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $dateEmergencyTriggered;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\LigneArticlePreparation", mappedBy="reference")
      */
     private $ligneArticlePreparations;
@@ -183,14 +176,35 @@ class ReferenceArticle extends FreeFieldEntity
     private $userThatTriggeredEmergency;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="referenceArticle")
+     * @var Pack|null
+     * @ORM\OneToOne(targetEntity=Pack::class, mappedBy="referenceArticle")
      */
-    private $mouvementTracas;
+    private $trackingPack;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
     private $needsMobileSync;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=TransferRequest::class, mappedBy="references")
+     */
+    private $transferRequests;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $stockManagement;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", inversedBy="referencesArticle")
+     */
+    private $managers;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Alert::class, mappedBy="reference")
+     */
+    private $alerts;
 
     public function __construct()
     {
@@ -204,11 +218,13 @@ class ReferenceArticle extends FreeFieldEntity
         $this->inventoryMissions = new ArrayCollection();
         $this->ordreCollecteReferences = new ArrayCollection();
         $this->ligneArticlePreparations = new ArrayCollection();
-        $this->mouvementTracas = new ArrayCollection();
+        $this->managers = new ArrayCollection();
 
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
         $this->quantiteDisponible = 0;
+        $this->transferRequests = new ArrayCollection();
+        $this->alerts = new ArrayCollection();
     }
 
     public function getId()
@@ -516,18 +532,6 @@ class ReferenceArticle extends FreeFieldEntity
         return $this;
     }
 
-    public function getExpiryDate(): ?\DateTimeInterface
-    {
-        return $this->expiryDate;
-    }
-
-    public function setExpiryDate(?\DateTimeInterface $expiryDate): self
-    {
-        $this->expiryDate = $expiryDate;
-
-        return $this;
-    }
-
     /**
      * @return Collection|InventoryEntry[]
      */
@@ -672,7 +676,7 @@ class ReferenceArticle extends FreeFieldEntity
         return $this->limitSecurity;
     }
 
-    public function setLimitSecurity($limitSecurity): self
+    public function setLimitSecurity(?int $limitSecurity): self
     {
         $this->limitSecurity = $limitSecurity;
         return $this;
@@ -683,7 +687,7 @@ class ReferenceArticle extends FreeFieldEntity
         return $this->limitWarning;
     }
 
-    public function setLimitWarning($limitWarning): self
+    public function setLimitWarning(?int $limitWarning): self
     {
         $this->limitWarning = $limitWarning;
         return $this;
@@ -732,18 +736,6 @@ class ReferenceArticle extends FreeFieldEntity
         return $this;
     }
 
-    public function getDateEmergencyTriggered(): ?\DateTimeInterface
-    {
-        return $this->dateEmergencyTriggered;
-    }
-
-    public function setDateEmergencyTriggered(?\DateTimeInterface $dateEmergencyTriggered): self
-    {
-        $this->dateEmergencyTriggered = $dateEmergencyTriggered;
-
-        return $this;
-    }
-
     /**
      * @return Collection|LigneArticlePreparation[]
      */
@@ -788,31 +780,60 @@ class ReferenceArticle extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|MouvementTraca[]
+     * @return null|Pack
      */
-    public function getMouvementTracas(): Collection
-    {
-        return $this->mouvementTracas;
+    public function getTrackingPack(): ?Pack {
+        return $this->trackingPack;
     }
 
-    public function addMouvementTraca(MouvementTraca $mouvementTraca): self
+    /**
+     * @param Pack|null
+     * @return self
+     */
+    public function setTrackingPack(?Pack $pack): self {
+        if (isset($this->trackingPack)
+            && $this->trackingPack !== $pack) {
+            $this->trackingPack->setReferenceArticle(null);
+        }
+        $this->trackingPack = $pack;
+        if (isset($this->trackingPack)
+            && $this->trackingPack->getReferenceArticle() !== $this) {
+            $this->trackingPack->setReferenceArticle($this);
+        }
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasTrackingMovements(): bool {
+        return (
+            isset($this->trackingPack)
+            && !($this->trackingPack->getTrackingMovements()->isEmpty())
+        );
+    }
+
+    /**
+     * @return Collection|Utilisateur[]
+     */
+    public function getManagers(): Collection
     {
-        if (!$this->mouvementTracas->contains($mouvementTraca)) {
-            $this->mouvementTracas[] = $mouvementTraca;
-            $mouvementTraca->setReferenceArticle($this);
+        return $this->managers;
+    }
+
+    public function addManager(Utilisateur $manager): self
+    {
+        if (!$this->managers->contains($manager)) {
+            $this->managers[] = $manager;
         }
 
         return $this;
     }
 
-    public function removeMouvementTraca(MouvementTraca $mouvementTraca): self
+    public function removeManager(Utilisateur $manager): self
     {
-        if ($this->mouvementTracas->contains($mouvementTraca)) {
-            $this->mouvementTracas->removeElement($mouvementTraca);
-            // set the owning side to null (unless already changed)
-            if ($mouvementTraca->getReferenceArticle() === $this) {
-                $mouvementTraca->setReferenceArticle(null);
-            }
+        if ($this->managers->contains($manager)) {
+            $this->managers->removeElement($manager);
         }
 
         return $this;
@@ -866,8 +887,88 @@ class ReferenceArticle extends FreeFieldEntity
                     break;
                 }
             }
+            if (!$inProgress) {
+                $transfers = $this->getTransferRequests();
+                foreach ($transfers as $transfer) {
+                    if ($transfer->needsToBeProcessed()) {
+                        $inProgress = true;
+                        break;
+                    }
+                }
+            }
         }
         return $inProgress;
+    }
+
+    /**
+     * @return Collection|TransferRequest[]
+     */
+    public function getTransferRequests(): Collection
+    {
+        return $this->transferRequests;
+    }
+
+    public function addTransferRequest(TransferRequest $transferRequest): self
+    {
+        if (!$this->transferRequests->contains($transferRequest)) {
+            $this->transferRequests[] = $transferRequest;
+            $transferRequest->addReference($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransferRequest(TransferRequest $transferRequest): self
+    {
+        if ($this->transferRequests->contains($transferRequest)) {
+            $this->transferRequests->removeElement($transferRequest);
+            $transferRequest->removeReference($this);
+        }
+
+        return $this;
+    }
+
+    public function getStockManagement(): ?string
+    {
+        return $this->stockManagement;
+    }
+
+    public function setStockManagement(?string $stockManagement): self
+    {
+        $this->stockManagement = $stockManagement;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Alert[]
+     */
+    public function getAlerts(): Collection
+    {
+        return $this->alerts;
+    }
+
+    public function addAlert(Alert $alert): self
+    {
+        if (!$this->alerts->contains($alert)) {
+            $this->alerts[] = $alert;
+            $alert->setReference($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAlert(Alert $alert): self
+    {
+        if ($this->alerts->contains($alert)) {
+            $this->alerts->removeElement($alert);
+            // set the owning side to null (unless already changed)
+            if ($alert->getReference() === $this) {
+                $alert->setReference(null);
+            }
+        }
+
+        return $this;
     }
 
 }

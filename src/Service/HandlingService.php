@@ -42,12 +42,14 @@ class HandlingService
     private $entityManager;
     private $mailerService;
     private $translator;
+    private $dateService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 UserService $userService,
                                 RouterInterface $router,
                                 MailerService $mailerService,
                                 EntityManagerInterface $entityManager,
+                                DateService $dateService,
                                 Twig_Environment $templating,
                                 TranslatorInterface $translator)
     {
@@ -58,6 +60,7 @@ class HandlingService
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
         $this->translator = $translator;
+        $this->dateService = $dateService;
     }
 
     public function getDataForDatatable($params = null, $statusFilter = null)
@@ -101,6 +104,10 @@ class HandlingService
      */
     public function dataRowHandling(Handling $handling)
     {
+        $treatmentDelay = $handling->getTreatmentDelay();
+        $treatmentDelayInterval = $treatmentDelay ? $this->dateService->secondsToDateInterval($treatmentDelay) : null;
+        $treatmentDelayStr = $treatmentDelayInterval ? $this->dateService->intervalToStr($treatmentDelayInterval) : '';
+
         return [
             'id' => $handling->getId() ? $handling->getId() : 'Non défini',
             'number' => $handling->getNumber() ? $handling->getNumber() : '',
@@ -113,6 +120,8 @@ class HandlingService
             'status' => $handling->getStatus()->getNom() ? $handling->getStatus()->getNom() : null,
             'emergency' => $handling->getEmergency() ?? '',
             'treatedBy' => $handling->getTreatedByHandling() ? $handling->getTreatedByHandling()->getUsername() : '',
+            'treatmentDelay' => $treatmentDelayStr,
+            'carriedOutOperationCount' => is_int($handling->getCarriedOutOperationCount()) ? $handling->getCarriedOutOperationCount() : '',
             'Actions' => $this->templating->render('handling/datatableHandlingRow.html.twig', [
                 'handling' => $handling
             ]),
@@ -121,23 +130,29 @@ class HandlingService
 
     /**
      * @param Handling $handling
+     * @param bool $isNewHandlingAndNotTreated
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function sendEmailsAccordingToStatus(Handling $handling): void {
+    public function sendEmailsAccordingToStatus(Handling $handling, $isNewHandlingAndNotTreated = false): void {
         $requester = $handling->getRequester();
         $emails = $requester ? $requester->getMainAndSecondaryEmails() : [];
         if (!empty($emails)) {
             $status = $handling->getStatus();
             if ($status && $status->getSendNotifToDeclarant()) {
                 $statusTreated = $status->isTreated();
-                $subject = $statusTreated
-                    ? $this->translator->trans('services.Demande de service effectuée')
-                    : $this->translator->trans('services.Changement de statut d\'une demande de service');
-                $title = $statusTreated
-                    ? $this->translator->trans('services.Votre demande de service a bien été effectuée') . '.'
-                    : $this->translator->trans('services.Une demande de service vous concernant a changé de statut') . '.';
+                if ($isNewHandlingAndNotTreated) {
+                    $subject = $this->translator->trans('services.Création d\'une demande de service');
+                    $title = $this->translator->trans('services.Votre demande de service a été créée') . '.';
+                } else {
+                    $subject = $statusTreated
+                        ? $this->translator->trans('services.Demande de service effectuée')
+                        : $this->translator->trans('services.Changement de statut d\'une demande de service');
+                    $title = $statusTreated
+                        ? $this->translator->trans('services.Votre demande de service a bien été effectuée') . '.'
+                        : $this->translator->trans('services.Une demande de service vous concernant a changé de statut') . '.';
+                }
                 $this->mailerService->sendMail(
                     'FOLLOW GT // ' . $subject,
                     $this->templating->render('mails/contents/mailHandlingTreated.html.twig', [
@@ -191,21 +206,28 @@ class HandlingService
         $state = $handling->getStatus() ? $handling->getStatus()->getState() : null;
 
         if ($hasRightHandling) {
-            $href = $this->router->generate('handling_index');
+            $href = $this->router->generate('handling_index') . '?open-modal=edit&modal-edit-id=' . $handling->getId();
         }
 
         $typeId = $handling->getType() ? $handling->getType()->getId() : null;
         $averageTime = $averageRequestTimesByType[$typeId] ?? null;
 
-        $deliveryDateEstimated = 'Date de fin non estimée';
+        $deliveryDateEstimated = 'Non estimée';
+        $estimatedFinishTimeLabel = 'Date de traitement non estimée';
 
-        if($averageTime) {
-            $requestDate = new DateTime($handling->getCreationDate()->format(DATE_ATOM));
-            $expectedDate = date_add($requestDate, $dateService->secondsToDateInterval($averageTime->getAverage()));
-            $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
+        if (isset($averageTime)) {
             $today = new DateTime();
-            if ($expectedDate < $today) {
-                $deliveryDateEstimated = $today->format('d/m/Y');
+            $expectedDate = (clone $handling->getCreationDate())
+                ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
+            if ($expectedDate >= $today) {
+                $estimatedFinishTimeLabel = 'Date et heure de traitement prévue';
+                $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
+                if ($expectedDate->format('d/m/Y') === $today->format('d/m/Y')) {
+                    $estimatedFinishTimeLabel = 'Heure de traitement estimée';
+                    $deliveryDateEstimated = $expectedDate->format('H:i');
+                } else {
+
+                }
             }
         }
 
@@ -228,6 +250,7 @@ class HandlingService
             'href' => $href ?? null,
             'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la demande de livraison',
             'estimatedFinishTime' => $deliveryDateEstimated,
+            'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
             'requestStatus' => $requestStatus,
             'requestBodyTitle' => $handling->getSubject(),
             'requestLocation' => $handling->getDestination() ?: 'Non défini',
@@ -236,7 +259,8 @@ class HandlingService
             'requestUser' => $handling->getRequester() ? $handling->getRequester()->getUsername() : 'Non défini',
             'cardColor' => 'white',
             'bodyColor' => 'lightGrey',
-            'topRightIcon' => 'fa-box',
+            'topRightIcon' => $handling->getEmergency() ? 'fa-exclamation-triangle red' : 'livreur.svg',
+            'emergencyText' => $handling->getEmergency() ?? '',
             'progress' =>  $statusesToProgress[$state] ?? 0,
             'progressBarColor' => '#2ec2ab',
             'progressBarBGColor' => 'lightGrey',

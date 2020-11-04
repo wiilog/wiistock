@@ -80,71 +80,77 @@
                     {% endif %}
                 </div>
                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                    <div class="row new-on-fly-form-container align-items-start">
+                    <div class="row align-items-start">
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
-                            <div class="row col formulaire fly-form">
-                                <div class="form-group col-10 invisible" id="fournisseurDisplay">
-                                    <label for="newFournisseur">Nom*</label>
-                                    <input type="text" id="newFournisseur"
-                                           class="form-control input-sm valeur newFormulaire neededNew copyOnTheFly"
-                                           name="Nom" maxlength="64">
-                                    <label for="newFournisseurCode" class="mt-2">Code*</label>
-                                    <input type="text" id="newFournisseurCode"
-                                           class="form-control input-sm newFormulaire neededNew copiedOnTheFly"
-                                           name="Code" maxlength="64">
-                                </div>
-                                <div class="form-group col-2 invisible submit-button-container" id="addFournisseur">
-                                    <span class="btn btn-primary"
-                                          onclick="onFlyFormSubmit(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))">
-                                    <i class="fas fa-check-circle"></i></span>
+                            <div class="col fly-form">
+                                <div class="row">
+                                    <div class="form-group col invisible" id="fournisseurDisplay">
+                                        <label for="newFournisseur">Nom*</label>
+                                        <input type="text" id="newFournisseur"
+                                               class="form-control input-sm valeur newFormulaire neededNew copyOnTheFly"
+                                               name="Nom" maxlength="64">
+                                        <label for="newFournisseurCode" class="mt-2">Code*</label>
+                                        <input type="text" id="newFournisseurCode"
+                                               class="form-control input-sm newFormulaire neededNew copiedOnTheFly"
+                                               name="Code" maxlength="64">
+                                    </div>
+                                    <div class="form-group col-auto invisible submit-button-container" id="addFournisseur">
+                                        <span class="btn btn-primary"
+                                              onclick="onFlyFormSubmit(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))">
+                                        <i class="fas fa-check-circle"></i></span>
+                                    </div>
                                 </div>
                             </div>
                         {% endif %}
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
-                            <div class="row col formulaire fly-form">
-                                <div class="form-group col-10 invisible" id="transporteurDisplay">
-                                    <label for="newTransporteur">Nom*</label>
-                                    <input type="text" id="newTransporteur"
-                                           class="form-control input-sm newFormulaire neededNew copyOnTheFly"
-                                           name="label" maxlength="64">
-                                    <label for="newTransporteurCode" class="mt-2">Code*</label>
-                                    <input type="text" id="newTransporteurCode"
-                                           class="form-control input-sm newFormulaire neededNew copiedOnTheFly"
-                                           name="code" maxlength="64">
-                                </div>
-                                <div class="form-group col-2 invisible submit-button-container" id="addTransporteur">
-                            <span class="btn btn-primary"
-                                  onclick="onFlyFormSubmit(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))">
-                                <i class="fas fa-check-circle"></i>
-                            </span>
+                            <div class="col fly-form">
+                                <div class="row">
+                                    <div class="form-group col invisible" id="transporteurDisplay">
+                                        <label for="newTransporteur">Nom*</label>
+                                        <input type="text" id="newTransporteur"
+                                               class="form-control input-sm newFormulaire neededNew copyOnTheFly"
+                                               name="label" maxlength="64">
+                                        <label for="newTransporteurCode" class="mt-2">Code*</label>
+                                        <input type="text" id="newTransporteurCode"
+                                               class="form-control input-sm newFormulaire neededNew copiedOnTheFly"
+                                               name="code" maxlength="64">
+                                    </div>
+                                    <div class="form-group col-auto invisible submit-button-container" id="addTransporteur">
+                                        <span class="btn btn-primary"
+                                              onclick="onFlyFormSubmit(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))">
+                                            <i class="fas fa-check-circle"></i>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         {% endif %}
 
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
-                            <div class="row col formulaire fly-form">
-                                <div class="form-group col-10 invisible" id="chauffeurDisplay">
-                                    <label for="newChauffeurName">Nom*</label>
-                                    <input type="text" id="newChauffeurName"
-                                           class="form-control input-sm newFormulaire neededNew"
-                                           name="nom" maxlength="64">
-                                    <label for="newChauffeurFirstName" class="mt-2">Prénom</label>
-                                    <input type="text" id="newChauffeurFirstName"
-                                           class="form-control input-sm newFormulaire"
-                                           name="prenom" maxlength="64">
-                                    <label for="newChauffeurNumero" class="mt-2">N°doc ID</label>
-                                    <input type="text" id="newChauffeurNumero"
-                                           class="form-control input-sm newFormulaire"
-                                           name="documentID" maxlength="64">
-                                </div>
-                                <div class="form-group col-2 invisible submit-button-container" id="addChauffeur">
-                            <span class="btn btn-primary"
-                                  onclick="onFlyFormSubmit(Routing.generate('chauffeur_new', true), $(this), 'chauffeurDisplay', 'addChauffeur', $('#chauffeur'))">
-                                <i class="fas fa-check-circle"></i>
-                            </span>
+                            <div class="col fly-form">
+                                <div class="row">
+                                    <div class="form-group col-10 invisible" id="chauffeurDisplay">
+                                        <label for="newChauffeurName">Nom*</label>
+                                        <input type="text" id="newChauffeurName"
+                                               class="form-control input-sm newFormulaire neededNew"
+                                               name="nom" maxlength="64">
+                                        <label for="newChauffeurFirstName" class="mt-2">Prénom</label>
+                                        <input type="text" id="newChauffeurFirstName"
+                                               class="form-control input-sm newFormulaire"
+                                               name="prenom" maxlength="64">
+                                        <label for="newChauffeurNumero" class="mt-2">N°doc ID</label>
+                                        <input type="text" id="newChauffeurNumero"
+                                               class="form-control input-sm newFormulaire"
+                                               name="documentID" maxlength="64">
+                                    </div>
+                                    <div class="form-group col-2 invisible submit-button-container" id="addChauffeur">
+                                        <span class="btn btn-primary"
+                                              onclick="onFlyFormSubmit(Routing.generate('chauffeur_new', true), $(this), 'chauffeurDisplay', 'addChauffeur', $('#chauffeur'))">
+                                            <i class="fas fa-check-circle"></i>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         {% endif %}
@@ -196,7 +202,7 @@
                     <div class="form-group col-4">
                         <label>Statut*</label>
                         <select class="needs-default form-control input-sm data needed needs-default"
-                                {% if uniqueType %}
+                                {% if uniqueType and defaultStatuses|length > 0%}
                                     data-init="{{ defaultStatuses[(typesArrival|first).id] }}"
                                 {% endif %}
                                 name="status">
@@ -205,7 +211,7 @@
                                 <option class="d-none"
                                         data-type-id="{{ status.type.id }}"
                                         value="{{ status.id }}"
-                                        {{ uniqueType and defaultStatuses[(typesArrival|first).id] == status.id ? 'selected' }}>
+                                        {{ defaultStatuses|length > 0 and uniqueType and defaultStatuses[(typesArrival|first).id] == status.id ? 'selected' }}>
                                     {{ status.nom }}
                                 </option>
                             {% endfor %}
@@ -347,12 +353,12 @@
                     {% endif %}
                 </div>
                 <div class="row">
-                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DUTY_ARRIVAGE') %}
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group col-2">
                             <label>{{ 'arrivage.douane'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
-                                <input class="checkbox no-clear" type="checkbox" name="duty">
+                                <input class="checkbox no-clear" type="checkbox" name="customs">
                                 <span class="slider round"></span>
                             </label>
                         </div>
@@ -373,13 +379,15 @@
                 <span class="toggle-collapsible expanded">Champs libres</span>
                 <div class="collapsible expanded free-fields-container mb-2">
                     {% for type in typesArrival %}
-                        <div class="d-none" id="{{ type.id }}-new">
+                        <div class="d-none"
+                             data-type="{{ type.id }}">
                             {% include 'free_field/freeFieldsViewing.html.twig' with {
                                 freeFields: type.champsLibres,
                                 freeFieldValues: [],
                                 colType: 'col-md-4 col-12',
                                 requiredType: 'requiredCreate',
-                                actionType: 'new'
+                                actionType: 'new',
+                                disabledNeeded: true
                             } %}
                         </div>
                     {% endfor %}

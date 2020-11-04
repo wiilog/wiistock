@@ -20,6 +20,7 @@ $(function () {
             {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
             {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
             {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
+            {"data": 'status', 'name': 'status', 'title': 'Statut'},
         ],
         order: [[2, 'asc']]
     });

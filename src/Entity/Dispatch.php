@@ -14,7 +14,7 @@ class Dispatch extends FreeFieldEntity
 {
     const CATEGORIE = 'acheminements';
 
-    const PREFIX_NUMBER = 'A-';
+    const PREFIX_NUMBER = 'A';
 
 
     /**
@@ -137,7 +137,7 @@ class Dispatch extends FreeFieldEntity
     private $statut;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="dispatch")
+     * @ORM\OneToMany(targetEntity="Attachment", mappedBy="dispatch")
      */
     private $attachements;
 
@@ -157,7 +157,7 @@ class Dispatch extends FreeFieldEntity
     private $dispatchPacks;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="dispatch")
+     * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="dispatch")
      */
     private $trackingMovements;
 
@@ -330,14 +330,14 @@ class Dispatch extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|PieceJointe[]
+     * @return Collection|Attachment[]
      */
     public function getAttachments(): Collection
     {
         return $this->attachements;
     }
 
-    public function addAttachment(PieceJointe $attachment): self
+    public function addAttachment(Attachment $attachment): self
     {
         if (!$this->attachements->contains($attachment)) {
             $this->attachements[] = $attachment;
@@ -347,7 +347,7 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
-    public function removeAttachment(PieceJointe $attachment): self
+    public function removeAttachment(Attachment $attachment): self
     {
         if ($this->attachements->contains($attachment)) {
             $this->attachements->removeElement($attachment);
@@ -506,7 +506,7 @@ class Dispatch extends FreeFieldEntity
         return $this->trackingMovements;
     }
 
-    public function addTrackingMovement(MouvementTraca $trackingMovement): self
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self
     {
         if (!$this->trackingMovements->contains($trackingMovement)) {
             $this->trackingMovements[] = $trackingMovement;
@@ -516,7 +516,7 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
-    public function removeTrackingMovement(MouvementTraca $trackingMovement): self
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self
     {
         if ($this->trackingMovements->contains($trackingMovement)) {
             $this->trackingMovements->removeElement($trackingMovement);

@@ -6,6 +6,7 @@ use App\Entity\Arrivage;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -22,7 +23,7 @@ use Exception;
 class ArrivageRepository extends EntityRepository
 {
     private const DtToDbLabels = [
-        'date' => 'date',
+        'creationDate' => 'date',
         'arrivalNumber' => 'arrivalNumber',
         'carrier' => 'carrier',
         'driver' => 'driver',
@@ -104,7 +105,7 @@ class ArrivageRepository extends EntityRepository
             ->addSelect('arrivalType.label AS type')
             ->addSelect('arrivage.noTracking')
             ->addSelect('arrivage.numeroCommandeList')
-            ->addSelect('arrivage.duty')
+            ->addSelect('arrivage.customs')
             ->addSelect('arrivage.frozen')
             ->addSelect('status.nom AS statusName')
             ->addSelect('arrivage.commentaire')
@@ -263,7 +264,7 @@ class ArrivageRepository extends EntityRepository
                 ->setParameter('userId', $userId);
         }
 
-        $total = QueryCounter::count($qb);
+        $total = QueryCounter::count($qb, 'a');
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -309,10 +310,10 @@ class ArrivageRepository extends EntityRepository
                         ->andWhere('a.isUrgent = :isUrgent')
                         ->setParameter('isUrgent', $filter['value']);
                     break;
-                case 'duty':
+                case 'customs':
                     if ($filter['value'] === '1') {
                         $qb
-                            ->andWhere('a.duty = :value')
+                            ->andWhere('a.customs = :value')
                             ->setParameter('value', $filter['value']);
                     }
                     break;
@@ -337,6 +338,7 @@ class ArrivageRepository extends EntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
+                    $searchValue = '%' . $search . '%';
                     $qb
                         ->leftJoin('a.transporteur', 't3')
                         ->leftJoin('a.chauffeur', 'ch3')
@@ -360,8 +362,9 @@ class ArrivageRepository extends EntityRepository
                             OR a.businessUnit LIKE :value
                             OR a.projectNumber LIKE :value
                             OR DATE_FORMAT(a.date, '%e/%m/%Y') LIKE :value
+                            OR JSON_SEARCH(a.freeFields, 'one', '$searchValue') IS NOT NULL
                         )")
-                        ->setParameter('value', '%' . $search . '%');
+                        ->setParameter('value', $searchValue);
                 }
             }
 
@@ -410,44 +413,30 @@ class ArrivageRepository extends EntityRepository
                             ->orderBy('u2.username', $order);
                     } else if ($column === 'custom') {
                         $qb
-                            ->orderBy('a.duty', $order);
-                    } else if ($column === 'frozen') {
-                        $qb
-                            ->orderBy('a.frozen', $order);
-                    } else if ($column === 'projectNumber') {
-                        $qb
-                            ->orderBy('a.projectNumber', $order);
-                    } else if ($column === 'businessUnit') {
-                        $qb
-                            ->orderBy('a.businessUnit', $order);
+                            ->orderBy('a.customs', $order);
                     } else if ($column === 'nbUm') {
                         $qb
                             ->addSelect('count(col2.id) as hidden nbum')
                             ->leftJoin('a.packs', 'col2')
                             ->orderBy('nbum', $order)
                             ->groupBy('col2.arrivage, a');
-                    } else if ($column === 'statut') {
+                    } else if ($column === 'status') {
                         $qb
                             ->leftJoin('a.statut', 'order_status')
                             ->orderBy('order_status.nom', $order);
                     } else {
-                        if (property_exists(Arrivage::class, $column)) {
-                            $qb
-                                ->orderBy('a.' . $column, $order);
-                        } else {
-                            $clId = $freeFieldLabelsToIds[trim(mb_strtolower($column))] ?? null;
-                            if ($clId) {
-                                $jsonOrderQuery = "CAST(JSON_EXTRACT(a.freeFields, '$.\"${clId}\"') AS CHAR)";
-                                $qb
-                                    ->orderBy($jsonOrderQuery, $order);
-                            }
+                        $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                        if(is_numeric($freeFieldId)) {
+                            $qb->orderBy("JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"')", $order);
+                        } else if (property_exists(Arrivage::class, $column)) {
+                            $qb->orderBy("a.$column", $order);
                         }
                     }
                 }
             }
         }
 
-        $filtered = QueryCounter::count($qb);
+        $filtered = QueryCounter::count($qb, 'a');
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

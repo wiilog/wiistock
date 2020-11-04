@@ -5,10 +5,11 @@
             <a href='{{ url }}' class="d-none action-on-click">
                 Voir
             </a>
-            <a href="#" class="dropdown-item"
-                data-id='{{ arrivage.id }}'
-                data-target='#modalListColis' data-toggle='modal'
-                onclick="listColis($(this))">
+            <a class="dropdown-item pointer"
+               data-id='{{ arrivage.id }}'
+               data-target='#modalListColis'
+               data-toggle='modal'
+               onclick="listColis($(this))">
                 <i class=' mr-2 fas fa-print'></i>Imprimer
             </a>
         </div>

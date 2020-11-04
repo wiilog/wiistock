@@ -21,6 +21,7 @@ use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
 use App\Entity\Wiilock;
+use App\Helper\Stream;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -423,6 +424,7 @@ class DashboardService
         $locationClusterRepository = $entityManager->getRepository(LocationCluster::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
+        $packsRepository = $entityManager->getRepository(Pack::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
 
@@ -448,8 +450,25 @@ class DashboardService
         ];
 
         if (!empty($naturesForGraph)) {
+            $cluster = $locationClusterRepository->findOneBy([
+                'code' => $clusterCode
+            ]);
             $packsOnCluster = $locationClusterRepository->getPacksOnCluster($clusterCode, $naturesForGraph);
-
+            $packsOnClusterVerif = Stream::from(
+                $packsRepository->getCurrentPackOnLocations(
+                $cluster->getLocations()->toArray(),
+                $naturesIdForGraph,
+                [],
+                false,
+                    'colis.id, emplacement.label'
+                )
+            )->reduce(function(array $carry, array $pack) {
+                if (!isset($carry[$pack['label']])) {
+                    $carry[$pack['label']] = [];
+                }
+                $carry[$pack['label']][] = $pack['id'];
+                return $carry;
+            }, []);
             $countByNatureBase = [];
             foreach ($naturesForGraph as $wantedNature) {
                 $countByNatureBase[$wantedNature->getLabel()] = 0;
@@ -465,51 +484,54 @@ class DashboardService
                                                          $naturesForGraph,
                                                          &$packsOnCluster,
                                                          $adminDelay,
+                                                         $packsOnClusterVerif,
                                                          &$locationCounters,
                                                          &$olderPackLocation,
                                                          &$globalCounter) {
                 $countByNature = array_merge($countByNatureBase);
                 $packUntreated = [];
                 foreach ($packsOnCluster as $pack) {
-                    $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $pack['firstTrackingDateTime'], $workFreeDays);
-                    $timeInformation = $this->enCoursService->getTimeInformation($date, $adminDelay);
-                    $countDownHours = isset($timeInformation['countDownLateTimespan'])
-                        ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
-                        : null;
+                    if (isset($packsOnClusterVerif[$pack['currentLocationLabel']]) && in_array(intval($pack['packId']), $packsOnClusterVerif[$pack['currentLocationLabel']])) {
+                        $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $pack['firstTrackingDateTime'], $workFreeDays);
+                        $timeInformation = $this->enCoursService->getTimeInformation($date, $adminDelay);
+                        $countDownHours = isset($timeInformation['countDownLateTimespan'])
+                            ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
+                            : null;
 
-                    if (isset($countDownHours)
-                        && (
-                            ($countDownHours < 0 && $beginSpan === -1) // count colis en retard
-                            || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
-                        )) {
+                        if (isset($countDownHours)
+                            && (
+                                ($countDownHours < 0 && $beginSpan === -1) // count colis en retard
+                                || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
+                            )) {
 
-                        $countByNature[$pack['natureLabel']]++;
+                            $countByNature[$pack['natureLabel']]++;
 
-                        $currentLocationLabel = $pack['currentLocationLabel'];
-                        $currentLocationId = $pack['currentLocationId'];
-                        $lastTrackingDateTime = $pack['lastTrackingDateTime'];
+                            $currentLocationLabel = $pack['currentLocationLabel'];
+                            $currentLocationId = $pack['currentLocationId'];
+                            $lastTrackingDateTime = $pack['lastTrackingDateTime'];
 
-                        // get older pack
-                        if ((
-                                empty($olderPackLocation['locationLabel'])
-                                || empty($olderPackLocation['locationId'])
-                                || empty($olderPackLocation['packDateTime'])
-                            )
-                            || ($olderPackLocation['packDateTime'] > $lastTrackingDateTime)) {
-                            $olderPackLocation['locationLabel'] = $currentLocationLabel;
-                            $olderPackLocation['locationId'] = $currentLocationId;
-                            $olderPackLocation['packDateTime'] = $lastTrackingDateTime;
+                            // get older pack
+                            if ((
+                                    empty($olderPackLocation['locationLabel'])
+                                    || empty($olderPackLocation['locationId'])
+                                    || empty($olderPackLocation['packDateTime'])
+                                )
+                                || ($olderPackLocation['packDateTime'] > $lastTrackingDateTime)) {
+                                $olderPackLocation['locationLabel'] = $currentLocationLabel;
+                                $olderPackLocation['locationId'] = $currentLocationId;
+                                $olderPackLocation['packDateTime'] = $lastTrackingDateTime;
+                            }
+
+                            // increment counters
+                            if (empty($locationCounters[$currentLocationId])) {
+                                $locationCounters[$currentLocationId] = 0;
+                            }
+
+                            $locationCounters[$currentLocationId]++;
+                            $globalCounter++;
+                        } else {
+                            $packUntreated[] = $pack;
                         }
-
-                        // increment counters
-                        if (empty($locationCounters[$currentLocationId])) {
-                            $locationCounters[$currentLocationId] = 0;
-                        }
-
-                        $locationCounters[$currentLocationId]++;
-                        $globalCounter++;
-                    } else {
-                        $packUntreated[] = $pack;
                     }
                 }
                 $packsOnCluster = $packUntreated;

@@ -26,12 +26,10 @@
                     <div class="dashboard-box-container side-panels">
                         <div class="dashboard-box dashboard-stats-container">
                             {% if not isDashboardExt %}
-                                <div class="points">
-                                    <i class="fa fa-question has-tooltip"
-                                       title="Nombre {{ 'arrivage.de colis'|trans }} présents
-                                sur l'emplacement paramétré sur le graphe 1 ayant
-                                l'encours de {{ 'natures.nature'|trans }} paramétrée pour le graphe 1 le plus ancien.">
-                                    </i>
+                                <div class="points has-tooltip"
+                                     title="Nombre {{ 'arrivage.de colis'|trans }} présents sur l'emplacement paramétré sur le graphe 1 ayant
+                                            l'encours de {{ 'natures.nature'|trans }} paramétrée pour le graphe 1 le plus ancien.">
+                                    <i class="fa fa-question"></i>
                                 </div>
                             {% endif %}
                             <p class="text-center title">
@@ -47,11 +45,10 @@
                     <div class="dashboard-box-container side-panels">
                         <div class="dashboard-box dashboard-stats-container text-center">
                             {% if not isDashboardExt %}
-                                <div class="points">
-                                    <i class="fa fa-question has-tooltip"
-                                       title="Emplacement paramétré sur le graphe 1
+                                <div class="points  has-tooltip"
+                                     title="Emplacement paramétré sur le graphe 1
                                       ayant l'encours de {{ 'natures.nature'|trans }} pour le graphe 1 paramétrée le plus ancien.">
-                                    </i>
+                                    <i class="fa fa-question"></i>
                                 </div>
                             {% endif %}
                             <p class="text-center title {{ not isDashboardExt ? 'px-3' }}">
@@ -78,10 +75,9 @@
                         {% endif %}
                     </p>
                     {% if not isDashboardExt %}
-                        <div class="points">
-                            <i class="fa fa-question has-tooltip"
-                               title="Nombre {{ 'arrivage.de colis'|trans }} (de {{ 'natures.nature'|trans }} paramétrées pour le graphe 2) présents depuis < 48h sur l'ensemble des emplacements paramétrés pour le graphe 2.">
-                            </i>
+                        <div class="points has-tooltip"
+                             title="Nombre {{ 'arrivage.de colis'|trans }} (de {{ 'natures.nature'|trans }} paramétrées pour le graphe 2) présents depuis < 48h sur l'ensemble des emplacements paramétrés pour le graphe 2.">
+                            <i class="fa fa-question"></i>
                         </div>
                     {% endif %}
                     <div class="h-100">
@@ -94,12 +90,11 @@
                     <div class="dashboard-box-container side-panels ">
                         <div class="dashboard-box dashboard-stats-container">
                             {% if not isDashboardExt %}
-                                <div class="points">
-                                    <i class="fa fa-question has-tooltip"
-                                       title="Nombre {{ 'arrivage.de colis'|trans }} présents
+                                <div class="points has-tooltip"
+                                     title="Nombre {{ 'arrivage.de colis'|trans }} présents
                                     sur l'emplacement paramétré sur le graphe 2 ayant l'encours
                                     de {{ 'natures.nature'|trans }} paramétrée pour le graphe 2 le plus ancien.">
-                                    </i>
+                                    <i class="fa fa-question "></i>
                                 </div>
                             {% endif %}
                             <p class="text-center title">
@@ -115,11 +110,10 @@
                     <div class="dashboard-box-container side-panels">
                         <div class="dashboard-box dashboard-stats-container">
                             {% if not isDashboardExt %}
-                                <div class="points">
-                                    <i class="fa fa-question has-tooltip"
-                                       title="Emplacement paramétré sur le graphe 2
+                                <div class="points has-tooltip"
+                                     title="Emplacement paramétré sur le graphe 2
                                       ayant l'encours de {{ 'natures.nature'|trans }} paramétrée pour le graphe 2 le plus ancien.">
-                                    </i>
+                                    <i class="fa fa-question"></i>
                                 </div>
                             {% endif %}
                             <p class="text-center title {{ not isDashboardExt ? 'px-3' }}">
@@ -154,9 +148,9 @@
                     <div id="encours-urgence-box" class="dashboard-box text-center justify-content-around dashboard-stats-container">
                         <div>
                             <p class="text-center title">
-                                <i class="fas red fa-exclamation-triangle"></i>
+                                <i class="emergency-icon"></i>
                                 Urgences à traiter
-                                <i class="fas red fa-exclamation-triangle"></i>
+                                <i class="emergency-icon"></i>
                             </p>
                             <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' : 'small' }}"></div>
                         </div>
@@ -186,7 +180,7 @@
                     <div id="encours-clearance-box-admin" class="dashboard-box text-center justify-content-around dashboard-stats-container">
                         <div>
                             <p class="text-center title">
-                                Colis en attente de dédouanement
+                                Colis dans le frigo ou sur bac rétention
                             </p>
                             <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' : 'small' }}"></div>
                         </div>

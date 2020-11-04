@@ -5,15 +5,15 @@ namespace App\Service;
 use App\Entity\CategorieCL;
 use App\Entity\FreeField;
 use App\Entity\FreeFieldEntity;
+use App\Helper\Stream;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Throwable;
 
-class FreeFieldService
-{
-    public function serializeValue(array $valeurChampLibre): ?string
-    {
+class FreeFieldService {
+
+    public function serializeValue(array $valeurChampLibre): ?string {
         if (in_array($valeurChampLibre['typage'], [FreeField::TYPE_DATE, FreeField::TYPE_DATETIME])
             && !empty($valeurChampLibre['valeur'])) {
             try {
@@ -21,9 +21,13 @@ class FreeFieldService
                 $champLibreDateTime = new DateTime($valeurChampLibre['valeur'], new DateTimeZone('Europe/Paris'));
                 $hourFormat = ($valeurChampLibre['typage'] === FreeField::TYPE_DATETIME) ? ' H:i' : '';
                 $formattedValue = $champLibreDateTime->format("d/m/Y$hourFormat");
-            } catch (Throwable $ignored) {
+            } catch(Throwable $ignored) {
                 $formattedValue = $valeurChampLibre['valeur'];
             }
+        } else if($valeurChampLibre['typage'] == FreeField::TYPE_BOOL) {
+            $formattedValue = ($valeurChampLibre['valeur'] === null || $valeurChampLibre['valeur'] === '')
+                ? ''
+                : ($valeurChampLibre['valeur'] ? "Oui" : "Non");
         } else {
             $formattedValue = $valeurChampLibre['valeur'];
         }
@@ -80,15 +84,20 @@ class FreeFieldService
             ->setFreeFields($freeFields);
     }
 
-    public function manageJSONFreeField(FreeField $champLibre, $value): string
-    {
-        $value = $champLibre->getTypage() === FreeField::TYPE_BOOL
-            ? empty($value) || $value === "false"
-                ? "0"
-                : "1"
-            : (is_array($value)
-                ? implode(';', $value)
-                : $value);
+    public function manageJSONFreeField(FreeField $champLibre, $value): string {
+        if($champLibre->getTypage() === FreeField::TYPE_BOOL) {
+            $value = empty($value) || $value === "false" ? "0" : "1";
+        } else if($champLibre->getTypage() === FreeField::TYPE_LIST_MULTIPLE) {
+            if (is_array($value)) {
+                $value = implode(';', $value);
+            }
+            else {
+                $decoded = json_decode($value, true);
+                $value = json_last_error() !== JSON_ERROR_NONE
+                    ? $value
+                    : implode(';', $decoded ?: []);
+            }
+        }
 
         return strval($value);
     }
@@ -123,7 +132,7 @@ class FreeFieldService
 
         $detailsChampLibres = [];
         foreach ($freeFieldEntity->getFreeFields() as $freeFieldId => $freeFieldValue) {
-            if ($freeFieldValue && isset($freeFields[$freeFieldId])) {
+            if ($freeFieldValue !== "" && $freeFieldValue !== null && isset($freeFields[$freeFieldId])) {
                 $detailsChampLibres[] = [
                     'label' => $freeFields[$freeFieldId]['label'],
                     'value' => $this->serializeValue([
@@ -137,18 +146,18 @@ class FreeFieldService
         return $detailsChampLibres;
     }
 
-    public function getFreeFieldLabelToId(EntityManagerInterface $entityManager,
-                                          string $categoryCLLabel,
-                                          string $category) {
+    public function getFreeFieldsById(EntityManagerInterface $entityManager, string $categoryCLLabel, string $category) {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-        $categorieCL = $categorieCLRepository->findOneByLabel($categoryCLLabel);
 
+        $categorieCL = $categorieCLRepository->findOneByLabel($categoryCLLabel);
         $champs = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        return array_reduce($champs, function (array $accumulator, array $freeField) {
-            $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
-            return $accumulator;
-        }, []);
+
+        return Stream::from($champs)
+            ->keymap(function($field) {
+                return [$field["id"], $field["label"]];
+            })
+            ->toArray();
     }
 
 }

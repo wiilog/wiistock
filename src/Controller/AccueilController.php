@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\AverageRequestTime;
 use App\Entity\CategorieStatut;
@@ -127,8 +128,9 @@ class AccueilController extends AbstractController
         $collecteRepository = $entityManager->getRepository(Collecte::class);
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
+        $alertRepository = $entityManager->getRepository(Alert::class);
 
-        $nbAlerts = $referenceArticleRepository->countAlert();
+        $nbAlerts = $alertRepository->countAll();
 
         $types = [
             MouvementStock::TYPE_INVENTAIRE_ENTREE,

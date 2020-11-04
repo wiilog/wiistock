@@ -45,25 +45,26 @@
 
         nav#main-nav {
             .menu-button {
-                display: inline-block;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 cursor: pointer;
-                padding: 1rem 0.5rem;
+                height: 50px;
+                width: 50px;
 
                 .icon-menu {
                     background-color: $white;
-                    width: 50px;
-                    height: 24px;
+                    width: 40px;
+                    height: 45px;
                     display: block;
                     -webkit-mask: url("../../public/svg/menu.svg") no-repeat center;
+                    -webkit-mask-size: 40px;
                     mask: url("../../public/svg/menu.svg") no-repeat center;
+                    mask-size: 40px;
                 }
 
                 &:hover {
-                    background-color: $white;
-
-                    .icon-menu {
-                        background-color: $backgroundBodyColorDark !important;
-                    }
+                    background-color: rgba(255, 255, 255, 0.1);
                 }
             }
 
@@ -135,4 +136,91 @@
 
 .logo {
     height: 7vh;
+}
+
+.quick-plus {
+    @extend .btn;
+    @include icon-button;
+    @include button-variant(#2EC2AB, #2EC2AB);
+
+    display: flex;
+    height: 36px;
+    width: 36px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+#quick-menu {
+    $itemMinHeight: 35px;
+    $iconMinSize: 15px;
+    $itemYPadding: 0.2rem;
+
+    .quick-menu-title {
+        color: #2EC2AB;
+        font-weight: 100;
+        font-size: 0.8rem;
+        height: 40px;
+        padding-top: 12px;
+    }
+
+    .quick-menu-icon {
+        background-color: $black;
+        min-width: $iconMinSize;
+        min-height: $iconMinSize;
+        margin-top: calc((#{$itemMinHeight} - #{$iconMinSize} - #{$itemYPadding * 2}) / 2);
+        display: inline-block;
+    }
+
+    & > a {
+        display: block;
+        padding: $itemYPadding 0.5rem;
+        font-size: 0.8rem;
+        min-height: $itemMinHeight;
+        font-weight: 100;
+
+        &:hover {
+            background: #2EC2AB;
+            color: white;
+            cursor: pointer !important;
+
+            & > span:first-of-type {
+                background-color: white;
+            }
+        }
+    }
+}
+
+
+.user {
+    background-color: rgba(255, 255, 255, 0.1);
+    height: 40px;
+    border-radius: 30px;
+    color: white;
+    line-height: 40px;
+    padding-left: 1px;
+    padding-right: 15px;
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+
+        span {
+            color: white;
+        }
+    }
+}
+
+.profile-picture {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: white;
+    font-size: 15px;
+    font-weight: bold;
+    color: $darkGrey;
+    text-align: center;
+    line-height: 30px;
+    margin: 0 5px;
+    user-select: none;
 }

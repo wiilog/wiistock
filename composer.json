@@ -40,15 +40,14 @@
         "symfony/web-link": "^4.4",
         "symfony/webpack-encore-bundle": "^1.7",
         "symfony/yaml": "^4.4",
-        "symfony/dotenv": "^4.4"
+        "doctrine/doctrine-fixtures-bundle": "^3.3"
     },
     "require-dev": {
-        "doctrine/doctrine-fixtures-bundle": "^3.3",
         "symfony/debug-pack": "*",
+        "symfony/dotenv": "^4.4",
         "symfony/maker-bundle": "^1.6",
-        "symfony/stopwatch": "^5.1",
-        "symfony/test-pack": "^1.0",
-        "symfony/web-profiler-bundle": "^5.0"
+        "symfony/profiler-pack": "*",
+        "symfony/test-pack": "^1.0"
     },
     "config": {
         "preferred-install": {

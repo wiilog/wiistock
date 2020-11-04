@@ -31,6 +31,7 @@ function initPage() {
     return $
         .post(Routing.generate('dispatch_api_columns'))
         .then((columns) => {
+            console.log(columns)
             let tableDispatchesConfig = {
                 serverSide: true,
                 processing: true,
@@ -48,13 +49,7 @@ function initPage() {
                 drawConfig: {
                     needsSearchOverride: true,
                 },
-                columns: columns.map(function (column) {
-                    return {
-                        ...column,
-                        class: column.title === 'Actions' ? 'noVis' : undefined,
-                        title: column.title === 'Actions' ? '' : column.title
-                    }
-                }),
+                columns,
                 hideColumnConfig: {
                     columns,
                     tableFilter: 'tableDispatches'
@@ -67,10 +62,5 @@ function initPage() {
             let $submitNewDispatch = $("#submitNewDispatch");
             let urlDispatchNew = Routing.generate('dispatch_new', true);
             InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew, {tables: [tableDispatches]});
-
-            let modalColumnVisible = $('#modalColumnVisibleDispatch');
-            let submitColumnVisible = $('#submitColumnVisibleDispatch');
-            let urlColumnVisible = Routing.generate('save_column_visible_for_dispatch', true);
-            InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
         });
 }

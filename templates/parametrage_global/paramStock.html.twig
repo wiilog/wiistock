@@ -1,0 +1,49 @@
+<a data-toggle="collapse" href="#paramStock" role="button" aria-expanded="false"
+   aria-controls="paramStock" class="col-12 mb-4">
+    <h1 class="btn btn-primary m-0 w-100 border-radius-light">
+        Paramétrage stock
+        <i class="fas fa-arrow-alt-circle-down ml-2"></i>
+    </h1>
+</a>
+<div class="collapse col-12" id="paramStock">
+    <div class="float-right btn btn-success" onclick="updateStockParam()">
+        <i class='fas fa-check'></i>
+    </div>
+    <div class="row mt-2">
+        <div class="form-group col-12 p-0">
+            <div class="w-100">
+                {% set checked = (securityThreshold ? 'checked' : '') %}
+                <label class="switch">
+                    <input type="checkbox"
+                           class="checkbox col-3"
+                           {{ checked }}
+                           name="param-security-threshold"
+                           data-param="{{ constant('App\\Entity\\ParametrageGlobal::SEND_MAIL_MANAGER_SECURITY_THRESHOLD') }}">
+                    <span class="slider round"></span>
+                </label>
+                <label class="pl-1" for="param-security-threshold">Envoi de mail au gestionnaire de la référence si seuil de sécurité atteint</label>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12">
+            {% set checked = (alertThreshold ? 'checked' : '') %}
+            <label class="switch">
+                <input type="checkbox"
+                       class="checkbox col-3"
+                       {{ checked }}
+                       name="param-alert-threshold"
+                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::SEND_MAIL_MANAGER_WARNING_THRESHOLD') }}">
+                <span class="slider round"></span>
+            </label>
+            <label class="pl-1" for="param-alert-threshold">Envoi de mail au gestionnaire de la référence si seuil d'alerte atteint</label>
+        </div>
+    </div>
+    <div class="form-group w-fit-content mt-2">
+        <label>Délais alerte de péremption (jours)</label>
+        <input type="number" class="form-control data"
+               min="0" max="365"
+               name="expirationDelay"
+               value="{{ expirationDelay }}">
+    </div>
+</div>

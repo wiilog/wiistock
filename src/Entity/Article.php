@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use DateTime;
+use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Selectable;
@@ -28,6 +30,9 @@ class Article extends FreeFieldEntity
     const USED_ASSOC_INVENTORY = 2;
     const USED_ASSOC_STATUT_NOT_AVAILABLE = 3;
     const USED_ASSOC_PREPA_IN_PROGRESS = 4;
+    const USED_ASSOC_TRANSFERT_REQUEST = 5;
+    const USED_ASSOC_COLLECT_ORDER = 6;
+    const USED_ASSOC_INVENTORY_ENTRY = 7;
 
     const BARCODE_PREFIX = 'ART';
 
@@ -145,20 +150,45 @@ class Article extends FreeFieldEntity
     private $ordreCollecte;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="articles")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="articles", cascade={"remove"})
      */
     private $litiges;
 
     /**
+     * @var Preparation|null
      * @ORM\ManyToOne(targetEntity="App\Entity\Preparation", inversedBy="articles")
      */
     private $preparation;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="article")
+     * @ORM\OneToOne(targetEntity=Pack::class, mappedBy="article")
      */
-    private $mouvementTracas;
+    private $trackingPack;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=TransferRequest::class, mappedBy="articles")
+     */
+    private $transferRequests;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Alert::class, mappedBy="article", cascade={"remove"})
+     */
+    private $alerts;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $batch;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $expiryDate;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $stockEntryDate;
 
     public function __construct()
     {
@@ -168,9 +198,10 @@ class Article extends FreeFieldEntity
         $this->inventoryMissions = new ArrayCollection();
         $this->litiges = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
-        $this->mouvementTracas = new ArrayCollection();
+        $this->transferRequests = new ArrayCollection();
 
         $this->quantite = 0;
+        $this->alerts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -325,6 +356,8 @@ class Article extends FreeFieldEntity
     public function setDemande(?Demande $demande): self
     {
         $this->demande = $demande;
+        $demande->addArticle($this);
+
         return $this;
     }
 
@@ -546,40 +579,47 @@ class Article extends FreeFieldEntity
 
     public function setPreparation(?Preparation $preparation): self
     {
+        if ($this->preparation && $this->preparation !== $preparation) {
+            $this->preparation->removeArticle($this);
+        }
+
         $this->preparation = $preparation;
+
+        if ($this->preparation) {
+            $this->preparation->addArticle($this);
+        }
 
         return $this;
     }
 
     /**
-     * @return Collection|MouvementTraca[]
+     * @return null|Pack
      */
-    public function getMouvementTracas(): Collection
-    {
-        return $this->mouvementTracas;
+    public function getTrackingPack(): ?Pack {
+        return $this->trackingPack;
     }
 
-    public function addMouvementTraca(MouvementTraca $mouvementTraca): self
-    {
-        if (!$this->mouvementTracas->contains($mouvementTraca)) {
-            $this->mouvementTracas[] = $mouvementTraca;
-            $mouvementTraca->setArticle($this);
+    /**
+     * @param Pack|null
+     * @return Article
+     */
+    public function setTrackingPack(?Pack $pack): self {
+        if (isset($this->trackingPack)
+            && $this->trackingPack !== $pack) {
+            $this->trackingPack->setArticle(null);
         }
-
+        $this->trackingPack = $pack;
+        if (isset($this->trackingPack)
+            && $this->trackingPack->getArticle() !== $this) {
+            $this->trackingPack->setArticle($this);
+        }
         return $this;
     }
 
-    public function removeMouvementTraca(MouvementTraca $mouvementTraca): self
-    {
-        if ($this->mouvementTracas->contains($mouvementTraca)) {
-            $this->mouvementTracas->removeElement($mouvementTraca);
-            // set the owning side to null (unless already changed)
-            if ($mouvementTraca->getArticle() === $this) {
-                $mouvementTraca->setArticle(null);
-            }
-        }
-
-        return $this;
+    public function getTrackingMovements(): Collection {
+        return isset($this->trackingPack)
+            ? $this->trackingPack->getTrackingMovements()
+            : new ArrayCollection();
     }
 
     /**
@@ -591,21 +631,31 @@ class Article extends FreeFieldEntity
                 ? $this->getPreparation()->getStatut()->getNom() !== Preparation::STATUT_A_TRAITER
                 : false;
         return (
-            count($this->getCollectes()) > 0
+            (!$this->getCollectes()->isEmpty())
                 ? self::USED_ASSOC_COLLECTE
-                : (count($this->getLitiges()) > 0
+                : ((!$this->getLitiges()->isEmpty())
                     ? self::USED_ASSOC_LITIGE
-                    : (count($this->getInventoryEntries()) > 0
+                    : ((!$this->getInventoryEntries()->isEmpty())
                         ? self::USED_ASSOC_INVENTORY
                         : ($this->getStatut()->getNom() === self::STATUT_INACTIF
                             ? self::USED_ASSOC_STATUT_NOT_AVAILABLE
                             : ($preparationCannotBeDeleted
                                 ? self::USED_ASSOC_PREPA_IN_PROGRESS
-                                : null
+                                : ((!$this->getTransferRequests()->isEmpty())
+                                    ? self::USED_ASSOC_TRANSFERT_REQUEST
+                                    : ((!$this->getOrdreCollecte()->isEmpty())
+                                        ? self::USED_ASSOC_COLLECT_ORDER
+                                        : ((!$this->getInventoryEntries()->isEmpty())
+                                            ? self::USED_ASSOC_INVENTORY_ENTRY
+                                            : null
+                                        )
+                                    )
+                                )
                             )
                         )
                     )
                 )
+
         );
     }
 
@@ -627,6 +677,7 @@ class Article extends FreeFieldEntity
 
     public function isUsedInQuantityChangingProcesses(): bool {
         $demande = $this->getDemande();
+        $transfers = $this->getTransferRequests();
         $inProgress = $demande ? $demande->needsToBeProcessed() : false;
         if (!$inProgress) {
             $collectes = $this->getOrdreCollecte();
@@ -637,7 +688,121 @@ class Article extends FreeFieldEntity
                     break;
                 }
             }
+            if (!$inProgress) {
+                foreach ($transfers as $transfer) {
+                    if ($transfer->needsToBeProcessed()) {
+                        $inProgress = true;
+                        break;
+                    }
+                }
+            }
         }
         return $inProgress;
+    }
+
+    /**
+     * @return Collection|TransferRequest[]
+     */
+    public function getTransferRequests(): Collection
+    {
+        return $this->transferRequests;
+    }
+
+    public function addTransferRequest(TransferRequest $transferRequest): self
+    {
+        if (!$this->transferRequests->contains($transferRequest)) {
+            $this->transferRequests[] = $transferRequest;
+            $transferRequest->addArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransferRequest(TransferRequest $transferRequest): self
+    {
+        if ($this->transferRequests->contains($transferRequest)) {
+            $this->transferRequests->removeElement($transferRequest);
+            $transferRequest->removeArticle($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Alert[]
+     */
+    public function getAlerts(): Collection
+    {
+        return $this->alerts;
+    }
+
+    public function addAlert(Alert $alert): self
+    {
+        if (!$this->alerts->contains($alert)) {
+            $this->alerts[] = $alert;
+            $alert->setArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAlert(Alert $alert): self
+    {
+        if ($this->alerts->contains($alert)) {
+            $this->alerts->removeElement($alert);
+            // set the owning side to null (unless already changed)
+            if ($alert->getArticle() === $this) {
+                $alert->setArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function isExpired(): ?bool
+    {
+        if($this->getExpiryDate()) {
+            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+
+            return $now >= $this->getExpiryDate();
+        } else {
+            return null;
+        }
+    }
+
+    public function getExpiryDate(): ?\DateTimeInterface
+    {
+        return $this->expiryDate;
+    }
+
+    public function setExpiryDate(?\DateTimeInterface $expiryDate): self
+    {
+        $this->expiryDate = $expiryDate;
+
+        return $this;
+    }
+
+    public function getBatch(): ?string
+    {
+        return $this->batch;
+    }
+
+    public function setBatch(?string $batch): self
+    {
+        $this->batch = $batch;
+
+        return $this;
+    }
+
+    public function getStockEntryDate(): ?\DateTimeInterface
+    {
+        return $this->stockEntryDate;
+    }
+
+    public function setStockEntryDate(?\DateTimeInterface $stockEntryDate): self
+    {
+        $this->stockEntryDate = $stockEntryDate;
+
+        return $this;
     }
 }

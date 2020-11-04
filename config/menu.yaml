@@ -79,6 +79,11 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_ACHE
+                -   label: 'Transfert'
+                    path: 'transfer_request_index'
+                    rights:
+                        menu: App\Entity\Menu::DEM
+                        action: App\Entity\Action::DISPLAY_TRANSFER_REQ
 
         -   label: 'Ordre'
             icon: 'ordre'
@@ -98,6 +103,11 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::ORDRE
                         action: App\Entity\Action::DISPLAY_PREPA
+                -   label: 'Transfert'
+                    path: 'transfer_order_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_ORDRE_TRANS
                 -   label: 'réception.réception'
                     isTranslation: true
                     title: 'Réception'

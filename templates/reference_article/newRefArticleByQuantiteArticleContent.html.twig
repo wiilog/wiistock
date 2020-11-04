@@ -1,0 +1,16 @@
+<div class="form-group w-100 mt-2">
+    <label for="code">Code article*</label>
+    <select class="form-control ajax-autocomplete-article data select2" id="article"
+            onchange="ajaxEditArticle($(this))" name="article">
+        <option value="">choisir un article</option>
+        {% for article in articles %}
+        <option value="{{article.id}}">{{article.barCode}}</option>
+        {% endfor %}
+    </select>
+</div>
+{% if maximum is not null %}
+<div id='quantityToTake' class="form-group d-none mt-2">
+    <label for="quantity-to-deliver">Quantité*</label>
+    <input class="form-control data needed" type="number" min="1" max="{{ maximum }}" id="quantity-to-deliver" name="quantity-to-pick" value="0">
+</div>
+{% endif %}

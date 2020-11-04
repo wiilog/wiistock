@@ -13,6 +13,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\NegativeQuantityException;
+use App\Helper\FormatHelper;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PreparationsManagerService;
@@ -27,7 +28,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
@@ -151,7 +152,7 @@ class LivraisonController extends AbstractController
             $data = $livraisonService->getDataForDatatable($request->request, $filterDemandId);
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -208,7 +209,7 @@ class LivraisonController extends AbstractController
             }
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -258,6 +259,7 @@ class LivraisonController extends AbstractController
 
     /**
      * @Route("/{livraison}", name="livraison_delete", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
+     * @param Request $request
      * @param Livraison $livraison
      * @param LivraisonsManagerService $livraisonsManager
      * @param PreparationsManagerService $preparationsManager
@@ -348,8 +350,11 @@ class LivraisonController extends AbstractController
                 'statut',
                 'date création',
                 'date de livraison',
+                'date de la demande',
+                'demandeur',
                 'opérateur',
                 'type',
+                'commentaire',
                 'référence',
                 'libellé',
                 'emplacement',
@@ -365,7 +370,7 @@ class LivraisonController extends AbstractController
             }
             return new JsonResponse($data);
         } else {
-            throw new NotFoundHttpException('404');
+            throw new BadRequestHttpException();
         }
     }
 
@@ -380,8 +385,11 @@ class LivraisonController extends AbstractController
                 $livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
                 $livraison->getDate() ? $livraison->getDate()->format('d/m/Y H:i') : '',
                 $livraison->getDateFin() ? $livraison->getDateFin()->format('d/m/Y H:i') : '',
+                $demande->getValidationDate() ? FormatHelper::date($demande->getValidationDate()) : '',
+                $demande->getUtilisateur() ? FormatHelper::user($demande->getUtilisateur()) : '',
                 $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
                 $demande ? $demande->getType() ? $demande->getType()->getLabel() : '' : '',
+                $demande->getCommentaire() ? strip_tags($demande->getCommentaire()) : ''
             ];
 
             foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {

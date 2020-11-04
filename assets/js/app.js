@@ -9,8 +9,6 @@ import Quill from 'quill/dist/quill.js';
 import Toolbar from 'quill/modules/toolbar';
 import Snow from 'quill/themes/snow';
 
-import Trans from './translations';
-
 import '../scss/app.scss';
 
 ///////////////// Main
@@ -19,7 +17,6 @@ importJquery();
 importMoment();
 importQuill();
 importRouting();
-importWiistock();
 
 ///////////////// Functions
 
@@ -46,9 +43,4 @@ function importRouting() {
     Routing.setRoutingData(routes);
 
     global.Routing = Routing;
-}
-
-function importWiistock() {
-    global.TRANSLATIONS = require('../../public/generated/translations.json');
-    global.Trans = Trans;
 }

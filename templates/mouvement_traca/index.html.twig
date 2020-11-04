@@ -3,7 +3,7 @@
 {% block title %}Traçabilité | Mouvements{% endblock %}
 
 {% block page_filter %}
-    {% include 'filters/filtersMouvementTraca.html.twig' with {
+    {% include 'filters/filtersTrackingMovements.html.twig' with {
         'page' : 'PAGE_MVT_TRACA',
         'tableSelector' : '#tableMvts',
         callback: 'clearURL'
@@ -40,7 +40,7 @@
                             <button type="button"
                                     class="btn btn-primary btn-ripple"
                                     data-toggle="modal"
-                                    data-target="#modalColumnVisibleTrackingMovement">
+                                    data-target="#modalColumnVisible">
                                 <i class="fa fa-cog mr-2"></i>
                                 Gestion des colonnes
                             </button>
@@ -65,8 +65,7 @@
                             {% endif %}
                             <a class="dropdown-item pointer"
                                data-toggle="modal"
-                               data-target="#modalColumnVisibleTrackingMovement"
-                               href="#">
+                               data-target="#modalColumnVisible">
                                 <i class="fa fa-cog mr-2"></i>
                                 Gestion des colonnes
                             </a>
@@ -92,7 +91,6 @@
         </div>
     </div>
 
-    {% include "mouvement_traca/modalVisibleColumns.html.twig" %}
     {% include "mouvement_traca/modalNewMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalShowMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalEditMvtTraca.html.twig" %}
@@ -100,9 +98,14 @@
     <input type="text" hidden id="redirectAfterTrackingMovementCreation"
            value="{{ redirectAfterTrackingMovementCreation }}">
 
+    {% include "utils/visible_columns.html.twig" with {
+        'fields': fields,
+        'table': 'tableMvt',
+        'route': 'save_column_visible_for_tracking_movement'
+    } %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/mouvement_traca.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/tracking_movement.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

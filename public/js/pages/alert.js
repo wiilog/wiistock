@@ -2,7 +2,7 @@ let pathAlerte = Routing.generate("alerte_ref_api", true);
 let tableAlerteConfig = {
     processing: true,
     serverSide: true,
-    order: [[2, "asc"]],
+    order: [[1, "desc"]],
     ajax: {
         "url": pathAlerte,
         "type": "POST",
@@ -11,15 +11,17 @@ let tableAlerteConfig = {
         needsSearchOverride: true,
     },
     columns: [
-        { "data": 'Label', 'title': 'Libellé' },
-        { "data": 'Référence', 'title': 'Référence' },
-        { "data": 'Quantité stock', 'title': 'Quantité en stock' },
-        { "data": 'typeQuantite', 'title': 'Type quantité' },
-        { "data": 'Type', 'title': 'Type' },
-        { "data": 'Date d\'alerte', 'title': 'Date d\'alerte' },
-        { "data": "limitWarning", 'title': "Seuil d'alerte" },
-        { "data": 'limitSecurity', 'title': 'Seuil de sécurité' },
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Alerte', orderable: false},
+        { "data": "type", "title": "Type d'alerte" },
+        { "data": "date", "title": "Date d'alerte" },
+        { "data": "label", "title": "Libellé" },
+        { "data": "reference", "title": "Référence" },
+        { "data": "code", "title": "Code barre" },
+        { "data": "quantity", "title": "Quantité disponible" },
+        { "data": "quantityType", "title": "Type quantité" },
+        { "data": "warningThreshold", "title": "Seuil d'alerte" },
+        { "data": "securityThreshold", "title": "Seuil de sécurité" },
+        { "data": "expiry", "title": "Date de péremption" },
+        { "data": "managers", "title": "Gestionnaire(s)" },
     ],
     columnDefs: [
         {
@@ -28,11 +30,13 @@ let tableAlerteConfig = {
         }
     ],
 };
-let tableAlerte = initDataTable('tableAlerte_id', tableAlerteConfig);
+let tableAlerte = initDataTable('tableAlerte', tableAlerteConfig);
 
 $(function() {
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ALERTE);
+
+    Select2.user($(".filter-select2.ajax-autocomplete-user"), "Gestionnaires");
 
     $.post(path, params, function (data) {
         displayFiltersSup(data);

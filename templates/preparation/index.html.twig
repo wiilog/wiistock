@@ -68,5 +68,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/preparation.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/preparation.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

@@ -6,9 +6,6 @@ let urlEditLitige = Routing.generate('litige_edit', true);
 let ModalDeleteLitige = $("#modalDeleteLitige");
 let SubmitDeleteLitige = $("#submitDeleteLitige");
 let urlDeleteLitige = Routing.generate('litige_delete', true);
-let modalColumnVisible = $('#modalColumnVisibleLitige');
-let submitColumnVisible = $('#submitColumnVisibleLitige');
-let urlColumnVisible = Routing.generate('save_column_visible_for_litige', true);
 
 let tableHistoLitige;
 let tableArticleLitige;
@@ -33,7 +30,6 @@ $(function () {
 
     InitModal(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableLitiges]});
     InitModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, {tables: [tableLitiges]});
-    InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
 });
 
 function initDatatableLitiges() {

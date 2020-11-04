@@ -5,13 +5,14 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
+use App\Entity\DispatchPack;
 use App\Entity\FreeField;
 use App\Entity\Dispatch;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
-use App\Entity\MouvementTraca;
+use App\Entity\TrackingMovement;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -53,8 +54,9 @@ class DispatchService {
     private $freeFieldService;
     private $translator;
     private $mailerService;
-    private $mouvementTracaService;
+    private $trackingMovementService;
     private $fieldsParamService;
+    private $visibleColumnService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
@@ -62,11 +64,12 @@ class DispatchService {
                                 Twig_Environment $templating,
                                 FreeFieldService $champLibreService,
                                 TranslatorInterface $translator,
-                                MouvementTracaService $mouvementTracaService,
+                                TrackingMovementService $trackingMovementService,
                                 MailerService $mailerService,
+                                VisibleColumnService $visibleColumnService,
                                 FieldsParamService $fieldsParamService) {
         $this->templating = $templating;
-        $this->mouvementTracaService = $mouvementTracaService;
+        $this->trackingMovementService = $trackingMovementService;
         $this->entityManager = $entityManager;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
@@ -74,6 +77,7 @@ class DispatchService {
         $this->translator = $translator;
         $this->mailerService = $mailerService;
         $this->fieldsParamService = $fieldsParamService;
+        $this->visibleColumnService = $visibleColumnService;
     }
 
     /**
@@ -134,15 +138,6 @@ class DispatchService {
         $category = CategoryType::DEMANDE_DISPATCH;
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
 
-        $rowCL = [];
-        /** @var FreeField $freeField */
-        foreach ($freeFields as $freeField) {
-            $rowCL[$freeField['label']] = $this->freeFieldService->serializeValue([
-                'valeur' => $dispatch->getFreeFieldValue($freeField['id']),
-                "typage" => $freeField['typage'],
-            ]);
-        }
-
         $row = [
             'id' => $dispatch->getId() ?? 'Non défini',
             'number' => $dispatch->getNumber() ?? '',
@@ -167,7 +162,15 @@ class DispatchService {
             ]),
         ];
 
-        return array_merge($rowCL, $row);
+        foreach ($freeFields as $freeField) {
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeField['id']);
+            $row[$freeFieldName] = $this->freeFieldService->serializeValue([
+                "valeur" => $dispatch->getFreeFieldValue($freeField["id"]),
+                "typage" => $freeField["typage"],
+            ]);
+        }
+
+        return $row;
     }
 
     public function getNewDispatchConfig(StatutRepository $statutRepository,
@@ -336,16 +339,16 @@ class DispatchService {
             ($this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsCreate')
                 || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsEdit'))
                 ? [[
-                'label' => 'Commentaire',
-                'value' => $comment ?: '',
-                'isRaw' => true,
-                'colClass' => 'col-sm-6 col-12',
-                'isScrollable' => true,
-                'isNeededNotEmpty' => true
-            ]]
+                    'label' => 'Commentaire',
+                    'value' => $comment ?: '',
+                    'isRaw' => true,
+                    'colClass' => 'col-sm-6 col-12',
+                    'isScrollable' => true,
+                    'isNeededNotEmpty' => true
+                ]]
                 : [],
-            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'pièces-jointes', 'displayedFormsCreate')
-            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'pièces-jointes', 'displayedFormsEdit'))
+            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'attachments', 'displayedFormsCreate')
+            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachments', 'displayedFormsEdit'))
                 ? [[
                 'label' => 'Pièces jointes',
                 'value' => $attachments->toArray(),
@@ -354,32 +357,6 @@ class DispatchService {
             ]]
                 : []
         );
-    }
-
-    public function createDispatchNumber(EntityManagerInterface $entityManager,
-                                         DateTime $date): string {
-
-        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-
-        $dateStr = $date->format('Ymd');
-
-        $lastDispatchNumber = $dispatchRepository->getLastDispatchNumberByPrefix(Dispatch::PREFIX_NUMBER . $dateStr);
-
-        if ($lastDispatchNumber) {
-            $lastCounter = (int) substr($lastDispatchNumber, -4, 4);
-            $currentCounter = ($lastCounter + 1);
-        } else {
-            $currentCounter = 1;
-        }
-
-        $currentCounterStr = (
-        $currentCounter < 10 ? ('000' . $currentCounter) :
-            ($currentCounter < 100 ? ('00' . $currentCounter) :
-                ($currentCounter < 1000 ? ('0' . $currentCounter) :
-                    $currentCounter))
-        );
-
-        return (Dispatch::PREFIX_NUMBER . $dateStr . $currentCounterStr);
     }
 
     public function createDateFromStr(?string $dateStr): ?DateTime {
@@ -402,16 +379,30 @@ class DispatchService {
             $receiverEmails = $dispatch->getReceiver() ? $dispatch->getReceiver()->getMainAndSecondaryEmails() : [];
             $requesterEmails = $dispatch->getRequester() ? $dispatch->getRequester()->getMainAndSecondaryEmails() : [];
 
+            $partialDispatch = !(
+                $dispatch
+                ->getDispatchPacks()
+                ->filter(function (DispatchPack $dispatchPack) {
+                    return !$dispatchPack->isTreated();
+                })
+                ->isEmpty()
+            );
+
+            $translatedTitle = $partialDispatch
+                ? 'acheminement.Acheminement {numéro} traité partiellement le {date}'
+                : 'acheminement.Acheminement {numéro} traité le {date}';
+
             $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
             $title = $status->isTreated()
-                ? $this->translator->trans('acheminement.Acheminement {numéro} traité le {date}', [
+                ? $this->translator->trans($translatedTitle, [
                     "{numéro}" => $dispatch->getNumber(),
                     "{date}" => $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate()->format('d/m/Y à H:i:s') : ''
                 ])
                 : (!$isUpdate
                     ? ('Un(e) ' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
                     : ('Changement de statut d\'un(e) ' . $translatedCategory . ' de type ' . $type . ' vous concernant :'));
-            $subject = $status->isTreated() ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translator->trans('acheminement.demande d\'acheminement') . '.')
+            $subject = ($status->isTreated() || $status->isPartial())
+                ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translator->trans('acheminement.demande d\'acheminement') . '.')
                 : (!$isUpdate
                     ? ('FOLLOW GT // Création d\'un(e) ' . $translatedCategory)
                     : 'FOLLOW GT // Changement de statut d\'un(e) ' . $translatedCategory . '.');
@@ -460,50 +451,61 @@ class DispatchService {
      * @param Statut $treatedStatus
      * @param Utilisateur $loggedUser
      * @param bool $fromNomade
+     * @param array $treatedPacks
      * @throws Exception
      */
     public function treatDispatchRequest(EntityManagerInterface $entityManager,
-                                            Dispatch $dispatch,
-                                            Statut $treatedStatus,
-                                            Utilisateur $loggedUser,
-                                            bool $fromNomade = false): void {
+                                         Dispatch $dispatch,
+                                         Statut $treatedStatus,
+                                         Utilisateur $loggedUser,
+                                         bool $fromNomade = false,
+                                         array $treatedPacks = []): void {
         $dispatchPacks = $dispatch->getDispatchPacks();
         $takingLocation = $dispatch->getLocationFrom();
         $dropLocation = $dispatch->getLocationTo();
         $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
         $dispatch
             ->setStatut($treatedStatus)
-            ->setTreatmentDate($date);
+            ->setTreatmentDate($date)
+            ->setTreatedBy($loggedUser);
 
         foreach ($dispatchPacks as $dispatchPack) {
-            $pack = $dispatchPack->getPack();
+            if (!$dispatchPack->isTreated()
+                && (
+                    empty($treatedPacks)
+                    || in_array($dispatchPack->getId(), $treatedPacks)
+                )) {
+                $pack = $dispatchPack->getPack();
 
-            $trackingTaking = $this->mouvementTracaService->createTrackingMovement(
-                $pack,
-                $takingLocation,
-                $loggedUser,
-                $date,
-                $fromNomade,
-                true,
-                MouvementTraca::TYPE_PRISE,
-                ['quantity' => $dispatchPack->getQuantity(), 'from' => $dispatch]
-            );
+                $trackingTaking = $this->trackingMovementService->createTrackingMovement(
+                    $pack,
+                    $takingLocation,
+                    $loggedUser,
+                    $date,
+                    $fromNomade,
+                    true,
+                    TrackingMovement::TYPE_PRISE,
+                    ['quantity' => $dispatchPack->getQuantity(), 'from' => $dispatch]
+                );
 
-            $trackingDrop = $this->mouvementTracaService->createTrackingMovement(
-                $pack,
-                $dropLocation,
-                $loggedUser,
-                $date,
-                $fromNomade,
-                true,
-                MouvementTraca::TYPE_DEPOSE,
-                ['quantity' => $dispatchPack->getQuantity(), 'from' => $dispatch]
-            );
+                $trackingDrop = $this->trackingMovementService->createTrackingMovement(
+                    $pack,
+                    $dropLocation,
+                    $loggedUser,
+                    $date,
+                    $fromNomade,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    ['quantity' => $dispatchPack->getQuantity(), 'from' => $dispatch]
+                );
 
-            $entityManager->persist($trackingTaking);
-            $entityManager->persist($trackingDrop);
+                $entityManager->persist($trackingTaking);
+                $entityManager->persist($trackingDrop);
+
+                $dispatchPack->setTreated(true);
+            }
         }
-        $dispatch->setTreatedBy($loggedUser);
         $entityManager->flush();
 
         $this->sendEmailsAccordingToStatus($dispatch, true);
@@ -518,7 +520,7 @@ class DispatchService {
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, $categorieCL);
 
         $columns = [
-            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
+            ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => 'Numéro demande', 'name' => 'number'],
             ['title' => 'acheminement.Transporteur', 'name' => 'carrier', 'translated' => true],
             ['title' => 'acheminement.Numéro de tracking transporteur', 'name' => 'carrierTrackingNumber', 'translated' => true],
@@ -537,26 +539,6 @@ class DispatchService {
             ['title' => 'Traité par', 'name' => 'treatedBy'],
         ];
 
-        return array_merge(
-            array_map(function (array $column) use ($columnsVisible) {
-                return [
-                    'title' => $column['title'],
-                    'alwaysVisible' => $column['alwaysVisible'] ?? false,
-                    'orderable' => $column['orderable'] ?? true,
-                    'data' => $column['name'],
-                    'name' => $column['name'],
-                    'translated' => $column['translated'] ?? false,
-                    'class' => $column['class'] ?? (in_array($column['name'], $columnsVisible) ? 'display' : 'hide')
-                ];
-            }, $columns),
-            array_map(function (array $freeField) use ($columnsVisible) {
-                return [
-                    'title' => ucfirst(mb_strtolower($freeField['label'])),
-                    'data' => $freeField['label'],
-                    'name' => $freeField['label'],
-                    'class' => (in_array($freeField['label'], $columnsVisible) ? 'display' : 'hide'),
-                ];
-            }, $freeFields)
-        );
+        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 }

@@ -12,14 +12,14 @@
             {% for i in 0..(data.headers|length -  1) %}
                 <tr>
                     <td>{{ data.headers[i] }}</td>
-                    <td>{{ data.firstRow[i] is defined ? data.firstRow[i] }}</td>
+                    <td>{{ data.firstRow[i] is defined ? data.firstRow[i] | ellipsis(35) }}</td>
                     <td>
-                        <select class="form-control data no-clear" name="{{ i }}" onchange="updateOptions($(this))">
+                        <select class="form-control data no-clear import-options" name="{{ i }}" onchange="updateOptions($(this))">
                             <option></option>
                             {% for fieldValue, fieldName in fields %}
                                 {% set needed = fieldValue in fieldsNeeded ? '*'%}
                                 {% set pk = (fieldValue == fieldPK) ? ' [clé unique]' %}
-                                {% set selected = (columnsToFields[i] is defined and fieldValue == columnsToFields[i]) ? 'selected' %}
+                                {% set selected = preselection[data.headers[i]] is defined and preselection[data.headers[i]] == fieldName ? 'selected' %}
                                 <option value="{{ fieldValue }}" {{ selected }}>{{ fieldName|capitalize }}{{ needed }}{{ pk }}</option>
                             {% endfor %}
                         </select>

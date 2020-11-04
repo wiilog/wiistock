@@ -72,6 +72,6 @@
     <script>
         let id = {{ collecte.id }};
     </script>
-    <script src="{{ asset('js/pages/collecte-show.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/collecte-show.js') }}?{{ app_last_cache_clear }}"></script>
 
 {% endblock %}

@@ -9,15 +9,16 @@
             </div>
             <div class="modal-body">
                 <label>Type de demande</label><br>
-                <div class="wii-switch needed" data-title="Type de demande">
-                    <input type="radio" name="type" value="livraison" content="Livraison" onclick="toggleLivraisonCollecte($(this))">
-                    <input type="radio" name="type" value="collecte" content="Collecte" onclick="toggleLivraisonCollecte($(this))">
+                <div class="wii-switch needed mb-2" data-title="Type de demande">
+                    <input type="radio" name="type" value="livraison" content="Livraison" onclick="toggleRequestType($(this))">
+                    <input type="radio" name="type" value="collecte" content="Collecte" onclick="toggleRequestType($(this))">
+                    <input type="radio" name="type" value="transfert" content="Transfert" onclick="toggleRequestType($(this))">
                 </div>
 
                 <div class="plusDemandeContent d-none row"></div>
                 <div class="editChampLibre d-none "></div>
 
-                <div class='boutonCreationDemande d-none'>
+                <div class='boutonCreationDemande d-none mt-4'>
                     <div id="creationDemande" class="btn btn-primary" ></div>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
                 </div>

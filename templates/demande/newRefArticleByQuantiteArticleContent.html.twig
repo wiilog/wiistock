@@ -4,11 +4,11 @@
             onchange="ajaxEditArticle($(this))" name="article">
         <option value="">choisir un article</option>
         {% for article in articles %}
-        <option value="{{article.id}}">{{article.barCode}}</option>
+            <option value="{{article.id}}" {{ preselect and loop.index0 == 0 ? 'selected' }}>{{article.barCode}}</option>
         {% endfor %}
     </select>
 </div>
-<div id='quantityToTake' class="form-group d-none mt-2">
+<div id='quantityToTake' class="form-group {{ preselect ? '' : 'd-none'}} mt-2">
     <label for="quantity-to-deliver">Quantité à livrer*</label>
     <input class="form-control data needed" type="number" min="1" max="{{ maximum }}" id="quantity-to-deliver" name="quantity-to-pick" value="0">
 </div>

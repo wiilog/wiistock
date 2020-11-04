@@ -43,6 +43,18 @@
         </div>
     </div>
     <div class="row mt-2">
+        <div class="col-12">
+            {% set checked = (printTwice ? 'checked' : '') %}
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-customs-print"
+                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::PRINT_TWICE_CUSTOMS') }}"
+                       onchange="updateToggledParam($(this))">
+                <span class="slider round"></span>
+            </label>
+            <label class="pl-1" for="param-print-twice-customs">Impression en double de l'étiquette de colis d'arrivage si champ "Douane" coché</label>
+        </div>
+    </div>
+    <div class="row mt-2">
         <div class="form-group col-4">
             <label for="locationWaitingDock" class="d-block">Emplacement de destination des arrivages</label>
             <select class="form-control ajax-autocomplete-location d-block data w-100"
@@ -50,8 +62,35 @@
             </select>
             <input hidden
                    id="locationArrivageDestValue"
-                   data-id="{{ location ? location.id }}"
-                   data-text="{{ location ? location.text }}"/>
+                   data-id="{{ defaultArrivalsLocation ? defaultArrivalsLocation.id }}"
+                   data-text="{{ defaultArrivalsLocation ? defaultArrivalsLocation.text }}"
+                   data-label="{{ constant('App\\Entity\\ParametrageGlobal::MVT_DEPOSE_DESTINATION') }}"/>
+        </div>
+    </div>
+
+    <div class="row mt-2">
+        <div class="form-group col-4">
+            <label for="param-default-location-if-custom" class="d-block">Emplacement de dépose des arrivages si champ "douane" coché</label>
+            <select class="form-control ajax-autocomplete-location d-block data w-100" name="param-default-location-if-custom">
+            </select>
+            <input hidden
+                   id="customsArrivalsLocation"
+                   data-id="{{ customsArrivalsLocation ? customsArrivalsLocation.id }}"
+                   data-text="{{ customsArrivalsLocation ? customsArrivalsLocation.text }}"
+                   data-label="{{ constant('App\\Entity\\ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS') }}"/>
+        </div>
+    </div>
+
+    <div class="row mt-2">
+        <div class="form-group col-4">
+            <label for="param-default-location-if-emergency" class="d-block">Emplacement de dépose des arrivages si urgence détectée</label>
+            <select class="form-control ajax-autocomplete-location d-block data w-100" name="param-default-location-if-emergency">
+            </select>
+            <input hidden
+                   id="emergenciesArrivalsLocation"
+                   data-id="{{ emergenciesArrivalsLocation ? emergenciesArrivalsLocation.id }}"
+                   data-text="{{ emergenciesArrivalsLocation ? emergenciesArrivalsLocation.text }}"
+                   data-label="{{ constant('App\\Entity\\ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY') }}"/>
         </div>
     </div>
 </div>

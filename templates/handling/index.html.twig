@@ -13,40 +13,21 @@
 {% endblock %}
 
 {% block page_content %}
+    <input type="hidden"
+           data-id=""
+           data-target='#modalEditHandling'
+           data-toggle='modal'
+           onclick="editRow($(this), Routing.generate('handling_edit_api', true), $('#modalEditHandling'), $('#submitEditHandling'), true, '#modalEditHandling #editor-container-edit')"
+           class="d-none open-modal-edit"/>
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
                     <div class="btn-group">
-                        <div class="btn btn-primary btn-ripple split-button"
-                             data-toggle="modal"
-                             data-target="#modalNewHandling">
-                            <span class="fa fa-plus mr-2"></span>Nouvelle demande
-                        </div>
-                        <button type="button"
-                                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
-                                data-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false">
-                            <span class="fa fa-angle-down"></span>
-                        </button>
-                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                            <div class="dropdown-item" onclick="saveExportFile('get_handlings_for_csv')">
-                                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-                            </div>
-                        </div>
-                    </div>
-                {% else %}
-                    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
-                        <div class="btn btn-primary btn-ripple" onclick="saveExportFile('get_handlings_for_csv', false)">
+                        <div class="btn btn-primary btn-ripple" onclick="saveExportFile('get_handlings_for_csv')">
                             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                         </div>
-                    {% endif %}
-                    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-                        <a href="" data-toggle="modal" data-target="#modalNewHandling" class="btn btn-primary btn-ripple">
-                            <span class="fa fa-plus mr-2"></span>Nouvelle demande
-                        </a>
-                    {% endif %}
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -61,7 +42,7 @@
     {% include "handling/modalNewHandling.html.twig" with modalNewConfig %}
 {% endblock %}
 
-    {% block javascripts %}
-        {{ parent() }}
-        <script src="{{ asset('js/pages/handling.js') }}?{{ date().timestamp }}"></script>
-    {% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/pages/handling.js') }}?{{ app_last_cache_clear }}"></script>
+{% endblock %}

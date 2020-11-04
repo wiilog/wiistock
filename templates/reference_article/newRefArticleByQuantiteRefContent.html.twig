@@ -1,0 +1,6 @@
+{% if needsQuantity %}
+<div class="form-group mt-2">
+    <label for="quantity-to-deliver">Quantité*</label>
+    <input class="form-control data needed" type="number" min=1 id="quantity-to-deliver" name="quantity-to-pick" value="0" {{ maximum is not null ? 'max="' ~ maximum ~ '"' }}>
+</div>
+{% endif %}

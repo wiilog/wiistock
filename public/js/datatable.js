@@ -54,30 +54,36 @@ function extendsDateSort(name) {
 function initActionOnRow(row) {
     if ($(row).find('.action-on-click').get(0)) {
         $(row).addClass('pointer');
-        $(row).find('td:not(.noVis)').mousedown(function (e) {
-            if (e && (e.which === 1 || e.which === 2)) {
+        $(row).on('mouseup', 'td:not(.noVis)', function (event) {
+            const highlightedText = window.getSelection
+                ? window.getSelection().toString()
+                : undefined;
+
+            if (!highlightedText) {
+                const {which} = event || {};
                 let $anchor = $(row).find('.action-on-click');
-                const click = new MouseEvent( "click", {"button": 1, "which": e.which});
-                $anchor[0].dispatchEvent(click);
+                const href = $anchor.attr('href');
+                if (href) {
+                    if (which === 1) {
+                        window.location.href = href;
+                    } else if (which === 2) {
+                        window.open(href, '_blank');
+                    }
+                } else {
+                    if (which === 1) {
+                        $anchor.trigger('click');
+                    }
+                }
             }
-        })
+        });
     }
 }
 
-function initActionOnCell(cell) {
-    $(cell).click(function () {
-        $cell.parent('tr').find('.action-on-click').get(0).click();
-    });
-}
-
-
 function showOrHideColumn(check, concernedTable) {
     let columnName = check.data('name');
-
     let column = concernedTable.column(columnName + ':name');
     column.visible(!column.visible());
     check.toggleClass('data');
-    initActionOnCell(column);
 }
 
 function manageArticleAndRefSearch($input, $printButton) {
@@ -115,7 +121,7 @@ function manageArticleAndRefSearch($input, $printButton) {
 
 function toggleInputRadioOnRow(tr) {
     const $checkbox = $(tr).find('input[type="checkbox"]');
-    $checkbox.prop('checked', !$checkbox.is(':checked'));
+    $checkbox.prop('checked', !$checkbox.is(':checked')).trigger("change");
 }
 
 function createDatatableDomFooter({information, length, pagination}) {
@@ -236,6 +242,8 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
         if (column.translated) {
             tooltips.push({id, text: Trans.original(column.title)});
             column.title = Trans.translated(column.title);
+        } else if (column.tooltip) {
+            tooltips.push({id, text: column.tooltip});
         }
     });
 
@@ -263,39 +271,36 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             console.log('An error has been reported by DataTables: ', message, e, dtId);
         })
         .DataTable({
-    fixedColumns:   {
-
-        heightMatch: 'auto'
-
-    },
-
-
-    autoWidth: true,
-            scrollX: true,
-            language: {
-                url: "/js/i18n/dataTableLanguage.json",
+            fixedColumns:   {
+                heightMatch: 'auto'
             },
-            dom: getAppropriateDom(domConfig || {}),
-            rowCallback: getAppropriateRowCallback(rowConfig || {}),
-            drawCallback: (response) => {
-                datatableDrawCallback({
-                    table: datatableToReturn,
-                    response,
-                    $tableDom,
-                    ...(drawConfig || {})
+
+            autoWidth: true,
+                    scrollX: true,
+                    language: {
+                        url: "/js/i18n/dataTableLanguage.json",
+                    },
+                    dom: getAppropriateDom(domConfig || {}),
+                    rowCallback: getAppropriateRowCallback(rowConfig || {}),
+                    drawCallback: (response) => {
+                        datatableDrawCallback({
+                            table: datatableToReturn,
+                            response,
+                            $tableDom,
+                            ...(drawConfig || {})
+                        });
+                    },
+                    initComplete: () => {
+                        let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
+                        moveSearchInputToHeader($searchInputContainer);
+                        tableCallback(hideColumnConfig || {}, datatableToReturn);
+                        if (initCompleteCallback) {
+                            initCompleteCallback();
+                        }
+                        attachDropdownToBodyOnDropdownOpening($tableDom);
+                    },
+                    ...config
                 });
-            },
-            initComplete: () => {
-                let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
-                moveSearchInputToHeader($searchInputContainer);
-                tableCallback(hideColumnConfig || {}, datatableToReturn);
-                if (initCompleteCallback) {
-                    initCompleteCallback();
-                }
-                attachDropdownToBodyOnDropdownOpening($tableDom);
-            },
-            ...config
-        });
     return datatableToReturn;
 }
 
@@ -380,31 +385,9 @@ function initSearchDate(table) {
     );
 }
 
-
-function addToRapidSearch(checkbox) {
-    let alreadySearched = [];
-    $('#rapidSearch tbody td').each(function () {
-        alreadySearched.push($(this).html());
-    });
-    if (!alreadySearched.includes(checkbox.data('name'))) {
-        let tr = '<tr><td>' + checkbox.data('name') + '</td></tr>';
-        $('#rapidSearch tbody').append(tr);
-    } else {
-        $('#rapidSearch tbody tr').each(function () {
-            if ($(this).find('td').html() === checkbox.data('name')) {
-                if ($('#rapidSearch tbody tr').length > 1) {
-                    $(this).remove();
-                } else {
-                    checkbox.prop("checked", true);
-                }
-            }
-        });
-    }
-}
-
 function hideAndShowColumns(columns, table) {
     table.columns().every(function (index) {
-        this.visible(columns[index].class !== 'hide');
+        this.visible(columns[index].isColumnVisible);
     });
 }
 

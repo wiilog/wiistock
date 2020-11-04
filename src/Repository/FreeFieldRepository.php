@@ -50,24 +50,17 @@ class FreeFieldRepository extends EntityRepository
         return $query->getResult();
     }
 
-    // pour les colonnes dynamiques
-    public function getByCategoryTypeAndCategoryCL($category, $categorieCL)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT cl.label, cl.id, cl.typage
-            FROM App\Entity\FreeField cl
-            JOIN cl.type t
-            JOIN t.category cat
-            WHERE cat.label = :category AND cl.categorieCL = :categorie
-            "
-        )->setParameters(
-            [
-                'category' => $category,
-                'categorie' => $categorieCL
-            ]
-        );
-        return $query->getResult();
+    public function getByCategoryTypeAndCategoryCL($typeCategory, $ffCategory) {
+        return $this->createQueryBuilder("f")
+            ->select("f.id, f.label, f.typage")
+            ->join("f.type", "t")
+            ->join("t.category", "c")
+            ->where("c.label = :type")
+            ->andWhere("f.categorieCL = :category")
+            ->setParameter("type", $typeCategory)
+            ->setParameter("category", $ffCategory)
+            ->getQuery()
+            ->getResult();
     }
 
 	/**
@@ -220,18 +213,15 @@ class FreeFieldRepository extends EntityRepository
 	 * @param string[] $categoryTypeLabels
 	 * @return FreeField[]
 	 */
-	public function findByCategoryTypeLabels($categoryTypeLabels)
+	public function findByCategoryTypeLabels(array $categoryTypeLabels)
 	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-            "SELECT c
-            FROM App\Entity\FreeField c
-            JOIN c.type t
-            JOIN t.category cat
-            WHERE cat.label in (:categoryTypeLabels)"
-		)->setParameter('categoryTypeLabels', $categoryTypeLabels, Connection::PARAM_STR_ARRAY);
-
-		return $query->execute();
+	    return $this->createQueryBuilder('free_field')
+            ->join('free_field.type', 'type')
+            ->join('type.category', 'category')
+            ->where('category.label IN (:categoryTypeLabels)')
+            ->setParameter('categoryTypeLabels', $categoryTypeLabels, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->execute();
 	}
 
     /**

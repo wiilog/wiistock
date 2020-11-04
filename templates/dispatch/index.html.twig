@@ -17,25 +17,17 @@
 <div class="m-4 wii-page-card">
     <div class="row wii-page-card-header">
         <div class="col-auto ml-auto btn-group">
-            {% if hasRightToCreate %}
+            {% if hasRightToExport %}
                 <button type="button"
-                        data-toggle="modal"
-                        data-target="#modalNewDispatch"
-                        class="btn btn-primary split-button btn-ripple">
-                    <span class="fa fa-plus mr-2"></span><span title="nouvelle demande">{{ 'acheminement.Nouvelle demande'|trans }}</span>
+                        class="btn btn-primary split-button btn-ripple"
+                        onclick="saveExportFile('get_dispatches_csv')">
+                    <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
+                    Exporter au format CSV
                 </button>
-            {% elseif  hasRightToExport %}
-                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-                    <a class="dropdown-item pointer"
-                       onclick="saveExportFile('get_dispatches_csv')">
-                        <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
-                        Exporter au format CSV
-                    </a>
-                </div>
             {% else %}
                 <button class="dropdown-item pointer"
                         data-toggle="modal"
-                        data-target="#modalColumnVisibleDispatch">
+                        data-target="#modalColumnVisible">
                     <i class="fa fa-cog mr-2"></i>
                     Gestion des colonnes
                 </button>
@@ -49,18 +41,11 @@
                 <span class="fa fa-angle-down"></span>
             </button>
 
-            {% if hasRightToCreate or hasRightToExport %}
+            {% if hasRightToExport %}
                 <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-                    {% if hasRightToCreate and hasRightToExport %}
-                        <button class="dropdown-item pointer"
-                                onclick="saveExportFile('get_dispatches_csv')">
-                            <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
-                            Exporter au format CSV
-                        </button>
-                    {% endif %}
                     <button class="dropdown-item pointer"
                             data-toggle="modal"
-                            data-target="#modalColumnVisibleDispatch">
+                            data-target="#modalColumnVisible">
                         <i class="fa fa-cog mr-2"></i>
                         Gestion des colonnes
                     </button>
@@ -76,11 +61,15 @@
 </div>
 
 {% include "dispatch/modalNewDispatch.html.twig" with modalNewConfig %}
-{% include "dispatch/modalVisibleColumns.html.twig" with modalNewConfig %}
+{% include "utils/visible_columns.html.twig" with {
+    'fields': fields,
+    'table': 'tableDispatches',
+    'route': 'save_column_visible_for_dispatch'
+} %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/dispatch-common.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/pages/dispatch.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/pages/dispatch-common.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/dispatch.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

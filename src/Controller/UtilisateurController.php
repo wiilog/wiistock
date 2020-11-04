@@ -20,6 +20,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -213,7 +214,7 @@ class UtilisateurController extends AbstractController
                 'msg' => 'L\'utilisateur <strong>' . $data['username'] . '</strong> a bien été créé.'
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -257,7 +258,7 @@ class UtilisateurController extends AbstractController
                     ]
                     : null]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -278,11 +279,11 @@ class UtilisateurController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $roleRepository = $entityManager->getRepository(Role::class);
 
-            $utilisateur = $utilisateurRepository->find($data['id']);
+            $utilisateur = $utilisateurRepository->find($data['user']);
             $role = $roleRepository->find($data['role']);
 
             $result = $this->passwordService->checkPassword($data['password'],$data['password2']);
-            if($result['response'] == false){
+            if ($result['response'] == false){
                 return new JsonResponse([
                 	'success' => false,
 					'msg' => $result['message'],
@@ -421,7 +422,7 @@ class UtilisateurController extends AbstractController
                 'msg' => 'L\'utilisateur <strong>' . $utilisateur->getUsername() . '</strong> a bien été modifié.'
             ]);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -453,7 +454,7 @@ class UtilisateurController extends AbstractController
                 return new JsonResponse(false); //TODO gérer erreur
             }
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -471,7 +472,7 @@ class UtilisateurController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -498,7 +499,7 @@ class UtilisateurController extends AbstractController
 
 			return new JsonResponse(['delete' => $delete, 'html' => $html]);
 		}
-		throw new NotFoundHttpException('404');
+		throw new BadRequestHttpException();
 	}
 
     /**
@@ -535,7 +536,7 @@ class UtilisateurController extends AbstractController
                 'msg' => 'L\'utilisateur <strong>' . $username . '</strong> a bien été supprimé.'
             ]);
 		}
-        throw new NotFoundHttpException('404');
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -554,7 +555,7 @@ class UtilisateurController extends AbstractController
             $results = $utilisateurRepository->getIdAndLibelleBySearch($search);
             return new JsonResponse(['results' => $results]);
         }
-        throw new NotFoundHttpException("404");
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -562,33 +563,33 @@ class UtilisateurController extends AbstractController
      * @param Request $request
      * @return JsonResponse
      */
-    public function updateSearches(Request $request)
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $this->getUser()->setRecherche($data['recherches']);
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
+    public function updateSearches(Request $request) {
+        if ($request->isXmlHttpRequest() && $data = $request->get("searches")) {
+            $this->getUser()->setRecherche($data);
+            $this->getDoctrine()->getManager()->flush();
+
+            return $this->json([
+                "success" => true,
+            ]);
         }
-        return new JsonResponse();
+
+        throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/recherchesArticle", name="update_user_searches_for_article", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return JsonResponse
      */
-    public function updateSearchesArticle(Request $request)
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            /**
-             * @var Utilisateur $user
-             */
-            $user = $this->getUser();
-            $user->setRechercheForArticle($data['recherches']);
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
+    public function updateSearchesArticle(Request $request) {
+        if ($request->isXmlHttpRequest() && $data = $request->request->get("searches")) {
+            $this->getUser()->setRechercheForArticle($data);
+            $this->getDoctrine()->getManager()->flush();
+
+            return $this->json([
+                "success" => true
+            ]);
         }
-        return new JsonResponse();
+
+        throw new BadRequestHttpException();
     }
 
     /**
