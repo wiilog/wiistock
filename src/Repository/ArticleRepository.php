@@ -400,11 +400,12 @@ class ArticleRepository extends EntityRepository {
             ->where('articleStatut.nom = :articleActif')
             ->andWhere('article.quantite IS NOT NULL')
             ->andWhere('article.quantite > 0')
-            ->andWhere('(article.preparation IS NULL OR article.preparation = :prepa)')
-            ->andWhere('(article.demande IS NULL OR article.demande = :dem OR statutDemande.nom = :draft)')
+            ->andWhere('(article.preparation IS NULL OR article.preparation = :prepa OR statutDemande.nom = :delivered)')
+            ->andWhere('(article.demande IS NULL OR article.demande = :dem OR statutDemande.nom = :draft OR statutDemande.nom = :delivered)')
             ->setParameter('articleActif', Article::STATUT_ACTIF)
             ->setParameter('prepa', $preparation)
             ->setParameter('dem', $demande)
+            ->setParameter('delivered', Demande::STATUT_LIVRE)
             ->setParameter('draft', Demande::STATUT_BROUILLON);
 
 	    if (!empty($refArticle)) {
