@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Pack;
 use App\Entity\Fournisseur;
+use App\Helper\Stream;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 
@@ -49,6 +50,34 @@ class FournisseurRepository extends EntityRepository
         )->setParameter('code', $code);
 
         return $query->getSingleScalarResult();
+    }
+
+    public function getCodesAndLabelsGroupedByReference(): array
+    {
+        $queryBuilder = $this->createQueryBuilder('fournisseur');
+
+        return Stream::from($queryBuilder
+                    ->select('fournisseur.nom as providerLabel')
+                    ->addSelect('fournisseur.codeReference as providerCode')
+                    ->addSelect('referenceArticle.id')
+                    ->innerJoin('fournisseur.articlesFournisseur', 'articlesFournisseur')
+                    ->innerJoin('articlesFournisseur.referenceArticle', 'referenceArticle')
+                    ->getQuery()
+                    ->getResult())
+                ->reduce(function(array $carry, array $providerWithRefId) {
+                    $refId = $providerWithRefId['id'];
+                    $providerCode = $providerWithRefId['providerCode'];
+                    $providerLabel = $providerWithRefId['providerLabel'];
+                    if(!isset($carry[$refId])) {
+                        $carry[$refId] = [];
+                        $carry[$refId]['providerCodes'] = $providerCode;
+                        $carry[$refId]['providerLabels'] = $providerLabel;
+                    } else {
+                        $carry[$refId]['providerCodes'] .= (', ' . $providerCode);
+                        $carry[$refId]['providerLabels'] .= (', ' . $providerLabel);
+                    }
+                    return $carry;
+                }, []);
     }
 
     public function getIdAndCodeBySearch($search)
