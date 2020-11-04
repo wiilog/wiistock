@@ -629,21 +629,21 @@ class Article extends FreeFieldEntity
                 ? $this->getPreparation()->getStatut()->getNom() !== Preparation::STATUT_A_TRAITER
                 : false;
         return (
-            ($this->getCollectes()->isEmpty())
+            (!$this->getCollectes()->isEmpty())
                 ? self::USED_ASSOC_COLLECTE
                 : ((!$this->getLitiges()->isEmpty())
                     ? self::USED_ASSOC_LITIGE
-                    : (($this->getInventoryEntries()->isEmpty())
+                    : ((!$this->getInventoryEntries()->isEmpty())
                         ? self::USED_ASSOC_INVENTORY
                         : ($this->getStatut()->getNom() === self::STATUT_INACTIF
                             ? self::USED_ASSOC_STATUT_NOT_AVAILABLE
                             : ($preparationCannotBeDeleted
                                 ? self::USED_ASSOC_PREPA_IN_PROGRESS
-                                : (($this->getTransferRequests()->isEmpty())
+                                : ((!$this->getTransferRequests()->isEmpty())
                                     ? self::USED_ASSOC_TRANSFERT_REQUEST
-                                    : (($this->getOrdreCollecte()->isEmpty())
+                                    : ((!$this->getOrdreCollecte()->isEmpty())
                                         ? self::USED_ASSOC_COLLECT_ORDER
-                                        : (($this->getInventoryEntries()->isEmpty())
+                                        : ((!$this->getInventoryEntries()->isEmpty())
                                             ? self::USED_ASSOC_INVENTORY_ENTRY
                                             : null
                                         )
