@@ -29,7 +29,8 @@ use Doctrine\ORM\QueryBuilder;
 class ReferenceArticleRepository extends EntityRepository {
 
     private const FIELD_ENTITY_NAME = [
-        "label" => "libelle",
+        "Libellé" => "libelle",
+        "Référence" => "reference",
         "warningThreshold" => "limitWarning",
         "securityThreshold" => "limitSecurity",
         "emergency" => "isUrgent",

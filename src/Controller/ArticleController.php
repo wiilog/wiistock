@@ -273,7 +273,7 @@ class ArticleController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
-            $article = $this->articleDataService->newArticle($data);
+            $article = $this->articleDataService->newArticle($data, $entityManager);
             $entityManager->flush();
 
             $quantity = $article->getQuantite();

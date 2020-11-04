@@ -32,7 +32,6 @@ class RefArticleQuantityNotifier {
 
             $available = $referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee();
             $referenceArticle->setQuantiteDisponible($available);
-
             $this->manager->flush();
         }
     }

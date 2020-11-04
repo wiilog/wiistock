@@ -26,6 +26,7 @@ use App\Helper\Stream;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
@@ -345,13 +346,13 @@ class ArticleDataService
 
     /**
      * @param array $data
+     * @param EntityManagerInterface $entityManager
      * @param Demande|null $demande
      * @return Article
      *
-     * @throws Exception
+     * @throws NonUniqueResultException
      */
-    public function newArticle($data, Demande $demande = null) {
-        $entityManager = $this->entityManager;
+    public function newArticle($data, EntityManagerInterface $entityManager, Demande $demande = null) {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);

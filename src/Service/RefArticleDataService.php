@@ -308,6 +308,7 @@ class RefArticleDataService {
                 $refArticle->setUserThatTriggeredEmergency($user);
             } else if(!$data['urgence']) {
                 $refArticle->setUserThatTriggeredEmergency(null);
+                $refArticle->setEmergencyComment('');
             }
             $refArticle->setIsUrgent($data['urgence']);
         }
