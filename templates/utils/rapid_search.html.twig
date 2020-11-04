@@ -1,0 +1,108 @@
+<div class="modal fade" id="modalRapidSearch" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modifier la recherche rapide</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table float-left w-49">
+                    <thead>
+                    <tr>
+                        <th>Champs</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                    </thead>
+                    {% for name, field in fields %}
+                        {% if field.name is defined %}
+                            {% set name = field.name %}
+                        {% endif %}
+
+                        <tr class="toggle-search pointer">
+                            <td>{{ field.title }}</td>
+                            <td>
+                                <div class="form-check d-flex align-items-center justify-content-center">
+                                    <input type="checkbox" class="form-check-input"
+                                           name="{{ name }}" {{ name in searches ? 'checked' }}
+                                           title="{{ field.title }}">
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                <table class="table float-right w-49" id="rapid-search">
+                    <thead>
+                    <tr>
+                        <th>Recherche rapide</th>
+                    </tr>
+                    </thead>
+                    {% for field in searches %}
+                        {% if fields[field] is defined %}
+                            <tr>
+                                <td data-name="{{ field }}">{{ fields[field].title }}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </table>
+            </div>
+            <div class="modal-footer">
+                <div class="btn btn-secondary" data-dismiss="modal">Fermer</div>
+                <div class="btn btn-primary" id="submit-rapid-search">Enregistrer</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.addEventListener("load", function () {
+        $(".toggle-search").click((event) => {
+            const target = $(event.target);
+            let checkbox;
+
+            if(!target.is("input")) {
+                checkbox = $(event.currentTarget).find('input[type="checkbox"]');
+                checkbox.prop("checked", !checkbox.is(":checked"));
+            } else {
+                checkbox = target;
+            }
+
+            addToRapidSearch(checkbox);
+        });
+
+        $("#submit-rapid-search").click(saveRapidSearch);
+    });
+
+    function addToRapidSearch(checkbox) {
+        const checked = checkbox.prop("checked");
+        const title = checkbox.attr("title");
+        const name = checkbox.attr("name");
+
+        if (checked) {
+            $('#rapid-search').append(`<tr><td data-name="${name}">${title}</td></tr>`);
+        } else {
+            $('#rapid-search td')
+                .filter((_, e) => e.dataset.name === name)
+                .each((_, e) => e.parentNode.remove());
+        }
+    }
+
+    function saveRapidSearch() {
+        const table = {{ table }};
+        const searches = $('#rapid-search td')
+            .map((_, e) => e.dataset.name)
+            .get();
+
+        $.ajax({
+            url: Routing.generate('{{ route }}', true),
+            type: "POST",
+            dataType: "json",
+            data: {searches},
+            success: function() {
+                $("#modalRapidSearch").modal("hide");
+                table.search(table.search()).draw();
+            }
+        });
+    }
+</script>

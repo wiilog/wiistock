@@ -35,6 +35,7 @@ class ArrivageDataService
     private $translator;
     private $freeFieldService;
     private $fieldsParamService;
+    private $visibleColumnService;
 
     public function __construct(UserService $userService,
                                 RouterInterface $router,
@@ -46,6 +47,7 @@ class ArrivageDataService
                                 TranslatorInterface $translator,
                                 Twig_Environment $templating,
                                 EntityManagerInterface $entityManager,
+                                VisibleColumnService $visibleColumnService,
                                 Security $security)
     {
 
@@ -61,6 +63,7 @@ class ArrivageDataService
         $this->security = $security;
         $this->mailerService = $mailerService;
         $this->specificService = $specificService;
+        $this->visibleColumnService = $visibleColumnService;
     }
 
     /**
@@ -134,7 +137,8 @@ class ArrivageDataService
         $rowCL = [];
         /** @var FreeField $freeField */
         foreach ($freeFields as $freeField) {
-            $rowCL[$freeField['label']] = $this->freeFieldService->serializeValue([
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeField['id']);
+            $rowCL[$freeFieldName] = $this->freeFieldService->serializeValue([
                 'valeur' => $arrival->getFreeFieldValue($freeField['id']),
                 "typage" => $freeField['typage'],
             ]);
@@ -154,7 +158,7 @@ class ArrivageDataService
             'orderNumber' => implode(',', $arrival->getNumeroCommandeList()),
             'type' => $arrival->getType() ? $arrival->getType()->getLabel() : '',
             'nbUm' => $arrivalRepository->countColisByArrivage($arrival),
-            'custom' => $arrival->getCustoms() ? 'oui' : 'non',
+            'customs' => $arrival->getCustoms() ? 'oui' : 'non',
             'frozen' => $arrival->getFrozen() ? 'oui' : 'non',
             'provider' => $arrival->getFournisseur() ? $arrival->getFournisseur()->getNom() : '',
             'receiver' => $arrival->getDestinataire() ? $arrival->getDestinataire()->getUsername() : '',
@@ -490,7 +494,6 @@ class ArrivageDataService
     public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
                                            Utilisateur $currentUser): array {
 
-
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
@@ -499,7 +502,7 @@ class ArrivageDataService
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, $categorieCL);
 
         $columns = [
-            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
+            ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => 'Date de création', 'name' => 'creationDate'],
             ['title' => 'arrivage.n° d\'arrivage',  'name' => 'arrivalNumber', 'translated' => true],
             ['title' => 'Transporteur', 'name' => 'carrier'],
@@ -511,7 +514,7 @@ class ArrivageDataService
             ['title' => 'arrivage.destinataire', 'name' => 'receiver', 'translated' => true],
             ['title' => 'arrivage.acheteurs', 'name' => 'buyers', 'translated' => true],
             ['title' => 'Nb um', 'name' => 'nbUm'],
-            ['title' => 'Douane', 'name' => 'custom'],
+            ['title' => 'Douane', 'name' => 'customs'],
             ['title' => 'Congelé', 'name' => 'frozen'],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Utilisateur', 'name' => 'user'],
@@ -520,27 +523,7 @@ class ArrivageDataService
             ['title' => 'Business Unit', 'name' => 'businessUnit'],
         ];
 
-        return array_merge(
-            array_map(function (array $column) use ($columnsVisible) {
-                return [
-                    'title' => $column['title'],
-                    'alwaysVisible' => $column['alwaysVisible'] ?? false,
-                    'orderable' => $column['orderable'] ?? true,
-                    'data' => $column['name'],
-                    'name' => $column['name'],
-                    'translated' => $column['translated'] ?? false,
-                    'class' => $column['class'] ?? (in_array($column['name'], $columnsVisible) ? 'display' : 'hide')
-                ];
-            }, $columns),
-            array_map(function (array $freeField) use ($columnsVisible) {
-                return [
-                    'title' => ucfirst(mb_strtolower($freeField['label'])),
-                    'data' => $freeField['label'],
-                    'name' => $freeField['label'],
-                    'class' => (in_array($freeField['label'], $columnsVisible) ? 'display' : 'hide'),
-                ];
-            }, $freeFields)
-        );
+        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
     public function getLocationForTracking(EntityManagerInterface $entityManager,

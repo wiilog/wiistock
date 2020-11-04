@@ -13,7 +13,7 @@ function initTableArticle() {
             serverSide: true,
             processing: true,
             paging: true,
-            order: [[1, 'asc']],
+            order: [[1, 'desc']],
             ajax: {
                 "url": pathArticle,
                 "type": "POST",
@@ -25,13 +25,7 @@ function initTableArticle() {
                     return json.data;
                 }
             },
-            columns: columns.map(function (column) {
-                return {
-                    ...column,
-                    class: column.title === 'Actions' ? 'noVis' : undefined,
-                    title: column.title === 'Actions' ? '' : column.title
-                }
-            }),
+            columns,
             drawConfig: {
                 needsResize: true
             },
@@ -81,11 +75,6 @@ function init() {
     let $submitDeleteArticle = $("#submitDeleteArticle");
     let urlDeleteArticle = Routing.generate('article_delete', true);
     InitModal($modalDeleteArticle, $submitDeleteArticle, urlDeleteArticle, { tables: [tableArticle] });
-
-    let modalColumnVisible = $('#modalColumnVisible');
-    let submitColumnVisible = $('#submitColumnVisible');
-    let urlColumnVisible = Routing.generate('save_column_visible_for_article', true);
-    InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
 }
 
 function initNewArticleEditor(modal) {
@@ -205,21 +194,6 @@ function printArticlesBarCodes($button, event) {
     else if (event) {
         event.stopPropagation();
     }
-}
-
-function saveRapidSearch() {
-    let searchesWanted = [];
-    $('#rapidSearch tbody td').each(function () {
-        searchesWanted.push($(this).html());
-    });
-    let params = {
-        recherches: searchesWanted
-    };
-    let json = JSON.stringify(params);
-    $.post(Routing.generate('update_user_searches_for_article', true), json, function () {
-        $("#modalRapidSearch").find('.close').click();
-        tableArticle.search(tableArticle.search()).draw();
-    });
 }
 
 function displayActifOrInactif(select){

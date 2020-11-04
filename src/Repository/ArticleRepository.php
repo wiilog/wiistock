@@ -15,6 +15,7 @@ use App\Entity\Utilisateur;
 
 use App\Helper\QueryCounter;
 use App\Helper\Stream;
+use App\Service\VisibleColumnService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\Connection;
@@ -33,35 +34,12 @@ use Doctrine\ORM\QueryBuilder;
  * @method Article[]    findAll()
  * @method Article[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ArticleRepository extends EntityRepository
-{
-    private const DtToDbLabels = [
-        'Référence' => 'reference',
-        'Statut' => 'status',
-        'Libellé' => 'label',
-        'Date et heure' => 'dateFinReception',
-        'Référence article' => 'refArt',
-        'Quantité' => 'quantite',
-        'Type' => 'Type',
-        'Emplacement' => 'Emplacement',
-        'Actions' => 'Actions',
-        'Code barre' => 'barCode',
-        'Dernier inventaire' => 'dateLastInventory',
-        'Prix unitaire' => 'prixUnitaire',
-        'Lot' => 'batch',
-        'Date d\'entrée en stock' => 'stockEntryDate',
-        'Date de péremption' => 'expiryDate',
-    ];
+class ArticleRepository extends EntityRepository {
 
-    private const linkChampLibreLabelToField = [
-        'Libellé' => ['field' => 'label', 'typage' => 'text'],
-        'Référence' => ['field' => 'reference', 'typage' => 'text'],
-        'Statut' => ['field' => 'Statut', 'typage' => 'text'],
-        'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
-        'Date et heure' => ['field' => 'dateLastInventory', 'typage' => 'list'],
-        'Commentaire' => ['field' => 'commentaire', 'typage' => 'list'],
-        'Prix unitaire' => ['field' => 'prixUnitaire', 'typage' => 'list'],
-        'Code barre' => ['field' => 'barCode', 'typage' => 'text'],
+    private const FIELD_ENTITY_NAME = [
+        "quantity" => "quantite",
+        "location" => "emplacement",
+        "unitPrice" => "prixUnitaire"
     ];
 
     public function findExpiredToGenerate($delay = 0) {
@@ -472,7 +450,10 @@ class ArticleRepository extends EntityRepository
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
                 $searchValue = $params->get('search')['value'];
+
                 if (!empty($searchValue)) {
+                    $search = "%$searchValue%";
+
                     $ids = [];
                     $query = [];
 
@@ -484,65 +465,72 @@ class ArticleRepository extends EntityRepository
 
                     foreach ($searchForArticle as $key => $searchField) {
                         switch ($searchField) {
-                            case 'Type':
+                            case "type":
                                 $subqb = $this->createQueryBuilder("a")
                                     ->select('a.id')
                                     ->leftJoin('a.type', 't_search')
-                                    ->andWhere('t_search.label LIKE :valueSearch')
-                                    ->setParameter('valueSearch', '%' . $searchValue . '%');
+                                    ->andWhere('t_search.label LIKE :search')
+                                    ->setParameter('search', $search);
 
                                 foreach ($subqb->getQuery()->execute() as $idArray) {
                                     $ids[] = $idArray['id'];
                                 }
                                 break;
 
-                            case 'Statut':
+                            case "status":
                                 $subqb = $this->createQueryBuilder("a")
                                     ->select('a.id')
                                     ->leftJoin('a.statut', 's_search')
-                                    ->andWhere('s_search.nom LIKE :valueSearch')
-                                    ->setParameter('valueSearch', '%' . $searchValue . '%');
+                                    ->andWhere('s_search.nom LIKE :search')
+                                    ->setParameter('search', $search);
 
                                 foreach ($subqb->getQuery()->execute() as $idArray) {
                                     $ids[] = $idArray['id'];
                                 }
                                 break;
-                            case 'Emplacement':
+                            case "location":
                                 $subqb = $this->createQueryBuilder("a")
                                     ->select('a.id')
                                     ->leftJoin('a.emplacement', 'e_search')
-                                    ->andWhere('e_search.label LIKE :valueSearch')
-                                    ->setParameter('valueSearch', '%' . $searchValue . '%');
+                                    ->andWhere('e_search.label LIKE :search')
+                                    ->setParameter('search', $search);
 
                                 foreach ($subqb->getQuery()->execute() as $idArray) {
                                     $ids[] = $idArray['id'];
                                 }
                                 break;
-                            case 'Référence article':
+                            case "reference":
                                 $subqb = $this->createQueryBuilder("a")
                                     ->select('a.id')
                                     ->leftJoin('a.articleFournisseur', 'afa')
                                     ->leftJoin('afa.referenceArticle', 'ra')
-                                    ->andWhere('ra.reference LIKE :valueSearch')
-                                    ->setParameter('valueSearch', '%' . $searchValue . '%');
+                                    ->andWhere('ra.reference LIKE :search')
+                                    ->setParameter('search', $search);
+
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+                                break;
+                            case "supplierReference":
+                                $subqb = $this->createQueryBuilder("a")
+                                    ->select('a.id')
+                                    ->leftJoin('a.articleFournisseur', 'afa')
+                                    ->andWhere('afa.reference LIKE :search')
+                                    ->setParameter('search', $search);
 
                                 foreach ($subqb->getQuery()->execute() as $idArray) {
                                     $ids[] = $idArray['id'];
                                 }
                                 break;
                             default:
-                                $metadatas = $this->_em->getClassMetadata(Article::class);
-                                $field = !empty(self::linkChampLibreLabelToField[$searchField]) ? self::linkChampLibreLabelToField[$searchField]['field'] : '';
-                                if ($field !== '' && in_array($field, $metadatas->getFieldNames())) {
-                                    $query[] = 'a.' . $field . ' LIKE :valueSearch';
-                                    $qb->setParameter('valueSearch', '%' . $searchValue . '%');
-                                    // champs libres
+                                $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
+
+                                if(is_numeric($field)) {
+                                    $query[] = "JSON_SEARCH(a.freeFields, 'one', :search, NULL, '$.\"$field\"') IS NOT NULL";
+                                    $qb->setParameter("search", $search);
                                 } else {
-                                    $value = '%' . $searchValue . '%';
-                                    $clId = $freeFields[trim(mb_strtolower($searchField))] ?? null;
-                                    if ($clId) {
-                                        $query[] = "JSON_SEARCH(a.freeFields, 'one', '${value}', NULL, '$.\"${clId}\"') IS NOT NULL";
-                                    }
+                                    $query[] = "a.$field LIKE :search";
+                                    $qb->setParameter('search', $search);
                                 }
                                 break;
                         }
@@ -569,64 +557,43 @@ class ArticleRepository extends EntityRepository
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
-                    $column = self::DtToDbLabels[$column] ?? $column;
 
                     switch ($column) {
-                        case 'Actions':
-                            break;
-                        case 'Type':
-                            $qb
-                                ->leftJoin('a.type', 't')
+                        case "type":
+                            $qb->leftJoin('a.type', 't')
                                 ->orderBy('t.label', $order);
                             break;
-                        case 'Emplacement':
-                            $qb
-                                ->leftJoin('a.emplacement', 'e')
+                        case "supplierReference":
+                            $qb->leftJoin('a.articleFournisseur', 'af1')
+                                ->orderBy('af1.reference', $order);
+                            break;
+                        case "location":
+                            $qb->leftJoin('a.emplacement', 'e')
                                 ->orderBy('e.label', $order);
                             break;
-                        case 'refArt':
-                            $qb
-                                ->leftJoin('a.articleFournisseur', 'af2')
+                        case "reference":
+                            $qb->leftJoin('a.articleFournisseur', 'af2')
                                 ->leftJoin('af2.referenceArticle', 'ra2')
                                 ->orderBy('ra2.reference', $order);
                             break;
-                        case 'status':
-                            $qb
-                                ->leftJoin('a.statut', 's_sort')
+                        case "status":
+                            $qb->leftJoin('a.statut', 's_sort')
                                 ->orderBy('s_sort.nom', $order);
                             break;
-                        case 'prixUnitaire':
-                            $qb
-                                ->orderBy('a.prixUnitaire', $order);
-                            break;
-                        case 'dateFinReception':
-                            $expr = $qb->expr();
-                            $qb
-                                ->leftJoin('a.mouvements', 'mouvement')
-                                ->andWhere($expr->orX(
-                                    $expr->isNull('mouvement.type'),
-                                    $expr->eq('mouvement.type', ':mouvementTypeOrder')
-                                ))
-                                ->distinct()
-                                ->orderBy('mouvement.date', $order)
-                                ->setParameter('mouvementTypeOrder', MouvementStock::TYPE_ENTREE);
-                            break;
                         default:
-                            if (property_exists(Article::class, $column)) {
-                                $qb->orderBy('a.' . $column, $order);
-                            } else {
-                                $orderField = $column;
-                                $clId = $freeFields[trim(mb_strtolower($orderField))] ?? null;
-                                if ($clId) {
-                                    $jsonOrderQuery = "CAST(JSON_EXTRACT(a.freeFields, '$.\"${clId}\"') AS CHAR)";
-                                    $qb
-                                        ->orderBy($jsonOrderQuery, $order);
-                                }
+                            $field = self::FIELD_ENTITY_NAME[$column] ?? $column;
+                            $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+
+                            if(is_numeric($freeFieldId)) {
+                                $qb->orderBy("JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"')", $order);
+                            } else if (property_exists(Article::class, $field)) {
+                                $qb->orderBy("a.$field", $order);
                             }
                             break;
                     }
                 }
             }
+
             $allArticleDataTable = $qb->getQuery();
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));

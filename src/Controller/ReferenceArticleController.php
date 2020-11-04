@@ -35,6 +35,7 @@ use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Twig\Environment as Twig_Environment;
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
@@ -49,7 +50,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
@@ -122,163 +122,23 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/api-columns", name="ref_article_api_columns", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
+     * @Route("/api-columns", name="ref_article_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param RefArticleDataService $refArticleDataService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function apiColumns(Request $request,
-                               EntityManagerInterface $entityManager): Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $champLibreRepository = $entityManager->getRepository(FreeField::class);
-            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-
-            $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
-            $columnsVisible = $currentUser->getColumnVisible();
-            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-
-            $category = CategoryType::ARTICLE;
-            $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-
-			$columns = [
-				[
-					"title" => 'Actions',
-					"data" => 'Actions',
-					'name' => 'Actions',
-                    'orderable' => false,
-					"class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
-
-				],
-				[
-					"title" => 'Libellé',
-					"data" => 'Libellé',
-					'name' => 'Libellé',
-					"class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
-
-				],
-				[
-					"title" => 'Référence',
-					"data" => 'Référence',
-					'name' => 'Référence',
-					"class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Type',
-					"data" => 'Type',
-					'name' => 'Type',
-					"class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Statut',
-					"data" => 'Statut',
-					'name' => 'Statut',
-					"class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Quantité disponible',
-					"data" => 'Quantité disponible',
-					'name' => 'Quantité disponible',
-					"class" => (in_array('Quantité disponible', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Quantité en stock',
-					"data" => 'Quantité stock',
-					'name' => 'Quantité stock',
-					"class" => (in_array('Quantité stock', $columnsVisible) ? 'display' : 'hide'),
-				],
-                [
-                    "title" => 'Code barre',
-                    "data" => 'Code barre',
-                    'name' => 'Code barre',
-                    "class" => (in_array('Code barre', $columnsVisible) ? 'display' : 'hide'),
-
-                ],
-				[
-					"title" => 'Emplacement',
-					"data" => 'Emplacement',
-					'name' => 'Emplacement',
-					"class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Commentaire',
-					"data" => 'Commentaire',
-					'name' => 'Commentaire',
-					"class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
-				],
-                [
-                    "title" => 'Commentaire d\'urgence',
-                    "data" => 'Commentaire d\'urgence',
-                    'name' => 'Commentaire d\'urgence',
-                    "class" => (in_array('Commentaire d\'urgence', $columnsVisible) ? 'display' : 'hide'),
-                ],
-				[
-					"title" => 'Seuil d\'alerte',
-					"data" => 'limitWarning',
-					'name' => 'Seuil d\'alerte',
-					"class" => (in_array('Seuil d\'alerte', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Seuil de sécurité',
-					"data" => 'limitSecurity',
-					'name' => 'Seuil de sécurité',
-					"class" => (in_array('Seuil de sécurité', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Prix unitaire',
-					"data" => 'Prix unitaire',
-					'name' => 'Prix unitaire',
-					"class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Dernier inventaire',
-					"data" => 'Dernier inventaire',
-					'name' => 'Dernier inventaire',
-					"class" => (in_array('Dernier inventaire', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Urgence',
-					"data" => 'Urgence',
-					'name' => 'Urgence',
-					"class" => (in_array('Urgence', $columnsVisible) ? 'display' : 'hide'),
-				],
-                [
-                    "title" => 'Synchronisation nomade',
-                    "data" => 'Synchronisation nomade',
-                    'name' => 'Synchronisation nomade',
-                    "class" => (in_array('Synchronisation nomade', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Gestion de stock',
-                    "data" => 'stockManagement',
-                    'name' => 'Gestion de stock',
-                    "class" => (in_array('Gestion de stock', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Gestionnaire(s)',
-                    "data" => 'managers',
-                    'name' => 'Gestionnaire(s)',
-                    'orderable' => false,
-                    "class" => (in_array('Gestionnaire(s)', $columnsVisible) ? 'display' : 'hide'),
-                ]
-			];
-			foreach ($champs as $champ) {
-				$columns[] = [
-					"title" => $champ['label'],
-					"data" => $champ['label'],
-					'name' => $champ['label'],
-					"class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
-				];
-			}
-
-            return new JsonResponse($columns);
+    public function apiColumns(RefArticleDataService $refArticleDataService,
+                               EntityManagerInterface $entityManager): Response {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
+            return $this->redirectToRoute('access_denied');
         }
 
-        throw new BadRequestHttpException();
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $fields = $refArticleDataService->getColumnVisibleConfig($entityManager, $currentUser);
+
+        return $this->json($fields);
     }
 
     /**
@@ -289,8 +149,7 @@ class ReferenceArticleController extends AbstractController
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function api(Request $request): Response
-    {
+    public function api(Request $request): Response {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
@@ -472,20 +331,24 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/", name="reference_article_index",  methods="GET|POST", options={"expose"=true})
+     * @param RefArticleDataService $refArticleDataService
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function index(): Response {
+    public function index(RefArticleDataService $refArticleDataService,
+                          EntityManagerInterface $entityManager): Response {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $entityManager = $this->getDoctrine()->getManager();
-
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+
 
         $typeQuantite = [
             [
@@ -498,181 +361,15 @@ class ReferenceArticleController extends AbstractController
             ]
         ];
 
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-        $category = CategoryType::ARTICLE;
-        $champL = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $champF[] = [
-            'label' => 'Actions',
-            'id' => 0,
-            'typage' => ''
-        ];
-        $champF[] = [
-            'label' => 'Libellé',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champF[] = [
-            'label' => 'Code barre',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champF[] = [
-            'label' => 'Référence',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champF[] = [
-            'label' => 'Urgence',
-            'id' => 0,
-            'typage' => 'booleen'
-
-        ];
-        $champF[] = [
-            'label' => 'Type',
-            'id' => 0,
-            'typage' => 'list'
-        ];
-        $champF[] = [
-            'label' => 'Statut',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Quantité stock',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champF[] = [
-            'label' => 'Quantité disponible',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champF[] = [
-            'label' => 'Emplacement',
-            'id' => 0,
-            'typage' => 'list'
-        ];
-        $champF[] = [
-            'label' => 'Commentaire',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Commentaire d\'urgence',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Seuil de sécurité',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champF[] = [
-            'label' => 'Seuil d\'alerte',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champF[] = [
-            'label' => 'Prix unitaire',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champF[] = [
-            'label' => 'Synchronisation nomade',
-            'id' => 0,
-            'typage' => 'booleen'
-        ];
-        $champF[] = [
-            'label' => 'Dernier inventaire',
-            'id' => 0,
-            'typage' => 'date'
-        ];
-        $champF[] = [
-            'label' => 'Gestion de stock',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Gestionnaire(s)',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-
-        // champs pour recherche personnalisée (uniquement de type texte ou liste)
-		$champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_TEXT);
-		$champsLTList = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_LIST);
-
-		$champsFText[] = [
-            'label' => 'Libellé',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-
-        $champsFText[] = [
-            'label' => 'Référence',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champsFText[] = [
-            'label' => 'Code barre',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champsFText[] = [
-            'label' => 'Fournisseur',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champsFText[] = [
-            'label' => 'Synchronisation nomade',
-            'id' => 0,
-            'typage' => 'sync'
-
-        ];
-        $champsFText[] = [
-            'label' => 'Référence Article Fournisseur',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champsFText[] = [
-            'label' => 'Gestion de stock',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champsFText[] = [
-            'label' => 'Gestionnaire(s)',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-
-        $champs = array_merge($champF, $champL);
-        $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
-
-        usort($champs, function ($a, $b) {
-			return strcasecmp($a['label'], $b['label']);
-        });
-
-		usort($champsSearch, function ($a, $b) {
-			return strcasecmp($a['label'], $b['label']);
-		});
+        $fields = $refArticleDataService->getColumnVisibleConfig($entityManager, $user);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $inventoryCategories = $inventoryCategoryRepository->findAll();
         $typeChampLibre =  [];
         $freeFieldsGroupedByTypes = [];
-        $search = $this->getUser()->getRecherche();
+
         foreach ($types as $type) {
-            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+            $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
             $typeChampLibre[] = [
                 'typeLabel' =>  $type->getLabel(),
                 'typeId' => $type->getId(),
@@ -681,15 +378,12 @@ class ReferenceArticleController extends AbstractController
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
 
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
-        $filter = $filtreRefRepository->findOneByUserAndChampFixe($currentUser, FiltreRef::CHAMP_FIXE_STATUT);
+        $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::CHAMP_FIXE_STATUT);
 
         return $this->render('reference_article/index.html.twig', [
-            'champs' => $champs,
-            'champsSearch' => $champsSearch,
+            "fields" => $fields,
+            "searches" => $user->getRecherche(),
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
-            'recherches' => $search,
             'columnsVisibles' => $this->getUser()->getColumnVisible(),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,

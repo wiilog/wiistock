@@ -42,6 +42,7 @@ class TrackingMovementService
     private $attachmentService;
     private $freeFieldService;
     private $locationClusterService;
+    private $visibleColumnService;
 
     public function __construct(UserService $userService,
                                 RouterInterface $router,
@@ -50,6 +51,7 @@ class TrackingMovementService
                                 Twig_Environment $templating,
                                 FreeFieldService $freeFieldService,
                                 Security $security,
+                                VisibleColumnService $visibleColumnService,
                                 AttachmentService $attachmentService)
     {
         $this->templating = $templating;
@@ -60,6 +62,7 @@ class TrackingMovementService
         $this->attachmentService = $attachmentService;
         $this->locationClusterService = $locationClusterService;
         $this->freeFieldService = $freeFieldService;
+        $this->visibleColumnService = $visibleColumnService;
     }
 
     /**
@@ -142,15 +145,6 @@ class TrackingMovementService
         $category = CategoryType::MOUVEMENT_TRACA;
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
 
-        $rowCL = [];
-        /** @var FreeField $freeField */
-        foreach ($freeFields as $freeField) {
-            $rowCL[$freeField['label']] = $this->freeFieldService->serializeValue([
-                'valeur' => $movement->getFreeFieldValue($freeField['id']),
-                "typage" => $freeField['typage'],
-            ]);
-        }
-
         $trackingPack = $movement->getPack();
         $packCode = $trackingPack->getCode();
 
@@ -165,20 +159,27 @@ class TrackingMovementService
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
                     : ''),
-            'label' => $movement->getReferenceArticle()
+            "label" => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getLibelle()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getLabel()
                     : ''),
-            'quantity' => $movement->getQuantity() ? $movement->getQuantity() : '',
-            'type' => $movement->getType() ? $movement->getType()->getNom() : '',
-            'operateur' => $movement->getOperateur() ? $movement->getOperateur()->getUsername() : '',
-            'actions' => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
+            "quantity" => $movement->getQuantity() ? $movement->getQuantity() : '',
+            "type" => $movement->getType() ? $movement->getType()->getNom() : '',
+            "operator" => $movement->getOperateur() ? $movement->getOperateur()->getUsername() : '',
+            "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
                 'mvt' => $movement,
             ])
         ];
 
-        $rows = array_merge($rowCL, $rows);
+        foreach ($freeFields as $freeField) {
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeField['id']);
+            $rows[$freeFieldName] = $this->freeFieldService->serializeValue([
+                "valeur" => $movement->getFreeFieldValue($freeField["id"]),
+                "typage" => $freeField["typage"],
+            ]);
+        }
+
         return $rows;
     }
 
@@ -487,7 +488,7 @@ class TrackingMovementService
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::MOUVEMENT_TRACA, $categorieCL);
 
         $columns = [
-            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true, 'orderable' => false],
+            ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
             ['title' => 'Date', 'name' => 'date'],
             ['title' => 'mouvement de traçabilité.Colis', 'name' => 'code', 'translated' => true],
@@ -496,31 +497,10 @@ class TrackingMovementService
             ['title' => 'Quantité', 'name' => 'quantity'],
             ['title' => 'Emplacement', 'name' => 'location'],
             ['title' => 'Type', 'name' => 'type'],
-            ['title' => 'Opérateur', 'name' => 'operateur'],
+            ['title' => 'Opérateur', 'name' => 'operator'],
         ];
 
-        return array_merge(
-            array_map(function (array $column) use ($columnsVisible) {
-                return [
-                    'title' => $column['title'],
-                    'alwaysVisible' => $column['alwaysVisible'] ?? false,
-                    'orderable' => $column['orderable'] ?? true,
-                    'data' => $column['name'],
-                    'name' => $column['name'],
-                    'translated' => $column['translated'] ?? false,
-                    'class' => $column['class'] ?? (in_array($column['name'], $columnsVisible) ? 'display' : 'hide')
-                ];
-            }, $columns),
-            array_map(function (array $freeField) use ($columnsVisible) {
-                return [
-                    'title' => ucfirst(mb_strtolower($freeField['label'])),
-                    'data' => $freeField['label'],
-                    'orderable' => false,
-                    'name' => $freeField['label'],
-                    'class' => (in_array($freeField['label'], $columnsVisible) ? 'display' : 'hide'),
-                ];
-            }, $freeFields)
-        );
+        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
     /**

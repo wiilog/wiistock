@@ -105,7 +105,6 @@ class DispatchController extends AbstractController {
             'types' => $types,
             'fieldsParam' => $fieldsParam,
             'fields' => $fields,
-            'visibleColumns' => $currentUser->getColumnsVisibleForDispatch(),
             'modalNewConfig' => $service->getNewDispatchConfig($statutRepository, $champLibreRepository, $fieldsParamRepository, $types)
         ]);
     }
@@ -128,7 +127,7 @@ class DispatchController extends AbstractController {
 
             $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser);
 
-            return $this->json($columns);
+            return $this->json(array_values($columns));
         }
 
         throw new BadRequestHttpException();
