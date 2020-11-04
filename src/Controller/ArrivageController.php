@@ -824,7 +824,7 @@ class ArrivageController extends AbstractController
                 $file = $request->files->get('file' . $i);
                 if ($file) {
                     if ($file->getClientOriginalExtension()) {
-                        $filename = uniqid() . "." . $file->getClientOriginalExtension();
+                        $filename = uniqid() . "." . strtolower($file->getClientOriginalExtension());
                     } else {
                         $filename = uniqid();
                     }
