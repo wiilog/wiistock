@@ -1248,13 +1248,13 @@ class ReferenceArticleController extends AbstractController
                 ->getRepository(Utilisateur::class)
                 ->getUsernameManagersGroupByReference();
 
-            $providersByReference = $manager
+            $suppliersByReference = $manager
                 ->getRepository(Fournisseur::class)
                 ->getCodesAndLabelsGroupedByReference();
 
             $references = $raRepository->iterateAll();
             foreach($references as $reference) {
-                $this->putReferenceLine($output, $csvService, $ffService, $ffConfig, $managersByReference, $reference, $providersByReference);
+                $this->putReferenceLine($output, $csvService, $ffService, $ffConfig, $managersByReference, $reference, $suppliersByReference);
             }
         }, "export-references-$today.csv", $header);
     }
@@ -1265,7 +1265,7 @@ class ReferenceArticleController extends AbstractController
                                       array $ffConfig,
                                       array $managersByReference,
                                       array $reference,
-                                      array $providersByReference) {
+                                      array $suppliersByReference) {
         $id = (int)$reference['id'];
         $line = [
             $reference['reference'],
@@ -1285,8 +1285,8 @@ class ReferenceArticleController extends AbstractController
             $reference['needsMobileSync'],
             $reference['stockManagement'],
             $managersByReference[$id] ?? "",
-            $providersByReference[$id]['providerLabels'] ?? "",
-            $providersByReference[$id]['providerCodes'] ?? "",
+            $suppliersByReference[$id]['supplierLabels'] ?? "",
+            $suppliersByReference[$id]['supplierCodes'] ?? "",
         ];
 
         foreach($ffConfig['freeFieldIds'] as $freeFieldId) {

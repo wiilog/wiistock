@@ -52,32 +52,35 @@ class FournisseurRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getCodesAndLabelsGroupedByReference(): array
-    {
+    public function getCodesAndLabelsGroupedByReference(): array {
         $queryBuilder = $this->createQueryBuilder('fournisseur');
 
         return Stream::from($queryBuilder
-                    ->select('fournisseur.nom as providerLabel')
-                    ->addSelect('fournisseur.codeReference as providerCode')
-                    ->addSelect('referenceArticle.id')
-                    ->innerJoin('fournisseur.articlesFournisseur', 'articlesFournisseur')
-                    ->innerJoin('articlesFournisseur.referenceArticle', 'referenceArticle')
-                    ->getQuery()
-                    ->getResult())
-                ->reduce(function(array $carry, array $providerWithRefId) {
-                    $refId = $providerWithRefId['id'];
-                    $providerCode = $providerWithRefId['providerCode'];
-                    $providerLabel = $providerWithRefId['providerLabel'];
-                    if(!isset($carry[$refId])) {
-                        $carry[$refId] = [];
-                        $carry[$refId]['providerCodes'] = $providerCode;
-                        $carry[$refId]['providerLabels'] = $providerLabel;
-                    } else {
-                        $carry[$refId]['providerCodes'] .= (', ' . $providerCode);
-                        $carry[$refId]['providerLabels'] .= (', ' . $providerLabel);
-                    }
-                    return $carry;
-                }, []);
+                ->distinct()
+                ->select('fournisseur.nom as supplierLabel')
+                ->addSelect('fournisseur.codeReference as supplierCode')
+                ->addSelect('referenceArticle.id')
+                ->innerJoin('fournisseur.articlesFournisseur', 'articlesFournisseur')
+                ->innerJoin('articlesFournisseur.referenceArticle', 'referenceArticle')
+                ->getQuery()
+                ->getResult())
+            ->reduce(function(array $carry, array $supplierWithRefId) {
+                $refId = $supplierWithRefId['id'];
+                $supplierCode = $supplierWithRefId['supplierCode'];
+                $supplierLabel = $supplierWithRefId['supplierLabel'];
+
+                if(!isset($carry[$refId])) {
+                    $carry[$refId] = [
+                        "supplierCodes" => $supplierCode,
+                        "supplierLabels" => $supplierLabel,
+                    ];
+                } else {
+                    $carry[$refId]['supplierCodes'] .= ', ' . $supplierCode;
+                    $carry[$refId]['supplierLabels'] .= ', ' . $supplierLabel;
+                }
+
+                return $carry;
+            }, []);
     }
 
     public function getIdAndCodeBySearch($search)
