@@ -83,7 +83,7 @@ class ExceptionListener {
                 ],
             ]);
         } catch(Exception $exception) {
-            dump($exception);
+
         }
     }
 
