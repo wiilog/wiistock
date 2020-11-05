@@ -897,12 +897,12 @@ class ImportService
         }
 
         if (isset($data['managers'])) {
-            $emails = Stream::explode([";", ",", " "], $data["managers"])
+            $usernames = Stream::explode([";", ",", " "], $data["managers"])
                 ->unique()
                 ->map("trim")
                 ->toArray();
 
-            $managers = $userRepository->findByEmails($emails);
+            $managers = $userRepository->findByEmails($usernames);
             foreach($managers as $manager) {
                 $refArt->addManager($manager);
             }

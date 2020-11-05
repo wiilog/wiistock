@@ -183,14 +183,15 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         }, []);
     }
 
-    public function findByEmails(array $emails) {
+    public function findByEmails(array $usernames) {
         $result = $this->createQueryBuilder("u")
             ->where("u.email IN (:emails)")
-            ->setParameter("emails", $emails);
+            ->setParameter("emails", $usernames);
 
-        foreach($emails as $i => $email) {
-            $result->orWhere("JSON_SEARCH(u.secondaryEmails, 'one', :email$i) IS NOT NULL")
-                ->setParameter("email$i", "%$email%");
+        foreach($usernames as $index => $username) {
+            $result
+                ->orWhere("u.username = :username$index")
+                ->setParameter("username$index", $username);
         }
 
         return $result->getQuery()->getResult();
