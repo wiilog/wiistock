@@ -43,8 +43,7 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
 
             const {arrivageId} = response;
 
-            $
-                .post(Routing.generate('post_arrival_tracking_movements', {arrival: arrivageId}))
+            $.post(Routing.generate('post_arrival_tracking_movements', {arrival: arrivageId}))
                 .then(() => {
                     displayCurrentModal();
 
