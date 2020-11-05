@@ -526,8 +526,9 @@ class ArticleRepository extends EntityRepository {
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
 
-                                if(is_numeric($field)) {
-                                    $query[] = "JSON_SEARCH(a.freeFields, 'one', :search, NULL, '$.\"$field\"') IS NOT NULL";
+                                $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
+                                if(is_numeric($freeFieldId)) {
+                                    $query[] = "JSON_SEARCH(a.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                     $qb->setParameter("search", $search);
                                 } else {
                                     $query[] = "a.$field LIKE :search";

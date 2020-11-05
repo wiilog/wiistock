@@ -15,21 +15,19 @@
                         <th class="text-center">Actions</th>
                     </tr>
                     </thead>
-                    {% for name, field in fields %}
-                        {% if field.name is defined %}
-                            {% set name = field.name %}
+                    {% for field in fields %}
+                        {% if field.name != 'actions' %}
+                            <tr class="toggle-search pointer">
+                                <td>{{ field.title }}</td>
+                                <td>
+                                    <div class="form-check d-flex align-items-center justify-content-center">
+                                        <input type="checkbox" class="form-check-input"
+                                               name="{{ field.name }}" {{ field.name in searches ? 'checked' }}
+                                               title="{{ field.title }}">
+                                    </div>
+                                </td>
+                            </tr>
                         {% endif %}
-
-                        <tr class="toggle-search pointer">
-                            <td>{{ field.title }}</td>
-                            <td>
-                                <div class="form-check d-flex align-items-center justify-content-center">
-                                    <input type="checkbox" class="form-check-input"
-                                           name="{{ name }}" {{ name in searches ? 'checked' }}
-                                           title="{{ field.title }}">
-                                </div>
-                            </td>
-                        </tr>
                     {% endfor %}
                 </table>
                 <table class="table float-right w-49" id="rapid-search">
@@ -38,10 +36,12 @@
                         <th>Recherche rapide</th>
                     </tr>
                     </thead>
-                    {% for field in searches %}
-                        {% if fields[field] is defined %}
+                    {% for search in searches %}
+                        {% set field = fields | filter(f => f.name == search) | first %}
+
+                        {% if field %}
                             <tr>
-                                <td data-name="{{ field }}">{{ fields[field].title }}</td>
+                                <td data-name="{{ search }}">{{ field.title }}</td>
                             </tr>
                         {% endif %}
                     {% endfor %}
@@ -61,7 +61,7 @@
             const target = $(event.target);
             let checkbox;
 
-            if(!target.is("input")) {
+            if (!target.is("input")) {
                 checkbox = $(event.currentTarget).find('input[type="checkbox"]');
                 checkbox.prop("checked", !checkbox.is(":checked"));
             } else {
@@ -99,7 +99,7 @@
             type: "POST",
             dataType: "json",
             data: {searches},
-            success: function() {
+            success: function () {
                 $("#modalRapidSearch").modal("hide");
                 table.search(table.search()).draw();
             }

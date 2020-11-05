@@ -51,7 +51,11 @@ class VisibleColumnService {
         return self::FREE_FIELD_NAME_PREFIX . '_' . $id;
     }
 
-    public static function extractFreeFieldId(string $freeFieldName): ?int {
+    public static function extractFreeFieldId(?string $freeFieldName): ?int {
+        if($freeFieldName === null) {
+            return null;
+        }
+
         preg_match("/" . VisibleColumnService::FREE_FIELD_NAME_PREFIX . "_(\d+)/", $freeFieldName, $matches);
         $freeFieldIdStr = $matches[1] ?? null;
         return is_numeric($freeFieldIdStr) ? intval($freeFieldIdStr) : null;

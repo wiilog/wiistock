@@ -57,6 +57,8 @@ class RefArticleDataService {
         ["title" => "Seuil d'alerte", "name" => "warningThreshold", "type" => "number"],
         ["title" => "Prix unitaire", "name" => "unitPrice", "type" => "number"],
         ["title" => "Synchronisation nomade", "name" => "mobileSync", "type" => "booleen"],
+        ["title" => "Nom fournisseur", "name" => "supplierLabel", "type" => "text"],
+        ["title" => "Code fournisseur", "name" => "supplierCode", "type" => "text"],
         ["title" => "Dernier inventaire", "name" => "lastInventory", "type" => "date"],
         ["title" => "Gestion de stock", "name" => "stockManagement", "type" => "text"],
         ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
@@ -133,11 +135,9 @@ class RefArticleDataService {
     public function getRefArticleDataByParams($params = null) {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
-        $champs = $this->freeFieldService->getFreeFieldsById($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
-
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user, $champs);
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
         $refs = $queryResult['data'];
         $rows = [];
         foreach($refs as $refArticle) {
@@ -389,9 +389,6 @@ class RefArticleDataService {
         $ffCategory = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $ffCategory);
 
-        $availableQuantity = $refArticle->getQuantiteDisponible();
-        $quantityStock = $refArticle->getQuantiteStock();
-
         $providerCodes = Stream::from($refArticle->getArticlesFournisseur())
             ->map(function(ArticleFournisseur $articleFournisseur) {
                 return $articleFournisseur->getFournisseur() ? $articleFournisseur->getFournisseur()->getCodeReference() : '';
@@ -406,7 +403,7 @@ class RefArticleDataService {
             ->unique()
             ->toArray();
 
-        $rowCF = [
+        $row = [
             "id" => $refArticle->getId(),
             "label" => $refArticle->getLibelle() ?? "Non défini",
             "reference" => $refArticle->getReference() ?? "Non défini",

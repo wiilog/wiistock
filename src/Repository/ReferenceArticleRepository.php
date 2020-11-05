@@ -10,6 +10,7 @@ use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
+use App\Helper\QueryCounter;
 use App\Helper\Stream;
 use App\Service\VisibleColumnService;
 use DateTime;
@@ -39,7 +40,6 @@ class ReferenceArticleRepository extends EntityRepository {
         'Quantité disponible' => 'quantiteDisponible',
         'Quantité stock' => 'quantiteStock',
         'Emplacement' => 'Emplacement',
-        'Actions' => 'Actions',
         'Fournisseur' => 'Fournisseur',
         'Statut' => 'status',
         'Code barre' => 'barCode',
@@ -243,7 +243,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->execute();
     }
 
-    public function findByFiltersAndParams($filters, $params, $user, $freeFields)
+    public function findByFiltersAndParams($filters, $params, $user)
     {
         $needCLOrder = null;
         $em = $this->getEntityManager();
@@ -460,10 +460,11 @@ class ReferenceArticleRepository extends EntityRepository {
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
 
-                                if(is_numeric($field)) {
-                                    $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"$field\"') IS NOT NULL";
+                                $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
+                                if(is_numeric($freeFieldId)) {
+                                    $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                     $qb->setParameter("search", $search);
-                                } else {
+                                } else if (property_exists(ReferenceArticle::class, $field)) {
                                     $query[] = "ra.$field LIKE :search";
                                     $qb->setParameter('search', $search);
                                 }
@@ -523,20 +524,16 @@ class ReferenceArticleRepository extends EntityRepository {
             }
         }
         // compte éléments filtrés
-        if (empty($filters) && empty($searchValue)) {
-            $qb->select('count(ra)');
-        } else {
-            $qb
-                ->select('count(distinct(ra))');
-        }
-        $countQuery = $qb->getQuery()->getSingleScalarResult();
+
+        $countQuery = QueryCounter::count($qb, "ra");
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
         $qb
-            ->select('ra');
+            ->select('ra')
+            ->distinct();
         return [
             'data' => $qb->getQuery()->getResult(),
             'count' => $countQuery
