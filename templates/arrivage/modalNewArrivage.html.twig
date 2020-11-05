@@ -202,7 +202,7 @@
                     <div class="form-group col-4">
                         <label>Statut*</label>
                         <select class="needs-default form-control input-sm data needed needs-default"
-                                {% if uniqueType %}
+                                {% if uniqueType and defaultStatuses|length > 0%}
                                     data-init="{{ defaultStatuses[(typesArrival|first).id] }}"
                                 {% endif %}
                                 name="status">
@@ -211,7 +211,7 @@
                                 <option class="d-none"
                                         data-type-id="{{ status.type.id }}"
                                         value="{{ status.id }}"
-                                        {{ uniqueType and defaultStatuses[(typesArrival|first).id] == status.id ? 'selected' }}>
+                                        {{ defaultStatuses|length > 0 and uniqueType and defaultStatuses[(typesArrival|first).id] == status.id ? 'selected' }}>
                                     {{ status.nom }}
                                 </option>
                             {% endfor %}

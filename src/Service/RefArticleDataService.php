@@ -21,6 +21,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
+use App\Helper\FormatHelper;
 use App\Helper\Stream;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
@@ -40,6 +41,28 @@ use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
 class RefArticleDataService {
+
+    private const REF_ARTICLE_FIELDS = [
+        ["name" => "actions", "class" => "noVis", "alwaysVisible" => true, "orderable" => false],
+        ["title" => "Libellé", "name" => "label", "type" => "text"],
+        ["title" => "Référence", "name" => "reference", "type" => "text"],
+        ["title" => "Code barre", "name" => "barCode", "type" => "text"],
+        ["title" => "Urgence", "name" => "emergency", "type" => "booleen"],
+        ["title" => "Type", "name" => "type", "type" => "list"],
+        ["title" => "Statut", "name" => "status", "type" => "list"],
+        ["title" => "Quantité stock", "name" => "stockQuantity", "type" => "number"],
+        ["title" => "Quantité disponible", "name" => "availableQuantity", "type" => "number"],
+        ["title" => "Emplacement", "name" => "location", "type" => "list"],
+        ["title" => "Seuil de sécurité", "name" => "securityThreshold", "type" => "number"],
+        ["title" => "Seuil d'alerte", "name" => "warningThreshold", "type" => "number"],
+        ["title" => "Prix unitaire", "name" => "unitPrice", "type" => "number"],
+        ["title" => "Synchronisation nomade", "name" => "mobileSync", "type" => "booleen"],
+        ["title" => "Dernier inventaire", "name" => "lastInventory", "type" => "date"],
+        ["title" => "Gestion de stock", "name" => "stockManagement", "type" => "text"],
+        ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
+        ["title" => "Commentaire", "name" => "comment", "type" => "text"],
+        ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text"]
+    ];
 
     /**
      * @var FiltreRefRepository
@@ -75,12 +98,14 @@ class RefArticleDataService {
     private $freeFieldService;
     private $articleFournisseurService;
     private $alertService;
+    private $visibleColumnService;
 
     public function __construct(RouterInterface $router,
                                 UserService $userService,
                                 FreeFieldService $champLibreService,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
+                                VisibleColumnService $visibleColumnService,
                                 TokenStorageInterface $tokenStorage,
                                 ArticleFournisseurService $articleFournisseurService,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository,
@@ -95,6 +120,7 @@ class RefArticleDataService {
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->articleFournisseurService = $articleFournisseurService;
         $this->alertService = $alertService;
+        $this->visibleColumnService = $visibleColumnService;
     }
 
     /**
@@ -107,7 +133,7 @@ class RefArticleDataService {
     public function getRefArticleDataByParams($params = null) {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
-        $champs = $this->freeFieldService->getFreeFieldLabelToId($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
+        $champs = $this->freeFieldService->getFreeFieldsById($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
 
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
@@ -282,6 +308,7 @@ class RefArticleDataService {
                 $refArticle->setUserThatTriggeredEmergency($user);
             } else if(!$data['urgence']) {
                 $refArticle->setUserThatTriggeredEmergency(null);
+                $refArticle->setEmergencyComment('');
             }
             $refArticle->setIsUrgent($data['urgence']);
         }
@@ -359,18 +386,8 @@ class RefArticleDataService {
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
         $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
 
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-
-        $category = CategoryType::ARTICLE;
-        $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $rowCL = [];
-        /** @var FreeField $champ */
-        foreach($champs as $champ) {
-            $rowCL[strval($champ['label'])] = $this->freeFieldService->serializeValue([
-                'valeur' => $refArticle->getFreeFieldValue($champ['id']),
-                "typage" => $champ['typage'],
-            ]);
-        }
+        $ffCategory = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $ffCategory);
 
         $availableQuantity = $refArticle->getQuantiteDisponible();
         $quantityStock = $refArticle->getQuantiteStock();
@@ -391,41 +408,51 @@ class RefArticleDataService {
 
         $rowCF = [
             "id" => $refArticle->getId(),
-            "Libellé" => $refArticle->getLibelle() ? $refArticle->getLibelle() : 'Non défini',
-            "Référence" => $refArticle->getReference() ? $refArticle->getReference() : 'Non défini',
-            "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
-            "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
-            "Quantité disponible" => $availableQuantity ?? 0,
-            "Quantité stock" => $quantityStock ?? 0,
-            'Commentaire d\'urgence' => $refArticle->getEmergencyComment(),
-            "Code barre" => $refArticle->getBarCode() ?? 'Non défini',
-            "Commentaire" => $refArticle->getCommentaire() ?? '',
-            "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
-            "limitSecurity" => $refArticle->getLimitSecurity() ?? "Non défini",
-            "limitWarning" => $refArticle->getLimitWarning() ?? "Non défini",
-            "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
-            'Urgence' => $refArticle->getIsUrgent() ? 'Oui' : 'Non',
-            'Label Fournisseur' => implode(",", $providerLabels),
-            'Code Fournisseur' => implode(",", $providerCodes),
-            'Synchronisation nomade' => $refArticle->getNeedsMobileSync() ? 'Oui' : 'Non',
-            "Dernier inventaire" => $refArticle->getDateLastInventory() ? $refArticle->getDateLastInventory()->format('d/m/Y') : '',
-            'stockManagement' => $refArticle->getStockManagement() ?? '',
-            'managers' => implode(', ', array_unique(
-                    $refArticle->getManagers()
-                        ->map(function(Utilisateur $manager) {
-                            return $manager->getUsername() ?: '';
-                        })
-                        ->filter(function(string $username) {
-                            return !empty($username);
-                        })
-                        ->toArray())
-            ),
-            "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
-                'idRefArticle' => $refArticle->getId(),
-                'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
+            "label" => $refArticle->getLibelle() ?? "Non défini",
+            "reference" => $refArticle->getReference() ?? "Non défini",
+            "quantityType" => $refArticle->getTypeQuantite() ?? "Non défini",
+            "type" => FormatHelper::type($refArticle->getType()),
+            "location" => FormatHelper::location($refArticle->getEmplacement()),
+            "availableQuantity" => $refArticle->getQuantiteDisponible() ?? 0,
+            "stockQuantity" => $refArticle->getQuantiteStock() ?? 0,
+            "emergencyComment" => $refArticle->getEmergencyComment(),
+            "barCode" => $refArticle->getBarCode() ?? "Non défini",
+            "comment" => $refArticle->getCommentaire(),
+            "status" => FormatHelper::status($refArticle->getStatut()),
+            "securityThreshold" => $refArticle->getLimitSecurity() ?? "Non défini",
+            "warningThreshold" => $refArticle->getLimitWarning() ?? "Non défini",
+            "unitPrice" => $refArticle->getPrixUnitaire(),
+            "emergency" => FormatHelper::bool($refArticle->getIsUrgent()),
+            "mobileSync" => FormatHelper::bool($refArticle->getNeedsMobileSync()),
+            'supplierLabel' => implode(",", $providerLabels),
+            'supplierCode' => implode(",", $providerCodes),
+            "lastInventory" => FormatHelper::date($refArticle->getDateLastInventory()),
+            "stockManagement" => $refArticle->getStockManagement(),
+            "managers" => Stream::from($refArticle->getManagers())
+                ->map(function(Utilisateur $manager) {
+                    return $manager->getUsername() ?: '';
+                })
+                ->filter(function(string $username) {
+                    return !empty($username);
+                })
+                ->unique()
+                ->join(),
+            "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
+                "reference_id" => $refArticle->getId(),
+                "active" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
             ]),
         ];
-        return array_merge($rowCL, $rowCF);
+
+        foreach($freeFields as $freeField) {
+            $freeFieldId = $freeField["id"];
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $row[$freeFieldName] = $this->freeFieldService->serializeValue([
+                "valeur" => $refArticle->getFreeFieldValue($freeFieldId),
+                "typage" => $freeField["typage"],
+            ]);
+        }
+
+        return $row;
     }
 
     /**
@@ -719,6 +746,29 @@ class RefArticleDataService {
     private function isDifferentThresholdType($alert, $type) {
         return $alert->getType() == Alert::WARNING && $type == Alert::SECURITY ||
             $alert->getType() == Alert::SECURITY && $type == Alert::WARNING;
+    }
+
+    public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
+                                           Utilisateur $currentUser): array {
+
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $freeFields = $freeFieldRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $categorieCL);
+
+        return $this->visibleColumnService->getArrayConfig(self::REF_ARTICLE_FIELDS, $freeFields, $currentUser->getColumnVisible());
+    }
+
+    public function getFieldTitle(string $fieldName): ?string {
+        $title = null;
+        foreach (self::REF_ARTICLE_FIELDS as $field) {
+            if ($field['name'] === $fieldName) {
+                $title = $field['title'] ?? null;
+                break;
+            }
+        }
+        return $title;
     }
 
 }

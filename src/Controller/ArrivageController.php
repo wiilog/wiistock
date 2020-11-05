@@ -155,7 +155,7 @@ class ArrivageController extends AbstractController
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
-        $champs = $arrivageDataService->getColumnVisibleConfig($entityManager, $user);
+        $fields = $arrivageDataService->getColumnVisibleConfig($entityManager, $user);
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
@@ -178,8 +178,7 @@ class ArrivageController extends AbstractController
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $user->getPageLengthForArrivage() ?: 10,
             'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
-            'champs' => $champs,
-            'columnsVisibles' => $user->getColumnsVisibleForArrivage(),
+            'fields' => $fields,
             'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
             'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
             'modalNewConfig' => [

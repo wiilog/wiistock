@@ -122,182 +122,21 @@ class ArticleController extends AbstractController
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function index(EntityManagerInterface $entityManager,
-                          ArticleDataService $articleDataService): Response
-    {
+    public function index(EntityManagerInterface $entityManager, ArticleDataService $articleDataService): Response {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
             return $this->redirectToRoute('access_denied');
         }
 
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
-        $category = CategoryType::ARTICLE;
-        $champL = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $champF[] = [
-            'label' => 'Actions',
-            'id' => 0,
-            'typage' => ''
-        ];
-        $champF[] = [
-            'label' => 'Libellé',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champF[] = [
-            'label' => 'Référence article',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champF[] = [
-            'label' => 'Code barre',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champF[] = [
-            'label' => 'Type',
-            'id' => 0,
-            'typage' => 'list'
-        ];
-        $champF[] = [
-            'label' => 'Statut',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Quantité',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champF[] = [
-            'label' => 'Emplacement',
-            'id' => 0,
-            'typage' => 'list'
-        ];
-        $champF[] = [
-            'label' => 'Date et heure',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Commentaire',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Prix unitaire',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champF[] = [
-            'label' => 'Dernier inventaire',
-            'id' => 0,
-            'typage' => 'date'
-        ];
-        $champF[] = [
-            'label' => 'Lot',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Date d\'entrée en stock',
-            'id' => 0,
-            'typage' => 'date'
-        ];
-        $champF[] = [
-            'label' => 'Date de péremption',
-            'id' => 0,
-            'typage' => 'date'
-        ];
-        $champsFText = [];
-
-        $champsFText[] = [
-            'label' => 'Libellé',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-//        $champsFText[] = [
-//            'label' => 'Référence',
-//            'id' => 0,
-//            'typage' => 'text'
-//
-//        ];
-		$champsFText[] = [
-			'label' => 'Référence article',
-			'id' => 0,
-			'typage' => 'text'
-
-		];
-		$champsFText[] = [
-            'label' => 'Code barre',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champsFText[] = [
-            'label' => 'Type',
-            'id' => 0,
-            'typage' => 'list'
-        ];
-        $champsFText[] = [
-            'label' => 'Statut',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champsFText[] = [
-            'label' => 'Quantité',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champsFText[] = [
-            'label' => 'Emplacement',
-            'id' => 0,
-            'typage' => 'list'
-        ];
-        $champsFText[] = [
-            'label' => 'Date et heure',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champsFText[] = [
-            'label' => 'Commentaire',
-            'id' => 0,
-            'typage' => 'text',
-            'isNeededNotEmpty' => true,
-        ];
-        $champsFText[] = [
-            'label' => 'Prix unitaire',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champsFText[] = [
-            'label' => 'Dernier inventaire',
-            'id' => 0,
-            'typage' => 'date'
-        ];
-        $champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_TEXT);
-        $champsLTList = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, FreeField::TYPE_LIST);
-        $champs = array_merge($champF, $champL);
-        $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
         $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $currentUser);
 
         return $this->render('article/index.html.twig', [
-            'champsSearch' => $champsSearch,
-            'recherches' => $user->getRechercheForArticle(),
-            'champs' => $champs,
-            'columnsVisibles' => $user->getColumnsVisibleForArticle(),
-            'activeOnly' => !empty($filter) && ($filter->getValue() === $articleDataService->getActiveArticleFilterValue())
+            "fields" => $articleDataService->getColumnVisibleConfig($entityManager, $currentUser),
+            "searches" => $currentUser->getRechercheForArticle(),
+            "activeOnly" => !empty($filter) && ($filter->getValue() === $articleDataService->getActiveArticleFilterValue())
         ]);
     }
 
@@ -364,130 +203,24 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/api-columns", name="article_api_columns", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
+     * @Route("/api-columns", name="article_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param ArticleDataService $articleDataService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function apiColumns(Request $request,
+    public function apiColumns(ArticleDataService $articleDataService,
                                EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $champLibreRepository = $entityManager->getRepository(FreeField::class);
-            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-
-            $currentUser = $this->getUser();
-            /** @var Utilisateur $currentUser */
-            $columnsVisible = $currentUser->getColumnsVisibleForArticle();
-            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
-            $category = CategoryType::ARTICLE;
-            $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-
-            $columns = [
-                [
-                    "title" => 'Actions',
-                    "data" => 'Actions',
-                    'name' => 'Actions',
-                    'orderable' => false,
-                    "class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Libellé',
-                    "data" => 'Libellé',
-                    'name' => 'Libellé',
-                    "class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
-
-				],
-				[
-					"title" => 'Référence article',
-					"data" => 'Référence article',
-					'name' => 'Référence article',
-					"class" => (in_array('Référence article', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Code barre',
-					"data" => 'Code barre',
-					'name' => 'Code barre',
-					"class" => (in_array('Code barre', $columnsVisible) ? 'display' : 'hide'),
-
-				],
-				[
-					"title" => 'Type',
-					"data" => 'Type',
-					'name' => 'Type',
-					"class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Statut',
-					"data" => 'Statut',
-					'name' => 'Statut',
-					"class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Quantité',
-					"data" => 'Quantité',
-					'name' => 'Quantité',
-					"class" => (in_array('Quantité', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Emplacement',
-					"data" => 'Emplacement',
-					'name' => 'Emplacement',
-					"class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Commentaire',
-					"data" => 'Commentaire',
-					'name' => 'Commentaire',
-					"class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
-                    'isNeededNotEmpty' => true,
-				],
-				[
-					"title" => 'Prix unitaire',
-					"data" => 'Prix unitaire',
-					'name' => 'Prix unitaire',
-					"class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Dernier inventaire',
-					"data" => 'Dernier inventaire',
-					'name' => 'Dernier inventaire',
-					"class" => (in_array('Dernier inventaire', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Lot',
-					"data" => 'Lot',
-					'name' => 'Lot',
-					"class" => (in_array('Lot', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => "Date d'entrée en stock",
-					"data" => "Date d'entrée en stock",
-					'name' => "Date d'entrée en stock",
-					"class" => (in_array("Date d'entrée en stock", $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Date de péremption',
-					"data" => 'Date de péremption',
-					'name' => 'Date de péremption',
-					"class" => (in_array('Date de péremption', $columnsVisible) ? 'display' : 'hide'),
-				],
-			];
-			foreach ($champs as $champ) {
-				$columns[] = [
-					"title" => ucfirst(mb_strtolower($champ['label'])),
-					"data" => $champ['label'],
-					'name' => $champ['label'],
-					"class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
-				];
-			}
-            return new JsonResponse($columns);
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
+            return $this->redirectToRoute('access_denied');
         }
-        throw new BadRequestHttpException();
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        return new JsonResponse(
+            $articleDataService->getColumnVisibleConfig($entityManager, $currentUser)
+        );
     }
 
     /**
@@ -540,7 +273,7 @@ class ArticleController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
-            $article = $this->articleDataService->newArticle($data);
+            $article = $this->articleDataService->newArticle($data, $entityManager);
             $entityManager->flush();
 
             $quantity = $article->getQuantite();

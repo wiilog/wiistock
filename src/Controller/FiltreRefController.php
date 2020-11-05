@@ -8,8 +8,8 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Repository\FiltreRefRepository;
 use App\Service\RefArticleDataService;
+use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,59 +27,55 @@ class FiltreRefController extends AbstractController
 {
 
     /**
-     * @var FiltreRefRepository
-     */
-    private $filtreRefRepository;
-
-    /**
-     * @var RefArticleDataService
-     */
-    private $refArticleDataService;
-
-	/**
-	 * FiltreRefController constructor.
-	 * @param FiltreRefRepository $filtreRefRepository
-	 * @param RefArticleDataService $refArticleDataService
-	 */
-    public function __construct(EntityManagerInterface $manager, RefArticleDataService $refArticleDataService)
-    {
-        $this->filtreRefRepository = $manager->getRepository(FiltreRef::class);
-        $this->refArticleDataService = $refArticleDataService;
-    }
-
-    /**
      * @Route("/creer", name="filter_ref_new", options={"expose"=true})
      * @param Request $request
+     * @param VisibleColumnService $visibleColumnService
+     * @param RefArticleDataService $refArticleDataService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function new(Request $request,
+                        VisibleColumnService $visibleColumnService,
+                        RefArticleDataService $refArticleDataService,
                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
+            $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
 
             /** @var Utilisateur $user */
             $user = $this->getUser();
 
             // on vérifie qu'il n'existe pas déjà un filtre sur le même champ
             $userId = $user->getId();
-            $existingFilter = $this->filtreRefRepository->countByChampAndUser($data['field'], $userId);
+            $existingFilter = $filtreRefRepository->countByChampAndUser($data['field'], $userId);
 
             if($existingFilter == 0) {
                 $filter = new FiltreRef();
 
+                $unknownField = false;
+
 				// champ Champ Libre
                 if (isset($data['field'])) {
                     $field = $data['field'];
-
-                    if (intval($field) != 0) {
-                        $champLibre = $champLibreRepository->find(intval($field));
+                    $freeFieldId = $visibleColumnService->extractFreeFieldId($field);
+                    if (!empty($freeFieldId)) {
+                        $champLibre = $champLibreRepository->find($freeFieldId);
                         $filter->setChampLibre($champLibre);
                     } else {
-                        $filter->setChampFixe($data['field']);
+                        $title = $refArticleDataService->getFieldTitle($data['field']);
+                        if (!empty($title)) {
+                            $filter->setChampFixe($title);
+                        }
+                        else {
+                            $unknownField = true;
+                        }
                     }
                 } else {
+                    $unknownField = true;
+                }
+
+                if ($unknownField) {
                     return new JsonResponse([
                         'success' => false,
                         'msg' => 'Champ inconnu.'
@@ -122,15 +118,18 @@ class FiltreRefController extends AbstractController
     /**
      * @Route("/supprimer", name="filter_ref_delete", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         $filterId = $request->request->get('filterId');
         $success = false;
         $message = "Le filtre n'a pas pu être supprimé";
         if ($filterId) {
-            $filter = $this->filtreRefRepository->find($filterId);
+            $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
+            $filter = $filtreRefRepository->find($filterId);
 
             if ($filter) {
                 $em = $this->getDoctrine()->getManager();
@@ -147,10 +146,12 @@ class FiltreRefController extends AbstractController
     /**
      * @Route("/affiche-liste", name="display_field_elements", options={"expose"=true}, methods={"GET","POST"})
      * @param Request $request
+     * @param VisibleColumnService $visibleColumnService
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      */
 	public function displayFieldElements(Request $request,
+                                         VisibleColumnService $visibleColumnService,
                                          EntityManagerInterface $entityManager)
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -161,22 +162,27 @@ class FiltreRefController extends AbstractController
 
 			$value = $data['value'];
 			$multiple = false;
-			if ($value === 'Emplacement') {
+			if ($value === 'location') {
 				$emplacements = $emplacementRepository->findBy(['isActive' => true],['label'=> 'ASC']);
 				$options = [];
 				foreach ($emplacements as $emplacement) {
 					$options[] = $emplacement->getLabel();
 				}
-			} else if ($value === 'Type') {
+			} else if ($value === 'type') {
 				$types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE], 'asc');
 				$options = [];
 				foreach ($types as $type) {
 					$options[] = $type->getLabel();
 				}
 			} else {
-				$cl = $champLibreRepository->find(intval($value)); /** @var $cl FreeField */
-				$options = $cl->getElements();
-				$multiple = true;
+                $freeFieldId = $visibleColumnService->extractFreeFieldId($value);
+                $options = [];
+                if (!empty($freeFieldId)) {
+                    /** @var $cl FreeField */
+                    $cl = $champLibreRepository->find($freeFieldId);
+                    $options = $cl->getElements();
+                    $multiple = true;
+                }
 			}
 
 			$view = $this->renderView('reference_article/selectInFilter.html.twig', [

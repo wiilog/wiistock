@@ -57,15 +57,12 @@ class PasswordService
         if ($user) {
         	$user->setToken($token);
         	$this->entityManager->flush();
-            $logo = \Swift_Attachment::fromPath('img/gtlogistics.jpg')
-                ->setDisposition('inline');
 			$this->mailerService->sendMail(
 				'FOLLOW GT // Mot de passe oublié',
 				$this->templating->render('mails/template.html.twig', [
 					'title' => 'Renouvellement de votre mot de passe Follow GT.',
 					'urlSuffix' => '/change-password?token=' . $token,
 					'buttonText' => 'Cliquez ici pour modifier votre mot de passe',
-                    'logo' => $logo
 				]),
 				$to);
 		}

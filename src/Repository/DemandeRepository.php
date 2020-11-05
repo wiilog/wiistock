@@ -12,8 +12,6 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
-use DoctrineExtensions\Query\Mysql\Date;
-use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Demande|null find($id, $lockMode = null, $lockVersion = null)
@@ -281,13 +279,13 @@ class DemandeRepository extends EntityRepository
 						->join('d.statut', 's2')
 						->join('d.type', 't2')
 						->join('d.utilisateur', 'u2')
-                        ->andWhere('
-                  		d.date LIKE :value
-                  		OR u2.username LIKE :value
-                        OR d.numero LIKE :value
-               			OR s2.nom LIKE :value
-               			OR t2.label LIKE :value
-                        ')
+                        ->andWhere('(
+                            d.date LIKE :value
+                            OR u2.username LIKE :value
+                            OR d.numero LIKE :value
+                            OR s2.nom LIKE :value
+                            OR t2.label LIKE :value
+                        )')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -300,19 +298,20 @@ class DemandeRepository extends EntityRepository
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
                     if ($column === 'type') {
                         $qb
-                            ->leftJoin('d.type', 't2')
-                            ->orderBy('t2.label', $order);
+                            ->leftJoin('d.type', 'search_type')
+                            ->orderBy('search_type.label', $order);
                     } else if ($column === 'statut') {
                         $qb
-                            ->leftJoin('d.statut', 's2')
-                            ->orderBy('s2.nom', $order);
+                            ->leftJoin('d.statut', 'search_status')
+                            ->orderBy('search_status.nom', $order);
                     } else if ($column === 'demandeur') {
                         $qb
-                            ->leftJoin('d.utilisateur', 'u2')
-                            ->orderBy('u2.username', $order);
+                            ->leftJoin('d.utilisateur', 'search_user')
+                            ->orderBy('search_user.username', $order);
                     } else {
-                        $qb
-                            ->orderBy('d.' . $column, $order);
+                        if (property_exists(Demande::class, $column)) {
+                            $qb->orderBy("d.$column", $order);
+                        }
                     }
                 }
             }

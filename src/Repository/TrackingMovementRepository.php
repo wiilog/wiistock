@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -35,22 +36,32 @@ class TrackingMovementRepository extends EntityRepository
         'operateur' => 'user',
         'quantity' => 'quantity'
     ];
+    private const FIELD_ENTITY_NAME = [
+        "label" => "libelle",
+        "warningThreshold" => "limitWarning",
+        "securityThreshold" => "limitSecurity",
+        "emergency" => "isUrgent",
+        "availableQuantity" => "quantiteDisponible",
+        "stockQuantity" => "quantiteStock",
+        "location" => "emplacement",
+        "quantityType" => "typeQuantite",
+        "lastInventory" => "dateLastInventory",
+        "mobileSync" => "needsMobileSync",
+        "supplier" => "fournisseur",
+        "unitPrice" => "prixUnitaire",
+        "comment" => "commentaire",
+    ];
 
     /**
      * @param $uniqueId
      * @return TrackingMovement
      * @throws NonUniqueResultException
      */
-    public function findOneByUniqueIdForMobile($uniqueId)
-    {
-        $qb = $this->createQueryBuilder('tracking_movement');
-
-        $qb
+    public function findOneByUniqueIdForMobile($uniqueId) {
+        return $this->createQueryBuilder('tracking_movement')
             ->select('tracking_movement')
             ->where('tracking_movement.uniqueIdForMobile = :uniqueId')
-            ->setParameter('uniqueId', $uniqueId);
-
-        return $qb
+            ->setParameter('uniqueId', $uniqueId)
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -204,7 +215,7 @@ class TrackingMovementRepository extends EntityRepository
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']] ?? $params->get('columns')[$params->get('order')[0]['column']]['data'];
 
                     if ($column === 'emplacement') {
                         $qb
@@ -239,8 +250,12 @@ class TrackingMovementRepository extends EntityRepository
                             ->leftJoin('tracking_movement.pack', 'order_pack')
                             ->orderBy('order_pack.code', $order);
                     } else {
-                        $qb
-                            ->orderBy('tracking_movement.' . $column, $order);
+                        $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                        if(is_numeric($freeFieldId)) {
+                            $qb->orderBy("JSON_EXTRACT(tracking_movement.freeFields, '$.\"$freeFieldId\"')", $order);
+                        } else if (property_exists(TrackingMovement::class, $column)) {
+                            $qb->orderBy("tracking_movement.$column", $order);
+                        }
                     }
 
                     $orderId = ($column === 'datetime')

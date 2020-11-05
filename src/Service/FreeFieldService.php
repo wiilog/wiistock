@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\CategorieCL;
 use App\Entity\FreeField;
 use App\Entity\FreeFieldEntity;
+use App\Helper\Stream;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,7 +26,7 @@ class FreeFieldService {
             }
         } else if($valeurChampLibre['typage'] == FreeField::TYPE_BOOL) {
             $formattedValue = ($valeurChampLibre['valeur'] === null || $valeurChampLibre['valeur'] === '')
-                ? "Non défini"
+                ? ''
                 : ($valeurChampLibre['valeur'] ? "Oui" : "Non");
         } else {
             $formattedValue = $valeurChampLibre['valeur'];
@@ -145,18 +146,18 @@ class FreeFieldService {
         return $detailsChampLibres;
     }
 
-    public function getFreeFieldLabelToId(EntityManagerInterface $entityManager,
-                                          string $categoryCLLabel,
-                                          string $category) {
+    public function getFreeFieldsById(EntityManagerInterface $entityManager, string $categoryCLLabel, string $category) {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-        $categorieCL = $categorieCLRepository->findOneByLabel($categoryCLLabel);
 
+        $categorieCL = $categorieCLRepository->findOneByLabel($categoryCLLabel);
         $champs = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        return array_reduce($champs, function (array $accumulator, array $freeField) {
-            $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
-            return $accumulator;
-        }, []);
+
+        return Stream::from($champs)
+            ->keymap(function($field) {
+                return [$field["id"], $field["label"]];
+            })
+            ->toArray();
     }
 
 }

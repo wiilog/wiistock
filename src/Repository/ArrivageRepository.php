@@ -6,6 +6,7 @@ use App\Entity\Arrivage;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -413,15 +414,6 @@ class ArrivageRepository extends EntityRepository
                     } else if ($column === 'custom') {
                         $qb
                             ->orderBy('a.customs', $order);
-                    } else if ($column === 'frozen') {
-                        $qb
-                            ->orderBy('a.frozen', $order);
-                    } else if ($column === 'projectNumber') {
-                        $qb
-                            ->orderBy('a.projectNumber', $order);
-                    } else if ($column === 'businessUnit') {
-                        $qb
-                            ->orderBy('a.businessUnit', $order);
                     } else if ($column === 'nbUm') {
                         $qb
                             ->addSelect('count(col2.id) as hidden nbum')
@@ -433,16 +425,11 @@ class ArrivageRepository extends EntityRepository
                             ->leftJoin('a.statut', 'order_status')
                             ->orderBy('order_status.nom', $order);
                     } else {
-                        if (property_exists(Arrivage::class, $column)) {
-                            $qb
-                                ->orderBy('a.' . $column, $order);
-                        } else {
-                            $clId = $freeFieldLabelsToIds[trim(mb_strtolower($column))] ?? null;
-                            if ($clId) {
-                                $jsonOrderQuery = "CAST(JSON_EXTRACT(a.freeFields, '$.\"${clId}\"') AS CHAR)";
-                                $qb
-                                    ->orderBy($jsonOrderQuery, $order);
-                            }
+                        $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                        if(is_numeric($freeFieldId)) {
+                            $qb->orderBy("JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"')", $order);
+                        } else if (property_exists(Arrivage::class, $column)) {
+                            $qb->orderBy("a.$column", $order);
                         }
                     }
                 }

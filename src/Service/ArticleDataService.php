@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by VisualStudioCode.
- * User: jv.Sicot
- * Date: 03/04/2019
- * Time: 15:09.
- */
 
 namespace App\Service;
 
@@ -17,7 +11,6 @@ use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
-use App\Entity\MouvementStock;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
@@ -32,13 +25,11 @@ use App\Entity\CategorieCL;
 use App\Helper\Stream;
 use DateTime;
 use DateTimeZone;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Exception;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Validator\Constraints\Json;
 use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
@@ -59,6 +50,7 @@ class ArticleDataService
 	private $typeCLOnLabel;
 	private $freeFieldService;
     private $mouvementStockService;
+    private $visibleColumnService;
 
     public function __construct(FreeFieldService $champLibreService,
                                 MailerService $mailerService,
@@ -67,6 +59,7 @@ class ArticleDataService
                                 UserService $userService,
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager,
+                                VisibleColumnService $visibleColumnService,
                                 MouvementStockService $mouvementStockService,
                                 Twig_Environment $templating) {
         $this->refArticleDataService = $refArticleDataService;
@@ -78,6 +71,7 @@ class ArticleDataService
         $this->mailerService = $mailerService;
         $this->freeFieldService = $champLibreService;
         $this->mouvementStockService = $mouvementStockService;
+        $this->visibleColumnService = $visibleColumnService;
     }
 
     /**
@@ -352,13 +346,13 @@ class ArticleDataService
 
     /**
      * @param array $data
+     * @param EntityManagerInterface $entityManager
      * @param Demande|null $demande
      * @return Article
      *
-     * @throws Exception
+     * @throws NonUniqueResultException
      */
-    public function newArticle($data, Demande $demande = null) {
-        $entityManager = $this->entityManager;
+    public function newArticle($data, EntityManagerInterface $entityManager, Demande $demande = null) {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
@@ -428,21 +422,21 @@ class ArticleDataService
         // optionnel : ajout dans une demande
         if ($demande) {
             $demande->addArticle($toInsert);
-            $toInsert
-                ->setQuantiteAPrelever($toInsert->getQuantite());
+            $toInsert->setQuantiteAPrelever($toInsert->getQuantite());
+
             if (count($demande->getPreparations()) > 0) {
-                $demande
-                    ->getPreparations()[0]->addArticle($toInsert);
+                $toInsert->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                $toInsert->setQuantitePrelevee($toInsert->getQuantite());
+                $demande->getPreparations()[0]->addArticle($toInsert);
             }
         }
 
         return $toInsert;
     }
 
-    public function getDataForDatatable($params = null, $user)
+    public function getDataForDatatable($params, $user)
     {
-        $data = $this->getArticleDataByParams($params, $user);
-        return $data;
+        return $this->getArticleDataByParams($params, $user);
     }
 
     public function getDataForDatatableByReceptionLigne($ligne, $user)
@@ -473,16 +467,7 @@ class ArticleDataService
         return ['data' => $rows];
     }
 
-    /**
-     * @param null $params
-     * @param Utilisateur $user
-     * @return array
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
-    public function getArticleDataByParams($params = null, $user)
-    {
+    public function getArticleDataByParams($params, Utilisateur $user) {
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
 
@@ -496,7 +481,7 @@ class ArticleDataService
             ]];
         }
 
-        $champs = $this->freeFieldService->getFreeFieldLabelToId($this->entityManager, CategorieCL::ARTICLE, CategoryType::ARTICLE);
+        $champs = $this->freeFieldService->getFreeFieldsById($this->entityManager, CategorieCL::ARTICLE, CategoryType::ARTICLE);
 
         $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user, $champs);
 
@@ -535,15 +520,8 @@ class ArticleDataService
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
 
         $category = CategoryType::ARTICLE;
-        $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $rowCL = [];
-        /** @var FreeField $champ */
-        foreach ($champs as $champ) {
-            $rowCL[$champ['label']] = $this->freeFieldService->serializeValue([
-                'valeur' => $article->getFreeFieldValue($champ['id']),
-                "typage" => $champ['typage'],
-            ]);
-        }
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             $status = $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini';
@@ -551,37 +529,26 @@ class ArticleDataService
             $status = '';
         }
 
-        $criteriaFactory = Criteria::create();
-        $exprFactory = Criteria::expr();
-        $mouvementsFiltered = $article
-            ->getMouvements()
-            ->matching(
-                $criteriaFactory
-                    ->andWhere($exprFactory->eq('type', MouvementStock::TYPE_ENTREE))
-                    ->orderBy(['date' => Criteria::DESC])
-            );
-
-        /** @var MouvementStock $mouvementEntree */
-        $mouvementEntree = $mouvementsFiltered->count() > 0 ? $mouvementsFiltered->first() : null;
+        $supplierArticle = $article->getArticleFournisseur();
+        $referenceArticle = $supplierArticle ? $supplierArticle->getReferenceArticle() : null;
 
         $row = [
-            'id' => $article->getId() ?? 'Non défini',
-            'Référence' => $article->getReference() ?? 'Non défini',
-            'Statut' => $status,
-            'Libellé' => $article->getLabel() ?? 'Non défini',
-            'Date et heure' => ($mouvementEntree && $mouvementEntree->getDate()) ? $mouvementEntree->getDate()->format('Y/m/d H:i:s') : '',
-            'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-            'Quantité' => $article->getQuantite() ?? 0,
-            'Type' => $article->getType() ? $article->getType()->getLabel() : '',
-            'Emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' Non défini',
-            'Commentaire' => $article->getCommentaire() ?? '',
-            'Prix unitaire' => $article->getPrixUnitaire(),
-            'Code barre' => $article->getBarCode() ?? 'Non défini',
-            "Dernier inventaire" => $article->getDateLastInventory() ? $article->getDateLastInventory()->format('d/m/Y') : '',
-            "Lot" => $article->getBatch(),
-            "Date d'entrée en stock" => $article->getStockEntryDate() ? $article->getStockEntryDate()->format('d/m/Y H:i') : '',
-            "Date de péremption" => $article->getExpiryDate() ? $article->getExpiryDate()->format('d/m/Y') : '',
-            'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
+            "id" => $article->getId() ?? "Non défini",
+            "label" => $article->getLabel() ?? "Non défini",
+            "articleReference" => $referenceArticle ? $referenceArticle->getReference() : "Non défini",
+            "supplierReference" => $supplierArticle ? $supplierArticle->getReference() : "Non défini",
+            "barCode" => $article->getBarCode() ?? "Non défini",
+            "type" => $article->getType() ? $article->getType()->getLabel() : '',
+            "status" => $status,
+            "quantity" => $article->getQuantite() ?? 0,
+            "location" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' Non défini',
+            "unitPrice" => $article->getPrixUnitaire(),
+            "dateLastInventory" => $article->getDateLastInventory() ? $article->getDateLastInventory()->format('d/m/Y') : '',
+            "batch" => $article->getBatch(),
+            "stockEntryDate" => $article->getStockEntryDate() ? $article->getStockEntryDate()->format('d/m/Y H:i') : '',
+            "expiryDate" => $article->getExpiryDate() ? $article->getExpiryDate()->format('d/m/Y') : '',
+            "comment" => $article->getCommentaire(),
+            "actions" => $this->templating->render('article/datatableArticleRow.html.twig', [
                 'url' => $url,
                 'articleId' => $article->getId(),
                 'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null,
@@ -591,8 +558,16 @@ class ArticleDataService
             ]),
         ];
 
-        $rows = array_merge($rowCL, $row);
-        return $rows;
+        foreach ($freeFields as $field) {
+            $freeFieldId = $field["id"];
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $row[$freeFieldName] = $this->freeFieldService->serializeValue([
+                "valeur" => $article->getFreeFieldValue($freeFieldId),
+                "typage" => $field["typage"],
+            ]);
+        }
+
+        return $row;
     }
 
     /**
@@ -734,5 +709,35 @@ class ArticleDataService
 
     public function articleCanBeAddedInDispute(Article $article): bool {
         return in_array($article->getStatut()->getNom(), [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]);
+    }
+
+    public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
+                                           Utilisateur $currentUser): array {
+
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $categorieCL);
+
+        $fieldConfig = [
+            ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
+            ["title" => "Libellé", "name" => "label"],
+            ["title" => "Référence article", "name" => "articleReference"],
+            ["title" => "Référence fournisseur", "name" => "supplierReference"],
+            ["title" => "Code barre", "name" => "barCode"],
+            ["title" => "Type", "name" => "type"],
+            ["title" => "Statut", "name" => "status"],
+            ["title" => "Quantité", "name" => "quantity"],
+            ["title" => "Emplacement", "name" => "location"],
+            ["title" => "Prix unitaire", "name" => "unitPrice"],
+            ["title" => "Dernier inventaire", "name" => "dateLastInventory"],
+            ["title" => "Lot", "name" => "batch"],
+            ["title" => "Date d'entrée en stock", "name" => "stockEntryDate"],
+            ["title" => "Date d'expiration", "name" => "expiryDate"],
+            ["title" => "Commentaire", "name" => "comment"]
+        ];
+
+        return $this->visibleColumnService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getColumnsVisibleForArticle());
     }
 }

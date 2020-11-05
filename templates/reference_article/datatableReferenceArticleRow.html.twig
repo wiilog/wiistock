@@ -3,8 +3,8 @@
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
-                <div id='edit{{idRefArticle}}' class="dropdown-item d-none">
-                    <div data-id='{{ idRefArticle }}'
+                <div id='edit{{ reference_id }}' class="dropdown-item d-none">
+                    <div data-id='{{ reference_id }}'
                          data-target='#modalEditRefArticle'
                          data-toggle='modal'
                          class="action-on-click"
@@ -24,7 +24,7 @@
                 </div>
             {% else %}
                     <div class="dropdown-item action-on-click d-none"
-                         data-id='{{ idRefArticle }}'
+                         data-id='{{ reference_id }}'
                          data-target='#modalShowRefArticle'
                          data-toggle='modal'
                          onclick="showRow($(this), Routing.generate('reference_article_show', true), $('#modalShowRefArticle'))">
@@ -32,9 +32,9 @@
                     </div>
             {% endif %}
 
-            {% if isActive %}
+            {% if active %}
                 <div class="dropdown-item"
-                     onclick="clearModal('#modalPlusDemande'), clearDemandeContent(), recupIdRefArticle($(this))" data-id='{{ idRefArticle }}'
+                     onclick="clearModal('#modalPlusDemande'), clearDemandeContent(), recupIdRefArticle($(this))" data-id='{{ reference_id }}'
                      data-target='#modalPlusDemande' data-toggle='modal'
                      data-togggle='tooltip' title='ajouter à une demande'>
                     <i class="fas fa-plus mr-2"></i>Ajouter dans une demande
@@ -45,24 +45,24 @@
                  onclick="showRowMouvements($(this))"
                  data-togggle='tooltip'
                  title='mouvements de stock'
-                 data-id='{{ idRefArticle }}'
+                 data-id='{{ reference_id }}'
                  data-target='#modalShowMouvements'
                  data-toggle='modal'>
                 <i class='fas fa-list mr-2'></i>Voir les mouvements
             </div>
 
             <div class="dropdown-item"
-                 onclick="updateQuantity({{ idRefArticle }})"
-                 data-id='update{{ idRefArticle }}'
+                 onclick="updateQuantity({{ reference_id }})"
+                 data-id='update{{ reference_id }}'
                  data-toggle='modal'>
                 <i class='fa fa-sync-alt mr-2'></i>Recalculer les quantités
             </div>
 
             {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
                     <div class="dropdown-item"
-                         id='delete{{idRefArticle}}'
+                         id='delete{{ reference_id }}'
                          onclick="deleteRow($(this), $('#modalDeleteRefArticle'), $('#submitDeleteRefArticle'))"
-                         data-id='{{ idRefArticle }}'
+                         data-id='{{ reference_id }}'
                          data-target='#modalDeleteRefArticle'
                          data-toggle='modal'>
                         <i class='fas fa-trash mr-2'></i>Supprimer

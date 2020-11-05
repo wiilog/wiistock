@@ -26,7 +26,7 @@
                     <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                         <a class="dropdown-item pointer"
                            data-toggle="modal"
-                           data-target="#modalColumnVisibleLitige">
+                           data-target="#modalColumnVisible">
                             <span class="fas fa-cog mr-2"></span>
                             Gestion des colonnes
                         </a>
@@ -49,7 +49,11 @@
 
     {% include 'litige/modalEditLitige.html.twig' %}
     {% include 'litige/modalDeleteLitige.html.twig'%}
-    {% include 'litige/modalVisibleColumns.html.twig' with { champs: champs } %}
+    {% include "utils/visible_columns.html.twig" with {
+        'fields': fields,
+        'table': 'tableLitiges',
+        'route': 'save_column_visible_for_litige'
+    } %}
 {% endblock %}
 
 {% block javascripts %}

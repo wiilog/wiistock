@@ -27,7 +27,7 @@
             {% else %}
                 <button class="dropdown-item pointer"
                         data-toggle="modal"
-                        data-target="#modalColumnVisibleDispatch">
+                        data-target="#modalColumnVisible">
                     <i class="fa fa-cog mr-2"></i>
                     Gestion des colonnes
                 </button>
@@ -45,7 +45,7 @@
                 <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                     <button class="dropdown-item pointer"
                             data-toggle="modal"
-                            data-target="#modalColumnVisibleDispatch">
+                            data-target="#modalColumnVisible">
                         <i class="fa fa-cog mr-2"></i>
                         Gestion des colonnes
                     </button>
@@ -61,7 +61,11 @@
 </div>
 
 {% include "dispatch/modalNewDispatch.html.twig" with modalNewConfig %}
-{% include "dispatch/modalVisibleColumns.html.twig" with modalNewConfig %}
+{% include "utils/visible_columns.html.twig" with {
+    'fields': fields,
+    'table': 'tableDispatches',
+    'route': 'save_column_visible_for_dispatch'
+} %}
 {% endblock %}
 
 {% block javascripts %}

@@ -32,7 +32,6 @@ class ImportEmplacementFixtures extends Fixture
         $emplacements = [];
         $i = 1;
         foreach($rows as $row) {
-            dump($i);
             $i++;
 
             $label = $row[0];

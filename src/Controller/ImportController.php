@@ -17,6 +17,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\ImportException;
+use App\Helper\StringHelper;
 use App\Repository\FieldsParamRepository;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
@@ -207,6 +208,29 @@ class ImportController extends AbstractController
 
                     natcasesort($fields);
 
+                    $preselection = [];
+                    if(isset($data['headers'])) {
+                        $headers = $data['headers'];
+
+                        foreach($headers as $header) {
+                            $closest = null;
+                            $closestDistance = PHP_INT_MAX;
+
+                            foreach($fields as $field) {
+                                $distance = StringHelper::levenshtein($header, $field);
+
+                                if($distance < 5 && $distance < $closestDistance) {
+                                    $closest = $field;
+                                    $closestDistance = $distance;
+                                }
+                            }
+
+                            if($closest != null) {
+                                $preselection[$header] = $closest;
+                            }
+                        }
+                    }
+
                     if ($post->get('importId')) {
                         $copiedImport = $this->getDoctrine()->getRepository(Import::class)->find($post->get('importId'));
                         $columnsToFields = $copiedImport->getColumnToField();
@@ -235,6 +259,7 @@ class ImportController extends AbstractController
                         'html' => $this->renderView('import/modalNewImportSecond.html.twig', [
                             'data' => $data ?? [],
                             'fields' => $fields ?? [],
+                            'preselection' => $preselection ?? [],
                             'fieldsNeeded' => $fieldsNeeded,
                             'fieldPK' => Import::FIELD_PK[$entity],
                             'columnsToFields' => $columnsToFields ?? null
@@ -367,3 +392,4 @@ class ImportController extends AbstractController
         return new JsonResponse();
     }
 }
+

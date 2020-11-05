@@ -105,25 +105,6 @@ class LitigeController extends AbstractController
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
-        $fieldsInTab = [
-            ["key" => 'disputeNumber', 'label' => 'Numéro du litige'],
-            ["key" => 'type', 'label' => 'Type'],
-            ["key" => 'arrivalNumber', 'label' => $this->translator->trans('arrivage.n° d\'arrivage')],
-            ["key" => 'receptionNumber', 'label' => $this->translator->trans('réception.n° de réception')],
-            ["key" => 'buyers', 'label' => 'Acheteur'],
-            ["key" => 'numCommandeBl', 'label' => 'N° commande / BL'],
-            ["key" => 'declarant', 'label' => 'Déclarant'],
-            ["key" => 'command', 'label' => 'N° ligne'],
-            ["key" => 'provider', 'label' => 'Fournisseur'],
-            ["key" => 'references', 'label' => 'Référence'],
-            ["key" => 'lastHistoric', 'label' => 'Dernier historique'],
-            ["key" => 'creationDate', 'label' => 'Créé le'],
-            ["key" => 'updateDate', 'label' => 'Modifié le'],
-            ["key" => 'status', 'label' => 'Statut'],
-        ];
-        $fieldsCl = [];
-        $champs = array_merge($fieldsInTab,$fieldsCl);
-
 
         return $this->render('litige/index.html.twig',[
             'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
@@ -131,8 +112,7 @@ class LitigeController extends AbstractController
             'types' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
 			'litigeOrigins' => $litigeService->getLitigeOrigin(),
 			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS),
-            'champs' => $champs,
-            'columnsVisibles' => $user->getColumnsVisibleForLitige()
+            'fields' => $litigeService->getColumnVisibleConfig($user)
 		]);
     }
 

@@ -42,7 +42,7 @@ security:
                 lifetime: 604800 # 1 semaine
             logout: true
             anonymous: true
-            switch_user: true
+            switch_user: true #role to use: a:2:{i:0;s:9:"ROLE_USER";i:1;s:22:"ROLE_ALLOWED_TO_SWITCH";}
 #            access_denied_handler: App\Security\AccessDeniedHandler
 
         # default:

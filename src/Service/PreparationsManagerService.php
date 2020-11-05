@@ -447,7 +447,7 @@ class PreparationsManagerService
                         foreach ($article->getFreeFields() as $clId => $valeurChampLibre) {
                             $newArticle[$clId] = $valeurChampLibre;
                         }
-                        $insertedArticle = $this->articleDataService->newArticle($newArticle);
+                        $insertedArticle = $this->articleDataService->newArticle($newArticle, $entityManager);
                         $entityManager->flush();
                         if ($selected) {
                             if ($article->getQuantitePrelevee() !== $article->getQuantiteAPrelever()) {
