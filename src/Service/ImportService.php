@@ -921,18 +921,22 @@ class ImportService
             }
             $refArt->setPrixUnitaire($data['prixUnitaire']);
         }
-        if (isset($data['limitSecurity'])) {
-            if (!is_numeric($data['limitSecurity'])) {
-                $message = 'Le seuil de sécurité doit être un nombre.';
-                $this->throwError($message);
-            }
+
+        if($data['limitSecurity'] === "") {
+            $refArt->setLimitSecurity(null);
+        } else if ($data['limitSecurity'] !== null && $data['limitSecurity'] !== "" && !is_numeric($data['limitSecurity'])) {
+            $message = 'Le seuil de sécurité doit être un nombre.';
+            $this->throwError($message);
+        } else {
             $refArt->setLimitSecurity($data['limitSecurity']);
         }
-        if (isset($data['limitWarning'])) {
-            if (!is_numeric($data['limitWarning'])) {
-                $message = 'Le seuil d\'alerte doit être un nombre. ';
-                $this->throwError($message);
-            }
+
+        if($data['limitWarning'] === "") {
+            $refArt->setLimitWarning(null);
+        } else if ($data['limitWarning'] !== null && !is_numeric($data['limitWarning'])) {
+            $message = 'Le seuil d\'alerte doit être un nombre. ';
+            $this->throwError($message);
+        } else {
             $refArt->setLimitWarning($data['limitWarning']);
         }
 
