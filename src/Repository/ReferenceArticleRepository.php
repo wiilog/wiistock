@@ -276,15 +276,15 @@ class ReferenceArticleRepository extends EntityRepository
                     ->setParameter('username', '%' . $filter['value'] . '%');
             } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_PROVIDER_CODE) {
                 $qb
-                    ->leftJoin('ra.articlesFournisseur', 'filter_ra_providerCode')
-                    ->leftJoin('filter_ra_providerCode.fournisseur', 'filter_ra_provider')
-                    ->andWhere('filter_ra_provider.codeReference LIKE :providerCode')
+                    ->leftJoin('ra.articlesFournisseur', 'filter_af_provider_code')
+                    ->leftJoin('filter_af_provider_code.fournisseur', 'filter_provider_code')
+                    ->andWhere('filter_provider_code.codeReference LIKE :providerCode')
                     ->setParameter('providerCode', '%' . $filter['value'] . '%');
             } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_PROVIDER_LABEL) {
                 $qb
-                    ->leftJoin('ra.articlesFournisseur', 'filter_ra_providerLabel')
-                    ->leftJoin('filter_ra_providerLabel.fournisseur', 'filter_ra_provider')
-                    ->andWhere('filter_ra_provider.nom LIKE :providerLabel')
+                    ->leftJoin('ra.articlesFournisseur', 'filter_af_provider_label')
+                    ->leftJoin('filter_af_provider_label.fournisseur', 'filter_provider_label')
+                    ->andWhere('filter_provider_label.nom LIKE :providerLabel')
                     ->setParameter('providerLabel', '%' . $filter['value'] . '%');
             } else {
                 // cas particulier champ référence article fournisseur
