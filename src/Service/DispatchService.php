@@ -336,8 +336,8 @@ class DispatchService {
         return array_merge(
             $configFiltered,
             $freeFieldArray,
-            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsCreate')
-                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsEdit'))
+            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'comment', 'displayedFormsCreate')
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'comment', 'displayedFormsEdit'))
                 ? [[
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',
