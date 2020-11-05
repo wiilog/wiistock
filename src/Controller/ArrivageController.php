@@ -527,22 +527,24 @@ class ArrivageController extends AbstractController
                                                  EntityManagerInterface $entityManager): Response
     {
         $location = $arrivageDataService->getLocationForTracking($entityManager, $arrival);
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
-        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
-        foreach ($arrival->getPacks() as $pack) {
-            $trackingMovementService->persistTrackingForArrivalPack(
-                $entityManager,
-                $pack,
-                $location,
-                $user,
-                $now,
-                $arrival
-            );
+
+        if (isset($location)) {
+            /** @var Utilisateur $user */
+            $user = $this->getUser();
+            $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            foreach ($arrival->getPacks() as $pack) {
+                $trackingMovementService->persistTrackingForArrivalPack(
+                    $entityManager,
+                    $pack,
+                    $location,
+                    $user,
+                    $now,
+                    $arrival
+                );
+            }
+
+            $entityManager->flush();
         }
-
-        $entityManager->flush();
-
         return new JsonResponse(['success' => true]);
     }
 
