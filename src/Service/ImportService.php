@@ -902,7 +902,7 @@ class ImportService
                 ->map("trim")
                 ->toArray();
 
-            $managers = $userRepository->findByEmails($usernames);
+            $managers = $userRepository->findByUsernames($usernames);
             foreach($managers as $manager) {
                 $refArt->addManager($manager);
             }
