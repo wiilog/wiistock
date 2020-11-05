@@ -388,7 +388,7 @@ class LivraisonController extends AbstractController
                 $demande->getValidationDate() ? FormatHelper::date($demande->getValidationDate()) : '',
                 $demande->getUtilisateur() ? FormatHelper::user($demande->getUtilisateur()) : '',
                 $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
-                $demande ? $demande->getType() ? $demande->getType()->getLabel() : '' : '',
+                $demande ? ($demande->getType() ? $demande->getType()->getLabel() : '') : '',
                 $demande->getCommentaire() ? strip_tags($demande->getCommentaire()) : ''
             ];
 
