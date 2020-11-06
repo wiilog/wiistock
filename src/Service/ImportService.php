@@ -395,9 +395,7 @@ class ImportService
                 &$receptionsWithCommand,
                 $user
             ) {
-                dump("----------------");
                 $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
-                dump($verifiedData, $dataToCheck, $row, $headers);
                 switch ($this->currentImport->getEntity()) {
                     case Import::ENTITY_FOU:
                         $this->importFournisseurEntity($verifiedData, $stats);
