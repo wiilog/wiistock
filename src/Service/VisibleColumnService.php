@@ -24,7 +24,8 @@ class VisibleColumnService {
                         'translated' => $column['translated'] ?? false,
                         'class' => $column['class'] ?? null,
                         'isColumnVisible' => $visible,
-                        "type" => $column['type'] ?? null
+                        "type" => $column['type'] ?? null,
+                        "searchable" => $column['searchable'] ?? null,
                     ];
                 },
                 $fields
@@ -39,7 +40,7 @@ class VisibleColumnService {
                         "data" => $freeFieldName,
                         "name" => $freeFieldName,
                         "isColumnVisible" => $visible,
-                        "type" => $freeField['typage']
+                        "type" => $freeField['typage'],
                     ];
                 },
                 $freeFields

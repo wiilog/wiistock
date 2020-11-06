@@ -1,3 +1,4 @@
+{% set fieldsSearch = fields|filter(f => f.searchable is defined and f.searchable) %}
 <div class="modal fade" id="modalRapidSearch" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -15,7 +16,7 @@
                         <th class="text-center">Actions</th>
                     </tr>
                     </thead>
-                    {% for field in fields %}
+                    {% for field in fieldsSearch %}
                         {% if field.name != 'actions' %}
                             <tr class="toggle-search pointer">
                                 <td>{{ field.title }}</td>
@@ -37,7 +38,7 @@
                     </tr>
                     </thead>
                     {% for search in searches %}
-                        {% set field = fields | filter(f => f.name == search) | first %}
+                        {% set field = fieldsSearch | filter(f => f.name == search) | first %}
 
                         {% if field %}
                             <tr>

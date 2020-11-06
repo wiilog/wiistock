@@ -44,9 +44,9 @@ class RefArticleDataService {
 
     private const REF_ARTICLE_FIELDS = [
         ["name" => "actions", "class" => "noVis", "alwaysVisible" => true, "orderable" => false],
-        ["title" => "Libellé", "name" => "label", "type" => "text"],
-        ["title" => "Référence", "name" => "reference", "type" => "text"],
-        ["title" => "Code barre", "name" => "barCode", "type" => "text"],
+        ["title" => "Libellé", "name" => "label", "type" => "text", "searchable" => true],
+        ["title" => "Référence", "name" => "reference", "type" => "text", "searchable" => true],
+        ["title" => "Code barre", "name" => "barCode", "type" => "text", "searchable" => true],
         ["title" => "Urgence", "name" => "emergency", "type" => "booleen"],
         ["title" => "Type", "name" => "type", "type" => "list"],
         ["title" => "Statut", "name" => "status", "type" => "list"],
@@ -57,10 +57,10 @@ class RefArticleDataService {
         ["title" => "Seuil d'alerte", "name" => "warningThreshold", "type" => "number"],
         ["title" => "Prix unitaire", "name" => "unitPrice", "type" => "number"],
         ["title" => "Synchronisation nomade", "name" => "mobileSync", "type" => "booleen"],
-        ["title" => "Nom fournisseur", "name" => "supplierLabel", "type" => "text"],
-        ["title" => "Code fournisseur", "name" => "supplierCode", "type" => "text"],
+        ["title" => "Nom fournisseur", "name" => "supplierLabel", "type" => "text", "searchable" => true],
+        ["title" => "Code fournisseur", "name" => "supplierCode", "type" => "text", "searchable" => true],
         ["title" => "Dernier inventaire", "name" => "lastInventory", "type" => "date"],
-        ["title" => "Gestion de stock", "name" => "stockManagement", "type" => "text"],
+        ["title" => "Gestion de stock", "name" => "stockManagement", "type" => "text", "searchable" => true],
         ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
         ["title" => "Commentaire", "name" => "comment", "type" => "text"],
         ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text"]

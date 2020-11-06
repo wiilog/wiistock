@@ -419,7 +419,7 @@ class ReferenceArticleRepository extends EntityRepository {
 
                     foreach ($user->getRecherche() as $key => $searchField) {
                         switch ($searchField) {
-                            case "supplier":
+                            case "supplierLabel":
                                 $subqb = $em->createQueryBuilder()
                                     ->select('ra.id')
                                     ->from('App\Entity\ReferenceArticle', 'ra')
@@ -433,7 +433,7 @@ class ReferenceArticleRepository extends EntityRepository {
                                 }
                                 break;
 
-                            case "supplierReference":
+                            case "supplierCode":
                                 $subqb = $em->createQueryBuilder()
                                     ->select('ra.id')
                                     ->from('App\Entity\ReferenceArticle', 'ra')
