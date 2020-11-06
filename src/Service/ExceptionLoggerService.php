@@ -1,17 +1,18 @@
 <?php
 
-namespace App\EventListener;
+
+namespace App\Service;
 
 use App\Entity\Utilisateur;
 use DateTime;
 use ReflectionClass;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;
-use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Throwable;
 
-class ExceptionListener {
+class ExceptionLoggerService {
 
     const DEFAULT_LOGGER_URL = "http://logger.follow-gt.fr/api/log";
 
@@ -24,7 +25,8 @@ class ExceptionListener {
         $this->client = $client;
     }
 
-    public function onKernelException(ExceptionEvent $event) {
+    public function sendLog(Throwable $throwable,
+                            Request $request) {
         $env = $_SERVER['APP_ENV'];
         if ($env === 'dev') {
             return;
@@ -39,7 +41,7 @@ class ExceptionListener {
             ];
         }
 
-        $ignored = FlattenException::createFromThrowable($event->getThrowable());
+        $ignored = FlattenException::createFromThrowable($throwable);
         $exceptions = array_merge([$ignored], $ignored->getAllPrevious());
 
         foreach ($exceptions as $ignored) {
@@ -85,7 +87,7 @@ class ExceptionListener {
                             "forbidden_phones" => $_SERVER["APP_FORBIDDEN_PHONES"] ?? null,
                         ],
                         "user" => $user,
-                        "request" => serialize($event->getRequest()),
+                        "request" => serialize($request),
                         "exceptions" => serialize($exceptions),
                         "time" => (new DateTime())->format("d-m-Y H:i:s"),
                     ],
@@ -95,5 +97,4 @@ class ExceptionListener {
 
         }
     }
-
 }

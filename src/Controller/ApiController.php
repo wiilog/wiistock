@@ -43,6 +43,7 @@ use App\Repository\ReferenceArticleRepository;
 use App\Service\DispatchService;
 use App\Service\AttachmentService;
 use App\Service\DemandeLivraisonService;
+use App\Service\ExceptionLoggerService;
 use App\Service\InventoryService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
@@ -232,6 +233,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param Request $request
      * @param MouvementStockService $mouvementStockService
      * @param TrackingMovementService $trackingMovementService
+     * @param ExceptionLoggerService $exceptionLoggerService
      * @param FreeFieldService $freeFieldService
      * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
@@ -242,6 +244,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     public function postTrackingMovement(Request $request,
                                          MouvementStockService $mouvementStockService,
                                          TrackingMovementService $trackingMovementService,
+                                         ExceptionLoggerService $exceptionLoggerService,
                                          FreeFieldService $freeFieldService,
                                          AttachmentService $attachmentService,
                                          EntityManagerInterface $entityManager)
@@ -475,7 +478,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         }
                     });
                 }
-                catch (Exception $e) {
+                catch (Throwable $throwable) {
                     if (!$entityManager->isOpen()) {
                         /** @var EntityManagerInterface $entityManager */
                         $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
@@ -484,9 +487,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $nomadUser = $utilisateurRepository->findOneByApiKey($apiKey);
                     }
 
-                    if ($e->getMessage() === TrackingMovementService::INVALID_LOCATION_TO) {
+                    if ($throwable->getMessage() === TrackingMovementService::INVALID_LOCATION_TO) {
                         $successData['data']['errors'][$mvt['ref_article']] = ($mvt['ref_article'] . " doit être déposé sur l'emplacement \"$invalidLocationTo\"");
                     } else {
+                        $exceptionLoggerService->sendLog($throwable, $request);
                         $successData['data']['errors'][$mvt['ref_article']] = 'Une erreur s\'est produite lors de l\'enregistrement de ' . $mvt['ref_article'];
                     }
                 }
@@ -564,6 +568,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/finishPrepa", name="api-finish-prepa", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
+     * @param ExceptionLoggerService $exceptionLoggerService
      * @param LivraisonsManagerService $livraisonsManager
      * @param PreparationsManagerService $preparationsManager
      * @param EntityManagerInterface $entityManager
@@ -572,6 +577,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws ORMException
      */
     public function finishPrepa(Request $request,
+                                ExceptionLoggerService $exceptionLoggerService,
                                 LivraisonsManagerService $livraisonsManager,
                                 PreparationsManagerService $preparationsManager,
                                 EntityManagerInterface $entityManager)
@@ -677,23 +683,30 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             'numero_prepa' => $preparation->getNumero(),
                             'id_prepa' => $preparation->getId()
                         ];
-                    } catch (Exception $exception) {
+                    }
+                    catch (Throwable $throwable) {
                         // we create a new entity manager because transactional() can call close() on it if transaction failed
                         if (!$entityManager->isOpen()) {
                             /** @var EntityManagerInterface $entityManager */
                             $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                             $preparationsManager->setEntityManager($entityManager);
                         }
+
+                        $message = (
+                            ($throwable instanceof NegativeQuantityException) ? "Une quantité en stock d\'un article est inférieure à sa quantité prélevée" :
+                            (($throwable->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
+                            (($throwable->getMessage() === PreparationsManagerService::ARTICLE_ALREADY_SELECTED) ? "L'article n'est pas sélectionnable" :
+                            false))
+                        );
+
+                        if (!$message) {
+                            $exceptionLoggerService->sendLog($throwable, $request);
+                        }
+
                         $resData['errors'][] = [
                             'numero_prepa' => $preparation->getNumero(),
                             'id_prepa' => $preparation->getId(),
-//TODO  CG msg prépa vide
-                            'message' => (
-                                ($exception instanceof NegativeQuantityException) ? "Une quantité en stock d\'un article est inférieure à sa quantité prélevée" :
-                                (($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
-                                (($exception->getMessage() === PreparationsManagerService::ARTICLE_ALREADY_SELECTED) ? "L'article n'est pas sélectionnable" :
-                                'Une erreur est survenue'))
-                            )
+                            'message' => $message ?: 'Une erreur est survenue'
                         ];
                     }
                 }
@@ -907,13 +920,16 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/finishLivraison", name="api-finish-livraison", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
+     * @param ExceptionLoggerService $exceptionLoggerService
      * @param EntityManagerInterface $entityManager
      * @param LivraisonsManagerService $livraisonsManager
      * @return JsonResponse
      * @throws NonUniqueResultException
-     * @throws Throwable
+     * @throws ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function finishLivraison(Request $request,
+                                    ExceptionLoggerService $exceptionLoggerService,
                                     EntityManagerInterface $entityManager,
                                     LivraisonsManagerService $livraisonsManager)
     {
@@ -952,22 +968,28 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         } else {
                             throw new Exception(LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
                         }
-                    } catch (Exception $exception) {
+                    } catch (Throwable $throwable) {
                         // we create a new entity manager because transactional() can call close() on it if transaction failed
                         if (!$entityManager->isOpen()) {
                             $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                             $livraisonsManager->setEntityManager($entityManager);
                         }
 
+                        $message = (
+                            ($throwable->getMessage() === LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
+                            (($throwable->getMessage() === LivraisonsManagerService::LIVRAISON_ALREADY_BEGAN) ? "La livraison a déjà été commencée" :
+                            false)
+                        );
+
+                        if (!$message) {
+                            $exceptionLoggerService->sendLog($throwable, $request);
+                        }
+
                         $resData['errors'][] = [
                             'numero_livraison' => $livraison->getNumero(),
                             'id_livraison' => $livraison->getId(),
 
-                            'message' => (
-                            ($exception->getMessage() === LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
-                                (($exception->getMessage() === LivraisonsManagerService::LIVRAISON_ALREADY_BEGAN) ? "La livraison a déjà été commencée" :
-                                    'Une erreur est survenue')
-                            )
+                            'message' => $message ?: 'Une erreur est survenue'
                         ];
                     }
 
@@ -989,14 +1011,15 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/finishCollecte", name="api-finish-collecte", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
+     * @param ExceptionLoggerService $exceptionLoggerService
      * @param OrdreCollecteService $ordreCollecteService
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
      * @throws ORMException
-     * @throws Throwable
      */
     public function finishCollecte(Request $request,
+                                   ExceptionLoggerService $exceptionLoggerService,
                                    OrdreCollecteService $ordreCollecteService,
                                    EntityManagerInterface $entityManager)
     {
@@ -1087,7 +1110,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         }
                     });
                 }
-                catch (Exception $exception) {
+                catch (Throwable $throwable) {
                     // we create a new entity manager because transactional() can call close() on it if transaction failed
                     if (!$entityManager->isOpen()) {
                         $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
@@ -1102,16 +1125,22 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                     $user = $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '';
 
+                    $message = (
+                        ($throwable instanceof ArticleNotAvailableException) ? ("Une référence de la collecte n'est pas active, vérifiez les transferts de stock en cours associés à celle-ci.") :
+                        (($throwable->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGUN) ? ("La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ").") :
+                        (($throwable->getMessage() === OrdreCollecteService::COLLECTE_MOUVEMENTS_EMPTY) ? ("La collecte " . $collecte->getNumero() . " ne contient aucun article.") :
+                        false))
+                    );
+
+                    if (!$message) {
+                        $exceptionLoggerService->sendLog($throwable, $request);
+                    }
+
                     $resData['errors'][] = [
                         'numero_collecte' => $collecte->getNumero(),
                         'id_collecte' => $collecte->getId(),
 
-                        'message' => (
-                            ($exception instanceof ArticleNotAvailableException) ? ("Une référence de la collecte n'est pas active, vérifiez les transferts de stock en cours associés à celle-ci.") :
-                            (($exception->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGUN) ? ("La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ").") :
-                            (($exception->getMessage() === OrdreCollecteService::COLLECTE_MOUVEMENTS_EMPTY) ? ("La collecte " . $collecte->getNumero() . " ne contient aucun article.") :
-                            'Une erreur est survenue'))
-                        )
+                        'message' => $message ?: 'Une erreur est survenue'
                     ];
                 }
             }
@@ -1630,12 +1659,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Post("/api/treatAnomalies", name= "api-treat-anomalies-inv", condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param ExceptionLoggerService $exceptionLoggerService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
-     * @throws Exception
      */
     public function treatAnomalies(Request $request,
+                                   ExceptionLoggerService $exceptionLoggerService,
                                    EntityManagerInterface $entityManager)
     {
         $response = new Response();
@@ -1669,6 +1699,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 }
                 catch (ArticleNotAvailableException|RequestNeedToBeProcessedException $exception) {
                     $errors[] = $anomaly['id'];
+                }
+                catch(Throwable $throwable) {
+                    $exceptionLoggerService->sendLog($throwable, $request);
+                    throw $throwable;
                 }
             }
 
