@@ -80,7 +80,7 @@ class AttachmentService {
             mkdir($this->attachmentDirectory, 0777);
         }
 
-        $filename = ($wantedName ?? uniqid()) . '.' . $file->getClientOriginalExtension() ?? '';
+        $filename = ($wantedName ?? uniqid()) . '.' . strtolower($file->getClientOriginalExtension()) ?? '';
         $file->move($this->attachmentDirectory, $filename);
         return [$file->getClientOriginalName() => $filename];
     }
@@ -140,7 +140,7 @@ class AttachmentService {
      */
     public function createPieceJointe(UploadedFile $file, $link): Attachment {
         if ($file->getClientOriginalExtension()) {
-            $filename = uniqid() . "." . $file->getClientOriginalExtension();
+            $filename = uniqid() . "." . strtolower($file->getClientOriginalExtension());
         } else {
             $filename = uniqid();
         }

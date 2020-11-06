@@ -783,6 +783,8 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YY
     if (defaultHours !== null && defaultMinutes !== null) {
         options.defaultDate = moment().hours(defaultHours).minutes(defaultMinutes);
     }
+
+    $(dateInput).data("dtp-initialized", "true");
     $(dateInput).datetimepicker(options);
 }
 
