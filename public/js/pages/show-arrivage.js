@@ -39,7 +39,7 @@ $(function () {
             printArrivage: printArrivage
         };
 
-        window.open(Routing.generate('print_arrivage_bar_codes', params, true));
+        Wiistock.download(Routing.generate('print_arrivage_bar_codes', params, true));
     }
 
     //édition de colis
