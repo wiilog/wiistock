@@ -39,7 +39,7 @@ $(function () {
             printArrivage: printArrivage
         };
 
-        window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
+        window.open(Routing.generate('print_arrivage_bar_codes', params, true));
     }
 
     //édition de colis
