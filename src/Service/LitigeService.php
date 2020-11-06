@@ -2,13 +2,9 @@
 
 namespace App\Service;
 
-use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
 use App\Entity\Litige;
 use App\Entity\Utilisateur;
-use DateTime;
 use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;

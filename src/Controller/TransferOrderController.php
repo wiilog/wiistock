@@ -15,7 +15,6 @@ use App\Entity\Utilisateur;
 use App\Helper\Stream;
 use App\Service\MouvementStockService;
 use App\Service\TransferOrderService;
-use App\Service\UniqueNumberService;
 use DateTime;
 use App\Service\CSVExportService;
 use App\Service\UserService;

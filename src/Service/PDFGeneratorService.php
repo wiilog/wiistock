@@ -4,7 +4,6 @@
 namespace App\Service;
 
 use App\Entity\Dispatch;
-use App\Entity\ParametrageGlobal;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;

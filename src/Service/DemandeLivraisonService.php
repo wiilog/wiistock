@@ -23,7 +23,6 @@ use App\Entity\Utilisateur;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use DateTime;
-use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;

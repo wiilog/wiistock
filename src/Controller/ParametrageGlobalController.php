@@ -22,7 +22,6 @@ use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
-use App\Repository\TranslationRepository;
 use App\Service\AlertService;
 use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
@@ -30,12 +29,12 @@ use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -753,16 +752,17 @@ class ParametrageGlobalController extends AbstractController {
     /**
      * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST")
      * @param Request $request
-     * @param TranslationRepository $translationRepository
+     * @param EntityManagerInterface $entityManager
      * @param TranslationService $translationService
      * @return Response
-     * @throws Exception
+     * @throws \Exception
      */
     public function saveTranslations(Request $request,
-                                     TranslationRepository $translationRepository,
+                                     EntityManagerInterface $entityManager,
                                      TranslationService $translationService): Response {
-        if($request->isXmlHttpRequest() && $translations = json_decode($request->getContent(), true)) {
-            foreach($translations as $translation) {
+        if ($request->isXmlHttpRequest() && $translations = json_decode($request->getContent(), true)) {
+            $translationRepository = $entityManager->getRepository(Translation::class);
+            foreach ($translations as $translation) {
                 $translationObject = $translationRepository->find($translation['id']);
                 if($translationObject) {
                     $translationObject
@@ -772,9 +772,10 @@ class ParametrageGlobalController extends AbstractController {
                     return new JsonResponse(false);
                 }
             }
-            $this->getDoctrine()->getManager()->flush();
+            $entityManager->flush();
 
             $translationService->generateTranslationsFile();
+            $translationService->cacheClearWarmUp();
 
             return new JsonResponse(true);
         }
@@ -838,6 +839,12 @@ class ParametrageGlobalController extends AbstractController {
 
     /**
      * @Route("/appearance", name="edit_appearance", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $pgr
+     * @param AttachmentService $attachmentService
+     * @param GlobalParamService $globalParamService
+     * @return Response
+     * @throws NonUniqueResultException
      */
     public function editAppearance(Request $request,
                                    ParametrageGlobalRepository $pgr,
@@ -901,6 +908,10 @@ class ParametrageGlobalController extends AbstractController {
 
             if(isset($originalValue) && $originalValue != $request->request->get("font-family")) {
                 $globalParamService->generateScssFile($parametrageGlobal);
+
+                $env = $_SERVER["APP_ENV"] == "dev" ? "dev" : "production";
+                $process = Process::fromShellCommandline("yarn build:only:$env");
+                $process->run();
             }
         }
 

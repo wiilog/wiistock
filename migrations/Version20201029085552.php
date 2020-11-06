@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\Utilisateur;
-use App\Service\VisibleColumnService;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 

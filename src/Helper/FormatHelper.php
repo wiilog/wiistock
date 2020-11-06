@@ -6,7 +6,6 @@ use App\Entity\Emplacement;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use DateTime;
 use DateTimeInterface;
 
 class FormatHelper {

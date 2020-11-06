@@ -13,7 +13,6 @@ use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;

@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
-use App\Entity\Demande;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;

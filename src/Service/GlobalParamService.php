@@ -14,9 +14,7 @@ use App\Entity\Type;
 use App\Repository\CategoryTypeRepository;
 use App\Repository\EmplacementRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Process\Process;
 
 Class GlobalParamService
 {
@@ -134,34 +132,19 @@ Class GlobalParamService
         return $resp ?? [];
     }
 
-	public function generateScssFile(?ParametrageGlobal $font = null) {
+    public function generateScssFile(?ParametrageGlobal $font = null) {
         if(!$font) {
-            $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
+            $projectDir = $this->kernel->getProjectDir();
+            $scssFile = $projectDir . '/assets/scss/_customFont.scss';
 
+            $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
             $param = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
             $font = $param ? $param->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY;
         } else {
             $font = $font->getValue();
         }
 
-        $projectDir = $this->kernel->getProjectDir();
-		$scssFile = $projectDir . '/assets/scss/_customFont.scss';
-
-		$scssText = '$mainFont: "' . $font . '";';
-		file_put_contents($scssFile, $scssText);
-
-		$this->compileScss();
-	}
-
-	/**
-	 * @throws Exception
-	 */
-	private function compileScss() {
-		$env = $this->kernel->getEnvironment();
-
-		$command = $env == 'dev' ? 'dev' : 'production';
-		$process = Process::fromShellCommandline('yarn build:only:' . $command);
-		$process->run();
+		file_put_contents($scssFile, "\$mainFont: \"$font\";");
 	}
 
     /**
