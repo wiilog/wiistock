@@ -9,21 +9,22 @@ use App\Entity\Litige;
 use App\Entity\TrackingMovement;
 use App\Entity\Attachment;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\Entity;
-use DoctrineExtensions\Query\Mysql\Pi;
 use ReflectionClass;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 
-class AttachmentService
-{
+class AttachmentService {
+
     const LABEL_LOGO = 'logo_for_label';
     const CUSTOM_ICON = 'icon_for_custom';
     const EMERGENCY_ICON = 'icon_for_emergency';
     const DELIVERY_NOTE_LOGO = 'logo_for_delivery_note';
     const WAYBILL_LOGO = 'logo_for_waybill';
+    const WEBSITE_LOGO = 'website_logo';
+    const EMAIL_LOGO = 'email_logo';
+    const MOBILE_LOGO = 'mobile_logo';
 
     private $attachmentDirectory;
 	private $em;
@@ -77,7 +78,7 @@ class AttachmentService
             mkdir($this->attachmentDirectory, 0777);
         }
 
-        $filename = ($wantedName ?? uniqid()) . '.' . $file->getClientOriginalExtension() ?? '';
+        $filename = ($wantedName ?? uniqid()) . '.' . strtolower($file->getClientOriginalExtension()) ?? '';
         $file->move($this->attachmentDirectory, $filename);
         return [$file->getClientOriginalName() => $filename];
     }
@@ -137,7 +138,7 @@ class AttachmentService
      */
     public function createPieceJointe(UploadedFile $file, $link): Attachment {
         if ($file->getClientOriginalExtension()) {
-            $filename = uniqid() . "." . $file->getClientOriginalExtension();
+            $filename = uniqid() . "." . strtolower($file->getClientOriginalExtension());
         } else {
             $filename = uniqid();
         }

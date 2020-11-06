@@ -9,7 +9,6 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
-use App\Entity\Demande;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;

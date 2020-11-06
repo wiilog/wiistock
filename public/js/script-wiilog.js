@@ -35,8 +35,8 @@ const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \/\-]{1,24}$/;
 const AUTO_HIDE_DEFAULT_DELAY = 2000;
 
 // set max date for pickers
-const MAX_DATETIME_HTML_INPUT = '2100-12-31T23:59'
-const MAX_DATE_HTML_INPUT = '2100-12-31'
+const MAX_DATETIME_HTML_INPUT = '2100-12-31T23:59';
+const MAX_DATE_HTML_INPUT = '2100-12-31';
 
 $(function () {
     $(document).on('hide.bs.modal', function () {
@@ -783,6 +783,8 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YY
     if (defaultHours !== null && defaultMinutes !== null) {
         options.defaultDate = moment().hours(defaultHours).minutes(defaultMinutes);
     }
+
+    $(dateInput).data("dtp-initialized", "true");
     $(dateInput).datetimepicker(options);
 }
 
@@ -944,9 +946,10 @@ function displayFiltersSup(data) {
  * @param {array} buttonConfig array of html config
  * @param {'success'|'warning'|'error'|undefined} iconType
  * @param {boolean} autoHide delay in milliseconds
+ * @return {jQuery} The displayed modal
  */
 function displayAlertModal(title, $body, buttonConfig, iconType = undefined, autoHide = false) {
-    const $alertModal = $('#alert-modal');
+    const $alertModal = getBSAlertModal();
     hideSpinner($alertModal.find('.modal-footer .spinner'));
     $alertModal.find('.modal-footer-wrapper').removeClass('d-none');
 
@@ -1241,4 +1244,8 @@ function onTypeChange($select) {
             $selectStatus.addClass('d-none');
         }
     }
+}
+
+function getBSAlertModal() {
+    return $('#alert-modal');
 }

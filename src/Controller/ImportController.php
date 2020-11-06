@@ -18,13 +18,11 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\ImportException;
 use App\Helper\StringHelper;
-use App\Repository\FieldsParamRepository;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\TransactionRequiredException;
@@ -180,7 +178,7 @@ class ImportController extends AbstractController
                             break;
                         case Import::ENTITY_REF:
                             $categoryCL = CategorieCL::REFERENCE_ARTICLE;
-                            $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire', 'statut', 'reference'];
+                            $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire', 'statut', 'reference', 'managers'];
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                         case Import::ENTITY_ART_FOU:

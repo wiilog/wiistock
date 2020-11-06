@@ -49,6 +49,9 @@ class ParametrageGlobal
     const MVT_DEPOSE_DESTINATION = 'MVT DEPOSE DESTINATION';
     // apparence
     const FONT_FAMILY = 'FONT FAMILY';
+    const WEBSITE_LOGO = 'WEBSITE_LOGO';
+    const EMAIL_LOGO = 'EMAIL_LOGO';
+    const MOBILE_LOGO = 'MOBILE_LOGO';
 	const FONT_MONTSERRAT = 'Montserrat';
 	const FONT_TAHOMA = 'Tahoma';
 	const FONT_MYRIAD = 'Myriad';

@@ -7,7 +7,6 @@ use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
-use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;

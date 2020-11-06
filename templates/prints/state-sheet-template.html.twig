@@ -64,7 +64,7 @@
         {% for config in sheetConfigs %}
             {% if not loop.first %}<div class="page-breaker"></div>{% endif %}
             <div class="sheet-container">
-                <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ asset('img/gtlogistics.jpg') }}" alt="GT Logistics"/>
+                <img src="{{ logo('email') }}" width="300" alt="GT Logistics"/>
                 <h2>{{ config.title }}</h2>
                 <div class="barcode-container">
                     <div class="barcode-wrapper">
