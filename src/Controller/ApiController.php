@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Annotation\Authenticated;
+use App\Annotation as Wii;
 use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\Article;
@@ -235,7 +235,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Post("/api/mouvements-traca", name="api-post-mouvements-traca", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param MouvementStockService $mouvementStockService
@@ -527,7 +527,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Post("/api/beginPrepa", name="api-begin-prepa", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -556,7 +556,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Post("/api/finishPrepa", name="api-finish-prepa", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param LivraisonsManagerService $livraisonsManager
@@ -712,7 +712,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Post("/api/beginLivraison", name="api-begin-livraison", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param EntityManagerInterface $em
@@ -749,7 +749,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Post("/api/beginCollecte", name="api-begin-collecte", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -785,7 +785,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Post("/api/handlings", name="api-validate-handling", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param AttachmentService $attachmentService
@@ -881,7 +881,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Post("/api/finishLivraison", name="api-finish-livraison", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -957,7 +957,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Post("/api/finishCollecte", name="api-finish-collecte", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param OrdreCollecteService $ordreCollecteService
@@ -1089,7 +1089,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Post("/api/valider-dl", name="api_validate_dl", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -1134,7 +1134,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/addInventoryEntries", name="api-add-inventory-entry", condition="request.isXmlHttpRequest()")
      * @Rest\Get("/api/addInventoryEntries")
      * @Rest\View()
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -1246,7 +1246,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Get("/api/demande-livraison-data", name="api_get_demande_livraison_data")
      * @Rest\View()
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param UserService $userService
      * @param EntityManagerInterface $entityManager
@@ -1286,7 +1286,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Post("/api/transfer/finish", name="transfer_finish")
      * @Rest\View()
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param TransferOrderService $transferOrderService
@@ -1524,7 +1524,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
     /**
      * @Rest\Post("/api/getData", name="api-get-data")
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param UserService $userService
@@ -1558,7 +1558,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
     /**
      * @Rest\Post("/api/treatAnomalies", name= "api-treat-anomalies-inv", condition="request.isXmlHttpRequest()")
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @return Response
@@ -1611,7 +1611,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
     /**
      * @Rest\Post("/api/emplacement", name="api-new-emp", condition="request.isXmlHttpRequest()")
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -1643,7 +1643,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
     /**
      * @Rest\Get("/api/articles", name="api-get-articles", condition="request.isXmlHttpRequest()")
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -1700,7 +1700,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
     /**
      * @Rest\Get("/api/tracking-drops", name="api-get-tracking-drops-on-location", condition="request.isXmlHttpRequest()")
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -1737,7 +1737,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
     /**
      * @Rest\Get("/api/packs/{code}/nature", name="api_pack_nature", condition="request.isXmlHttpRequest()")
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param EntityManagerInterface $entityManager
      * @param NatureService $natureService
@@ -1763,7 +1763,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
     /**
      * @Rest\Post("/api/dispatches", name="api_patch_dispatches", condition="request.isXmlHttpRequest()")
-     * @Authenticated(Authenticated::MOBILE)
+     * @Wii\Authenticated()
      *
      * @param Request $request
      * @param DispatchService $dispatchService

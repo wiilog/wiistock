@@ -11,13 +11,4 @@ use Doctrine\Common\Annotations\Annotation\Target;
  */
 class Authenticated {
 
-    const MOBILE = "api";
-    const WEB = "web";
-
-    public $value;
-
-    public function getValue() {
-        return $this->value;
-    }
-
 }

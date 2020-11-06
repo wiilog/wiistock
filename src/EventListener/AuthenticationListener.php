@@ -9,10 +9,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 use ReflectionException;
 use RuntimeException;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpKernel\Event\ControllerArgumentsEvent;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
-class AnnotationListener {
+class AuthenticationListener {
 
     private $manager;
 
@@ -35,31 +36,29 @@ class AnnotationListener {
             throw new RuntimeException("Failed to read annotation");
         }
 
-        foreach($reader->getMethodAnnotations($method) as $annotation) {
-            if ($annotation instanceof Authenticated) {
-                $this->handleAuthenticated($event, $annotation);
-            }
+        $annotation = $reader->getMethodAnnotation($method, Authenticated::class);
+        if($annotation instanceof Authenticated) {
+            $this->handleAuthenticated($event, $controller, $annotation);
         }
     }
 
-    private function handleAuthenticated(ControllerArgumentsEvent $event, Authenticated $annotation) {
-        [$controller] = $event->getController();
+    private function handleAuthenticated(ControllerArgumentsEvent $event, AbstractController $controller, Authenticated $annotation) {
         $request = $event->getRequest();
 
         if(!method_exists($controller, "setUser")) {
             throw new RuntimeException("Routes annotated with @Authenticated must have a `setUser` method");
         }
 
-        if($annotation->getValue() == Authenticated::MOBILE) {
-            $userRepository = $this->manager->getRepository(Utilisateur::class);
+        $userRepository = $this->manager->getRepository(Utilisateur::class);
 
-            $key = $request->get("apiKey");
-            $user = $userRepository->findOneByApiKey($key);
-            if($user) {
-                $controller->setUser($user);
-            } else {
-                throw new UnauthorizedHttpException("no challenge");
-            }
+        $authorization = $request->headers->get("x-authorization", "");
+        preg_match("/Bearer (\w*)/i", $authorization, $matches);
+
+        $user = $matches ? $userRepository->findOneByApiKey($matches[1]) : null;
+        if($user) {
+            $controller->setUser($user);
+        } else {
+            throw new UnauthorizedHttpException("no challenge");
         }
     }
 
