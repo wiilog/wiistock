@@ -6,7 +6,6 @@ use App\Entity\Translation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 
 /**
  * @method Translation|null find($id, $lockMode = null, $lockVersion = null)

@@ -9,11 +9,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class UpdateCustomFontCommand extends Command {
 
-    private $service;
+    private $globalParamService;
 
-    public function __construct(GlobalParamService $service) {
+    public function __construct(GlobalParamService $globalParamService) {
         parent::__construct();
-        $this->service = $service;
+        $this->globalParamService = $globalParamService;
     }
 
     protected function configure() {
@@ -22,7 +22,7 @@ class UpdateCustomFontCommand extends Command {
     }
 
     protected function execute(InputInterface $input, OutputInterface $output) {
-        $this->service->generateScssFile();
+        $this->globalParamService->generateScssFile();
         $output->writeln("\"assets/scss/_customFont.scss\" generated");
         $output->writeln("");
     }

@@ -15,9 +15,7 @@ use App\Repository\CategoryTypeRepository;
 use App\Repository\EmplacementRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Process\Process;
 
 Class GlobalParamService
 {

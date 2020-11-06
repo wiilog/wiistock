@@ -75,12 +75,11 @@ class AccueilController extends AbstractController
      *     "/dashboard-externe/{token}/{page}",
      *     name="dashboard_ext",
      *     methods={"GET"},
-     *     requirements={
-     *         "page" = "(quai)|(admin)|(emballage)",
-     *     }
+     *     requirements={"page" = "(quai)|(admin)|(emballage)"}
      * )
      * @param EntityManagerInterface $entityManager
      * @param DashboardService $dashboardService
+     * @param string $token
      * @param string $page
      * @return Response
      * @throws NoResultException

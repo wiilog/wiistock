@@ -9,8 +9,6 @@ use App\Entity\Litige;
 use App\Entity\TrackingMovement;
 use App\Entity\Attachment;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\Entity;
-use DoctrineExtensions\Query\Mysql\Pi;
 use ReflectionClass;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;

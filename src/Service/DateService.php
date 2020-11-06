@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use DateInterval;
-use Symfony\Component\Translation\Interval;
 
 class DateService
 {

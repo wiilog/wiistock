@@ -12,8 +12,6 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
-use DoctrineExtensions\Query\Mysql\Date;
-use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Demande|null find($id, $lockMode = null, $lockVersion = null)

@@ -22,7 +22,6 @@ use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
-use App\Repository\TranslationRepository;
 use App\Service\AlertService;
 use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
@@ -31,7 +30,6 @@ use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -691,17 +689,17 @@ class ParametrageGlobalController extends AbstractController
     /**
      * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST")
      * @param Request $request
-     * @param TranslationRepository $translationRepository
+     * @param EntityManagerInterface $entityManager
      * @param TranslationService $translationService
      * @return Response
-     * @throws NonUniqueResultException
-     * @throws NoResultException
+     * @throws \Exception
      */
     public function saveTranslations(Request $request,
-                                     TranslationRepository $translationRepository,
+                                     EntityManagerInterface $entityManager,
                                      TranslationService $translationService): Response
     {
         if ($request->isXmlHttpRequest() && $translations = json_decode($request->getContent(), true)) {
+            $translationRepository = $entityManager->getRepository(Translation::class);
             foreach ($translations as $translation) {
                 $translationObject = $translationRepository->find($translation['id']);
                 if ($translationObject) {
@@ -712,7 +710,7 @@ class ParametrageGlobalController extends AbstractController
                     return new JsonResponse(false);
                 }
             }
-            $this->getDoctrine()->getManager()->flush();
+            $entityManager->flush();
 
             $translationService->generateTranslationsFile();
             $translationService->cacheClearWarmUp();

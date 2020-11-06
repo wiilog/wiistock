@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Controller\TransferRequestController;
 use App\Entity\FiltreSup;
 use App\Entity\TransferRequest;
 use App\Helper\FormatHelper;

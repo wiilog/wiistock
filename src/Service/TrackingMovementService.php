@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;

@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Handling;
-use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use DateTime;

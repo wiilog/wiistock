@@ -54,8 +54,7 @@ class TranslationService {
     private function generateYamlTranslations(string $directory, array $translations) {
         $menus = [];
         foreach($translations as $translation) {
-            $menus[$translation->getMenu()][$translation->getLabel()] =
-                $translation->getTranslation() ?: $translation->getLabel();
+            $menus[$translation->getMenu()][$translation->getLabel()] = $translation->getTranslation() ?: $translation->getLabel();
         }
 
         file_put_contents($directory, Yaml::dump($menus));
