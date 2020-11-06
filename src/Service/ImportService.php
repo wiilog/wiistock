@@ -405,7 +405,7 @@ class ImportService
                         $this->importArticleFournisseurEntity($verifiedData, $stats);
                         break;
                     case Import::ENTITY_REF:
-                        $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $stats);
+                        $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $dataToCheck, $stats);
                         break;
                     case Import::ENTITY_RECEPTION:
                         $this->importReceptionEntity($verifiedData, $receptionsWithCommand, $user, $stats);
@@ -718,7 +718,7 @@ class ImportService
                 $columnIndex = $headers[$originalDataToCheck['value']];
                 $message = "La valeur renseignée pour le champ $fieldName dans la colonne $columnIndex ne peut être vide.";
                 $this->throwError($message);
-            } else if (!is_null($originalDataToCheck['value']) && !empty($row[$originalDataToCheck['value']])) {
+            } else if(isset($row[$originalDataToCheck['value']]) && strlen($row[$originalDataToCheck['value']])) {
                 $data[$column] = $row[$originalDataToCheck['value']];
             }
         }
@@ -873,6 +873,7 @@ class ImportService
     private function importReferenceEntity(array $data,
                                            array $colChampsLibres,
                                            array $row,
+                                           array $dataToCheck,
                                            array &$stats)
     {
         $isNewEntity = false;
@@ -940,19 +941,29 @@ class ImportService
             }
             $refArt->setPrixUnitaire($data['prixUnitaire']);
         }
-        if (isset($data['limitSecurity'])) {
-            if (!is_numeric($data['limitSecurity'])) {
+
+        if(isset($dataToCheck["limitSecurity"]) && $dataToCheck["limitSecurity"]["value"] !== null) {
+            $limitSecurity = $data['limitSecurity'] ?? null;
+            if($limitSecurity === "") {
+                $refArt->setLimitSecurity(null);
+            } else if($limitSecurity !== null && !is_numeric($limitSecurity)) {
                 $message = 'Le seuil de sécurité doit être un nombre.';
                 $this->throwError($message);
+            } else {
+                $refArt->setLimitSecurity($limitSecurity);
             }
-            $refArt->setLimitSecurity($data['limitSecurity']);
         }
-        if (isset($data['limitWarning'])) {
-            if (!is_numeric($data['limitWarning'])) {
+
+        if(isset($dataToCheck["limitWarning"]) && $dataToCheck["limitWarning"]["value"] !== null) {
+            $limitWarning = $data['limitWarning'] ?? null;
+            if($limitWarning === "") {
+                $refArt->setLimitWarning(null);
+            } else if($limitWarning !== null && !is_numeric($limitWarning)) {
                 $message = 'Le seuil d\'alerte doit être un nombre. ';
                 $this->throwError($message);
+            } else {
+                $refArt->setLimitWarning($limitWarning);
             }
-            $refArt->setLimitWarning($data['limitWarning']);
         }
 
         if ($isNewEntity) {
