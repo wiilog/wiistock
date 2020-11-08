@@ -1292,12 +1292,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param TransferOrderService $transferOrderService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
      */
-    public
-    function finishTransfers(Request $request,
-                             TransferOrderService $transferOrderService,
-                             EntityManagerInterface $entityManager): Response {
+    public function finishTransfers(Request $request,
+                                    TransferOrderService $transferOrderService,
+                                    EntityManagerInterface $entityManager): Response {
         $nomadUser = $this->getUser();
 
         $dataResponse = [];
