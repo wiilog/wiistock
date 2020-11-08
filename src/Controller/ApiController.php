@@ -60,6 +60,7 @@ use DateTimeZone;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Exception;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
@@ -926,7 +927,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @return JsonResponse
      * @throws NonUniqueResultException
      * @throws ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws OptimisticLockException
      */
     public function finishLivraison(Request $request,
                                     ExceptionLoggerService $exceptionLoggerService,

@@ -41,11 +41,11 @@ class ExceptionLoggerService {
             ];
         }
 
-        $ignored = FlattenException::createFromThrowable($throwable);
-        $exceptions = array_merge([$ignored], $ignored->getAllPrevious());
+        $throwable = FlattenException::createFromThrowable($throwable);
+        $exceptions = array_merge([$throwable], $throwable->getAllPrevious());
 
-        foreach ($exceptions as $ignored) {
-            $stacktrace = $ignored->getTrace();
+        foreach ($exceptions as $throwable) {
+            $stacktrace = $throwable->getTrace();
             foreach ($stacktrace as &$trace) {
                 $file = file($trace["file"]);
                 array_unshift($file, "");
@@ -63,11 +63,11 @@ class ExceptionLoggerService {
             $class = new ReflectionClass(FlattenException::class);
             $property = $class->getProperty("trace");
             $property->setAccessible(true);
-            $property->setValue($ignored, $stacktrace);
+            $property->setValue($throwable, $stacktrace);
 
             $property = $class->getProperty("previous");
             $property->setAccessible(true);
-            $property->setValue($ignored, null);
+            $property->setValue($throwable, null);
         }
 
         try {
@@ -93,7 +93,8 @@ class ExceptionLoggerService {
                     ],
                 ]);
             }
-        } catch (Throwable $ignored) {
+        }
+        catch (Throwable $ignored) {
 
         }
     }
