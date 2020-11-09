@@ -24,6 +24,7 @@ use App\Service\UserService;
 
 use DateTime;
 use DateTimeZone;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
@@ -59,7 +60,6 @@ class OrdreCollecteController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
         $collecteRepository = $entityManager->getRepository(Collecte::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $demandeCollecte = $demandId ? $collecteRepository->find($demandId) : null;
@@ -131,6 +131,7 @@ class OrdreCollecteController extends AbstractController
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \Exception
      */
     public function finish(Request $request,
                            OrdreCollecte $ordreCollecte,
@@ -248,6 +249,7 @@ class OrdreCollecteController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
+     * @throws \Exception
      */
     public function new(Collecte $demandeCollecte,
                         UserService $userService,
@@ -279,7 +281,19 @@ class OrdreCollecteController extends AbstractController
             $entityManager->persist($ordreCollecteReference);
             $ordreCollecte->addOrdreCollecteReference($ordreCollecteReference);
         }
-        $entityManager->persist($ordreCollecte);
+
+        try {
+            $entityManager->persist($ordreCollecte);
+            $entityManager->flush();
+        }
+
+        /** @noinspection PhpRedundantCatchClauseInspection */
+        catch (UniqueConstraintViolationException $e) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Un autre ordre de collecte est en cours de création, veuillez réessayer.'
+            ]);
+        }
 
         // on modifie statut + date validation de la demande
         $demandeCollecte
@@ -508,7 +522,6 @@ class OrdreCollecteController extends AbstractController
      * @return Response
      *
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */

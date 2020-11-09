@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
-use App\Entity\Demande;
 use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
@@ -14,9 +13,7 @@ use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use App\Entity\FieldsParam;
 use App\Entity\CategorieCL;
-use App\Entity\Livraison;
 use App\Entity\MouvementStock;
-use App\Entity\Preparation;
 use App\Entity\TrackingMovement;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Attachment;
@@ -59,12 +56,14 @@ use App\Service\UserService;
 use App\Service\FreeFieldService;
 use DateTime;
 use DateTimeZone;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
 use Doctrine\ORM\NoResultException;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
+use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -158,23 +157,40 @@ class ReceptionController extends AbstractController {
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $champLibreService
+     * @param ReceptionService $receptionService
+     * @param AttachmentService $attachmentService
      * @param Request $request
+     * @param TranslatorInterface $translator
      * @return Response
      * @throws NonUniqueResultException
-     * @throws Exception
+     * @throws ReflectionException
      */
     public function new(EntityManagerInterface $entityManager,
                         FreeFieldService $champLibreService,
                         ReceptionService $receptionService,
                         AttachmentService $attachmentService,
-                        Request $request): Response {
+                        Request $request,
+                        TranslatorInterface $translator): Response {
         if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
             return $this->redirectToRoute('access_denied');
         }
 
         if ($request->isXmlHttpRequest() && $data = $request->request->all()) {
 
-            $reception = $receptionService->createAndPersistReception($entityManager, $this->getUser(), $data);
+            try {
+                // persist and flush in function below
+                /** @var Utilisateur $currentUser */
+                $currentUser = $this->getUser();
+                $reception = $receptionService->createAndPersistReception($entityManager, $currentUser, $data);
+            }
+
+            /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => $translator->trans('réception.Une autre réception est en cours de création, veuillez réessayer').'.'
+                ]);
+            }
 
             $entityManager->flush();
 
@@ -201,7 +217,8 @@ class ReceptionController extends AbstractController {
      * @param AttachmentService $attachmentService
      * @param Request $request
      * @return Response
-     * @throws \ReflectionException
+     * @throws ReflectionException
+     * @throws Exception
      */
     public function edit(EntityManagerInterface $entityManager,
                          FreeFieldService $champLibreService,
@@ -1200,6 +1217,7 @@ class ReceptionController extends AbstractController {
      * @param ArticleDataService $articleDataService
      * @param Request $request
      * @param UniqueNumberService $uniqueNumberService
+     * @param TranslatorInterface $translator
      * @return Response
      * @throws NonUniqueResultException
      * @throws Exception
@@ -1208,7 +1226,8 @@ class ReceptionController extends AbstractController {
                               LitigeService $litigeService,
                               ArticleDataService $articleDataService,
                               Request $request,
-                              UniqueNumberService $uniqueNumberService): Response
+                              UniqueNumberService $uniqueNumberService,
+                              TranslatorInterface $translator): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::QUALI, Action::CREATE)) {
@@ -1268,8 +1287,19 @@ class ReceptionController extends AbstractController {
                 $entityManager->persist($histo);
             }
 
-            $entityManager->persist($litige);
-            $entityManager->flush();
+            try {
+                // persist and flush in function below
+                $entityManager->persist($litige);
+                $entityManager->flush();
+            }
+
+            /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => $translator->trans('réception.Un autre litige de réception est en cours de création, veuillez réessayer').'.'
+                ]);
+            }
 
             $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
@@ -1568,7 +1598,6 @@ class ReceptionController extends AbstractController {
      * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -1624,7 +1653,6 @@ class ReceptionController extends AbstractController {
      * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -1836,6 +1864,7 @@ class ReceptionController extends AbstractController {
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function newWithPacking(Request $request,
                                    TransferRequestService $transferRequestService,
@@ -1940,9 +1969,20 @@ class ReceptionController extends AbstractController {
                 $origin = $emplacementRepository->find($data['origin']);
                 $destination = $emplacementRepository->find($data['storage']);
 
-                /** @var Utilisateur $requester */
-                $requester = $this->getUser();
-                $request = $transferRequestService->createTransferRequest($entityManager, $toTreatRequest, $origin, $destination, $requester);
+                try {
+                    /** @var Utilisateur $requester */
+                    $requester = $this->getUser();
+                    $request = $transferRequestService->createTransferRequest($entityManager, $toTreatRequest, $origin, $destination, $requester);
+                }
+
+                /** @noinspection PhpRedundantCatchClauseInspection */
+                catch (UniqueConstraintViolationException $e) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'Une autre demande de transfert est en cours de création, veuillez réessayer.'
+                    ]);
+                }
+
                 $request
                     ->setReception($reception)
                     ->setValidationDate($now);
@@ -2172,7 +2212,6 @@ class ReceptionController extends AbstractController {
      * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */

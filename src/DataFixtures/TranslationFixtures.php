@@ -61,6 +61,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'congelé' => 'congelé',
                 'Acheminer' => 'Acheminer',
                 'Numéro de commande' => 'Numéro de commande',
+                "Un autre arrivage est en cours de création, veuillez réessayer" => "Un autre arrivage est en cours de création, veuillez réessayer",
+                "Un autre litige d'arrivage est en cours de création, veuillez réessayer" => "Un autre litige d'arrivage est en cours de création, veuillez réessayer"
             ],
             'acheminement' => [
                 'Numéro de commande' => 'Numéro de commande',
@@ -100,7 +102,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Le bon de livraison n'existe pas pour cet acheminement" => "Le bon de livraison n'existe pas pour cet acheminement",
                 "Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée" => "Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée",
                 'Business unit' => 'Business unit',
-                'Numéro de projet' => 'Numéro de projet'
+                'Numéro de projet' => 'Numéro de projet',
+                "Une autre demande d'acheminement est en cours de création, veuillez réessayer" => "Une autre demande d'acheminement est en cours de création, veuillez réessayer"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',
@@ -119,7 +122,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "d'articles" => "d'articles",
                 'Cette réception est urgente' => 'Cette réception est urgente',
                 'Une ou plusieurs références liées à cette réception sont urgentes' => 'Une ou plusieurs références liées à cette réception sont urgentes',
-                'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes' => 'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes'
+                'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes' => 'Cette réception ainsi qu\'une ou plusieurs références liées sont urgentes',
+                "Une autre réception est en cours de création, veuillez réessayer" => "Une autre réception est en cours de création, veuillez réessayer",
+                "Un autre litige de réception est en cours de création, veuillez réessayer" => "Un autre litige de réception est en cours de création, veuillez réessayer"
             ],
             'urgences' => [
                 'urgence' => 'urgence',
@@ -184,6 +189,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Une demande de service vous concernant a changé de statut" => "Une demande de service vous concernant a changé de statut",
                 "Votre demande de service a été créée" => "Votre demande de service a été créée",
                 "Création d'une demande de service" => "Création d'une demande de service",
+                "Une autre demande de service est en cours de création, veuillez réessayer" => "Une autre demande de service est en cours de création, veuillez réessayer"
             ]
         ];
 

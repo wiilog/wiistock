@@ -34,6 +34,7 @@ use App\Service\DispatchService;
 
 use DateTime;
 use DateTimeZone;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -370,8 +371,18 @@ class DispatchController extends AbstractController {
                 }
             }
 
-            $entityManager->persist($dispatch);
-            $entityManager->flush();
+            try {
+                $entityManager->persist($dispatch);
+                $entityManager->flush();
+            }
+
+            /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => $translator->trans('acheminement.Une autre demande d\'acheminement est en cours de création, veuillez réessayer').'.'
+                ]);
+            }
 
             if (!empty($receiver)) {
                 $dispatchService->sendEmailsAccordingToStatus($dispatch, false);

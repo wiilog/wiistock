@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
@@ -19,8 +18,6 @@ use App\Entity\Article;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Exceptions\ArticleNotAvailableException;
-use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\ReceptionRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Service\ArticleDataService;
@@ -31,7 +28,7 @@ use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
 use App\Service\FreeFieldService;
 use DateTime;
-use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -262,8 +259,19 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $demande = $this->demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
-            $entityManager->persist($demande);
-            $entityManager->flush();
+
+            try {
+                $entityManager->persist($demande);
+                $entityManager->flush();
+            }
+
+                /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
+                ]);
+            }
             return new JsonResponse([
                 'redirect' => $this->generateUrl('demande_show', ['id' => $demande->getId()]),
             ]);

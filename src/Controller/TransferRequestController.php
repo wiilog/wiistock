@@ -14,12 +14,12 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Helper\Stream;
 use App\Service\TransferRequestService;
-use App\Service\UniqueNumberService;
 use DateTime;
 use App\Service\CSVExportService;
 use App\Service\UserService;
 
 use DateTimeZone;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -88,6 +88,7 @@ class TransferRequestController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function new(Request $request,
                         TransferRequestService $transferRequestService,
@@ -110,8 +111,18 @@ class TransferRequestController extends AbstractController {
 
             $transfer = $transferRequestService->createTransferRequest($entityManager, $draft, $origin, $destination, $currentUser, $data['comment']);
 
-            $entityManager->persist($transfer);
-            $entityManager->flush();
+            try {
+                $entityManager->persist($transfer);
+                $entityManager->flush();
+            }
+
+            /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Une autre demande de transfert est en cours de création, veuillez réessayer.'
+                ]);
+            }
 
             return new JsonResponse([
                 'redirect' => $this->generateUrl('transfer_request_show', ['id' => $transfer->getId()]),
