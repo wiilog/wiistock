@@ -530,7 +530,7 @@ class ApiController extends AbstractFOSRestController {
                         $totalQuantitiesWithRef = [];
                         $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
                         $entityManager->persist($livraison);
-                        $articlesToKeep = [];
+
                         foreach ($mouvementsNomade as $mouvementNomade) {
                             if (!$mouvementNomade['is_ref'] && $mouvementNomade['selected_by_article']) {
                                 /** @var Article $article */
@@ -542,13 +542,7 @@ class ApiController extends AbstractFOSRestController {
                                 $totalQuantitiesWithRef[$refArticle->getReference()] += $mouvementNomade['quantity'];
                             }
                             $preparationsManager->treatMouvementQuantities($mouvementNomade, $preparation);
-                            // on crée les mouvements de livraison
-                            if (empty($articlesToKeep)) {
-                                $articlesToKeep = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser, $entityManager);
-                            }
-                            else {
-                                $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser, $entityManager);
-                            }
+
                             $emplacement = $emplacementRepository->findOneByLabel($mouvementNomade['location']);
                             $preparationsManager->createMouvementLivraison(
                                 $mouvementNomade['quantity'],
@@ -561,6 +555,9 @@ class ApiController extends AbstractFOSRestController {
                                 $emplacement
                             );
                         }
+
+                        $articlesToKeep = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser, $entityManager);
+
                         foreach ($totalQuantitiesWithRef as $ref => $quantity) {
                             $refArticle = $referenceArticleRepository->findOneByReference($ref);
                             $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemande());

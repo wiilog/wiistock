@@ -129,7 +129,9 @@ class PreparationsManagerService
                 $article->setEmplacement($emplacement);
             }
         }
+
         $isPreparationComplete = $this->isPreparationComplete($preparation);
+
         $prepaStatusLabel = $isPreparationComplete ? Preparation::STATUT_PREPARE : Preparation::STATUT_INCOMPLETE;
         $statutPreparePreparation = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, $prepaStatusLabel);
         $demandeStatusLabel = $isPreparationComplete ? Demande::STATUT_PREPARE : Demande::STATUT_INCOMPLETE;
@@ -165,6 +167,7 @@ class PreparationsManagerService
 
         if ($complete) {
             $lignesArticle = $preparation->getLigneArticlePreparations();
+
             foreach ($lignesArticle as $ligneArticle) {
                 if ($ligneArticle->getQuantitePrelevee() < $ligneArticle->getQuantite()) {
                     $complete = false;
@@ -411,12 +414,15 @@ class PreparationsManagerService
      * @return array
      * @throws NegativeQuantityException
      */
-    public function createMouvementsPrepaAndSplit(Preparation $preparation, Utilisateur $user, EntityManagerInterface $entityManager): array
+    public function createMouvementsPrepaAndSplit(Preparation $preparation,
+                                                  Utilisateur $user,
+                                                  EntityManagerInterface $entityManager): array
     {
         $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $articlesSplittedToKeep = [];
         // modification des articles de la demande
+
         $articles = $preparation->getArticles();
         foreach ($articles as $article) {
             $mouvementAlreadySaved = $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId());
@@ -429,6 +435,7 @@ class PreparationsManagerService
                         $selected ? Article::STATUT_EN_TRANSIT : Article::STATUT_ACTIF
                     )
                 );
+
                 if ($article->getQuantite() >= $quantitePrelevee) {
                     // scission des articles dont la quantité prélevée n'est pas totale
                     if ($article->getQuantite() !== $quantitePrelevee) {

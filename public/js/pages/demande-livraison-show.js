@@ -1,3 +1,5 @@
+let tableArticle;
+
 $(function () {
     $('.select2').select2();
     initDateTimePicker();
@@ -5,8 +7,8 @@ $(function () {
     Select2.articleReference($('.ajax-autocomplete'));
     Select2.user('Utilisateurs');
 
-    let table = initPageDatatable();
-    initPageModals(table);
+    tableArticle = initPageDatatable();
+    initPageModals(tableArticle);
 });
 
 function getCompareStock(submit) {
@@ -97,7 +99,7 @@ function validateLivraison(livraisonId, $button) {
     ));
 }
 
-function ajaxEditArticle (select) {
+function ajaxEditArticle(select) {
     let path = Routing.generate('article_show', true);
     let params = {id: select.val(), isADemand: 1};
 
