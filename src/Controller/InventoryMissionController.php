@@ -61,18 +61,18 @@ class InventoryMissionController extends AbstractController
      */
     private $invMissionService;
 
-	/**
-	 * @var InventoryService
-	 */
+    /**
+     * @var InventoryService
+     */
     private $inventoryService;
 
     public function __construct(
-    	InventoryMissionRepository $inventoryMissionRepository,
-		UserService $userService,
-		InventoryEntryRepository $inventoryEntryRepository,
-		InvMissionService $invMissionService,
-		InventoryService $inventoryService
-	)
+        InventoryMissionRepository $inventoryMissionRepository,
+        UserService $userService,
+        InventoryEntryRepository $inventoryEntryRepository,
+        InvMissionService $invMissionService,
+        InventoryService $inventoryService
+    )
     {
         $this->userService = $userService;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
@@ -153,14 +153,14 @@ class InventoryMissionController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-	/**
-	 * @Route("/verification", name="mission_check_delete", options={"expose"=true})
-	 * @param Request $request
-	 * @param InventoryEntryRepository $entryRepository
-	 * @return Response
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @Route("/verification", name="mission_check_delete", options={"expose"=true})
+     * @param Request $request
+     * @param InventoryEntryRepository $entryRepository
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function checkMissionCanBeDeleted(Request $request, InventoryEntryRepository $entryRepository): Response
     {
         if ($request->isXmlHttpRequest() && $missionId = json_decode($request->getContent(), true)) {
@@ -211,13 +211,13 @@ class InventoryMissionController extends AbstractController
      */
     public function show(InventoryMission $mission)
     {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
+            return $this->redirectToRoute('access_denied');
+        }
 
-            return $this->render('inventaire/show.html.twig', [
-                'missionId' => $mission->getId()
-            ]);
+        return $this->render('inventaire/show.html.twig', [
+            'missionId' => $mission->getId()
+        ]);
     }
 
     /**
@@ -269,60 +269,43 @@ class InventoryMissionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $refArtRepository = $entityManager->getRepository(ReferenceArticle::class);
             $articleRepository = $entityManager->getRepository(Article::class);
 
             $mission = $this->inventoryMissionRepository->find($data['missionId']);
 
-            foreach ($data['articles'] as $articleId) {
-                $article = $articleRepository->find($articleId);
+            Stream::explode([",", " ", ";", "\t"], $data['articles'])
+                ->filterMap(function($barcode) use ($articleRepository, $refArtRepository) {
+                    $barcode = trim($barcode);
 
-				if ($article->getArticleFournisseur()->getReferenceArticle()->getStatut()->getNom() != ReferenceArticle::STATUT_ACTIF) {
-				    return new JsonResponse([
-				       'success' => false,
-                        'msg' => 'La référence liée à cet article est inactive, vous ne pouvez pas l\'ajouter.'
-                    ]);
-                }
+                    if($article = $articleRepository->findOneBy(["barCode" => $barcode])) {
+                        return $article;
+                    } else if($reference = $refArtRepository->findOneBy(["barCode" => $barcode])) {
+                        return $reference;
+                    } else {
+                        return null;
+                    }
+                })
+                ->each(function($refOrArt) use ($mission) {
+                    $checkForArt = $refOrArt instanceof Article
+                        && $refOrArt->getArticleFournisseur()->getReferenceArticle()->getStatut()->getNom() === ReferenceArticle::STATUT_ACTIF
+                        && !$this->inventoryService->isInMissionInSamePeriod($refOrArt, $mission, false);
 
-				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($article, $mission, false);
-				if ($alreadyInMission) {
-				    return new JsonResponse([
-				        'success' => false,
-                        'msg' => 'Cette référence est déjà présente dans une mission sur la même période. Vous ne pouvez pas l\'ajouter.'
-                    ]);
-                }
+                    $checkForRef = $refOrArt instanceof ReferenceArticle
+                        && $refOrArt->getStatut()->getNom() === ReferenceArticle::STATUT_ACTIF
+                        && !$this->inventoryService->isInMissionInSamePeriod($refOrArt, $mission, true);
 
-                $article->addInventoryMission($mission);
-                $entityManager->persist($mission);
-                $entityManager->flush();
-            }
+                    if ($checkForArt || $checkForRef) {
+                        $refOrArt->addInventoryMission($mission);
+                    }
+                });
 
-            foreach ($data['refArticles'] as $refArticleId) {
-                $refArticle = $referenceArticleRepository->find($refArticleId);
-                if ($refArticle->getStatut()->getNom() != ReferenceArticle::STATUT_ACTIF) {
-                    return new JsonResponse([
-                        'success' => false,
-                        'msg' => 'La référence est inactive, vous ne pouvez pas l\'ajouter.'
-                    ]);
-                }
-				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($refArticle, $mission, true);
-				if ($alreadyInMission) {
-                    return new JsonResponse([
-                        'success' => false,
-                        'msg' => 'Cette référence est déjà présente dans une mission sur la même période. Vous ne pouvez pas l\'ajouter.'
-                    ]);
-                }
-				$refArticle->addInventoryMission($mission);
-                $entityManager->persist($mission);
-                $entityManager->flush();
-            }
+            $entityManager->flush();
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'La référence a bien été ajoutée à la mission d\'inventaire.'
             ]);
-        }
-        else {
+        } else {
             throw new BadRequestHttpException();
         }
     }
@@ -335,10 +318,10 @@ class InventoryMissionController extends AbstractController
     public function getCSVForInventoryMission(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-        	$mission = $this->inventoryMissionRepository->find($data['param']);
+            $mission = $this->inventoryMissionRepository->find($data['param']);
 
-        	/** @var InventoryEntry[] $inventoryEntries */
-        	$inventoryEntries = Stream::from($mission->getEntries()->toArray())
+            /** @var InventoryEntry[] $inventoryEntries */
+            $inventoryEntries = Stream::from($mission->getEntries()->toArray())
                 ->reduce(function (array $carry, InventoryEntry $entry) {
                     $article = $entry->getArticle();
                     $refArticle = $entry->getRefArticle();

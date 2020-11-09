@@ -44,7 +44,9 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
             $exploded = explode($delimiters, $value);
         }
 
-        return new Stream($exploded);
+        return new Stream(array_filter($exploded, function($item) {
+            return $item !== "";
+        }));
     }
 
     /**
@@ -98,10 +100,6 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         return $this;
     }
 
-    /**
-     * @param callable $callable
-     * @return Stream
-     */
     public function sort(callable $callable): Stream {
         if(isset($this->elements)) {
             usort($this->elements, $callable);
@@ -119,10 +117,6 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         }
     }
 
-    /**
-     * @param callable $callable
-     * @return Stream
-     */
     public function map(callable $callable): Stream {
         if(isset($this->elements)) {
             $this->elements = array_map($callable, $this->elements);
@@ -130,6 +124,14 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
             throw new Error(self::INVALID_STREAM);
         }
         return $this;
+    }
+
+    public function filterMap(callable $callable): Stream {
+        return $this
+            ->map($callable)
+            ->filter(function($element) {
+                return $element !== null;
+            });
     }
 
     public function keymap(Closure $closure): self {
