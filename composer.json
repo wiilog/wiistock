@@ -9,6 +9,7 @@
         "composer/package-versions-deprecated": "^1.11",
         "doctrine/annotations": "^1.6",
         "doctrine/doctrine-bundle": "^2.1",
+        "doctrine/doctrine-fixtures-bundle": "^3.3",
         "doctrine/doctrine-migrations-bundle": "^3.0",
         "doctrine/orm": "^2.7",
         "friendsofsymfony/jsrouting-bundle": "^2.3",
@@ -21,6 +22,7 @@
         "sensiolabs/security-checker": "5.0",
         "symfony/asset": "^4.4",
         "symfony/console": "^4.4",
+        "symfony/css-selector": "^4.4",
         "symfony/dom-crawler": "^4.4",
         "symfony/expression-language": "^4.4",
         "symfony/finder": "^4.4",
@@ -38,8 +40,7 @@
         "symfony/validator": "^4.4",
         "symfony/web-link": "^4.4",
         "symfony/webpack-encore-bundle": "^1.7",
-        "symfony/yaml": "^4.4",
-        "doctrine/doctrine-fixtures-bundle": "^3.3"
+        "symfony/yaml": "^4.4"
     },
     "require-dev": {
         "symfony/debug-pack": "*",
