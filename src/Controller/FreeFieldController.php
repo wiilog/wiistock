@@ -159,9 +159,12 @@ class FreeFieldController extends AbstractController {
             }
 
 			if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
-				$champLibre
-					->setElements(array_filter(explode(';', $data['elem'])))
-					->setDefaultValue(null);
+				$champLibre->setElements(array_filter(explode(';', $data['elem'])))
+                    ->setDefaultValue(null);
+
+				if($champLibre->getTypage() == FreeField::TYPE_LIST) {
+                    $champLibre->setDefaultValue($data['valeur']);
+                }
 			} else {
 				$champLibre
 					->setElements(null)
@@ -234,9 +237,12 @@ class FreeFieldController extends AbstractController {
 			->setTypage($data['typage']);
 
 		if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
-			$champLibre
-				->setElements(array_filter(explode(';', $data['elem'])))
-				->setDefaultValue(null);
+            $champLibre->setElements(array_filter(explode(';', $data['elem'])))
+                ->setDefaultValue(null);
+
+            if($champLibre->getTypage() == FreeField::TYPE_LIST) {
+                $champLibre->setDefaultValue($data['valeur']);
+            }
 		} else {
 			$champLibre
 				->setElements(null)

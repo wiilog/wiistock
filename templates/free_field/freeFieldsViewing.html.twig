@@ -41,12 +41,12 @@
                                        name="{{ freeField.id }}">
 
                             {% elseif  freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST') %}
-                                <select class="form-control data {{ needed ? 'needed' : '' }} w-100"
-                                        name="{{ freeField.id }}">
+                                <select class="form-control data needs-default {{ needed ? 'needed' : '' }} w-100"
+                                        name="{{ freeField.id }}" data-init="{{ freeField.defaultValue }}">
                                     <option value="">aucune selection...</option>
                                     {% for elem in freeField.elements %}
                                         {% set entityValue = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : '' %}
-                                        {% set selected = (elem == entityValue ? 'selected' : '') %}
+                                        {% set selected = elem == entityValue ? 'selected' %}
                                         <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
                                     {% endfor %}
                                 </select>
