@@ -447,7 +447,7 @@ function clearModalLigneReception(modal) {
     const $modal = $(modal);
 
     $modal
-        .find(".demande-form, .transfer-form")
+        .find(".transfer-form")
         .addClass("d-none");
 
     $modal
