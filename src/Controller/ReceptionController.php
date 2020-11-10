@@ -1770,22 +1770,6 @@ class ReceptionController extends AbstractController {
 
                             $rows[] = $row;
                         }
-
-                        if($reception['referenceArticleId']) {
-                            if (!isset($addedRefs[$reception['referenceArticleId']])) {
-                                $addedRefs[$reception['referenceArticleId']] = true;
-                                $row = $this->serializeReception($reception);
-
-                                $row[] = '';
-                                $row[] = $reception['referenceArticleReference'] ?: '';
-                                $row[] = $reception['referenceArticleLibelle'] ?: '';
-                                $row[] = $reception['referenceArticleQuantiteStock'] ?: '';
-                                $row[] = $reception['referenceArticleTypeLabel'] ?: '';
-                                $row[] = $reception['referenceArticleBarcode'] ?: '';
-
-                                $rows[] = $row;
-                            }
-                        }
                     } else {
                         $rows[] = $this->serializeReception($reception);
                     }
