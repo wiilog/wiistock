@@ -82,7 +82,7 @@
                                        class="form-control data needs-default {{ needed ? 'needed' : '' }}"
                                        name="{{ freeField.id }}"
                                        data-init="{{ entityValue }}"
-                                       value="{{ entityValue }}">
+                                       value="{{ entityValue ? (entityValue | date('Y-m-d')) : '' }}">
                                 <button class="btn btn-light" type="button" title="Vider le champ {{ freeField.label }}"
                                         onclick="$(this).siblings('[name={{ freeField.id }}]').val('')">
                                     <i class="fas fa-times"></i>
