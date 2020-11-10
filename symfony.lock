@@ -601,9 +601,6 @@
     "twig/twig": {
         "version": "v2.12.5"
     },
-    "webimpress/safe-writer": {
-        "version": "2.1.0"
-    },
     "webmozart/assert": {
         "version": "1.7.0"
     },
