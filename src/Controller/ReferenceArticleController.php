@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
@@ -27,6 +28,7 @@ use App\Service\FreeFieldService;
 use App\Service\ArticleFournisseurService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Internal\Hydration\IterableResult;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -921,7 +923,9 @@ class ReferenceArticleController extends AbstractController
             'date dernier inventaire',
             'synchronisation nomade',
             'gestion de stock',
-            'gestionnaire(s)'
+            'gestionnaire(s)',
+            'Labels Fournisseurs',
+            'Codes Fournisseurs'
         ], $ffConfig['freeFieldsHeader']);
 
         $today = new DateTime();
@@ -933,9 +937,13 @@ class ReferenceArticleController extends AbstractController
                 ->getRepository(Utilisateur::class)
                 ->getUsernameManagersGroupByReference();
 
+            $suppliersByReference = $manager
+                ->getRepository(Fournisseur::class)
+                ->getCodesAndLabelsGroupedByReference();
+
             $references = $raRepository->iterateAll();
             foreach($references as $reference) {
-                $this->putReferenceLine($output, $csvService, $ffService, $ffConfig, $managersByReference, $reference);
+                $this->putReferenceLine($output, $csvService, $ffService, $ffConfig, $managersByReference, $reference, $suppliersByReference);
             }
         }, "export-references-$today.csv", $header);
     }
@@ -945,9 +953,9 @@ class ReferenceArticleController extends AbstractController
                                       FreeFieldService $ffService,
                                       array $ffConfig,
                                       array $managersByReference,
-                                      array $reference) {
+                                      array $reference,
+                                      array $suppliersByReference) {
         $id = (int)$reference['id'];
-
         $line = [
             $reference['reference'],
             $reference['libelle'],
@@ -965,7 +973,9 @@ class ReferenceArticleController extends AbstractController
             $reference['dateLastInventory'] ? $reference['dateLastInventory']->format("d/m/Y H:i:s") : "",
             $reference['needsMobileSync'],
             $reference['stockManagement'],
-            $managersByReference[$id] ?? ""
+            $managersByReference[$id] ?? "",
+            $suppliersByReference[$id]['supplierLabels'] ?? "",
+            $suppliersByReference[$id]['supplierCodes'] ?? "",
         ];
 
         foreach($ffConfig['freeFieldIds'] as $freeFieldId) {
