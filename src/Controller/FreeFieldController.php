@@ -159,9 +159,20 @@ class FreeFieldController extends AbstractController {
             }
 
 			if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
+			    $elements = array_filter(explode(';', $data['elem']));
 				$champLibre
-					->setElements(array_filter(explode(';', $data['elem'])))
-					->setDefaultValue(null);
+                    ->setElements($elements)
+                    ->setDefaultValue(null);
+
+				if($champLibre->getTypage() == FreeField::TYPE_LIST) {
+				    if (!in_array($data['valeur'], $elements)) {
+                        return new JsonResponse([
+                            'success' => false,
+                            'msg' => 'La valeur par défaut saisie doit être présente dans les éléments saisis.'
+                        ]);
+                    }
+                    $champLibre->setDefaultValue($data['valeur']);
+                }
 			} else {
 				$champLibre
 					->setElements(null)
@@ -234,9 +245,20 @@ class FreeFieldController extends AbstractController {
 			->setTypage($data['typage']);
 
 		if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
-			$champLibre
-				->setElements(array_filter(explode(';', $data['elem'])))
-				->setDefaultValue(null);
+		    $elements = array_filter(explode(';', $data['elem']));
+            $champLibre
+                ->setElements($elements)
+                ->setDefaultValue(null);
+
+            if($champLibre->getTypage() == FreeField::TYPE_LIST) {
+                if (!in_array($data['valeur'], $elements)) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'La valeur par défaut saisie doit être présente dans les éléments saisis.'
+                    ]);
+                }
+                $champLibre->setDefaultValue($data['valeur']);
+            }
 		} else {
 			$champLibre
 				->setElements(null)
