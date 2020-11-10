@@ -10,8 +10,10 @@ use Doctrine\ORM\Mapping as ORM;
 class FiltreRef
 {
     const CHAMP_FIXE_REF_ART_FOURN = 'référence article fournisseur';
-    const CHAMP_FIXE_STATUT = 'Statut';
+    const CHAMP_FIXE_STATUT = 'status';
     const CHAMP_FIXE_MANAGERS = 'Gestionnaire(s)';
+    const CHAMP_FIXE_PROVIDER_CODE = 'Code fournisseur';
+    const CHAMP_FIXE_PROVIDER_LABEL = 'Nom fournisseur';
 
     /**
      * @ORM\Id()

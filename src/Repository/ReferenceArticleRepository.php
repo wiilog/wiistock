@@ -10,6 +10,7 @@ use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
+use App\Helper\QueryCounter;
 use App\Helper\Stream;
 use App\Service\VisibleColumnService;
 use DateTime;
@@ -39,7 +40,6 @@ class ReferenceArticleRepository extends EntityRepository {
         'Quantité disponible' => 'quantiteDisponible',
         'Quantité stock' => 'quantiteStock',
         'Emplacement' => 'Emplacement',
-        'Actions' => 'Actions',
         'Fournisseur' => 'Fournisseur',
         'Statut' => 'status',
         'Code barre' => 'barCode',
@@ -243,7 +243,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->execute();
     }
 
-    public function findByFiltersAndParams($filters, $params, $user, $freeFields)
+    public function findByFiltersAndParams($filters, $params, $user)
     {
         $needCLOrder = null;
         $em = $this->getEntityManager();
@@ -275,7 +275,6 @@ class ReferenceArticleRepository extends EntityRepository {
 
         foreach ($filters as $filter) {
             $index++;
-
             if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_STATUT) {
                 if ($filter['value'] === ReferenceArticle::STATUT_ACTIF) {
                     $qb->leftJoin('ra.statut', 'sra');
@@ -285,6 +284,18 @@ class ReferenceArticleRepository extends EntityRepository {
                 $qb->leftJoin('ra.managers', 'managers')
                     ->andWhere('managers.username LIKE :username')
                     ->setParameter('username', '%' . $filter['value'] . '%');
+            } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_PROVIDER_CODE) {
+                $qb
+                    ->leftJoin('ra.articlesFournisseur', 'filter_af_provider_code')
+                    ->leftJoin('filter_af_provider_code.fournisseur', 'filter_provider_code')
+                    ->andWhere('filter_provider_code.codeReference LIKE :providerCode')
+                    ->setParameter('providerCode', '%' . $filter['value'] . '%');
+            } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_PROVIDER_LABEL) {
+                $qb
+                    ->leftJoin('ra.articlesFournisseur', 'filter_af_provider_label')
+                    ->leftJoin('filter_af_provider_label.fournisseur', 'filter_provider_label')
+                    ->andWhere('filter_provider_label.nom LIKE :providerLabel')
+                    ->setParameter('providerLabel', '%' . $filter['value'] . '%');
             } else {
                 // cas particulier champ référence article fournisseur
                 if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_REF_ART_FOURN) {
@@ -408,7 +419,7 @@ class ReferenceArticleRepository extends EntityRepository {
 
                     foreach ($user->getRecherche() as $key => $searchField) {
                         switch ($searchField) {
-                            case "supplier":
+                            case "supplierLabel":
                                 $subqb = $em->createQueryBuilder()
                                     ->select('ra.id')
                                     ->from('App\Entity\ReferenceArticle', 'ra')
@@ -422,7 +433,7 @@ class ReferenceArticleRepository extends EntityRepository {
                                 }
                                 break;
 
-                            case "supplierReference":
+                            case "supplierCode":
                                 $subqb = $em->createQueryBuilder()
                                     ->select('ra.id')
                                     ->from('App\Entity\ReferenceArticle', 'ra')
@@ -449,10 +460,11 @@ class ReferenceArticleRepository extends EntityRepository {
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
 
-                                if(is_numeric($field)) {
-                                    $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"$field\"') IS NOT NULL";
+                                $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
+                                if(is_numeric($freeFieldId)) {
+                                    $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                     $qb->setParameter("search", $search);
-                                } else {
+                                } else if (property_exists(ReferenceArticle::class, $field)) {
                                     $query[] = "ra.$field LIKE :search";
                                     $qb->setParameter('search', $search);
                                 }
@@ -512,20 +524,16 @@ class ReferenceArticleRepository extends EntityRepository {
             }
         }
         // compte éléments filtrés
-        if (empty($filters) && empty($searchValue)) {
-            $qb->select('count(ra)');
-        } else {
-            $qb
-                ->select('count(distinct(ra))');
-        }
-        $countQuery = $qb->getQuery()->getSingleScalarResult();
+
+        $countQuery = QueryCounter::count($qb, "ra");
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
         $qb
-            ->select('ra');
+            ->select('ra')
+            ->distinct();
         return [
             'data' => $qb->getQuery()->getResult(),
             'count' => $countQuery
