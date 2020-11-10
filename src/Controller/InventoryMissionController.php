@@ -275,29 +275,29 @@ class InventoryMissionController extends AbstractController
             $mission = $this->inventoryMissionRepository->find($data['missionId']);
 
             Stream::explode([",", " ", ";", "\t"], $data['articles'])
-                ->filterMap(function($barcode) use ($articleRepository, $refArtRepository) {
+                ->filterMap(function($barcode) use ($articleRepository, $refArtRepository, $mission) {
                     $barcode = trim($barcode);
 
                     if($article = $articleRepository->findOneBy(["barCode" => $barcode])) {
-                        return $article;
+
+                        $checkForArt = $article instanceof Article
+                            && $article->getArticleFournisseur()->getReferenceArticle()->getStatut()->getNom() === ReferenceArticle::STATUT_ACTIF
+                            && !$this->inventoryService->isInMissionInSamePeriod($article, $mission, false);
+
+                        return $checkForArt ? $article : null;
                     } else if($reference = $refArtRepository->findOneBy(["barCode" => $barcode])) {
-                        return $reference;
+
+                        $checkForRef = $reference instanceof ReferenceArticle
+                            && $reference->getStatut()->getNom() === ReferenceArticle::STATUT_ACTIF
+                            && !$this->inventoryService->isInMissionInSamePeriod($reference, $mission, true);
+
+                        return $checkForRef ? $reference : null;
                     } else {
                         return null;
                     }
                 })
                 ->each(function($refOrArt) use ($mission) {
-                    $checkForArt = $refOrArt instanceof Article
-                        && $refOrArt->getArticleFournisseur()->getReferenceArticle()->getStatut()->getNom() === ReferenceArticle::STATUT_ACTIF
-                        && !$this->inventoryService->isInMissionInSamePeriod($refOrArt, $mission, false);
-
-                    $checkForRef = $refOrArt instanceof ReferenceArticle
-                        && $refOrArt->getStatut()->getNom() === ReferenceArticle::STATUT_ACTIF
-                        && !$this->inventoryService->isInMissionInSamePeriod($refOrArt, $mission, true);
-
-                    if ($checkForArt || $checkForRef) {
-                        $refOrArt->addInventoryMission($mission);
-                    }
+                    $refOrArt->addInventoryMission($mission);
                 });
 
             $entityManager->flush();
