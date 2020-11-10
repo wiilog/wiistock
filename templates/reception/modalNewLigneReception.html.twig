@@ -26,6 +26,7 @@
                         <div class="col-4 form-group">
                             <label for="destination">Destination*</label>
                             <select name="destination" class="data ajax-autocomplete-location w-100 needed" id="locationDemandeLivraison"
+                                {{ not createDL ? 'disabled' }}
                                     data-is-prefilled="{{ livraisonLocation is not empty }}">
                                 <option></option>
                             </select>
@@ -35,7 +36,7 @@
                         </div>
                         <div class="col-4 form-group">
                             <label for="demandeur">Demandeur*</label>
-                            <select class="select2-user data w-100 needed" name="demandeur" id="demandeurDL" onchange="demandeurChanged($(this))">
+                            <select class="select2-user data w-100 needed" {{ not createDL ? 'disabled' }} name="demandeur" id="demandeurDL" onchange="demandeurChanged($(this))">
                                 <option></option>
                             </select>
                         </div>
@@ -43,7 +44,7 @@
                                data-text="{{ needsCurrentUser ? app.user.username }}">
                         <div class="col-4 form-group">
                             <label for="type">Type*</label>
-                            <select class="select2-type data w-100 needed" name="type"
+                            <select class="select2-type data w-100 needed" name="type" {{ not createDL ? 'disabled' }}
                                     onchange="onRequestTypeChange($(this))">
                                 <option>&nbsp;</option>
                                 {% for type in typeChampsLibres %}
