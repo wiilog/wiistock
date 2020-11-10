@@ -44,7 +44,6 @@ function defaultValueForTypage($select) {
     let valueDefault = $modal.find('.valueDefault');
     let typage = $select.val();
     let inputDefaultBlock;
-    let name = 'valeur';
     let label = "Valeur par défaut&nbsp;";
     let typeInput = typage;
 
@@ -52,37 +51,52 @@ function defaultValueForTypage($select) {
     let existingValue = $select.data('value');
     let existingElem = $select.data('elem');
 
-    if (typage === 'booleen') {
-        inputDefaultBlock =
-            `<div class="wii-switch">
-                <input type="radio" name="valeur" value="1" content="Oui" ` + (existingValue === 1 ? "checked" : "") + `>
-                <input type="radio" name="valeur" value="0" content="Non" ` + (existingValue === 0 ? "checked" : "") + `>
-                <input type="radio" name="valeur" value="-1" content="Aucune" ` + (existingValue === "" ? "checked" : "") + `>
+    if (typage === 'list' || typage === 'list multiple') {
+        const elements = `
+            <div class="form-group">
+                <label>Éléments (séparés par ';')</label><br>
+                <input type="text" class="form-control cursor-default data" name="elem" value="` + (existingElem ? existingElem : '') + `">
             </div>`;
-    } else {
-        if (typage === 'list' || typage === 'list multiple') {
-            label = "Éléments (séparés par ';')";
-            name = 'elem';
-            existingValue = existingElem ? existingElem : '';
-        } else if (typage === 'datetime') {
-            typeInput = 'datetime-local';
-        } else if (typage === 'date') {
-            typeInput = 'date';
+
+        let value = ``;
+        if(typage === 'list') {
+            value = `
+                <div class="form-group">
+                    <label>Valeur par défaut</label><br>
+                    <input type="text" class="form-control cursor-default data" name="valeur" value="` + (existingValue ? existingValue : '') + `">
+                </div>`;
         }
 
-        inputDefaultBlock = `
-            <input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + (existingValue ? existingValue : '') + `">
+        valueDefault.html(elements + value);
+    } else {
+        if (typage === 'booleen') {
+            inputDefaultBlock =
+                `<div class="wii-switch">
+                    <input type="radio" name="valeur" value="1" content="Oui" ` + (existingValue === 1 ? "checked" : "") + `>
+                    <input type="radio" name="valeur" value="0" content="Non" ` + (existingValue === 0 ? "checked" : "") + `>
+                    <input type="radio" name="valeur" value="-1" content="Aucune" ` + (existingValue === "" ? "checked" : "") + `>
+                </div>`;
+        } else {
+            if (typage === 'datetime') {
+                typeInput = 'datetime-local';
+            } else if (typage === 'date') {
+                typeInput = 'date';
+            }
+
+            inputDefaultBlock = `
+                <input type="${typeInput}" class="form-control cursor-default data ${typeInput}" name="valeur" value="` + (existingValue ? existingValue : '') + `">
+            `;
+        }
+
+        let defaultBlock = `
+            <div class="form-group">
+                <label>${label}</label><br>
+                ${inputDefaultBlock}
+            </div>
         `;
+
+        valueDefault.html(defaultBlock);
     }
-
-    let defaultBlock = `
-        <div class="form-group">
-            <label>${label}</label><br>
-            ${inputDefaultBlock}
-        </div>
-    `;
-
-    valueDefault.html(defaultBlock);
 }
 
 function toggleCreationMandatory($switch) {
