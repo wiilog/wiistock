@@ -355,7 +355,16 @@ class Article extends FreeFieldEntity
 
     public function setDemande(?Demande $demande): self
     {
-        $this->demande = $demande;
+        if ($this->demande !== $demande) {
+            if (isset($this->demande)) {
+                $this->demande->removeArticle($this);
+            }
+            $this->demande = $demande;
+
+            if (isset($this->demande)) {
+                $this->demande->addArticle($this);
+            }
+        }
         return $this;
     }
 
