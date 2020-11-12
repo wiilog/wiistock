@@ -7,6 +7,7 @@ use App\Entity\Utilisateur;
 use DateTime;
 use ReflectionClass;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -19,14 +20,12 @@ class ExceptionLoggerService {
     private $security;
     private $client;
 
-    public function __construct(Security $security,
-                                HttpClientInterface $client) {
+    public function __construct(Security $security, HttpClientInterface $client) {
         $this->security = $security;
         $this->client = $client;
     }
 
-    public function sendLog(Throwable $throwable,
-                            Request $request) {
+    public function sendLog(Throwable $throwable, Request $request) {
         $env = $_SERVER['APP_ENV'];
         if ($env === 'dev') {
             return;
@@ -87,15 +86,34 @@ class ExceptionLoggerService {
                             "forbidden_phones" => $_SERVER["APP_FORBIDDEN_PHONES"] ?? null,
                         ],
                         "user" => $user,
-                        "request" => serialize($request),
+                        "request" => serialize($this->normalizeRequest($request)),
                         "exceptions" => serialize($exceptions),
                         "time" => (new DateTime())->format("d-m-Y H:i:s"),
                     ],
                 ]);
             }
-        }
-        catch (Throwable $ignored) {
+        } catch (Throwable $ignored) {
 
         }
     }
+
+    private function normalizeRequest(Request $request): Request {
+        $this->normalize($request->attributes);
+        $this->normalize($request->request);
+        $this->normalize($request->query);
+        $this->normalize($request->server);
+        $this->normalize($request->files);
+        $this->normalize($request->cookies);
+
+        return $request;
+    }
+
+    private function normalize(ParameterBag $bag) {
+        foreach($bag->all() as $key => $item) {
+            if(method_exists($item, "getId")) {
+                $bag->set($key, $item->getId());
+            }
+        }
+    }
+
 }
