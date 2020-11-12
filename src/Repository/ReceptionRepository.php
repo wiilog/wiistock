@@ -89,9 +89,7 @@ class ReceptionRepository extends ServiceEntityRepository
      * @param DateTime $dateMax
      * @return Reception[]|null
      */
-    public function getByDates(DateTime $dateMin,
-                               DateTime $dateMax)
-    {
+    public function getByDates(DateTime $dateMin, DateTime $dateMax) {
         $queryBuilder = $this->createQueryBuilder('reception')
             ->select('reception.id')
             ->addSelect('article.id AS articleId')
@@ -107,6 +105,7 @@ class ReceptionRepository extends ServiceEntityRepository
             ->addSelect('receptionReferenceArticle.quantiteAR AS receptionRefArticleQuantiteAR')
             ->addSelect('receptionReferenceArticle.quantite AS receptionRefArticleQuantite')
             ->addSelect('referenceArticle.reference AS referenceArticleReference')
+            ->addSelect('referenceArticle.typeQuantite AS referenceArticleTypeQuantite')
             ->addSelect('referenceArticle.libelle AS referenceArticleLibelle')
             ->addSelect('referenceArticle.quantiteStock AS referenceArticleQuantiteStock')
             ->addSelect('referenceArticleType.label AS referenceArticleTypeLabel')

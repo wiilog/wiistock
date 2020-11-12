@@ -29,38 +29,6 @@ use Doctrine\ORM\QueryBuilder;
  */
 class ReferenceArticleRepository extends EntityRepository {
 
-    private const FIELD_ENTITY_NAME = [
-        'Label' => 'libelle',
-        'Libellé' => 'libelle',
-        'Référence' => 'reference',
-        'limitWarning' => 'limitWarning',
-        'limitSecurity' => 'limitSecurity',
-        'Urgence' => 'isUrgent',
-        'Type' => 'Type',
-        'Quantité disponible' => 'quantiteDisponible',
-        'Quantité stock' => 'quantiteStock',
-        'Emplacement' => 'Emplacement',
-        'Fournisseur' => 'Fournisseur',
-        'Statut' => 'status',
-        'Code barre' => 'barCode',
-        'typeQuantite' => 'typeQuantite',
-        'Dernier inventaire' => 'dateLastInventory',
-        'Synchronisation nomade' => 'needsMobileSync',
-        'Prix unitaire' => 'prixUnitaire',
-        "warningThreshold" => "limitWarning",
-        "securityThreshold" => "limitSecurity",
-        "emergency" => "isUrgent",
-        "availableQuantity" => "quantiteDisponible",
-        "stockQuantity" => "quantiteStock",
-        "location" => "emplacement",
-        "quantityType" => "typeQuantite",
-        "lastInventory" => "dateLastInventory",
-        "mobileSync" => "needsMobileSync",
-        "supplier" => "fournisseur",
-        "unitPrice" => "prixUnitaire",
-        "comment" => "commentaire",
-    ];
-
     public function getIdAndLibelle() {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(

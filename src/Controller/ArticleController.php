@@ -807,7 +807,7 @@ class ArticleController extends AbstractController
         ];
 
         foreach ($ffConfig['freeFieldIds'] as $freeFieldId) {
-            $articleArray[] = $ffService->serializeValue([
+            $line[] = $ffService->serializeValue([
                 'typage' => $ffConfig['freeFieldsIdToTyping'][$freeFieldId],
                 'valeur' => $article['freeFields'][$freeFieldId] ?? ''
             ]);
