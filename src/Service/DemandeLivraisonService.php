@@ -312,6 +312,7 @@ class DemandeLivraisonService
             $demande->setReception($reception);
             $demande->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER));
             if (isset($data['needPrepa']) && $data['needPrepa']) {
+                $entityManager->persist($demande);
                 $this->validateDLAfterCheck($entityManager, $demande);
             }
         }
