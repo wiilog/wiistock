@@ -1,3 +1,4 @@
+const maxSizeFileAllowed = 10000000;
 let allowedLogoExtensions = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg'];
 let pathDays = Routing.generate('days_param_api', true);
 let disabledDates = [];
@@ -418,23 +419,27 @@ function updateImagePreview(preview, upload) {
     let $upload = $(upload)[0];
 
     $(upload).change(() => {
-        console.log('gdgd');
         if ($upload.files && $upload.files[0]) {
             let fileNameWithExtension = $upload.files[0].name.split('.');
             let extension = fileNameWithExtension[fileNameWithExtension.length - 1];
 
-            if (allowedLogoExtensions.indexOf(extension) !== -1) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    $(preview)
-                        .attr('src', e.target.result)
-                        .removeClass('d-none');
-                };
+            if ($upload.files[0].size < maxSizeFileAllowed) {
 
-                reader.readAsDataURL($upload.files[0]);
-            } else {
-                showBSAlert('Veuillez choisir une image valide (png, jpeg, jpg).', 'danger')
-            }
+                if (allowedLogoExtensions.indexOf(extension) !== -1) {
+                        let reader = new FileReader();
+                        reader.onload = function (e) {
+                            $(preview)
+                                .attr('src', e.target.result)
+                                .removeClass('d-none');
+                        };
+
+                        reader.readAsDataURL($upload.files[0]);
+                    } else {
+                        showBSAlert('Veuillez choisir une image valide (png, jpeg, jpg).', 'danger')
+                    }
+                } else {
+                    showBSAlert('La taille du fichier est supérieure à 10 mo.', 'danger')
+                }
         }
     })
 }
