@@ -426,14 +426,12 @@ class ReferenceArticleRepository extends EntityRepository {
                                 }
                                 break;
                             default:
-                                $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
-
-                                $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
+                                $freeFieldId = VisibleColumnService::extractFreeFieldId($searchField);
                                 if(is_numeric($freeFieldId)) {
                                     $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                     $qb->setParameter("search", $search);
-                                } else if (property_exists(ReferenceArticle::class, $field)) {
-                                    $query[] = "ra.$field LIKE :search";
+                                } else if (property_exists(ReferenceArticle::class, $searchField)) {
+                                    $query[] = "ra.$searchField LIKE :search";
                                     $qb->setParameter('search', $search);
                                 }
                                 break;
@@ -478,7 +476,6 @@ class ReferenceArticleRepository extends EntityRepository {
                             $qb->orderBy('ra.prixUnitaire', $order);
                             break;
                         default:
-                            $column = self::FIELD_ENTITY_NAME[$column] ?? $column;
 
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
                             if(is_numeric($freeFieldId)) {
