@@ -436,6 +436,9 @@ class ImportService
 
             if ($throwable instanceof ImportException) {
                 $message = $throwable->getMessage();
+            }
+            else if ($throwable instanceof UniqueConstraintViolationException) {
+                $message = 'Une autre entité en cours de création, veuillez réessayer.';
             } else {
                 $message = 'Une erreur est survenue.';
                 $file = $throwable->getFile();
@@ -444,7 +447,6 @@ class ImportService
                 $trace = $throwable->getTraceAsString();
                 $importId = $this->currentImport->getId();
                 $this->logger->error("IMPORT ERROR : import n°$importId | $logMessage | File $file($line) | $trace");
-                throw $throwable;
             }
 
             $stats['errors']++;
@@ -840,17 +842,7 @@ class ImportService
         $reception = $receptionsWithCommand[$data['orderNumber']] ?? null;
         $newEntity = isset($reception);
         if (!$reception) {
-            try {
-                $reception = $this->receptionService->createAndPersistReception($this->em, $user, $data);
-            }
-
-                /** @noinspection PhpRedundantCatchClauseInspection */
-            catch (UniqueConstraintViolationException $e) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => $this->translator->trans('réception.Une autre réception est en cours de création, veuillez réessayer').'.'
-                ]);
-            }
+            $reception = $this->receptionService->createAndPersistReception($this->em, $user, $data);
             $receptionsWithCommand[$data['orderNumber']] = $reception;
         }
 

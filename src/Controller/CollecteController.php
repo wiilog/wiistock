@@ -271,11 +271,11 @@ class CollecteController extends AbstractController
                 ->setCommentaire($data['commentaire'])
                 ->setstockOrDestruct($destination);
 
+            $entityManager->persist($collecte);
+
             try {
-                $entityManager->persist($collecte);
                 $entityManager->flush();
             }
-
             /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([

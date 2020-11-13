@@ -220,11 +220,10 @@ class HandlingController extends AbstractController
                 }
             }
 
+            $entityManager->persist($handling);
             try {
-                $entityManager->persist($handling);
                 $entityManager->flush();
             }
-
             /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([

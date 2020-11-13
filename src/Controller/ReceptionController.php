@@ -176,14 +176,13 @@ class ReceptionController extends AbstractController {
         }
 
         if ($request->isXmlHttpRequest() && $data = $request->request->all()) {
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+            $reception = $receptionService->createAndPersistReception($entityManager, $currentUser, $data);
 
             try {
-                // persist and flush in function below
-                /** @var Utilisateur $currentUser */
-                $currentUser = $this->getUser();
-                $reception = $receptionService->createAndPersistReception($entityManager, $currentUser, $data);
+                $entityManager->flush();
             }
-
             /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([
@@ -192,7 +191,6 @@ class ReceptionController extends AbstractController {
                 ]);
             }
 
-            $entityManager->flush();
 
             $champLibreService->manageFreeFields($reception, $data, $entityManager);
             $attachmentService->manageAttachments($entityManager, $reception, $request->files);
@@ -1287,12 +1285,11 @@ class ReceptionController extends AbstractController {
                 $entityManager->persist($histo);
             }
 
+            $entityManager->persist($litige);
+
             try {
-                // persist and flush in function below
-                $entityManager->persist($litige);
                 $entityManager->flush();
             }
-
             /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([
@@ -1969,19 +1966,9 @@ class ReceptionController extends AbstractController {
                 $origin = $emplacementRepository->find($data['origin']);
                 $destination = $emplacementRepository->find($data['storage']);
 
-                try {
-                    /** @var Utilisateur $requester */
-                    $requester = $this->getUser();
-                    $request = $transferRequestService->createTransferRequest($entityManager, $toTreatRequest, $origin, $destination, $requester);
-                }
-
-                /** @noinspection PhpRedundantCatchClauseInspection */
-                catch (UniqueConstraintViolationException $e) {
-                    return new JsonResponse([
-                        'success' => false,
-                        'msg' => 'Une autre demande de transfert est en cours de création, veuillez réessayer.'
-                    ]);
-                }
+                /** @var Utilisateur $requester */
+                $requester = $this->getUser();
+                $request = $transferRequestService->createTransferRequest($entityManager, $toTreatRequest, $origin, $destination, $requester);
 
                 $request
                     ->setReception($reception)
@@ -1991,6 +1978,17 @@ class ReceptionController extends AbstractController {
 
                 $entityManager->persist($request);
                 $entityManager->persist($order);
+
+                try {
+                    $entityManager->flush();
+                }
+                /** @noinspection PhpRedundantCatchClauseInspection */
+                catch (UniqueConstraintViolationException $e) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'Une autre demande de transfert est en cours de création, veuillez réessayer.'
+                    ]);
+                }
             }
 
             $receptionLocation = $reception->getLocation();

@@ -282,18 +282,7 @@ class OrdreCollecteController extends AbstractController
             $ordreCollecte->addOrdreCollecteReference($ordreCollecteReference);
         }
 
-        try {
-            $entityManager->persist($ordreCollecte);
-            $entityManager->flush();
-        }
-
-        /** @noinspection PhpRedundantCatchClauseInspection */
-        catch (UniqueConstraintViolationException $e) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => 'Un autre ordre de collecte est en cours de création, veuillez réessayer.'
-            ]);
-        }
+        $entityManager->persist($ordreCollecte);
 
         // on modifie statut + date validation de la demande
         $demandeCollecte
@@ -302,7 +291,16 @@ class OrdreCollecteController extends AbstractController
 			)
             ->setValidationDate($date);
 
-        $entityManager->flush();
+        try {
+            $entityManager->flush();
+        }
+        /** @noinspection PhpRedundantCatchClauseInspection */
+        catch (UniqueConstraintViolationException $e) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Un autre ordre de collecte est en cours de création, veuillez réessayer.'
+            ]);
+        }
 
         return $this->redirectToRoute('collecte_show', [
             'id' => $demandeCollecte->getId(),

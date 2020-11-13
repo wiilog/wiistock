@@ -260,19 +260,20 @@ class DemandeController extends AbstractController
             }
             $demande = $this->demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
 
+            $entityManager->persist($demande);
             try {
-                $entityManager->persist($demande);
                 $entityManager->flush();
             }
-
-                /** @noinspection PhpRedundantCatchClauseInspection */
+            /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
                 ]);
             }
+
             return new JsonResponse([
+                'success' => true,
                 'redirect' => $this->generateUrl('demande_show', ['id' => $demande->getId()]),
             ]);
         }

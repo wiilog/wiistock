@@ -111,11 +111,11 @@ class TransferRequestController extends AbstractController {
 
             $transfer = $transferRequestService->createTransferRequest($entityManager, $draft, $origin, $destination, $currentUser, $data['comment']);
 
+            $entityManager->persist($transfer);
+
             try {
-                $entityManager->persist($transfer);
                 $entityManager->flush();
             }
-
             /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([

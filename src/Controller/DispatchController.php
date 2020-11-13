@@ -371,11 +371,12 @@ class DispatchController extends AbstractController {
                 }
             }
 
+            $entityManager->persist($dispatch);
+
             try {
                 $entityManager->persist($dispatch);
                 $entityManager->flush();
             }
-
             /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([

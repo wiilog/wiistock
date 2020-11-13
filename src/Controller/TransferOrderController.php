@@ -130,12 +130,12 @@ class TransferOrderController extends AbstractController {
             $transferRequest->setValidationDate(new DateTime());
 
             $transferOrder = $transferOrderService->createTransferOrder($entityManager, $toTreatOrder, $transferRequest);
+            $entityManager->persist($transferOrder);
+
             try {
-                $entityManager->persist($transferOrder);
                 $entityManager->flush();
             }
-
-                /** @noinspection PhpRedundantCatchClauseInspection */
+            /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([
                     'success' => false,

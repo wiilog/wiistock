@@ -325,16 +325,16 @@ class ArrivageController extends AbstractController
                     $arrivage->addAcheteur($userRepository->find($acheteurId));
                 }
             }
+            $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
 
             try {
-                $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
+                $entityManager->flush();
             }
-
-                /** @noinspection PhpRedundantCatchClauseInspection */
+            /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([
                     'success' => false,
-                    'msg' => $translator->trans('arrivage.Un autre arrivage est en cours de création, veuillez réessayer').'.'
+                    'msg' => $translator->trans('arrivage.Un autre arrivage est en cours de création, veuillez réessayer') . '.'
                 ]);
             }
 
@@ -1129,10 +1129,10 @@ class ArrivageController extends AbstractController
                 $entityManager->persist($histo);
             }
 
+            $this->persistAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             try {
-                $this->persistAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
+                $entityManager->flush();
             }
-
             /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([
@@ -1140,15 +1140,13 @@ class ArrivageController extends AbstractController
                     'msg' => $translator->trans('arrivage.Un autre litige d\'arrivage est en cours de création, veuillez réessayer').'.'
                 ]);
             }
-            $entityManager->flush();
 
             $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_ARRIVAGE);
 
-            return new JsonResponse([
-                $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage')) ?? [],
-                'success' => true,
-                'msg' => 'Le litige <strong>' . $litige->getNumeroLitige() . '</strong> a bien été créé.'
-            ]);
+            $response = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage')) ?? [];
+            $response['success'] = true;
+            $response['msg'] = 'Le litige <strong>' . $litige->getNumeroLitige() . '</strong> a bien été créé.';
+            return new JsonResponse($response);
         }
         throw new BadRequestHttpException();
     }
