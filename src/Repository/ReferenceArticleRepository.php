@@ -224,7 +224,6 @@ class ReferenceArticleRepository extends EntityRepository {
             'Référence' => ['field' => 'reference', 'typage' => 'text'],
             'Type' => ['field' => 'type_id', 'typage' => 'list'],
             'Quantité stock' => ['field' => 'quantiteStock', 'typage' => 'number'],
-            'Statut' => ['field' => 'Statut', 'typage' => 'text'],
             'Prix unitaire' => ['field' => 'prixUnitaire', 'typage' => 'number'],
             'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
             'Code barre' => ['field' => 'barCode', 'typage' => 'text'],
@@ -235,8 +234,7 @@ class ReferenceArticleRepository extends EntityRepository {
             'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
             'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
-            'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text'],
-            'Gestionnaire(s)' => ['field' => 'managers', 'typage' => 'text'],
+            'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text']
         ];
 
         $qb = $this->createQueryBuilder("ra");
@@ -245,12 +243,12 @@ class ReferenceArticleRepository extends EntityRepository {
             $index++;
             if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_STATUT) {
                 if ($filter['value'] === ReferenceArticle::STATUT_ACTIF) {
-                    $qb->leftJoin('ra.statut', 'sra');
-                    $qb->andWhere('sra.nom LIKE \'' . $filter['value'] . '\'');
+                    $qb->leftJoin('ra.statut', 'filter_sra');
+                    $qb->andWhere('filter_sra.nom LIKE \'' . $filter['value'] . '\'');
                 }
             } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_MANAGERS) {
-                $qb->leftJoin('ra.managers', 'managers')
-                    ->andWhere('managers.username LIKE :username')
+                $qb->leftJoin('ra.managers', 'filter_manager')
+                    ->andWhere('filter_manager.username LIKE :username')
                     ->setParameter('username', '%' . $filter['value'] . '%');
             } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_PROVIDER_CODE) {
                 $qb
@@ -268,58 +266,61 @@ class ReferenceArticleRepository extends EntityRepository {
                 // cas particulier champ référence article fournisseur
                 if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_REF_ART_FOURN) {
                     $qb
-                        ->leftJoin('ra.articlesFournisseur', 'af')
-                        ->andWhere('af.reference LIKE :reference')
+                        ->leftJoin('ra.articlesFournisseur', 'filter_af')
+                        ->andWhere('filter_af.reference LIKE :reference')
                         ->setParameter('reference', '%' . $filter['value'] . '%');
                 } // cas champ fixe
                 else if ($label = $filter['champFixe']) {
-                    $array = $linkFieldLabelToColumn[$label];
-                    $field = $array['field'];
-                    $typage = $array['typage'];
+                    $array = $linkFieldLabelToColumn[$label] ?? null;
+                    if ($array) {
+                        $field = $array['field'];
+                        $typage = $array['typage'];
 
-                    switch ($typage) {
-                        case 'sync':
-                            if ($filter['value'] == 0) {
-                                $qb
-                                    ->andWhere("ra.needsMobileSync = :value$index OR ra.needsMobileSync IS NULL")
-                                    ->setParameter("value$index", $filter['value']);
-                            } else {
-                                $qb
-                                    ->andWhere("ra.needsMobileSync = :value$index")
-                                    ->setParameter("value$index", $filter['value']);
-                            }
-                            break;
-                        case 'text':
-                            $qb
-                                ->andWhere("ra." . $field . " LIKE :value" . $index)
-                                ->setParameter('value' . $index, '%' . $filter['value'] . '%');
-                            break;
-                        case 'number':
-                            $qb
-                                ->andWhere("ra.$field = :value$index")
-                                ->setParameter("value$index", $filter['value']);
-                            break;
-                        case 'boolean':
-                            $qb
-                                ->andWhere("ra.isUrgent = :value$index")
-                                ->setParameter("value$index", $filter['value']);
-                            break;
-                        case 'list':
-                            switch ($field) {
-                                case 'type_id':
+                        switch ($typage) {
+                            case 'sync':
+                                if ($filter['value'] == 0) {
                                     $qb
-                                        ->leftJoin('ra.type', 'tFilter')
-                                        ->andWhere('tFilter.label = :typeLabel')
-                                        ->setParameter('typeLabel', $filter['value']);
-                                    break;
-                                case 'emplacement_id':
+                                        ->andWhere("ra.needsMobileSync = :value$index OR ra.needsMobileSync IS NULL")
+                                        ->setParameter("value$index", $filter['value']);
+                                }
+                                else {
                                     $qb
-                                        ->leftJoin('ra.emplacement', 'eFilter')
-                                        ->andWhere('eFilter.label = :emplacementLabel')
-                                        ->setParameter('emplacementLabel', $filter['value']);
-                                    break;
-                            }
-                            break;
+                                        ->andWhere("ra.needsMobileSync = :value$index")
+                                        ->setParameter("value$index", $filter['value']);
+                                }
+                                break;
+                            case 'text':
+                                $qb
+                                    ->andWhere("ra." . $field . " LIKE :value" . $index)
+                                    ->setParameter('value' . $index, '%' . $filter['value'] . '%');
+                                break;
+                            case 'number':
+                                $qb
+                                    ->andWhere("ra.$field = :value$index")
+                                    ->setParameter("value$index", $filter['value']);
+                                break;
+                            case 'boolean':
+                                $qb
+                                    ->andWhere("ra.isUrgent = :value$index")
+                                    ->setParameter("value$index", $filter['value']);
+                                break;
+                            case 'list':
+                                switch ($field) {
+                                    case 'type_id':
+                                        $qb
+                                            ->leftJoin('ra.type', 'tFilter')
+                                            ->andWhere('tFilter.label = :typeLabel')
+                                            ->setParameter('typeLabel', $filter['value']);
+                                        break;
+                                    case 'emplacement_id':
+                                        $qb
+                                            ->leftJoin('ra.emplacement', 'eFilter')
+                                            ->andWhere('eFilter.label = :emplacementLabel')
+                                            ->setParameter('emplacementLabel', $filter['value']);
+                                        break;
+                                }
+                                break;
+                        }
                     }
                 } // cas champ libre
                 else if ($filter['champLibre']) {
