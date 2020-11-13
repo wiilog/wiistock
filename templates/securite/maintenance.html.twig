@@ -1,9 +1,15 @@
-{% extends 'base.html.twig' %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Site en maintenance</title>
 
-{% block title %}Site en maintenance{% endblock %}
-
-{% block body %}
-    <div class="alert alert-danger">
-        SITE EN MAINTENANCE. MERCI DE PATIENTER.
-    </div>
-{% endblock %}
+    <link rel="shortcut icon" href="{{ asset('img/favicon.ico') }}">
+</head>
+<body>
+<div class="alert alert-danger">
+    SITE EN MAINTENANCE. MERCI DE PATIENTER.
+</div>
+</body>
+</html>
