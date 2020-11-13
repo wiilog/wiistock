@@ -182,7 +182,7 @@
                     <div class="form-group col-4">
                         <label for="type">Type*</label>
                         {% set uniqueType = typesArrival|length == 1 %}
-                        <select class="form-control input-sm data needed needs-default"
+                        <select class="form-control input-sm data needed {{ uniqueType ? 'needs-default' }}"
                                 id="type"
                                 name="type"
                                 onchange="onTypeChange($(this))"
@@ -201,11 +201,11 @@
 
                     <div class="form-group col-4">
                         <label>Statut*</label>
-                        <select class="needs-default form-control input-sm data needed needs-default"
+                        <select class="form-control input-sm data needed {{ uniqueType ? 'needs-default' }}"
+                                name="status"
                                 {% if uniqueType %}
                                     data-init="{{ defaultStatuses[(typesArrival|first).id] }}"
-                                {% endif %}
-                                name="status">
+                                {% endif %}>
                             <option value="">Choisir un statut...</option>
                             {% for status in statuses %}
                                 <option class="d-none"
