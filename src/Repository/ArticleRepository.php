@@ -7,7 +7,6 @@ use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
-use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
@@ -526,8 +525,9 @@ class ArticleRepository extends EntityRepository {
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
 
-                                if(is_numeric($field)) {
-                                    $query[] = "JSON_SEARCH(a.freeFields, 'one', :search, NULL, '$.\"$field\"') IS NOT NULL";
+                                $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
+                                if(is_numeric($freeFieldId)) {
+                                    $query[] = "JSON_SEARCH(a.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                     $qb->setParameter("search", $search);
                                 } else {
                                     $query[] = "a.$field LIKE :search";

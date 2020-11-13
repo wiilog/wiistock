@@ -183,25 +183,12 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         }, []);
     }
 
-    public function getUsernameManagersGroupByReference() {
-        $result = $this->createQueryBuilder('utilisateur')
-            ->select('referencesArticle.id AS referencesArticleId')
-            ->addSelect('utilisateur.username')
-            ->join('utilisateur.referencesArticle', 'referencesArticle')
+    public function findByUsernames(array $usernames) {
+        return $this->createQueryBuilder("u")
+            ->where("u.email IN (:emails)")
+            ->setParameter("emails", $usernames)
             ->getQuery()
             ->getResult();
-
-        return array_reduce($result, function ($acc, $attachment) {
-            $referenceArticleId = (int)$attachment['referencesArticleId'];
-            if (empty($acc[$referenceArticleId])) {
-                $acc[$referenceArticleId] = '';
-            } else {
-                $acc[$referenceArticleId] .= ', ';
-            }
-
-            $acc[$referenceArticleId] .= $attachment['username'];
-            return $acc;
-        }, []);
     }
 
     public function getUserMailByIsMailSendRole()
@@ -223,4 +210,26 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
     public function loadUserByUsername($username) {
         return $this->findOneBy(['email' => $username]);
     }
+
+    public function getUsernameManagersGroupByReference() {
+        $result = $this->createQueryBuilder('utilisateur')
+            ->select('referencesArticle.id AS referencesArticleId')
+            ->addSelect('utilisateur.username')
+            ->join('utilisateur.referencesArticle', 'referencesArticle')
+            ->getQuery()
+            ->getResult();
+
+        return array_reduce($result, function ($acc, $attachment) {
+            $referenceArticleId = (int)$attachment['referencesArticleId'];
+            if (empty($acc[$referenceArticleId])) {
+                $acc[$referenceArticleId] = '';
+            } else {
+                $acc[$referenceArticleId] .= ', ';
+            }
+
+            $acc[$referenceArticleId] .= $attachment['username'];
+            return $acc;
+        }, []);
+    }
+
 }

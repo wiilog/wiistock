@@ -4,9 +4,9 @@ imports:
 parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'
-    web_version: '3.15.1'
-    nomade_versions: '=3.15.0'
-    nomade_apk: 'http://wiilog.fr/dl/wiistock/app-current.apk'
+    web_version: '3.15.5'
+    nomade_versions: '=3.15.5'
+    nomade_apk: 'http://wiilog.fr/dl/wiistock/recette/app-3-15-5.apk'
     client: '%env(APP_CLIENT)%'
     dashboardToken: '%env(APP_DASHBOARD_TOKEN)%'
     appLocale: '%env(APP_LOCALE)%'
@@ -70,6 +70,10 @@ services:
         class: App\Service\SpecificService
         public: true
 
+    App\EventListener\ExceptionLoggerListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.exception }
+
     ref_article_listener:
         class: App\EventListener\RefArticleQuantityNotifier
         tags:
@@ -86,3 +90,8 @@ services:
         class: App\EventListener\TrackingMovementListener
         tags:
             - { name: doctrine.orm.entity_listener, event: preRemove, lazy: true, entity: App\Entity\TrackingMovement }
+
+    annotation_listener:
+        class: App\EventListener\AuthenticationListener
+        tags:
+            - { name: kernel.event_listener, event: kernel.controller_arguments, method: onRequest }

@@ -5,13 +5,13 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
-use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TransferRequest;
@@ -22,18 +22,15 @@ use App\Entity\CategorieCL;
 use App\Entity\Collecte;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
-use App\Helper\Stream;
 use App\Service\DemandeCollecteService;
 use App\Service\MouvementStockService;
 use App\Service\FreeFieldService;
 use App\Service\ArticleFournisseurService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Internal\Hydration\IterableResult;
 use Exception;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Twig\Environment as Twig_Environment;
@@ -926,7 +923,9 @@ class ReferenceArticleController extends AbstractController
             'date dernier inventaire',
             'synchronisation nomade',
             'gestion de stock',
-            'gestionnaire(s)'
+            'gestionnaire(s)',
+            'Labels Fournisseurs',
+            'Codes Fournisseurs'
         ], $ffConfig['freeFieldsHeader']);
 
         $today = new DateTime();
@@ -938,9 +937,13 @@ class ReferenceArticleController extends AbstractController
                 ->getRepository(Utilisateur::class)
                 ->getUsernameManagersGroupByReference();
 
+            $suppliersByReference = $manager
+                ->getRepository(Fournisseur::class)
+                ->getCodesAndLabelsGroupedByReference();
+
             $references = $raRepository->iterateAll();
             foreach($references as $reference) {
-                $this->putReferenceLine($output, $csvService, $ffService, $ffConfig, $managersByReference, $reference);
+                $this->putReferenceLine($output, $csvService, $ffService, $ffConfig, $managersByReference, $reference, $suppliersByReference);
             }
         }, "export-references-$today.csv", $header);
     }
@@ -950,9 +953,9 @@ class ReferenceArticleController extends AbstractController
                                       FreeFieldService $ffService,
                                       array $ffConfig,
                                       array $managersByReference,
-                                      array $reference) {
+                                      array $reference,
+                                      array $suppliersByReference) {
         $id = (int)$reference['id'];
-
         $line = [
             $reference['reference'],
             $reference['libelle'],
@@ -970,7 +973,9 @@ class ReferenceArticleController extends AbstractController
             $reference['dateLastInventory'] ? $reference['dateLastInventory']->format("d/m/Y H:i:s") : "",
             $reference['needsMobileSync'],
             $reference['stockManagement'],
-            $managersByReference[$id] ?? ""
+            $managersByReference[$id] ?? "",
+            $suppliersByReference[$id]['supplierLabels'] ?? "",
+            $suppliersByReference[$id]['supplierCodes'] ?? "",
         ];
 
         foreach($ffConfig['freeFieldIds'] as $freeFieldId) {
@@ -1068,20 +1073,12 @@ class ReferenceArticleController extends AbstractController
                                 PDFGeneratorService $PDFGeneratorService): Response
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
         $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
 
-        $category = CategoryType::ARTICLE;
-        $champs = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $champs = array_reduce($champs, function (array $accumulator, array $freeField) {
-            $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
-            return $accumulator;
-        }, []);
         $userId = $this->user->getId();
         $filters = $filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $this->user, $champs);
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $this->user);
         $refs = $queryResult['data'];
         $refs = array_map(function($refArticle) {
             return is_array($refArticle) ? $refArticle[0] : $refArticle;
@@ -1154,11 +1151,11 @@ class ReferenceArticleController extends AbstractController
             $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::CHAMP_FIXE_STATUT);
 
             $em = $this->getDoctrine()->getManager();
-            if($filter == null){
+            if($filter == null) {
                 $filter = new FiltreRef();
                 $filter
                     ->setUtilisateur($user)
-                    ->setChampFixe('Statut')
+                    ->setChampFixe(FiltreRef::CHAMP_FIXE_STATUT)
                     ->setValue(ReferenceArticle::STATUT_ACTIF);
                 $em->persist($filter);
             }
@@ -1170,6 +1167,7 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse();
         }
+
         throw new BadRequestHttpException();
     }
 

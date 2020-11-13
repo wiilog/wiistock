@@ -44,9 +44,9 @@ class RefArticleDataService {
 
     private const REF_ARTICLE_FIELDS = [
         ["name" => "actions", "class" => "noVis", "alwaysVisible" => true, "orderable" => false],
-        ["title" => "Libellé", "name" => "label", "type" => "text"],
-        ["title" => "Référence", "name" => "reference", "type" => "text"],
-        ["title" => "Code barre", "name" => "barCode", "type" => "text"],
+        ["title" => "Libellé", "name" => "label", "type" => "text", "searchable" => true],
+        ["title" => "Référence", "name" => "reference", "type" => "text", "searchable" => true],
+        ["title" => "Code barre", "name" => "barCode", "type" => "text", "searchable" => true],
         ["title" => "Urgence", "name" => "emergency", "type" => "booleen"],
         ["title" => "Type", "name" => "type", "type" => "list"],
         ["title" => "Statut", "name" => "status", "type" => "list"],
@@ -57,8 +57,10 @@ class RefArticleDataService {
         ["title" => "Seuil d'alerte", "name" => "warningThreshold", "type" => "number"],
         ["title" => "Prix unitaire", "name" => "unitPrice", "type" => "number"],
         ["title" => "Synchronisation nomade", "name" => "mobileSync", "type" => "booleen"],
+        ["title" => "Nom fournisseur", "name" => "supplierLabel", "type" => "text", "searchable" => true],
+        ["title" => "Code fournisseur", "name" => "supplierCode", "type" => "text", "searchable" => true],
         ["title" => "Dernier inventaire", "name" => "lastInventory", "type" => "date"],
-        ["title" => "Gestion de stock", "name" => "stockManagement", "type" => "text"],
+        ["title" => "Gestion de stock", "name" => "stockManagement", "type" => "text", "searchable" => true],
         ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
         ["title" => "Commentaire", "name" => "comment", "type" => "text"],
         ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text"]
@@ -133,11 +135,9 @@ class RefArticleDataService {
     public function getRefArticleDataByParams($params = null) {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
-        $champs = $this->freeFieldService->getFreeFieldsById($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
-
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user, $champs);
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
         $refs = $queryResult['data'];
         $rows = [];
         foreach($refs as $refArticle) {
@@ -389,6 +389,20 @@ class RefArticleDataService {
         $ffCategory = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $ffCategory);
 
+        $providerCodes = Stream::from($refArticle->getArticlesFournisseur())
+            ->map(function(ArticleFournisseur $articleFournisseur) {
+                return $articleFournisseur->getFournisseur() ? $articleFournisseur->getFournisseur()->getCodeReference() : '';
+            })
+            ->unique()
+            ->toArray();
+
+        $providerLabels = Stream::from($refArticle->getArticlesFournisseur())
+            ->map(function(ArticleFournisseur $articleFournisseur) {
+                return $articleFournisseur->getFournisseur() ? $articleFournisseur->getFournisseur()->getNom() : '';
+            })
+            ->unique()
+            ->toArray();
+
         $row = [
             "id" => $refArticle->getId(),
             "label" => $refArticle->getLibelle() ?? "Non défini",
@@ -407,6 +421,8 @@ class RefArticleDataService {
             "unitPrice" => $refArticle->getPrixUnitaire(),
             "emergency" => FormatHelper::bool($refArticle->getIsUrgent()),
             "mobileSync" => FormatHelper::bool($refArticle->getNeedsMobileSync()),
+            'supplierLabel' => implode(",", $providerLabels),
+            'supplierCode' => implode(",", $providerCodes),
             "lastInventory" => FormatHelper::date($refArticle->getDateLastInventory()),
             "stockManagement" => $refArticle->getStockManagement(),
             "managers" => Stream::from($refArticle->getManagers())

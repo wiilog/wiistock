@@ -13,7 +13,6 @@ use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
@@ -808,7 +807,7 @@ class ArticleController extends AbstractController
         ];
 
         foreach ($ffConfig['freeFieldIds'] as $freeFieldId) {
-            $articleArray[] = $ffService->serializeValue([
+            $line[] = $ffService->serializeValue([
                 'typage' => $ffConfig['freeFieldsIdToTyping'][$freeFieldId],
                 'valeur' => $article['freeFields'][$freeFieldId] ?? ''
             ]);

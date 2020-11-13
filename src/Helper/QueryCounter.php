@@ -5,7 +5,6 @@ namespace App\Helper;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
-use RuntimeException;
 
 class QueryCounter {
 

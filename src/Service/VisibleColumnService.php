@@ -24,7 +24,8 @@ class VisibleColumnService {
                         'translated' => $column['translated'] ?? false,
                         'class' => $column['class'] ?? null,
                         'isColumnVisible' => $visible,
-                        "type" => $column['type'] ?? null
+                        "type" => $column['type'] ?? null,
+                        "searchable" => $column['searchable'] ?? null,
                     ];
                 },
                 $fields
@@ -39,7 +40,7 @@ class VisibleColumnService {
                         "data" => $freeFieldName,
                         "name" => $freeFieldName,
                         "isColumnVisible" => $visible,
-                        "type" => $freeField['typage']
+                        "type" => $freeField['typage'],
                     ];
                 },
                 $freeFields
@@ -51,7 +52,11 @@ class VisibleColumnService {
         return self::FREE_FIELD_NAME_PREFIX . '_' . $id;
     }
 
-    public static function extractFreeFieldId(string $freeFieldName): ?int {
+    public static function extractFreeFieldId(?string $freeFieldName): ?int {
+        if($freeFieldName === null) {
+            return null;
+        }
+
         preg_match("/" . VisibleColumnService::FREE_FIELD_NAME_PREFIX . "_(\d+)/", $freeFieldName, $matches);
         $freeFieldIdStr = $matches[1] ?? null;
         return is_numeric($freeFieldIdStr) ? intval($freeFieldIdStr) : null;

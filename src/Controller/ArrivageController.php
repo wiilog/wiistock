@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\Authenticated;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
@@ -832,7 +833,7 @@ class ArrivageController extends AbstractController
                 $file = $request->files->get('file' . $i);
                 if ($file) {
                     if ($file->getClientOriginalExtension()) {
-                        $filename = uniqid() . "." . $file->getClientOriginalExtension();
+                        $filename = uniqid() . "." . strtolower($file->getClientOriginalExtension());
                     } else {
                         $filename = uniqid();
                     }
@@ -1618,9 +1619,7 @@ class ArrivageController extends AbstractController
         $printTwice = ($printTwiceIfCustoms && $arrivage->getCustoms());
         if($printTwice) {
             $barcodeConfigs = Stream::from($barcodeConfigs)
-                ->flatMap(function($barCodeConfig){
-                    return [$barCodeConfig, $barCodeConfig];
-                })
+                ->concat($barcodeConfigs, $barcodeConfigs)
                 ->toArray();
         }
 

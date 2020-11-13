@@ -8,11 +8,14 @@ import Routing from '../../vendor/friendsofsymfony/jsrouting-bundle/Resources/pu
 import Quill from 'quill/dist/quill.js';
 import Toolbar from 'quill/modules/toolbar';
 import Snow from 'quill/themes/snow';
+import BrowserSupport from './support';
+import Wiistock from './general';
 
 import '../scss/app.scss';
 
 ///////////////// Main
 
+importWiistock();
 importJquery();
 importMoment();
 importQuill();
@@ -20,6 +23,9 @@ importRouting();
 
 ///////////////// Functions
 
+function importWiistock() {
+    global.Wiistock = Wiistock;
+}
 
 function importJquery() {
     global.$ = global.jQuery = $;
@@ -44,3 +50,31 @@ function importRouting() {
 
     global.Routing = Routing;
 }
+
+$(document).ready(() => {
+    if (!BrowserSupport.input("datetime-local")) {
+        console.log("`datetime-local` not supported");
+
+        const observer = new MutationObserver(function () {
+            for (const input of $('input[type=datetime-local]')) {
+                const $input = $(input);
+
+                if (!$input.data("dtp-initialized")) {
+                    $input.data("dtp-initialized", "true");
+
+                    $input.datetimepicker({
+                        format: "YYYY-MM-DDTHH:mm"
+                    });
+                }
+            }
+        });
+
+        observer.observe(document, {
+            attributes: false,
+            childList: true,
+            characterData: false,
+            subtree: true
+        });
+    }
+});
+

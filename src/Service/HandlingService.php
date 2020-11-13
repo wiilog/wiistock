@@ -5,7 +5,6 @@ namespace App\Service;
 
 
 use App\Entity\Action;
-use App\Entity\Demande;
 use App\Entity\FiltreSup;
 use App\Entity\Handling;
 use App\Entity\Menu;
@@ -104,9 +103,9 @@ class HandlingService
      */
     public function dataRowHandling(Handling $handling)
     {
-        $treatmentDelay = $handling->getTreatmentDelay();
-        $treatmentDelayInterval = $treatmentDelay ? $this->dateService->secondsToDateInterval($treatmentDelay) : null;
-        $treatmentDelayStr = $treatmentDelayInterval ? $this->dateService->intervalToStr($treatmentDelayInterval) : '';
+//        $treatmentDelay = $handling->getTreatmentDelay();
+//        $treatmentDelayInterval = $treatmentDelay ? $this->dateService->secondsToDateInterval($treatmentDelay) : null;
+//        $treatmentDelayStr = $treatmentDelayInterval ? $this->dateService->intervalToStr($treatmentDelayInterval) : '';
 
         return [
             'id' => $handling->getId() ? $handling->getId() : 'Non défini',
@@ -120,7 +119,7 @@ class HandlingService
             'status' => $handling->getStatus()->getNom() ? $handling->getStatus()->getNom() : null,
             'emergency' => $handling->getEmergency() ?? '',
             'treatedBy' => $handling->getTreatedByHandling() ? $handling->getTreatedByHandling()->getUsername() : '',
-            'treatmentDelay' => $treatmentDelayStr,
+            //'treatmentDelay' => $treatmentDelayStr,
             'carriedOutOperationCount' => is_int($handling->getCarriedOutOperationCount()) ? $handling->getCarriedOutOperationCount() : '',
             'Actions' => $this->templating->render('handling/datatableHandlingRow.html.twig', [
                 'handling' => $handling

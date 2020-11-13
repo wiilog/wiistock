@@ -23,7 +23,6 @@ use App\Entity\Utilisateur;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use DateTime;
-use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -260,7 +259,10 @@ class DemandeLivraisonService
      * @param bool $fromNomade
      * @param FreeFieldService $champLibreService
      * @return Demande|array|JsonResponse
+     * @throws LoaderError
      * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function newDemande($data, EntityManagerInterface $entityManager, bool $fromNomade = false, FreeFieldService $champLibreService)
     {
@@ -310,16 +312,8 @@ class DemandeLivraisonService
             $demande->setReception($reception);
             $demande->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER));
             if (isset($data['needPrepa']) && $data['needPrepa']) {
-                $preparation = new Preparation();
-                $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-                $preparationNumber = $this->preparationsManager->generateNumber($date, $entityManager);
-                $preparation
-                    ->setNumero($preparationNumber)
-                    ->setDate($date);
-                $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
-                $preparation->setStatut($statutP);
-                $this->entityManager->persist($preparation);
-                $demande->addPreparation($preparation);
+                $entityManager->persist($demande);
+                $this->validateDLAfterCheck($entityManager, $demande);
             }
         }
         return $demande;

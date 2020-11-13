@@ -495,7 +495,7 @@ class HandlingController extends AbstractController
                     'urgence',
                     'nombre d\'opération(s) réalisée(s)',
                     'traité par',
-                    'Temps de traitement opérateur'
+                    //'Temps de traitement opérateur'
                 ],
                 $freeFieldsConfig['freeFieldsHeader']
             );
@@ -506,9 +506,9 @@ class HandlingController extends AbstractController
                 $handlings,
                 $csvHeader,
                 function ($handling) use ($freeFieldService, $freeFieldsConfig, $dateService) {
-                    $treatmentDelay = $handling['treatmentDelay'];
-                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
-                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
+//                    $treatmentDelay = $handling['treatmentDelay'];
+//                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
+//                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
                     $row = [];
                     $row[] = $handling['number'] ?? '';
                     $row[] = $handling['creationDate']->format('d/m/Y H:i:s') ?? '';
@@ -524,7 +524,7 @@ class HandlingController extends AbstractController
                     $row[] = $handling['emergency'] ?? '';
                     $row[] = $handling['carriedOutOperationCount'] ?? '';
                     $row[] = $handling['treatedBy'] ?? '';
-                    $row[] = $treatmentDelayStr;
+//                    $row[] = $treatmentDelayStr;
 
                     foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
                         $row[] = $freeFieldService->serializeValue([

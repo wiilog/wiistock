@@ -445,6 +445,11 @@ function openModalLigneReception($button) {
 
 function clearModalLigneReception(modal) {
     const $modal = $(modal);
+
+    $modal
+        .find(".transfer-form")
+        .addClass("d-none");
+
     $modal
         .find('.articles-conditionnement-container')
         .html('');

@@ -10,6 +10,7 @@ use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
+use App\Helper\QueryCounter;
 use App\Helper\Stream;
 use App\Service\VisibleColumnService;
 use DateTime;
@@ -27,39 +28,6 @@ use Doctrine\ORM\QueryBuilder;
  * @method ReferenceArticle[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class ReferenceArticleRepository extends EntityRepository {
-
-    private const FIELD_ENTITY_NAME = [
-        'Label' => 'libelle',
-        'Libellé' => 'libelle',
-        'Référence' => 'reference',
-        'limitWarning' => 'limitWarning',
-        'limitSecurity' => 'limitSecurity',
-        'Urgence' => 'isUrgent',
-        'Type' => 'Type',
-        'Quantité disponible' => 'quantiteDisponible',
-        'Quantité stock' => 'quantiteStock',
-        'Emplacement' => 'Emplacement',
-        'Actions' => 'Actions',
-        'Fournisseur' => 'Fournisseur',
-        'Statut' => 'status',
-        'Code barre' => 'barCode',
-        'typeQuantite' => 'typeQuantite',
-        'Dernier inventaire' => 'dateLastInventory',
-        'Synchronisation nomade' => 'needsMobileSync',
-        'Prix unitaire' => 'prixUnitaire',
-        "warningThreshold" => "limitWarning",
-        "securityThreshold" => "limitSecurity",
-        "emergency" => "isUrgent",
-        "availableQuantity" => "quantiteDisponible",
-        "stockQuantity" => "quantiteStock",
-        "location" => "emplacement",
-        "quantityType" => "typeQuantite",
-        "lastInventory" => "dateLastInventory",
-        "mobileSync" => "needsMobileSync",
-        "supplier" => "fournisseur",
-        "unitPrice" => "prixUnitaire",
-        "comment" => "commentaire",
-    ];
 
     public function getIdAndLibelle() {
         $entityManager = $this->getEntityManager();
@@ -243,7 +211,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->execute();
     }
 
-    public function findByFiltersAndParams($filters, $params, $user, $freeFields)
+    public function findByFiltersAndParams($filters, $params, $user)
     {
         $needCLOrder = null;
         $em = $this->getEntityManager();
@@ -256,7 +224,6 @@ class ReferenceArticleRepository extends EntityRepository {
             'Référence' => ['field' => 'reference', 'typage' => 'text'],
             'Type' => ['field' => 'type_id', 'typage' => 'list'],
             'Quantité stock' => ['field' => 'quantiteStock', 'typage' => 'number'],
-            'Statut' => ['field' => 'Statut', 'typage' => 'text'],
             'Prix unitaire' => ['field' => 'prixUnitaire', 'typage' => 'number'],
             'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
             'Code barre' => ['field' => 'barCode', 'typage' => 'text'],
@@ -267,80 +234,93 @@ class ReferenceArticleRepository extends EntityRepository {
             'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
             'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
-            'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text'],
-            'Gestionnaire(s)' => ['field' => 'managers', 'typage' => 'text'],
+            'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text']
         ];
 
         $qb = $this->createQueryBuilder("ra");
 
         foreach ($filters as $filter) {
             $index++;
-
             if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_STATUT) {
                 if ($filter['value'] === ReferenceArticle::STATUT_ACTIF) {
-                    $qb->leftJoin('ra.statut', 'sra');
-                    $qb->andWhere('sra.nom LIKE \'' . $filter['value'] . '\'');
+                    $qb->leftJoin('ra.statut', 'filter_sra');
+                    $qb->andWhere('filter_sra.nom LIKE \'' . $filter['value'] . '\'');
                 }
             } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_MANAGERS) {
-                $qb->leftJoin('ra.managers', 'managers')
-                    ->andWhere('managers.username LIKE :username')
+                $qb->leftJoin('ra.managers', 'filter_manager')
+                    ->andWhere('filter_manager.username LIKE :username')
                     ->setParameter('username', '%' . $filter['value'] . '%');
+            } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_PROVIDER_CODE) {
+                $qb
+                    ->leftJoin('ra.articlesFournisseur', 'filter_af_provider_code')
+                    ->leftJoin('filter_af_provider_code.fournisseur', 'filter_provider_code')
+                    ->andWhere('filter_provider_code.codeReference LIKE :providerCode')
+                    ->setParameter('providerCode', '%' . $filter['value'] . '%');
+            } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_PROVIDER_LABEL) {
+                $qb
+                    ->leftJoin('ra.articlesFournisseur', 'filter_af_provider_label')
+                    ->leftJoin('filter_af_provider_label.fournisseur', 'filter_provider_label')
+                    ->andWhere('filter_provider_label.nom LIKE :providerLabel')
+                    ->setParameter('providerLabel', '%' . $filter['value'] . '%');
             } else {
                 // cas particulier champ référence article fournisseur
                 if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_REF_ART_FOURN) {
                     $qb
-                        ->leftJoin('ra.articlesFournisseur', 'af')
-                        ->andWhere('af.reference LIKE :reference')
+                        ->leftJoin('ra.articlesFournisseur', 'filter_af')
+                        ->andWhere('filter_af.reference LIKE :reference')
                         ->setParameter('reference', '%' . $filter['value'] . '%');
                 } // cas champ fixe
                 else if ($label = $filter['champFixe']) {
-                    $array = $linkFieldLabelToColumn[$label];
-                    $field = $array['field'];
-                    $typage = $array['typage'];
+                    $array = $linkFieldLabelToColumn[$label] ?? null;
+                    if ($array) {
+                        $field = $array['field'];
+                        $typage = $array['typage'];
 
-                    switch ($typage) {
-                        case 'sync':
-                            if ($filter['value'] == 0) {
-                                $qb
-                                    ->andWhere("ra.needsMobileSync = :value$index OR ra.needsMobileSync IS NULL")
-                                    ->setParameter("value$index", $filter['value']);
-                            } else {
-                                $qb
-                                    ->andWhere("ra.needsMobileSync = :value$index")
-                                    ->setParameter("value$index", $filter['value']);
-                            }
-                            break;
-                        case 'text':
-                            $qb
-                                ->andWhere("ra." . $field . " LIKE :value" . $index)
-                                ->setParameter('value' . $index, '%' . $filter['value'] . '%');
-                            break;
-                        case 'number':
-                            $qb
-                                ->andWhere("ra.$field = :value$index")
-                                ->setParameter("value$index", $filter['value']);
-                            break;
-                        case 'boolean':
-                            $qb
-                                ->andWhere("ra.isUrgent = :value$index")
-                                ->setParameter("value$index", $filter['value']);
-                            break;
-                        case 'list':
-                            switch ($field) {
-                                case 'type_id':
+                        switch ($typage) {
+                            case 'sync':
+                                if ($filter['value'] == 0) {
                                     $qb
-                                        ->leftJoin('ra.type', 'tFilter')
-                                        ->andWhere('tFilter.label = :typeLabel')
-                                        ->setParameter('typeLabel', $filter['value']);
-                                    break;
-                                case 'emplacement_id':
+                                        ->andWhere("ra.needsMobileSync = :value$index OR ra.needsMobileSync IS NULL")
+                                        ->setParameter("value$index", $filter['value']);
+                                }
+                                else {
                                     $qb
-                                        ->leftJoin('ra.emplacement', 'eFilter')
-                                        ->andWhere('eFilter.label = :emplacementLabel')
-                                        ->setParameter('emplacementLabel', $filter['value']);
-                                    break;
-                            }
-                            break;
+                                        ->andWhere("ra.needsMobileSync = :value$index")
+                                        ->setParameter("value$index", $filter['value']);
+                                }
+                                break;
+                            case 'text':
+                                $qb
+                                    ->andWhere("ra." . $field . " LIKE :value" . $index)
+                                    ->setParameter('value' . $index, '%' . $filter['value'] . '%');
+                                break;
+                            case 'number':
+                                $qb
+                                    ->andWhere("ra.$field = :value$index")
+                                    ->setParameter("value$index", $filter['value']);
+                                break;
+                            case 'boolean':
+                                $qb
+                                    ->andWhere("ra.isUrgent = :value$index")
+                                    ->setParameter("value$index", $filter['value']);
+                                break;
+                            case 'list':
+                                switch ($field) {
+                                    case 'type_id':
+                                        $qb
+                                            ->leftJoin('ra.type', 'tFilter')
+                                            ->andWhere('tFilter.label = :typeLabel')
+                                            ->setParameter('typeLabel', $filter['value']);
+                                        break;
+                                    case 'emplacement_id':
+                                        $qb
+                                            ->leftJoin('ra.emplacement', 'eFilter')
+                                            ->andWhere('eFilter.label = :emplacementLabel')
+                                            ->setParameter('emplacementLabel', $filter['value']);
+                                        break;
+                                }
+                                break;
+                        }
                     }
                 } // cas champ libre
                 else if ($filter['champLibre']) {
@@ -408,7 +388,7 @@ class ReferenceArticleRepository extends EntityRepository {
 
                     foreach ($user->getRecherche() as $key => $searchField) {
                         switch ($searchField) {
-                            case "supplier":
+                            case "supplierLabel":
                                 $subqb = $em->createQueryBuilder()
                                     ->select('ra.id')
                                     ->from('App\Entity\ReferenceArticle', 'ra')
@@ -422,7 +402,7 @@ class ReferenceArticleRepository extends EntityRepository {
                                 }
                                 break;
 
-                            case "supplierReference":
+                            case "supplierCode":
                                 $subqb = $em->createQueryBuilder()
                                     ->select('ra.id')
                                     ->from('App\Entity\ReferenceArticle', 'ra')
@@ -447,13 +427,12 @@ class ReferenceArticleRepository extends EntityRepository {
                                 }
                                 break;
                             default:
-                                $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
-
-                                if(is_numeric($field)) {
-                                    $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"$field\"') IS NOT NULL";
+                                $freeFieldId = VisibleColumnService::extractFreeFieldId($searchField);
+                                if(is_numeric($freeFieldId)) {
+                                    $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                     $qb->setParameter("search", $search);
-                                } else {
-                                    $query[] = "ra.$field LIKE :search";
+                                } else if (property_exists(ReferenceArticle::class, $searchField)) {
+                                    $query[] = "ra.$searchField LIKE :search";
                                     $qb->setParameter('search', $search);
                                 }
                                 break;
@@ -498,7 +477,6 @@ class ReferenceArticleRepository extends EntityRepository {
                             $qb->orderBy('ra.prixUnitaire', $order);
                             break;
                         default:
-                            $column = self::FIELD_ENTITY_NAME[$column] ?? $column;
 
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
                             if(is_numeric($freeFieldId)) {
@@ -512,20 +490,16 @@ class ReferenceArticleRepository extends EntityRepository {
             }
         }
         // compte éléments filtrés
-        if (empty($filters) && empty($searchValue)) {
-            $qb->select('count(ra)');
-        } else {
-            $qb
-                ->select('count(distinct(ra))');
-        }
-        $countQuery = $qb->getQuery()->getSingleScalarResult();
+
+        $countQuery = QueryCounter::count($qb, "ra");
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
         $qb
-            ->select('ra');
+            ->select('ra')
+            ->distinct();
         return [
             'data' => $qb->getQuery()->getResult(),
             'count' => $countQuery
