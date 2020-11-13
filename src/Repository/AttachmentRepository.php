@@ -19,7 +19,7 @@ class AttachmentRepository extends EntityRepository
 
 	    $qb
             ->where('attachment.fileName = :fileName')
-            ->setParameter('filename', $fileName);
+            ->setParameter('fileName', $fileName);
 
 	    return $qb
             ->getQuery()
