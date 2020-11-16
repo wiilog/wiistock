@@ -250,7 +250,10 @@ class DemandeController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $champLibreService
      * @return Response
+     * @throws LoaderError
      * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function new(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
     {
@@ -258,24 +261,29 @@ class DemandeController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $demande = $this->demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
+            $demande = $this->demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
 
-            $entityManager->persist($demande);
-            try {
-                $entityManager->flush();
-            }
-            /** @noinspection PhpRedundantCatchClauseInspection */
-            catch (UniqueConstraintViolationException $e) {
+            if ($demande instanceof Demande) {
+                $entityManager->persist($demande);
+                try {
+                    $entityManager->flush();
+                }
+                /** @noinspection PhpRedundantCatchClauseInspection */
+                catch (UniqueConstraintViolationException $e) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
+                    ]);
+                }
+
                 return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
+                    'success' => true,
+                    'redirect' => $this->generateUrl('demande_show', ['id' => $demande->getId()]),
                 ]);
             }
-
-            return new JsonResponse([
-                'success' => true,
-                'redirect' => $this->generateUrl('demande_show', ['id' => $demande->getId()]),
-            ]);
+            else {
+                return new JsonResponse($demande);
+            }
         }
         throw new BadRequestHttpException();
     }

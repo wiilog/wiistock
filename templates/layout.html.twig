@@ -19,16 +19,6 @@
         </div>
     </div>
 
-    <div id="alerts-container"></div>
-    {% set flashbagDanger = app.session.flashbag.get('danger') %}
-    {% set flashbagSuccess = app.session.flashbag.get('success') %}
-    {% set flashbag = flashbagDanger is not empty ? flashbagDanger : flashbagSuccess %}
-    {% if flashbag is not empty %}
-        <input type="hidden"
-               value="{{ flashbag|json_encode }}"
-               id="alerts-flashbag"
-               data-color="{{ flashbagDanger is not empty ? 'danger' : 'success' }}"/>
-    {% endif %}
-    {% include 'utils/alert.html.twig' with {show: false} %}
+    {% include 'alerts-container.html.twig' %}
 
 {% endblock %}

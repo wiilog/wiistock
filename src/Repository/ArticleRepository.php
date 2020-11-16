@@ -122,15 +122,15 @@ class ArticleRepository extends EntityRepository {
 
         if ($needAssoc) {
             $queryBuilder->addSelect('demande.id AS demandeId');
-
         }
-        $queryBuilder
+
+        $result = $queryBuilder
             ->join('article.demande' , 'demande')
             ->where('article.demande IN (:demandes)')
-            ->setParameter('demandes', $demandes);
-        $result = $queryBuilder
+            ->setParameter('demandes', $demandes)
             ->getQuery()
             ->execute();
+
         if ($needAssoc) {
             $result = array_reduce($result, function(array $carry, $current) {
                 $article =  $current[0];

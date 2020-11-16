@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
+use App\Entity\Demande;
 use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
@@ -1854,7 +1855,6 @@ class ReceptionController extends AbstractController {
      * @param MouvementStockService $mouvementStockService
      * @param PreparationsManagerService $preparationsManagerService
      * @param LivraisonsManagerService $livraisonsManagerService
-     * @param UniqueNumberService $uniqueNumberService
      * @return Response
      * @throws LoaderError
      * @throws NegativeQuantityException
@@ -1874,8 +1874,7 @@ class ReceptionController extends AbstractController {
                                    TrackingMovementService $trackingMovementService,
                                    MouvementStockService $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
-                                   LivraisonsManagerService $livraisonsManagerService,
-                                   UniqueNumberService $uniqueNumberService): Response {
+                                   LivraisonsManagerService $livraisonsManagerService): Response {
 
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
         /** @var Utilisateur $currentUser */
@@ -1900,12 +1899,16 @@ class ReceptionController extends AbstractController {
                 }
                 $totalQuantities[$rra->getId()] += $article['quantite'];
             }
+
             foreach($totalQuantities as $rraId => $totalQuantity) {
                 $rra = $receptionReferenceArticleRepository->find($rraId);
 
                 // protection quantité reçue <= quantité à recevoir
                 if($totalQuantity > $rra->getQuantiteAR() || $totalQuantity < 0) {
-                    return new JsonResponse(false);
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'Erreur, la quantité reçue doit être inférieure ou égale à la quantité à recevoir.'
+                    ]);
                 }
                 $rra->setQuantite($totalQuantity);
             }
@@ -1924,43 +1927,63 @@ class ReceptionController extends AbstractController {
                 $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
                 $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
 
-                $demande = $demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
-                $entityManager->persist($demande);
+                $demande = $demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
+                if ($demande instanceof Demande) {
+                    $entityManager->persist($demande);
 
-                if ($createDirectDelivery) {
-                    $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true);
-                    $preparation = $demande->getPreparations()->first();
+                    if ($createDirectDelivery) {
+                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true);
+                        if ($validateResponse['success']) {
+                            $preparation = $demande->getPreparations()->first();
 
-                    /** @var Utilisateur $currentUser */
-                    $currentUser = $this->getUser();
-                    $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
+                            /** @var Utilisateur $currentUser */
+                            $currentUser = $this->getUser();
+                            $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
 
-                    $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-                    $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation);
-                    $entityManager->persist($delivery);
-                    $locationEndPreparation = $demande->getDestination();
+                            $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+                            $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation);
+                            $entityManager->persist($delivery);
+                            $locationEndPreparation = $demande->getDestination();
 
-                    $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, $articlesNotPicked);
-                    $preparationsManagerService->closePreparationMouvement($preparation, $dateEnd, $locationEndPreparation);
+                            $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, $articlesNotPicked);
+                            $preparationsManagerService->closePreparationMouvement($preparation, $dateEnd, $locationEndPreparation);
 
-                    $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
-                    $mouvements = $mouvementRepository->findByPreparation($preparation);
-                    $entityManager->flush();
+                            $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+                            $mouvements = $mouvementRepository->findByPreparation($preparation);
+                            $entityManager->flush();
 
-                    foreach ($mouvements as $mouvement) {
-                        $preparationsManagerService->createMouvementLivraison(
-                            $mouvement->getQuantity(),
-                            $currentUser,
-                            $delivery,
-                            !empty($mouvement->getRefArticle()),
-                            $mouvement->getRefArticle() ?? $mouvement->getArticle(),
-                            $preparation,
-                            false,
-                            $locationEndPreparation
-                        );
+                            foreach ($mouvements as $mouvement) {
+                                $preparationsManagerService->createMouvementLivraison(
+                                    $mouvement->getQuantity(),
+                                    $currentUser,
+                                    $delivery,
+                                    !empty($mouvement->getRefArticle()),
+                                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                                    $preparation,
+                                    false,
+                                    $locationEndPreparation
+                                );
+                            }
+                        }
                     }
                 }
-            } else if ($needCreateTransfer) {
+
+                if (!isset($demande)
+                    || !($demande instanceof Demande)) {
+                    if (isset($demande)
+                        && is_array($demande)) {
+                        $errorData = $demande;
+                    }
+                    else {
+                        $errorData = [
+                            'success' => false,
+                            'msg' => 'Erreur lors de la création de la demande de livraison.'
+                        ];
+                    }
+                    return new JsonResponse($errorData);
+                }
+            }
+            else if ($needCreateTransfer) {
                 $toTreatRequest = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
                 $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
                 $origin = $emplacementRepository->find($data['origin']);
@@ -2052,11 +2075,11 @@ class ReceptionController extends AbstractController {
             foreach($emergencies as $article) {
                 $ref = $article->getReceptionReferenceArticle()->getReferenceArticle();
 
-                $mailContent = $this->render('mails/contents/mailArticleUrgentReceived.html.twig', [
+                $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
                     'emergency' => $ref->getEmergencyComment(),
                     'article' => $article,
                     'title' => 'Votre article urgent a bien été réceptionné.',
-                ])->getContent();
+                ]);
 
                 $destinataires = '';
                 $userThatTriggeredEmergency = $ref->getUserThatTriggeredEmergency();

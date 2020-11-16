@@ -29,7 +29,6 @@ use Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Error\LoaderError;
@@ -258,14 +257,14 @@ class DemandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @param bool $fromNomade
      * @param FreeFieldService $champLibreService
-     * @return Demande|array|JsonResponse
+     * @return Demande|array
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      * @throws Exception
      */
-    public function newDemande($data, EntityManagerInterface $entityManager, bool $fromNomade = false, FreeFieldService $champLibreService)
+    public function newDemande($data, EntityManagerInterface $entityManager, FreeFieldService $champLibreService, bool $fromNomade = false)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -285,7 +284,10 @@ class DemandeLivraisonService
                 }
             }
             if (!$requiredCreate) {
-                return new JsonResponse(['success' => false, 'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL]);
+                return [
+                    'success' => false,
+                    'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL
+                ];
             }
         }
         $utilisateur = $data['demandeur'] instanceof Utilisateur ? $data['demandeur'] : $utilisateurRepository->find($data['demandeur']);
@@ -361,35 +363,39 @@ class DemandeLivraisonService
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         if ($fromNomade) {
-            /**
-             * @var Demande $demande
-             */
-            $demande = $this->newDemande($demandeArray, $entityManager, $fromNomade, $champLibreService);
-            /**
-             * Liste des références sous le format :
-             * [
-             *    'barCode' => REF123456789,
-             *    'quantity-to-pick' => 12
-             * ]
-             */
-            $references = $demandeArray['references'];
-            foreach ($references as $reference) {
-                $referenceArticle = $referenceArticleRepository->findOneBy([
-                    'barCode' => $reference['barCode']
-                ]);
-                $this->refArticleDataService->addRefToDemand(
-                    $reference,
-                    $referenceArticle,
-                    $demandeArray['demandeur'],
-                    true,
-                    $entityManager,
-                    $demande,
-                    $champLibreService
-                );
+            $demande = $this->newDemande($demandeArray, $entityManager, $champLibreService, $fromNomade);
+            if ($demande instanceof Demande) {
+                /**
+                 * Liste des références sous le format :
+                 * [
+                 *    'barCode' => REF123456789,
+                 *    'quantity-to-pick' => 12
+                 * ]
+                 */
+                $references = $demandeArray['references'];
+                foreach ($references as $reference) {
+                    $referenceArticle = $referenceArticleRepository->findOneBy([
+                        'barCode' => $reference['barCode']
+                    ]);
+                    $this->refArticleDataService->addRefToDemand(
+                        $reference,
+                        $referenceArticle,
+                        $demandeArray['demandeur'],
+                        true,
+                        $entityManager,
+                        $demande,
+                        $champLibreService
+                    );
+                }
             }
-        } else {
+            else {
+                return $demande;
+            }
+        }
+        else {
             $demande = $demandeRepository->find($demandeArray['demande']);
         }
+
         $response = [];
         $response['success'] = true;
         $response['msg'] = '';

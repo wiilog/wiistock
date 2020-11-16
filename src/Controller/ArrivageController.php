@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Annotation\Authenticated;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
