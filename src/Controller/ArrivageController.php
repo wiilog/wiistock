@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Annotation\Authenticated;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
@@ -57,6 +56,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Throwable;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -222,6 +222,7 @@ class ArrivageController extends AbstractController
      * @param ArrivageDataService $arrivageDataService
      * @param FreeFieldService $champLibreService
      * @param PackService $colisService
+     * @param TranslatorInterface $translator
      * @return Response
      * @throws LoaderError
      * @throws NoResultException
@@ -236,7 +237,8 @@ class ArrivageController extends AbstractController
                         UserService $userService,
                         ArrivageDataService $arrivageDataService,
                         FreeFieldService $champLibreService,
-                        PackService $colisService): Response
+                        PackService $colisService,
+                        TranslatorInterface $translator): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
@@ -322,17 +324,16 @@ class ArrivageController extends AbstractController
                     $arrivage->addAcheteur($userRepository->find($acheteurId));
                 }
             }
+            $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
 
             try {
-                // persist and flush in function below
-                $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
+                $entityManager->flush();
             }
-
-                /** @noinspection PhpRedundantCatchClauseInspection */
+            /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([
                     'success' => false,
-                    'msg' => "Une création d'arrivage était déjà en cours, veuillez réessayer."
+                    'msg' => $translator->trans('arrivage.Un autre arrivage est en cours de création, veuillez réessayer') . '.'
                 ]);
             }
 
@@ -435,11 +436,15 @@ class ArrivageController extends AbstractController
                     'fieldsParam' => $fieldsParam,
                     'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT)
                 ]);
-            } else {
+            }
+            else {
                 $html = '';
             }
 
-            return new JsonResponse(['html' => $html, 'acheteurs' => $acheteursUsernames]);
+            return new JsonResponse([
+                'html' => $html,
+                'acheteurs' => $acheteursUsernames
+            ]);
         }
         throw new BadRequestHttpException();
     }
@@ -873,7 +878,7 @@ class ArrivageController extends AbstractController
         try {
             $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
             $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
         }
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
@@ -1039,6 +1044,7 @@ class ArrivageController extends AbstractController
      * @param LitigeService $litigeService
      * @param EntityManagerInterface $entityManager
      * @param UniqueNumberService $uniqueNumberService
+     * @param TranslatorInterface $translator
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
@@ -1048,7 +1054,8 @@ class ArrivageController extends AbstractController
                               ArrivageDataService $arrivageDataService,
                               LitigeService $litigeService,
                               EntityManagerInterface $entityManager,
-                              UniqueNumberService $uniqueNumberService): Response
+                              UniqueNumberService $uniqueNumberService,
+                              TranslatorInterface $translator): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
@@ -1122,12 +1129,22 @@ class ArrivageController extends AbstractController
             }
 
             $this->persistAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
-            $entityManager->flush();
+            try {
+                $entityManager->flush();
+            }
+            /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => $translator->trans('arrivage.Un autre litige d\'arrivage est en cours de création, veuillez réessayer').'.'
+                ]);
+            }
 
             $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_ARRIVAGE);
+
             $response = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage')) ?? [];
             $response['success'] = true;
-
+            $response['msg'] = 'Le litige <strong>' . $litige->getNumeroLitige() . '</strong> a bien été créé.';
             return new JsonResponse($response);
         }
         throw new BadRequestHttpException();

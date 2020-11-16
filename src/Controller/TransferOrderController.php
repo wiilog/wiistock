@@ -13,13 +13,13 @@ use App\Entity\TransferRequest;
 use App\Entity\Article;
 use App\Entity\Utilisateur;
 use App\Helper\Stream;
-use App\Service\MouvementStockService;
 use App\Service\TransferOrderService;
 use DateTime;
 use App\Service\CSVExportService;
 use App\Service\UserService;
 
 use DateTimeZone;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -104,8 +104,6 @@ class TransferOrderController extends AbstractController {
 
             $statutRepository = $entityManager->getRepository(Statut::class);
 
-            $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-
             $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
             $toTreatRequest = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
 
@@ -132,7 +130,17 @@ class TransferOrderController extends AbstractController {
 
             $transferOrder = $transferOrderService->createTransferOrder($entityManager, $toTreatOrder, $transferRequest);
             $entityManager->persist($transferOrder);
-            $entityManager->flush();
+
+            try {
+                $entityManager->flush();
+            }
+            /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Un autre ordre de transfert est en cours de création, veuillez réessayer.'
+                ]);
+            }
 
             return new JsonResponse([
                 'success' => true,
@@ -245,7 +253,6 @@ class TransferOrderController extends AbstractController {
      * @Route("/supprimer/{id}", name="transfer_order_delete", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param MouvementStockService $mouvementStockService
      * @param TransferOrderService $transferOrderService
      * @param TransferOrder $transferOrder
      * @return Response
@@ -254,7 +261,6 @@ class TransferOrderController extends AbstractController {
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
-                           MouvementStockService $mouvementStockService,
                            TransferOrderService $transferOrderService,
                            TransferOrder $transferOrder): Response
     {

@@ -27,6 +27,7 @@ use App\Service\HandlingService;
 
 use DateTime;
 use DateTimeZone;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -220,7 +221,16 @@ class HandlingController extends AbstractController
             }
 
             $entityManager->persist($handling);
-            $entityManager->flush();
+            try {
+                $entityManager->flush();
+            }
+            /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => $translator->trans('services.Une autre demande de service est en cours de création, veuillez réessayer').'.'
+                ]);
+            }
 
             $handlingService->sendEmailsAccordingToStatus($handling, !$status->isTreated());
 

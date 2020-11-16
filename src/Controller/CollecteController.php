@@ -23,6 +23,7 @@ use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
 use App\Service\FreeFieldService;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -235,6 +236,7 @@ class CollecteController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function new(Request $request,
                         FreeFieldService $freeFieldService,
@@ -250,7 +252,7 @@ class CollecteController extends AbstractController
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
             $numero = 'C-' . $date->format('YmdHis');
@@ -268,8 +270,20 @@ class CollecteController extends AbstractController
                 ->setObjet(substr($data['Objet'], 0, 255))
                 ->setCommentaire($data['commentaire'])
                 ->setstockOrDestruct($destination);
+
             $entityManager->persist($collecte);
-            $entityManager->flush();
+
+            try {
+                $entityManager->flush();
+            }
+            /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Une autre demande de collecte est en cours de création, veuillez réessayer.'
+                ]);
+            }
+
             $freeFieldService->manageFreeFields($collecte, $data, $entityManager);
             $entityManager->flush();
             $data = [
@@ -530,7 +544,7 @@ class CollecteController extends AbstractController
 
 				$type = $typeRepository->find($data['type']);
 				$collecte
-					->setDate(new \DateTime($data['date-collecte']))
+					->setDate(new DateTime($data['date-collecte']))
 					->setCommentaire($data['commentaire'])
 					->setObjet(substr($data['objet'], 0, 255))
 					->setPointCollecte($pointCollecte)

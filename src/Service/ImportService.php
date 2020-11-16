@@ -24,6 +24,7 @@ use App\Entity\Utilisateur;
 use App\Exceptions\ImportException;
 use App\Helper\Stream;
 use DateTimeZone;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
@@ -32,8 +33,10 @@ use Doctrine\ORM\ORMException;
 use Doctrine\ORM\TransactionRequiredException;
 use Exception;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
@@ -69,6 +72,7 @@ class ImportService
     private $attachmentService;
     private $receptionService;
     private $articleFournisseurService;
+    private $translator;
 
     /** @var Import */
     private $currentImport;
@@ -82,7 +86,8 @@ class ImportService
                                 RefArticleDataService $refArticleDataService,
                                 ArticleFournisseurService $articleFournisseurService,
                                 ReceptionService $receptionService,
-                                MouvementStockService $mouvementStockService)
+                                MouvementStockService $mouvementStockService,
+                                TranslatorInterface $translator)
     {
 
         $this->templating = $templating;
@@ -96,6 +101,7 @@ class ImportService
         $this->attachmentService = $attachmentService;
         $this->articleFournisseurService = $articleFournisseurService;
         $this->receptionService = $receptionService;
+        $this->translator = $translator;
     }
 
     /**
@@ -136,7 +142,7 @@ class ImportService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function dataRowImport($import)
+    public function dataRowImport(Import $import)
     {
         $importId = $import->getId();
         $url['edit'] = $this->router->generate('fournisseur_edit', ['id' => $importId]);
@@ -363,7 +369,7 @@ class ImportService
      * @param array $stats
      * @param bool $needsUnitClear
      * @param array $receptionsWithCommand
-     * @param Utilisateur $user
+     * @param Utilisateur|null $user
      * @param int $rowIndex
      * @return array
      * @throws ImportException
@@ -430,6 +436,9 @@ class ImportService
 
             if ($throwable instanceof ImportException) {
                 $message = $throwable->getMessage();
+            }
+            else if ($throwable instanceof UniqueConstraintViolationException) {
+                $message = 'Une autre entité est en cours de création, veuillez réessayer.';
             } else {
                 $message = 'Une erreur est survenue.';
                 $file = $throwable->getFile();
@@ -438,7 +447,6 @@ class ImportService
                 $trace = $throwable->getTraceAsString();
                 $importId = $this->currentImport->getId();
                 $this->logger->error("IMPORT ERROR : import n°$importId | $logMessage | File $file($line) | $trace");
-                throw $throwable;
             }
 
             $stats['errors']++;
@@ -464,7 +472,7 @@ class ImportService
      * @param array $corresp
      * @return array
      */
-    private function getDataToCheck($entity, $corresp)
+    private function getDataToCheck(string $entity, array $corresp)
     {
         switch ($entity) {
             case Import::ENTITY_FOU:
@@ -661,7 +669,6 @@ class ImportService
     /**
      * @param array $logRows
      * @return string
-     * @throws NonUniqueResultException
      */
     private function buildLogFile(array $logRows)
     {
@@ -682,7 +689,6 @@ class ImportService
     /**
      * @param array $logRows
      * @return Attachment
-     * @throws NonUniqueResultException
      */
     private function persistLogFilePieceJointe(array $logRows)
     {
@@ -821,6 +827,7 @@ class ImportService
      * @param array $receptionsWithCommand
      * @param Utilisateur|null $user
      * @param array $stats
+     * @return JsonResponse
      * @throws NonUniqueResultException
      * @throws ImportException
      */
@@ -1053,7 +1060,6 @@ class ImportService
      * @param int $rowIndex
      * @return ReferenceArticle
      * @throws ImportException
-     * @throws NonUniqueResultException
      * @throws Exception
      */
     private function importArticleEntity(array $data,
@@ -1170,7 +1176,10 @@ class ImportService
      * @param array $row
      * @throws ImportException
      */
-    private function checkAndSetChampsLibres($colChampsLibres, $refOrArt, $isNewEntity, $row)
+    private function checkAndSetChampsLibres(array $colChampsLibres,
+                                             $refOrArt,
+                                             bool $isNewEntity,
+                                             array $row)
     {
         $champLibreRepository = $this->em->getRepository(FreeField::class);
         $missingCL = [];
@@ -1306,7 +1315,7 @@ class ImportService
      * @param string $ref
      * @return Fournisseur
      */
-    private function checkAndCreateProvider($ref)
+    private function checkAndCreateProvider(string $ref)
     {
         $fournisseurRepository = $this->em->getRepository(Fournisseur::class);
         $provider = $fournisseurRepository->findOneBy(['codeReference' => $ref]);
@@ -1438,7 +1447,7 @@ class ImportService
      * @param array $stats
      * @param boolean $newEntity
      */
-    private function updateStats(&$stats, $newEntity)
+    private function updateStats(array &$stats, bool $newEntity)
     {
         if ($newEntity) {
             $stats['news']++;

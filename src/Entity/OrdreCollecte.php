@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -36,7 +37,7 @@ class OrdreCollecte
     private $utilisateur;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, unique=true)
      */
     private $numero;
 
@@ -119,24 +120,24 @@ class OrdreCollecte
         return $this;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getDate(): ?DateTimeInterface
     {
         return $this->date;
     }
 
-    public function setDate(\DateTimeInterface $date): self
+    public function setDate(DateTimeInterface $date): self
     {
         $this->date = $date;
 
         return $this;
     }
 
-    public function getTreatingDate(): ?\DateTimeInterface
+    public function getTreatingDate(): ?DateTimeInterface
     {
         return $this->treatingDate;
     }
 
-    public function setTreatingDate(\DateTimeInterface $date): self
+    public function setTreatingDate(DateTimeInterface $date): self
     {
         $this->treatingDate = $date;
 

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
+use App\Entity\Demande;
 use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
@@ -56,12 +57,14 @@ use App\Service\UserService;
 use App\Service\FreeFieldService;
 use DateTime;
 use DateTimeZone;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
 use Doctrine\ORM\NoResultException;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
+use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -155,25 +158,40 @@ class ReceptionController extends AbstractController {
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $champLibreService
+     * @param ReceptionService $receptionService
+     * @param AttachmentService $attachmentService
      * @param Request $request
+     * @param TranslatorInterface $translator
      * @return Response
      * @throws NonUniqueResultException
-     * @throws Exception
+     * @throws ReflectionException
      */
     public function new(EntityManagerInterface $entityManager,
                         FreeFieldService $champLibreService,
                         ReceptionService $receptionService,
                         AttachmentService $attachmentService,
-                        Request $request): Response {
+                        Request $request,
+                        TranslatorInterface $translator): Response {
         if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
             return $this->redirectToRoute('access_denied');
         }
 
         if ($request->isXmlHttpRequest() && $data = $request->request->all()) {
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+            $reception = $receptionService->createAndPersistReception($entityManager, $currentUser, $data);
 
-            $reception = $receptionService->createAndPersistReception($entityManager, $this->getUser(), $data);
+            try {
+                $entityManager->flush();
+            }
+            /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => $translator->trans('réception.Une autre réception est en cours de création, veuillez réessayer').'.'
+                ]);
+            }
 
-            $entityManager->flush();
 
             $champLibreService->manageFreeFields($reception, $data, $entityManager);
             $attachmentService->manageAttachments($entityManager, $reception, $request->files);
@@ -198,7 +216,8 @@ class ReceptionController extends AbstractController {
      * @param AttachmentService $attachmentService
      * @param Request $request
      * @return Response
-     * @throws \ReflectionException
+     * @throws ReflectionException
+     * @throws Exception
      */
     public function edit(EntityManagerInterface $entityManager,
                          FreeFieldService $champLibreService,
@@ -1197,6 +1216,7 @@ class ReceptionController extends AbstractController {
      * @param ArticleDataService $articleDataService
      * @param Request $request
      * @param UniqueNumberService $uniqueNumberService
+     * @param TranslatorInterface $translator
      * @return Response
      * @throws NonUniqueResultException
      * @throws Exception
@@ -1205,7 +1225,8 @@ class ReceptionController extends AbstractController {
                               LitigeService $litigeService,
                               ArticleDataService $articleDataService,
                               Request $request,
-                              UniqueNumberService $uniqueNumberService): Response
+                              UniqueNumberService $uniqueNumberService,
+                              TranslatorInterface $translator): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::QUALI, Action::CREATE)) {
@@ -1266,7 +1287,17 @@ class ReceptionController extends AbstractController {
             }
 
             $entityManager->persist($litige);
-            $entityManager->flush();
+
+            try {
+                $entityManager->flush();
+            }
+            /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => $translator->trans('réception.Un autre litige de réception est en cours de création, veuillez réessayer').'.'
+                ]);
+            }
 
             $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
@@ -1565,7 +1596,6 @@ class ReceptionController extends AbstractController {
      * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -1621,7 +1651,6 @@ class ReceptionController extends AbstractController {
      * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -1826,13 +1855,13 @@ class ReceptionController extends AbstractController {
      * @param MouvementStockService $mouvementStockService
      * @param PreparationsManagerService $preparationsManagerService
      * @param LivraisonsManagerService $livraisonsManagerService
-     * @param UniqueNumberService $uniqueNumberService
      * @return Response
      * @throws LoaderError
      * @throws NegativeQuantityException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function newWithPacking(Request $request,
                                    TransferRequestService $transferRequestService,
@@ -1845,8 +1874,7 @@ class ReceptionController extends AbstractController {
                                    TrackingMovementService $trackingMovementService,
                                    MouvementStockService $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
-                                   LivraisonsManagerService $livraisonsManagerService,
-                                   UniqueNumberService $uniqueNumberService): Response {
+                                   LivraisonsManagerService $livraisonsManagerService): Response {
 
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
         /** @var Utilisateur $currentUser */
@@ -1871,12 +1899,16 @@ class ReceptionController extends AbstractController {
                 }
                 $totalQuantities[$rra->getId()] += $article['quantite'];
             }
+
             foreach($totalQuantities as $rraId => $totalQuantity) {
                 $rra = $receptionReferenceArticleRepository->find($rraId);
 
                 // protection quantité reçue <= quantité à recevoir
                 if($totalQuantity > $rra->getQuantiteAR() || $totalQuantity < 0) {
-                    return new JsonResponse(false);
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'Erreur, la quantité reçue doit être inférieure ou égale à la quantité à recevoir.'
+                    ]);
                 }
                 $rra->setQuantite($totalQuantity);
             }
@@ -1895,43 +1927,63 @@ class ReceptionController extends AbstractController {
                 $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
                 $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
 
-                $demande = $demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
-                $entityManager->persist($demande);
+                $demande = $demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
+                if ($demande instanceof Demande) {
+                    $entityManager->persist($demande);
 
-                if ($createDirectDelivery) {
-                    $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true);
-                    $preparation = $demande->getPreparations()->first();
+                    if ($createDirectDelivery) {
+                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true);
+                        if ($validateResponse['success']) {
+                            $preparation = $demande->getPreparations()->first();
 
-                    /** @var Utilisateur $currentUser */
-                    $currentUser = $this->getUser();
-                    $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
+                            /** @var Utilisateur $currentUser */
+                            $currentUser = $this->getUser();
+                            $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
 
-                    $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-                    $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation);
-                    $entityManager->persist($delivery);
-                    $locationEndPreparation = $demande->getDestination();
+                            $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+                            $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation);
+                            $entityManager->persist($delivery);
+                            $locationEndPreparation = $demande->getDestination();
 
-                    $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, $articlesNotPicked);
-                    $preparationsManagerService->closePreparationMouvement($preparation, $dateEnd, $locationEndPreparation);
+                            $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, $articlesNotPicked);
+                            $preparationsManagerService->closePreparationMouvement($preparation, $dateEnd, $locationEndPreparation);
 
-                    $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
-                    $mouvements = $mouvementRepository->findByPreparation($preparation);
-                    $entityManager->flush();
+                            $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+                            $mouvements = $mouvementRepository->findByPreparation($preparation);
+                            $entityManager->flush();
 
-                    foreach ($mouvements as $mouvement) {
-                        $preparationsManagerService->createMouvementLivraison(
-                            $mouvement->getQuantity(),
-                            $currentUser,
-                            $delivery,
-                            !empty($mouvement->getRefArticle()),
-                            $mouvement->getRefArticle() ?? $mouvement->getArticle(),
-                            $preparation,
-                            false,
-                            $locationEndPreparation
-                        );
+                            foreach ($mouvements as $mouvement) {
+                                $preparationsManagerService->createMouvementLivraison(
+                                    $mouvement->getQuantity(),
+                                    $currentUser,
+                                    $delivery,
+                                    !empty($mouvement->getRefArticle()),
+                                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                                    $preparation,
+                                    false,
+                                    $locationEndPreparation
+                                );
+                            }
+                        }
                     }
                 }
-            } else if ($needCreateTransfer) {
+
+                if (!isset($demande)
+                    || !($demande instanceof Demande)) {
+                    if (isset($demande)
+                        && is_array($demande)) {
+                        $errorData = $demande;
+                    }
+                    else {
+                        $errorData = [
+                            'success' => false,
+                            'msg' => 'Erreur lors de la création de la demande de livraison.'
+                        ];
+                    }
+                    return new JsonResponse($errorData);
+                }
+            }
+            else if ($needCreateTransfer) {
                 $toTreatRequest = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
                 $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
                 $origin = $emplacementRepository->find($data['origin']);
@@ -1940,6 +1992,7 @@ class ReceptionController extends AbstractController {
                 /** @var Utilisateur $requester */
                 $requester = $this->getUser();
                 $request = $transferRequestService->createTransferRequest($entityManager, $toTreatRequest, $origin, $destination, $requester);
+
                 $request
                     ->setReception($reception)
                     ->setValidationDate($now);
@@ -1948,6 +2001,17 @@ class ReceptionController extends AbstractController {
 
                 $entityManager->persist($request);
                 $entityManager->persist($order);
+
+                try {
+                    $entityManager->flush();
+                }
+                /** @noinspection PhpRedundantCatchClauseInspection */
+                catch (UniqueConstraintViolationException $e) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'Une autre demande de transfert est en cours de création, veuillez réessayer.'
+                    ]);
+                }
             }
 
             $receptionLocation = $reception->getLocation();
@@ -2011,11 +2075,11 @@ class ReceptionController extends AbstractController {
             foreach($emergencies as $article) {
                 $ref = $article->getReceptionReferenceArticle()->getReferenceArticle();
 
-                $mailContent = $this->render('mails/contents/mailArticleUrgentReceived.html.twig', [
+                $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
                     'emergency' => $ref->getEmergencyComment(),
                     'article' => $article,
                     'title' => 'Votre article urgent a bien été réceptionné.',
-                ])->getContent();
+                ]);
 
                 $destinataires = '';
                 $userThatTriggeredEmergency = $ref->getUserThatTriggeredEmergency();
@@ -2169,7 +2233,6 @@ class ReceptionController extends AbstractController {
      * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */

@@ -1067,6 +1067,10 @@ class ApiController extends AbstractFOSRestController {
             $champLibreService
         );
 
+        $responseAfterQuantitiesCheck['nomadMessage'] = $responseAfterQuantitiesCheck['nomadMessage']
+            ?? $responseAfterQuantitiesCheck['msg']
+            ?? '';
+
         return new JsonResponse($responseAfterQuantitiesCheck);
     }
 
@@ -1133,19 +1137,14 @@ class ApiController extends AbstractFOSRestController {
                 if($articleToInventory instanceof ReferenceArticle) {
                     $inventoryEntry->setRefArticle($articleToInventory);
                     $isAnomaly = ($inventoryEntry->getQuantity() !== $articleToInventory->getQuantiteStock());
-                    $inventoryEntry->setAnomaly($isAnomaly);
-
-                    if(!$isAnomaly) {
-                        $articleToInventory->setDateLastInventory($newDate);
-                    }
                 } else {
                     $inventoryEntry->setArticle($articleToInventory);
                     $isAnomaly = ($inventoryEntry->getQuantity() !== $articleToInventory->getQuantite());
-                    $inventoryEntry->setAnomaly($isAnomaly);
+                }
+                $inventoryEntry->setAnomaly($isAnomaly);
 
-                    if(!$isAnomaly) {
-                        $articleToInventory->setDateLastInventory($newDate);
-                    }
+                if(!$isAnomaly) {
+                    $articleToInventory->setDateLastInventory($newDate);
                 }
                 $entityManager->persist($inventoryEntry);
 

@@ -443,41 +443,6 @@ function clearCheckboxes($modal) {
     });
 }
 
-/**
- *
- * @param {string} message
- * @param {'danger'|'success'} color
- * @param {boolean = true} remove
- */
-function showBSAlert(message, color, remove = true) {
-    if ((typeof message === 'string') && message) {
-        const $alertContainer = $('#alerts-container');
-        const $alert = $('#alert-template')
-            .clone()
-            .removeAttr('id')
-            .addClass(`alert-${color}`)
-            .removeClass('d-none')
-            .addClass('d-flex');
-
-        $alert
-            .find('.content')
-            .html(message);
-
-        $alertContainer.html($alert);
-
-        if (remove) {
-            $alert
-                .delay(3000)
-                .fadeOut(2000);
-            setTimeout(() => {
-                if ($alert.parent().length) {
-                    $alert.remove();
-                }
-            }, 5000);
-        }
-    }
-}
-
 function saveFilters(page, tableSelector, callback) {
     let path = Routing.generate('filter_sup_new');
 

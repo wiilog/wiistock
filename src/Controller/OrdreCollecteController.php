@@ -24,6 +24,7 @@ use App\Service\UserService;
 
 use DateTime;
 use DateTimeZone;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
@@ -59,7 +60,6 @@ class OrdreCollecteController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
         $collecteRepository = $entityManager->getRepository(Collecte::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $demandeCollecte = $demandId ? $collecteRepository->find($demandId) : null;
@@ -131,6 +131,7 @@ class OrdreCollecteController extends AbstractController
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \Exception
      */
     public function finish(Request $request,
                            OrdreCollecte $ordreCollecte,
@@ -248,6 +249,7 @@ class OrdreCollecteController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
+     * @throws \Exception
      */
     public function new(Collecte $demandeCollecte,
                         UserService $userService,
@@ -279,6 +281,7 @@ class OrdreCollecteController extends AbstractController
             $entityManager->persist($ordreCollecteReference);
             $ordreCollecte->addOrdreCollecteReference($ordreCollecteReference);
         }
+
         $entityManager->persist($ordreCollecte);
 
         // on modifie statut + date validation de la demande
@@ -288,7 +291,13 @@ class OrdreCollecteController extends AbstractController
 			)
             ->setValidationDate($date);
 
-        $entityManager->flush();
+        try {
+            $entityManager->flush();
+        }
+        /** @noinspection PhpRedundantCatchClauseInspection */
+        catch (UniqueConstraintViolationException $e) {
+            $this->addFlash('danger', 'Un autre ordre de collecte est en cours de création, veuillez réessayer.');
+        }
 
         return $this->redirectToRoute('collecte_show', [
             'id' => $demandeCollecte->getId(),
@@ -508,7 +517,6 @@ class OrdreCollecteController extends AbstractController
      * @return Response
      *
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
