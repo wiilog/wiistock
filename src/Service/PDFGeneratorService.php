@@ -212,8 +212,9 @@ Class PDFGeneratorService
     public function getBarcodeFileName(array $barcodeConfigs, string $name): string
     {
         $barcodeCounter = count($barcodeConfigs);
+        // remove / and \ in filename
         $smartBarcodeLabel = $barcodeCounter === 1
-            ? str_replace('/', '', $barcodeConfigs[0]['code'] ?: '')
+            ? str_replace(['/', '\\'], '', $barcodeConfigs[0]['code'] ?: '')
             : '';
 
         return (
