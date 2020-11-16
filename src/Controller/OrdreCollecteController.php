@@ -296,9 +296,9 @@ class OrdreCollecteController extends AbstractController
         }
         /** @noinspection PhpRedundantCatchClauseInspection */
         catch (UniqueConstraintViolationException $e) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => 'Un autre ordre de collecte est en cours de création, veuillez réessayer.'
+            $this->addFlash('danger', 'Un autre ordre de collecte est en cours de création, veuillez réessayer.');
+            return $this->redirectToRoute('collecte_show', [
+                'id' => $demandeCollecte->getId()
             ]);
         }
 

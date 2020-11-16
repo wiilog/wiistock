@@ -438,7 +438,7 @@ class ImportService
                 $message = $throwable->getMessage();
             }
             else if ($throwable instanceof UniqueConstraintViolationException) {
-                $message = 'Une autre entité en cours de création, veuillez réessayer.';
+                $message = 'Une autre entité est en cours de création, veuillez réessayer.';
             } else {
                 $message = 'Une erreur est survenue.';
                 $file = $throwable->getFile();

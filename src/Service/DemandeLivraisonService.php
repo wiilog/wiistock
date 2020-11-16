@@ -263,6 +263,7 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function newDemande($data, EntityManagerInterface $entityManager, bool $fromNomade = false, FreeFieldService $champLibreService)
     {
@@ -288,7 +289,7 @@ class DemandeLivraisonService
             }
         }
         $utilisateur = $data['demandeur'] instanceof Utilisateur ? $data['demandeur'] : $utilisateurRepository->find($data['demandeur']);
-        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $destination = $emplacementRepository->find($data['destination']);
 
@@ -313,7 +314,7 @@ class DemandeLivraisonService
             $demande->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER));
             if (isset($data['needPrepa']) && $data['needPrepa']) {
                 $entityManager->persist($demande);
-                $this->validateDLAfterCheck($entityManager, $demande);
+                return $this->validateDLAfterCheck($entityManager, $demande);
             }
         }
         return $demande;
@@ -327,7 +328,7 @@ class DemandeLivraisonService
      */
     private function generateNumeroForNewDL(EntityManagerInterface $entityManager)
     {
-        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $prefixeNomDemandeRepository = $entityManager->getRepository(PrefixeNomDemande::class);
 
@@ -441,6 +442,7 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function validateDLAfterCheck(EntityManagerInterface $entityManager,
                                          Demande $demande,
@@ -495,30 +497,13 @@ class DemandeLivraisonService
             $preparation->addLigneArticlePreparation($lignesArticlePreparation);
         }
 
-
-        $requestPersisted = false;
-        $tryCounter = 0;
-        do {
-            $tryCounter++;
-            try {
-                $entityManager->flush();
-                $requestPersisted = true;
-            }
-                /** @noinspection PhpRedundantCatchClauseInspection */
-            catch (UniqueConstraintViolationException $e) {
-                if (!$entityManager->isOpen()) {
-                    $entityManager = $entityManager->create($entityManager->getConnection(), $entityManager->getConfiguration());
-                }
-                // recalcul du num
-                $number = $this->preparationsManager->generateNumber($preparation->getDate(), $entityManager);
-                $preparation->setNumero($number);
-            }
+        try {
+            $entityManager->flush();
         }
-        while (!$requestPersisted && $tryCounter < 5);
-
-        if (!$requestPersisted) {
+        /** @noinspection PhpRedundantCatchClauseInspection */
+        catch (UniqueConstraintViolationException $e) {
             $response['success'] = false;
-            $response['msg'] = $response['nomadMessage'] = 'Impossible de créer la préparation, veuillez rééssayer ultérieurement';
+            $response['msg'] = 'Une autre préparation est en cours de création, veuillez réessayer.';
             return $response;
         }
 
