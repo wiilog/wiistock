@@ -34,7 +34,7 @@ $(function () {
             {"data": 'Numéro de commande', 'name': 'numCommande', 'title': 'Numéro commande'},
             {"data": 'receiver', 'name': 'receiver', 'title': 'Destinataire(s)', orderable: false},
             {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
-            {"data": 'Référence', 'name': 'reference', 'title': 'réception.n° de réception', translated: true},
+            {"data": 'numeroReception', 'name': 'reference', 'title': 'réception.n° de réception', translated: true},
             {"data": 'Statut', 'name': 'statut', 'title': 'Statut'},
             {"data": 'storageLocation', 'name': 'storageLocation', 'title': 'Emplacement de stockage'},
             {"data": 'Commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
