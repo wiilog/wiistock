@@ -195,7 +195,7 @@ class ReceptionService
                     ->toArray())
             ),
             "numeroReception" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
-            "Numéro de commande" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
+            "orderNumber" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
             "storageLocation" => ($reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : ''),
             "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
             'Actions' => $this->templating->render(

@@ -23,8 +23,6 @@ class ReceptionRepository extends ServiceEntityRepository
     private const DtToDbLabels = [
         'Date' => 'date',
         'DateFin' => 'dateFinReception',
-        'Numéro de commande' => 'numeroReception',
-        'orderNumber' => 'orderNumber',
         'Commentaire' => 'commentaire',
         'Statut' => 'statut',
         'Fournisseur' => 'fournisseur',
@@ -230,7 +228,8 @@ class ReceptionRepository extends ServiceEntityRepository
                     $order = $sort['dir'];
                     if (!empty($order))
                     {
-                        $column = self::DtToDbLabels[$params->get('columns')[$sort['column']]['data']];
+                        $columnName = $params->get('columns')[$sort['column']]['data'];
+                        $column = self::DtToDbLabels[$columnName] ?? $columnName;
                         if ($column === 'statut') {
                             $qb
                                 ->leftJoin('r.statut', 's2')
@@ -243,7 +242,7 @@ class ReceptionRepository extends ServiceEntityRepository
                             $qb
                                 ->leftJoin('r.storageLocation', 'join_storageLocation')
                                 ->addOrderBy('join_storageLocation.label', $order);
-                        } else {
+                        } else if (property_exists(Reception::class, $column)) {
                             $qb
                                 ->addOrderBy('r.' . $column, $order);
                         }
