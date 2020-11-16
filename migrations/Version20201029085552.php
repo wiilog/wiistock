@@ -50,6 +50,24 @@ final class Version20201029085552 extends AbstractMigration {
         "Commentaire" => "comment"
     ];
 
+    private const ARRIVALS = [
+        'Date' => 'date',
+        'NumeroArrivage' => 'arrivalNumber',
+        'Transporteur' => 'carrier',
+        'Chauffeur' => 'driver',
+        'NoTracking' => 'trackingCarrierNumber',
+        'NumeroCommandeList' => 'orderNumber',
+        'Fournisseur' => 'provider',
+        'Destinataire' => 'receiver',
+        'Acheteurs' => 'buyers',
+        'NbUM' => 'nbUm',
+        'Statut' => 'status',
+        'Utilisateur' => 'user',
+        'Duty' => 'custom',
+        'Frozen' => 'frozen',
+        'Urgent' => 'emergency'
+    ];
+
     private $ff;
 
     public function up(Schema $schema): void {
@@ -64,7 +82,7 @@ final class Version20201029085552 extends AbstractMigration {
             $articles = $this->adapt(self::ARTICLES, Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT, $user["columns_visible_for_article"]);
             $dispatch = $this->adapt(null, Utilisateur::COL_VISIBLE_DISPATCH_DEFAULT, $user["columns_visible_for_dispatch"]);
             $trackingMovement = $this->adapt(null, Utilisateur::COL_VISIBLE_TRACKING_MOVEMENT_DEFAULT, $user["columns_visible_for_tracking_movement"]);
-            $arrival = $this->adapt(null, Utilisateur::COL_VISIBLE_ARR_DEFAULT, $user["columns_visible_for_arrivage"]);
+            $arrival = $this->adapt(self::ARRIVALS, Utilisateur::COL_VISIBLE_ARR_DEFAULT, $user["columns_visible_for_arrivage"]);
             $dispute = $this->adapt(null, Utilisateur::COL_VISIBLE_LIT_DEFAULT, $user["columns_visible_for_litige"]);
 
             $referencesStr = ($references && $references !== 'null') ? "'$references'" : 'NULL';

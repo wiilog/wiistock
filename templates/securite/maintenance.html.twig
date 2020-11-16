@@ -1,9 +1,29 @@
-{% extends 'base.html.twig' %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="5" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Site en maintenance</title>
 
-{% block title %}Site en maintenance{% endblock %}
-
-{% block body %}
-    <div class="alert alert-danger">
-        SITE EN MAINTENANCE. MERCI DE PATIENTER.
-    </div>
-{% endblock %}
+    <link rel="shortcut icon" href="{{ asset('img/favicon.ico') }}">
+    <style>
+        div {
+            vertical-align: baseline;
+            padding: .75rem 1.25rem;
+            background-color: #f5cccc;
+            border: 1px solid #f1b8b8;
+            border-radius: .25rem;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            color: #6a0000;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="alert alert-danger">
+    SITE EN MAINTENANCE. MERCI DE PATIENTER.
+</div>
+</body>
+</html>

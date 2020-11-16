@@ -15,7 +15,7 @@ use Throwable;
 
 class ExceptionLoggerService {
 
-    const DEFAULT_LOGGER_URL = "http://logger.follow-gt.fr/api/log";
+    const DEFAULT_LOGGER_URL = "https://logger.follow-gt.fr/api/log";
 
     private $security;
     private $client;
@@ -26,8 +26,8 @@ class ExceptionLoggerService {
     }
 
     public function sendLog(Throwable $throwable, Request $request) {
-        $env = $_SERVER['APP_ENV'];
-        if ($env === 'dev') {
+        $env = $_SERVER["APP_ENV"];
+        if ($env === "dev") {
             return;
         }
 
@@ -70,10 +70,17 @@ class ExceptionLoggerService {
         }
 
         try {
-            $appUrl = $_SERVER["APP_URL"] ?? null;
-            $instance = $_SERVER["APP_INSTANCE"] ?? $appUrl;
+            $url = $_SERVER["APP_URL"] ?? null;
+            $instance = $_SERVER["APP_INSTANCE"] ?? $url;
+
+            if(!empty($_SERVER["APP_LOGGER"])) {
+                $logger = $_SERVER["APP_LOGGER"];
+            } else {
+                $logger = self::DEFAULT_LOGGER_URL;
+            }
+
             if ($instance) {
-                $this->client->request("POST", $_SERVER["APP_LOGGER"] ?? self::DEFAULT_LOGGER_URL, [
+                $this->client->request("POST", $logger, [
                     "body" => [
                         "instance" => $instance,
                         "context" => [
@@ -82,7 +89,7 @@ class ExceptionLoggerService {
                             "locale" => $_SERVER["APP_LOCALE"] ?? null,
                             "client" => $_SERVER["APP_CLIENT"] ?? null,
                             "dashboard_token" => $_SERVER["APP_DASHBOARD_TOKEN"] ?? null,
-                            "url" => $appUrl ?? null,
+                            "url" => $url ?? null,
                             "forbidden_phones" => $_SERVER["APP_FORBIDDEN_PHONES"] ?? null,
                         ],
                         "user" => $user,
