@@ -27,6 +27,7 @@
                                         <a href="{{ attachment.fullPath is defined and attachment.fullPath is not null
                                                         ? attachment.fullPath
                                                         : '/uploads/attachements/' ~ attachment.fileName }}"
+                                           download="{{ attachment.originalName }}"
                                            target="_blank">
                                             <i class="fas fa-file"></i> {{ attachment.originalName }}
                                         </a>

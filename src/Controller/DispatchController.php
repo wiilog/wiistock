@@ -499,7 +499,8 @@ class DispatchController extends AbstractController {
         $dispatch = $dispatchRepository->find($post->get('id'));
 
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT) ||
-            !$dispatch->getStatut()->isTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_UNPROCESSED_DISPATCH)) {
+            $dispatch->getStatut()->isDraft() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_DRAFT_DISPATCH) ||
+            $dispatch->getStatut()->isNotTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_UNPROCESSED_DISPATCH)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -1510,7 +1511,7 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/{dispatch}/rollback-draft", name="rollback_draft", methods="GET")
+     * @Route("/{dispatch}/rollback-draft", name="rollback_draft", methods="GET")z
      * @param EntityManagerInterface $entityManager
      * @param Dispatch $dispatch
      * @return Response
