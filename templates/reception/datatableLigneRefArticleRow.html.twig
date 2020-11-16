@@ -28,7 +28,7 @@
                    href="{{ path('reception_ligne_article_bar_code_print', {reception: receptionId, ligneArticle: ligneId}) }}">
                     <i class="fas fa-print mr-2"></i>Imprimer
                 </a>
-            {% else %}
+            {% elseif (ligneArticleQuantity > 0)%}
                 <div class="dropdown-item"
                      onclick='openModalArticlesFromLigneArticle({{ ligneId }})'>
                     <i class="fas fa-list mr-2"></i>Voir les articles

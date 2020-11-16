@@ -403,6 +403,7 @@ class ReceptionController extends AbstractController {
                         'reception/datatableLigneRefArticleRow.html.twig',
                         [
                             'ligneId' => $ligneArticle->getId(),
+                            'ligneArticleQuantity' => $ligneArticle->getQuantite(),
                             'receptionId' => $reception->getId(),
                             'showPrint' => $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE,
                             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
