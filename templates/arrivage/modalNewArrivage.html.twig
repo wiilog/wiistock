@@ -182,12 +182,12 @@
                     <div class="form-group col-4">
                         <label for="type">Type*</label>
                         {% set uniqueType = typesArrival|length == 1 %}
-                        <select class="form-control input-sm data needed needs-default"
+                        <select class="form-control input-sm data needed {{ uniqueType ? 'needs-default' }}"
                                 id="type"
                                 name="type"
                                 onchange="onTypeChange($(this))"
                                 {{ uniqueType ? 'disabled' }}
-                                {{ uniqueType ? ('data-init="' ~ (typesArrival|first).id ~ '"') }}>
+                                {{ uniqueType ? ('data-init="' ~ (typesArrival|first).id ~ '"')|raw }}>
                             {% if uniqueType %}
                                 <option value="{{ (typesArrival|first).id }}">{{ (typesArrival|first).label }}</option>
                             {% else %}
@@ -201,17 +201,18 @@
 
                     <div class="form-group col-4">
                         <label>Statut*</label>
-                        <select class="needs-default form-control input-sm data needed needs-default"
-                                {% if uniqueType and defaultStatuses|length > 0%}
+                        {% set hasDefaultStatus = uniqueType and defaultStatuses|length > 0 %}
+                        <select class="form-control input-sm data needed {{ hasDefaultStatus ? 'needs-default' }}"
+                                name="status"
+                                {% if hasDefaultStatus %}
                                     data-init="{{ defaultStatuses[(typesArrival|first).id] }}"
-                                {% endif %}
-                                name="status">
+                                {% endif %}>
                             <option value="">Choisir un statut...</option>
                             {% for status in statuses %}
                                 <option class="d-none"
                                         data-type-id="{{ status.type.id }}"
                                         value="{{ status.id }}"
-                                        {{ defaultStatuses|length > 0 and uniqueType and defaultStatuses[(typesArrival|first).id] == status.id ? 'selected' }}>
+                                        {{ hasDefaultStatus and defaultStatuses[(typesArrival|first).id] == status.id ? 'selected' }}>
                                     {{ status.nom }}
                                 </option>
                             {% endfor %}
