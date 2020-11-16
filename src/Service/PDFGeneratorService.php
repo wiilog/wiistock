@@ -212,11 +212,14 @@ Class PDFGeneratorService
     public function getBarcodeFileName(array $barcodeConfigs, string $name): string
     {
         $barcodeCounter = count($barcodeConfigs);
+        $smartBarcodeLabel = $barcodeCounter === 1
+            ? str_replace('/', '', $barcodeConfigs[0]['code'] ?: '')
+            : '';
 
         return (
             PDFGeneratorService::PREFIX_BARCODE_FILENAME . '_' .
             $name .
-            ($barcodeCounter === 1 ? ('_' . $barcodeConfigs[0]['code']) : '') .
+            (($barcodeCounter === 1 && !empty($smartBarcodeLabel)) ? ('_' . $smartBarcodeLabel) : '') .
             '.pdf'
         );
     }
