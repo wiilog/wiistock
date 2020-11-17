@@ -40,6 +40,7 @@ class VisibleColumnService {
                         "data" => $freeFieldName,
                         "name" => $freeFieldName,
                         "isColumnVisible" => $visible,
+                        "searchable" => true,
                         "type" => $freeField['typage'],
                     ];
                 },

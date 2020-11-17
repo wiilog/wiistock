@@ -719,20 +719,20 @@ class ArticleDataService
 
         $fieldConfig = [
             ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
-            ["title" => "Libellé", "name" => "label"],
-            ["title" => "Référence article", "name" => "articleReference"],
-            ["title" => "Référence fournisseur", "name" => "supplierReference"],
-            ["title" => "Code barre", "name" => "barCode"],
-            ["title" => "Type", "name" => "type"],
-            ["title" => "Statut", "name" => "status"],
-            ["title" => "Quantité", "name" => "quantity"],
-            ["title" => "Emplacement", "name" => "location"],
+            ["title" => "Libellé", "name" => "label", 'searchable' => true],
+            ["title" => "Référence article", "name" => "articleReference", 'searchable' => true],
+            ["title" => "Référence fournisseur", "name" => "supplierReference", 'searchable' => true],
+            ["title" => "Code barre", "name" => "barCode", 'searchable' => true],
+            ["title" => "Type", "name" => "type", 'searchable' => true],
+            ["title" => "Statut", "name" => "status", 'searchable' => true],
+            ["title" => "Quantité", "name" => "quantity", 'searchable' => true],
+            ["title" => "Emplacement", "name" => "location", 'searchable' => true],
             ["title" => "Prix unitaire", "name" => "unitPrice"],
             ["title" => "Dernier inventaire", "name" => "dateLastInventory"],
             ["title" => "Lot", "name" => "batch"],
             ["title" => "Date d'entrée en stock", "name" => "stockEntryDate"],
             ["title" => "Date d'expiration", "name" => "expiryDate"],
-            ["title" => "Commentaire", "name" => "comment"]
+            ["title" => "Commentaire", "name" => "comment", 'searchable' => true]
         ];
 
         return $this->visibleColumnService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getColumnsVisibleForArticle());

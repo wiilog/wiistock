@@ -498,6 +498,7 @@ class ArticleRepository extends EntityRepository {
                                     $ids[] = $idArray['id'];
                                 }
                                 break;
+                            case "articleReference":
                             case "reference":
                                 $subqb = $this->createQueryBuilder("a")
                                     ->select('a.id')
