@@ -40,6 +40,7 @@ class ReferenceArticleRepository extends EntityRepository {
         'emergency' => 'isUrgent',
         'mobileSync' => 'needsMobileSync',
         'lastInventory' => 'dateLastInventory',
+        'comment' => 'commentaire',
     ];
 
     public function getIdAndLibelle() {
