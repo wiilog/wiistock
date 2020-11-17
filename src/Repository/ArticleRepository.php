@@ -421,12 +421,11 @@ class ArticleRepository extends EntityRepository {
      * @param array|null $params
      * @param array $filters
      * @param Utilisateur $user
-     * @param array $freeFields
      * @return array
-     * @throws ORMException
-     * @throws OptimisticLockException
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function findByParamsAndFilters($params, $filters, $user, array $freeFields)
+    public function findByParamsAndFilters($params, $filters, $user)
     {
         $qb = $this->createQueryBuilder("a");
 
@@ -529,7 +528,7 @@ class ArticleRepository extends EntityRepository {
                                 if(is_numeric($freeFieldId)) {
                                     $query[] = "JSON_SEARCH(a.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                     $qb->setParameter("search", $search);
-                                } else {
+                                } else if (property_exists(Article::class, $field)) {
                                     $query[] = "a.$field LIKE :search";
                                     $qb->setParameter('search', $search);
                                 }

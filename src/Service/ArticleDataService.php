@@ -480,9 +480,7 @@ class ArticleDataService
             ]];
         }
 
-        $champs = $this->freeFieldService->getFreeFieldsById($this->entityManager, CategorieCL::ARTICLE, CategoryType::ARTICLE);
-
-        $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user, $champs);
+        $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user);
 
         $articles = $queryResult['data'];
         $listId = $queryResult['allArticleDataTable'];
