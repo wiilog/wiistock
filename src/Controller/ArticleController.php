@@ -187,6 +187,8 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/api", name="article_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function api(Request $request): Response
     {

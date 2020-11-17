@@ -483,11 +483,6 @@ class ArticleDataService
         $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user);
 
         $articles = $queryResult['data'];
-        $listId = $queryResult['allArticleDataTable'];
-        $articlesString = [];
-        foreach ($listId as $id) {
-            $articlesString[] = is_array($id) ? $id[0]->getId() : $id->getId();
-        }
 
         $rows = [];
         foreach ($articles as $article) {
@@ -497,8 +492,7 @@ class ArticleDataService
         return [
             'data' => $rows,
             'recordsFiltered' => $queryResult['count'],
-            'recordsTotal' => $articleRepository->countAll(),
-            'listId' => $articlesString,
+            'recordsTotal' => $articleRepository->countAll()
         ];
     }
 
