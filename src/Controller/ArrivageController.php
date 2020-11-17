@@ -1614,9 +1614,9 @@ class ArrivageController extends AbstractController
         }
 
         $printTwice = ($printTwiceIfCustoms && $arrivage->getCustoms());
+
         if($printTwice) {
-            $barcodeConfigs = Stream::from($barcodeConfigs)
-                ->concat($barcodeConfigs, $barcodeConfigs)
+            $barcodeConfigs = Stream::from($barcodeConfigs, $barcodeConfigs)
                 ->toArray();
         }
 
