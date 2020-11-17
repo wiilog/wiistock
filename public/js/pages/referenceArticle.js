@@ -122,13 +122,7 @@ function initTableRefArticle() {
                     }
                 },
                 length: 10,
-                columns: columns.map(function (column) {
-                    return {
-                        ...column,
-                        class: column.title === 'actions' ? 'noVis' : undefined,
-                        title: column.title === 'actions' ? '' : column.title
-                    }
-                }),
+                columns: columns,
                 drawConfig: {
                     needsResize: true
                 },
