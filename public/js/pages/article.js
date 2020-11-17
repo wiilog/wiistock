@@ -18,7 +18,6 @@ function initTableArticle() {
                 "url": pathArticle,
                 "type": "POST",
                 'dataSrc': function (json) {
-                    $('#listArticleIdToPrint').val(json.listId);
                     if (!$(".statutVisible").val()) {
                         tableArticle.column('Statut:name').visible(false);
                     }

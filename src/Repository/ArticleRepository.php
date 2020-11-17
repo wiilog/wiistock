@@ -444,7 +444,6 @@ class ArticleRepository extends EntityRepository {
 			}
 		}
 
-        $allArticleDataTable = null;
 		// prise en compte des paramètres issus du datatable
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
@@ -595,7 +594,6 @@ class ArticleRepository extends EntityRepository {
                 }
             }
 
-            $allArticleDataTable = $qb->getQuery();
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
@@ -603,7 +601,6 @@ class ArticleRepository extends EntityRepository {
 
         return [
             'data' => $query ? $query->getResult() : null,
-            'allArticleDataTable' => $allArticleDataTable ? $allArticleDataTable->getResult() : null,
             'count' => $countQuery,
             'total' => $countTotal
         ];
