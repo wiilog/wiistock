@@ -542,7 +542,11 @@ class ApiController extends AbstractFOSRestController {
                                 $totalQuantitiesWithRef[$refArticle->getReference()] += $mouvementNomade['quantity'];
                             }
                             $preparationsManager->treatMouvementQuantities($mouvementNomade, $preparation);
+                        }
 
+                        $articlesToKeep = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser, $entityManager);
+
+                        foreach ($mouvementsNomade as $mouvementNomade) {
                             $emplacement = $emplacementRepository->findOneByLabel($mouvementNomade['location']);
                             $preparationsManager->createMouvementLivraison(
                                 $mouvementNomade['quantity'],
@@ -555,8 +559,6 @@ class ApiController extends AbstractFOSRestController {
                                 $emplacement
                             );
                         }
-
-                        $articlesToKeep = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser, $entityManager);
 
                         foreach ($totalQuantitiesWithRef as $ref => $quantity) {
                             $refArticle = $referenceArticleRepository->findOneByReference($ref);
