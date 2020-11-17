@@ -78,10 +78,10 @@
                                     <i class="fas fa-times"></i>
                                 </button>
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
-                                {% if entityValue is defined and entityValue matches '{^\d{2}\/\d{2}\/\d{4}$}' %}
-                                    {% set entityValue = entityValue[4:4] ~ '-' ~ entityValue[2:2] ~ '-' ~ entityValue[:2] %}
+                                {% if entityValue is defined and entityValue matches '{^\\d{2}/\\d{2}/\\d{4}$}' %}
+                                    {% set entityValue = entityValue[6:4] ~ '-' ~ entityValue[3:2] ~ '-' ~ entityValue[:2] %}
                                 {% endif %}
-                                {% if entityValue is defined and entityValue matches '{^\d{4}-\d{2}-\d{2}$}' %}
+                                {% if entityValue is defined and entityValue matches '{^\\d{4}-\\d{2}-\\d{2}$}' %}
                                     {% set entityValue = entityValue | date('Y-m-d') %}
                                 {% else %}
                                     {% set entityValue = '' %}
