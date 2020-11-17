@@ -392,106 +392,118 @@ class ReferenceArticleRepository extends EntityRepository {
         }
 
         // prise en compte des paramètres issus du datatable
-        if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $searchValue = is_string($params->get('search')) ? $params->get('search') : $params->get('search')['value'];
-                if (!empty($searchValue)) {
-                    $search = "%$searchValue%";
-                    $ids = [];
-                    $query = [];
+        if (!empty($params) && !empty($params->get('search'))) {
+            $searchValue = is_string($params->get('search')) ? $params->get('search') : $params->get('search')['value'];
+            if (!empty($searchValue)) {
+                $search = "%$searchValue%";
+                $ids = [];
+                $query = [];
 
-                    foreach ($user->getRecherche() as $key => $searchField) {
-                        $searchField = self::DtToDbLabels[$searchField] ?? $searchField;
-                        switch ($searchField) {
-                            case "supplierLabel":
-                                $subqb = $em->createQueryBuilder()
-                                    ->select('ra.id')
-                                    ->from('App\Entity\ReferenceArticle', 'ra')
-                                    ->leftJoin('ra.articlesFournisseur', 'afra')
-                                    ->leftJoin('afra.fournisseur', 'fra')
-                                    ->andWhere('fra.nom LIKE :valueSearch')
-                                    ->setParameter('valueSearch', $search);
+                foreach ($user->getRecherche() as $key => $searchField) {
+                    $searchField = self::DtToDbLabels[$searchField] ?? $searchField;
+                    switch ($searchField) {
+                        case "supplierLabel":
+                            $subqb = $em->createQueryBuilder()
+                                ->select('ra.id')
+                                ->from('App\Entity\ReferenceArticle', 'ra')
+                                ->leftJoin('ra.articlesFournisseur', 'afra')
+                                ->leftJoin('afra.fournisseur', 'fra')
+                                ->andWhere('fra.nom LIKE :valueSearch')
+                                ->setParameter('valueSearch', $search);
 
-                                foreach ($subqb->getQuery()->execute() as $idArray) {
-                                    $ids[] = $idArray['id'];
-                                }
-                                break;
+                            foreach ($subqb->getQuery()->execute() as $idArray) {
+                                $ids[] = $idArray['id'];
+                            }
+                            break;
 
-                            case "supplierCode":
-                                $subqb = $em->createQueryBuilder()
-                                    ->select('ra.id')
-                                    ->from('App\Entity\ReferenceArticle', 'ra')
-                                    ->leftJoin('ra.articlesFournisseur', 'afra')
-                                    ->andWhere('afra.reference LIKE :valueSearch')
-                                    ->setParameter('valueSearch', $search);
+                        case "supplierCode":
+                            $subqb = $em->createQueryBuilder()
+                                ->select('ra.id')
+                                ->from('App\Entity\ReferenceArticle', 'ra')
+                                ->leftJoin('ra.articlesFournisseur', 'afra')
+                                ->andWhere('afra.reference LIKE :valueSearch')
+                                ->setParameter('valueSearch', $search);
 
-                                foreach ($subqb->getQuery()->execute() as $idArray) {
-                                    $ids[] = $idArray['id'];
-                                }
-                                break;
-                            case "managers":
-                                $subqb = $this->createQueryBuilder('referenceArticle');
-                                $subqb
-                                    ->select('referenceArticle.id')
-                                    ->leftJoin('referenceArticle.managers', 'managers')
-                                    ->andWhere('managers.username LIKE :username')
-                                    ->setParameter('username', $search);
+                            foreach ($subqb->getQuery()->execute() as $idArray) {
+                                $ids[] = $idArray['id'];
+                            }
+                            break;
+                        case "managers":
+                            $subqb = $this->createQueryBuilder('referenceArticle');
+                            $subqb
+                                ->select('referenceArticle.id')
+                                ->leftJoin('referenceArticle.managers', 'managers')
+                                ->andWhere('managers.username LIKE :username')
+                                ->setParameter('username', $search);
 
-                                foreach ($subqb->getQuery()->execute() as $idArray) {
-                                    $ids[] = $idArray['id'];
-                                }
-                                break;
-                            default:
-                                $freeFieldId = VisibleColumnService::extractFreeFieldId($searchField);
-                                if(is_numeric($freeFieldId)) {
-                                    $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
-                                    $qb->setParameter("search", $search);
-                                } else if (property_exists(ReferenceArticle::class, $searchField)) {
-                                    $query[] = "ra.$searchField LIKE :search";
-                                    $qb->setParameter('search', $search);
-                                }
-                                break;
-                        }
-                    }
-
-                    foreach ($ids as $id) {
-                        $query[] = 'ra.id  = ' . $id;
-                    }
-
-                    if (!empty($query)) {
-                        $qb->andWhere(implode(' OR ', $query));
+                            foreach ($subqb->getQuery()->execute() as $idArray) {
+                                $ids[] = $idArray['id'];
+                            }
+                            break;
+                        default:
+                            $freeFieldId = VisibleColumnService::extractFreeFieldId($searchField);
+                            if(is_numeric($freeFieldId)) {
+                                $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                $qb->setParameter("search", $search);
+                            } else if (property_exists(ReferenceArticle::class, $searchField)) {
+                                $query[] = "ra.$searchField LIKE :search";
+                                $qb->setParameter('search', $search);
+                            }
+                            break;
                     }
                 }
+
+                foreach ($ids as $id) {
+                    $query[] = 'ra.id  = ' . $id;
+                }
+
+                if (!empty($query)) {
+                    $qb->andWhere(implode(' OR ', $query));
+                }
             }
-            if (!empty($params->get('order'))) {
+        }
+
+        // compte éléments filtrés
+        $countQuery = QueryCounter::count($qb, "ra");
+
+        if (!empty($params) && !empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
                     $columnIndex = $params->get('order')[0]['column'];
                     $columnName = $params->get('columns')[$columnIndex]['data'];
                     $column = self::DtToDbLabels[$columnName] ?? $columnName;
 
+                    $orderAddSelect = [];
+
                     switch ($column) {
                         case "actions":
                             break;
                         case "supplier":
-                            $qb->leftJoin('ra.articlesFournisseur', 'afra')
-                                ->leftJoin('afra.fournisseur', 'fra')
-                                ->orderBy('fra.nom', $order);
+                            $orderAddSelect[] = 'order_supplier.nom';
+                            $qb
+                                ->leftJoin('ra.articlesFournisseur', 'order_articlesFournisseur')
+                                ->leftJoin('order_articlesFournisseur.fournisseur', 'order_supplier')
+                                ->orderBy('order_supplier.nom', $order);
                             break;
                         case "type":
-                            $qb->leftJoin('ra.type', 't')
-                                ->orderBy('t.label', $order);
+                            $orderAddSelect[] = 'order_type.label';
+                            $qb
+                                ->leftJoin('ra.type', 'order_type')
+                                ->orderBy('order_type.label', $order);
                             break;
                         case "location":
-                            $qb->leftJoin('ra.emplacement', 'e')
-                                ->orderBy('e.label', $order);
+                            $orderAddSelect[] = 'order_location.label';
+                            $qb
+                                ->leftJoin('ra.emplacement', 'order_location')
+                                ->orderBy('order_location.label', $order);
                             break;
                         case "status":
-                            $qb->leftJoin('ra.statut', 's')
-                                ->orderBy('s.nom', $order);
+                            $orderAddSelect[] = 'order_status.nom';
+                            $qb
+                                ->leftJoin('ra.statut', 'order_status')
+                                ->orderBy('order_status.nom', $order);
                             break;
                         default:
-
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
                             if(is_numeric($freeFieldId)) {
                                 $qb->orderBy("JSON_EXTRACT(ra.freeFields, '$.\"$freeFieldId\"')", $order);
@@ -502,18 +514,22 @@ class ReferenceArticleRepository extends EntityRepository {
                     }
                 }
             }
-        }
-        // compte éléments filtrés
 
-        $countQuery = QueryCounter::count($qb, "ra");
-
-        if (!empty($params)) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        if (!empty($params) && !empty($params->get('start'))) {
+            $qb->setFirstResult($params->get('start'));
         }
+        if (!empty($params) && !empty($params->get('length'))) {
+            $qb->setMaxResults($params->get('length'));
+        }
+
         $qb
             ->select('ra')
             ->distinct();
+
+        foreach ($orderAddSelect ?? [] as $addSelect) {
+            $qb->addSelect($addSelect);
+        }
+
         return [
             'data' => $qb->getQuery()->getResult(),
             'count' => $countQuery
