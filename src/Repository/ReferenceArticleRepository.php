@@ -400,6 +400,7 @@ class ReferenceArticleRepository extends EntityRepository {
                     $query = [];
 
                     foreach ($user->getRecherche() as $key => $searchField) {
+                        $searchField = self::DtToDbLabels[$searchField] ?? $searchField;
                         switch ($searchField) {
                             case "supplierLabel":
                                 $subqb = $em->createQueryBuilder()
