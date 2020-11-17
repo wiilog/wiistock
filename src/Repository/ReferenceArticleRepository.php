@@ -29,6 +29,19 @@ use Doctrine\ORM\QueryBuilder;
  */
 class ReferenceArticleRepository extends EntityRepository {
 
+    private const DtToDbLabels = [
+        'label' => 'libelle',
+        'quantityType' => 'typeQuantite',
+        'availableQuantity' => 'quantiteDisponible',
+        'stockQuantity' => 'quantiteStock',
+        'securityThreshold' => 'limitSecurity',
+        'warningThreshold' => 'limitWarning',
+        'unitPrice' => 'prixUnitaire',
+        'emergency' => 'isUrgent',
+        'mobileSync' => 'needsMobileSync',
+        'lastInventory' => 'dateLastInventory',
+    ];
+
     public function getIdAndLibelle() {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -451,7 +464,9 @@ class ReferenceArticleRepository extends EntityRepository {
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $columnIndex = $params->get('order')[0]['column'];
+                    $columnName = $params->get('columns')[$columnIndex]['data'];
+                    $column = self::DtToDbLabels[$columnName] ?? $columnName;
 
                     switch ($column) {
                         case "actions":
@@ -472,9 +487,6 @@ class ReferenceArticleRepository extends EntityRepository {
                         case "status":
                             $qb->leftJoin('ra.statut', 's')
                                 ->orderBy('s.nom', $order);
-                            break;
-                        case "unitPrice":
-                            $qb->orderBy('ra.prixUnitaire', $order);
                             break;
                         default:
 

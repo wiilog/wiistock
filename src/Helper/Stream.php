@@ -204,7 +204,7 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         return $this;
     }
 
-    public function join($glue = ", "): string {
+    public function join($glue): string {
         $result = "";
 
         $last = array_key_last($this->elements);

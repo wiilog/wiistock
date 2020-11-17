@@ -62,8 +62,8 @@ class RefArticleDataService {
         ["title" => "Dernier inventaire", "name" => "lastInventory", "type" => "date"],
         ["title" => "Gestion de stock", "name" => "stockManagement", "type" => "text", "searchable" => true],
         ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
-        ["title" => "Commentaire", "name" => "comment", "type" => "text"],
-        ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text"]
+        ["title" => "Commentaire", "name" => "comment", "type" => "text", "orderable" => false],
+        ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text", "orderable" => false]
     ];
 
     /**
@@ -433,7 +433,7 @@ class RefArticleDataService {
                     return !empty($username);
                 })
                 ->unique()
-                ->join(),
+                ->join(", "),
             "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 "reference_id" => $refArticle->getId(),
                 "active" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
