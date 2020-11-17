@@ -179,6 +179,44 @@ class Preparation
         return $this->mouvements;
     }
 
+    /**
+     * @param Article $article
+     * @return null|MouvementStock
+     */
+    public function getArticleMovement(Article $article): ?MouvementStock
+    {
+        $foundMovement = null;
+        /** @var MouvementStock $movement */
+        foreach ($this->getMouvements() as $movement) {
+            $movementArticle = $movement->getArticle();
+            if (isset($movementArticle)
+                && $movementArticle->getId() === $article->getId()) {
+                $foundMovement = $movement;
+                break;
+            }
+        }
+        return $foundMovement;
+    }
+
+    /**
+     * @param ReferenceArticle $referenceArticle
+     * @return null|MouvementStock
+     */
+    public function getReferenceArticleMovement(ReferenceArticle $referenceArticle): ?MouvementStock
+    {
+        $foundMovement = null;
+        /** @var MouvementStock $movement */
+        foreach ($this->getMouvements() as $movement) {
+            $movementRefArticle = $movement->getRefArticle();
+            if (isset($movementRefArticle)
+                && $movementRefArticle->getId() === $referenceArticle->getId()) {
+                $foundMovement = $movement;
+                break;
+            }
+        }
+        return $foundMovement;
+    }
+
     public function addMouvement(MouvementStock $mouvement): self
     {
         if (!$this->mouvements->contains($mouvement)) {

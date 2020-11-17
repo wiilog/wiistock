@@ -288,18 +288,23 @@ class PreparationsManagerService
                 ? $article
                 : $referenceArticleRepository->findOneByReference($article);
             if ($refArticle) {
+                /** @var MouvementStock $preparationMovement */
+                $preparationMovement = $preparation->getReferenceArticleMovement($refArticle);
                 $mouvement
                     ->setRefArticle($refArticle)
-                    ->setQuantity($mouvementRepository->findOneByRefAndPrepa($refArticle->getId(), $preparation->getId())->getQuantity());
+                    ->setQuantity($preparationMovement->getQuantity());
             }
         } else {
             $article = ($article instanceof Article)
                 ? $article
                 : $articleRepository->findOneByReference($article);
             if ($article) {
+                /** @var MouvementStock $preparationMovement */
+                $preparationMovement = $preparation->getArticleMovement($article);
+
                 /** @var MouvementStock $stockMovement */
                 $stockMovement = !$isSelectedByArticle
-                    ? $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId())
+                    ? ($preparationMovement ?: null)
                     : null;
                 // si c'est un article sélectionné par l'utilisateur :
                 // on prend la quantité donnée dans le mouvement
@@ -418,14 +423,12 @@ class PreparationsManagerService
                                                   Utilisateur $user,
                                                   EntityManagerInterface $entityManager): array
     {
-        $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $articlesSplittedToKeep = [];
-        // modification des articles de la demande
 
         $articles = $preparation->getArticles();
         foreach ($articles as $article) {
-            $mouvementAlreadySaved = $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId());
+            $mouvementAlreadySaved = $preparation->getArticleMovement($article);
             if (!$mouvementAlreadySaved) {
                 $quantitePrelevee = $article->getQuantitePrelevee();
                 $selected = !(empty($quantitePrelevee));
@@ -490,7 +493,7 @@ class PreparationsManagerService
         // création des mouvements de préparation pour les articles de référence
         foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
             $articleRef = $ligneArticle->getReference();
-            $mouvementAlreadySaved = $mouvementRepository->findOneByRefAndPrepa($articleRef->getId(), $preparation->getId());
+            $mouvementAlreadySaved = $preparation->getReferenceArticleMovement($articleRef);
             if (!$mouvementAlreadySaved && !empty($ligneArticle->getQuantitePrelevee())) {
                 if ($articleRef->getQuantiteStock() >= $ligneArticle->getQuantitePrelevee()) {
                     $mouvement = new MouvementStock();
