@@ -223,7 +223,16 @@ class MouvementStock
 
     public function setPreparationOrder(?Preparation $preparationOrder): self
     {
+        $oldPreparationOrder = $this->preparationOrder;
         $this->preparationOrder = $preparationOrder;
+
+        if (isset($oldPreparationOrder) && $oldPreparationOrder !== $preparationOrder) {
+            $oldPreparationOrder->removeMouvement($this);
+        }
+
+        if (isset($this->preparationOrder)) {
+            $this->preparationOrder->addMouvement($this);
+        }
 
         return $this;
     }

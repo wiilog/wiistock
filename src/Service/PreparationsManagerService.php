@@ -268,7 +268,6 @@ class PreparationsManagerService
     {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
-        $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
 
         $mouvement = new MouvementStock();
         $mouvement
