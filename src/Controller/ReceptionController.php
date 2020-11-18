@@ -814,7 +814,6 @@ class ReceptionController extends AbstractController {
                 $receptionLocation = $reception->getLocation();
                 $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
-
                 if($diffReceivedQuantity != 0) {
                     $newRefQuantity = $referenceArticle->getQuantiteStock() + $diffReceivedQuantity;
                     if($newRefQuantity - $referenceArticle->getQuantiteReservee() < 0) {
@@ -1669,18 +1668,6 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/ajouter_lot", name="add_lot", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function addLot(Request $request) {
-        if($request->isXmlHttpRequest()) {
-            return new JsonResponse($this->renderView('reception/modalConditionnementRow.html.twig'));
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/apiArticle", name="article_by_reception_api", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
@@ -2105,6 +2092,7 @@ class ReceptionController extends AbstractController {
                         $destinataires
                     );
                 }
+
                 $ref
                     ->setIsUrgent(false)
                     ->setUserThatTriggeredEmergency(null)

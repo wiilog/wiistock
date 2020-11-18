@@ -8,12 +8,11 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class RefArticleQuantityNotifier {
 
-    private $manager;
     private $refArticleService;
     private $entityManager;
 
-    public function __construct(EntityManagerInterface $manager, RefArticleDataService $refArticleDataService) {
-        $this->manager = $manager;
+    public function __construct(EntityManagerInterface $entityManager, RefArticleDataService $refArticleDataService) {
+        $this->entityManager = $entityManager;
         $this->refArticleService = $refArticleDataService;
     }
 
@@ -26,13 +25,13 @@ class RefArticleQuantityNotifier {
     }
 
     private function handleReference(ReferenceArticle $referenceArticle) {
-        if ($this->manager->isOpen()) {
+        if ($this->entityManager->isOpen()) {
             $this->refArticleService->treatAlert($referenceArticle);
-            $this->manager->flush();
+            $this->entityManager->flush();
 
             $available = $referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee();
             $referenceArticle->setQuantiteDisponible($available);
-            $this->manager->flush();
+            $this->entityManager->flush();
         }
     }
 

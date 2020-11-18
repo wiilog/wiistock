@@ -72,26 +72,22 @@ services:
 
     App\EventListener\ExceptionLoggerListener:
         tags:
-            - { name: kernel.event_listener, event: kernel.exception }
+            - { name: 'kernel.event_listener', event: 'kernel.exception' }
 
-    ref_article_listener:
-        class: App\EventListener\RefArticleQuantityNotifier
+    App\EventListener\RefArticleQuantityNotifier:
         tags:
-            - { name: doctrine.orm.entity_listener, event: postPersist, lazy: true, entity: App\Entity\ReferenceArticle }
-            - { name: doctrine.orm.entity_listener, event: postUpdate, lazy: true, entity: App\Entity\ReferenceArticle }
-    article_listener:
-        class: App\EventListener\ArticleQuantityNotifier
+            - { name: 'doctrine.orm.entity_listener', event: 'postPersist', lazy: true, entity: 'App\Entity\ReferenceArticle' }
+            - { name: 'doctrine.orm.entity_listener', event: 'postUpdate', lazy: true, entity: 'App\Entity\ReferenceArticle' }
+    App\EventListener\ArticleQuantityNotifier:
         tags:
-            - { name: doctrine.orm.entity_listener, event: postPersist, lazy: true, entity: App\Entity\Article }
-            - { name: doctrine.orm.entity_listener, event: postUpdate, lazy: true, entity: App\Entity\Article }
-            - { name: doctrine.orm.entity_listener, event: postRemove, lazy: true, entity: App\Entity\Article }
+            - { name: 'doctrine.orm.entity_listener', event: 'postPersist', lazy: true, entity: 'App\Entity\Article' }
+            - { name: 'doctrine.orm.entity_listener', event: 'postUpdate', lazy: true, entity: 'App\Entity\Article' }
+            - { name: 'doctrine.orm.entity_listener', event: 'postRemove', lazy: true, entity: 'App\Entity\Article' }
 
-    tracking_movement_listener:
-        class: App\EventListener\TrackingMovementListener
+    App\EventListener\TrackingMovementListener:
         tags:
-            - { name: doctrine.orm.entity_listener, event: preRemove, lazy: true, entity: App\Entity\TrackingMovement }
+            - { name: 'doctrine.orm.entity_listener', event: 'preRemove', lazy: true, entity: 'App\Entity\TrackingMovement' }
 
-    annotation_listener:
-        class: App\EventListener\AuthenticationListener
+    App\EventListener\AuthenticationListener:
         tags:
-            - { name: kernel.event_listener, event: kernel.controller_arguments, method: onRequest }
+            - { name: 'kernel.event_listener', event: 'kernel.controller_arguments', method: 'onRequest' }
