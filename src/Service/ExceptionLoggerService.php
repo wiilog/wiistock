@@ -10,6 +10,10 @@ use Symfony\Component\ErrorHandler\Exception\FlattenException;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Throwable;
 
@@ -19,10 +23,21 @@ class ExceptionLoggerService {
 
     private $security;
     private $client;
+    private $serializer;
 
     public function __construct(Security $security, HttpClientInterface $client) {
         $this->security = $security;
         $this->client = $client;
+
+        $encoder = new JsonEncoder();
+        $defaultContext = [
+            AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object) {
+                return $object->getId();
+            },
+        ];
+        $normalizer = new ObjectNormalizer(null, null, null, null, null, null, $defaultContext);
+
+        $this->serializer = new Serializer([$normalizer], [$encoder]);
     }
 
     public function sendLog(Throwable $throwable, Request $request) {
@@ -93,8 +108,8 @@ class ExceptionLoggerService {
                             "forbidden_phones" => $_SERVER["APP_FORBIDDEN_PHONES"] ?? null,
                         ],
                         "user" => $user,
-                        "request" => serialize($this->normalizeRequest($request)),
-                        "exceptions" => serialize($exceptions),
+                        "request" => $this->serializer->serialize($this->normalizeRequest($request), "json"),
+                        "exceptions" => $this->serializer->serialize($exceptions, "json"),
                         "time" => (new DateTime())->format("d-m-Y H:i:s"),
                     ],
                 ]);
