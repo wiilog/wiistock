@@ -392,6 +392,16 @@ class ReceptionController extends AbstractController {
                     );
                 }
 
+                $isReferenceTypeLinked = (
+                    isset($referenceArticle)
+                    && ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
+                );
+
+                $isArticleTypeLinked = (
+                    isset($referenceArticle)
+                    && ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
+                );
+
                 $rows[] = [
                     "Référence" => (isset($referenceArticle) ? $referenceArticle->getReference() : ''),
                     "Commande" => ($ligneArticle->getCommande() ? $ligneArticle->getCommande() : ''),
@@ -405,10 +415,10 @@ class ReceptionController extends AbstractController {
                             'ligneId' => $ligneArticle->getId(),
                             'ligneArticleQuantity' => $ligneArticle->getQuantite(),
                             'receptionId' => $reception->getId(),
-                            'showPrint' => $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+                            'isReferenceTypeLinked' => $isReferenceTypeLinked,
+                            'isArticleTypeLinked' => $isArticleTypeLinked,
                             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
-                            'packFilter' => (isset($referenceArticle) ? $referenceArticle->getBarCode() : ''),
-                            'showTrackingMovementsLink' => isset($referenceArticle) && ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
+                            'packFilter' => (isset($referenceArticle) ? $referenceArticle->getBarCode() : '')
                         ]
                     ),
                 ];
