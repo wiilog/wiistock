@@ -24,11 +24,11 @@ class ArrivageRepository extends EntityRepository
 {
     private const DtToDbLabels = [
         'creationDate' => 'date',
-        'arrivalNumber' => 'arrivalNumber',
+        'arrivalNumber' => 'numeroArrivage',
         'carrier' => 'carrier',
         'driver' => 'driver',
-        'trackingCarrierNumber' => 'trackingCarrierNumber',
-        'orderNumber' => 'orderNumber',
+        'trackingCarrierNumber' => 'noTracking',
+        'orderNumber' => 'numeroCommandeList',
         'provider' => 'provider',
         'receiver' => 'receiver',
         'buyers' => 'buyers',
@@ -36,9 +36,9 @@ class ArrivageRepository extends EntityRepository
         'status' => 'status',
         'user' => 'user',
         'type' => 'type',
-        'custom' => 'custom',
+        'custom' => 'customs',
         'frozen' => 'frozen',
-        'emergency' => 'emergency',
+        'emergency' => 'isUrgent',
         'projectNumber' => 'projectNumber',
         'businessUnit' => 'businessUnit'
     ];
@@ -139,6 +139,12 @@ class ArrivageRepository extends EntityRepository
             ]);
     }
 
+    /**
+     * @param $fournisseurId
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function countByFournisseur($fournisseurId)
     {
         $em = $this->getEntityManager();
@@ -151,6 +157,12 @@ class ArrivageRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
+    /**
+     * @param $chauffeur
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function countByChauffeur($chauffeur)
     {
         $em = $this->getEntityManager();
@@ -247,12 +259,11 @@ class ArrivageRepository extends EntityRepository
      * @param array|null $params
      * @param array|null $filters
      * @param int|null $userId
-     * @param $freeFieldLabelsToIds
      * @return array
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function findByParamsAndFilters($params, $filters, $userId, $freeFieldLabelsToIds)
+    public function findByParamsAndFilters($params, $filters, $userId)
     {
         $qb = $this->createQueryBuilder("a");
 
@@ -298,11 +309,13 @@ class ArrivageRepository extends EntityRepository
                         ->setParameter('transporteurId', $value);
                     break;
                 case 'dateMin':
-                    $qb->andWhere('a.date >= :dateMin')
+                    $qb
+                        ->andWhere('a.date >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . " 00:00:00");
                     break;
                 case 'dateMax':
-                    $qb->andWhere('a.date <= :dateMax')
+                    $qb
+                        ->andWhere('a.date <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
                 case 'emergency':
@@ -368,6 +381,8 @@ class ArrivageRepository extends EntityRepository
                 }
             }
 
+            $filtered = QueryCounter::count($qb, 'a');
+
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
@@ -382,15 +397,6 @@ class ArrivageRepository extends EntityRepository
                         $qb
                             ->leftJoin('a.chauffeur', 'c2')
                             ->orderBy('c2.nom', $order);
-                    } else if ($column === 'arrivalNumber') {
-                        $qb
-                            ->orderBy('a.numeroArrivage', $order);
-                    } else if ($column === 'trackingCarrierNumber') {
-                        $qb
-                            ->orderBy('a.noTracking', $order);
-                    } else if ($column === 'orderNumber') {
-                        $qb
-                            ->orderBy('a.numeroCommandeList', $order);
                     } else if ($column === 'type') {
                         $qb
                             ->leftJoin('a.type', 'order_type')
@@ -411,9 +417,6 @@ class ArrivageRepository extends EntityRepository
                         $qb
                             ->leftJoin('a.utilisateur', 'u2')
                             ->orderBy('u2.username', $order);
-                    } else if ($column === 'custom') {
-                        $qb
-                            ->orderBy('a.customs', $order);
                     } else if ($column === 'nbUm') {
                         $qb
                             ->addSelect('count(col2.id) as hidden nbum')
@@ -435,8 +438,6 @@ class ArrivageRepository extends EntityRepository
                 }
             }
         }
-
-        $filtered = QueryCounter::count($qb, 'a');
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
