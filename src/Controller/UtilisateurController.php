@@ -273,6 +273,9 @@ class UtilisateurController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            /** @var Utilisateur $loggedUser */
+            $loggedUser = $this->getUser();
+
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -320,9 +323,7 @@ class UtilisateurController extends AbstractController
 			}
 
             //vérification que l'user connecté ne se désactive pas
-            if (($data['id']) == $this->getUser()->getId() &&
-                $utilisateur->getStatus() == true &&
-                $data['status'] == 'inactive') {
+            if ($utilisateur->getId() === $loggedUser->getId() && $data['status'] == 0) {
 				return new JsonResponse([
 						'success' => false,
 						'msg' => 'Vous ne pouvez pas désactiver votre propre compte.',
@@ -416,10 +417,25 @@ class UtilisateurController extends AbstractController
             $entityManager->persist($utilisateur);
             $entityManager->flush();
 
-            return new JsonResponse([
-                'success' => true,
-                'msg' => 'L\'utilisateur <strong>' . $utilisateur->getUsername() . '</strong> a bien été modifié.'
-            ]);
+            if ($utilisateur->getId() != $loggedUser->getId()) {
+                return new JsonResponse([
+                    'success' => true,
+                    'msg' => 'L\'utilisateur <strong>' . $utilisateur->getUsername() . '</strong> a bien été modifié.'
+                ]);
+            } else {
+                if ($this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
+                    return new JsonResponse([
+                        'success' => true,
+                        'msg' => 'Vous avez bien modifié votre compte utilisateur.'
+                    ]);
+                } else {
+                    return new JsonResponse([
+                        'success' => true,
+                        'msg' => 'Vous avez bien modifié votre rôle utilisateur.',
+                        'redirect' => $this->generateUrl('access_denied')
+                    ]);
+                }
+            }
         }
         throw new BadRequestHttpException();
     }
