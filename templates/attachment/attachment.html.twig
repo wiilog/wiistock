@@ -18,9 +18,9 @@
 <div class="file-bag"></div>
 
 {% if isNew != true %}
-    {% for pj in attachments %}
-        {% set pjName = pj.fileName %}
-        {% set originalName = pj.originalName %}
-        {% include 'attachment/attachmentLine.html.twig' %}
+    {% for attachment in attachments %}
+        {% include 'attachment/attachmentLine.html.twig' with {
+            attachment: attachment
+        } %}
     {% endfor %}
 {% endif %}

@@ -1,8 +1,14 @@
 <p class="attachement">
-    <input class="data" type="hidden" name="savedFiles[]" value="{{ pj.id }}">
-    <a target="_blank" href="{{ pj.fullPath is defined and pj.fullPath is not null ? pj.fullPath : '/uploads/attachements/' ~ pjName }}"
+    {% if attachment is defined %}
+        <input class="data"
+               type="hidden"
+               name="savedFiles[]"
+               value="{{ attachment.id }}"/>
+    {% endif %}
+    <a target="_blank"
+       href="{{ attachment.fullPath is defined and attachment.fullPath is not null ? attachment.fullPath : '/uploads/attachements/' ~ attachment.fileName }}"
        download="{{ attachment.originalName }}">
-        <i class="fa fa-file mr-2"></i>{{ originalName }}
+        <i class="fa fa-file mr-2"></i>{{ attachment.originalName }}
     </a>
     {% if canRemove is not defined or canRemove == true %}
         <i class="fa fa-times red pointer" onclick="removeAttachment($(this))"></i>
