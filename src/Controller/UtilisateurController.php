@@ -409,7 +409,9 @@ class UtilisateurController extends AbstractController
                         ]);
                     }
                     else {
-                        $utilisateur->setMobileLoginKey($mobileLoginKey);
+                        $utilisateur
+                            ->setMobileLoginKey($mobileLoginKey)
+                            ->setApiKey(null);
                     }
                 }
             }
