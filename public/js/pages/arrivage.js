@@ -106,7 +106,7 @@ function initTableArrival() {
                     columns,
                     tableFilter: 'arrivalsTable'
                 },
-                'lengthMenu': [10, 25, 50, 100],
+                lengthMenu: [10, 25, 50, 100],
             };
 
             const arrivalsTable = initDataTable('arrivalsTable', tableArrivageConfig);
