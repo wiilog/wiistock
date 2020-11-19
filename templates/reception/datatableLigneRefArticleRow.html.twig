@@ -6,8 +6,6 @@
                 <a href="{{ path('mvt_traca_index') }}{{ packFilter is not empty ? ('?colis=' ~ packFilter) }}" class="dropdown-item">
                     <i class="fas fa-list mr-2"></i>Voir mouvements de tracabilité
                 </a>
-            {% endif %}
-            {% if isReferenceTypeLinked %}
                 <a class="dropdown-item"
                    href="{{ path('reception_ligne_article_bar_code_print', {reception: receptionId, ligneArticle: ligneId}) }}">
                     <i class="fas fa-print mr-2"></i>Imprimer
