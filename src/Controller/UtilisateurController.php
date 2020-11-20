@@ -409,7 +409,9 @@ class UtilisateurController extends AbstractController
                         ]);
                     }
                     else {
-                        $utilisateur->setMobileLoginKey($mobileLoginKey);
+                        $utilisateur
+                            ->setMobileLoginKey($mobileLoginKey)
+                            ->setApiKey(null);
                     }
                 }
             }
@@ -417,25 +419,19 @@ class UtilisateurController extends AbstractController
             $entityManager->persist($utilisateur);
             $entityManager->flush();
 
+            $dataResponse = ['success' => true];
+
             if ($utilisateur->getId() != $loggedUser->getId()) {
-                return new JsonResponse([
-                    'success' => true,
-                    'msg' => 'L\'utilisateur <strong>' . $utilisateur->getUsername() . '</strong> a bien été modifié.'
-                ]);
+                $dataResponse['msg'] = 'L\'utilisateur <strong>' . $utilisateur->getUsername() . '</strong> a bien été modifié.';
             } else {
                 if ($this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                    return new JsonResponse([
-                        'success' => true,
-                        'msg' => 'Vous avez bien modifié votre compte utilisateur.'
-                    ]);
+                    $dataResponse['msg'] = 'Vous avez bien modifié votre compte utilisateur.';
                 } else {
-                    return new JsonResponse([
-                        'success' => true,
-                        'msg' => 'Vous avez bien modifié votre rôle utilisateur.',
-                        'redirect' => $this->generateUrl('access_denied')
-                    ]);
+                    $dataResponse['msg'] = 'Vous avez bien modifié votre rôle utilisateur.';
+                    $dataResponse['redirect'] = $this->generateUrl('access_denied');
                 }
             }
+            return $this->json($dataResponse);
         }
         throw new BadRequestHttpException();
     }

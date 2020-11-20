@@ -43,17 +43,26 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
 
             const {arrivageId} = response;
 
-            $.post(Routing.generate('post_arrival_tracking_movements', {arrival: arrivageId}))
-                .then(() => {
-                    displayCurrentModal();
+            if (isCreation) {
+                $.post(Routing.generate('post_arrival_tracking_movements', {arrival: arrivageId}))
+                    .then(() => {
+                        displayCurrentModal();
 
-                    if (autoPrint) {
-                        printArrival(response);
-                    }
-                })
-                .catch(() => {
-                    showBSAlert('Erreur lors de la création des mouvements de tracaçabilité', 'danger');
-                });
+                        if (autoPrint) {
+                            printArrival(response);
+                        }
+                    })
+                    .catch(() => {
+                        showBSAlert('Erreur lors de la création des mouvements de tracaçabilité', 'danger');
+                    });
+            }
+            else {
+                displayCurrentModal();
+
+                if (autoPrint) {
+                    printArrival(response);
+                }
+            }
         }
         else {
             displayCurrentModal();

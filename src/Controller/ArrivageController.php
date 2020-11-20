@@ -720,51 +720,6 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/depose-pj", name="arrivage_depose", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function depose(Request $request,
-                           EntityManagerInterface $entityManager): Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-            $fileNames = [];
-
-            $id = (int)$request->request->get('id');
-            $arrivage = $arrivageRepository->find($id);
-
-            for ($i = 0; $i < count($request->files); $i++) {
-                $file = $request->files->get('file' . $i);
-                if ($file) {
-                    $pj = $this->attachmentService->createPieceJointe($file, $arrivage);
-                    $entityManager->persist($pj);
-
-                    $fileNames[] = [
-                        'name' => $pj->getFileName(),
-                        'originalName' => $file->getClientOriginalName()
-                    ];
-                }
-            }
-            $entityManager->flush();
-
-            $html = '';
-            foreach ($fileNames as $fileName) {
-                $html .= $this->renderView('attachment/attachmentLine.html.twig', [
-                    'arrivage' => $arrivage,
-                    'pjName' => $fileName['name'],
-                    'originalName' => $fileName['originalName']
-                ]);
-            }
-
-            return new JsonResponse($html);
-        } else {
-            throw new BadRequestHttpException();
-        }
-    }
-
-    /**
      * @Route("/ajoute-commentaire", name="add_comment",  options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -808,50 +763,6 @@ class ArrivageController extends AbstractController
 
             return new JsonResponse($html);
 
-        } else {
-            throw new BadRequestHttpException();
-        }
-    }
-
-    /**
-     * @Route("/garder-pj", name="garder_pj", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
-     */
-    public function displayAttachmentForNew(Request $request, EntityManagerInterface $entityManager)
-    {
-        if ($request->isXmlHttpRequest()) {
-            $fileNames = [];
-            $html = '';
-            $path = "../public/uploads/attachements/temp/";
-            if (!file_exists($path)) {
-                mkdir($path, 0777);
-            }
-            for ($i = 0; $i < count($request->files); $i++) {
-                $file = $request->files->get('file' . $i);
-                if ($file) {
-                    if ($file->getClientOriginalExtension()) {
-                        $filename = uniqid() . "." . strtolower($file->getClientOriginalExtension());
-                    } else {
-                        $filename = uniqid();
-                    }
-                    $fileNames[] = $filename;
-                    $file->move($path, $filename);
-                    $html .= $this->renderView('attachment/attachmentLine.html.twig', [
-                        'pjName' => $filename,
-                        'originalName' => $file->getClientOriginalName()
-                    ]);
-                    $attachment = new Attachment();
-                    $attachment
-                        ->setOriginalName($file->getClientOriginalName())
-                        ->setFileName($filename);
-                    $entityManager->persist($attachment);
-                }
-                $entityManager->flush();
-            }
-
-            return new JsonResponse($html);
         } else {
             throw new BadRequestHttpException();
         }
@@ -1430,51 +1341,6 @@ class ArrivageController extends AbstractController
             return new JsonResponse($response);
         }
         throw new BadRequestHttpException();
-    }
-
-    /**
-     * @Route("/depose-pj-litige", name="litige_depose", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function deposeLitige(Request $request,
-                                 EntityManagerInterface $entityManager): Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $fileNames = [];
-
-            $litigeRepository = $entityManager->getRepository(Litige::class);
-            $id = (int)$request->request->get('id');
-            $litige = $litigeRepository->find($id);
-
-            for ($i = 0; $i < count($request->files); $i++) {
-                $file = $request->files->get('file' . $i);
-                if ($file) {
-                    $pj = $this->attachmentService->createPieceJointe($file, $litige);
-                    $entityManager->persist($pj);
-
-                    $fileNames[] = [
-                        'name' => $pj->getFileName(),
-                        'originalName' => $file->getClientOriginalName()
-                    ];
-                }
-            }
-            $entityManager->flush();
-
-            $html = '';
-            foreach ($fileNames as $fileName) {
-                $html .= $this->renderView('attachment/attachmentLine.html.twig', [
-                    'litige' => $litige,
-                    'pjName' => $fileName['name'],
-                    'originalName' => $fileName['originalName']
-                ]);
-            }
-
-            return new JsonResponse($html);
-        } else {
-            throw new BadRequestHttpException();
-        }
     }
 
     /**

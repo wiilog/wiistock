@@ -31,6 +31,19 @@ table.wii-table {
             background-color: #f8f9fa;
         }
     }
+    td,
+    td > *,
+    th,
+    th > * {
+        max-width: 20vw;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        img {
+            max-height: 10vh;
+        }
+    }
 }
 
 .wii-page-card {
