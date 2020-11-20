@@ -4,8 +4,9 @@ namespace App\Repository;
 
 use App\Entity\ReceptionTraca;
 use App\Helper\QueryCounter;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use DateTime;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query;
 
 /**
  * @method ReceptionTraca|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method ReceptionTraca[]    findAll()
  * @method ReceptionTraca[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ReceptionTracaRepository extends ServiceEntityRepository
+class ReceptionTracaRepository extends EntityRepository
 {
     private const DtToDbLabels = [
         'date' => 'dateCreation',
@@ -21,11 +22,6 @@ class ReceptionTracaRepository extends ServiceEntityRepository
         'Réception' => 'number',
         'Utilisateur' => 'user',
     ];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, ReceptionTraca::class);
-    }
 
     /**
      * @param $firstDay
@@ -151,5 +147,22 @@ class ReceptionTracaRepository extends ServiceEntityRepository
             'count' => $countFiltered,
             'total' => $countTotal
         ];
+    }
+
+    public function iterateBetween(DateTime $start,
+                                   DateTime $end) {
+        $queryBuilder = $this->createQueryBuilder('tracking_reception');
+        $exprBuilder = $queryBuilder->expr();
+        $iterator = $this->createQueryBuilder('tracking_reception')
+            ->where($exprBuilder->between('tracking_reception.dateCreation', ':start', ':end'))
+            ->setParameter('start', $start)
+            ->setParameter('end', $end)
+            ->getQuery()
+            ->iterate();
+
+        foreach($iterator as $item) {
+            // $item [index => article array]
+            yield array_pop($item);
+        }
     }
 }
