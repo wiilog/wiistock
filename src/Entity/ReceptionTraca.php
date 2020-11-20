@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Helper\FormatHelper;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -87,5 +88,15 @@ class ReceptionTraca
         $this->user = $user;
 
         return $this;
+    }
+
+
+    public function serialize(): array {
+        return [
+            'creationDate' => FormatHelper::datetime($this->getDateCreation()),
+            'arrival' => $this->getArrivage(),
+            'number' => $this->getNumber(),
+            'user' => FormatHelper::user($this->getUser())
+        ];
     }
 }

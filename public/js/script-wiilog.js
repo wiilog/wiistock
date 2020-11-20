@@ -753,6 +753,12 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YY
     $(dateInput).datetimepicker(options);
 }
 
+/**
+ * @deprecated use php export
+ * @param route
+ * @param filename
+ * @param param
+ */
 function generateCSV(route, filename = 'export', param = null) {
     loadSpinner($('#spinner'));
     let data = param ? {'param': param} : {};

@@ -749,15 +749,15 @@ class ArticleController extends AbstractController
     /**
      * @Route("/exporter-articles", name="export_all_arts", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
-     * @param FreeFieldService $ffService
-     * @param CSVExportService $CSVExportService
+     * @param FreeFieldService $freeFieldService
+     * @param CSVExportService $csvService
      * @return Response
      */
-    public function exportAllArticles(EntityManagerInterface $manager,
-                                      FreeFieldService $ffService,
+    public function exportAllArticles(EntityManagerInterface $entityManager,
+                                      FreeFieldService $freeFieldService,
                                       CSVExportService $csvService): Response
     {
-        $ffConfig = $ffService->createExportArrayConfig($manager, [CategorieCL::ARTICLE]);
+        $ffConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE]);
 
         $header = array_merge([
             'reference',
@@ -777,12 +777,12 @@ class ArticleController extends AbstractController
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
 
-        return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $ffConfig) {
-            $articleRepository = $manager->getRepository(Article::class);
+        return $csvService->streamResponse(function($output) use ($entityManager, $csvService, $freeFieldService, $ffConfig) {
+            $articleRepository = $entityManager->getRepository(Article::class);
 
             $articles = $articleRepository->iterateAll();
             foreach($articles as $article) {
-                $this->putArticleLine($output, $csvService, $ffService, $ffConfig, $article);
+                $this->putArticleLine($output, $csvService, $freeFieldService, $ffConfig, $article);
             }
         }, "export-articles-$today.csv", $header);
     }
@@ -790,7 +790,7 @@ class ArticleController extends AbstractController
 
     private function putArticleLine($handle,
                                     CSVExportService $csvService,
-                                    FreeFieldService $ffService,
+                                    FreeFieldService $freeFieldService,
                                     array $ffConfig,
                                     array $article) {
         $line = [
@@ -809,7 +809,7 @@ class ArticleController extends AbstractController
         ];
 
         foreach ($ffConfig['freeFieldIds'] as $freeFieldId) {
-            $line[] = $ffService->serializeValue([
+            $line[] = $freeFieldService->serializeValue([
                 'typage' => $ffConfig['freeFieldsIdToTyping'][$freeFieldId],
                 'valeur' => $article['freeFields'][$freeFieldId] ?? ''
             ]);
