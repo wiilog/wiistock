@@ -74,6 +74,11 @@ class Collecte extends FreeFieldEntity implements Serializable {
     private $commentaire;
 
     /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $rawComment;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\CollecteReference", mappedBy="collecte")
      */
     private $collecteReferences;
@@ -198,6 +203,19 @@ class Collecte extends FreeFieldEntity implements Serializable {
 
     public function setCommentaire(?string $commentaire): self {
         $this->commentaire = $commentaire;
+        $this->setRawComment(strip_tags($commentaire));
+
+        return $this;
+    }
+
+    public function getRawComment(): ?string
+    {
+        return $this->rawComment;
+    }
+
+    public function setRawComment(?string $rawComment): self
+    {
+        $this->rawComment = $rawComment;
 
         return $this;
     }

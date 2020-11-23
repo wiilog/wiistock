@@ -76,6 +76,11 @@ class Demande extends FreeFieldEntity
     private $commentaire;
 
     /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $rawComment;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="demande")
      */
     private $articles;
@@ -237,6 +242,19 @@ class Demande extends FreeFieldEntity
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
+        $this->setRawComment(strip_tags($commentaire));
+
+        return $this;
+    }
+
+    public function getRawComment(): ?string
+    {
+        return $this->rawComment;
+    }
+
+    public function setRawComment(?string $rawComment): self
+    {
+        $this->rawComment = $rawComment;
 
         return $this;
     }

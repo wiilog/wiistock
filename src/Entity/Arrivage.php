@@ -85,6 +85,11 @@ class Arrivage extends FreeFieldEntity
     private $commentaire;
 
     /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $rawComment;
+
+    /**
      * @ORM\OneToMany(targetEntity="Attachment", mappedBy="arrivage")
      */
     private $attachements;
@@ -430,6 +435,19 @@ class Arrivage extends FreeFieldEntity
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
+        $this->setRawComment(strip_tags($commentaire));
+
+        return $this;
+    }
+
+    public function getRawComment(): ?string
+    {
+        return $this->rawComment;
+    }
+
+    public function setRawComment(?string $rawComment): self
+    {
+        $this->rawComment = $rawComment;
 
         return $this;
     }

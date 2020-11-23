@@ -101,6 +101,11 @@ class ReferenceArticle extends FreeFieldEntity
     private $commentaire;
 
     /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $rawComment;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="referenceArticle")
      */
     private $receptionReferenceArticles;
@@ -433,6 +438,19 @@ class ReferenceArticle extends FreeFieldEntity
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
+        $this->setRawComment(strip_tags($commentaire));
+
+        return $this;
+    }
+
+    public function getRawComment(): ?string
+    {
+        return $this->rawComment;
+    }
+
+    public function setRawComment(?string $rawComment): self
+    {
+        $this->rawComment = $rawComment;
 
         return $this;
     }

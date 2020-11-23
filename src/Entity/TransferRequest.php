@@ -64,6 +64,11 @@ class TransferRequest implements Serializable {
     private $comment;
 
     /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $rawComment;
+
+    /**
      * @ORM\Column(type="datetime")
      */
     private $creationDate;
@@ -167,6 +172,19 @@ class TransferRequest implements Serializable {
 
     public function setComment(?string $comment): self {
         $this->comment = $comment;
+        $this->setRawComment(strip_tags($comment));
+        return $this;
+    }
+
+    public function getRawComment(): ?string
+    {
+        return $this->rawComment;
+    }
+
+    public function setRawComment(?string $rawComment): self
+    {
+        $this->rawComment = $rawComment;
+
         return $this;
     }
 
