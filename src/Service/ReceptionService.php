@@ -82,10 +82,11 @@ class ReceptionService
      * @param EntityManagerInterface $entityManager
      * @param Utilisateur|null $currentUser
      * @param array $data
+     * @param bool $fromImport
      * @return Reception
      * @throws NonUniqueResultException
      */
-    public function createAndPersistReception(EntityManagerInterface $entityManager, ?Utilisateur $currentUser, array $data): Reception {
+    public function createAndPersistReception(EntityManagerInterface $entityManager, ?Utilisateur $currentUser, array $data, $fromImport = false): Reception {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $receptionRepository = $entityManager->getRepository(Reception::class);
@@ -93,7 +94,6 @@ class ReceptionService
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $ransporteurRepository = $entityManager->getRepository(Transporteur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-
         if(!empty($data['anomalie'])) {
             $anomaly = filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN);
 
@@ -119,19 +119,31 @@ class ReceptionService
 
 
         if(!empty($data['fournisseur'])) {
-            $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
+            if($fromImport) {
+                $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $data['fournisseur']]);
+            } else {
+                $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
+            }
             $reception
                 ->setFournisseur($fournisseur);
         }
 
         if(!empty($data['location'])) {
-            $location = $emplacementRepository->find(intval($data['location']));
+            if($fromImport) {
+                $location = $emplacementRepository->findOneBy(['label' => $data['location']]);
+            } else {
+                $location = $emplacementRepository->find(intval($data['location']));
+            }
             $reception
                 ->setLocation($location);
         }
 
         if(!empty($data['transporteur'])) {
-            $transporteur = $ransporteurRepository->find(intval($data['transporteur']));
+            if($fromImport) {
+                $transporteur = $ransporteurRepository->findOneBy(['code' => $data['transporteur']]);
+            } else {
+                $transporteur = $ransporteurRepository->find(intval($data['transporteur']));
+            }
             $reception
                 ->setTransporteur($transporteur);
         }

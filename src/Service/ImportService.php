@@ -827,9 +827,9 @@ class ImportService
      * @param array $receptionsWithCommand
      * @param Utilisateur|null $user
      * @param array $stats
-     * @return JsonResponse
-     * @throws NonUniqueResultException
+     * @return void
      * @throws ImportException
+     * @throws NonUniqueResultException
      */
     private function importReceptionEntity(array $data,
                                            array &$receptionsWithCommand,
@@ -838,11 +838,10 @@ class ImportService
     {
         $refArtRepository = $this->em->getRepository(ReferenceArticle::class);
 
-
         $reception = $receptionsWithCommand[$data['orderNumber']] ?? null;
         $newEntity = isset($reception);
         if (!$reception) {
-            $reception = $this->receptionService->createAndPersistReception($this->em, $user, $data);
+            $reception = $this->receptionService->createAndPersistReception($this->em, $user, $data, true);
             $receptionsWithCommand[$data['orderNumber']] = $reception;
         }
 
