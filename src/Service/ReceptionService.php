@@ -19,6 +19,7 @@ use App\Entity\Utilisateur;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -85,6 +86,7 @@ class ReceptionService
      * @param bool $fromImport
      * @return Reception
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function createAndPersistReception(EntityManagerInterface $entityManager, ?Utilisateur $currentUser, array $data, $fromImport = false): Reception {
 
@@ -159,14 +161,6 @@ class ReceptionService
 
         $reception
             ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
-            ->setDateAttendue(
-                !empty($data['dateAttendue'])
-                    ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
-                    : null)
-            ->setDateCommande(
-                !empty($data['dateCommande'])
-                    ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
-                    : null)
             ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null)
             ->setStatut($statut)
             ->setNumeroReception($numero)
@@ -175,6 +169,30 @@ class ReceptionService
             ->setUtilisateur($currentUser)
             ->setType($type)
             ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null);
+
+        // Date commande provenant des imports de réception
+        if ($fromImport && isset($data['orderDate'])) {
+            $reception->setDateCommande(DateTime::createFromFormat('d/m/Y', $data['orderDate'], new DateTimeZone("Europe/Paris")) ?: null);
+        }
+        // Date commande pour création d'une réception standard
+        else {
+            $reception->setDateCommande(
+                !empty($data['dateCommande'])
+                    ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
+                    : null);
+        }
+
+        // Date attendue provenant des imports de réception
+        if ($fromImport && isset($data['expectedDate'])) {
+            $reception->setDateAttendue(DateTime::createFromFormat('d/m/Y', $data['expectedDate'], new DateTimeZone("Europe/Paris")) ?: null);
+        }
+        // Date attendue pour création d'une réception standard
+        else {
+            $reception->setDateAttendue(
+                !empty($data['dateAttendue'])
+                    ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
+                    : null);
+        }
 
         $entityManager->persist($reception);
         return $reception;

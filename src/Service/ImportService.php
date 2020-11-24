@@ -520,6 +520,14 @@ class ImportService
                     'quantité à recevoir' => [
                         'needed' => $this->fieldIsNeeded('quantité à recevoir', Import::ENTITY_RECEPTION),
                         'value' => isset($corresp['quantité à recevoir']) ? $corresp['quantité à recevoir'] : null
+                    ],
+                    'orderDate' => [
+                        'needed' => $this->fieldIsNeeded('orderDate', Import::ENTITY_RECEPTION),
+                        'value' => isset($corresp['orderDate']) ? $corresp['orderDate'] : null
+                    ],
+                    'expectedDate' => [
+                        'needed' => $this->fieldIsNeeded('expectedDate', Import::ENTITY_RECEPTION),
+                        'value' => isset($corresp['expectedDate']) ? $corresp['expectedDate'] : null
                     ]
                 ];
                 break;
