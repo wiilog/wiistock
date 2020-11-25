@@ -60,6 +60,7 @@ function initPageModals(tableDemande) {
     let $modalNewDemande = $("#modalNewDemande");
     let $submitNewDemande = $("#submitNewDemande");
     InitModal($modalNewDemande, $submitNewDemande, urlNewDemande, {tables: tableDemande});
+    onTypeChange($modalNewDemande.find('[name="type"]'));
 }
 
 function initPageDatatable() {
