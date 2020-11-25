@@ -6,6 +6,7 @@ function initNewDispatchEditor(modal) {
         editorNewDispatchAlreadyDone = true;
     }
     clearModal(modal);
+    onDispatchTypeChange($("[name=type]"));
     Select2.user($(modal).find('.ajax-autocomplete-user'));
     Select2.carrier($(modal).find('.ajax-autocomplete-transporteur'));
 
