@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Entity;
+
+use App\Entity\Traits\CommentTrait;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -12,6 +14,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Arrivage extends FreeFieldEntity
 {
+
+    use CommentTrait;
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -430,6 +435,7 @@ class Arrivage extends FreeFieldEntity
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
+        $this->setCleanedComment($commentaire);
 
         return $this;
     }

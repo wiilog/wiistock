@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use App\Helper\FormatHelper;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -56,8 +57,7 @@ final class Version20200929101256 extends AbstractMigration
                             && $value !== 'null'
                             && !is_numeric($value)
                             && is_string($value))) {
-                            $value = str_replace("\\", "\\\\", $value);
-                            $value = str_replace("'", "''", $value);
+                            $value = FormatHelper::sqlString($value);
                         }
                         return $value === null ? 'NULL' :
                             (

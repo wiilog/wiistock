@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Interfaces\Serializable;
+use App\Entity\Traits\CommentTrait;
 use App\Helper\FormatHelper;
 use App\Repository\TransferRequestRepository;
 use DateTimeInterface;
@@ -20,6 +21,8 @@ class TransferRequest implements Serializable {
     const DRAFT = "Brouillon";
     const TO_TREAT = "À traiter";
     const TREATED = "Traité";
+
+    use CommentTrait;
 
     /**
      * @ORM\Id
@@ -56,7 +59,6 @@ class TransferRequest implements Serializable {
      * @ORM\JoinColumn(nullable=false)
      */
     private $origin;
-
 
     /**
      * @ORM\Column(type="text", nullable=true)
@@ -167,6 +169,7 @@ class TransferRequest implements Serializable {
 
     public function setComment(?string $comment): self {
         $this->comment = $comment;
+        $this->setCleanedComment($comment);
         return $this;
     }
 

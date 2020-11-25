@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Interfaces\Serializable;
+use App\Entity\Traits\CommentTrait;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -19,6 +20,8 @@ class Collecte extends FreeFieldEntity implements Serializable {
     const STATUT_INCOMPLETE = 'partiellement collecté';
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_BROUILLON = 'brouillon';
+
+    use CommentTrait;
 
     /**
      * @ORM\Id()
@@ -198,6 +201,7 @@ class Collecte extends FreeFieldEntity implements Serializable {
 
     public function setCommentaire(?string $commentaire): self {
         $this->commentaire = $commentaire;
+        $this->setCleanedComment($commentaire);
 
         return $this;
     }

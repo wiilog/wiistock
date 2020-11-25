@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\CommentTrait;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -21,6 +22,8 @@ class Demande extends FreeFieldEntity
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_LIVRE = 'livré';
     const STATUT_LIVRE_INCOMPLETE = 'livré partiellement';
+
+    use CommentTrait;
 
     /**
      * @ORM\Id()
@@ -237,6 +240,7 @@ class Demande extends FreeFieldEntity
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
+        $this->setCleanedComment($commentaire);
 
         return $this;
     }

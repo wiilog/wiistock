@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\CommentTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -22,6 +23,8 @@ class ReferenceArticle extends FreeFieldEntity
 
     const STOCK_MANAGEMENT_FEFO = 'FEFO';
     const STOCK_MANAGEMENT_FIFO = 'FIFO';
+
+    use CommentTrait;
 
     /**
      * @ORM\Id()
@@ -433,6 +436,7 @@ class ReferenceArticle extends FreeFieldEntity
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
+        $this->setCleanedComment($commentaire);
 
         return $this;
     }
@@ -462,8 +466,8 @@ class ReferenceArticle extends FreeFieldEntity
             if ($receptionReferenceArticle->getReferenceArticle() === $this) {
                 $receptionReferenceArticle->setReferenceArticle(null);
             }
-            return $this;
         }
+        return $this;
     }
 
     public function addArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Traits\AttachmentTrait;
+use App\Entity\Traits\CommentTrait;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -19,6 +20,7 @@ class Reception extends FreeFieldEntity
     const STATUT_ANOMALIE = 'anomalie';
 
     use AttachmentTrait;
+    use CommentTrait;
 
     /**
      * @ORM\Id()
@@ -168,10 +170,10 @@ class Reception extends FreeFieldEntity
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
+        $this->setCleanedComment($commentaire);
 
         return $this;
     }
-
 
     public function __toString()
     {

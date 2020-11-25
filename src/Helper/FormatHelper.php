@@ -46,4 +46,12 @@ class FormatHelper {
         return $comment ? strip_tags($comment) : $else;
     }
 
+    public static function sqlString(string $sqlString): string {
+        return str_replace(
+            ["'", "\\"],
+            ["''", "\\\\"],
+            $sqlString
+        );
+    }
+
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use App\Helper\FormatHelper;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -46,9 +47,7 @@ final class Version20201007185031 extends AbstractMigration
                 ->fetchColumn();
 
             $uniqueIdMobile = isset($code['unique_id_for_mobile']) ? "'{$code['unique_id_for_mobile']}'" : 'NULL';
-            $comment = isset($code['commentaire']) ? str_replace("\\", "\\\\", $code['commentaire']) : null;
-            $comment = isset($code['commentaire']) ? str_replace("'", "''", $comment) : null;
-            $comment = isset($code['commentaire']) ? "'{$comment}'" : 'NULL';
+            $comment = !empty($code['commentaire']) ? FormatHelper::sqlString($code['commentaire']) : 'NULL';
             $freeFields = $tracking['free_fields'] ? "'".$tracking['free_fields']."'" : "'[]'";
 
             $this->addSql("INSERT INTO mouvement_traca

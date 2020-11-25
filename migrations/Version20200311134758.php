@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use App\Helper\FormatHelper;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -47,7 +48,7 @@ final class Version20200311134758 extends AbstractMigration
 
         foreach ($oldArrivageNumeroBL as $arrivage) {
             if (!empty($arrivage['numeroBL'])) {
-                $numeroCommandeList = json_encode([str_replace("'", "''", $arrivage['numeroBL'])]);
+                $numeroCommandeList = json_encode([FormatHelper::sqlString($arrivage['numeroBL'])]);
                 $arrivageId = $arrivage['id'];
                 $this->addSql("
                     UPDATE `arrivage`

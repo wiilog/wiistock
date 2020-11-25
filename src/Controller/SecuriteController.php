@@ -86,6 +86,11 @@ class SecuriteController extends AbstractController
                           EntityManagerInterface $entityManager,
                           string $info = '')
     {
+        $loggedUser = $this->getUser();
+        if ($loggedUser && $loggedUser instanceof Utilisateur) {
+            return $this->redirectToRoute('accueil');
+        }
+
         $error = $authenticationUtils->getLastAuthenticationError();
         $errorToDisplay = "";
 
