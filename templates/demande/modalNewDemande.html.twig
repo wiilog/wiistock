@@ -25,15 +25,24 @@
                            data-text="{{ livraisonLocation ? livraisonLocation.text : (app.user.dropzone ? app.user.dropzone.label)}}">
                 </div>
 
+                {% set uniqueType = types|length == 1 %}
                 <div class="form-group">
                     <label for="type">Type*</label>
-                    <select name="type" class="form-control data d-block type needed"
+                    <select name="type" class="form-control data d-block type needed
+                            {{ uniqueType ? 'needs-default' }}"
                             onclick="typeChoice($(this))"
-                            onchange="toggleRequiredChampsLibres($(this), 'create')">
-                        <option value="">Type à choisir...</option>
-                        {% for type in typeChampsLibres %}
-                            <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
-                        {% endfor %}
+                            onchange="toggleRequiredChampsLibres($(this), 'create')"
+                        {{ uniqueType ? 'disabled' }}
+                        {{ uniqueType ? ('data-init="' ~ (types|first).id ~ '"')|raw }}>
+                        {% if not uniqueType %}
+                            <option value="">Type à choisir...</option>
+                            {% for type in types %}
+                                <option value="{{ type.id }}">{{ type.label }}</option>
+                            {% endfor %}
+                        {% else %}
+                            {% set typeToDisplay = types|first %}
+                            <option selected value={{ typeToDisplay.id }}>{{ typeToDisplay.label }}</option>
+                        {% endif %}
                     </select>
                 </div>
 

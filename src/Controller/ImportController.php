@@ -186,7 +186,7 @@ class ImportController extends AbstractController
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                         case Import::ENTITY_RECEPTION:
-                            $fieldsToAdd = ['anomalie', 'fournisseur', 'transporteur', 'référence', 'location', 'quantité à recevoir'];
+                            $fieldsToAdd = ['anomalie', 'fournisseur', 'transporteur', 'référence', 'location', 'quantité à recevoir', 'orderDate', 'expectedDate'];
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                     }
