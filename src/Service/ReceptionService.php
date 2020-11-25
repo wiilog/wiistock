@@ -19,6 +19,7 @@ use App\Entity\Utilisateur;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -82,10 +83,12 @@ class ReceptionService
      * @param EntityManagerInterface $entityManager
      * @param Utilisateur|null $currentUser
      * @param array $data
+     * @param bool $fromImport
      * @return Reception
      * @throws NonUniqueResultException
+     * @throws Exception
      */
-    public function createAndPersistReception(EntityManagerInterface $entityManager, ?Utilisateur $currentUser, array $data): Reception {
+    public function createAndPersistReception(EntityManagerInterface $entityManager, ?Utilisateur $currentUser, array $data, $fromImport = false): Reception {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $receptionRepository = $entityManager->getRepository(Reception::class);
@@ -93,7 +96,6 @@ class ReceptionService
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $ransporteurRepository = $entityManager->getRepository(Transporteur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-
         if(!empty($data['anomalie'])) {
             $anomaly = filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN);
 
@@ -119,19 +121,31 @@ class ReceptionService
 
 
         if(!empty($data['fournisseur'])) {
-            $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
+            if($fromImport) {
+                $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $data['fournisseur']]);
+            } else {
+                $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
+            }
             $reception
                 ->setFournisseur($fournisseur);
         }
 
         if(!empty($data['location'])) {
-            $location = $emplacementRepository->find(intval($data['location']));
+            if($fromImport) {
+                $location = $emplacementRepository->findOneBy(['label' => $data['location']]);
+            } else {
+                $location = $emplacementRepository->find(intval($data['location']));
+            }
             $reception
                 ->setLocation($location);
         }
 
         if(!empty($data['transporteur'])) {
-            $transporteur = $ransporteurRepository->find(intval($data['transporteur']));
+            if($fromImport) {
+                $transporteur = $ransporteurRepository->findOneBy(['code' => $data['transporteur']]);
+            } else {
+                $transporteur = $ransporteurRepository->find(intval($data['transporteur']));
+            }
             $reception
                 ->setTransporteur($transporteur);
         }
@@ -147,14 +161,6 @@ class ReceptionService
 
         $reception
             ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
-            ->setDateAttendue(
-                !empty($data['dateAttendue'])
-                    ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
-                    : null)
-            ->setDateCommande(
-                !empty($data['dateCommande'])
-                    ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
-                    : null)
             ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null)
             ->setStatut($statut)
             ->setNumeroReception($numero)
@@ -163,6 +169,30 @@ class ReceptionService
             ->setUtilisateur($currentUser)
             ->setType($type)
             ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null);
+
+        // Date commande provenant des imports de réception
+        if ($fromImport && isset($data['orderDate'])) {
+            $reception->setDateCommande(DateTime::createFromFormat('d/m/Y', $data['orderDate'], new DateTimeZone("Europe/Paris")) ?: null);
+        }
+        // Date commande pour création d'une réception standard
+        else {
+            $reception->setDateCommande(
+                !empty($data['dateCommande'])
+                    ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
+                    : null);
+        }
+
+        // Date attendue provenant des imports de réception
+        if ($fromImport && isset($data['expectedDate'])) {
+            $reception->setDateAttendue(DateTime::createFromFormat('d/m/Y', $data['expectedDate'], new DateTimeZone("Europe/Paris")) ?: null);
+        }
+        // Date attendue pour création d'une réception standard
+        else {
+            $reception->setDateAttendue(
+                !empty($data['dateAttendue'])
+                    ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
+                    : null);
+        }
 
         $entityManager->persist($reception);
         return $reception;

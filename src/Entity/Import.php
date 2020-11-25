@@ -93,6 +93,8 @@ class Import
         'expiryDate' => 'Date de péremption (jj/mm/AAAA)',
         'stockEntryDate' => 'Date d\'entrée en stock (jj/mm/AAAA hh:MM)',
         'managers' => 'Gestionnaire(s)',
+        'orderDate' => 'date commande (jj/mm/AAAA)',
+        'expectedDate' => 'date attendue (jj/mm/AAAA)'
 	];
 
 	public CONST IMPORT_FIELDS_TO_FIELDS_PARAM = [
