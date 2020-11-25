@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\CommentTrait;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -21,6 +22,8 @@ class Demande extends FreeFieldEntity
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_LIVRE = 'livré';
     const STATUT_LIVRE_INCOMPLETE = 'livré partiellement';
+
+    use CommentTrait;
 
     /**
      * @ORM\Id()
@@ -74,11 +77,6 @@ class Demande extends FreeFieldEntity
      * @ORM\Column(type="text", nullable=true)
      */
     private $commentaire;
-
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
-    private $rawComment;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="demande")
@@ -242,19 +240,7 @@ class Demande extends FreeFieldEntity
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
-        $this->setRawComment(strip_tags($commentaire));
-
-        return $this;
-    }
-
-    public function getRawComment(): ?string
-    {
-        return $this->rawComment;
-    }
-
-    public function setRawComment(?string $rawComment): self
-    {
-        $this->rawComment = $rawComment;
+        $this->setSmartComment($commentaire);
 
         return $this;
     }

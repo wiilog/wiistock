@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use App\Helper\FormatHelper;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -98,8 +99,7 @@ final class Version20200817075450 extends AbstractMigration
                 ");
 
             foreach ($packs as $pack) {
-                $pack = str_replace("\\", "\\\\", $pack);
-                $pack = str_replace("'", "''", $pack);
+                $pack = FormatHelper::sqlString($pack);
                 $packID = $this->connection->executeQuery("SELECT id FROM pack WHERE code = '${pack}'")->fetchColumn();
                 if (!$packID) {
                     $this

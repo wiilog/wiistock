@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\CommentTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -22,6 +23,8 @@ class ReferenceArticle extends FreeFieldEntity
 
     const STOCK_MANAGEMENT_FEFO = 'FEFO';
     const STOCK_MANAGEMENT_FIFO = 'FIFO';
+
+    use CommentTrait;
 
     /**
      * @ORM\Id()
@@ -99,11 +102,6 @@ class ReferenceArticle extends FreeFieldEntity
      * @ORM\Column(type="text", nullable=true)
      */
     private $commentaire;
-
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
-    private $rawComment;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="referenceArticle")
@@ -438,19 +436,7 @@ class ReferenceArticle extends FreeFieldEntity
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
-        $this->setRawComment(strip_tags($commentaire));
-
-        return $this;
-    }
-
-    public function getRawComment(): ?string
-    {
-        return $this->rawComment;
-    }
-
-    public function setRawComment(?string $rawComment): self
-    {
-        $this->rawComment = $rawComment;
+        $this->setSmartComment($commentaire);
 
         return $this;
     }
@@ -480,8 +466,8 @@ class ReferenceArticle extends FreeFieldEntity
             if ($receptionReferenceArticle->getReferenceArticle() === $this) {
                 $receptionReferenceArticle->setReferenceArticle(null);
             }
-            return $this;
         }
+        return $this;
     }
 
     public function addArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self

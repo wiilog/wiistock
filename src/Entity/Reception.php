@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Traits\AttachmentTrait;
+use App\Entity\Traits\CommentTrait;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -19,6 +20,7 @@ class Reception extends FreeFieldEntity
     const STATUT_ANOMALIE = 'anomalie';
 
     use AttachmentTrait;
+    use CommentTrait;
 
     /**
      * @ORM\Id()
@@ -37,11 +39,6 @@ class Reception extends FreeFieldEntity
      * @ORM\Column(type="text", nullable=true)
      */
     private $commentaire;
-
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
-    private $rawComment;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
@@ -173,19 +170,7 @@ class Reception extends FreeFieldEntity
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
-        $this->setRawComment(strip_tags($commentaire));
-
-        return $this;
-    }
-
-    public function getRawComment(): ?string
-    {
-        return $this->rawComment;
-    }
-
-    public function setRawComment(?string $rawComment): self
-    {
-        $this->rawComment = $rawComment;
+        $this->setSmartComment($commentaire);
 
         return $this;
     }

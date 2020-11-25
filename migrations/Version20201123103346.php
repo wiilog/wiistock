@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use App\Helper\FormatHelper;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -42,6 +43,7 @@ final class Version20201123103346 extends AbstractMigration
 
         foreach ($sqlRequests as $table => $comment) {
             $commentColumn = $comment['comment'];
+            $this->addSql("ALTER TABLE ${table} ADD COLUMN smart_comment TEXT");
 
             $results = $this->connection
                 ->executeQuery("
@@ -55,12 +57,12 @@ final class Version20201123103346 extends AbstractMigration
                 foreach ($results as $row) {
                     $currentId = $row['id'];
                     $currentComment = $row['comment'];
-                    $newRawComment = str_replace("'", "''", strip_tags($currentComment));;
-
+                    $newSmartComment = FormatHelper::sqlString(strip_tags($currentComment));
+                    $newSmartComment = empty($newSmartComment) ? 'NULL' : "'${newSmartComment}'";
                     $this->addSql("
-                    UPDATE ${table}
-                    SET raw_comment = '${newRawComment}'
-                    WHERE id = ${currentId}
+                        UPDATE ${table}
+                        SET smart_comment = ${newSmartComment}
+                        WHERE id = ${currentId}
                     ");
                 }
             }

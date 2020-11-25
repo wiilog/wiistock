@@ -7,6 +7,7 @@ namespace DoctrineMigrations;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
+use App\Helper\FormatHelper;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -106,9 +107,7 @@ final class Version20200727074820 extends AbstractMigration
                     }
                 }
 
-                $encodedFreeFields = json_encode($freeFieldsToBeInsertedInJSON);
-                $encodedFreeFields = str_replace("\\", "\\\\", $encodedFreeFields);
-                $encodedFreeFields = str_replace("'", "''", $encodedFreeFields);
+                $encodedFreeFields = FormatHelper::sqlString(json_encode($freeFieldsToBeInsertedInJSON));
                 $this
                     ->addSql("UPDATE article SET free_fields = '${encodedFreeFields}' WHERE article.id = ${entityID}");
             }
