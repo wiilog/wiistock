@@ -165,7 +165,7 @@ class FreeFieldController extends AbstractController {
                     ->setDefaultValue(null);
 
 				if($champLibre->getTypage() == FreeField::TYPE_LIST) {
-				    if (!in_array($data['valeur'], $elements)) {
+                    if (($data['valeur'] != "") && !in_array($data['valeur'], $elements)) {
                         return new JsonResponse([
                             'success' => false,
                             'msg' => 'La valeur par défaut saisie doit être présente dans les éléments saisis.'
@@ -251,7 +251,7 @@ class FreeFieldController extends AbstractController {
                 ->setDefaultValue(null);
 
             if($champLibre->getTypage() == FreeField::TYPE_LIST) {
-                if (!in_array($data['valeur'], $elements)) {
+                if (($data['valeur'] != "") && !in_array($data['valeur'], $elements)) {
                     return new JsonResponse([
                         'success' => false,
                         'msg' => 'La valeur par défaut saisie doit être présente dans les éléments saisis.'
