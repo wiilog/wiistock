@@ -10,16 +10,16 @@ trait CommentTrait {
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $smartComment;
+    private $cleanedComment;
 
-    public function getSmartComment(): ?string
+    public function getCleanedComment(): ?string
     {
-        return $this->smartComment;
+        return $this->cleanedComment;
     }
 
-    public function setSmartComment(?string $comment): self
+    public function setCleanedComment(?string $comment): self
     {
-        $this->smartComment = strip_tags($comment);
+        $this->cleanedComment = strip_tags($comment);
 
         return $this;
     }

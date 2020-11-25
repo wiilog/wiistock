@@ -436,7 +436,7 @@ class ReferenceArticle extends FreeFieldEntity
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
-        $this->setSmartComment($commentaire);
+        $this->setCleanedComment($commentaire);
 
         return $this;
     }

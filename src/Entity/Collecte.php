@@ -201,7 +201,7 @@ class Collecte extends FreeFieldEntity implements Serializable {
 
     public function setCommentaire(?string $commentaire): self {
         $this->commentaire = $commentaire;
-        $this->setSmartComment($commentaire);
+        $this->setCleanedComment($commentaire);
 
         return $this;
     }

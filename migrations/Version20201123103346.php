@@ -43,7 +43,7 @@ final class Version20201123103346 extends AbstractMigration
 
         foreach ($sqlRequests as $table => $comment) {
             $commentColumn = $comment['comment'];
-            $this->addSql("ALTER TABLE ${table} ADD COLUMN smart_comment TEXT");
+            $this->addSql("ALTER TABLE ${table} ADD COLUMN cleaned_comment TEXT");
 
             $results = $this->connection
                 ->executeQuery("
@@ -57,11 +57,11 @@ final class Version20201123103346 extends AbstractMigration
                 foreach ($results as $row) {
                     $currentId = $row['id'];
                     $currentComment = $row['comment'];
-                    $newSmartComment = FormatHelper::sqlString(strip_tags($currentComment));
-                    $newSmartComment = empty($newSmartComment) ? 'NULL' : "'${newSmartComment}'";
+                    $newCleanedComment = FormatHelper::sqlString(strip_tags($currentComment));
+                    $newCleanedComment = empty($newCleanedComment) ? 'NULL' : "'${newCleanedComment}'";
                     $this->addSql("
                         UPDATE ${table}
-                        SET smart_comment = ${newSmartComment}
+                        SET cleaned_comment = ${newCleanedComment}
                         WHERE id = ${currentId}
                     ");
                 }

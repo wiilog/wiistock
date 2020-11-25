@@ -169,7 +169,7 @@ class TransferRequest implements Serializable {
 
     public function setComment(?string $comment): self {
         $this->comment = $comment;
-        $this->setSmartComment($comment);
+        $this->setCleanedComment($comment);
         return $this;
     }
 
