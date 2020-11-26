@@ -1,6 +1,9 @@
 $('.select2').select2();
 
 $(function () {
+    $(document).on('hide.bs.modal', function () {
+        $('.arrivalNb').not(':first').remove();
+    });
     initDateTimePicker();
 
     // filtres enregistrés en base pour chaque utilisateur
@@ -56,6 +59,40 @@ let submitDeleteReception = $('#submitDeleteRecepTraca');
 let urlDeleteArrivage = Routing.generate('reception_traca_delete', true);
 InitModal(modalDeleteReception, submitDeleteReception, urlDeleteArrivage, {tables: [tableRecep]});
 
+let modalNewReceiptAssociation = $('#modalNewAssociation');
+let submitNewReceiptAssociation = $('#submitNewAssociation');
+let urlNewReceiptAssociation = Routing.generate('reception_traca_new', true);
+InitModal(modalNewReceiptAssociation, submitNewReceiptAssociation, urlNewReceiptAssociation, {tables: [tableRecep], clearOnClose: true});
+
 let customExport = function () {
     tableRecep.button('.buttons-csv').trigger();
 };
+
+function toggleArrivage(button) {
+    let $arrivageBlock = $('.arrivalNb').first().parent();
+    if (button.data('arrivage')) {
+        $arrivageBlock.find('input').each(function () {
+            if ($(this).hasClass('arrivage-input')) {
+                $(this).remove();
+            } else {
+                $(this).val('');
+                $(this).removeClass('needed');
+            }
+        });
+        $arrivageBlock.hide();
+        button.text('Avec Arrivage');
+    } else {
+        $arrivageBlock.find('input').each(function () {
+            $(this).addClass('needed');
+        });
+        $arrivageBlock.show();
+        button.text('Sans Arrivage');
+    }
+    button.data('arrivage', !button.data('arrivage'));
+}
+
+function addArrivalAssociation(span) {
+    let $arrivalInput = span.parent().find('.arrivalNb').first();
+    let $parent = $arrivalInput.parent();
+    $arrivalInput.clone().appendTo($parent).find('input[type=text]').val("");
+}

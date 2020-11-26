@@ -573,62 +573,6 @@ function displayNeutral(div) {
     div.removeClass('isWrong');
 }
 
-let submitNewAssociation = function () {
-    let correct = true;
-    let params = {};
-    $('#modalNewAssociation').find('.needed').each(function (index, input) {
-        if ($(input).val() !== '') {
-            if (params[$(input).attr('name')]) {
-                params[$(input).attr('name')] += ';' + $(input).val();
-            } else {
-                params[$(input).attr('name')] = $(input).val();
-            }
-        } else if (!$(input).hasClass('arrival-input')) {
-            correct = false;
-        }
-    });
-    if (correct) {
-        let routeNewAssociation = Routing.generate('reception_traca_new', true);
-        $.post(routeNewAssociation, JSON.stringify(params), function () {
-            $('#modalNewAssociation').find('.close').click();
-            if (typeof tableRecep !== "undefined") tableRecep.ajax.reload();
-            $('#modalNewAssociation').find('.error-msg').text('');
-        })
-    } else {
-        $('#modalNewAssociation').find('.error-msg').text('Veuillez renseigner tous les champs nécessaires.');
-    }
-};
-
-let toggleArrivage = function (button) {
-    let $arrivageBlock = $('.arrivalNb').first().parent();
-    if (button.data('arrivage')) {
-        $arrivageBlock.find('input').each(function () {
-            if ($(this).hasClass('arrivage-input')) {
-                $(this).remove();
-            } else {
-                $(this).val('');
-                $(this).removeClass('needed');
-            }
-        });
-        $arrivageBlock.hide();
-        button.text('Avec Arrivage');
-    } else {
-        $arrivageBlock.find('input').each(function () {
-            $(this).addClass('needed');
-        });
-        $arrivageBlock.show();
-        button.text('Sans Arrivage');
-    }
-    button.data('arrivage', !button.data('arrivage'));
-};
-
-let addArrivalAssociation = function (span) {
-    let $arrivalInput = span.parent().find('.arrivalNb').first();
-    let $parent = $arrivalInput.parent();
-    $arrivalInput.clone().appendTo($parent);
-};
-
-
 function redirectToDemandeLivraison(demandeId) {
     window.open(Routing.generate('demande_show', {id: demandeId}));
 }
