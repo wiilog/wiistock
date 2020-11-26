@@ -100,6 +100,7 @@ class DispatchRepository extends EntityRepository
                             "DATE_FORMAT(d.creationDate, '%e/%m/%Y') LIKE :value",
                             "DATE_FORMAT(d.validationDate, '%e/%m/%Y') LIKE :value",
                             "DATE_FORMAT(d.treatmentDate, '%e/%m/%Y') LIKE :value",
+                            "DATE_FORMAT(d.endDate, '%e/%m/%Y') LIKE :value",
                             'search_type.label LIKE :value',
                             'search_requester.username LIKE :value',
                             'search_receiver.username LIKE :value',
@@ -274,6 +275,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('dispatch.number AS number')
             ->addSelect('dispatch.creationDate AS creationDate')
             ->addSelect('dispatch.validationDate AS validationDate')
+            ->addSelect('dispatch.endDate AS endDate')
             ->addSelect('join_type.label AS type')
             ->addSelect('join_requester.username AS requester')
             ->addSelect('join_receiver.username AS receiver')

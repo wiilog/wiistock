@@ -19,6 +19,7 @@ $(function () {
             {"data": 'quantity', 'name': 'code', 'title': 'acheminement.Quantité à acheminer', translated: true},
             {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
             {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
+            {"data": 'endDate', 'name': 'endDate', 'title': 'Date d\'échéance'},
             {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
             {"data": 'status', 'name': 'status', 'title': 'Statut'},
         ],
