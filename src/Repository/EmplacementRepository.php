@@ -104,6 +104,7 @@ class EmplacementRepository extends EntityRepository
           FROM App\Entity\Emplacement e
           WHERE e.label LIKE :search
           AND e.isActive = 1
+          ORDER BY e.label ASC
           "
         )->setParameter('search', '%' . str_replace('_', '\_', $search) . '%');
 
