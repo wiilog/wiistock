@@ -430,7 +430,7 @@ class DispatchController extends AbstractController {
             'detailsConfig' => $dispatchService->createHeaderDetailsConfig($dispatch),
             'modifiable' => !$dispatchStatus || $dispatchStatus->isDraft(),
             'newPackConfig' => [
-                'natures' => $natureRepository->findAll()
+                'natures' => $natureRepository->findBy(array(), ['label' => 'ASC'])
             ],
             'dispatchValidate' => [
                 'untreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])
