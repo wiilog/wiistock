@@ -160,18 +160,21 @@ class FreeFieldController extends AbstractController {
 
 			if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
 			    $elements = array_filter(explode(';', $data['elem']));
-				$champLibre
-                    ->setElements($elements)
-                    ->setDefaultValue(null);
+				$champLibre->setElements($elements);
 
-				if($champLibre->getTypage() == FreeField::TYPE_LIST) {
-				    if (!in_array($data['valeur'], $elements)) {
+				if($champLibre->getTypage() == FreeField::TYPE_LIST
+                    && isset($data['valeur'])
+                    && $data['valeur'] !== '') {
+                    if (!in_array($data['valeur'], $elements)) {
                         return new JsonResponse([
                             'success' => false,
                             'msg' => 'La valeur par défaut saisie doit être présente dans les éléments saisis.'
                         ]);
                     }
                     $champLibre->setDefaultValue($data['valeur']);
+                }
+				else {
+                    $champLibre->setDefaultValue(null);
                 }
 			} else {
 				$champLibre
@@ -246,11 +249,11 @@ class FreeFieldController extends AbstractController {
 
 		if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
 		    $elements = array_filter(explode(';', $data['elem']));
-            $champLibre
-                ->setElements($elements)
-                ->setDefaultValue(null);
+            $champLibre->setElements($elements);
 
-            if($champLibre->getTypage() == FreeField::TYPE_LIST) {
+            if ($champLibre->getTypage() == FreeField::TYPE_LIST
+                && isset($data['valeur'])
+                && $data['valeur'] !== "") {
                 if (!in_array($data['valeur'], $elements)) {
                     return new JsonResponse([
                         'success' => false,
@@ -258,6 +261,9 @@ class FreeFieldController extends AbstractController {
                     ]);
                 }
                 $champLibre->setDefaultValue($data['valeur']);
+            }
+            else {
+                $champLibre->setDefaultValue(null);
             }
 		} else {
 			$champLibre
