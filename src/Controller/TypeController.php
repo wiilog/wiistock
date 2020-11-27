@@ -9,6 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Helper\Stream;
 use App\Service\GlobalParamService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,24 +28,17 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class TypeController extends AbstractController
 {
-    /**
-     * @var UserService
-     */
-    private $userService;
-
-    public function __construct(UserService $userService)
-    {
-        $this->userService = $userService;
-    }
 
     /**
      * @Route("/", name="types_index")
      * @param EntityManagerInterface $entityManager
+     * @param UserService $userService
      * @return RedirectResponse|Response
      */
-    public function index(EntityManagerInterface $entityManager)
+    public function index(EntityManagerInterface $entityManager,
+                          UserService $userService)
     {
-        if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_TYPE)) {
+        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_TYPE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -61,13 +55,15 @@ class TypeController extends AbstractController
      * @Route("/api", name="types_param_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param UserService $userService
      * @return Response
      */
     public function api(Request $request,
-                        EntityManagerInterface $entityManager): Response
+                        EntityManagerInterface $entityManager,
+                        UserService $userService): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_TYPE)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_TYPE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -102,14 +98,16 @@ class TypeController extends AbstractController
      * @param Request $request
      * @param GlobalParamService $globalParamService
      * @param EntityManagerInterface $entityManager
+     * @param UserService $userService
      * @return Response
      */
     public function new(Request $request,
                         GlobalParamService $globalParamService,
-                        EntityManagerInterface $entityManager): Response
+                        EntityManagerInterface $entityManager,
+                        UserService $userService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -149,13 +147,15 @@ class TypeController extends AbstractController
      * @Route("/api-modifier", name="types_api_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param UserService $userService
      * @return Response
      */
     public function apiEdit(Request $request,
-                            EntityManagerInterface $entityManager): Response
+                            EntityManagerInterface $entityManager,
+                            UserService $userService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -179,14 +179,16 @@ class TypeController extends AbstractController
      * @param Request $request
      * @param GlobalParamService $globalParamService
      * @param EntityManagerInterface $entityManager
+     * @param UserService $userService
      * @return Response
      */
     public function edit(Request $request,
                          GlobalParamService $globalParamService,
-                         EntityManagerInterface $entityManager): Response
+                         EntityManagerInterface $entityManager,
+                         UserService $userService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -224,22 +226,30 @@ class TypeController extends AbstractController
      * @Route("/verification", name="types_check_delete", options={"expose"=true})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param UserService $userService
      * @return Response
      */
     public function checkTypeCanBeDeleted(Request $request,
-                                          EntityManagerInterface $entityManager): Response
+                                          EntityManagerInterface $entityManager,
+                                          UserService $userService): Response
     {
         if ($request->isXmlHttpRequest() && $typeId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
             $typeRepository = $entityManager->getRepository(Type::class);
             $statusRepository = $entityManager->getRepository(Statut::class);
-            $canDelete = !$typeRepository->isTypeUsed($typeId);
-            $statuses = $statusRepository->findBy(['type' => $typeId]);
 
-            $html = $canDelete && empty($statuses)
+            $canDelete = !$typeRepository->isTypeUsed($typeId);
+            $usedStatuses = Stream::from($statusRepository->findBy(['type' => $typeId]))
+                ->filter(function(Statut $statut) use ($statusRepository) {
+                    $count = $statusRepository->countUsedById($statut->getId());
+                    return $count > 0;
+                })
+                ->toArray();
+
+            $html = $canDelete && empty($usedStatuses)
                 ? $this->renderView('types/modalDeleteTypeRight.html.twig')
                 : $this->renderView('types/modalDeleteTypeWrong.html.twig');
 
@@ -252,12 +262,15 @@ class TypeController extends AbstractController
      * @Route("/supprimer", name="types_delete", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param UserService $userService
      * @return Response
      */
-    public function delete(Request $request, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager,
+                           UserService $userService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
