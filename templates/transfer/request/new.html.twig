@@ -8,22 +8,30 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label class="required">Demandeur</label>
-                    <input type="text" disabled="disabled" class="form-control" value="{{ app.user.username }}">
+                <div class="form-group row">
+                    <label class="required col-12">Demandeur</label>
+                    <div class="col-12">
+                        <input type="text" disabled class="w-100 form-control" value="{{ app.user.username }}">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="required">Origine</label>
-                    <select name="origin" required="required" class="w-100 form-control needed data ajax-autocomplete-location"></select>
+                <div class="form-group row">
+                    <label class="required col-12">Origine</label>
+                    <div class="col-12">
+                        <select name="origin" required class="w-100 form-control needed data ajax-autocomplete-location"></select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="required">Destination</label>
-                    <select name="destination" required="required" class="w-100 form-control needed data ajax-autocomplete-location"></select>
+                <div class="form-group row">
+                    <label class="required col-12">Destination</label>
+                    <div class="col-12">
+                        <select name="destination" required="required" class="w-100 form-control needed data ajax-autocomplete-location"></select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Commentaire</label>
-                    <input id="comment" class="form-control data" name="comment" type="hidden"/>
-                    <div class="editor-container"></div>
+                <div class="form-group row">
+                    <label class="col-12">Commentaire</label>
+                    <div class="col-12">
+                        <input id="comment" class="form-control data" name="comment" type="hidden"/>
+                        <div class="editor-container"></div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
