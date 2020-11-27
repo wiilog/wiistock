@@ -570,21 +570,31 @@ class UtilisateurController extends AbstractController
     }
 
     /**
-     * @Route("/recherches", name="update_user_searches", options={"expose"=true}, methods="GET|POST")
+     * @Route("/recherches", name="update_user_searches", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @return JsonResponse
      */
-    public function updateSearches(Request $request) {
-        if ($request->isXmlHttpRequest() && $data = $request->get("searches")) {
-            $this->getUser()->setRecherche($data);
-            $this->getDoctrine()->getManager()->flush();
+    public function updateSearches(Request $request,
+                                   EntityManagerInterface $entityManager) {
+        $data = $request->get("searches");
+        if ($data && is_array($data)) {
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+            $currentUser->setRecherche($data);
 
-            return $this->json([
+            $entityManager->flush();
+            $res = [
                 "success" => true,
-            ]);
+                "msg" => "Recherche rapide sauvegardée avec succès."
+            ];
         }
-
-        throw new BadRequestHttpException();
+        else {
+            $res = [
+                "success" => false,
+                "msg" => "Vous devez sélectionner au moins un champ."
+            ];
+        }
+        return $this->json($res);
     }
 
     /**

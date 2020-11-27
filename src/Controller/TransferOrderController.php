@@ -84,7 +84,7 @@ class TransferOrderController extends AbstractController {
     }
 
     /**
-     * @Route("/creer{id}", name="transfer_order_new", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/creer/{transferRequest}", name="transfer_order_new", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
      * @param TransferOrderService $transferOrderService
      * @param EntityManagerInterface $entityManager
@@ -106,7 +106,6 @@ class TransferOrderController extends AbstractController {
 
             $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
             $toTreatRequest = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
-
 
             $transitStatusForArticles = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::ARTICLE,

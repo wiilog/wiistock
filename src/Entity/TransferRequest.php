@@ -19,7 +19,7 @@ class TransferRequest implements Serializable {
     const NUMBER_PREFIX = 'DT';
 
     const DRAFT = "Brouillon";
-    const TO_TREAT = "À traiter";
+    const TO_TREAT = "A traiter";
     const TREATED = "Traité";
 
     use CommentTrait;
@@ -37,6 +37,7 @@ class TransferRequest implements Serializable {
     private $number;
 
     /**
+     * @var Statut|null
      * @ORM\ManyToOne(targetEntity=Statut::class, inversedBy="transferRequests")
      * @ORM\JoinColumn(nullable=false)
      */
@@ -133,16 +134,16 @@ class TransferRequest implements Serializable {
 
     public function setStatus(?Statut $status): self {
         $oldStatus = $this->status;
-        $this->status = $status;
+        if ($oldStatus !== $status) {
+            $this->status = $status;
+            if (isset($this->status)) {
+                $this->status->addTransferRequest($this);
+            }
 
-        if (isset($oldStatus) && $oldStatus !== $this->status) {
-            $oldStatus->removeTransferRequest($this);
+            if (isset($oldStatus)) {
+                $oldStatus->removeTransferRequest($this);
+            }
         }
-
-        if (isset($this->status) && $oldStatus !== $this->status) {
-            $this->status->addTransferRequest($this);
-        }
-
         return $this;
     }
 

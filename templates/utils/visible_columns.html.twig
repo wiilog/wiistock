@@ -22,7 +22,8 @@
                             {% set name = field.name %}
                         {% endif %}
 
-                        {% if (field.alwaysVisible is not defined or not field.alwaysVisible) %}
+                        {% if (field.alwaysVisible is not defined or not field.alwaysVisible)
+                              and (field.hiddenColumn is not defined or not field.hiddenColumn) %}
                             <tr class="pointer" onclick="toggleInputRadioOnRow(this)">
                                 {% set label = ((field.translated is defined and field.translated)
                                     ? field.title|trans

@@ -131,14 +131,15 @@ class TransferOrder implements Serializable {
 
     public function setStatus(?Statut $status): self {
         $oldStatus = $this->status;
-        $this->status = $status;
+        if ($oldStatus !== $status) {
+            $this->status = $status;
+            if (isset($this->status)) {
+                $this->status->addTransferOrder($this);
+            }
 
-        if (isset($oldStatus) && $oldStatus !== $this->status) {
-            $oldStatus->removeTransferOrder($this);
-        }
-
-        if (isset($this->status) && $oldStatus !== $this->status) {
-            $this->status->addTransferOrder($this);
+            if (isset($oldStatus)) {
+                $oldStatus->removeTransferOrder($this);
+            }
         }
         return $this;
     }

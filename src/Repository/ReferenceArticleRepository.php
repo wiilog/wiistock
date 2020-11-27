@@ -418,13 +418,31 @@ class ReferenceArticleRepository extends EntityRepository {
 
                         case "supplierCode":
                             $subqb = $em->createQueryBuilder()
-                                ->select('ra.id')
-                                ->from('App\Entity\ReferenceArticle', 'ra')
-                                ->leftJoin('ra.articlesFournisseur', 'afra')
-                                ->andWhere('afra.reference LIKE :valueSearch')
+                                ->select('referenceArticle.id')
+                                ->from('App\Entity\ReferenceArticle', 'referenceArticle')
+                                ->innerJoin('referenceArticle.articlesFournisseur', 'articleFournisseur')
+                                ->innerJoin('articleFournisseur.fournisseur', 'fournisseur')
+                                ->where('fournisseur.codeReference LIKE :valueSearch')
                                 ->setParameter('valueSearch', $search);
 
-                            foreach ($subqb->getQuery()->execute() as $idArray) {
+                            $res = $subqb->getQuery()->execute();
+
+                            foreach ($res as $idArray) {
+                                $ids[] = $idArray['id'];
+                            }
+                            break;
+
+                        case "referenceSupplierArticle":
+                            $subqb = $em->createQueryBuilder()
+                                ->select('referenceArticle.id')
+                                ->from(ReferenceArticle::class, 'referenceArticle')
+                                ->innerJoin('referenceArticle.articlesFournisseur', 'articleFournisseur')
+                                ->where('articleFournisseur.reference LIKE :valueSearch')
+                                ->setParameter('valueSearch', $search);
+
+                            $res = $subqb->getQuery()->execute();
+
+                            foreach ($res as $idArray) {
                                 $ids[] = $idArray['id'];
                             }
                             break;
@@ -453,12 +471,20 @@ class ReferenceArticleRepository extends EntityRepository {
                     }
                 }
 
+                $treatedIds = [];
                 foreach ($ids as $id) {
-                    $query[] = 'ra.id  = ' . $id;
+                    if (!in_array($id, $treatedIds)) {
+                        $query[] = 'ra.id = ' . $id;
+                        $treatedIds[] = $id;
+                    }
                 }
 
                 if (!empty($query)) {
                     $qb->andWhere(implode(' OR ', $query));
+                }
+                else {
+                    // false condition because search is corresponding to 0 ra.id
+                    $qb->andWhere('ra.id = 0');
                 }
             }
         }

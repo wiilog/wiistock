@@ -416,7 +416,7 @@ class TransferRequestController extends AbstractController {
 
             if($count > 0) {
                 return $this->redirectToRoute('transfer_order_new', [
-                    'id' => $transferRequest->getId()
+                    'transferRequest' => $transferRequest->getId()
                 ]);
             } else {
                 return new JsonResponse([

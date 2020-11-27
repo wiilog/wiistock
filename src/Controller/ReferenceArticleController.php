@@ -22,6 +22,7 @@ use App\Entity\CategorieCL;
 use App\Entity\Collecte;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
+use App\Helper\Stream;
 use App\Service\DemandeCollecteService;
 use App\Service\MouvementStockService;
 use App\Service\FreeFieldService;
@@ -132,7 +133,11 @@ class ReferenceArticleController extends AbstractController
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
-        $fields = $refArticleDataService->getColumnVisibleConfig($entityManager, $currentUser);
+        $fields = Stream::from($refArticleDataService->getColumnVisibleConfig($entityManager, $currentUser))
+            ->filter(function ($column) {
+                return !isset($column['hiddenColumn']) || !$column['hiddenColumn'];
+            })
+            ->toArray();
 
         return $this->json($fields);
     }

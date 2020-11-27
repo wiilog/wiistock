@@ -293,7 +293,6 @@ class Statut
     {
         if (!$this->transferRequests->contains($transferRequest)) {
             $this->transferRequests[] = $transferRequest;
-            $transferRequest->setStatus($this);
         }
 
         return $this;
@@ -303,10 +302,6 @@ class Statut
     {
         if ($this->transferRequests->contains($transferRequest)) {
             $this->transferRequests->removeElement($transferRequest);
-            // set the owning side to null (unless already changed)
-            if ($transferRequest->getStatus() === $this) {
-                $transferRequest->setStatus(null);
-            }
         }
 
         return $this;
@@ -324,7 +319,6 @@ class Statut
     {
         if (!$this->transferOrders->contains($transferOrder)) {
             $this->transferOrders[] = $transferOrder;
-            $transferOrder->setStatus($this);
         }
 
         return $this;
@@ -334,10 +328,6 @@ class Statut
     {
         if ($this->transferOrders->contains($transferOrder)) {
             $this->transferOrders->removeElement($transferOrder);
-            // set the owning side to null (unless already changed)
-            if ($transferOrder->getStatus() === $this) {
-                $transferOrder->setStatus(null);
-            }
         }
 
         return $this;

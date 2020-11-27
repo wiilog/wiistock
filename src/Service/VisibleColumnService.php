@@ -18,6 +18,7 @@ class VisibleColumnService {
                     return [
                         'title' => $column['title'] ?? '',
                         'alwaysVisible' => $column['alwaysVisible'] ?? null,
+                        'hiddenColumn' => $column['hiddenColumn'] ?? false,
                         'orderable' => $column['orderable'] ?? true,
                         'data' => $column['name'],
                         'name' => $column['name'],

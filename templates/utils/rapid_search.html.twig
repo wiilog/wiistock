@@ -100,9 +100,18 @@
             type: "POST",
             dataType: "json",
             data: {searches},
-            success: function () {
-                $("#modalRapidSearch").modal("hide");
-                table.search(table.search()).draw();
+            success: function (res) {
+                if (res) {
+                    const color = res.success ? 'success' : 'danger';
+                    const message = res.msg;
+                    if (message) {
+                        showBSAlert(message, color);
+                    }
+                    if (res.success) {
+                        $("#modalRapidSearch").modal("hide");
+                        table.search(table.search()).draw();
+                    }
+                }
             }
         });
     }
