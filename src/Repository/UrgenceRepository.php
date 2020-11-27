@@ -264,8 +264,8 @@ class UrgenceRepository extends EntityRepository
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
         $qb = $this->createQueryBuilder('u')
-            ->where('u.dateStart > :dateMin')
-            ->andWhere('u.dateEnd < :dateMax')
+            ->where('u.dateEnd >= :dateMin')
+            ->andWhere('u.dateStart <= :dateMax')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax

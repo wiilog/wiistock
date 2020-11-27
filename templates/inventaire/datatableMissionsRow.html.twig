@@ -2,13 +2,7 @@
     <div class="dropdown dropright">
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt pointer">
-            <div class="d-none">
-                <a href="{{ path('inventory_mission_show', {'id': missionId}) }}">
-                    <div class="btn btn-col-action action-on-click">
-                        <i class='fas fa-eye'></i>
-                    </div>
-                </a>
-            </div>
+            <a href='{{ path('inventory_mission_show', {'id': missionId}) }}' class="d-none action-on-click"></a>
             {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
                 <div class="dropdown-item" onclick="checkAndDeleteRow($(this), '#modalDeleteMission', 'mission_check_delete', '#submitDeleteMission')"
                      data-id='{{ missionId }}' data-target='#modalDeleteMission' data-toggle='modal'>

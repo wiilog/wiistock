@@ -184,11 +184,16 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
     }
 
     public function findByUsernames(array $usernames) {
-        return $this->createQueryBuilder("u")
-            ->where("u.email IN (:emails)")
-            ->setParameter("emails", $usernames)
-            ->getQuery()
-            ->getResult();
+        if (!empty($usernames)) {
+            $result = $this->createQueryBuilder("u")
+                ->where("u.email IN (:emails)")
+                ->orWhere("u.username IN (:emails)")
+                ->setParameter("emails", $usernames);
+            return $result->getQuery()->getResult();
+        }
+        else {
+            return [];
+        }
     }
 
     public function getUserMailByIsMailSendRole()
