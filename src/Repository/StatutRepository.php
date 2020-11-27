@@ -301,6 +301,8 @@ class StatutRepository extends EntityRepository {
             ->leftJoin('s.referenceArticles', 'ra')
             ->leftJoin('s.handlings', 'handling')
             ->leftJoin('s.dispatches', 'dispatch')
+            ->leftJoin('s.transferRequests', 'transferRequest')
+            ->leftJoin('s.transferOrders', 'transferOrder')
             ->where('s.id = :statusId')
             ->andWhere($exprBuilder->orX(
                 'a IS NOT NULL',
@@ -311,7 +313,9 @@ class StatutRepository extends EntityRepository {
                 'r IS NOT NULL',
                 'ra IS NOT NULL',
                 'handling IS NOT NULL',
-                'dispatch IS NOT NULL'
+                'dispatch IS NOT NULL',
+                'transferRequest IS NOT NULL',
+                'transferOrder IS NOT NULL'
             ))
             ->setParameter('statusId', $id);
 

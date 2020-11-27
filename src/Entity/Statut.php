@@ -116,6 +116,16 @@ class Statut
     private $arrivages;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\TransferRequest", mappedBy="status")
+     */
+    private $transferRequests;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\TransferOrder", mappedBy="status")
+     */
+    private $transferOrders;
+
+    /**
      * @ORM\Column(type="boolean", nullable=true)
      */
     private $sendNotifToDeclarant;
@@ -154,6 +164,8 @@ class Statut
         $this->litiges = new ArrayCollection();
         $this->dispatches = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
+        $this->transferRequests = new ArrayCollection();
+        $this->transferOrders = new ArrayCollection();
 
         $this->defaultForCategory = false;
     }
@@ -263,6 +275,68 @@ class Statut
             // set the owning side to null (unless already changed)
             if ($reception->getStatut() === $this) {
                 $reception->setStatut(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|TransferRequest[]
+     */
+    public function getTransferRequests(): Collection
+    {
+        return $this->transferRequests;
+    }
+
+    public function addTransferRequest(TransferRequest $transferRequest): self
+    {
+        if (!$this->transferRequests->contains($transferRequest)) {
+            $this->transferRequests[] = $transferRequest;
+            $transferRequest->setStatus($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransferRequest(TransferRequest $transferRequest): self
+    {
+        if ($this->transferRequests->contains($transferRequest)) {
+            $this->transferRequests->removeElement($transferRequest);
+            // set the owning side to null (unless already changed)
+            if ($transferRequest->getStatus() === $this) {
+                $transferRequest->setStatus(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|TransferOrder[]
+     */
+    public function getTransferOrders(): Collection
+    {
+        return $this->transferOrders;
+    }
+
+    public function addTransferOrder(TransferOrder $transferOrder): self
+    {
+        if (!$this->transferOrders->contains($transferOrder)) {
+            $this->transferOrders[] = $transferOrder;
+            $transferOrder->setStatus($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransferOrder(TransferOrder $transferOrder): self
+    {
+        if ($this->transferOrders->contains($transferOrder)) {
+            $this->transferOrders->removeElement($transferOrder);
+            // set the owning side to null (unless already changed)
+            if ($transferOrder->getStatus() === $this) {
+                $transferOrder->setStatus(null);
             }
         }
 

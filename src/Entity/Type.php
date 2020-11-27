@@ -125,7 +125,7 @@ class Type
     private $arrivals;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Statut", mappedBy="type")
+     * @ORM\OneToMany(targetEntity="App\Entity\Statut", mappedBy="type", orphanRemoval=true)
      */
     private $statuts;
 

@@ -37,7 +37,7 @@ class TransferRequest implements Serializable {
     private $number;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Statut::class)
+     * @ORM\ManyToOne(targetEntity=Statut::class, inversedBy="transferRequests")
      * @ORM\JoinColumn(nullable=false)
      */
     private $status;
@@ -132,7 +132,17 @@ class TransferRequest implements Serializable {
     }
 
     public function setStatus(?Statut $status): self {
+        $oldStatus = $this->status;
         $this->status = $status;
+
+        if (isset($oldStatus) && $oldStatus !== $this->status) {
+            $oldStatus->removeTransferRequest($this);
+        }
+
+        if (isset($this->status) && $oldStatus !== $this->status) {
+            $this->status->addTransferRequest($this);
+        }
+
         return $this;
     }
 
