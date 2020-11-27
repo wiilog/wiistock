@@ -138,7 +138,7 @@ class OrdreCollecteRepository extends EntityRepository
 				case 'dateMax':
 					$qb
 						->andWhere('oc.date <= :dateMax')
-						->setParameter('dateMax', $filter['value'] . '23:59:00');
+						->setParameter('dateMax', $filter['value'] . ' 23:59:00');
 					break;
 				case 'demCollecte':
 					$value = explode(':', $filter['value'])[0];
