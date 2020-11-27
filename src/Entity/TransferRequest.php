@@ -140,7 +140,7 @@ class TransferRequest implements Serializable {
         }
 
         if (isset($this->status) && $oldStatus !== $this->status) {
-            $oldStatus->addTransferRequest($this);
+            $this->status->addTransferRequest($this);
         }
 
         return $this;

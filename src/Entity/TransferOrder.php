@@ -33,6 +33,7 @@ class TransferOrder implements Serializable {
     private $number;
 
     /**
+     * @var Statut|null
      * @ORM\ManyToOne(targetEntity=Statut::class, inversedBy="transferOrders")
      * @ORM\JoinColumn(nullable=false)
      */
@@ -137,7 +138,7 @@ class TransferOrder implements Serializable {
         }
 
         if (isset($this->status) && $oldStatus !== $this->status) {
-            $oldStatus->addTransferOrder($this);
+            $this->status->addTransferOrder($this);
         }
         return $this;
     }
