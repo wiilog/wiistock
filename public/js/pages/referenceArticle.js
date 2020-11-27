@@ -359,9 +359,9 @@ function initNewReferenceArticleEditor(modal) {
         initEditor('.editor-container-new');
         editorNewReferenceArticleAlreadyDone = true;
     }
-    Select2.provider($('.ajax-autocompleteFournisseur'));
-    Select2.provider($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
-    Select2.location($('.ajax-autocomplete-location'));
+    Select2.provider($(modal).find('.ajax-autocompleteFournisseur'));
+    Select2.provider($(modal).find('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
+    Select2.location($(modal).find('.ajax-autocomplete-location'));
     clearModal(modal);
 }
 
