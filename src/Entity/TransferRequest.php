@@ -19,7 +19,7 @@ class TransferRequest implements Serializable {
     const NUMBER_PREFIX = 'DT';
 
     const DRAFT = "Brouillon";
-    const TO_TREAT = "A traiter";
+    const TO_TREAT = "À traiter";
     const TREATED = "Traité";
 
     use CommentTrait;
