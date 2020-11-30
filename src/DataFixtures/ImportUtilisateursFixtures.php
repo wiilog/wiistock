@@ -74,14 +74,6 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
                         ->setEmail($email)
                         ->setRole($role)
                         ->setStatus($active)
-                        ->setRoles(['USER'])// évite bug -> champ roles ne doit pas être vide
-                        ->setRechercheForArticle(Utilisateur::SEARCH_DEFAULT)
-                        ->setRecherche(Utilisateur::SEARCH_DEFAULT)
-                        ->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT)
-                        ->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT)
-                        ->setColumnsVisibleForArrivage(Utilisateur::COL_VISIBLE_ARR_DEFAULT)
-                        ->setColumnsVisibleForDispatch(Utilisateur::COL_VISIBLE_DISPATCH_DEFAULT)
-                        ->setColumnsVisibleForLitige(Utilisateur::COL_VISIBLE_LIT_DEFAULT)
                         ->setPassword("")
                         ->setMobileLoginKey($uniqueMobileKey);
 

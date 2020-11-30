@@ -342,6 +342,16 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->secondaryEmails = [];
         $this->savedDispatchDeliveryNoteData = [];
         $this->savedDispatchWaybillData = [];
+
+        $this->columnVisible = Utilisateur::COL_VISIBLE_REF_DEFAULT;
+        $this->columnsVisibleForArticle = Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT;
+        $this->columnsVisibleForArrivage = Utilisateur::COL_VISIBLE_ARR_DEFAULT;
+        $this->columnsVisibleForDispatch = Utilisateur::COL_VISIBLE_DISPATCH_DEFAULT;
+        $this->columnsVisibleForLitige = Utilisateur::COL_VISIBLE_LIT_DEFAULT;
+        $this->columnsVisibleForTrackingMovement = Utilisateur::COL_VISIBLE_TRACKING_MOVEMENT_DEFAULT;
+        $this->recherche = Utilisateur::SEARCH_DEFAULT;
+        $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
+        $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
     }
 
     public function getId()
