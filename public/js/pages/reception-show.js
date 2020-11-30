@@ -775,6 +775,7 @@ function toggleForm($content, $input, force = false) {
                 $('.transfer-form').addClass('d-none');
                 $('.transfer-form').find('.data').attr('disabled', 'disabled');
                 $('input[name="create-demande-transfert"]').prop('checked', false);
+                $('.demande-form select').addClass('needed')
 
             }
         } else {
