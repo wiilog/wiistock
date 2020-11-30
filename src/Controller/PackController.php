@@ -149,24 +149,31 @@ class PackController extends AbstractController {
     public function getPackIntel(EntityManagerInterface $entityManager,
                                  string $packCode): JsonResponse {
         $packRepository = $entityManager->getRepository(Pack::class);
+        $naturesRepository = $entityManager->getRepository(Nature::class);
+        $natures = $naturesRepository->findAll();
+        $uniqueNature = (count($natures) === 1 );
         $pack = $packRepository->findOneBy(['code' => $packCode]);
         return new JsonResponse([
-            'success' => !empty($pack),
-            'pack' => !empty($pack)
-                ? [
-                    'code' => $packCode,
-                    'quantity' => $pack->getQuantity(),
-                    'comment' => $pack->getComment(),
-                    'weight' => $pack->getWeight(),
-                    'volume' => $pack->getVolume(),
-                    'nature' => $pack->getNature()
-                        ? [
-                            'id' => $pack->getNature()->getId(),
-                            'label' => $pack->getNature()->getLabel()
-                        ]
-                        : null
+            'success' => true,
+            'nature' => $pack && $pack->getNature()
+                ?
+                [
+                    'id' => $pack->getNature()->getId(),
+                    'label' => $pack->getNature()->getLabel(),
                 ]
-                : null
+                : ($uniqueNature ?
+                    [
+                        'id' => $natures[0]->getId(),
+                        'label' => $natures[0]->getLabel(),
+                    ] : null),
+            'pack' =>
+                [
+                    'code' => $packCode,
+                    'quantity' => $pack ? $pack->getQuantity() : null,
+                    'comment' => $pack ? $pack->getComment() : null,
+                    'weight' => $pack ? $pack->getWeight() : null,
+                    'volume' => $pack ? $pack->getVolume() : null,
+                ]
         ]);
     }
 
