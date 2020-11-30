@@ -30,6 +30,7 @@ $(function () {
         columns: [
             {"data": 'Actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'Date', 'name': 'date', 'title': 'Date création'},
+            {"data": 'dateAttendue', 'name': 'dateAttendue', 'title': 'Date attendue'},
             {"data": 'DateFin', 'name': 'dateFin', 'title': 'Date fin'},
             {"data": 'orderNumber', 'name': 'orderNumber', 'title': 'Numéro commande'},
             {"data": 'receiver', 'name': 'receiver', 'title': 'Destinataire(s)', orderable: false},
