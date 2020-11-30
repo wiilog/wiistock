@@ -19,14 +19,6 @@ $(function () {
             $(this).val('');
         }
     });
-    $modalNewLigneReception.on('hide.bs.modal', function () {
-        if ($('[name=create-demande]').not('checked')) {
-            $('.demande-form').addClass('d-none');
-            $('.demande-form select').removeClass('needed')
-        } else {
-            $('.demande-form select').addClass('needed')
-        }
-    });
 });
 
 function initPageModals() {
@@ -761,6 +753,10 @@ function toggleForm($content, $input, force = false) {
         $content = $('.transfer-form');
         $content.addClass('d-none');
         $content.find('.data').attr('disabled', 'disabled');
+        if ($('input[name="create-demande"]').is(':checked')) {
+            $('.demande-form').removeClass('d-none');
+            $('.demande-form').find('.data').prop('disabled', false);
+        }
     } else {
         if ($input.is(':checked')) {
             $content.removeClass('d-none');
