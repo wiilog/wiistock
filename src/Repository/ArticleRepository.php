@@ -1083,16 +1083,19 @@ class ArticleRepository extends EntityRepository {
 
     private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder('article');
+        $exprBuilder = $queryBuilder->expr();
         $queryBuilder
             ->join('article.emplacement', 'emplacement')
             ->join('article.statut', 'status')
             ->andWhere('emplacement.label = :location')
             ->andWhere('article.barCode = :barCode')
-            ->andWhere('status.nom = :statusNom')
-            ->orWhere('status.nom = :statusDisputeName')
+            ->andWhere($exprBuilder->orX(
+                'status.nom = :activeStatusName',
+                'status.nom = :statusDisputeName'
+            ))
             ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
-            ->setParameter('statusNom', Article::STATUT_ACTIF)
+            ->setParameter('activeStatusName', Article::STATUT_ACTIF)
             ->setParameter('statusDisputeName', Article::STATUT_EN_LITIGE);
 
         return $queryBuilder;

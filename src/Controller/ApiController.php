@@ -81,6 +81,9 @@ use Twig\Error\SyntaxError;
  */
 class ApiController extends AbstractFOSRestController {
 
+    /** @var Utilisateur|null */
+    private $user;
+
     public function getUser(): Utilisateur {
         return $this->user;
     }
