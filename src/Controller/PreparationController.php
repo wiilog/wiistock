@@ -245,6 +245,7 @@ class PreparationController extends AbstractController
                                 'isRefByArt' => $isRefByArt,
                                 'id' => $ligneArticle->getId(),
                                 'isPrepaEditable' => $isPrepaEditable,
+                                'stockManagement' => $articleRef->getStockManagement()
                             ])
                         ];
                     }
@@ -273,6 +274,7 @@ class PreparationController extends AbstractController
                                 'quantity' => $article->getQuantiteAPrelever(),
                                 'id' => $article->getId(),
                                 'isPrepaEditable' => $isPrepaEditable,
+                                'stockManagement' => $articleRef->getStockManagement()
                             ])
                         ];
                     }
@@ -393,7 +395,8 @@ class PreparationController extends AbstractController
                 'articles' => $articles,
                 'quantite' => $ligneArticle->getQuantite(),
                 'preparation' => $preparation,
-                'demande' => $preparation->getDemande()
+                'demande' => $preparation->getDemande(),
+                'managementType' => $refArticle->getStockManagement()
             ]);
 
             return new JsonResponse($response);

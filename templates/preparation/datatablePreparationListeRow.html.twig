@@ -16,7 +16,7 @@
                 {% set action = '' %}
                 {% set attr = '' %}
                 {% if isRefByArt %}
-                    {% set action = ", startPicking($(this))" %}
+                    {% set action = ", startPicking($(this), '" ~ (stockManagement ? stockManagement : "") ~ "')" %}
                     {% set attr = 'value='~id %}
                 {% else %}
                     {% set action = ", editRow($(this), Routing.generate('prepa_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'))" %}

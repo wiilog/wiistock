@@ -1,3 +1,12 @@
+{%
+    set displayedDateHeader = managementType == constant('App\\Entity\\ReferenceArticle::STOCK_MANAGEMENT_FEFO')
+        ? "Date d'expiration"
+        : (
+            managementType == constant('App\\Entity\\ReferenceArticle::STOCK_MANAGEMENT_FIFO')
+            ? "Date d'entrée en stock"
+            : null
+        )
+%}
 <div class="modal fade" id="modalSplitting" tabindex="-1" role="dialog"
      aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-xl" role="document">
@@ -13,22 +22,38 @@
                 <table class="table" id="tableSplittingArticles">
                     <thead>
                     <tr>
-                        <th>Code barre article</th>
-                        <th>Libellé article</th>
+                        <th>Code barre</th>
+                        <th>Libellé</th>
                         <th>Quantité</th>
                         <th>Emplacement</th>
+                        {% if displayedDateHeader is not null %}
+                            <th>{{ displayedDateHeader }}</th>
+                        {% endif %}
                         <th data-orderable="false">Quantité prélevée</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for article in articles %}
                         {% set quantiteArt = article.quantite is null ? 0 : article.quantite %}
-
+                        {%
+                            set displayedDate = managementType == constant('App\\Entity\\ReferenceArticle::STOCK_MANAGEMENT_FEFO')
+                            ? article.expiryDate
+                            : (
+                                managementType == constant('App\\Entity\\ReferenceArticle::STOCK_MANAGEMENT_FIFO')
+                                ? article.stockEntryDate
+                                : null
+                            )
+                        %}
                         <tr>
                             <td>{{ article.barCode }}</td>
                             <td>{{ article.label }}</td>
                             <td>{{ quantiteArt }}</td>
                             <td>{{ article.emplacement ? article.emplacement.label : '' }}</td>
+                            {% if displayedDateHeader is not null %}
+                                <td data-sort="{{ displayedDate ? displayedDate|date('U') : "z" }}">
+                                    {{ displayedDate ? displayedDate|date("d/m/Y", "Europe/Paris") : "Non définie" }}
+                                </td>
+                            {% endif %}
                             <td>
                                 <div class="d-flex w-100">
                                     <label class="pr-1">Quantité totale&nbsp;?</label>
