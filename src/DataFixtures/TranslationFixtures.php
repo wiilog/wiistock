@@ -103,7 +103,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée" => "Les poids ou volumes indicatifs sont manquants sur certains colis, la lettre de voiture ne peut pas être générée",
                 'Business unit' => 'Business unit',
                 'Numéro de projet' => 'Numéro de projet',
-                "Une autre demande d'acheminement est en cours de création, veuillez réessayer" => "Une autre demande d'acheminement est en cours de création, veuillez réessayer"
+                "Une autre demande d'acheminement est en cours de création, veuillez réessayer" => "Une autre demande d'acheminement est en cours de création, veuillez réessayer",
+                "Garder la modale d'ajout de colis ouverte à l'enregistrement" => "Garder la modale d'ajout de colis ouverte à l'enregistrement"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',

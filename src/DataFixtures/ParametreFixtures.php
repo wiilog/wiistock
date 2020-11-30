@@ -180,6 +180,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::EMERGENCY_TEXT_LABEL => [],
             ParametrageGlobal::DELIVERY_NOTE_LOGO => [],
             ParametrageGlobal::WAYBILL_LOGO => [],
+            ParametrageGlobal::KEEP_DISPATCH_PACK_MODAL_OPEN => [
+                "default" => false
+            ],
             ParametrageGlobal::DASHBOARD_PACKAGING_1 => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_2 => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_3 => [],

@@ -420,6 +420,7 @@ class DispatchController extends AbstractController {
             return $this->redirectToRoute('access_denied');
         }
 
+        $paramRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -427,6 +428,7 @@ class DispatchController extends AbstractController {
 
         return $this->render('dispatch/show.html.twig', [
             'dispatch' => $dispatch,
+            'keep_pack_modal_open' => $paramRepository->getOneParamByLabel(ParametrageGlobal::KEEP_DISPATCH_PACK_MODAL_OPEN),
             'detailsConfig' => $dispatchService->createHeaderDetailsConfig($dispatch),
             'modifiable' => !$dispatchStatus || $dispatchStatus->isDraft(),
             'newPackConfig' => [
