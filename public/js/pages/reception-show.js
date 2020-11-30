@@ -19,6 +19,14 @@ $(function () {
             $(this).val('');
         }
     });
+    $modalNewLigneReception.on('hide.bs.modal', function () {
+        if ($('[name=create-demande]').not('checked')) {
+            $('.demande-form').addClass('d-none');
+            $('.demande-form select').removeClass('needed')
+        } else {
+            $('.demande-form select').addClass('needed')
+        }
+    });
 });
 
 function initPageModals() {
