@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\Article;
+use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -20,6 +21,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\Stream;
 use DateTime;
 use Exception;
 use Symfony\Component\Security\Core\Security;
@@ -148,6 +150,14 @@ class TrackingMovementService
         $trackingPack = $movement->getPack();
         $packCode = $trackingPack->getCode();
 
+        if(!$movement->getAttachments()->isEmpty()) {
+            $attachments = Stream::from($movement->getAttachments())
+                ->map(function(Attachment $attachment) {
+                    return "<a href=\"/uploads/attachements/{$attachment->getFileName()}\" target=\"_blank\">{$attachment->getOriginalName()}</a>";
+                })
+                ->join(", ");
+        }
+
         $rows = [
             'id' => $movement->getId(),
             'date' => $movement->getDatetime() ? $movement->getDatetime()->format('d/m/Y H:i') : '',
@@ -167,6 +177,7 @@ class TrackingMovementService
             "quantity" => $movement->getQuantity() ? $movement->getQuantity() : '',
             "type" => $movement->getType() ? $movement->getType()->getNom() : '',
             "operator" => $movement->getOperateur() ? $movement->getOperateur()->getUsername() : '',
+            "attachments" => $attachments ?? "",
             "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
                 'mvt' => $movement,
             ])
@@ -498,6 +509,7 @@ class TrackingMovementService
             ['title' => 'Emplacement', 'name' => 'location'],
             ['title' => 'Type', 'name' => 'type'],
             ['title' => 'Opérateur', 'name' => 'operator'],
+            ['title' => 'Pièces jointes', 'name' => 'attachments', 'orderable' => false],
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
