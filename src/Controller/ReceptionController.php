@@ -1615,9 +1615,7 @@ class ReceptionController extends AbstractController {
                                          ArticleDataService $articleDataService,
                                          PDFGeneratorService $PDFGeneratorService): Response {
         $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-
         $listReceptionReferenceArticle = $receptionReferenceArticleRepository->findByReception($reception);
-
         $barcodeConfigs = array_reduce(
             $listReceptionReferenceArticle,
             function(array $carry, ReceptionReferenceArticle $recepRef) use ($refArticleDataService, $articleDataService, $reception): array {
@@ -1880,7 +1878,6 @@ class ReceptionController extends AbstractController {
 
         if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $articles = $data['conditionnement'];
-
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -1914,9 +1911,14 @@ class ReceptionController extends AbstractController {
             // optionnel : crée la demande de livraison
             $needCreateLivraison = (bool)$data['create-demande'];
             $needCreateTransfer = (bool)$data['create-demande-transfert'];
-
+            if ($needCreateLivraison && $needCreateTransfer) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => 'Vous ne pouvez pas créer une demande de livraison et une demande de transfert en même temps.'
+                ]);
+            }
             $request = null;
-
+            $demande = null;
             $createDirectDelivery = (bool)$data['direct-delivery'];
 
             if($needCreateLivraison) {
@@ -1970,15 +1972,14 @@ class ReceptionController extends AbstractController {
                     || !($demande instanceof Demande)) {
                     if (isset($demande)
                         && is_array($demande)) {
-                        $errorData = $demande;
+                        $demande = $demande['demande'];
                     }
                     else {
-                        $errorData = [
+                        return new JsonResponse([
                             'success' => false,
                             'msg' => 'Erreur lors de la création de la demande de livraison.'
-                        ];
+                        ]);
                     }
-                    return new JsonResponse($errorData);
                 }
             }
             else if ($needCreateTransfer) {
@@ -2023,7 +2024,7 @@ class ReceptionController extends AbstractController {
                 }
 
                 $noCommande = isset($article['noCommande']) ? $article['noCommande'] : null;
-                $article = $this->articleDataService->newArticle($article, $entityManager, $demande ?? null);
+                $article = $this->articleDataService->newArticle($article, $entityManager, $demande);
                 if ($request) $request->addArticle($article);
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
                 $rra = $receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $ref->getId());
