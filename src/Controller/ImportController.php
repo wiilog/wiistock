@@ -168,7 +168,7 @@ class ImportController extends AbstractController
 
                     $fieldsToHide = ['id', 'barCode', 'reference', 'conform', 'quantiteAPrelever', 'quantitePrelevee',
                         'dateEmergencyTriggered', 'isUrgent', 'quantiteDisponible', 'freeFields', 'urgentArticles',
-                        'quantiteReservee', 'dateAttendue', 'dateFinReception', 'dateCommande', 'numeroReception', 'date', 'emergencyTriggered'];
+                        'quantiteReservee', 'dateAttendue', 'dateFinReception', 'dateCommande', 'numeroReception', 'date', 'emergencyTriggered', 'cleanedComment'];
                     $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
                     switch ($entity) {
                         case Import::ENTITY_ART:
