@@ -158,6 +158,15 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			ParametrageGlobal::FONT_FAMILY => [
 				'default' => ParametrageGlobal::DEFAULT_FONT_FAMILY
 			],
+			ParametrageGlobal::WEBSITE_LOGO => [
+				'default' => "img/followGTwhite.svg"
+			],
+			ParametrageGlobal::EMAIL_LOGO => [
+				'default' => "img/gtlogistics.jpg"
+			],
+			ParametrageGlobal::MOBILE_LOGO => [
+				'default' => "img/mobile_logo.svg"
+			],
 			ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [],
             ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON => [],
 			ParametrageGlobal::DASHBOARD_NATURE_COLIS => [],
