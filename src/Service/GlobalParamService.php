@@ -133,10 +133,10 @@ Class GlobalParamService
     }
 
     public function generateScssFile(?ParametrageGlobal $font = null) {
-        if(!$font) {
-            $projectDir = $this->kernel->getProjectDir();
-            $scssFile = $projectDir . '/assets/scss/_customFont.scss';
+        $projectDir = $this->kernel->getProjectDir();
+        $scssFile = $projectDir . '/assets/scss/_customFont.scss';
 
+        if(!$font) {
             $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
             $param = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
             $font = $param ? $param->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY;
