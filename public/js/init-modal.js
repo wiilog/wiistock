@@ -151,8 +151,7 @@ function clearFormErrors($modal) {
 
 function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
     resetDroppedFiles();
-
-    if (data.redirect) {
+    if (data.redirect && !keepModal) {
         window.location.href = data.redirect;
         return;
     }
