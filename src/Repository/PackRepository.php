@@ -27,7 +27,8 @@ class PackRepository extends EntityRepository
         'packLastDate' => 'packLastDate',
         'packOrigin' => 'packOrigin',
         'packLocation' => 'packLocation',
-        'quantity' => 'quantity'
+        'quantity' => 'quantity',
+        'arrivageType' => 'arrivage'
     ];
 
     /**
@@ -136,6 +137,13 @@ class PackRepository extends EntityRepository
                         ->andWhere('a.numeroArrivage LIKE :arrivalNumber')
                         ->setParameter('arrivalNumber', '%' . $filter['value'] . '%');
                     break;
+                case 'type':
+                    $qb
+                        ->join('pack.arrivage', 'a')
+                        ->join('a.type','type')
+                        ->andWhere('type.label LIKE :types')
+                        ->setParameter('types', '%' . $filter['value'] . '%');
+                    break;
                 case 'natures':
                     $natures = explode(',', $filter['value']);
                     $qb
@@ -156,11 +164,13 @@ class PackRepository extends EntityRepository
                         ->leftJoin('m2.emplacement', 'e2')
                         ->leftJoin('pack.nature', 'n2')
                         ->leftJoin('pack.arrivage', 'arrivage')
+                        ->leftJoin('arrivage.type','arrival_type')
                         ->andWhere("(
 						pack.code LIKE :value OR
 						e2.label LIKE :value OR
 						n2.label LIKE :value OR
-						arrivage.numeroArrivage LIKE :value
+						arrivage.numeroArrivage LIKE :value OR
+						arrival_type.label LIKE :value
 						)")
                         ->setParameter('value', '%' . $search . '%');
                 }
@@ -187,6 +197,10 @@ class PackRepository extends EntityRepository
                         $qb
                             ->leftJoin('pack.arrivage', 'arrivage3')
                             ->orderBy('arrivage3.numeroArrivage', $order);
+                    } else if ($column === 'arrivageType') {
+                        $qb
+                            ->leftJoin('pack.arrivage', 'arrivage3')
+                            ->orderBy('arrivage3.type', $order);
                     } else {
                         $qb
                             ->orderBy('pack.' . $column, $order);

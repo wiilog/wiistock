@@ -3,15 +3,18 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 
+use App\Entity\Type;
 use App\Service\CSVExportService;
 use App\Service\PackService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\Entity;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -42,9 +45,11 @@ class PackController extends AbstractController {
         }
 
         $naturesRepository = $entityManager->getRepository(Nature::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 
         return $this->render('pack/index.html.twig', [
-            'natures' => $naturesRepository->findAll()
+            'natures' => $naturesRepository->findAll(),
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE])
         ]);
     }
 
@@ -110,6 +115,7 @@ class PackController extends AbstractController {
                 'Date du dernier mouvement',
                 'Issu de',
                 'Emplacement',
+                'Type d\'arrivage'
             ];
 
             return $CSVExportService->createBinaryResponseFromData(
@@ -132,6 +138,7 @@ class PackController extends AbstractController {
                             ? $lastPackMovement->getEmplacement()->getLabel()
                             : '')
                         : '';
+                    $row[] = $pack->getArrivage() ? $pack->getArrivage()->getType()->getLabel(): '';
                     return [$row];
                 }
             );

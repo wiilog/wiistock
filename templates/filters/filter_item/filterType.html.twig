@@ -1,10 +1,12 @@
+{%  set arrivalType = arrivalType and arrivalType is defined %}
 <div class="col-auto mb-2 pr-0">
     {% if types is defined %}
         <div class="minw-100px">
             <div class="input-group">
-                <select class="form-control data cursor-default filter-input" name="type" {{ disabled }}
+                <select class="form-control data cursor-default filter-input"
+                        name="type" {{ disabled }}
                         id="type">
-                    <option value>Type</option>
+                    <option value> {{ arrivalType ? 'Type d\'arrivage' : 'Type' }}</option>
                     {% for type in types %}
                         <option value="{{ type.label }}">
                             {{ type.label }}

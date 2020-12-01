@@ -82,7 +82,7 @@ Class PackService
     public function dataRowPack(Pack $pack)
     {
         $firstMovement = $pack->getTrackingMovements('ASC')->first();
-        $fromColumnData  = $this->trackingMovementService->getFromColumnData($firstMovement ?: null);
+        $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovement ?: null);
 
 
         /** @var TrackingMovement $lastPackMovement */
@@ -100,7 +100,8 @@ Class PackService
                     : '')
                 : '',
             'packOrigin' => $this->template->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
-            'packLocation' => $lastPackMovement
+            'arrivageType' => $pack->getArrivage() ? $pack->getArrivage()->getType()->getLabel() : '',
+        'packLocation' => $lastPackMovement
                 ? ($lastPackMovement->getEmplacement()
                     ? $lastPackMovement->getEmplacement()->getLabel()
                     : '')
