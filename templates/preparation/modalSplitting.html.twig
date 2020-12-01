@@ -50,7 +50,7 @@
                             <td>{{ quantiteArt }}</td>
                             <td>{{ article.emplacement ? article.emplacement.label : '' }}</td>
                             {% if displayedDateHeader is not null %}
-                                <td data-sort="{{ displayedDate ? displayedDate|date('U') : "z" }}">
+                                <td data-sort="{{ displayedDate ? displayedDate|date('U') : "Non défini" }}">
                                     {{ displayedDate ? displayedDate|date("d/m/Y", "Europe/Paris") : "Non définie" }}
                                 </td>
                             {% endif %}

@@ -25,7 +25,7 @@ function showColumns(table, data) {
     })
 }
 
-function extendsDateSort(name, needsDefined = false) {
+function extendsDateSort(name) {
     $.extend($.fn.dataTableExt.oSort, {
         [name + "-pre"]: function (date) {
             const dateSplitted = date.split(' ');

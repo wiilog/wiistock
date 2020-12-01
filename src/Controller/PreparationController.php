@@ -274,7 +274,7 @@ class PreparationController extends AbstractController
                                 'quantity' => $article->getQuantiteAPrelever(),
                                 'id' => $article->getId(),
                                 'isPrepaEditable' => $isPrepaEditable,
-                                'stockManagement' => $articleRef->getStockManagement()
+                                'stockManagement' => $article->getArticleFournisseur()->getReferenceArticle()->getStockManagement()
                             ])
                         ];
                     }
