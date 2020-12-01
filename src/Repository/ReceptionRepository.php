@@ -29,6 +29,7 @@ class ReceptionRepository extends ServiceEntityRepository
         'emergency' => 'emergency',
         'storageLocation' => 'storageLocation',
         'urgence' => 'emergencyTriggered',
+        'dateAttendue' =>'dateAttendue'
     ];
 
     public function __construct(ManagerRegistry $registry)
@@ -192,8 +193,17 @@ class ReceptionRepository extends ServiceEntityRepository
                     $qb->andWhere('r.date <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
                     break;
-				case 'emergency':
-				    $valueFilter = ((int) ($filter['value'] ?? 0));
+                    case 'exceptedDate':
+                        $dateExceptedMin = ($filter['value'] . ' 00:00:00 ');
+                        $dateExceptedMax = ($filter['value'] . ' 23:59:59 ');
+                    $qb->andWhere('r.dateAttendue BETWEEN :dateExceptedMin AND :dateExceptedMax')
+                        ->setParameters([
+                            'dateExceptedMin' => $dateExceptedMin ,
+                            'dateExceptedMax' => $dateExceptedMax ,
+                        ]);
+                    break;
+                case 'emergency':
+                    $valueFilter = ((int) ($filter['value'] ?? 0));
 				    if ($valueFilter) {
                         $qb
                             ->andWhere('r.urgentArticles = true OR r.manualUrgent = true');
@@ -213,6 +223,7 @@ class ReceptionRepository extends ServiceEntityRepository
                         ->leftJoin('search_request.utilisateur', 'search_request_User')
                         ->andWhere('
                             r.date LIKE :value
+                            OR r.dateAttendue LIKE :value
                             OR r.numeroReception LIKE :value
                             OR r.orderNumber LIKE :value
                             OR r.commentaire LIKE :value
