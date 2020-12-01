@@ -143,9 +143,9 @@ function togglePackDetails(emptyDetails = false) {
     if (packCode && !emptyDetails) {
         $.get(Routing.generate('get_pack_intel', {packCode}))
             .then(({success, pack}) => {
-                if (success && pack) {
+                if (success) {
                     if (pack.nature) {
-                        $natureField.val(pack.nature.id).trigger('change');
+                        $natureField.val(nature.id).trigger('change');
                     }
                     if (pack.quantity || pack.quantity === 0) {
                         $quantityField.val(pack.quantity);
