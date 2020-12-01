@@ -151,11 +151,9 @@ class TrackingMovementService
         $packCode = $trackingPack->getCode();
 
         if(!$movement->getAttachments()->isEmpty()) {
-            $attachments = Stream::from($movement->getAttachments())
-                ->map(function(Attachment $attachment) {
-                    return "<a href=\"/uploads/attachements/{$attachment->getFileName()}\" target=\"_blank\">{$attachment->getOriginalName()}</a>";
-                })
-                ->join(", ");
+            $attachmentsCounter = $movement->getAttachments()->count();
+            $sAttachments = $attachmentsCounter > 1 ? 's' : '';
+            $attachments = "<i class=\"fas fa-paperclip\" title=\"{$attachmentsCounter} pièce{$sAttachments} jointe{$sAttachments}\"></i>";
         }
 
         $rows = [
@@ -500,6 +498,7 @@ class TrackingMovementService
 
         $columns = [
             ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
+            ['hiddenTitle' => 'Pièces jointes', 'name' => 'attachments', 'orderable' => false],
             ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
             ['title' => 'Date', 'name' => 'date'],
             ['title' => 'mouvement de traçabilité.Colis', 'name' => 'code', 'translated' => true],
@@ -508,8 +507,7 @@ class TrackingMovementService
             ['title' => 'Quantité', 'name' => 'quantity'],
             ['title' => 'Emplacement', 'name' => 'location'],
             ['title' => 'Type', 'name' => 'type'],
-            ['title' => 'Opérateur', 'name' => 'operator'],
-            ['title' => 'Pièces jointes', 'name' => 'attachments', 'orderable' => false],
+            ['title' => 'Opérateur', 'name' => 'operator']
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
