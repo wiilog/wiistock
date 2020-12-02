@@ -31,6 +31,7 @@ table.wii-table {
             background-color: #f8f9fa;
         }
     }
+
     td,
     td > *,
     th,
@@ -45,6 +46,25 @@ table.wii-table {
         }
     }
 }
+
+.modal table.wii-table,
+.modal table.wii-table  {
+    td,
+    td > *,
+    th,
+    th > .dataTables_scrollBody {
+        max-width: initial;
+        white-space: initial;
+        overflow: initial;
+        text-overflow: initial;
+    }
+}
+
+
+
+
+
+
 
 .wii-page-card {
     border-radius: 10px;
