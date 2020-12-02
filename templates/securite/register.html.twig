@@ -5,7 +5,15 @@
 {% block body %}
     {{ parent() }}
 
-
+    {% for flashMessage in app.session.flashbag.get('success') %}
+        {% if flashMessage is defined %}
+            {% include 'utils/alert.html.twig' with {
+                id: ('alert-success-' ~ loop.index),
+                content: flashMessage,
+                color: 'success'
+            } %}
+        {% endif %}
+    {% endfor %}
     <div class="container-fluid">
         <div class="main-form-wrapper mt-3">
             <div class="row">
@@ -17,8 +25,7 @@
                         {{ form_start(form, {'attr': {'autofocus' : true, 'class': 'removeRequired'} }) }}
                         {{ form_row(form.username) }}
                         {{ form_row(form.email) }}
-                        {{ form_row(form.plainPassword.first) }}
-                        {{ form_row(form.plainPassword.second) }}
+                        {{ form_row(form.plainPassword) }}
 
                         <div class="d-flex justify-content-between">
                             <a class="btn btn-secondary" href="{{ url('login') }}">Retour connexion</a>

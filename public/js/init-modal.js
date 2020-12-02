@@ -238,6 +238,16 @@ function processForm($modal, isAttachmentForm, validator) {
     };
 }
 
+
+function matchesAll(value, ...regexes) {
+    for(const regex of regexes) {
+        if(!new RegExp(regex).test(value))
+            return false;
+    }
+
+    return true;
+}
+
 /**
  *
  * @param {jQuery} $modal jQuery modal
@@ -328,7 +338,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 if (password.length < 8) {
                     errorMessages.push('Le mot de passe doit faire au moins 8 caractères.');
                     $isInvalidElements.push($input)
-                } else if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&+._])[A-Za-z\d@$!%*?&+._]{8,}$/)) {
+                } else if (matchesAll(/[A-Z]/, /[a-z]/, /\d/, /\W|_/)) {
                     errorMessages.push('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial (@ $ ! % * ? & + . _ ).');
                     $isInvalidElements.push($input)
                 } else {
