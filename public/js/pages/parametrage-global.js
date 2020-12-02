@@ -50,6 +50,7 @@ $(function () {
 
     updateImagePreview('#preview-delivery-note-logo', '#upload-delivery-note-logo');
     updateImagePreview('#preview-waybill-logo', '#upload-waybill-logo');
+    updateImagePreview('#preview-overconsumption-logo', '#upload-overconsumption-logo');
 
     // config tableau de bord : emplacements
     initValuesForDashboard();
@@ -491,6 +492,13 @@ function deleteWorkFreeDay(id, date) {
 }
 
 function saveDispatchesParam() {
+    const $overconsumptionLogo = $('#upload-overconsumption-logo');
+
+    let data = new FormData();
+    if ($overconsumptionLogo[0].files && $overconsumptionLogo[0].files[0]) {
+        data.append("overconsumption-logo", $overconsumptionLogo[0].files[0]);
+    }
+
     Promise.all([
         $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_CARRIER', val: $('[name="waybillCarrier"]').val()})),
         $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_CONSIGNER', val: $('[name="waybillConsigner"]').val()})),
@@ -502,7 +510,14 @@ function saveDispatchesParam() {
         $.post(Routing.generate('toggle_params'), JSON.stringify({
             param: 'DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS',
             val: $('[name="overconsumptionBillType"]').val() + ';' + $('[name="overconsumptionBillStatut"]').val()
-        }))
+        })),
+        $.ajax(Routing.generate('edit_overconsumption_logo'), {
+            data: data,
+            type: 'POST',
+            contentType: false,
+            processData: false,
+            dataType: 'json',
+        }),
     ])
         .then((res) => {
             if (res.every((success) => success)) {

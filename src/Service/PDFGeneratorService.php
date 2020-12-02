@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Service;
 
 use App\Entity\Dispatch;
@@ -15,8 +14,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-Class PDFGeneratorService
-{
+class PDFGeneratorService {
 
     public const PREFIX_BARCODE_FILENAME = 'ETQ';
 
@@ -37,8 +35,7 @@ Class PDFGeneratorService
                                 PDFGenerator $PDFGenerator,
                                 KernelInterface $kernel,
                                 Twig_Environment $templating,
-                                EntityManagerInterface $entityManager)
-    {
+                                EntityManagerInterface $entityManager) {
         $this->globalParamService = $globalParamService;
         $this->templating = $templating;
         $this->PDFGenerator = $PDFGenerator;
@@ -56,21 +53,20 @@ Class PDFGeneratorService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function generatePDFBarCodes(string $title, array $barcodeConfigs): string
-    {
+    public function generatePDFBarCodes(string $title, array $barcodeConfigs): string {
         $barcodeConfig = $this->globalParamService->getDimensionAndTypeBarcodeArray(true);
 
         $height = $barcodeConfig['height'];
         $width = $barcodeConfig['width'];
         $isCode128 = $barcodeConfig['isCode128'];
 
-        $barcodeConfigsToTwig = array_map(function ($config) use ($isCode128, $width) {
+        $barcodeConfigsToTwig = array_map(function($config) use ($isCode128, $width) {
             $code = $config['code'];
-            $labels = array_filter($config['labels'] ?? [], function ($label) {
+            $labels = array_filter($config['labels'] ?? [], function($label) {
                 return !empty($label);
             });
 
-            $longestLabel = array_reduce($labels, function ($carry, $label) {
+            $longestLabel = array_reduce($labels, function($carry, $label) {
                 $currentLen = strlen($label);
                 return strlen($label) > $carry ? $currentLen : $carry;
             }, 0);
@@ -90,8 +86,8 @@ Class PDFGeneratorService
         }, $barcodeConfigs);
 
         $logo = ($barcodeConfig['logo'] && file_exists(getcwd() . "/uploads/attachements/" . $barcodeConfig['logo'])
-                ? $barcodeConfig['logo']
-                : null);
+            ? $barcodeConfig['logo']
+            : null);
 
         return $this->PDFGenerator->getOutputFromHtml(
             $this->templating->render('prints/barcode-template.html.twig', [
@@ -124,8 +120,7 @@ Class PDFGeneratorService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function generatePDFStateSheet(string $title, array $sheetConfigs): string
-    {
+    public function generatePDFStateSheet(string $title, array $sheetConfigs): string {
         $barcodeConfig = $this->globalParamService->getDimensionAndTypeBarcodeArray(true);
 
         $isCode128 = $barcodeConfig['isCode128'];
@@ -205,12 +200,35 @@ Class PDFGeneratorService
     }
 
     /**
+     * @param string $title
+     * @param string|null $logo
+     * @param Dispatch $dispatch
+     * @return Response The PDF response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function generatePDFOverconsumption(Dispatch $dispatch, string $appLogo, string $overconsumptionLogo): string {
+        $content = $this->templating->render("prints/overconsumption-template.html.twig", [
+            "dispatch" => $dispatch,
+            "app_logo" => $appLogo,
+            "overconsumption_logo" => $overconsumptionLogo,
+        ]);
+
+        return $this->PDFGenerator->getOutputFromHtml($content, [
+            "page-size" => "A4",
+            "orientation" => "landscape",
+            "enable-local-file-access" => true,
+            "encoding" => "UTF-8",
+        ]);
+    }
+
+    /**
      * @param array $barcodeConfigs ['code' => string][]
      * @param string $name
      * @return string
      */
-    public function getBarcodeFileName(array $barcodeConfigs, string $name): string
-    {
+    public function getBarcodeFileName(array $barcodeConfigs, string $name): string {
         $barcodeCounter = count($barcodeConfigs);
         // remove / and \ in filename
         $smartBarcodeLabel = $barcodeCounter === 1
@@ -224,4 +242,5 @@ Class PDFGeneratorService
             '.pdf'
         );
     }
+
 }
