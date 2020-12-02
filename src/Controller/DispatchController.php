@@ -59,7 +59,8 @@ use Twig\Error\SyntaxError;
 /**
  * @Route("/acheminements")
  */
-class DispatchController extends AbstractController {
+class DispatchController extends AbstractController
+{
     /**
      * @var UserService
      */
@@ -68,7 +69,8 @@ class DispatchController extends AbstractController {
     private $attachmentService;
 
     public function __construct(UserService $userService,
-                                AttachmentService $attachmentService) {
+                                AttachmentService $attachmentService)
+    {
         $this->userService = $userService;
         $this->attachmentService = $attachmentService;
     }
@@ -80,7 +82,8 @@ class DispatchController extends AbstractController {
      * @param DispatchService $service
      * @return RedirectResponse|Response
      */
-    public function index(EntityManagerInterface $entityManager, DispatchService $service) {
+    public function index(EntityManagerInterface $entityManager, DispatchService $service)
+    {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -117,7 +120,8 @@ class DispatchController extends AbstractController {
      * @param DispatchService $service
      * @return Response
      */
-    public function apiColumns(Request $request, EntityManagerInterface $entityManager, DispatchService $service): Response {
+    public function apiColumns(Request $request, EntityManagerInterface $entityManager, DispatchService $service): Response
+    {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
                 return $this->redirectToRoute('access_denied');
@@ -140,7 +144,8 @@ class DispatchController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response {
+    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -168,7 +173,7 @@ class DispatchController extends AbstractController {
      * @return Response
      */
     public function getDispatchAutoComplete(Request $request,
-                                        EntityManagerInterface $entityManager): Response
+                                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
@@ -192,7 +197,8 @@ class DispatchController extends AbstractController {
      * @throws SyntaxError
      */
     public function api(Request $request,
-                        DispatchService $dispatchService): Response {
+                        DispatchService $dispatchService): Response
+    {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
                 return $this->redirectToRoute('access_denied');
@@ -204,6 +210,47 @@ class DispatchController extends AbstractController {
         } else {
             throw new BadRequestHttpException();
         }
+    }
+
+    /**
+     * @Route("/bon-de-surconsommation/{dispatch}", name="generate_overconsumption_bill", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param Dispatch $dispatch
+     * @param DispatchService $dispatchService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function generateOverconsumptionBill(Request $request,
+                                                Dispatch $dispatch,
+                                                DispatchService $dispatchService,
+                                                EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->userService->hasRightFunction(Menu::DEM, Action::GENERATE_OVERCONSUMPTION_BILL)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
+        $overConsumptionBill = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS);
+        if ($overConsumptionBill) {
+            $typeAndStatus = explode(';', $overConsumptionBill);
+            $typeId = intval($typeAndStatus[0]);
+            $statutsId = intval($typeAndStatus[1]);
+            if ($dispatch->getType()->getId() === $typeId) {
+                $untreatedStatus = $statutRepository->find($statutsId);
+                $dispatch
+                    ->setStatut($untreatedStatus)
+                    ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+
+                $entityManager->flush();
+                $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
+            }
+        }
+        return $this->redirectToRoute('dispatch_show', [
+            'id' => $dispatch->getId()
+        ]);
     }
 
     /**
@@ -224,7 +271,8 @@ class DispatchController extends AbstractController {
                         AttachmentService $attachmentService,
                         EntityManagerInterface $entityManager,
                         TranslatorInterface $translator,
-                        UniqueNumberService $uniqueNumberService): Response {
+                        UniqueNumberService $uniqueNumberService): Response
+    {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
                 !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
@@ -376,12 +424,11 @@ class DispatchController extends AbstractController {
             try {
                 $entityManager->persist($dispatch);
                 $entityManager->flush();
-            }
-            /** @noinspection PhpRedundantCatchClauseInspection */
+            } /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([
                     'success' => false,
-                    'msg' => $translator->trans('acheminement.Une autre demande d\'acheminement est en cours de création, veuillez réessayer').'.'
+                    'msg' => $translator->trans('acheminement.Une autre demande d\'acheminement est en cours de création, veuillez réessayer') . '.'
                 ]);
             }
 
@@ -415,7 +462,8 @@ class DispatchController extends AbstractController {
     public function show(Dispatch $dispatch,
                          EntityManagerInterface $entityManager,
                          bool $printBL,
-                         DispatchService $dispatchService) {
+                         DispatchService $dispatchService)
+    {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -457,7 +505,8 @@ class DispatchController extends AbstractController {
      */
     public function printDispatchStateSheet(Dispatch $dispatch,
                                             PDFGeneratorService $PDFGenerator,
-                                            TranslatorInterface $translator): ?Response {
+                                            TranslatorInterface $translator): ?Response
+    {
         if ($dispatch->getDispatchPacks()->isEmpty()) {
             return $this->json([
                 "success" => false,
@@ -503,7 +552,8 @@ class DispatchController extends AbstractController {
                          DispatchService $dispatchService,
                          FreeFieldService $freeFieldService,
                          EntityManagerInterface $entityManager,
-                         TranslatorInterface $translator): Response {
+                         TranslatorInterface $translator): Response
+    {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $transporterRepository = $entityManager->getRepository(Transporteur::class);
@@ -612,7 +662,8 @@ class DispatchController extends AbstractController {
      * @return Response
      */
     public function editApi(Request $request,
-                            EntityManagerInterface $entityManager): Response {
+                            EntityManagerInterface $entityManager): Response
+    {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
@@ -664,7 +715,8 @@ class DispatchController extends AbstractController {
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
-                           TranslatorInterface $translator): Response {
+                           TranslatorInterface $translator): Response
+    {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $attachmentRepository = $entityManager->getRepository(Attachment::class);
@@ -708,7 +760,8 @@ class DispatchController extends AbstractController {
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      */
-    private function persistAttachments(Dispatch $entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager) {
+    private function persistAttachments(Dispatch $entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
+    {
         $attachments = $attachmentService->createAttachements($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
@@ -723,7 +776,8 @@ class DispatchController extends AbstractController {
      * @param Dispatch $dispatch
      * @return Response
      */
-    public function apiPack(Dispatch $dispatch): Response {
+    public function apiPack(Dispatch $dispatch): Response
+    {
         return new JsonResponse([
             'data' => $dispatch->getDispatchPacks()
                 ->map(function (DispatchPack $dispatchPack) {
@@ -761,7 +815,8 @@ class DispatchController extends AbstractController {
                             EntityManagerInterface $entityManager,
                             TranslatorInterface $translator,
                             PackService $packService,
-                            Dispatch $dispatch): Response {
+                            Dispatch $dispatch): Response
+    {
         $data = json_decode($request->getContent(), true);
 
         $packCode = $data['pack'];
@@ -836,7 +891,8 @@ class DispatchController extends AbstractController {
     public function editPack(Request $request,
                              PackService $packService,
                              TranslatorInterface $translator,
-                             EntityManagerInterface $entityManager): Response {
+                             EntityManagerInterface $entityManager): Response
+    {
         $data = json_decode($request->getContent(), true);
 
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
@@ -886,7 +942,8 @@ class DispatchController extends AbstractController {
      */
     public function deletePack(Request $request,
                                TranslatorInterface $translator,
-                               EntityManagerInterface $entityManager): Response {
+                               EntityManagerInterface $entityManager): Response
+    {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
@@ -924,7 +981,7 @@ class DispatchController extends AbstractController {
     {
         $status = $dispatch->getStatut();
 
-        if(!$status || $status->isDraft()) {
+        if (!$status || $status->isDraft()) {
             $data = json_decode($request->getContent(), true);
             $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -941,8 +998,7 @@ class DispatchController extends AbstractController {
 
                 $entityManager->flush();
                 $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
-            }
-            else {
+            } else {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => "Le statut sélectionné doit être de type à traiter et correspondre au type de la demande."
@@ -968,10 +1024,11 @@ class DispatchController extends AbstractController {
      * @throws Exception
      */
     public function treatDispatchRequest(Request $request,
-                                            EntityManagerInterface $entityManager,
-                                            DispatchService $dispatchService,
-                                            TranslatorInterface $translator,
-                                            Dispatch $dispatch): Response {
+                                         EntityManagerInterface $entityManager,
+                                         DispatchService $dispatchService,
+                                         TranslatorInterface $translator,
+                                         Dispatch $dispatch): Response
+    {
         $status = $dispatch->getStatut();
 
         if (!$status || $status->isNotTreated() || $status->isPartial()) {
@@ -1008,7 +1065,8 @@ class DispatchController extends AbstractController {
      * @param Dispatch $dispatch
      * @return JsonResponse
      */
-    public function getDispatchPackCounter(Dispatch $dispatch) {
+    public function getDispatchPackCounter(Dispatch $dispatch)
+    {
         return new JsonResponse([
             'success' => true,
             'packsCounter' => $dispatch->getDispatchPacks()->count()
@@ -1124,7 +1182,8 @@ class DispatchController extends AbstractController {
      */
     public function apiDeliveryNote(Request $request,
                                     TranslatorInterface $translator,
-                                    Dispatch $dispatch): JsonResponse {
+                                    Dispatch $dispatch): JsonResponse
+    {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
         $maxNumberOfPacks = 7;
@@ -1139,7 +1198,7 @@ class DispatchController extends AbstractController {
         }
 
         $packs = array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks);
-        $packs = array_map(function(DispatchPack $dispatchPack) {
+        $packs = array_map(function (DispatchPack $dispatchPack) {
             return [
                 "code" => $dispatchPack->getPack()->getCode(),
                 "quantity" => $dispatchPack->getQuantity(),
@@ -1159,7 +1218,7 @@ class DispatchController extends AbstractController {
         ];
         $deliveryNoteData = array_reduce(
             array_keys(Dispatch::DELIVERY_NOTE_DATA),
-            function(array $carry, string $dataKey) use ($request, $userSavedData, $dispatchSavedData, $defaultData) {
+            function (array $carry, string $dataKey) use ($request, $userSavedData, $dispatchSavedData, $defaultData) {
                 $carry[$dataKey] = (
                     $dispatchSavedData[$dataKey]
                     ?? ($userSavedData[$dataKey]
@@ -1208,7 +1267,8 @@ class DispatchController extends AbstractController {
                                      Dispatch $dispatch,
                                      PDFGeneratorService $pdf,
                                      DispatchService $dispatchService,
-                                     Request $request): JsonResponse {
+                                     Request $request): JsonResponse
+    {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
@@ -1283,7 +1343,8 @@ class DispatchController extends AbstractController {
     public function printDeliveryNote(TranslatorInterface $trans,
                                       Dispatch $dispatch,
                                       KernelInterface $kernel,
-                                      Attachment $attachment): Response {
+                                      Attachment $attachment): Response
+    {
         if (!$dispatch->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
@@ -1342,7 +1403,8 @@ class DispatchController extends AbstractController {
     public function apiWaybill(Request $request,
                                EntityManagerInterface $entityManager,
                                SpecificService $specificService,
-                               Dispatch $dispatch): JsonResponse {
+                               Dispatch $dispatch): JsonResponse
+    {
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
@@ -1381,12 +1443,12 @@ class DispatchController extends AbstractController {
 
         $wayBillData = array_reduce(
             array_keys(Dispatch::WAYBILL_DATA),
-            function(array $carry, string $dataKey) use ($request, $userSavedData, $dispatchSavedData, $defaultData) {
+            function (array $carry, string $dataKey) use ($request, $userSavedData, $dispatchSavedData, $defaultData) {
                 $carry[$dataKey] = (
                     $dispatchSavedData[$dataKey]
-                        ?? ($userSavedData[$dataKey]
-                            ?? ($defaultData[$dataKey]
-                                ?? null))
+                    ?? ($userSavedData[$dataKey]
+                        ?? ($defaultData[$dataKey]
+                            ?? null))
                 );
 
                 return $carry;
@@ -1430,13 +1492,13 @@ class DispatchController extends AbstractController {
                                         PDFGeneratorService $pdf,
                                         DispatchService $dispatchService,
                                         TranslatorInterface $translator,
-                                        Request $request): JsonResponse {
+                                        Request $request): JsonResponse
+    {
 
         if ($dispatch->getDispatchPacks()->count() > DispatchService::WAYBILL_MAX_PACK) {
             $message = 'Attention : ' . $translator->trans("acheminement.L''acheminement contient plus de {nombre} colis", ["{nombre}" => DispatchService::WAYBILL_MAX_PACK]) . ', cette lettre de voiture ne peut contenir plus de ' . DispatchService::WAYBILL_MAX_PACK . ' lignes.';
             $success = false;
-        }
-        else {
+        } else {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
 
@@ -1510,7 +1572,8 @@ class DispatchController extends AbstractController {
     public function printWaybillNote(TranslatorInterface $trans,
                                      Dispatch $dispatch,
                                      Attachment $attachment,
-                                     KernelInterface $kernel): Response {
+                                     KernelInterface $kernel): Response
+    {
         if (!$dispatch->getWaybillData()) {
             return $this->json([
                 "success" => false,
@@ -1531,7 +1594,8 @@ class DispatchController extends AbstractController {
      * @return Response
      */
     public function rollbackToDraftStatus(EntityManagerInterface $entityManager,
-                                          Dispatch $dispatch): Response {
+                                          Dispatch $dispatch): Response
+    {
 
         $dispatchType = $dispatch->getType();
         $statusRepository = $entityManager->getRepository(Statut::class);

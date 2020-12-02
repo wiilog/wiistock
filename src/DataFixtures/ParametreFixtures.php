@@ -124,6 +124,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL => [
                 'default' => null,
             ],
+            ParametrageGlobal::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS => [
+                'default' => null,
+            ],
             ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_NAME => [
                 'default' => null,
             ],
