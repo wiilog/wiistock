@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\DaysWorked;
 use App\Entity\DimensionsEtiquettes;
@@ -17,11 +18,13 @@ use App\Entity\Nature;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Statut;
 use App\Entity\Translation;
+use App\Entity\Type;
 use App\Entity\WorkFreeDay;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
+use App\Repository\TypeRepository;
 use App\Service\AlertService;
 use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
@@ -77,6 +80,7 @@ class ParametrageGlobalController extends AbstractController {
         $categoryCLRepository = $entityManager->getRepository(CategorieCL::class);
         $translationRepository = $entityManager->getRepository(Translation::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 
         $labelLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
         $emergencyIcon = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_ICON);
@@ -96,6 +100,7 @@ class ParametrageGlobalController extends AbstractController {
             },
             $workFreeDaysRepository->findAll()
         );
+
 
         return $this->render('parametrage_global/index.html.twig',
             [
@@ -143,7 +148,10 @@ class ParametrageGlobalController extends AbstractController {
                     'locationTo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_TO),
                     'waybillContactName' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_NAME),
                     'waybillContactPhoneMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL),
+                    'overconsumptionBill' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS),
                     'keepModal' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::KEEP_DISPATCH_PACK_MODAL_OPEN),
+                    'statuses' => $statusRepository->findByCategorieName(CategorieStatut::DISPATCH),
+                    'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]),
                 ],
                 'mailerServer' => $mailerServerRepository->findOneMailerServer(),
                 'wantsBL' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),

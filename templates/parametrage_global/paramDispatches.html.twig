@@ -112,4 +112,26 @@
             <label class="pl-1" for="param-redirect-arrival">{{ 'Garder la modale d\'ajout de colis ouverte à l\'enregistrement' | trans }}</label>
         </div>
     </div>
+    <div class="row mt-2 mb-2">
+        <div class="col-12">
+            {% set typeBill = overconsumptionBill ? overconsumptionBill|split(';')[0] %}
+            {% set statutBill = overconsumptionBill ? overconsumptionBill|split(';')[1] %}
+            <span>Génération bon de surconsommation pour type</span>
+            <select name="overconsumptionBillType" class="ml-2">
+                <option value=""></option>
+                {% for type in types %}
+                    {% set selected = typeBill == type.id %}
+                    <option value="{{ type.id }}" {{ selected ? "selected" }}>{{ type.label }}</option>
+                {% endfor %}
+            </select>
+            <span>passe {{ 'acheminement.acheminement'|trans }} au statut</span>
+            <select name="overconsumptionBillStatut" class="ml-2">
+                <option value=""></option>
+                {% for status in statuses|filter(s => s.state == 1) %}
+                    {% set selected = statutBill == status.id %}
+                    <option value="{{ status.id }}" {{ selected ? "selected" }}>{{ status.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
 </div>
