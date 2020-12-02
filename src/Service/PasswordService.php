@@ -94,9 +94,9 @@ class PasswordService
 		} elseif (strlen($password) < 8) {
 			$response = false;
 			$message = 'Le mot de passe doit faire au moins 8 caractères.';
-		} elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
+		} elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&+._])[A-Za-z\d@$!%*?&+._]{8,}$/', $password)) {
 			$response = false;
-			$message = 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial.';
+			$message = "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial parmis @$!%*?&+._.";
 		} else {
 			$response = true;
 			$message = '';
