@@ -37,12 +37,12 @@
                         {% set quantiteArt = article.quantite is null ? 0 : article.quantite %}
                         {%
                             set displayedDate = managementType == constant('App\\Entity\\ReferenceArticle::STOCK_MANAGEMENT_FEFO')
-                            ? article.expiryDate
-                            : (
-                                managementType == constant('App\\Entity\\ReferenceArticle::STOCK_MANAGEMENT_FIFO')
-                                ? article.stockEntryDate
-                                : null
-                            )
+                                ? article.expiryDate
+                                : (
+                                    managementType == constant('App\\Entity\\ReferenceArticle::STOCK_MANAGEMENT_FIFO')
+                                        ? article.stockEntryDate
+                                        : null
+                                )
                         %}
                         <tr>
                             <td>{{ article.barCode }}</td>
