@@ -151,7 +151,7 @@
             <div class="header-wrapper">
                 <div class="header">
                     {% if logo %}
-                        <img class="logo" src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ logo }}" alt="logo">
+                        <img class="logo" src="{{ 'https://'~ app.request.httpHost ~ "/uploads/attachements/" ~ logo }}" alt="logo">
                     {% endif %}
 
                     {% if firstCustomIconIsDefined or secondCustomIconIsDefined %}
