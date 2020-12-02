@@ -160,7 +160,7 @@
                                 {% if firstCustomIconIsDefined %}
                                     <div class="custom-icon first-custom-icon">
                                         <img class="icon"
-                                             src="{{ firstCustomIconIsDefined ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ config.firstCustomIcon.icon) }}"
+                                             src="{{ firstCustomIconIsDefined ? ('https://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ config.firstCustomIcon.icon) }}"
                                              alt="icone">
                                         <div class="text">{{ config.firstCustomIcon.text }}</div>
                                     </div>
@@ -169,7 +169,7 @@
                                 {% if secondCustomIconIsDefined %}
                                     <div class="custom-icon second-custom-icon">
                                         <img class="icon"
-                                             src="{{ secondCustomIconIsDefined ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ config.secondCustomIcon.icon) }}"
+                                             src="{{ secondCustomIconIsDefined ? ('https://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ config.secondCustomIcon.icon) }}"
                                              alt="icone">
                                         <div class="text">{{ config.secondCustomIcon.text }}</div>
                                     </div>
