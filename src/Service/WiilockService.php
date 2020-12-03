@@ -30,7 +30,7 @@ Class WiilockService
         $dashboardLock->setValue($lock);
 
         if (!$lock) {
-            $dashboardLock->setUpdateDate(new DateTime("now", new Timezone("Europe/Paris")));
+            $dashboardLock->setUpdateDate(new DateTime());
         }
     }
 
