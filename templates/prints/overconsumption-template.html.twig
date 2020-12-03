@@ -108,16 +108,12 @@
                 <td>{{ dispatch.locationTo ? dispatch.locationTo.label }}</td>
             </tr>
             <tr>
-                <td><b>Heure</b></td>
-                <td>{{ dispatch.validationDate ? dispatch.validationDate | date('H:i:s') }}</td>
+                <td><b>Date de validation</b></td>
+                <td>{{ dispatch.validationDate ? dispatch.validationDate | date('d/m/Y H:i:s') }}</td>
             </tr>
             <tr>
                 <td><b>Faite par</b></td>
                 <td>{{ dispatch.requester ? dispatch.requester.username }}</td>
-            </tr>
-            <tr>
-                <td><b>Créée le</b></td>
-                <td>{{ dispatch.creationDate | date ('d/m/Y H:i') }}</td>
             </tr>
         </table>
 
