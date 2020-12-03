@@ -1,0 +1,232 @@
+<html lang="fr">
+<head>
+    <title>Bon de surconsommation</title>
+    <meta charset="UTF-8"/>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        * {
+            font-family: Arial, sans-serif;
+        }
+
+        .content {
+            display: block;
+            width: 34.4cm;
+        }
+
+        .bordered {
+            position: relative;
+            border: 2px solid black;
+            margin: 5mm 0;
+            padding: 0 5mm;
+        }
+
+        .right-codes {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            padding: 5mm;
+            width: 3.5cm;
+        }
+
+        .half {
+            width: 50%;
+            float: left;
+        }
+
+        .qr {
+            display: table;
+            text-align: center;
+            height: 2cm;
+            width: 100%;
+        }
+
+        .qr .label {
+            white-space: nowrap;
+        }
+
+        .qr .barcode {
+            text-align: center;
+            display: table-row;
+        }
+
+        .qr .barcode svg {
+            height: 100%;
+            max-width: 100%;
+        }
+
+        .clear-float {
+            content: " ";
+            display: block;
+            height: 0;
+            clear: both;
+        }
+
+        table.packs {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table.packs thead th, table.packs thead td table.packs tbody th, table.packs tbody td {
+            border: 2px solid black;
+            text-align: center;
+            padding: 3mm;
+        }
+
+        tr, td, th, tbody, thead, tfoot {
+            page-break-inside: avoid !important;
+        }
+
+        thead {
+            display: table-header-group;
+        }
+
+        .grow {
+            width: 25%;
+        }
+        .header td {
+            padding: 2mm;
+        }
+    </style>
+</head>
+<body>
+<div class="content">
+    <h1>Demande de surconsommation OF : {{ dispatch.commandNumber }}</h1>
+    <div class="header bordered">
+        <h2>Caractéristiques de la demande</h2>
+        <table class="half">
+            <tr>
+                <td><b>N° de demande</b></td>
+                <td>{{ dispatch.number }}</td>
+            </tr>
+            <tr>
+                <td><b>Ligne de dépose</b></td>
+                <td>{{ dispatch.locationTo ? dispatch.locationTo.label }}</td>
+            </tr>
+            <tr>
+                <td><b>Heure</b></td>
+                <td>{{ dispatch.validationDate ? dispatch.validationDate | date('H:i:s') }}</td>
+            </tr>
+            <tr>
+                <td><b>Faite par</b></td>
+                <td>{{ dispatch.requester ? dispatch.requester.username }}</td>
+            </tr>
+            <tr>
+                <td><b>Créée le</b></td>
+                <td>{{ dispatch.creationDate | date ('d/m/Y H:i') }}</td>
+            </tr>
+        </table>
+
+        <div class="right-codes">
+            <div class="qr" style="margin-bottom: 5mm">
+                <div class="barcode">
+                    {{ printBarcode({
+                        code: dispatch.number,
+                        type: 'qrcode',
+                        format: 'svg',
+                        height: 200,
+                        width: 200
+                    }) | raw }}
+                </div>
+                <span class="label">N° de demande</span>
+            </div>
+            {% if dispatch.locationTo %}
+                <div class="qr">
+                    <div class="barcode">
+                        {{ printBarcode({
+                            code: dispatch.locationTo.label,
+                            type: 'qrcode',
+                            format: 'svg',
+                            height: 200,
+                            width: 200
+                        }) | raw }}
+                    </div>
+                    <span class="label">Ligne dépose</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="clear-float"></div>
+    </div>
+
+    <table class="packs">
+        <thead>
+        <tr>
+            <th>PN</th>
+            <th>Qté demandée</th>
+            <th>Qté livrée</th>
+            <th class="grow">Emplacement</th>
+            <th class="grow">N°lot/Cure date</th>
+        </tr>
+        </thead>
+        {% for pack in dispatch.dispatchPacks %}
+            <tr>
+                <td>{{ pack.pack.code }}</td>
+                <td>{{ pack.quantity }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
+        {% for pack in dispatch.dispatchPacks %}
+            <tr>
+                <td>{{ pack.pack.code }}</td>
+                <td>{{ pack.quantity }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
+        {% for pack in dispatch.dispatchPacks %}
+            <tr>
+                <td>{{ pack.pack.code }}</td>
+                <td>{{ pack.quantity }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
+        {% for pack in dispatch.dispatchPacks %}
+            <tr>
+                <td>{{ pack.pack.code }}</td>
+                <td>{{ pack.quantity }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
+        {% for pack in dispatch.dispatchPacks %}
+            <tr>
+                <td>{{ pack.pack.code }}</td>
+                <td>{{ pack.quantity }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
+        {% for pack in dispatch.dispatchPacks %}
+            <tr>
+                <td>{{ pack.pack.code }}</td>
+                <td>{{ pack.quantity }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
+        {% for pack in dispatch.dispatchPacks %}
+            <tr>
+                <td>{{ pack.pack.code }}</td>
+                <td>{{ pack.quantity }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+</body>
+</html>
