@@ -143,6 +143,7 @@ class TransferRequest implements Serializable {
             if (isset($oldStatus)) {
                 $oldStatus->removeTransferRequest($this);
             }
+            $this->status = $status;
         }
         return $this;
     }

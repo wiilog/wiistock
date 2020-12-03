@@ -256,9 +256,16 @@ class ReceptionController extends AbstractController {
             $storageLocation = !empty($data['storageLocation']) ? $emplacementRepository->find($data['storageLocation']) : null;
             $reception->setStorageLocation($storageLocation);
 
-            $emergency = !empty($data['emergency']) ? $data['emergency'] : null;
+            $emergency = !empty($data['emergency'])
+                ? (
+                    $data['emergency'] === "false"
+                    ? null
+                    : $data['emergency']
+                )
+                : null;
+            dump($emergency);
             $reception->setManualUrgent($emergency);
-
+            dump($reception->isManualUrgent());
             $reception
                 ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
                 ->setDateAttendue(
