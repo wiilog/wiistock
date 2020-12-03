@@ -3,7 +3,7 @@
 
 <a class="card wii-card pointer p-3 my-2 shadow-sm bg-{{ cardColor }}"
    href="{{ href }}"
-   {% if not href and errorMessage %}onclick="showBSAlert('{{errorMessage | escape('js')}}', 'danger'); event.preventDefault()"{% endif %}>
+   {% if not href and errorMessage %}onclick="showBSAlert('{{ errorMessage | escape('js') }}', 'danger'); event.preventDefault()"{% endif %}>
     <div class="wii-card-header">
         <div class="row">
             <div class="col-10 mb-2">
@@ -29,9 +29,10 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12">
-                <p>{{ requestStatus | capitalize }}</p>
-            </div>
+        </div>
+        <div class="d-flex justify-content-between">
+            <p class="">{{ requestStatus | capitalize }}</p>
+            <p class="">{{ requestType | capitalize }}</p>
         </div>
     </div>
     <div class="wii-card-body p-2 bg-{{ bodyColor }}">

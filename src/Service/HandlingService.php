@@ -202,6 +202,7 @@ class HandlingService
         $hasRightHandling = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND);
 
         $requestStatus = $handling->getStatus() ? $handling->getStatus()->getNom() : '';
+        $requestType = $handling->getType() ? $handling->getType()->getLabel() : '';
         $state = $handling->getStatus() ? $handling->getStatus()->getState() : null;
 
         if ($hasRightHandling) {
@@ -251,6 +252,7 @@ class HandlingService
             'estimatedFinishTime' => $deliveryDateEstimated,
             'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
             'requestStatus' => $requestStatus,
+            'requestType' => $requestType,
             'requestBodyTitle' => $handling->getSubject(),
             'requestLocation' => $handling->getDestination() ?: 'Non défini',
             'requestNumber' => $handling->getNumber(),
