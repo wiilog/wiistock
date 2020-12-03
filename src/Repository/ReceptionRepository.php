@@ -194,19 +194,18 @@ class ReceptionRepository extends ServiceEntityRepository
                         ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
                     break;
                 case 'expectedDate':
-                    $dateExceptedMin = ($filter['value'] . ' 00:00:00 ');
-                    $dateExceptedMax = ($filter['value'] . ' 23:59:59 ');
-                    $qb->andWhere('r.dateAttendue BETWEEN :dateExceptedMin AND :dateExceptedMax')
+                    $dateExpectedMin = ($filter['value'] . ' 00:00:00 ');
+                    $dateExpectedMax = ($filter['value'] . ' 23:59:59 ');
+                    $qb->andWhere('r.dateAttendue BETWEEN :dateExpectedMin AND :dateExpectedMax')
                         ->setParameters([
-                            'dateExceptedMin' => $dateExceptedMin,
-                            'dateExceptedMax' => $dateExceptedMax,
+                            'dateExpectedMin' => $dateExpectedMin,
+                            'dateExpectedMax' => $dateExpectedMax,
                         ]);
                     break;
                 case 'emergency':
                     $valueFilter = ((int) ($filter['value'] ?? 0));
 				    if ($valueFilter) {
-                        $qb
-                            ->andWhere('r.urgentArticles = true OR r.manualUrgent = true');
+                        $qb->andWhere('r.urgentArticles = true OR r.manualUrgent = true');
                     }
 					break;
             }
