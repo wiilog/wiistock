@@ -137,7 +137,7 @@ class ReceptionService
                 $location = $emplacementRepository->find(intval($data['location']));
             }
             $reception
-                ->setLocation($location);
+                ->setStorageLocation($location);
         }
 
         if(!empty($data['transporteur'])) {
