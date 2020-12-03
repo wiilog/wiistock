@@ -90,7 +90,7 @@
         <div>
             {% if logo %}
                 <img class="image-title"
-                     src="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ logo }}"
+                     src="{{ 'https://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ logo }}"
                      alt="GT Logistics"/>
             {% endif %}
         </div>

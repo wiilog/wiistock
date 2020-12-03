@@ -40,6 +40,6 @@ $(function() {
 
     $.post(path, params, function (data) {
         displayFiltersSup(data);
-        extendsDateSort('customDate')
+        extendsDateSort('customDate');
     });
 });

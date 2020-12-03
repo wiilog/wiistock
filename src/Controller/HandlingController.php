@@ -114,7 +114,7 @@ class HandlingController extends AbstractController
         $filterStatus = $request->query->get('filter');
 
         return $this->render('handling/index.html.twig', [
-            'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE),
+            'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'nom'),
 			'filterStatus' => $filterStatus,
             'types' => $types,
             'fieldsParam' => $fieldsParam,

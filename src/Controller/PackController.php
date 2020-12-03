@@ -3,15 +3,18 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 
+use App\Entity\Type;
 use App\Service\CSVExportService;
 use App\Service\PackService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\Entity;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -37,14 +40,16 @@ class PackController extends AbstractController {
      */
     public function index(EntityManagerInterface $entityManager,
                           UserService $userService) {
-        if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_PACK)) {
+        if(!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_PACK)) {
             return $this->redirectToRoute('access_denied');
         }
 
         $naturesRepository = $entityManager->getRepository(Nature::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 
         return $this->render('pack/index.html.twig', [
-            'natures' => $naturesRepository->findAll()
+            'natures' => $naturesRepository->findAll(),
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE])
         ]);
     }
 
@@ -59,8 +64,8 @@ class PackController extends AbstractController {
     public function api(Request $request,
                         UserService $userService,
                         PackService $packService): Response {
-        if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_PACK)) {
+        if($request->isXmlHttpRequest()) {
+            if(!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_PACK)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -86,7 +91,7 @@ class PackController extends AbstractController {
                                   TranslatorInterface $translator,
                                   EntityManagerInterface $entityManager): Response {
 
-        if (!$userService->hasRightFunction(Menu::TRACA, Action::EXPORT)) {
+        if(!$userService->hasRightFunction(Menu::TRACA, Action::EXPORT)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -96,10 +101,10 @@ class PackController extends AbstractController {
         try {
             $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
             $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch (Throwable $throwable) {
+        } catch(Throwable $throwable) {
         }
 
-        if (isset($dateTimeMin) && isset($dateTimeMax)) {
+        if(isset($dateTimeMin) && isset($dateTimeMax)) {
             $packRepository = $entityManager->getRepository(Pack::class);
 
             $packs = $packRepository->getByDates($dateTimeMin, $dateTimeMax);
@@ -110,13 +115,14 @@ class PackController extends AbstractController {
                 'Date du dernier mouvement',
                 'Issu de',
                 'Emplacement',
+                'Type d\'arrivage'
             ];
 
             return $CSVExportService->createBinaryResponseFromData(
                 'export_packs.csv',
                 $packs,
                 $csvHeader,
-                function (Pack $pack) use ($translator) {
+                function(Pack $pack) use ($translator) {
                     $lastPackMovement = $pack->getLastTracking();
                     $row = [];
                     $row[] = $pack->getCode();
@@ -132,6 +138,7 @@ class PackController extends AbstractController {
                             ? $lastPackMovement->getEmplacement()->getLabel()
                             : '')
                         : '';
+                    $row[] = $pack->getArrivage() ? $pack->getArrivage()->getType()->getLabel(): '';
                     return [$row];
                 }
             );
@@ -149,24 +156,33 @@ class PackController extends AbstractController {
     public function getPackIntel(EntityManagerInterface $entityManager,
                                  string $packCode): JsonResponse {
         $packRepository = $entityManager->getRepository(Pack::class);
+        $naturesRepository = $entityManager->getRepository(Nature::class);
+        $natures = $naturesRepository->findAll();
+        $uniqueNature = count($natures) === 1;
         $pack = $packRepository->findOneBy(['code' => $packCode]);
+
+        if($pack && $pack->getNature()) {
+            $nature = [
+                'id' => $pack->getNature()->getId(),
+                'label' => $pack->getNature()->getLabel(),
+            ];
+        } else {
+            $nature = ($uniqueNature ? [
+                'id' => $natures[0]->getId(),
+                'label' => $natures[0]->getLabel(),
+            ] : null);
+        }
+
         return new JsonResponse([
-            'success' => !empty($pack),
-            'pack' => !empty($pack)
-                ? [
-                    'code' => $packCode,
-                    'quantity' => $pack->getQuantity(),
-                    'comment' => $pack->getComment(),
-                    'weight' => $pack->getWeight(),
-                    'volume' => $pack->getVolume(),
-                    'nature' => $pack->getNature()
-                        ? [
-                            'id' => $pack->getNature()->getId(),
-                            'label' => $pack->getNature()->getLabel()
-                        ]
-                        : null
-                ]
-                : null
+            'success' => true,
+            'pack' => [
+                'code' => $packCode,
+                'quantity' => $pack ? $pack->getQuantity() : null,
+                'comment' => $pack ? $pack->getComment() : null,
+                'weight' => $pack ? $pack->getWeight() : null,
+                'volume' => $pack ? $pack->getVolume() : null,
+                'nature' => $nature
+            ]
         ]);
     }
 
@@ -180,8 +196,8 @@ class PackController extends AbstractController {
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager,
                             UserService $userService): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
+        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if($userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 $packRepository = $entityManager->getRepository(Pack::class);
                 $natureRepository = $entityManager->getRepository(Nature::class);
                 $pack = $packRepository->find($data['id']);
@@ -212,7 +228,7 @@ class PackController extends AbstractController {
                          UserService $userService,
                          PackService $packService,
                          TranslatorInterface $translator): Response {
-        if (!$userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
+        if(!$userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
         $data = json_decode($request->getContent(), true);
@@ -221,8 +237,8 @@ class PackController extends AbstractController {
         $natureRepository = $entityManager->getRepository(Nature::class);
 
         $pack = $packRepository->find($data['id']);
-        $packDataIsValid =  $packService->checkPackDataBeforeEdition($data);
-        if (!empty($pack) && $packDataIsValid['success']) {
+        $packDataIsValid = $packService->checkPackDataBeforeEdition($data);
+        if(!empty($pack) && $packDataIsValid['success']) {
             $packService
                 ->editPack($data, $natureRepository, $pack);
 
@@ -233,7 +249,7 @@ class PackController extends AbstractController {
                         "{numéro}" => '<strong>' . $pack->getCode() . '</strong>'
                     ]) . '.'
             ];
-        } else if (!$packDataIsValid['success']) {
+        } else if(!$packDataIsValid['success']) {
             $response = $packDataIsValid;
         }
         return new JsonResponse($response);
@@ -247,10 +263,9 @@ class PackController extends AbstractController {
      * @param TranslatorInterface $translator
      * @return Response
      */
-    public function delete(Request $request, EntityManagerInterface $entityManager, UserService $userService, TranslatorInterface $translator): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
+    public function delete(Request $request, EntityManagerInterface $entityManager, UserService $userService, TranslatorInterface $translator): Response {
+        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if(!$userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $packRepository = $entityManager->getRepository(Pack::class);

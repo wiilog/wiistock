@@ -686,6 +686,21 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.quantite AS quantity')
             ->addSelect('referenceArticle.reference AS reference_article')
             ->addSelect('article.barCode AS barCode')
+            ->addSelect('referenceArticle.stockManagement AS management')
+            ->addSelect("
+                (CASE
+                    WHEN (referenceArticle.stockManagement = :fefoStockManagement AND article.expiryDate IS NOT NULL) THEN DATE_FORMAT(article.expiryDate, '%d/%m/%Y')
+                    WHEN (referenceArticle.stockManagement = :fifoStockManagement AND article.stockEntryDate IS NOT NULL) THEN DATE_FORMAT(article.stockEntryDate, '%d/%m/%Y %T')
+                    ELSE :null
+                END) AS management_date
+            ")
+            ->addSelect('
+                (CASE
+                    WHEN (referenceArticle.stockManagement = :fefoStockManagement AND article.expiryDate IS NOT NULL) THEN UNIX_TIMESTAMP(article.expiryDate)
+                    WHEN (referenceArticle.stockManagement = :fifoStockManagement AND article.stockEntryDate IS NOT NULL) THEN UNIX_TIMESTAMP(article.stockEntryDate)
+                    ELSE :null
+                END) AS management_order
+            ')
             ->leftJoin('article.emplacement', 'emplacement')
             ->join('referenceArticle.ligneArticlePreparations', 'ligneArticlePreparation')
             ->join('ligneArticlePreparation.preparation', 'preparation')
@@ -693,7 +708,10 @@ class ArticleRepository extends EntityRepository {
             ->andWhere('(statutPreparation.nom = :preparationToTreat OR (statutPreparation.nom = :preparationInProgress AND preparation.utilisateur = :preparationOperator))')
             ->setParameter('preparationToTreat', Preparation::STATUT_A_TRAITER)
             ->setParameter('preparationInProgress', Preparation::STATUT_EN_COURS_DE_PREPARATION)
-            ->setParameter('preparationOperator', $user);
+            ->setParameter('preparationOperator', $user)
+            ->setParameter('fifoStockManagement', ReferenceArticle::STOCK_MANAGEMENT_FIFO)
+            ->setParameter('fefoStockManagement', ReferenceArticle::STOCK_MANAGEMENT_FEFO)
+            ->setParameter('null', null);
 
         if (!empty($preparationIdsFilter)) {
             $queryBuilder

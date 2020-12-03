@@ -18,13 +18,17 @@
                     </thead>
                     {% for field in fieldsSearch %}
                         {% if field.name != 'actions' %}
+                            {% set title = (
+                                (field.title is defined and field.title is not empty) ? field.title :
+                                ((field.hiddenTitle is defined and field.hiddenTitle is not empty) ? field.hiddenTitle)
+                            ) %}
                             <tr class="toggle-search pointer">
-                                <td>{{ field.title }}</td>
+                                <td>{{ title }}</td>
                                 <td>
                                     <div class="form-check d-flex align-items-center justify-content-center">
                                         <input type="checkbox" class="form-check-input"
                                                name="{{ field.name }}" {{ field.name in searches ? 'checked' }}
-                                               title="{{ field.title }}">
+                                               title="{{ title }}">
                                     </div>
                                 </td>
                             </tr>
@@ -39,7 +43,6 @@
                     </thead>
                     {% for search in searches %}
                         {% set field = fieldsSearch | filter(f => f.name == search) | first %}
-
                         {% if field %}
                             <tr>
                                 <td data-name="{{ search }}">{{ field.title }}</td>

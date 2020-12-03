@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\Article;
+use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -20,6 +21,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\Stream;
 use DateTime;
 use Exception;
 use Symfony\Component\Security\Core\Security;
@@ -148,6 +150,12 @@ class TrackingMovementService
         $trackingPack = $movement->getPack();
         $packCode = $trackingPack->getCode();
 
+        if(!$movement->getAttachments()->isEmpty()) {
+            $attachmentsCounter = $movement->getAttachments()->count();
+            $sAttachments = $attachmentsCounter > 1 ? 's' : '';
+            $attachments = "<i class=\"fas fa-paperclip\" title=\"{$attachmentsCounter} pièce{$sAttachments} jointe{$sAttachments}\"></i>";
+        }
+
         $rows = [
             'id' => $movement->getId(),
             'date' => $movement->getDatetime() ? $movement->getDatetime()->format('d/m/Y H:i') : '',
@@ -167,6 +175,7 @@ class TrackingMovementService
             "quantity" => $movement->getQuantity() ? $movement->getQuantity() : '',
             "type" => $movement->getType() ? $movement->getType()->getNom() : '',
             "operator" => $movement->getOperateur() ? $movement->getOperateur()->getUsername() : '',
+            "attachments" => $attachments ?? "",
             "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
                 'mvt' => $movement,
             ])
@@ -489,6 +498,7 @@ class TrackingMovementService
 
         $columns = [
             ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
+            ['hiddenTitle' => 'Pièces jointes', 'name' => 'attachments', 'orderable' => false],
             ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
             ['title' => 'Date', 'name' => 'date'],
             ['title' => 'mouvement de traçabilité.Colis', 'name' => 'code', 'translated' => true],
@@ -497,7 +507,7 @@ class TrackingMovementService
             ['title' => 'Quantité', 'name' => 'quantity'],
             ['title' => 'Emplacement', 'name' => 'location'],
             ['title' => 'Type', 'name' => 'type'],
-            ['title' => 'Opérateur', 'name' => 'operator'],
+            ['title' => 'Opérateur', 'name' => 'operator']
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);

@@ -22,6 +22,7 @@ class AttachmentService {
     const EMERGENCY_ICON = 'icon_for_emergency';
     const DELIVERY_NOTE_LOGO = 'logo_for_delivery_note';
     const WAYBILL_LOGO = 'logo_for_waybill';
+    const OVERCONSUMPTION_LOGO = 'logo_for_overconsumption';
     const WEBSITE_LOGO = 'website_logo';
     const EMAIL_LOGO = 'email_logo';
     const MOBILE_LOGO = 'mobile_logo';

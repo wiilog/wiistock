@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\DaysWorked;
 use App\Entity\DimensionsEtiquettes;
@@ -17,11 +18,13 @@ use App\Entity\Nature;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Statut;
 use App\Entity\Translation;
+use App\Entity\Type;
 use App\Entity\WorkFreeDay;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
+use App\Repository\TypeRepository;
 use App\Service\AlertService;
 use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
@@ -77,12 +80,14 @@ class ParametrageGlobalController extends AbstractController {
         $categoryCLRepository = $entityManager->getRepository(CategorieCL::class);
         $translationRepository = $entityManager->getRepository(Translation::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 
         $labelLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
         $emergencyIcon = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_ICON);
         $customIcon = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_ICON);
         $deliveryNoteLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
         $waybillLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
+        $overconsumptionLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO);
         $websiteLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::WEBSITE_LOGO);
         $emailLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMAIL_LOGO);
         $mobileLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO);
@@ -111,7 +116,7 @@ class ParametrageGlobalController extends AbstractController {
                 ],
                 'paramReceptions' => [
                     'receptionLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION),
-                    'listStatus' => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, true),
+                    'listStatus' => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, 'displayOrder'),
                     'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT)
                 ],
                 'paramLivraisons' => [
@@ -143,6 +148,11 @@ class ParametrageGlobalController extends AbstractController {
                     'locationTo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_TO),
                     'waybillContactName' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_NAME),
                     'waybillContactPhoneMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL),
+                    'overconsumptionBill' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS),
+                    'overconsumption_logo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO),
+                    'keepModal' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::KEEP_DISPATCH_PACK_MODAL_OPEN),
+                    'statuses' => $statusRepository->findByCategorieName(CategorieStatut::DISPATCH),
+                    'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]),
                 ],
                 'mailerServer' => $mailerServerRepository->findOneMailerServer(),
                 'wantsBL' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
@@ -760,9 +770,9 @@ class ParametrageGlobalController extends AbstractController {
     public function saveTranslations(Request $request,
                                      EntityManagerInterface $entityManager,
                                      TranslationService $translationService): Response {
-        if ($request->isXmlHttpRequest() && $translations = json_decode($request->getContent(), true)) {
+        if($request->isXmlHttpRequest() && $translations = json_decode($request->getContent(), true)) {
             $translationRepository = $entityManager->getRepository(Translation::class);
-            foreach ($translations as $translation) {
+            foreach($translations as $translation) {
                 $translationObject = $translationRepository->find($translation['id']);
                 if($translationObject) {
                     $translationObject
@@ -913,6 +923,35 @@ class ParametrageGlobalController extends AbstractController {
                 $process = Process::fromShellCommandline("yarn build:only:$env");
                 $process->run();
             }
+        }
+
+        $em->flush();
+
+        return $this->json([
+            "success" => true
+        ]);
+    }
+
+    /**
+     * @Route("/dispatch/overconsumption", name="edit_overconsumption_logo", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     */
+    public function editOverconsumptionLogo(Request $request,
+                                            ParametrageGlobalRepository $pgr,
+                                            AttachmentService $attachmentService): Response {
+        $em = $this->getDoctrine()->getManager();
+
+        if($request->files->has("overconsumption-logo")) {
+            $logo = $request->files->get("overconsumption-logo");
+
+            $fileName = $attachmentService->saveFile($logo, AttachmentService::OVERCONSUMPTION_LOGO);
+            $setting = $pgr->findOneByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO);
+            if(!$setting) {
+                $setting = new ParametrageGlobal();
+                $setting->setLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO);
+                $em->persist($setting);
+            }
+
+            $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         }
 
         $em->flush();

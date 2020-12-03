@@ -7,6 +7,7 @@
     {% include 'filters/filter_item/filterUser.html.twig' %}
     {% include 'filters/filter_item/filterDisputeNumber.html.twig' %}
     {% include 'filters/filter_item/filterDeclarant.html.twig' %}
-    {% include 'filters/filter_item/filterType.html.twig' %}
+    {% include 'filters/filter_item/filterType.html.twig' with {
+        arrivalType: false } %}
     {% include 'filters/filter_item/filterEmergency.html.twig' %}
 {% endblock %}

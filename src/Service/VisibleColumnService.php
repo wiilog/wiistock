@@ -17,6 +17,7 @@ class VisibleColumnService {
                     $visible = $alwaysVisible || in_array($column['name'], $columnsVisible);
                     return [
                         'title' => $column['title'] ?? '',
+                        'hiddenTitle' => $column['hiddenTitle'] ?? '',
                         'alwaysVisible' => $column['alwaysVisible'] ?? null,
                         'hiddenColumn' => $column['hiddenColumn'] ?? false,
                         'orderable' => $column['orderable'] ?? true,

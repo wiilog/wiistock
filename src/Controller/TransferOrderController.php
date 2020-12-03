@@ -239,7 +239,6 @@ class TransferOrderController extends AbstractController {
         $transferOrderService->finish($transferOrder, $currentUser, $entityManager);
 
         $entityManager->flush();
-
         return $this->json([
             'success' => true,
             'redirect' => $this->generateUrl('transfer_order_show', [

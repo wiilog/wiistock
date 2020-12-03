@@ -124,6 +124,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL => [
                 'default' => null,
             ],
+            ParametrageGlobal::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS => [
+                'default' => null,
+            ],
             ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_NAME => [
                 'default' => null,
             ],
@@ -155,6 +158,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ParametrageGlobal::FONT_FAMILY => [
                 'default' => ParametrageGlobal::DEFAULT_FONT_FAMILY
             ],
+            ParametrageGlobal::OVERCONSUMPTION_LOGO => [],
             ParametrageGlobal::WEBSITE_LOGO => [
                 'default' => "img/followGTwhite.svg"
             ],
@@ -186,6 +190,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ParametrageGlobal::EMERGENCY_TEXT_LABEL => [],
             ParametrageGlobal::DELIVERY_NOTE_LOGO => [],
             ParametrageGlobal::WAYBILL_LOGO => [],
+            ParametrageGlobal::KEEP_DISPATCH_PACK_MODAL_OPEN => [
+                "default" => false
+            ],
             ParametrageGlobal::DASHBOARD_PACKAGING_1 => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_2 => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_3 => [],

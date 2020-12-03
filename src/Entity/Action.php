@@ -47,6 +47,7 @@ class Action
     const DISPLAY_HAND = 'afficher services';
     const TREAT_HANDLING = 'traiter services';
     const DISPLAY_ACHE = 'afficher acheminements';
+    const GENERATE_OVERCONSUMPTION_BILL = 'générer un bon de surconsommation';
     const CREATE_ACHE = 'créer acheminements';
     const EDIT_DRAFT_DISPATCH = 'modifier acheminements brouillons';
     const EDIT_UNPROCESSED_DISPATCH = 'modifier acheminements à traiter';

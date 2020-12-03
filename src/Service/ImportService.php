@@ -912,7 +912,7 @@ class ImportService
         }
 
         if (isset($data['managers'])) {
-            $usernames = Stream::explode([";", ",", " "], $data["managers"])
+            $usernames = Stream::explode([";", ","], $data["managers"])
                 ->unique()
                 ->map("trim")
                 ->toArray();

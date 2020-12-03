@@ -37,7 +37,7 @@ let tableArticleConfig = {
 
 let tableArticle = initDataTable('tableArticle_id', tableArticleConfig);
 
-function startPicking($button) {
+function startPicking($button, managementType) {
     if (!$button.data('clicked')) {
         $('.action-on-click-single').data('clicked', true);
         let ligneArticleId = $button.attr('value');
@@ -49,8 +49,13 @@ function startPicking($button) {
                 'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'tous']],
                 domConfig: {
                     needsPaginationRemoval: true
-                }
+                },
             };
+            if (managementType) {
+                tableSplittingArticlesConfig.order = [
+                    4, "asc"
+                ];
+            }
             tableArticleSplitting = initDataTable('tableSplittingArticles', tableSplittingArticlesConfig);
             $('#modalSplitting').modal('show');
         });
