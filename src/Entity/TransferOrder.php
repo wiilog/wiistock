@@ -140,6 +140,7 @@ class TransferOrder implements Serializable {
             if (isset($oldStatus)) {
                 $oldStatus->removeTransferOrder($this);
             }
+            $this->status = $status;
         }
         return $this;
     }
