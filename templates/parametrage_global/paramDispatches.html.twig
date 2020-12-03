@@ -99,6 +99,40 @@
         </div>
     </div>
 
+    <div class="form-group w-fit-content">
+        <label for="param-type-encodage">Logo du bon de surconsommation</label>
+        <div class="form-group d-flex">
+            <img src="{{ overconsumption_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ overconsumption_logo : '' }}"
+                 id="preview-overconsumption-logo" alt="Logo choisi" height="50px" class="{{ not overconsumption_logo ? 'd-none' }}"/>
+
+            <button class="btn btn-primary" onclick="$('#upload-overconsumption-logo').click();">{{ overconsumption_logo ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo'}}</button>
+
+            <input type="file" id="upload-overconsumption-logo" accept="image/png, image/jpeg, image/jpg" hidden>
+        </div>
+    </div>
+
+    <div class="row mt-2 mb-2">
+        <div class="col-12">
+            {% set typeBill = overconsumptionBill ? overconsumptionBill|split(';')[0] %}
+            {% set statutBill = overconsumptionBill ? overconsumptionBill|split(';')[1] %}
+            <span>Génération bon de surconsommation pour type</span>
+            <select name="overconsumptionBillType" class="w-auto custom-select">
+                <option value=""></option>
+                {% for type in types %}
+                    {% set selected = typeBill == type.id %}
+                    <option value="{{ type.id }}" {{ selected ? "selected" }}>{{ type.label }}</option>
+                {% endfor %}
+            </select>
+            <span>passe {{ 'acheminement.acheminement'|trans }} au statut</span>
+            <select name="overconsumptionBillStatut" class="w-auto custom-select">
+                <option value=""></option>
+                {% for status in statuses|filter(s => s.state == 1) %}
+                    {% set selected = statutBill == status.id %}
+                    <option value="{{ status.id }}" {{ selected ? "selected" }}>{{ status.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
 
     <div class="row mt-2 mb-2">
         <div class="col-12">
@@ -110,28 +144,6 @@
                 <span class="slider round"></span>
             </label>
             <label class="pl-1" for="param-redirect-arrival">{{ 'Garder la modale d\'ajout de colis ouverte à l\'enregistrement' | trans }}</label>
-        </div>
-    </div>
-    <div class="row mt-2 mb-2">
-        <div class="col-12">
-            {% set typeBill = overconsumptionBill ? overconsumptionBill|split(';')[0] %}
-            {% set statutBill = overconsumptionBill ? overconsumptionBill|split(';')[1] %}
-            <span>Génération bon de surconsommation pour type</span>
-            <select name="overconsumptionBillType" class="ml-2">
-                <option value=""></option>
-                {% for type in types %}
-                    {% set selected = typeBill == type.id %}
-                    <option value="{{ type.id }}" {{ selected ? "selected" }}>{{ type.label }}</option>
-                {% endfor %}
-            </select>
-            <span>passe {{ 'acheminement.acheminement'|trans }} au statut</span>
-            <select name="overconsumptionBillStatut" class="ml-2">
-                <option value=""></option>
-                {% for status in statuses|filter(s => s.state == 1) %}
-                    {% set selected = statutBill == status.id %}
-                    <option value="{{ status.id }}" {{ selected ? "selected" }}>{{ status.nom }}</option>
-                {% endfor %}
-            </select>
         </div>
     </div>
 </div>

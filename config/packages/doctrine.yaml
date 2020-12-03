@@ -35,4 +35,5 @@ doctrine:
                 REPLACE: DoctrineExtensions\Query\Mysql\Replace
                 CAST: DoctrineExtensions\Query\Mysql\Cast
                 DATE_FORMAT: DoctrineExtensions\Query\Mysql\DateFormat
+                UNIX_TIMESTAMP: DoctrineExtensions\Query\Mysql\UnixTimestamp
                 FIELD: DoctrineExtensions\Query\Mysql\Field

@@ -34,7 +34,9 @@ $(function() {
             {"data": "quantity", 'name': 'quantity', 'title': 'Quantité'},
             {"data": 'packLastDate', 'name': 'packLastDate', 'title': 'Date du dernier mouvement'},
             {"data": "packOrigin", 'name': 'packOrigin', 'title': 'Issu de', className: 'noVis', orderable: false},
-            {"data": "packLocation", 'name': 'packLocation', 'title': 'Emplacement'}
+            {"data": "packLocation", 'name': 'packLocation', 'title': 'Emplacement'},
+            {"data": "arrivageType", 'name': 'arrivageType', 'title': 'Type d\'arrivage'},
+
         ]
     });
 

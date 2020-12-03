@@ -61,7 +61,7 @@ class Reception extends FreeFieldEntity
      */
     private $statut;
 
-    /**
+    /**ne
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $dateAttendue;

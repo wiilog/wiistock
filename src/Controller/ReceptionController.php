@@ -256,9 +256,16 @@ class ReceptionController extends AbstractController {
             $storageLocation = !empty($data['storageLocation']) ? $emplacementRepository->find($data['storageLocation']) : null;
             $reception->setStorageLocation($storageLocation);
 
-            $emergency = !empty($data['emergency']) ? $data['emergency'] : null;
+            $emergency = !empty($data['emergency'])
+                ? (
+                    $data['emergency'] === "false"
+                    ? null
+                    : $data['emergency']
+                )
+                : null;
+            dump($emergency);
             $reception->setManualUrgent($emergency);
-
+            dump($reception->isManualUrgent());
             $reception
                 ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
                 ->setDateAttendue(
@@ -939,7 +946,7 @@ class ReceptionController extends AbstractController {
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
-            'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
+            'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
             'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
             'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $typeChampLibreDL,
@@ -1353,7 +1360,7 @@ class ReceptionController extends AbstractController {
             $html = $this->renderView('reception/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
                 'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
-                'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
+                'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
                 'attachments' => $attachmentRepository->findBy(['litige' => $litige]),
                 'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);

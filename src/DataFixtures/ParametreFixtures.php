@@ -158,6 +158,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ParametrageGlobal::FONT_FAMILY => [
                 'default' => ParametrageGlobal::DEFAULT_FONT_FAMILY
             ],
+            ParametrageGlobal::OVERCONSUMPTION_LOGO => [],
             ParametrageGlobal::WEBSITE_LOGO => [
                 'default' => "img/followGTwhite.svg"
             ],

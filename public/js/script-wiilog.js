@@ -448,14 +448,19 @@ function saveFilters(page, tableSelector, callback) {
 
     const $filterDateMin = $('.filter-date-min');
     const $filterDateMax = $('.filter-date-max');
+    const $filterDateExcepted = $('.filter-date-excepted');
     const $filterDateMinPicker = $filterDateMin.data("DateTimePicker");
     const $filterDateMaxPicker = $filterDateMax.data("DateTimePicker");
+    const $filterDateExceptedPicker = $filterDateExcepted.data("DateTimePicker");
 
     if ($filterDateMinPicker) {
         $filterDateMinPicker.format('YYYY-MM-DD');
     }
     if ($filterDateMaxPicker) {
         $filterDateMaxPicker.format('YYYY-MM-DD');
+    }
+    if ($filterDateExceptedPicker) {
+        $filterDateExceptedPicker.format('YYYY-MM-DD');
     }
 
     const valFunction = {
@@ -488,6 +493,9 @@ function saveFilters(page, tableSelector, callback) {
     }
     if ($filterDateMaxPicker) {
         $filterDateMaxPicker.format('DD/MM/YYYY');
+    }
+    if ($filterDateExceptedPicker) {
+        $filterDateExceptedPicker.format('DD/MM/YYYY');
     }
     $.post(path, JSON.stringify(params), function (response) {
         if (response) {
@@ -665,7 +673,7 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
     }
 }
 
-function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YYYY', minDate = false, defaultHours = null, defaultMinutes = null, disableDates = null) {
+function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', format = 'DD/MM/YYYY', minDate = false, defaultHours = null, defaultMinutes = null, disableDates = null) {
     let options = {
         format: format,
         useCurrent: false,
