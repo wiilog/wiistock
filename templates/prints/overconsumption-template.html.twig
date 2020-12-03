@@ -1,6 +1,7 @@
 <html lang="fr">
 <head>
     <title>Bon de surconsommation</title>
+    <meta charset="UTF-8"/>
     <style>
         html, body {
             width: 100%;
@@ -16,24 +17,6 @@
             width: 34.4cm;
         }
 
-        .logos {
-            width: 34.4cm;
-            height: 2cm;
-        }
-
-        .logos img {
-            max-width: 25%;
-            max-height: 2cm;
-        }
-
-        .logos img:first-of-type {
-            float: left;
-        }
-
-        .logos img:last-of-type {
-            float: right;
-        }
-
         .bordered {
             position: relative;
             border: 2px solid black;
@@ -45,8 +28,9 @@
             position: absolute;
             top: 0;
             right: 0;
-            float: right;
+            bottom: 0;
             padding: 5mm;
+            width: 3.5cm;
         }
 
         .half {
@@ -55,11 +39,14 @@
         }
 
         .qr {
-            display: inline-table;
+            display: table;
             text-align: center;
-            margin-left: 5mm;
             height: 2cm;
-            width: 2cm;
+            width: 100%;
+        }
+
+        .qr .label {
+            white-space: nowrap;
         }
 
         .qr .barcode {
@@ -98,38 +85,18 @@
             display: table-header-group;
         }
 
-        tfoot {
-            display: table-footer-group;
-        }
-
         .grow {
             width: 25%;
         }
-
-        .bigger {
-            font-size: 1.5rem;
-        }
-
-        .warning {
-            display: block;
-            margin-top: 3mm;
-            font-weight: bold;
-            font-size: 1.4rem;
-            color: red;
-            text-transform: uppercase;
+        .header td {
+            padding: 2mm;
         }
     </style>
 </head>
 <body>
-<div class="logos">
-    <img src="{{ 'http://' ~ app.request.httpHost ~ '/uploads/attachements/' ~ app_logo }}"
-         alt="Logo de l'application"/>
-    <img src="{{ 'http://' ~ app.request.httpHost ~ '/' ~ overconsumption_logo }}"
-         alt="Logo de surconsommation"/>
-</div>
 <div class="content">
     <h1>Demande de surconsommation OF : {{ dispatch.commandNumber }}</h1>
-    <div class="bordered">
+    <div class="header bordered">
         <h2>Caractéristiques de la demande</h2>
         <table class="half">
             <tr>
@@ -155,7 +122,7 @@
         </table>
 
         <div class="right-codes">
-            <div class="qr">
+            <div class="qr" style="margin-bottom: 5mm">
                 <div class="barcode">
                     {{ printBarcode({
                         code: dispatch.number,
@@ -165,7 +132,7 @@
                         width: 200
                     }) | raw }}
                 </div>
-                N° de demande
+                <span class="label">N° de demande</span>
             </div>
             {% if dispatch.locationTo %}
                 <div class="qr">
@@ -178,7 +145,7 @@
                             width: 200
                         }) | raw }}
                     </div>
-                    Ligne dépose
+                    <span class="label">Ligne dépose</span>
                 </div>
             {% endif %}
         </div>
@@ -205,21 +172,60 @@
                 <td></td>
             </tr>
         {% endfor %}
-        <tfoot>
-        <tr>
-            <td colspan="3">
-                <span class="warning">Document à ne pas dissocier de l'OF</span><br><br>
-
-                <b>Rappel :</b><br>
-                1 à 5 lignes : service sous 15 minutes après demande aux équipes GT
-                6 lignes et + : demande sous OF, service dans l'heure (fonction du nb de ligne)
-            </td>
-            <td colspan="2" class="bigger">
-                Visa et nom opérateur magasin :<br>
-                Date :
-            </td>
-        </tr>
-        </tfoot>
+        {% for pack in dispatch.dispatchPacks %}
+            <tr>
+                <td>{{ pack.pack.code }}</td>
+                <td>{{ pack.quantity }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
+        {% for pack in dispatch.dispatchPacks %}
+            <tr>
+                <td>{{ pack.pack.code }}</td>
+                <td>{{ pack.quantity }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
+        {% for pack in dispatch.dispatchPacks %}
+            <tr>
+                <td>{{ pack.pack.code }}</td>
+                <td>{{ pack.quantity }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
+        {% for pack in dispatch.dispatchPacks %}
+            <tr>
+                <td>{{ pack.pack.code }}</td>
+                <td>{{ pack.quantity }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
+        {% for pack in dispatch.dispatchPacks %}
+            <tr>
+                <td>{{ pack.pack.code }}</td>
+                <td>{{ pack.quantity }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
+        {% for pack in dispatch.dispatchPacks %}
+            <tr>
+                <td>{{ pack.pack.code }}</td>
+                <td>{{ pack.quantity }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
     </table>
 </div>
 </body>

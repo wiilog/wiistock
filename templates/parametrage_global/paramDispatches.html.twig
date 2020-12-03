@@ -116,7 +116,7 @@
             {% set typeBill = overconsumptionBill ? overconsumptionBill|split(';')[0] %}
             {% set statutBill = overconsumptionBill ? overconsumptionBill|split(';')[1] %}
             <span>Génération bon de surconsommation pour type</span>
-            <select name="overconsumptionBillType" class="ml-2">
+            <select name="overconsumptionBillType" class="w-auto custom-select">
                 <option value=""></option>
                 {% for type in types %}
                     {% set selected = typeBill == type.id %}
@@ -124,7 +124,7 @@
                 {% endfor %}
             </select>
             <span>passe {{ 'acheminement.acheminement'|trans }} au statut</span>
-            <select name="overconsumptionBillStatut" class="ml-2">
+            <select name="overconsumptionBillStatut" class="w-auto custom-select">
                 <option value=""></option>
                 {% for status in statuses|filter(s => s.state == 1) %}
                     {% set selected = statutBill == status.id %}

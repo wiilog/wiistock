@@ -200,26 +200,33 @@ class PDFGeneratorService {
     }
 
     /**
-     * @param string $title
-     * @param string|null $logo
      * @param Dispatch $dispatch
+     * @param string|null $appLogo
+     * @param string|null $overconsumptionLogo
      * @return Response The PDF response
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function generatePDFOverconsumption(Dispatch $dispatch, string $appLogo, string $overconsumptionLogo): string {
+    public function generatePDFOverconsumption(Dispatch $dispatch, ?string $appLogo, ?string $overconsumptionLogo): string {
         $content = $this->templating->render("prints/overconsumption-template.html.twig", [
-            "dispatch" => $dispatch,
-            "app_logo" => $appLogo,
-            "overconsumption_logo" => $overconsumptionLogo,
+            "dispatch" => $dispatch
         ]);
+
+        $header = $this->templating->render("prints/overconsumption-template-header.html.twig", [
+            "app_logo" => $appLogo ? $appLogo : '',
+            "overconsumption_logo" => $overconsumptionLogo ? $overconsumptionLogo : '',
+        ]);
+
+        $footer = $this->templating->render("prints/overconsumption-template-footer.html.twig");
 
         return $this->PDFGenerator->getOutputFromHtml($content, [
             "page-size" => "A4",
             "orientation" => "landscape",
             "enable-local-file-access" => true,
             "encoding" => "UTF-8",
+            "header-html" => $header,
+            "footer-html" => $footer
         ]);
     }
 

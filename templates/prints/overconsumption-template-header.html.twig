@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <title>Bon de surconsommation en-tête</title>
+        <meta charset="UTF-8"/>
+        <style>
+
+            * {
+                font-family: Arial, sans-serif;
+            }
+
+            .logos {
+                width: 34.4cm;
+                height: 2.5cm;
+            }
+
+            .logos img {
+                max-width: 25%;
+                max-height: 2cm;
+            }
+
+            .logos img:first-of-type {
+                float: left;
+            }
+
+            .logos img:last-of-type {
+                float: right;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="logos">
+            <img src="{{ 'http://' ~ app.request.httpHost ~ '/uploads/attachements/' ~ app_logo }}"
+                 alt="Logo de l'application"/>
+            <img src="{{ 'http://' ~ app.request.httpHost ~ '/' ~ overconsumption_logo }}"
+                 alt="Logo de surconsommation"/>
+        </div>
+    </body>
+</html>
