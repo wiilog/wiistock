@@ -9,7 +9,8 @@
     {% endif %}
 
     {% include 'filters/filter_item/filterUser.html.twig' %}
-    {% include 'filters/filter_item/filterType.html.twig' %}
+    {% include 'filters/filter_item/filterType.html.twig' with {
+        arrivalType: false } %}
 
     {% if emergencies is defined %}
         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
