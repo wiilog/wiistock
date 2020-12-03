@@ -82,7 +82,7 @@
             {% endif %}
             {% if hasRightToGenerateOverconsumptionBill %}
                 <a class="dropdown-item"
-                   href="{{ path('generate_overconsumption_bill', {'dispatch': dispatch.id}) }}">
+                   onclick="generateOverconsumptionBill({{ dispatch.id }})">
                     <i class="fas fa-print mr-2"></i>
                     Générer un bon de surconsommation
                 </a>

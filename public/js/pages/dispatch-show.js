@@ -101,6 +101,15 @@ $(function () {
     }
 });
 
+function generateOverconsumptionBill(dispatchId) {
+    $.post(Routing.generate('generate_overconsumption_bill', {dispatch: dispatchId, print : "non"}), {}, function(data) {
+        $('.zone-entete').html(data.entete);
+        $('.zone-entete [data-toggle="popover"]').popover();
+        $('button[name="newPack"]').addClass('d-none');
+        document.location.href = Routing.generate('generate_overconsumption_bill', {dispatch: dispatchId, print: "oui"});
+    })
+}
+
 function forbiddenPhoneNumberValidator($modal) {
     const $inputs = $modal.find(".forbidden-phone-numbers");
     const $invalidElements = [];
@@ -152,7 +161,7 @@ function togglePackDetails(emptyDetails = false) {
             .then(({success, pack}) => {
                 if (success) {
                     if (pack.nature) {
-                        $natureField.val(nature.id).trigger('change');
+                        $natureField.val(pack.nature.id).trigger('change');
                     }
                     if (pack.quantity || pack.quantity === 0) {
                         $quantityField.val(pack.quantity);
@@ -199,6 +208,7 @@ function openNewPackModal() {
     $modal.find('button.submit-edit-pack').addClass('d-none');
 
     $modal.modal('show');
+    setTimeout(function() { $('input[name="pack"]').focus() }, 500);
 }
 
 function openShowPackModal({code, nature, quantity, packQuantity, weight, volume, comment, lastMovementDate, lastLocation, operator}) {
