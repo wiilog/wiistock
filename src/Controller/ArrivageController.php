@@ -982,7 +982,7 @@ class ArrivageController extends AbstractController
 
             $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
-            $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Litige::DISPUTE_ARRIVAL_PREFIX, Litige::class);
+            $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Litige::DISPUTE_ARRIVAL_PREFIX, Litige::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
             $litige = new Litige();
             $litige

@@ -1253,7 +1253,7 @@ class ReceptionController extends AbstractController {
 
             $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
-            $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Litige::DISPUTE_RECEPTION_PREFIX, Litige::class);
+            $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Litige::DISPUTE_RECEPTION_PREFIX, Litige::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
             $litige
                 ->setStatus($statutRepository->find($post->get('statutLitige')))
