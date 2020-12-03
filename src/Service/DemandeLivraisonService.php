@@ -237,7 +237,6 @@ class DemandeLivraisonService
             'estimatedFinishTime' => $deliveryDateEstimated,
             'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
             'requestStatus' => $requestStatus,
-            'requestType' => $demandeType,
             'requestBodyTitle' => $bodyTitle,
             'requestLocation' => $demande->getDestination() ? $demande->getDestination()->getLabel() : 'Non défini',
             'requestNumber' => $demande->getNumero(),

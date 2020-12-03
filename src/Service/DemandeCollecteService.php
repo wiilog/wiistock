@@ -340,7 +340,6 @@ class DemandeCollecteService
             'estimatedFinishTime' => $deliveryDateEstimated,
             'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
             'requestStatus' => $requestStatus,
-            'requestType' => $requestType,
             'requestBodyTitle' => $bodyTitle,
             'requestLocation' => $request->getPointCollecte() ? $request->getPointCollecte()->getLabel() : 'Non défini',
             'requestNumber' => $request->getNumero(),
