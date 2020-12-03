@@ -263,9 +263,7 @@ class ReceptionController extends AbstractController {
                     : $data['emergency']
                 )
                 : null;
-            dump($emergency);
             $reception->setManualUrgent($emergency);
-            dump($reception->isManualUrgent());
             $reception
                 ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
                 ->setDateAttendue(

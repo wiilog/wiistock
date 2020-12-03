@@ -70,7 +70,6 @@
             if(initialized || {{ table }} === undefined) {
                 return;
             }
-            console.log({{ table }})
             InitModal(modal, button, '{{ path(route) }}', {tables: [{{ table }}]});
             initialized = true;
         })
