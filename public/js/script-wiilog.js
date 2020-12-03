@@ -673,7 +673,7 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
     }
 }
 
-function initDateTimePicker(dateInput = '#dateMin, #dateMax, #exceptedDate', format = 'DD/MM/YYYY', minDate = false, defaultHours = null, defaultMinutes = null, disableDates = null) {
+function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', format = 'DD/MM/YYYY', minDate = false, defaultHours = null, defaultMinutes = null, disableDates = null) {
     let options = {
         format: format,
         useCurrent: false,
