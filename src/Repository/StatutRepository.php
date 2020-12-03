@@ -83,17 +83,19 @@ class StatutRepository extends EntityRepository {
 
     /**
      * @param string $categorieName
-     * @param bool $ordered
+     * @param bool $orderByField -- Fill the entity field to sort
      * @return Statut[]
      */
     public function findByCategorieName($categorieName,
-                                        $ordered = false) {
+                                        $orderByField = false) {
+        $statutEntity = $this->getEntityManager()->getClassMetadata(Statut::class);
+
         $queryBuilder = $this->createQueryBuilder('status')
             ->join('status.categorie', 'categorie')
             ->andWhere('categorie.nom = :categorieName');
 
-        if ($ordered) {
-            $queryBuilder->orderBy('status.displayOrder', 'ASC');
+        if ($orderByField && $statutEntity->hasField($orderByField)) {
+            $queryBuilder->orderBy('status.' . $orderByField, 'ASC');
         }
 
         $queryBuilder

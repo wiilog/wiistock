@@ -946,7 +946,7 @@ class ReceptionController extends AbstractController {
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
-            'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
+            'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
             'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
             'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $typeChampLibreDL,
@@ -1360,7 +1360,7 @@ class ReceptionController extends AbstractController {
             $html = $this->renderView('reception/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
                 'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
-                'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
+                'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
                 'attachments' => $attachmentRepository->findBy(['litige' => $litige]),
                 'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);

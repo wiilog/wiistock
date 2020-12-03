@@ -116,7 +116,7 @@ class ParametrageGlobalController extends AbstractController {
                 ],
                 'paramReceptions' => [
                     'receptionLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION),
-                    'listStatus' => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, true),
+                    'listStatus' => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, 'displayOrder'),
                     'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT)
                 ],
                 'paramLivraisons' => [
