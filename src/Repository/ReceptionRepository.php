@@ -49,22 +49,24 @@ class ReceptionRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
-	public function getLastNumeroByPrefixeAndDate($prefixe, $date)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-		/** @lang DQL */
-			'SELECT r.numeroReception as numero
-			FROM App\Entity\Reception r
-			WHERE r.numeroReception LIKE :value
-			ORDER BY r.date DESC'
-		)->setParameter('value', $prefixe . $date . '%');
+    /**
+     * @param $date
+     * @return mixed|null
+     */
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('reception')
+            ->select('reception.numeroReception AS number')
+            ->where('reception.numeroReception LIKE :value')
+            ->orderBy('reception.date', 'DESC')
+            ->addOrderBy('reception.id', 'DESC')
+            ->setParameter('value', Reception::PREFIX_NUMBER . $date . '%')
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
+    }
 
-		$result = $query->execute();
-		return $result ? $result[0]['numero'] : null;
-	}
 
-	/**
+    /**
 	 * @param Utilisateur $user
 	 * @return int
 	 * @throws NonUniqueResultException

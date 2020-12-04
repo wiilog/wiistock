@@ -117,7 +117,7 @@ class TransferRequestService {
                                           ?Utilisateur $requester,
                                           ?string $comment = null): TransferRequest {
         $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
-        $transferRequestNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, TransferRequest::NUMBER_PREFIX, TransferRequest::class);
+        $transferRequestNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, TransferRequest::NUMBER_PREFIX, TransferRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
         $transfer = new TransferRequest();
         $transfer

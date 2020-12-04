@@ -14,6 +14,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Reception extends FreeFieldEntity
 {
+    const PREFIX_NUMBER = 'R';
+
     const STATUT_EN_ATTENTE = 'en attente de réception';
     const STATUT_RECEPTION_PARTIELLE = 'réception partielle';
     const STATUT_RECEPTION_TOTALE = 'réception totale';
