@@ -183,6 +183,7 @@ class ParametrageGlobalController extends AbstractController {
                 ],
                 'wantsRecipient' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL),
                 'wantsDZLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL),
+                'wantsType' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_ARRIVAL_TYPE_IN_LABEL),
                 'wantsCustoms' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_CUSTOMS_IN_LABEL),
                 'wantsEmergency' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EMERGENCY_IN_LABEL),
                 'wantsCommandAndProjectNumber' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL),
@@ -256,6 +257,17 @@ class ParametrageGlobalController extends AbstractController {
 
         $parametrageGlobalDZLocation
             ->setValue((int)($data['param-dz-location-etiquette'] === 'true'));
+
+        $parametrageGlobalArrivalType = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_ARRIVAL_TYPE_IN_LABEL);
+
+        if(empty($parametrageGlobalArrivalType)) {
+            $parametrageGlobalArrivalType = new ParametrageGlobal();
+            $parametrageGlobalArrivalType->setLabel(ParametrageGlobal::INCLUDE_ARRIVAL_TYPE_IN_LABEL);
+            $entityManager->persist($parametrageGlobalArrivalType);
+        }
+
+        $parametrageGlobalArrivalType
+            ->setValue((int)($data['param-type-arrival-etiquette'] === 'true'));
 
         $globalSettingsDestinationLocation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
 
