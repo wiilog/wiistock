@@ -72,16 +72,22 @@ class FreeFieldService {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $freeFields = [];
         $champsLibresKey = array_keys($data);
-        foreach ($champsLibresKey as $champs) {
-            if (gettype($champs) === 'integer') {
-                $champLibre = $champLibreRepository->find($champs);
+        foreach ($champsLibresKey as $field) {
+            if (gettype($field) === 'integer') {
+                $champLibre = $champLibreRepository->find($field);
                 if ($champLibre) {
-                    $freeFields[$champLibre->getId()] = $this->manageJSONFreeField($champLibre, $data[$champs]);
+                    $freeFields[$champLibre->getId()] = $this->manageJSONFreeField($champLibre, $data[$field]);
+                }
+
+                //save the date in d/m/Y H:i
+                if(preg_match("/(\d{2})\/(\d{2})\/(\d{4})T(\d{2}):(\d{2})/", $data[$field])) {
+                    $date = DateTime::createFromFormat("d/m/Y H:i", $data[$field]);
+                    $freeFields[$field] = $date->format("Y-m-dTH:i");
                 }
             }
         }
-        $entity
-            ->setFreeFields($freeFields);
+
+        $entity->setFreeFields($freeFields);
     }
 
     public function manageJSONFreeField(FreeField $champLibre, $value): string {
