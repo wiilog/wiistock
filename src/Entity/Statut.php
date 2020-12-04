@@ -37,7 +37,7 @@ class Statut
 
 	/**
 	 * @ORM\Column(type="text", nullable=true)
-	 */n
+	 */
     private $comment;
 
 	/**
