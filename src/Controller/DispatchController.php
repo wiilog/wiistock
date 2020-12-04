@@ -1540,62 +1540,58 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/bon-de-surconsommation/{dispatch}/{print}", name="generate_overconsumption_bill", options={"expose"=true}, methods="GET|POST")
-     * @param Dispatch $dispatch
-     * @param PDFGeneratorService $pdfService
-     * @param DispatchService $dispatchService
-     * @param string $print
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws Exception
+     * @Route("/bon-de-surconsommation/{dispatch}", name="generate_overconsumption_bill", options={"expose"=true}, methods="POST")
+     */
+    public function updateOverconsumption(DispatchService $dispatchService, Dispatch $dispatch): Response {
+        $entityManager = $this->getDoctrine()->getManager();
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
+        $overConsumptionBill = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS);
+        if($overConsumptionBill) {
+            $typeAndStatus = explode(';', $overConsumptionBill);
+            $typeId = intval($typeAndStatus[0]);
+            $statutsId = intval($typeAndStatus[1]);
+            if($dispatch->getType()->getId() === $typeId) {
+                $untreatedStatus = $statutRepository->find($statutsId);
+                $dispatch
+                    ->setStatut($untreatedStatus)
+                    ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+
+                $entityManager->flush();
+                $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
+            }
+        }
+
+        $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
+
+        return $this->json([
+            'entete' => $this->renderView("dispatch/dispatch-show-header.html.twig", [
+                'dispatch' => $dispatch,
+                'showDetails' => $detailsConfig,
+                'modifiable' => !$dispatch->getStatut() || $dispatch->getStatut()->isDraft(),
+            ])
+        ]);
+    }
+
+    /**
+     * @Route("/bon-de-surconsommation/{dispatch}", name="print_overconsumption_bill", options={"expose"=true}, methods="GET")
      */
     public function printOverconsumptionBill(Dispatch $dispatch,
                                              PDFGeneratorService $pdfService,
-                                             DispatchService $dispatchService,
-                                             string $print,
                                              EntityManagerInterface $entityManager): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::GENERATE_OVERCONSUMPTION_BILL)) {
             return $this->redirectToRoute('access_denied');
         }
+
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $appLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
         $overconsumptionLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $statutRepository = $entityManager->getRepository(Statut::class);
-        if ($print === "oui") {
-            return new PdfResponse(
-                $pdfService->generatePDFOverconsumption($dispatch, $appLogo, $overconsumptionLogo),
-                "{$dispatch->getNumber()}-bon-surconsommation.pdf"
-            );
-        } else {
-            $overConsumptionBill = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS);
-            if ($overConsumptionBill) {
-                $typeAndStatus = explode(';', $overConsumptionBill);
-                $typeId = intval($typeAndStatus[0]);
-                $statutsId = intval($typeAndStatus[1]);
-                if ($dispatch->getType()->getId() === $typeId) {
-                    $untreatedStatus = $statutRepository->find($statutsId);
-                    $dispatch
-                        ->setStatut($untreatedStatus)
-                        ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
 
-                    $entityManager->flush();
-                    $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
-                }
-            }
-            $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
-            return new JsonResponse([
-                'entete' => $this->renderView("dispatch/dispatch-show-header.html.twig", [
-                    'dispatch' => $dispatch,
-                    'showDetails' => $detailsConfig,
-                    'modifiable' => !$dispatch->getStatut() || $dispatch->getStatut()->isDraft(),
-                ])
-            ]);
-        }
+        return new PdfResponse(
+            $pdfService->generatePDFOverconsumption($dispatch, $appLogo, $overconsumptionLogo),
+            "{$dispatch->getNumber()}-bon-surconsommation.pdf"
+        );
     }
 
 }

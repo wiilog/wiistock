@@ -102,11 +102,12 @@ $(function () {
 });
 
 function generateOverconsumptionBill(dispatchId) {
-    $.post(Routing.generate('generate_overconsumption_bill', {dispatch: dispatchId, print : "non"}), {}, function(data) {
+    $.post(Routing.generate('generate_overconsumption_bill', {dispatch: dispatchId}), {}, function(data) {
         $('.zone-entete').html(data.entete);
         $('.zone-entete [data-toggle="popover"]').popover();
         $('button[name="newPack"]').addClass('d-none');
-        document.location.href = Routing.generate('generate_overconsumption_bill', {dispatch: dispatchId, print: "oui"});
+
+        Wiistock.download(Routing.generate('print_overconsumption_bill', {dispatch: dispatchId}));
     })
 }
 
