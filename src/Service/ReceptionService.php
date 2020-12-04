@@ -120,11 +120,6 @@ class ReceptionService
 
         $numero = $this->uniqueNumberService->createUniqueNumber($entityManager, Reception::PREFIX_NUMBER, Reception::class, UniqueNumberService::DATE_COUNTER_FORMAT_RECEPTION);
 
-        /*if($rowIndex) {
-            $currentCounter = substr($numero, -2, strstr($numero, '-', true));
-            $numero = substr_replace($numero, $currentCounter, -2, strstr($numero, '-', true)) . '-' . $rowIndex;
-        }*/
-
         if(!empty($data['fournisseur'])) {
             if($fromImport) {
                 $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $data['fournisseur']]);
