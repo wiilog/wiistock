@@ -100,7 +100,6 @@ class TransferOrderService {
                 ->setStatus($treatedOrder)
                 ->setOperator($operator)
                 ->setTransferDate(new DateTime());
-
             $locationTo = $request->getDestination();
             $this->releaseRefsAndArticles($locationTo, $order, $operator, $entityManager, true);
         }
@@ -245,7 +244,7 @@ class TransferOrderService {
                                         ?TransferRequest $request): TransferOrder {
         $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
 
-        $transferOrderNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, TransferOrder::NUMBER_PREFIX, TransferOrder::class);
+        $transferOrderNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, TransferOrder::NUMBER_PREFIX, TransferOrder::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
         $transfer = new TransferOrder();
         $transfer

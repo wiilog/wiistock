@@ -41,7 +41,15 @@
     {% include 'article/modalShowArticle.html.twig' %}
 
     <div id="splittingContent">
-        {% include 'preparation/modalSplitting.html.twig' with {'index' : 0, 'reference' : '', 'articles' : [], 'quantite' : 0, 'referenceId' : ''} %}
+        {% include 'preparation/modalSplitting.html.twig' with
+            {
+                'index' : 0,
+                'reference' : '',
+                'articles' : [],
+                'quantite' : 0,
+                'referenceId' : '',
+                'managementType' : null
+            } %}
     </div>
 
 

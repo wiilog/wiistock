@@ -6,6 +6,7 @@ use App\Entity\Role;
 use App\Service\MailerService;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\UtilisateurType;
@@ -25,9 +26,8 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
+class SecuriteController extends AbstractController {
 
-class SecuriteController extends AbstractController
-{
     /**
      * @var UserPasswordEncoderInterface
      */
@@ -53,13 +53,11 @@ class SecuriteController extends AbstractController
      */
     private $templating;
 
-
     public function __construct(PasswordService $passwordService,
                                 UserService $userService,
                                 UserPasswordEncoderInterface $passwordEncoder,
                                 MailerService $mailerService,
-                                Twig_Environment $templating)
-    {
+                                Twig_Environment $templating) {
         $this->passwordService = $passwordService;
         $this->userService = $userService;
         $this->passwordEncoder = $passwordEncoder;
@@ -70,8 +68,7 @@ class SecuriteController extends AbstractController
     /**
      * @Route("/", name="default")
      */
-    public function index()
-    {
+    public function index() {
         return $this->redirectToRoute('login');
     }
 
@@ -84,10 +81,9 @@ class SecuriteController extends AbstractController
      */
     public function login(AuthenticationUtils $authenticationUtils,
                           EntityManagerInterface $entityManager,
-                          string $info = '')
-    {
+                          string $info = '') {
         $loggedUser = $this->getUser();
-        if ($loggedUser && $loggedUser instanceof Utilisateur) {
+        if($loggedUser && $loggedUser instanceof Utilisateur) {
             return $this->redirectToRoute('accueil');
         }
 
@@ -98,9 +94,9 @@ class SecuriteController extends AbstractController
         $lastUsername = $authenticationUtils->getLastUsername();
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $user = $utilisateurRepository->findOneBy(['email' => $lastUsername]);
-        if ($user && $user->getStatus() === false) {
+        if($user && $user->getStatus() === false) {
             $errorToDisplay = 'Utilisateur inactif.';
-        } else if ($error) {
+        } else if($error) {
             $errorToDisplay = 'Identifiants incorrects.';
         }
 
@@ -108,7 +104,7 @@ class SecuriteController extends AbstractController
             'controller_name' => 'SecuriteController',
             'last_username' => $lastUsername,
             'error' => $errorToDisplay,
-			'info' => $info
+            'info' => $info
         ]);
     }
 
@@ -124,8 +120,8 @@ class SecuriteController extends AbstractController
      */
     public function register(Request $request,
                              UserPasswordEncoderInterface $passwordEncoder,
-                             EntityManagerInterface $entityManager)
-    {
+                             PasswordService $passwordService,
+                             EntityManagerInterface $entityManager) {
         $session = $request->getSession();
         $user = new Utilisateur();
 
@@ -134,33 +130,40 @@ class SecuriteController extends AbstractController
         $utilisateur = $entityManager->getRepository(Utilisateur::class);
 
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($entityManager);
-            $password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
-            $user
-                ->setStatus(true)
-                ->setPassword($password)
-                ->setRole($roleRepository->findOneByLabel(Role::NO_ACCESS_USER))
-                ->setMobileLoginKey($uniqueMobileKey);
-            $entityManager->persist($user);
-            $entityManager->flush();
+        if($form->isSubmitted() && $form->isValid()) {
+            $check = $passwordService->checkPassword($user->getPlainPassword(), $user->getPlainPassword());
 
-            $userMailByRole = $utilisateur->getUserMailByIsMailSendRole();
-            if(!empty($userMailByRole)) {
-                $this->mailerService->sendMail(
-                    'FOLLOW GT // Notification de création d\'un compte utilisateur',
-                    $this->templating->render('mails/contents/mailNouvelUtilisateur.html.twig', [
-                        'user' => $user->getUsername(),
-                        'mail' => $user->getEmail(),
-                        'title' => 'Création d\'un nouvel utilisateur'
-                    ]),
-                    $userMailByRole
-                );
+            if(!$check["response"]) {
+                $form->get("plainPassword")->get("first")->addError(new FormError($check["message"]));
+                $form->get("plainPassword")->get("second")->addError(new FormError($check["message"]));
+            } else {
+                $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($entityManager);
+                $password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
+                $user
+                    ->setStatus(true)
+                    ->setPassword($password)
+                    ->setRole($roleRepository->findOneByLabel(Role::NO_ACCESS_USER))
+                    ->setMobileLoginKey($uniqueMobileKey);
+                $entityManager->persist($user);
+                $entityManager->flush();
+
+                $userMailByRole = $utilisateur->getUserMailByIsMailSendRole();
+                if(!empty($userMailByRole)) {
+                    $this->mailerService->sendMail(
+                        'FOLLOW GT // Notification de création d\'un compte utilisateur',
+                        $this->templating->render('mails/contents/mailNouvelUtilisateur.html.twig', [
+                            'user' => $user->getUsername(),
+                            'mail' => $user->getEmail(),
+                            'title' => 'Création d\'un nouvel utilisateur'
+                        ]),
+                        $userMailByRole
+                    );
+                }
+
+                $session->getFlashBag()->add('success', 'Votre nouveau compte a été créé avec succès.');
+
+                return $this->redirectToRoute('login');
             }
-
-            $session->getFlashBag()->add('success', 'Votre nouveau compte a été créé avec succès.');
-
-            return $this->redirectToRoute('login');
         }
 
         return $this->render('securite/register.html.twig', [
@@ -175,16 +178,15 @@ class SecuriteController extends AbstractController
      * @return RedirectResponse
      * @throws Exception
      */
-    public function checkLastLogin(EntityManagerInterface $em)
-    {
-    	/** @var Utilisateur $user */
+    public function checkLastLogin(EntityManagerInterface $em) {
+        /** @var Utilisateur $user */
         $user = $this->getUser();
 
-        if (!$user) {
+        if(!$user) {
             throw new UsernameNotFoundException(
                 sprintf('L\'utilisateur n\'existe pas.')
             );
-        } elseif ($user->getStatus() === false) {
+        } elseif($user->getStatus() === false) {
             throw new UsernameNotFoundException(
                 sprintf('Le compte est inactif')
             );
@@ -192,50 +194,49 @@ class SecuriteController extends AbstractController
         $user->setLastLogin(new \Datetime('', new \DateTimeZone('Europe/Paris')));
 
         // remplit champ columnVisiblesForArticle si vide
-		if (empty($user->getColumnsVisibleForArticle())) {
-			$user->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT);
-		}
-		// remplit champ columnVisibles si vide
-		if (empty($user->getColumnVisible())) {
-			$user->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT);
-		}
+        if(empty($user->getColumnsVisibleForArticle())) {
+            $user->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT);
+        }
+        // remplit champ columnVisibles si vide
+        if(empty($user->getColumnVisible())) {
+            $user->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT);
+        }
 
-        if (empty($user->getColumnsVisibleForArrivage())) {
+        if(empty($user->getColumnsVisibleForArrivage())) {
             $user->setColumnsVisibleForArrivage(Utilisateur::COL_VISIBLE_ARR_DEFAULT);
         }
 
-        if (empty($user->getColumnsVisibleForDispatch())) {
+        if(empty($user->getColumnsVisibleForDispatch())) {
             $user->setColumnsVisibleForDispatch(Utilisateur::COL_VISIBLE_DISPATCH_DEFAULT);
         }
 
-        if (empty($user->getColumnsVisibleForTrackingMovement())) {
+        if(empty($user->getColumnsVisibleForTrackingMovement())) {
             $user->setColumnsVisibleForTrackingMovement(Utilisateur::COL_VISIBLE_TRACKING_MOVEMENT_DEFAULT);
         }
 
         // remplit champ columnVisibles si vide
-        if (empty($user->getColumnsVisibleForLitige())) {
+        if(empty($user->getColumnsVisibleForLitige())) {
             $user->setColumnsVisibleForLitige(Utilisateur::COL_VISIBLE_LIT_DEFAULT);
         }
 
-		// remplit champ recherche rapide si vide
-		if (empty($user->getRecherche())) {
-			$user->setRecherche(Utilisateur::SEARCH_DEFAULT);
-		}
-		// remplit champ recherche rapide article si vide
-		if (empty($user->getRechercheForArticle())) {
-			$user->setRechercheForArticle(Utilisateur::SEARCH_DEFAULT);
-		}
+        // remplit champ recherche rapide si vide
+        if(empty($user->getRecherche())) {
+            $user->setRecherche(Utilisateur::SEARCH_DEFAULT);
+        }
+        // remplit champ recherche rapide article si vide
+        if(empty($user->getRechercheForArticle())) {
+            $user->setRechercheForArticle(Utilisateur::SEARCH_DEFAULT);
+        }
 
-		$em->flush();
+        $em->flush();
 
-		return $this->redirectToRoute('accueil');
+        return $this->redirectToRoute('accueil');
     }
 
     /**
      * @Route("/attente_validation", name="attente_validation")
      */
-    public function attente_validation()
-    {
+    public function attente_validation() {
         return $this->render('securite/attente_validation.html.twig', [
             //            'controller_name' => 'SecuriteController',
         ]);
@@ -244,8 +245,7 @@ class SecuriteController extends AbstractController
     /**
      * @Route("/acces-refuse", name="access_denied")
      */
-    public function access_denied()
-    {
+    public function access_denied() {
         return $this->render('securite/access_denied.html.twig');
     }
 
@@ -254,8 +254,7 @@ class SecuriteController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function change_password(Request $request)
-    {
+    public function change_password(Request $request) {
         $token = $request->get('token');
         return $this->render('securite/change_password.html.twig', ['token' => $token]);
     }
@@ -269,24 +268,22 @@ class SecuriteController extends AbstractController
      */
     public function change_password_in_bdd(Request $request,
                                            EntityManagerInterface $entityManager,
-                                           UserPasswordEncoderInterface $passwordEncoder) : Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+                                           UserPasswordEncoderInterface $passwordEncoder): Response {
+        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $token = $data['token'];
             $user = $utilisateurRepository->findOneBy(['token' => $token]);
-            if (!$user) {
+            if(!$user) {
                 return new JsonResponse('Le lien a expiré. Veuillez refaire une demande de renouvellement de mot de passe.');
-            }
-            elseif ($user->getStatus() === true) {
+            } elseif($user->getStatus() === true) {
                 $password = $data['password'];
                 $password2 = $data['password2'];
-                $result = $this->passwordService->checkPassword($password,$password2);
+                $result = $this->passwordService->checkPassword($password, $password2);
 
-                if ($result['response'] == true) {
-                    if ($password !== '') {
+                if($result['response'] == true) {
+                    if($password !== '') {
                         $password = $passwordEncoder->encodePassword($user, $password);
                         $user->setPassword($password);
                         $user->setToken(null);
@@ -297,12 +294,10 @@ class SecuriteController extends AbstractController
 
                         return new JsonResponse('ok');
                     }
-                }
-                else  {
+                } else {
                     return new JsonResponse($result['message']);
                 }
-            }
-            else {
+            } else {
                 return new JsonResponse('access_denied');
             }
         }
@@ -312,16 +307,14 @@ class SecuriteController extends AbstractController
     /**
      * @Route("/logout", name="logout")
      */
-    public function logout()
-    {
+    public function logout() {
         return $this->redirectToRoute('login');
     }
 
     /**
      * @Route("/oubli", name="forgotten")
      */
-    public function forgot()
-    {
+    public function forgot() {
         return $this->render('securite/resetPassword.html.twig');
     }
 
@@ -332,26 +325,26 @@ class SecuriteController extends AbstractController
      * @return Response
      */
     public function checkEmail(Request $request,
-                               EntityManagerInterface $entityManager): Response
-    {
-        if ($request->isXmlHttpRequest() && $email = json_decode($request->getContent())) {
-        	$errorCode = '';
+                               EntityManagerInterface $entityManager): Response {
+        if($request->isXmlHttpRequest() && $email = json_decode($request->getContent())) {
+            $errorCode = '';
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $user = $utilisateurRepository->findOneBy(['email' => $email]);
-            if ($user) {
-				if ($user->getStatus()) {
-					$token = $this->passwordService->generateToken(80);
-					$this->passwordService->sendToken($token, $email);
-				} else {
-					$errorCode = 'inactiv';
-				}
-			} else {
-				$errorCode = 'mailNotFound';
-			}
+            if($user) {
+                if($user->getStatus()) {
+                    $token = $this->passwordService->generateToken(80);
+                    $this->passwordService->sendToken($token, $email);
+                } else {
+                    $errorCode = 'inactiv';
+                }
+            } else {
+                $errorCode = 'mailNotFound';
+            }
 
             return new JsonResponse($errorCode);
         }
         throw new BadRequestHttpException();
     }
+
 }

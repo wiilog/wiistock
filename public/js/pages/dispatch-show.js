@@ -1,5 +1,6 @@
 $(function () {
     const dispatchId = $('#dispatchId').val();
+    const keepPackModalOpen = $('#keepPackModalOpen').val();
 
     let packTable = initDataTable('packTable', {
         ajax: {
@@ -50,7 +51,13 @@ $(function () {
     const $submitEditPack = $modalPack.find('button.submit-edit-pack');
     const urlNewPack = Routing.generate('dispatch_new_pack', {dispatch: dispatchId}, true);
     const urlEditPack = Routing.generate('dispatch_edit_pack', true);
-    InitModal($modalPack, $submitNewPack, urlNewPack, {tables: [packTable]});
+    InitModal($modalPack, $submitNewPack, urlNewPack, {
+        tables: [packTable],
+        keepModal: keepPackModalOpen,
+        success: () => {
+            togglePackDetails();
+        }
+    });
     InitModal($modalPack, $submitEditPack, urlEditPack, {tables: [packTable]});
     initEditorInModal("#modalPack");
 
@@ -93,6 +100,16 @@ $(function () {
         $('#generateDeliveryNoteButton').click();
     }
 });
+
+function generateOverconsumptionBill(dispatchId) {
+    $.post(Routing.generate('generate_overconsumption_bill', {dispatch: dispatchId}), {}, function(data) {
+        $('.zone-entete').html(data.entete);
+        $('.zone-entete [data-toggle="popover"]').popover();
+        $('button[name="newPack"]').addClass('d-none');
+
+        Wiistock.download(Routing.generate('print_overconsumption_bill', {dispatch: dispatchId}));
+    })
+}
 
 function forbiddenPhoneNumberValidator($modal) {
     const $inputs = $modal.find(".forbidden-phone-numbers");
@@ -143,7 +160,7 @@ function togglePackDetails(emptyDetails = false) {
     if (packCode && !emptyDetails) {
         $.get(Routing.generate('get_pack_intel', {packCode}))
             .then(({success, pack}) => {
-                if (success && pack) {
+                if (success) {
                     if (pack.nature) {
                         $natureField.val(pack.nature.id).trigger('change');
                     }
@@ -192,6 +209,7 @@ function openNewPackModal() {
     $modal.find('button.submit-edit-pack').addClass('d-none');
 
     $modal.modal('show');
+    setTimeout(function() { $('input[name="pack"]').focus() }, 500);
 }
 
 function openShowPackModal({code, nature, quantity, packQuantity, weight, volume, comment, lastMovementDate, lastLocation, operator}) {

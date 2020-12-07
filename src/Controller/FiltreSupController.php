@@ -42,6 +42,7 @@ class FiltreSupController extends AbstractController
             $filterLabels = [
                 'dateMin' => FiltreSup::FIELD_DATE_MIN,
                 'dateMax' => FiltreSup::FIELD_DATE_MAX,
+                'expectedDate' => FiltreSup::FIELD_DATE_EXPECTED,
                 'type' => FiltreSup::FIELD_TYPE,
                 'emergency' => FiltreSup::FIELD_EMERGENCY,
                 'arrivage_string' => FiltreSup::FIELD_ARRIVAGE_STRING,

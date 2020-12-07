@@ -136,7 +136,6 @@ class TransferOrder implements Serializable {
             if (isset($this->status)) {
                 $this->status->addTransferOrder($this);
             }
-
             if (isset($oldStatus)) {
                 $oldStatus->removeTransferOrder($this);
             }

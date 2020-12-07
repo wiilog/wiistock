@@ -932,7 +932,7 @@ class ArrivageController extends AbstractController
             'arrivage' => $arrivage,
             'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
             'acheteurs' => $acheteursNames,
-            'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
+            'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, 'displayOrder'),
             'allColis' => $arrivage->getPacks(),
             'natures' => $natureRepository->findBy([
                 'displayed' => true
@@ -982,7 +982,7 @@ class ArrivageController extends AbstractController
 
             $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
-            $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Litige::DISPUTE_ARRIVAL_PREFIX, Litige::class);
+            $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Litige::DISPUTE_ARRIVAL_PREFIX, Litige::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
             $litige = new Litige();
             $litige
@@ -1201,7 +1201,7 @@ class ArrivageController extends AbstractController
                 'hasRightToTreatLitige' => $hasRightToTreatLitige,
                 'utilisateurs' => $usersRepository->getIdAndLibelleBySearch(''),
                 'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
-                'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
+                'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, 'displayOrder'),
                 'attachments' => $attachmentRepository->findBy(['litige' => $litige]),
                 'colis' => $arrivage->getPacks(),
             ]);

@@ -11,6 +11,7 @@ class FiltreSup
 {
 	const FIELD_DATE_MIN = 'dateMin';
 	const FIELD_DATE_MAX = 'dateMax';
+	const FIELD_DATE_EXPECTED = 'expectedDate';
 	const FIELD_STATUT = 'statut';
     const FIELD_USERS = 'utilisateurs';
     const FIELD_DECLARANTS = 'declarants';

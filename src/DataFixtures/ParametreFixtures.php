@@ -18,72 +18,69 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
-class ParametreFixtures extends Fixture implements FixtureGroupInterface
-{
+class ParametreFixtures extends Fixture implements FixtureGroupInterface {
 
-	/**
-	 * @var ParametrageGlobalRepository
-	 */
-	private $parametreGlobalRepository;
+    /**
+     * @var ParametrageGlobalRepository
+     */
+    private $parametreGlobalRepository;
 
-	/**
-	 * @var SpecificService
-	 */
-	private $specificService;
+    /**
+     * @var SpecificService
+     */
+    private $specificService;
 
     public function __construct(ParametrageGlobalRepository $parametrageGlobalRepository,
-                                SpecificService $specificService)
-    {
+                                SpecificService $specificService) {
         $this->parametreGlobalRepository = $parametrageGlobalRepository;
         $this->specificService = $specificService;
     }
 
-    public function load(ObjectManager $manager)
-    {
+    public function load(ObjectManager $manager) {
         $output = new ConsoleOutput();
 
-		$parameters = [
-			[
-				'label' => Parametre::LABEL_AJOUT_QUANTITE,
-				'type' => Parametre::TYPE_LIST,
-				'elements' => [Parametre::VALUE_PAR_ART, Parametre::VALUE_PAR_REF],
-				'default' => Parametre::VALUE_PAR_REF
-			]
-		];
+        $parameters = [
+            [
+                'label' => Parametre::LABEL_AJOUT_QUANTITE,
+                'type' => Parametre::TYPE_LIST,
+                'elements' => [Parametre::VALUE_PAR_ART, Parametre::VALUE_PAR_REF],
+                'default' => Parametre::VALUE_PAR_REF
+            ]
+        ];
 
         $parametreRepository = $manager->getRepository(Parametre::class);
 
-		foreach ($parameters as $parameter) {
-			$param = $parametreRepository->findBy(['label' => $parameter['label']]);
+        foreach ($parameters as $parameter) {
+            $param = $parametreRepository->findBy(['label' => $parameter['label']]);
 
-			if (empty($param)) {
-				$param = new Parametre();
-				$param
-					->setLabel($parameter['label'])
-					->setTypage($parameter['type'])
-					->setDefaultValue($parameter['default'])
-					->setElements($parameter['elements']);
-				$manager->persist($param);
-				$output->writeln("Création du paramètre " . $parameter['label']);
-			}
-		}
-        $statutRepository = $manager->getRepository(Statut::class);
+            if (empty($param)) {
+                $param = new Parametre();
+                $param
+                    ->setLabel($parameter['label'])
+                    ->setTypage($parameter['type'])
+                    ->setDefaultValue($parameter['default'])
+                    ->setElements($parameter['elements']);
+                $manager->persist($param);
+                $output->writeln("Création du paramètre " . $parameter['label']);
+            }
+        }
+
         $dimensionEtiquetteRepository = $manager->getRepository(DimensionsEtiquettes::class);
         $dimensionEtiquette = $dimensionEtiquetteRepository->findOneDimension();
-		$globalParameterLabels = [
-			ParametrageGlobal::CREATE_DL_AFTER_RECEPTION => [
-			    'default' => false,
-                SpecificService::CLIENT_COLLINS => true
-            ],
-			ParametrageGlobal::CREATE_PREPA_AFTER_DL => [
+        $globalParameterLabels = [
+            ParametrageGlobal::CREATE_DL_AFTER_RECEPTION => [
                 'default' => false,
                 SpecificService::CLIENT_COLLINS => true
             ],
-			ParametrageGlobal::INCLUDE_BL_IN_LABEL => [
+            ParametrageGlobal::CREATE_PREPA_AFTER_DL => [
                 'default' => false,
                 SpecificService::CLIENT_COLLINS => true
             ],
-			ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL => [
+            ParametrageGlobal::INCLUDE_BL_IN_LABEL => [
+                'default' => false,
+                SpecificService::CLIENT_COLLINS => true
+            ],
+            ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL => [
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
             ],
@@ -127,6 +124,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL => [
                 'default' => null,
             ],
+            ParametrageGlobal::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS => [
+                'default' => null,
+            ],
             ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_NAME => [
                 'default' => null,
             ],
@@ -155,29 +155,30 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::BARCODE_TYPE_IS_128 => [
                 'default' => true,
             ],
-			ParametrageGlobal::FONT_FAMILY => [
-				'default' => ParametrageGlobal::DEFAULT_FONT_FAMILY
-			],
-			ParametrageGlobal::WEBSITE_LOGO => [
-				'default' => "img/followGTwhite.svg"
-			],
-			ParametrageGlobal::EMAIL_LOGO => [
-				'default' => "img/gtlogistics.jpg"
-			],
-			ParametrageGlobal::MOBILE_LOGO => [
-				'default' => "img/mobile_logo.svg"
-			],
-			ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [],
+            ParametrageGlobal::FONT_FAMILY => [
+                'default' => ParametrageGlobal::DEFAULT_FONT_FAMILY
+            ],
+            ParametrageGlobal::OVERCONSUMPTION_LOGO => [],
+            ParametrageGlobal::WEBSITE_LOGO => [
+                'default' => "img/followGTwhite.svg"
+            ],
+            ParametrageGlobal::EMAIL_LOGO => [
+                'default' => "img/gtlogistics.jpg"
+            ],
+            ParametrageGlobal::MOBILE_LOGO => [
+                'default' => "img/mobile_logo.svg"
+            ],
+            ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [],
             ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON => [],
-			ParametrageGlobal::DASHBOARD_NATURE_COLIS => [],
-			ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => [],
-			ParametrageGlobal::DASHBOARD_LOCATION_DOCK => [],
-			ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK => [],
-			ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN => [],
-			ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => [],
-			ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => [],
-			ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => [],
-			ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => [],
+            ParametrageGlobal::DASHBOARD_NATURE_COLIS => [],
+            ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => [],
+            ParametrageGlobal::DASHBOARD_LOCATION_DOCK => [],
+            ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK => [],
+            ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN => [],
+            ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => [],
+            ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => [],
+            ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => [],
+            ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => [],
             ParametrageGlobal::DASHBOARD_CARRIER_DOCK => [],
             ParametrageGlobal::MVT_DEPOSE_DESTINATION => [],
             ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS => [],
@@ -189,6 +190,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::EMERGENCY_TEXT_LABEL => [],
             ParametrageGlobal::DELIVERY_NOTE_LOGO => [],
             ParametrageGlobal::WAYBILL_LOGO => [],
+            ParametrageGlobal::KEEP_DISPATCH_PACK_MODAL_OPEN => [
+                "default" => false
+            ],
             ParametrageGlobal::DASHBOARD_PACKAGING_1 => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_2 => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_3 => [],
@@ -205,38 +209,37 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE => []
         ];
 
-		foreach ($globalParameterLabels as $globalParameterLabel => $values) {
-			$globalParam = $this->parametreGlobalRepository->findBy(['label' => $globalParameterLabel]);
+        foreach ($globalParameterLabels as $globalParameterLabel => $values) {
+            $globalParam = $this->parametreGlobalRepository->findBy(['label' => $globalParameterLabel]);
 
-			if (empty($globalParam)) {
+            if (empty($globalParam)) {
                 $appClient = $this->specificService->getAppClient();
                 $value = isset($values[$appClient])
                     ? $values[$appClient]
                     : ($values['default'] ?? null);
 
-				$globalParam = new ParametrageGlobal();
-				$globalParam
-					->setLabel($globalParameterLabel)
-					->setValue($value);
-				$manager->persist($globalParam);
+                $globalParam = new ParametrageGlobal();
+                $globalParam
+                    ->setLabel($globalParameterLabel)
+                    ->setValue($value);
+                $manager->persist($globalParam);
                 $output->writeln("Création du paramètre " . $globalParameterLabel);
-			}
-		}
+            }
+        }
 
-		if (!$dimensionEtiquette) {
+        if (!$dimensionEtiquette) {
             $dimensionEtiquette = new DimensionsEtiquettes();
             $dimensionEtiquette
                 ->setHeight(ParametrageGlobal::LABEL_HEIGHT_DEFAULT)
                 ->setWidth(parametrageGlobal::LABEL_WIDTH_DEFAULT);
-		    $manager->persist($dimensionEtiquette);
+            $manager->persist($dimensionEtiquette);
             $output->writeln('Création des dimensions étiquettes');
         }
 
         $manager->flush();
     }
 
-    public static function getGroups(): array
-    {
+    public static function getGroups(): array {
         return ['param', 'fixtures'];
     }
 }

@@ -58,7 +58,6 @@ class Utilisateur implements UserInterface, EquatableInterface
 
     /**
      * @Assert\Length(min=8, max=4096, minMessage="Le mot de passe doit contenir 8 caractères minimum.", maxMessage="Le mot de passe est trop long.")
-     * @Assert\Regex(pattern="/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.*\s).*$/", message="Doit contenir au moins une majuscule, une minuscule, un symbole et un nombre.")
      * @Assert\NotBlank(message="Le champ ne peut pas être vide.")
      */
     private $plainPassword;

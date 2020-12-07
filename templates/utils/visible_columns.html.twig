@@ -18,17 +18,19 @@
                     <tbody>
 
                     {% for name, field in fields %}
-                        {% if field.name is defined %}
-                            {% set name = field.name %}
-                        {% endif %}
-
                         {% if (field.alwaysVisible is not defined or not field.alwaysVisible)
                               and (field.hiddenColumn is not defined or not field.hiddenColumn) %}
+                            {% set title = (
+                                (field.title is defined and field.title is not empty) ? field.title :
+                                ((field.hiddenTitle is defined and field.hiddenTitle is not empty) ? field.hiddenTitle)
+                            ) %}
+                            {% set name = field.name is defined ? field.name : name %}
+
                             <tr class="pointer" onclick="toggleInputRadioOnRow(this)">
                                 {% set label = ((field.translated is defined and field.translated)
-                                    ? field.title|trans
-                                    : field.title) %}
-                                {% set tooltip = (field.translated is defined and field.translated) ? ('title="' ~ field.title ~ '"') %}
+                                    ? title|trans
+                                    : title) %}
+                                {% set tooltip = (field.translated is defined and field.translated) ? ('title="' ~ title ~ '"') %}
                                 <td>
                                     <span {{ tooltip }}>{{ label | capitalize }}</span>
                                 </td>
@@ -68,7 +70,6 @@
             if(initialized || {{ table }} === undefined) {
                 return;
             }
-            console.log({{ table }})
             InitModal(modal, button, '{{ path(route) }}', {tables: [{{ table }}]});
             initialized = true;
         })

@@ -88,15 +88,15 @@ class PasswordService
 		if ($password === $password2 && $password === '') {
 			$response = true;
 			$message = '';
-		} elseif ($password !== $password2) {
+		} else if ($password !== $password2) {
 			$response = false;
 			$message = 'Les mots de passe ne correspondent pas.';
-		} elseif (strlen($password) < 8) {
+		} else if (strlen($password) < 8) {
 			$response = false;
 			$message = 'Le mot de passe doit faire au moins 8 caractères.';
-		} elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
+		} else if(!$this->matchesAll($password, "[A-Z]", "[a-z]", "\d", "\W|_")) {
 			$response = false;
-			$message = 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial.';
+			$message = "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial";
 		} else {
 			$response = true;
 			$message = '';
@@ -107,4 +107,14 @@ class PasswordService
 			'message' => $message
 		];
 	}
+
+    private function matchesAll($password, ...$regexes): bool {
+        foreach($regexes as $regex) {
+            if(!preg_match("/$regex/", $password))
+                return false;
+        }
+
+        return true;
+    }
+
 }

@@ -7,6 +7,7 @@ use App\Entity\Wiilock;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Validator\Constraints\Timezone;
 
 
 Class WiilockService
@@ -15,6 +16,7 @@ Class WiilockService
     /**
      * @param EntityManagerInterface $entityManager
      * @param bool $lock
+     * @throws \Exception
      */
     public function toggleFeedingDashboard(EntityManagerInterface $entityManager, bool $lock) {
         $wiilockRepository = $entityManager->getRepository(Wiilock::class);
@@ -28,7 +30,7 @@ Class WiilockService
         $dashboardLock->setValue($lock);
 
         if (!$lock) {
-            $dashboardLock->setUpdateDate(new DateTime("now"));
+            $dashboardLock->setUpdateDate(new DateTime());
         }
     }
 

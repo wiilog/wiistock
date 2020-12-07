@@ -53,7 +53,6 @@ function importRouting() {
 
 $(document).ready(() => {
     if (!BrowserSupport.input("datetime-local")) {
-        console.log("`datetime-local` not supported");
 
         const observer = new MutationObserver(function () {
             for (const input of $('input[type=datetime-local]')) {

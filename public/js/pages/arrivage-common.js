@@ -200,6 +200,7 @@ function createButtonConfigs({modalType, arrivalId, alertConfig, nextAlertConfig
                                 iconType: 'success',
                                 arrivalId
                             }],
+                        success,
                         ...response
                     },
                     arrivalsDatatable

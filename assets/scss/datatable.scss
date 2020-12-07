@@ -31,6 +31,7 @@ table.wii-table {
             background-color: #f8f9fa;
         }
     }
+
     td,
     td > *,
     th,
@@ -43,6 +44,18 @@ table.wii-table {
         img {
             max-height: 10vh;
         }
+    }
+}
+
+.modal table.wii-table  {
+    td,
+    td > *,
+    th,
+    th > .dataTables_scrollBody {
+        max-width: initial;
+        white-space: initial;
+        overflow: initial;
+        text-overflow: initial;
     }
 }
 

@@ -114,7 +114,7 @@ class HandlingController extends AbstractController
         $filterStatus = $request->query->get('filter');
 
         return $this->render('handling/index.html.twig', [
-            'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE),
+            'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'nom'),
 			'filterStatus' => $filterStatus,
             'types' => $types,
             'fieldsParam' => $fieldsParam,
@@ -177,7 +177,7 @@ class HandlingController extends AbstractController
             $desiredDate = $post->get('desired-date') ? new DateTime($post->get('desired-date')) : null;
             $fileBag = $request->files->count() > 0 ? $request->files : null;
 
-            $handlingNumber = $uniqueNumberService->createUniqueNumber($entityManager, Handling::PREFIX_NUMBER, Handling::class);
+            $handlingNumber = $uniqueNumberService->createUniqueNumber($entityManager, Handling::PREFIX_NUMBER, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
             /** @var Utilisateur $requester */
             $requester = $this->getUser();

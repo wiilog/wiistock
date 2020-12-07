@@ -151,8 +151,7 @@ function clearFormErrors($modal) {
 
 function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
     resetDroppedFiles();
-
-    if (data.redirect) {
+    if (data.redirect && !keepModal) {
         window.location.href = data.redirect;
         return;
     }
@@ -239,6 +238,16 @@ function processForm($modal, isAttachmentForm, validator) {
     };
 }
 
+
+function matchesAll(value, ...regexes) {
+    for(const regex of regexes) {
+        if(!new RegExp(regex).test(value))
+            return false;
+    }
+
+    return true;
+}
+
 /**
  *
  * @param {jQuery} $modal jQuery modal
@@ -322,15 +331,15 @@ function processInputsForm($modal, data, isAttachmentForm) {
             $isInvalidElements.push($input, $input.parent());
         }
         // validation valeur des inputs de type password
-        else if ($input.attr('type') === 'password') {
+        else if ($input.attr('type') === 'password' && $input.attr('name') === 'password') {
             let password = $input.val();
             let isNotChanged = $input.hasClass('optional-password') && password === "";
             if (!isNotChanged) {
                 if (password.length < 8) {
                     errorMessages.push('Le mot de passe doit faire au moins 8 caractères.');
                     $isInvalidElements.push($input)
-                } else if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
-                    errorMessages.push('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial (@$!%*?&).');
+                } else if (matchesAll(/[A-Z]/, /[a-z]/, /\d/, /\W|_/)) {
+                    errorMessages.push('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial (@ $ ! % * ? & + . _ ).');
                     $isInvalidElements.push($input)
                 } else {
                     saveData($input, data, name, val, isAttachmentForm);

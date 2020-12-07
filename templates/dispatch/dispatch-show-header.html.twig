@@ -26,6 +26,7 @@
 {% endif %}
 
 {% set hasRightToGenerateDeliveryNote = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DELIVERY_NOTE')) %}
+{% set hasRightToGenerateOverconsumptionBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_OVERCONSUMPTION_BILL')) %}
 {% set hasRightToGenerateWayBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_WAY_BILL')) %}
 {% set hasRightToGenerateDispatchBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DISPATCH_BILL')) %}
 
@@ -77,6 +78,13 @@
                    class="dropdown-item">
                     <i class="fa fa-print mr-2"></i>
                     {{ 'acheminement.Générer un bon de livraison' | trans }}
+                </a>
+            {% endif %}
+            {% if hasRightToGenerateOverconsumptionBill %}
+                <a class="dropdown-item"
+                   onclick="generateOverconsumptionBill({{ dispatch.id }})">
+                    <i class="fas fa-print mr-2"></i>
+                    Générer un bon de surconsommation
                 </a>
             {% endif %}
             {% if hasRightToGenerateWayBill %}

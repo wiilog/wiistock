@@ -29,6 +29,7 @@ class ReceptionRepository extends ServiceEntityRepository
         'emergency' => 'emergency',
         'storageLocation' => 'storageLocation',
         'urgence' => 'emergencyTriggered',
+        'dateAttendue' =>'dateAttendue'
     ];
 
     public function __construct(ManagerRegistry $registry)
@@ -48,22 +49,24 @@ class ReceptionRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
-	public function getLastNumeroByPrefixeAndDate($prefixe, $date)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-		/** @lang DQL */
-			'SELECT r.numeroReception as numero
-			FROM App\Entity\Reception r
-			WHERE r.numeroReception LIKE :value
-			ORDER BY r.date DESC'
-		)->setParameter('value', $prefixe . $date . '%');
+    /**
+     * @param $date
+     * @return mixed|null
+     */
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('reception')
+            ->select('reception.numeroReception AS number')
+            ->where('reception.numeroReception LIKE :value')
+            ->orderBy('reception.date', 'DESC')
+            ->addOrderBy('reception.id', 'DESC')
+            ->setParameter('value', Reception::PREFIX_NUMBER . $date . '%')
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
+    }
 
-		$result = $query->execute();
-		return $result ? $result[0]['numero'] : null;
-	}
 
-	/**
+    /**
 	 * @param Utilisateur $user
 	 * @return int
 	 * @throws NonUniqueResultException
@@ -192,11 +195,19 @@ class ReceptionRepository extends ServiceEntityRepository
                     $qb->andWhere('r.date <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
                     break;
-				case 'emergency':
-				    $valueFilter = ((int) ($filter['value'] ?? 0));
+                case 'expectedDate':
+                    $dateExpectedMin = ($filter['value'] . ' 00:00:00 ');
+                    $dateExpectedMax = ($filter['value'] . ' 23:59:59 ');
+                    $qb->andWhere('r.dateAttendue BETWEEN :dateExpectedMin AND :dateExpectedMax')
+                        ->setParameters([
+                            'dateExpectedMin' => $dateExpectedMin,
+                            'dateExpectedMax' => $dateExpectedMax,
+                        ]);
+                    break;
+                case 'emergency':
+                    $valueFilter = ((int) ($filter['value'] ?? 0));
 				    if ($valueFilter) {
-                        $qb
-                            ->andWhere('r.urgentArticles = true OR r.manualUrgent = true');
+                        $qb->andWhere('r.urgentArticles = true OR r.manualUrgent = true');
                     }
 					break;
             }
@@ -213,6 +224,7 @@ class ReceptionRepository extends ServiceEntityRepository
                         ->leftJoin('search_request.utilisateur', 'search_request_User')
                         ->andWhere('
                             r.date LIKE :value
+                            OR r.dateAttendue LIKE :value
                             OR r.numeroReception LIKE :value
                             OR r.orderNumber LIKE :value
                             OR r.commentaire LIKE :value

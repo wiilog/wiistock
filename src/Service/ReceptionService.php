@@ -37,6 +37,7 @@ class ReceptionService
     private $stringService;
     private $translator;
     private $freeFieldService;
+    private $uniqueNumberService;
 
     public function __construct(RouterInterface $router,
                                 FieldsParamService $fieldsParamService,
@@ -44,7 +45,8 @@ class ReceptionService
                                 FreeFieldService $champLibreService,
                                 TranslatorInterface $translator,
                                 EntityManagerInterface $entityManager,
-                                Twig_Environment $templating)
+                                Twig_Environment $templating,
+                                UniqueNumberService $uniqueNumberService)
     {
         $this->templating = $templating;
         $this->freeFieldService = $champLibreService;
@@ -53,6 +55,7 @@ class ReceptionService
         $this->fieldsParamService = $fieldsParamService;
         $this->router = $router;
         $this->translator = $translator;
+        $this->uniqueNumberService = $uniqueNumberService;
     }
 
     public function getDataForDatatable(Utilisateur $user, $params = null)
@@ -84,14 +87,17 @@ class ReceptionService
      * @param Utilisateur|null $currentUser
      * @param array $data
      * @param bool $fromImport
+     * @param $rowIndex
      * @return Reception
      * @throws NonUniqueResultException
      * @throws Exception
      */
-    public function createAndPersistReception(EntityManagerInterface $entityManager, ?Utilisateur $currentUser, array $data, $fromImport = false): Reception {
+    public function createAndPersistReception(EntityManagerInterface $entityManager,
+                                              ?Utilisateur $currentUser,
+                                              array $data,
+                                              $fromImport = false): Reception {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $receptionRepository = $entityManager->getRepository(Reception::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $ransporteurRepository = $entityManager->getRepository(Transporteur::class);
@@ -112,13 +118,7 @@ class ReceptionService
         $reception = new Reception();
         $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
-        // génère le numéro
-        $lastNumero = $receptionRepository->getLastNumeroByPrefixeAndDate('R', $date->format('ymd'));
-        $lastCpt = (int)substr($lastNumero, -4, 4);
-        $i = $lastCpt + 1;
-        $cpt = sprintf('%04u', $i);
-        $numero = 'R' . $date->format('ymd') . $cpt;
-
+        $numero = $this->uniqueNumberService->createUniqueNumber($entityManager, Reception::PREFIX_NUMBER, Reception::class, UniqueNumberService::DATE_COUNTER_FORMAT_RECEPTION);
 
         if(!empty($data['fournisseur'])) {
             if($fromImport) {
@@ -137,7 +137,7 @@ class ReceptionService
                 $location = $emplacementRepository->find(intval($data['location']));
             }
             $reception
-                ->setLocation($location);
+                ->setStorageLocation($location);
         }
 
         if(!empty($data['transporteur'])) {
@@ -211,6 +211,7 @@ class ReceptionService
             "id" => ($reception->getId()),
             "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
             "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y H:i'),
+            "dateAttendue" => ($reception->getDateAttendue() ? $reception->getDateAttendue()->format('d/m/Y H:i'): '' ),
             "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : ''),
             "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
             "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
