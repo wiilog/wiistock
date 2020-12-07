@@ -374,11 +374,7 @@ class ArticleController extends AbstractController
                 && $article->getInventoryEntries()) {
 
                 if ($trackingPack) {
-                    if (!$trackingPack->getDispatchPacks()->isEmpty()
-                        || !$trackingPack->getLitiges()->isEmpty()
-                        || $trackingPack->getArrivage()) {
-                        $trackingPack->setArticle(null);
-                    }
+                    $trackingPack->setArticle(null);
                 }
 
                 $receptionReferenceArticle = $article->getReceptionReferenceArticle();
