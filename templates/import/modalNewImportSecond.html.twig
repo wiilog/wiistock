@@ -19,8 +19,14 @@
                             {% for fieldValue, fieldName in fields %}
                                 {% set needed = fieldValue in fieldsNeeded ? '*'%}
                                 {% set pk = (fieldValue == fieldPK) ? ' [clé unique]' %}
-                                {% set selected = preselection[data.headers[i]] is defined and preselection[data.headers[i]] == fieldName ? 'selected' %}
-                                <option value="{{ fieldValue }}" {{ selected }}>{{ fieldName|capitalize }}{{ needed }}{{ pk }}</option>
+                                {% set selected = (
+                                    preselection[data.headers[i]] is defined
+                                    and (
+                                        preselection[data.headers[i]] == fieldName
+                                        or (fromExistingImport and preselection[data.headers[i]] == fieldValue)
+                                    )
+                                ) %}
+                                <option value="{{ fieldValue }}" {{ selected ? 'selected' }}>{{ fieldName|capitalize }}{{ needed }}{{ pk }}</option>
                             {% endfor %}
                         </select>
                     </td>

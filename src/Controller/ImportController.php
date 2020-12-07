@@ -91,6 +91,7 @@ class ImportController extends AbstractController
      * @param Request $request
      * @param UserService $userService
      * @param AttachmentService $attachmentService
+     * @param EntityManagerInterface $entityManager
      * @param ImportService $importService
      * @return Response
      * @throws NonUniqueResultException
@@ -98,6 +99,7 @@ class ImportController extends AbstractController
     public function new(Request $request,
                         UserService $userService,
                         AttachmentService $attachmentService,
+                        EntityManagerInterface $entityManager,
                         ImportService $importService): Response
     {
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
@@ -105,19 +107,23 @@ class ImportController extends AbstractController
         }
 
         $post = $request->request;
-        $em = $this->getDoctrine()->getManager();
-        $statusRepository = $em->getRepository(Statut::class);
-        $fieldsParamRepository = $em->getRepository(FieldsParam::class);
+
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $importRepository = $entityManager->getRepository(Import::class);
+
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
 
         $import = new Import();
         $import
             ->setLabel($post->get('label'))
             ->setEntity($post->get('entity'))
             ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_DRAFT))
-            ->setUser($this->getUser());
+            ->setUser($loggedUser);
 
-        $em->persist($import);
-        $em->flush();
+        $entityManager->persist($import);
+        $entityManager->flush();
 
         // vérif qu'un et un seul fichier a été chargé
         $nbFiles = count($request->files);
@@ -138,10 +144,10 @@ class ImportController extends AbstractController
             } else {
                 $attachments = $attachmentService->createAttachements([$file]);
                 $csvAttachment = $attachments[0];
-                $em->persist($csvAttachment);
+                $entityManager->persist($csvAttachment);
                 $import->setCsvFile($csvAttachment);
 
-                $em->flush();
+                $entityManager->flush();
                 $data = $importService->getImportConfig($attachments[0]);
                 if (!$data) {
                     $response = [
@@ -164,7 +170,7 @@ class ImportController extends AbstractController
                         Import::ENTITY_ART_FOU => ArticleFournisseur::class,
                         Import::ENTITY_RECEPTION => Reception::class
                     ];
-                    $attributes = $em->getClassMetadata($entityCodeToClass[$entity]);
+                    $attributes = $entityManager->getClassMetadata($entityCodeToClass[$entity]);
 
                     $fieldsToHide = ['id', 'barCode', 'reference', 'conform', 'quantiteAPrelever', 'quantitePrelevee',
                         'dateEmergencyTriggered', 'isUrgent', 'quantiteDisponible', 'freeFields', 'urgentArticles',
@@ -197,7 +203,7 @@ class ImportController extends AbstractController
                     }
 
                     if (isset($categoryCL)) {
-                        $champsLibres = $em->getRepository(FreeField::class)->getLabelAndIdByCategory($categoryCL);
+                        $champsLibres = $entityManager->getRepository(FreeField::class)->getLabelAndIdByCategory($categoryCL);
 
                         foreach ($champsLibres as $champLibre) {
                             $fields[$champLibre['id']] = $champLibre['value'];
@@ -210,21 +216,41 @@ class ImportController extends AbstractController
                     if(isset($data['headers'])) {
                         $headers = $data['headers'];
 
-                        foreach($headers as $header) {
-                            $closest = null;
+                        $fieldsToCheck = array_merge($fields);
+                        $sourceImportId = $post->get('sourceImport');
+                        if (isset($sourceImportId)) {
+                            $sourceImport = $importRepository->find($sourceImportId);
+                            if (isset($sourceImport)) {
+                                $sourceColumnToField = $sourceImport->getColumnToField();
+                            }
+                        }
+
+                        foreach($headers as $headerIndex => $header) {
+                            $closestIndex = null;
                             $closestDistance = PHP_INT_MAX;
 
-                            foreach($fields as $field) {
-                                $distance = StringHelper::levenshtein($header, $field);
+                            if (empty($sourceColumnToField)) {
+                                foreach ($fieldsToCheck as $fieldIndex => $field) {
+                                    preg_match("/(.+)\(.+\)/", $field, $matches);
+                                    $cleanedField = empty($matches)
+                                        ? $field
+                                        : trim($matches[1]);
+                                    $distance = StringHelper::levenshtein($header, $cleanedField);
+                                    if ($distance < 5 && $distance < $closestDistance) {
+                                        $closestIndex = $fieldIndex;
+                                        $closestDistance = $distance;
+                                    }
+                                }
 
-                                if($distance < 5 && $distance < $closestDistance) {
-                                    $closest = $field;
-                                    $closestDistance = $distance;
+                                if (isset($closestIndex)) {
+                                    $preselection[$header] = $fieldsToCheck[$closestIndex];
+                                    unset($fieldsToCheck[$closestIndex]);
                                 }
                             }
-
-                            if($closest != null) {
-                                $preselection[$header] = $closest;
+                            else {
+                                if (!empty($sourceColumnToField[$headerIndex])) {
+                                    $preselection[$header] = $sourceColumnToField[$headerIndex];
+                                }
                             }
                         }
                     }
@@ -260,7 +286,8 @@ class ImportController extends AbstractController
                             'preselection' => $preselection ?? [],
                             'fieldsNeeded' => $fieldsNeeded,
                             'fieldPK' => Import::FIELD_PK[$entity],
-                            'columnsToFields' => $columnsToFields ?? null
+                            'columnsToFields' => $columnsToFields ?? null,
+                            'fromExistingImport' => !empty($sourceColumnToField)
                         ])
                     ];
                 }
