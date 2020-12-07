@@ -276,31 +276,31 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             },
 
             autoWidth: true,
-                    scrollX: true,
-                    language: {
-                        url: "/js/i18n/dataTableLanguage.json",
-                    },
-                    dom: getAppropriateDom(domConfig || {}),
-                    rowCallback: getAppropriateRowCallback(rowConfig || {}),
-                    drawCallback: (response) => {
-                        datatableDrawCallback({
-                            table: datatableToReturn,
-                            response,
-                            $tableDom,
-                            ...(drawConfig || {})
-                        });
-                    },
-                    initComplete: () => {
-                        let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
-                        moveSearchInputToHeader($searchInputContainer);
-                        tableCallback(hideColumnConfig || {}, datatableToReturn);
-                        if (initCompleteCallback) {
-                            initCompleteCallback();
-                        }
-                        attachDropdownToBodyOnDropdownOpening($tableDom);
-                    },
-                    ...config
+            scrollX: true,
+            language: {
+                url: "/js/i18n/dataTableLanguage.json",
+            },
+            dom: getAppropriateDom(domConfig || {}),
+            rowCallback: getAppropriateRowCallback(rowConfig || {}),
+            drawCallback: (response) => {
+                datatableDrawCallback({
+                    table: datatableToReturn,
+                    response,
+                    $tableDom,
+                    ...(drawConfig || {})
                 });
+            },
+            initComplete: () => {
+                let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
+                moveSearchInputToHeader($searchInputContainer);
+                tableCallback(hideColumnConfig || {}, datatableToReturn);
+                if (initCompleteCallback) {
+                    initCompleteCallback();
+                }
+                attachDropdownToBodyOnDropdownOpening($tableDom);
+            },
+            ...config
+        });
     return datatableToReturn;
 }
 
