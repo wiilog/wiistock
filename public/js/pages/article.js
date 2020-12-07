@@ -15,12 +15,13 @@ function initTableArticle() {
             paging: true,
             order: [[1, 'desc']],
             ajax: {
-                "url": pathArticle,
-                "type": "POST",
-                'dataSrc': function (json) {
+                url: pathArticle,
+                type: 'POST',
+                dataSrc: function (json) {
                     if (!$(".statutVisible").val()) {
                         tableArticle.column('Statut:name').visible(false);
                     }
+
                     return json.data;
                 }
             },
@@ -173,7 +174,9 @@ let ajaxGetFournisseurByRefArticle = function (select) {
 
 function printArticlesBarCodes($button, event) {
     if (!$button.hasClass('dropdown-item') || !$button.hasClass('disabled')) {
-        let listArticles = $("#listArticleIdToPrint").val();
+        let listArticles = $('.article-row-id')
+            .map((_, element) => $(element).val())
+            .toArray();
         const length = tableArticle.page.info().length;
 
         if (length > 0) {
