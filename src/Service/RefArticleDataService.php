@@ -736,7 +736,7 @@ class RefArticleDataService {
 
                 $this->entityManager->persist($alert);
 
-                $this->alertService->sendThresholdMails($reference);
+                $this->alertService->sendThresholdMails($reference, $this->entityManager);
             }
         }
     }

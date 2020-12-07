@@ -4,12 +4,14 @@ namespace App\Service;
 
 use App\Entity\Alert;
 use App\Entity\Article;
+use App\Entity\FreeField;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Twig\Environment;
 
 class AlertService {
@@ -88,7 +90,15 @@ class AlertService {
         }
     }
 
-    public function sendThresholdMails(ReferenceArticle $reference) {
+    /**
+     * @param ReferenceArticle $reference
+     * @param EntityManagerInterface $entityManager
+     * @throws NonUniqueResultException
+     */
+    public function sendThresholdMails(ReferenceArticle $reference, EntityManagerInterface $entityManager) {
+        $freeField = $entityManager->getRepository(FreeField::class)
+            ->findOneByLabel(FreeField::MACHINE_PDT_FREE_FIELD);
+        $freeFieldValue = $reference->getFreeFieldValue($freeField->getId());
         if($reference->getLimitSecurity() >= $reference->getQuantiteDisponible()) {
             $type = "Seuil de sécurité";
         } else if($reference->getLimitWarning() >= $reference->getQuantiteDisponible()) {
@@ -106,11 +116,13 @@ class AlertService {
                 return !empty($email);
             })
             ->unique()
-            ->each(function($email) use ($reference, $type) {
+            ->each(function($email) use ($reference, $type, $freeFieldValue) {
                 $content = $this->templating->render("mails/contents/mailThresholdReached.html.twig", [
                     "reference" => $reference,
-                    "type" => $type
+                    "type" => $type,
+                    'machinePDTValue' => $freeFieldValue
                 ]);
+
 
                 $this->mailer->sendMail("FOLLOW GT // $type atteint", $content, $email);
             });

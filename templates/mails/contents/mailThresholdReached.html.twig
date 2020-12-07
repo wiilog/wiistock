@@ -11,6 +11,42 @@
         <li>Quantité en stock : <strong>{{ reference.quantiteStock }}</strong></li>
         <li>Seuil d'alerte : <strong>{{ reference.limitWarning }}</strong></li>
         <li>Seul de sécurité : <strong>{{ reference.limitSecurity }}</strong></li>
-
+        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
+            <li>Machine PDT : <strong>{{ machinePDTValue }}</strong></li>
+            <li>Fournisseur(s) :</li>
+            <table class="table"
+                   style="border: 1px solid black;border-collapse: collapse;"
+                   role="presentation"
+                   cellspacing="0"
+                   border="0">
+                <thead>
+                <tr>
+                    <th class="th"
+                        style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                        Ref article fournisseur
+                    </th>
+                    <th class="th"
+                        style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                        Nom fournisseur
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for providerArticle in reference.articlesFournisseur %}
+                    {% set provider = providerArticle.fournisseur %}
+                    <tr>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ providerArticle.reference }}
+                        </td>
+                        <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">
+                            {{ provider.nom }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
     </ul>
 {% endblock %}
