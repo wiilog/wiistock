@@ -139,8 +139,8 @@ class PackRepository extends EntityRepository
                     break;
                 case 'type':
                     $qb
-                        ->join('pack.arrivage', 'a')
-                        ->join('a.type','type')
+                        ->join('pack.arrivage', 'a_type')
+                        ->join('a_type.type','type')
                         ->andWhere('type.label LIKE :types')
                         ->setParameter('types', '%' . $filter['value'] . '%');
                     break;
