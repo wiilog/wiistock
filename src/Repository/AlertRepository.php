@@ -175,4 +175,20 @@ class AlertRepository extends EntityRepository {
             ->getResult();
     }
 
+    public function findByDates($dateMin, $dateMax) {
+
+        $qb = $this->createQueryBuilder("alert");
+
+        $qb
+            ->where("alert.date BETWEEN :dateMin AND :dateMax")
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        return $qb
+            ->getQuery()
+            ->getResult();
+    }
+
 }

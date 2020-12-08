@@ -10,7 +10,20 @@
 {% endblock %}
 
 {% block page_content %}
+
     <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                <div class="btn-group">
+                    <button type="button"
+                            class="btn btn-primary split-button btn-ripple"
+                            onclick="saveExportFile('alert_export')">
+                        <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
+                        Exporter au format CSV
+                    </button>
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col-12">
                 <table id="tableAlerte" class="table w-100">

@@ -3,11 +3,21 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Alert;
+use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
+use App\Entity\ReferenceArticle;
+use App\Entity\TransferOrder;
 use App\Entity\Type;
+use App\Helper\Stream;
+use App\Service\CSVExportService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
+use DateTime;
+use DateTimeZone;
+use Doctrine\ORM\EntityManagerInterface;
+use http\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -74,6 +84,57 @@ class AlertController extends AbstractController
             $data = $refArticleDataService->getAlerteDataByParams($request->request, $this->getUser());
             return new JsonResponse($data);
         }
+        throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/csv", name="alert_export",options={"expose"=true}, methods="GET|POST" )
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $CSVExportService
+     * @return Response
+     * @throws \Exception
+     */
+    public function export(Request $request,
+                           EntityManagerInterface $entityManager,
+                           CSVExportService $CSVExportService): Response {
+        $dateMin = $request->query->get("dateMin");
+        $dateMax = $request->query->get("dateMax");
+
+        $dateTimeMin = DateTime::createFromFormat("Y-m-d H:i:s", $dateMin . " 00:00:00");
+        $dateTimeMax = DateTime::createFromFormat("Y-m-d H:i:s", $dateMax . " 23:59:59");
+
+        if(isset($dateTimeMin, $dateTimeMax)) {
+            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+
+            $alertRepository = $entityManager->getRepository(Alert::class);
+
+            $alert = $alertRepository->findByDates($dateTimeMin, $dateTimeMax);
+
+            $header = [
+                "type d\'alerte",
+                "date d\'alerte",
+                "libellé",
+                "référence",
+                "code barre",
+                "quantite disponible",
+                "type quantité",
+                "seuil d\'alerte",
+                "seuil de sécurité",
+                "date de péremption",
+                "gestionnaire(s)"
+            ];
+
+            return $CSVExportService->createBinaryResponseFromData(
+                "export_alertes" . $now->format("d_m_Y") . ".csv",
+                $alert,
+                $header,
+                function (Alert $alert) {
+                    return $alert->serialize();
+                }
+            );
+        }
+
         throw new BadRequestHttpException();
     }
 }

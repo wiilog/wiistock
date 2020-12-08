@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Helper\FormatHelper;
 use App\Repository\AlertRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -91,6 +92,20 @@ class Alert {
     public function setDate(\DateTimeInterface $date): self {
         $this->date = $date;
         return $this;
+    }
+
+    public function serialize(): array {
+        return [
+            'type' => $this->getType(),
+            'date' => FormatHelper::date($this->getDate()),
+            'label' => $this->getReference() ? $this->getReference()->getLibelle() : '',
+            'reference' => $this->getReference() ? $this->getReference()->getReference() : '',
+            'barcode' =>$this->getReference() ? $this->getReference()->getBarCode() : '',
+            'availableQuantity' => $this->getReference() ? $this->getReference()->getQuantiteDisponible() : '',
+            'typeQuantity' => $this->getReference() ? $this->getReference()->getTypeQuantite() : '',
+            'limitWarning' => $this->getReference() ? $this->getReference()->getLimitWarning() : '',
+            'limitSecurity' => $this->getReference() ? $this->getReference()->getLimitSecurity() : ''
+        ];
     }
 
 }
