@@ -374,11 +374,7 @@ class ArticleController extends AbstractController
                 && $article->getInventoryEntries()) {
 
                 if ($trackingPack) {
-                    if (!$trackingPack->getDispatchPacks()->isEmpty()
-                        || !$trackingPack->getLitiges()->isEmpty()
-                        || $trackingPack->getArrivage()) {
-                        $trackingPack->setArticle(null);
-                    }
+                    $trackingPack->setArticle(null);
                 }
 
                 $receptionReferenceArticle = $article->getReceptionReferenceArticle();
@@ -838,7 +834,7 @@ class ArticleController extends AbstractController
                                           PDFGeneratorService $PDFGeneratorService,
                                           ArticleDataService $articleDataService): Response {
         $articleRepository = $entityManager->getRepository(Article::class);
-        $listArticles = explode(',', $request->query->get('listArticles') ?? '');
+        $listArticles = $request->query->get('listArticles') ?: [];
         $barcodeConfigs = array_slice(
             array_map(
                 function (Article $article) use ($articleDataService) {
