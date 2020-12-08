@@ -166,7 +166,7 @@ class ReceptionTracaController extends AbstractController
             $entityManager->flush();
             return new JsonResponse([
                 'success' => count($errors) === 0,
-                'msg' => 'Les numéros suivants ne correspondent à aucun arrivage connu : ' . implode(", ", $errors) . "."
+                'msg' => count($errors) === 0 ? "" : 'Les numéros suivants ne correspondent à aucun arrivage connu : ' . implode(", ", $errors) . "."
             ]);
         }
 
