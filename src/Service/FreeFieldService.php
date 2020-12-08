@@ -79,11 +79,6 @@ class FreeFieldService {
                     $freeFields[$champLibre->getId()] = $this->manageJSONFreeField($champLibre, $data[$field]);
                 }
 
-                //save the date in d/m/Y H:i
-                if(preg_match("/(\d{2})\/(\d{2})\/(\d{4})T(\d{2}):(\d{2})/", $data[$field])) {
-                    $date = DateTime::createFromFormat("d/m/Y H:i", $data[$field]);
-                    $freeFields[$field] = $date->format("Y-m-dTH:i");
-                }
             }
         }
 
@@ -91,18 +86,33 @@ class FreeFieldService {
     }
 
     public function manageJSONFreeField(FreeField $champLibre, $value): string {
-        if($champLibre->getTypage() === FreeField::TYPE_BOOL) {
-            $value = empty($value) || $value === "false" ? "0" : "1";
-        } else if($champLibre->getTypage() === FreeField::TYPE_LIST_MULTIPLE) {
-            if (is_array($value)) {
-                $value = implode(';', $value);
-            }
-            else {
-                $decoded = json_decode($value, true);
-                $value = json_last_error() !== JSON_ERROR_NONE
-                    ? $value
-                    : implode(';', $decoded ?: []);
-            }
+        switch ($champLibre->getTypage()) {
+            case FreeField::TYPE_BOOL:
+                $value = empty($value) || $value === "false" ? "0" : "1";
+                break;
+
+            case FreeField::TYPE_LIST_MULTIPLE:
+                if (is_array($value)) {
+                    $value = implode(';', $value);
+                }
+                else {
+                    $decoded = json_decode($value, true);
+                    $value = json_last_error() !== JSON_ERROR_NONE
+                        ? $value
+                        : implode(';', $decoded ?: []);
+                }
+                break;
+
+            case FreeField::TYPE_DATETIME:
+                //save the date in d/m/Y H:i
+                if(preg_match("/(\d{2})\/(\d{2})\/(\d{4})T(\d{2}):(\d{2})/", $value)) {
+                    $date = DateTime::createFromFormat("d/m/Y H:i", $value);
+                    $value = $date->format("Y-m-dTH:i");
+                }
+                break;
+
+            default:
+                break;
         }
 
         return strval($value);
