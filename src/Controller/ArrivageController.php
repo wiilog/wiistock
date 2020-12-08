@@ -48,7 +48,6 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -772,17 +771,17 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
-     * @param FreeFieldService $freeFieldService
-     * @param CSVExportService $CSVExportService
-     * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $csvService
+     * @param FreeFieldService $freeFieldService
      * @return Response
      */
-    public function exportArrivals(Request $request, CSVExportService $csvService,
-                                   FreeFieldService $freeFieldService, LoggerInterface $logger) {
+    public function exportArrivals(Request $request,
+                                   EntityManagerInterface $entityManager,
+                                   CSVExportService $csvService,
+                                   FreeFieldService $freeFieldService) {
         $FORMAT = "Y-m-d H:i:s";
 
-        $entityManager = $this->getDoctrine()->getManager();
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -829,7 +828,7 @@ class ArrivageController extends AbstractController
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
 
-        return $csvService->streamResponse(function($output) use ($logger, $csvService, $freeFieldService, $ffConfig, $arrivals, $buyersByArrival, $natureLabels, $packs) {
+        return $csvService->streamResponse(function($output) use ($csvService, $freeFieldService, $ffConfig, $arrivals, $buyersByArrival, $natureLabels, $packs) {
             foreach($arrivals as $arrival) {
                 $this->putArrivageLine($output, $csvService, $freeFieldService, $ffConfig, $arrival, $buyersByArrival, $natureLabels, $packs);
             }

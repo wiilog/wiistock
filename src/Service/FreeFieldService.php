@@ -9,7 +9,6 @@ use App\Helper\Stream;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ObjectManager;
 use Throwable;
 
 class FreeFieldService {
@@ -36,7 +35,7 @@ class FreeFieldService {
     }
 
     /**
-     * @param ObjectManager $entityManager
+     * @param EntityManagerInterface $entityManager
      * @param array $freeFieldCategoryLabels
      * @return array[
      *     'freeFieldIds' => int[],
@@ -44,7 +43,7 @@ class FreeFieldService {
      *     'freeFieldsIdToTyping' => array[int][string]
      * ]
      */
-    public function createExportArrayConfig(ObjectManager $entityManager,
+    public function createExportArrayConfig(EntityManagerInterface $entityManager,
                                             array $freeFieldCategoryLabels): array
     {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
