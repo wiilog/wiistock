@@ -1584,9 +1584,22 @@ class ArrivageController extends AbstractController
                 : '')
             : '';
 
-        $arrivalCommand = $arrival
-            ? implode(" ", $arrival->getNumeroCommandeList())
-            : '';
+        $arrivalCommand = [];
+        $arrivalLine = "";
+        $i = 0;
+        foreach($arrival->getNumeroCommandeList() as $command) {
+            $arrivalLine .= $command;
+
+            if(++$i % 4 == 0) {
+                $arrivalCommand[] = $arrivalLine;
+                $arrivalLine = "";
+            } else {
+                $arrivalLine .= " ";
+            }
+        }
+
+        dump($arrivalCommand);
+
         $arrivalProjectNumber = $arrival
             ? ($arrival->getProjectNumber() ?? '')
             : '';
@@ -1601,9 +1614,14 @@ class ArrivageController extends AbstractController
 
         if ($commandAndProjectNumberIsDefined) {
             if ($arrivalCommand && $arrivalProjectNumber) {
-                $labels[] = $arrivalCommand . ' / ' . $arrivalProjectNumber;
+                if(count($arrivalCommand) > 1) {
+                    $labels = array_merge($labels, $arrivalCommand);
+                    $labels[] = $arrivalProjectNumber;
+                } else if(count($arrivalCommand) == 1) {
+                    $labels[] = $arrivalCommand[0] . ' / ' . $arrivalProjectNumber;
+                }
             } else if ($arrivalCommand) {
-                $labels[] = $arrivalCommand;
+                $labels = array_merge($labels, $arrivalCommand);
             } else if ($arrivalProjectNumber) {
                 $labels[] = $arrivalProjectNumber;
             }
