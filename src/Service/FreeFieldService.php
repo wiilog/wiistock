@@ -72,31 +72,47 @@ class FreeFieldService {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $freeFields = [];
         $champsLibresKey = array_keys($data);
-        foreach ($champsLibresKey as $champs) {
-            if (gettype($champs) === 'integer') {
-                $champLibre = $champLibreRepository->find($champs);
+        foreach ($champsLibresKey as $field) {
+            if (gettype($field) === 'integer') {
+                $champLibre = $champLibreRepository->find($field);
                 if ($champLibre) {
-                    $freeFields[$champLibre->getId()] = $this->manageJSONFreeField($champLibre, $data[$champs]);
+                    $freeFields[$champLibre->getId()] = $this->manageJSONFreeField($champLibre, $data[$field]);
                 }
+
             }
         }
-        $entity
-            ->setFreeFields($freeFields);
+
+        $entity->setFreeFields($freeFields);
     }
 
     public function manageJSONFreeField(FreeField $champLibre, $value): string {
-        if($champLibre->getTypage() === FreeField::TYPE_BOOL) {
-            $value = empty($value) || $value === "false" ? "0" : "1";
-        } else if($champLibre->getTypage() === FreeField::TYPE_LIST_MULTIPLE) {
-            if (is_array($value)) {
-                $value = implode(';', $value);
-            }
-            else {
-                $decoded = json_decode($value, true);
-                $value = json_last_error() !== JSON_ERROR_NONE
-                    ? $value
-                    : implode(';', $decoded ?: []);
-            }
+        switch ($champLibre->getTypage()) {
+            case FreeField::TYPE_BOOL:
+                $value = empty($value) || $value === "false" ? "0" : "1";
+                break;
+
+            case FreeField::TYPE_LIST_MULTIPLE:
+                if (is_array($value)) {
+                    $value = implode(';', $value);
+                }
+                else {
+                    $decoded = json_decode($value, true);
+                    $value = json_last_error() !== JSON_ERROR_NONE
+                        ? $value
+                        : implode(';', $decoded ?: []);
+                }
+                break;
+
+            case FreeField::TYPE_DATETIME:
+                //save the date in d/m/Y H:i
+                if(preg_match("/(\d{2})\/(\d{2})\/(\d{4})T(\d{2}):(\d{2})/", $value)) {
+                    $date = DateTime::createFromFormat("d/m/Y H:i", $value);
+                    $value = $date->format("Y-m-dTH:i");
+                }
+                break;
+
+            default:
+                break;
         }
 
         return strval($value);
