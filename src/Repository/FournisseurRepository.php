@@ -91,7 +91,7 @@ class FournisseurRepository extends EntityRepository
                     f.codeReference as text,
                     f.nom AS name
           FROM App\Entity\Fournisseur f
-          WHERE f.nom LIKE :search"
+          WHERE f.nom LIKE :search OR f.codeReference LIKE :search"
         )->setParameter('search', '%' . $search . '%');
 
         return $query->execute();
