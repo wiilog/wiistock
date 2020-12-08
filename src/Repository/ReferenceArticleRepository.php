@@ -53,7 +53,6 @@ class ReferenceArticleRepository extends EntityRepository {
         return $query->execute();
     }
 
-
     public function iterateAll() {
         $iterator = $this->createQueryBuilder('referenceArticle')
             ->select('referenceArticle.id')
