@@ -91,6 +91,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL => [
                 'default' => true,
             ],
+            ParametrageGlobal::INCLUDE_ARRIVAL_TYPE_IN_LABEL => [
+                'default' => true,
+            ],
             ParametrageGlobal::INCLUDE_EMERGENCY_IN_LABEL => [
                 'default' => false,
             ],
