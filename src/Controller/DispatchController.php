@@ -119,7 +119,7 @@ class DispatchController extends AbstractController {
      */
     public function apiColumns(Request $request, EntityManagerInterface $entityManager, DispatchService $service): Response {
         if($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
+            if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -141,7 +141,7 @@ class DispatchController extends AbstractController {
      * @return Response
      */
     public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response {
-        if(!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
+        if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
             return $this->redirectToRoute('access_denied');
         }
 
