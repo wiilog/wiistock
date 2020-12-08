@@ -247,12 +247,17 @@ class EnCoursService
     {
         if (count($workedDays) > 0) {
             $now = new DateTime("now", new DateTimeZone('Europe/Paris'));
+            if ($now->getTimezone()->getName() !== $movementDate->getTimezone()->getName()) {
+                $currentHours = $now->format('H');
+                $currentMinutes = $now->format('i');
+                $now->setTimezone($movementDate->getTimezone());
+                $now->setTime((int)$currentHours, (int)$currentMinutes);
+            }
             $nowIncluding = (clone $now)->setTime(23, 59, 59);
             $interval = DateInterval::createFromDateString('1 day');
             $period = new DatePeriod($movementDate, $interval, $nowIncluding);
 
             $periodsWorked = [];
-
             // pour chaque jour entre la date du mouvement et aujourd'hui, minimum un tour de boucle pour les mouvements du jours
             /** @var DateTime $day */
             foreach ($period as $day) {
@@ -271,7 +276,6 @@ class EnCoursService
 
                                 $time2 = explode(':', $times[1]);
                                 $end = (clone $day)->setTime($time2[0], $time2[1], 0);
-
                                 if (($end < $movementDate) || ($now < $begin)) {
                                     $calculatedInterval = new DateInterval('P0Y');
                                 } else {
@@ -287,7 +291,6 @@ class EnCoursService
                                     }
                                     $calculatedInterval = $begin->diff($end);
                                 }
-
                                 return $calculatedInterval;
                             },
                             explode(';', $workedDays[$dayLabel])
