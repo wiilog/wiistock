@@ -379,7 +379,7 @@ function clearModal(modal) {
         }
     })
 
-    let inputs = $modal.find('.modal-body').find(".data");
+    let inputs = $modal.find('.modal-body').find(".data,.data-array");
     // on vide tous les inputs (sauf les disabled et les input hidden)
     inputs.each(function () {
         if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && !$(this).hasClass('no-clear')) {
