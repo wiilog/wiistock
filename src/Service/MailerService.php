@@ -76,6 +76,7 @@ class MailerService
 
         $message = (new \Swift_Message());
 
+
 		$message
             ->setFrom($senderMail, $senderName)
             ->setTo($to)
