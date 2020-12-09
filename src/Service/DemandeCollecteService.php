@@ -274,7 +274,7 @@ class DemandeCollecteService
     public function parseRequestForCard(Collecte $request,
                                         DateService $dateService,
                                         array $averageRequestTimesByType) {
-        $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL);
+        $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL);
         $hasRightToSeeOrder = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL);
 
         $requestStatus = $request->getStatut() ? $request->getStatut()->getNom() : '';
