@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\Menu;
@@ -119,9 +120,10 @@ class ReceptionTracaController extends AbstractController
     /**
      * @Route("/creer", name="reception_traca_new", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function new(Request $request): Response
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
 		if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
 			return $this->redirectToRoute('access_denied');
@@ -130,17 +132,26 @@ class ReceptionTracaController extends AbstractController
 		/** @var Utilisateur $loggedUser */
 		$loggedUser = $this->getUser();
 
+		$arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $errors = [];
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $entityManager = $this->getDoctrine()->getManager();
-            if (isset($data['numero_arrivage']) && strpos($data['numero_arrivage'], ';')) {
-                foreach (explode(';', $data['numero_arrivage']) as $arrivage) {
-                    $recep = new ReceptionTraca();
-                    $recep
-                        ->setArrivage($arrivage)
-                        ->setNumber($data['numero_réception'])
-                        ->setDateCreation(new DateTime('now'))
-                        ->setUser($loggedUser);
-                    $entityManager->persist($recep);
+            $arrivages = json_decode($data['numero_arrivage'], true);
+            if (count($arrivages) > 0) {
+                foreach ($arrivages as $arrivage) {
+                    $arrivageDB = $arrivageRepository->findOneBy([
+                        'numeroArrivage' => $arrivage
+                    ]);
+                    if (isset($arrivageDB)) {
+                        $recep = new ReceptionTraca();
+                        $recep
+                            ->setArrivage($arrivage)
+                            ->setNumber($data['numero_réception'])
+                            ->setDateCreation(new DateTime('now'))
+                            ->setUser($loggedUser);
+                        $entityManager->persist($recep);
+                    } else {
+                        $errors[] = $arrivage;
+                    }
                 }
             } else {
                 $recep = new ReceptionTraca();
@@ -153,7 +164,10 @@ class ReceptionTracaController extends AbstractController
             }
 
             $entityManager->flush();
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => count($errors) === 0,
+                'msg' => count($errors) === 0 ? "" : 'Les numéros suivants ne correspondent à aucun arrivage connu : ' . implode(", ", $errors) . "."
+            ]);
         }
 
         throw new BadRequestHttpException();

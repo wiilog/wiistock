@@ -11,6 +11,7 @@ use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use Exception;
 
@@ -86,14 +87,8 @@ class ArrivageRepository extends EntityRepository
             ->execute();
     }
 
-    /**
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
-     * @return Arrivage[]|null
-     */
-    public function getByDates($dateMin, $dateMax)
-    {
-		return $this->createQueryBuilderByDates($dateMin, $dateMax)
+    public function iterateBetween($from, $to) {
+        $iterator = $this->createQueryBuilderByDates($from, $to)
             ->select('arrivage.id')
             ->addSelect('arrivage.numeroArrivage')
             ->addSelect('recipient.username AS recipientUsername')
@@ -121,7 +116,12 @@ class ArrivageRepository extends EntityRepository
             ->leftJoin('arrivage.utilisateur', 'user')
             ->leftJoin('arrivage.type', 'arrivalType')
             ->getQuery()
-            ->execute();
+            ->iterate(null, Query::HYDRATE_ARRAY);
+
+        foreach($iterator as $item) {
+            // $item [index => reference array]
+            yield array_pop($item);
+        }
     }
 
     /**

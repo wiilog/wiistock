@@ -53,7 +53,6 @@ function importRouting() {
 
 $(document).ready(() => {
     if (!BrowserSupport.input("datetime-local")) {
-
         const observer = new MutationObserver(function () {
             for (const input of $('input[type=datetime-local]')) {
                 const $input = $(input);
@@ -61,8 +60,14 @@ $(document).ready(() => {
                 if (!$input.data("dtp-initialized")) {
                     $input.data("dtp-initialized", "true");
 
+                    const original = $input.val();
+                    const formatted = moment(original, "YYYY-MM-DDTHH:mm")
+                        .format("DD/MM/YYYY HH:mm");
+
+                    $input.attr("placeholder", "dd/mm/yyyy HH:MM")
+                    $input.val(formatted);
                     $input.datetimepicker({
-                        format: "YYYY-MM-DDTHH:mm"
+                        format: "DD/MM/YYYY HH:mm"
                     });
                 }
             }
