@@ -51,7 +51,7 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
 
     /**
      * @param Stream|Traversable|array $array
-     * @param Stream|iterable|array ...$others
+     * @param Stream|Traversable|array ...$others
      * @return Stream
      */
     public static function from($array, ...$others): Stream {

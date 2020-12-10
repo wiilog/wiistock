@@ -33,7 +33,7 @@ class AlertService {
         $expired = $manager->getRepository(Article::class)->findExpiredToGenerate($expiry);
         $noLongerExpired = $manager->getRepository(Alert::class)->findNoLongerExpired();
 
-        foreach ($noLongerExpired as $alert) {
+        foreach($noLongerExpired as $alert) {
             $manager->remove($alert);
         }
 
@@ -42,12 +42,12 @@ class AlertService {
         foreach($expired as $article) {
             $hasExistingAlert = !(
             Stream::from($article->getAlerts())
-                ->filter(function (Alert $alert) {
+                ->filter(function(Alert $alert) {
                     return $alert->getType() === Alert::EXPIRY;
                 })->isEmpty()
             );
 
-            if (!$hasExistingAlert) {
+            if(!$hasExistingAlert) {
                 $alert = new Alert();
                 $alert->setArticle($article);
                 $alert->setType(Alert::EXPIRY);
@@ -59,7 +59,7 @@ class AlertService {
                 ->getReferenceArticle()
                 ->getManagers();
 
-            foreach ($recipients as $recipient) {
+            foreach($recipients as $recipient) {
                 $this->addArticle($managers, $recipient->getEmail(), $article);
                 $this->addArticle($managers, $recipient->getSecondaryEmails(), $article);
             }
@@ -138,61 +138,47 @@ class AlertService {
                                  Alert $alert) {
         $serializedAlert = $alert->serialize();
 
-        $linked = $alert->getLinkedArticles();
-        /** @var ReferenceArticle|null $referenceArticle */
-        $referenceArticle = $linked['referenceArticle'];
+        [$reference, $article] = $alert->getLinkedArticles();
 
-        /** @var Article|null $article */
-        $article = $linked['article'];
-
-        if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+        if($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
             $freeFieldRepository = $entityManager->getRepository(FreeField::class);
             $freeFieldMachinePDT = $freeFieldRepository->findOneBy(['label' => 'Machine (PDT)']);
 
-            if (($article || $referenceArticle)) {
-                $freeFields = $referenceArticle->getFreeFields();
-                if ($freeFieldMachinePDT
+            if(($article || $reference)) {
+                $freeFields = $reference->getFreeFields();
+                if($freeFieldMachinePDT
                     && $freeFields
-                    && $freeFields[(string) $freeFieldMachinePDT->getId()]) {
-                    $freeFieldMachinePDTValue = $freeFields[(string) $freeFieldMachinePDT->getId()];
-                }
-                else {
+                    && $freeFields[(string)$freeFieldMachinePDT->getId()]) {
+                    $freeFieldMachinePDTValue = $freeFields[(string)$freeFieldMachinePDT->getId()];
+                } else {
                     $freeFieldMachinePDTValue = '';
                 }
 
                 $supplierArticles = $article
                     ? [$article->getArticleFournisseur()]
-                    : $referenceArticle->getArticlesFournisseur()->toArray();
+                    : $reference->getArticlesFournisseur()->toArray();
 
-                if (!empty($supplierArticles)) {
+                if(!empty($supplierArticles)) {
                     /** @var ArticleFournisseur $supplierArticle */
-                    foreach ($supplierArticles as $supplierArticle) {
+                    foreach($supplierArticles as $supplierArticle) {
                         $supplier = $supplierArticle->getFournisseur();
-                        $row = array_merge(
-                            array_values($serializedAlert),
-                            [
-                                $supplier->getNom(),
-                                $supplierArticle->getReference(),
-                                $freeFieldMachinePDTValue
-                            ]
-                        );
+                        $row = array_merge(array_values($serializedAlert), [
+                            $supplier->getNom(),
+                            $supplierArticle->getReference(),
+                            $freeFieldMachinePDTValue
+                        ]);
                         $CSVExportService->putLine($output, $row);
                     }
-                }
-                else {
-                    $row = array_merge(
-                        array_values($serializedAlert),
-                        [
-                            '',
-                            '',
-                            $freeFieldMachinePDTValue
-                        ]
-                    );
+                } else {
+                    $row = array_merge(array_values($serializedAlert), [
+                        '', //supplier name
+                        '', //supplier article reference
+                        $freeFieldMachinePDTValue
+                    ]);
                     $CSVExportService->putLine($output, $row);
                 }
             }
-        }
-        else {
+        } else {
             $CSVExportService->putLine($output, $serializedAlert);
         }
     }

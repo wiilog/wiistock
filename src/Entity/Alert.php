@@ -94,45 +94,39 @@ class Alert {
         return $this;
     }
 
-    public function serialize(): array
-    {
-        $type = $this->getType();
-        $dateAlerte = FormatHelper::date($this->getDate());
-
-        $linked = $this->getLinkedArticles();
-        $referenceArticle = $linked['referenceArticle'];
-        $article = $linked['article'];
+    public function serialize(): array {
+        [$reference, $article] = $this->getLinkedArticles();
 
         return [
-            'type' => self::TYPE_LABELS[$type],
-            'date' => $dateAlerte,
-            'label' => $referenceArticle ? $referenceArticle->getLibelle() : '',
-            'reference' => $referenceArticle ? $referenceArticle->getReference() : '',
+            'type' => self::TYPE_LABELS[$this->getType()],
+            'date' => FormatHelper::date($this->getDate()),
+            'label' => $reference ? $reference->getLibelle() : '',
+            'reference' => $reference ? $reference->getReference() : '',
             'barcode' => ($article
                 ? $article->getBarCode()
-                : ($referenceArticle
-                    ? $referenceArticle->getBarCode()
+                : ($reference
+                    ? $reference->getBarCode()
                     : '')),
             'availableQuantity' => ($this->getReference()
                 ? $this->getReference()->getQuantiteDisponible()
                 : ($this->getArticle()
                     ? $this->getArticle()->getQuantite()
                     : '' )),
-            'typeQuantity' => $referenceArticle->getTypeQuantite()
-                ? $referenceArticle->getTypeQuantite()
+            'typeQuantity' => $reference->getTypeQuantite()
+                ? $reference->getTypeQuantite()
                 : '',
-            'limitWarning' => $this->getReference()
-                ? $this->getReference()->getLimitWarning()
+            'limitWarning' => $reference
+                ? $reference->getLimitWarning()
                 : '',
-            'limitSecurity' => $this->getReference()
-                ? $this->getReference()->getLimitSecurity()
+            'limitSecurity' => $reference
+                ? $reference->getLimitSecurity()
                 : '',
-            'expiryDate' => $this->getArticle()
-                ? FormatHelper::date($this->getArticle()->getExpiryDate())
+            'expiryDate' => $article
+                ? FormatHelper::date($article->getExpiryDate())
                 : '',
-            'managers' => $this->getReference()
-                ? FormatHelper::users($this->getReference()->getManagers()->toArray())
-                : ''
+            'managers' => $reference
+                ? FormatHelper::users($reference->getManagers())
+                : ""
         ];
     }
 
@@ -152,9 +146,10 @@ class Alert {
             $referenceArticle = null;
             $article = null;
         }
+
         return [
-            'referenceArticle' => $referenceArticle,
-            'article' => $article
+            $referenceArticle,
+            $article
         ];
     }
 }
