@@ -100,9 +100,15 @@ class CEAFieldsFixtures extends Fixture implements FixtureGroupInterface {
     }
 
     private function getToBeDetermined(ReferenceArticle $reference): ?ArticleFournisseur {
+
         foreach($reference->getArticlesFournisseur() as $article) {
-            if($this->sanitize($article->getReference(), true) == "A DETERMINER" &&
-                $this->sanitize($article->getLabel(), true) == "A DETERMINER") {
+            $supplier = $article->getFournisseur();
+            $concerned = (
+                $this->sanitize($supplier->getCodeReference()) == "A DETERMINER"
+                && $this->sanitize($article->getReference()) == "A DETERMINER"
+            );
+
+            if($concerned) {
                 return $article;
             }
         }
