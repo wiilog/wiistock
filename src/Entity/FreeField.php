@@ -61,6 +61,8 @@ class FreeField implements Serializable {
     ];
     const SPECIC_COLLINS_BL = 'BL';
 
+    const MACHINE_PDT_FREE_FIELD = 'Machine PDT';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

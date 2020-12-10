@@ -139,8 +139,8 @@ class PackRepository extends EntityRepository
                     break;
                 case 'type':
                     $qb
-                        ->join('pack.arrivage', 'a')
-                        ->join('a.type','type')
+                        ->join('pack.arrivage', 'a_type')
+                        ->join('a_type.type','type')
                         ->andWhere('type.label LIKE :types')
                         ->setParameter('types', '%' . $filter['value'] . '%');
                     break;
@@ -356,8 +356,7 @@ class PackRepository extends EntityRepository
      * @param array $onDateBracket
      * @return int|mixed|string
      */
-    public function countColisByArrivageAndNature(array $onDateBracket = [])
-    {
+    public function countColisByArrivageAndNature($from, $to) {
         $queryBuilder = $this->createQueryBuilder('colis');
         $queryBuilderExpr = $queryBuilder->expr();
         $queryBuilder
@@ -371,8 +370,8 @@ class PackRepository extends EntityRepository
             ->where(
                 $queryBuilderExpr->between('arrivage.date', ':dateFrom', ':dateTo')
             )
-            ->setParameter('dateFrom', $onDateBracket[0])
-            ->setParameter('dateTo', $onDateBracket[1]);
+            ->setParameter('dateFrom', $from)
+            ->setParameter('dateTo', $to);
 
         $result = $queryBuilder->getQuery()->execute();
 

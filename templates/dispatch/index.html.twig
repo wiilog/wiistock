@@ -14,58 +14,54 @@
 {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
 
 {% block page_content %}
-<div class="m-4 wii-page-card">
-    <div class="row wii-page-card-header">
-        <div class="col-auto ml-auto btn-group">
-            {% if hasRightToExport %}
-                <button type="button"
-                        class="btn btn-primary split-button btn-ripple"
-                        onclick="saveExportFile('get_dispatches_csv')">
-                    <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
-                    Exporter au format CSV
-                </button>
-            {% else %}
-                <button class="dropdown-item pointer"
-                        data-toggle="modal"
-                        data-target="#modalColumnVisible">
-                    <i class="fa fa-cog mr-2"></i>
-                    Gestion des colonnes
-                </button>
-            {% endif %}
-
-            <button type="button"
-                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
-                    data-toggle="dropdown"
-                    aria-haspopup="true"
-                    aria-expanded="false">
-                <span class="fa fa-angle-down"></span>
-            </button>
-
-            {% if hasRightToExport %}
-                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-                    <button class="dropdown-item pointer"
-                            data-toggle="modal"
-                            data-target="#modalColumnVisible">
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto btn-group">
+                {% if hasRightToExport %}
+                    <button type="button"
+                            class="btn btn-primary split-button btn-ripple"
+                            onclick="saveExportFile('get_dispatches_csv')">
+                        <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
+                        Exporter au format CSV
+                    </button>
+                    <button type="button"
+                            class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                        <span class="fa fa-angle-down"></span>
+                    </button>
+                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                        <a class="dropdown-item pointer"
+                           data-toggle="modal"
+                           data-target="#modalColumnVisible">
+                            <i class="fa fa-cog mr-2"></i>
+                            Gestion des colonnes
+                        </a>
+                    </div>
+                {% else %}
+                    <button class="btn btn-primary btn-ripple"
+                       data-toggle="modal"
+                       data-target="#modalColumnVisible">
                         <i class="fa fa-cog mr-2"></i>
                         Gestion des colonnes
                     </button>
-                </div>
-            {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableDispatches" class="table w-100"></table>
+            </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-12">
-            <table id="tableDispatches" class="table w-100"></table>
-        </div>
-    </div>
-</div>
 
-{% include "dispatch/modalNewDispatch.html.twig" with modalNewConfig %}
-{% include "utils/visible_columns.html.twig" with {
-    'fields': fields,
-    'table': 'tableDispatches',
-    'route': 'save_column_visible_for_dispatch'
-} %}
+    {% include "dispatch/modalNewDispatch.html.twig" with modalNewConfig %}
+    {% include "utils/visible_columns.html.twig" with {
+        'fields': fields,
+        'table': 'tableDispatches',
+        'route': 'save_column_visible_for_dispatch'
+    } %}
 {% endblock %}
 
 {% block javascripts %}

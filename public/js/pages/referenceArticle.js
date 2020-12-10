@@ -75,7 +75,7 @@ function clearModalRefArticle(modal, data) {
             }
         });
         // on vide tous les select2
-        let selects = modal.find('.modal-body').find('.select2, .ajax-autocompleteFournisseur');
+        let selects = modal.find('.modal-body').find('.select2, .ajax-autocomplete-fournisseur');
         selects.each(function () {
             $(this).val(null).trigger('change');
         });
@@ -359,8 +359,8 @@ function initNewReferenceArticleEditor(modal) {
         initEditor('.editor-container-new');
         editorNewReferenceArticleAlreadyDone = true;
     }
-    Select2.provider($(modal).find('.ajax-autocompleteFournisseur'));
-    Select2.provider($(modal).find('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
+    Select2.provider($(modal).find('.ajax-autocomplete-fournisseur'));
+    Select2.provider($(modal).find('.ajax-autocomplete-fournisseurLabel'), '', 'demande_label_by_fournisseur');
     Select2.location($(modal).find('.ajax-autocomplete-location'));
     clearModal(modal);
 }

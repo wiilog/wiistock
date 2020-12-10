@@ -210,7 +210,6 @@ class EmplacementController extends AbstractController
 
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $naturesRepository = $entityManager->getRepository(Nature::class);
-
             $errorResponse = $this->checkLocationLabel($data["Label"] ?? null, $data['id']);
             if ($errorResponse) {
                 return $errorResponse;

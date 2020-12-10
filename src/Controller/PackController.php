@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Arrivage;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -261,18 +262,23 @@ class PackController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @param UserService $userService
      * @param TranslatorInterface $translator
+     * @param Arrivage $arrivage
      * @return Response
      */
-    public function delete(Request $request, EntityManagerInterface $entityManager, UserService $userService, TranslatorInterface $translator): Response {
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager,
+                           UserService $userService,
+                           TranslatorInterface $translator): Response {
         if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if(!$userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $packRepository = $entityManager->getRepository(Pack::class);
+            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
 
             $pack = $packRepository->find($data['pack']);
             $packCode = $pack->getCode();
-
+            $arrivage = isset($data['arrivage']) ? $arrivageRepository->find($data['arrivage']) : null;
             if(!$pack->getTrackingMovements()->isEmpty()) {
                 $msg = $translator->trans("colis.Ce colis est référencé dans un ou plusieurs mouvements de traçabilité");
             }
@@ -284,8 +290,7 @@ class PackController extends AbstractController {
             if(!$pack->getLitiges()->isEmpty()) {
                 $msg = $translator->trans("colis.Ce colis est référencé dans un ou plusieurs litiges");
             }
-
-            if($pack->getArrivage()) {
+            if($pack->getArrivage() && $arrivage !== $pack->getArrivage()) {
                 $msg = $translator->trans('colis.Ce colis est utilisé dans l\'arrivage {arrivage}', [
                     "{arrivage}" => $pack->getArrivage()->getNumeroArrivage()
                 ]);

@@ -379,7 +379,7 @@ function clearModal(modal) {
         }
     })
 
-    let inputs = $modal.find('.modal-body').find(".data");
+    let inputs = $modal.find('.modal-body').find(".data,.data-array");
     // on vide tous les inputs (sauf les disabled et les input hidden)
     inputs.each(function () {
         if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && !$(this).hasClass('no-clear')) {
@@ -397,7 +397,7 @@ function clearModal(modal) {
     // on vide tous les select2
     let selects = $modal
         .find('.modal-body')
-        .find('.ajax-autocomplete, .ajax-autocomplete-location, .ajax-autocompleteFournisseur, .ajax-autocomplete-transporteur, .select2, .select2-free, .ajax-autocomplete-user');
+        .find('.ajax-autocomplete, .ajax-autocomplete-location, .ajax-autocomplete-fournisseur, .ajax-autocomplete-transporteur, .select2, .select2-free, .ajax-autocomplete-user');
     selects.each(function () {
         if (!$(this).hasClass('no-clear')) {
             if ($(this).hasClass('needs-default')) {

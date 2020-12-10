@@ -771,117 +771,114 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
-     * @param FreeFieldService $freeFieldService
-     * @param CSVExportService $CSVExportService
-     * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $csvService
+     * @param FreeFieldService $freeFieldService
      * @return Response
      */
-    public function getArrivageCSV(Request $request,
-                                   FreeFieldService $freeFieldService,
-                                   CSVExportService $CSVExportService,
-                                   TranslatorInterface $translator,
-                                   EntityManagerInterface $entityManager): Response
-    {
-        $dateMin = $request->query->get('dateMin');
-        $dateMax = $request->query->get('dateMax');
+    public function exportArrivals(Request $request,
+                                   EntityManagerInterface $entityManager,
+                                   CSVExportService $csvService,
+                                   FreeFieldService $freeFieldService) {
+        $FORMAT = "Y-m-d H:i:s";
+
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
 
         try {
-            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
-            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+            $from = DateTime::createFromFormat($FORMAT, $request->query->get("dateMin") . " 00:00:00");
+            $to = DateTime::createFromFormat($FORMAT, $request->query->get("dateMax") . " 23:59:59");
         } catch (Throwable $throwable) {
-        }
-
-        if (isset($dateTimeMin) && isset($dateTimeMax)) {
-            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $natureRepository = $entityManager->getRepository(Nature::class);
-            $packRepository = $entityManager->getRepository(Pack::class);
-
-            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARRIVAGE]);
-
-            $colisData = $packRepository->countColisByArrivageAndNature([
-                $dateTimeMin->format('Y-m-d H:i:s'),
-                $dateTimeMax->format('Y-m-d H:i:s')
+            return $this->json([
+                "success" => false,
+                "msg" => "Dates invalides"
             ]);
-            $arrivals = $arrivageRepository->getByDates($dateTimeMin, $dateTimeMax);
-            $buyersByArrival = $utilisateurRepository->getUsernameBuyersGroupByArrival();
-            $natureLabels = $natureRepository->findAllLabels();
-            // en-têtes champs fixes
-            $csvHeader = [
-                'n° arrivage',
-                'destinataire',
-                'fournisseur',
-                'transporteur',
-                'chauffeur',
-                'n° tracking transporteur',
-                'n° commande/BL',
-                'type',
-                'acheteurs',
-                'douane',
-                'congelé',
-                'statut',
-                'commentaire',
-                'date',
-                'utilisateur',
-                'numéro de projet',
-                'business unit'
-            ];
-
-            $csvHeader = array_merge(
-                $csvHeader,
-                $natureLabels,
-                $freeFieldsConfig['freeFieldsHeader']
-            );
-            $nowStr = date("d-m-Y H:i");
-
-            return $CSVExportService->createBinaryResponseFromData(
-                "Export - " . str_replace(["/", "\\"], "-", $translator->trans('arrivage.arrivage')) . " - " . $nowStr  . ".csv",
-                $arrivals,
-                $csvHeader,
-                function ($arrival) use ($buyersByArrival, $natureLabels, $colisData, $freeFieldsConfig, $freeFieldService) {
-                    $arrivalId = (int) $arrival['id'];
-                    $row = [];
-                    $row[] = $arrival['numeroArrivage'] ?: '';
-                    $row[] = $arrival['recipientUsername'] ?: '';
-                    $row[] = $arrival['fournisseurName'] ?: '';
-                    $row[] = $arrival['transporteurLabel'] ?: '';
-                    $row[] = (!empty($arrival['chauffeurFirstname']) && !empty($arrival['chauffeurSurname']))
-                        ? $arrival['chauffeurFirstname'] . ' ' . $arrival['chauffeurSurname']
-                        : ($arrival['chauffeurFirstname'] ?: $arrival['chauffeurSurname'] ?: '');
-                    $row[] = $arrival['noTracking'] ?: '';
-                    $row[] = !empty($arrival['numeroCommandeList']) ? implode(' / ', $arrival['numeroCommandeList']) : '';
-                    $row[] = $arrival['type'] ?: '';
-                    $row[] = $buyersByArrival[$arrivalId] ?? '';
-                    $row[] = $arrival['customs'] ? 'oui' : 'non';
-                    $row[] = $arrival['frozen'] ? 'oui' : 'non';
-                    $row[] = $arrival['statusName'] ?: '';
-                    $row[] = $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '';
-                    $row[] = $arrival['date'] ? $arrival['date']->format('d/m/Y H:i:s') : '';
-                    $row[] = $arrival['userUsername'] ?: '';
-                    $row[] = $arrival['projectNumber'] ?: '';
-                    $row[] = $arrival['businessUnit'] ?: '';
-
-                    foreach ($natureLabels as $natureLabel) {
-                        $count = (isset($colisData[$arrivalId]) && isset($colisData[$arrivalId][$natureLabel]))
-                            ? $colisData[$arrivalId][$natureLabel]
-                            : 0;
-                        $row[] = $count;
-                    }
-
-                    foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                        $row[] = $freeFieldService->serializeValue([
-                            'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                            'valeur' => $arrival['freeFields'][$freeFieldId] ?? ''
-                        ]);
-                    }
-
-                    return [$row];
-                }
-            );
-        } else {
-            throw new BadRequestHttpException();
         }
+
+        $arrivals = $arrivageRepository->iterateBetween($from, $to);
+
+        $ffConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARRIVAGE]);
+
+        $packs = $packRepository->countColisByArrivageAndNature($from->format($FORMAT), $to->format($FORMAT));
+        $buyersByArrival = $utilisateurRepository->getUsernameBuyersGroupByArrival();
+        $natureLabels = $natureRepository->findAllLabels();
+
+        $header = array_merge([
+            "n° arrivage",
+            "destinataire",
+            "fournisseur",
+            "transporteur",
+            "chauffeur",
+            "n° tracking transporteur",
+            "n° commande/BL",
+            "type",
+            "acheteurs",
+            "douane",
+            "congelé",
+            "statut",
+            "commentaire",
+            "date",
+            "utilisateur",
+            "numéro de projet",
+            "business unit",
+        ], $natureLabels, $ffConfig["freeFieldsHeader"]);
+
+        $today = new DateTime();
+        $today = $today->format("d-m-Y H:i:s");
+
+        return $csvService->streamResponse(function($output) use ($csvService, $freeFieldService, $ffConfig, $arrivals, $buyersByArrival, $natureLabels, $packs) {
+            foreach($arrivals as $arrival) {
+                $this->putArrivageLine($output, $csvService, $freeFieldService, $ffConfig, $arrival, $buyersByArrival, $natureLabels, $packs);
+            }
+        }, "export-arrivages-$today.csv", $header);
+    }
+
+    private function putArrivageLine($handle,
+                                     CSVExportService $csvService,
+                                     FreeFieldService $freeFieldService,
+                                     array $ffConfig,
+                                     array $arrival,
+                                     array $buyersByArrival,
+                                     array $natureLabels,
+                                     array $packs) {
+        $id = (int)$arrival['id'];
+
+        $line = [
+            $arrival['numeroArrivage'] ?: '',
+            $arrival['recipientUsername'] ?: '',
+            $arrival['fournisseurName'] ?: '',
+            $arrival['transporteurLabel'] ?: '',
+            (!empty($arrival['chauffeurFirstname']) && !empty($arrival['chauffeurSurname']))
+                ? $arrival['chauffeurFirstname'] . ' ' . $arrival['chauffeurSurname']
+                : ($arrival['chauffeurFirstname'] ?: $arrival['chauffeurSurname'] ?: ''),
+            $arrival['noTracking'] ?: '',
+            !empty($arrival['numeroCommandeList']) ? implode(' / ', $arrival['numeroCommandeList']) : '',
+            $arrival['type'] ?: '',
+            $buyersByArrival[$id] ?? '',
+            $arrival['customs'] ? 'oui' : 'non',
+            $arrival['frozen'] ? 'oui' : 'non',
+            $arrival['statusName'] ?: '',
+            $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '',
+            $arrival['date'] ? $arrival['date']->format('d/m/Y H:i:s') : '',
+            $arrival['userUsername'] ?: '',
+            $arrival['projectNumber'] ?: '',
+            $arrival['businessUnit'] ?: '',
+        ];
+
+        foreach($natureLabels as $natureLabel) {
+            $line[] = $packs[$id][$natureLabel] ?? 0;
+        }
+
+        foreach($ffConfig["freeFieldIds"] as $freeFieldId) {
+            $line[] = $freeFieldService->serializeValue([
+                "typage" => $ffConfig["freeFieldsIdToTyping"][$freeFieldId],
+                "valeur" => $arrival["freeFields"][$freeFieldId] ?? ""
+            ]);
+        }
+
+        $csvService->putLine($handle, $line);
     }
 
     /**
@@ -1584,9 +1581,24 @@ class ArrivageController extends AbstractController
                 : '')
             : '';
 
-        $arrivalCommand = $arrival
-            ? implode(" ", $arrival->getNumeroCommandeList())
-            : '';
+        $arrivalCommand = [];
+        $arrivalLine = "";
+        $i = 0;
+        foreach($arrival->getNumeroCommandeList() as $command) {
+            $arrivalLine .= $command;
+
+            if(++$i % 4 == 0) {
+                $arrivalCommand[] = $arrivalLine;
+                $arrivalLine = "";
+            } else {
+                $arrivalLine .= " ";
+            }
+        }
+
+        if(!empty($arrivalLine)) {
+            $arrivalCommand[] = $arrivalLine;
+        }
+
         $arrivalProjectNumber = $arrival
             ? ($arrival->getProjectNumber() ?? '')
             : '';
@@ -1601,9 +1613,14 @@ class ArrivageController extends AbstractController
 
         if ($commandAndProjectNumberIsDefined) {
             if ($arrivalCommand && $arrivalProjectNumber) {
-                $labels[] = $arrivalCommand . ' / ' . $arrivalProjectNumber;
+                if(count($arrivalCommand) > 1) {
+                    $labels = array_merge($labels, $arrivalCommand);
+                    $labels[] = $arrivalProjectNumber;
+                } else if(count($arrivalCommand) == 1) {
+                    $labels[] = $arrivalCommand[0] . ' / ' . $arrivalProjectNumber;
+                }
             } else if ($arrivalCommand) {
-                $labels[] = $arrivalCommand;
+                $labels = array_merge($labels, $arrivalCommand);
             } else if ($arrivalProjectNumber) {
                 $labels[] = $arrivalProjectNumber;
             }

@@ -183,7 +183,6 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
     if (data.msg) {
         showBSAlert(data.msg, 'success');
     }
-
     return true;
 }
 
