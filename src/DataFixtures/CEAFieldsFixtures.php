@@ -87,15 +87,13 @@ class CEAFieldsFixtures extends Fixture implements FixtureGroupInterface {
         $oem = $this->getOEM($reference);
         $oemReference = $this->getOEMReference($reference);
 
-        if($oem == null && $oemReference == null) {
-            return;
-        }
-
-        $article = $this->getToBeDetermined($reference);
-        if($article) {
-            $article->setFournisseur($oem)
-                ->setReference($oemReference)
-                ->setLabel($reference->getLibelle());
+        if($oem !== null && $oemReference !== null) {
+            $article = $this->getToBeDetermined($reference);
+            if($article) {
+                $article->setFournisseur($oem)
+                    ->setReference($oemReference)
+                    ->setLabel($reference->getLibelle());
+            }
         }
     }
 
@@ -129,7 +127,7 @@ class CEAFieldsFixtures extends Fixture implements FixtureGroupInterface {
                 ->setCodeReference($sanitized);
         }
 
-        return $this->suppliers[$superSanitized];
+        return $this->suppliers[$superSanitized] ?? null;
     }
 
     private function getOEMReference(ReferenceArticle $reference): ?string {
