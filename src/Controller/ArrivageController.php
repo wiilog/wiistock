@@ -1595,6 +1595,9 @@ class ArrivageController extends AbstractController
             }
         }
 
+        if(!empty($arrivalLine)) {
+            $arrivalCommand[] = $arrivalLine;
+        }
 
         $arrivalProjectNumber = $arrival
             ? ($arrival->getProjectNumber() ?? '')

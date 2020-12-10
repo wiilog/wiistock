@@ -48,7 +48,7 @@ let resetNewArticle = function (element) {
 };
 
 function init() {
-    Select2.provider($('.ajax-autocompleteFournisseur'));
+    Select2.provider($('.ajax-autocomplete-fournisseur'));
     let $modalEditArticle = $("#modalEditArticle");
     let $submitEditArticle = $("#submitEditArticle");
     let urlEditArticle = Routing.generate('article_edit', true);

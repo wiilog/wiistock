@@ -386,8 +386,8 @@ function initNewReferenceArticleEditor() {
         initEditor('.editor-container-new');
         editorNewReferenceArticleAlreadyDone = true;
     }
-    Select2.provider($('.ajax-autocompleteFournisseur'));
-    Select2.provider($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
+    Select2.provider($('.ajax-autocomplete-fournisseur'));
+    Select2.provider($('.ajax-autocomplete-fournisseurLabel'), '', 'demande_label_by_fournisseur');
     Select2.location($('.ajax-autocomplete-location'));
     let modalRefArticleNew = $("#new-ref-inner-body");
     let submitNewRefArticle = $("#submitNewRefArticleFromRecep");

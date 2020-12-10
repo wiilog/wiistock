@@ -218,19 +218,19 @@ class ReceptionRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-						->leftJoin('r.statut', 's2')
-						->leftJoin('r.fournisseur', 'f2')
+						->leftJoin('r.statut', 'search_status')
+						->leftJoin('r.fournisseur', 'search_provider')
                         ->leftJoin('r.demandes', 'search_request')
-                        ->leftJoin('search_request.utilisateur', 'search_request_User')
+                        ->leftJoin('search_request.utilisateur', 'search_request_user')
                         ->andWhere('
                             r.date LIKE :value
                             OR r.dateAttendue LIKE :value
                             OR r.numeroReception LIKE :value
                             OR r.orderNumber LIKE :value
                             OR r.commentaire LIKE :value
-                            OR s2.nom LIKE :value
-                            OR f2.nom LIKE :value
-                            OR search_request_User.username LIKE :value')
+                            OR search_status.nom LIKE :value
+                            OR search_provider.nom LIKE :value
+                            OR search_request_user.username LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }

@@ -35,15 +35,15 @@ function addArticleFournisseurReferenceArticle($plusButton) {
             dataType: "json"
         }).then((response) => {
             $(response).insertBefore($plusButton.parent());
-            Select2.provider($('.ajax-autocompleteFournisseur'));
-            Select2.provider($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
+            Select2.provider($('.ajax-autocomplete-fournisseur'));
+            Select2.provider($('.ajax-autocomplete-fournisseurLabel'), '', 'demande_label_by_fournisseur');
         });
     }
 }
 
 function loadAndDisplayInfos($select) {
     const $form = $select.parents('.ligneFournisseurArticle');
-    const $nomSelect = $form.find('.ajax-autocompleteFournisseurLabel');
+    const $nomSelect = $form.find('.ajax-autocomplete-fournisseurLabel');
     if($select.val()) {
         const [selected] = $select.select2('data');
         if (selected) {
@@ -80,7 +80,7 @@ function loadAndDisplayInfos($select) {
 }
 function loadAndDisplayLabels($select) {
     const $form = $select.parents('.ligneFournisseurArticle');
-    const $codeSelect = $form.find('.ajax-autocompleteFournisseur');
+    const $codeSelect = $form.find('.ajax-autocomplete-fournisseur');
     if($select.val()) {
         const [selected] = $select.select2('data');
         if (selected) {
