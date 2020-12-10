@@ -28,6 +28,21 @@
 {% block page_content %}
     {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
+    <input type="hidden"
+           data-id=""
+           data-target='#modalEditRefArticle'
+           data-toggle='modal'
+           onclick="editRow(
+             $(this),
+            Routing.generate('reference_article_edit_api', true),
+            $('#modalEditRefArticle'),
+            $('#submitEditRefArticle'),
+            true,
+            '.editor-container-edit',
+            false,
+            () => afterLoadingEditModal($(this)),
+            false)"
+           class="d-none open-modal-edit"/>
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">

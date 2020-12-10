@@ -11,6 +11,7 @@ let tableAlerteConfig = {
         needsSearchOverride: true,
     },
     columns: [
+        { "data": 'actions', 'name': 'actions', 'title': '', 'orderable': false, className: 'noVis'},
         { "data": "type", "title": "Type d'alerte" },
         { "data": "date", "title": "Date d'alerte" },
         { "data": "label", "title": "Libellé" },

@@ -601,6 +601,11 @@ class RefArticleDataService {
         }
 
         return [
+            'actions' => $this->templating->render('alerte_reference/datatableAlertRow.html.twig', [
+                'referenceId' => $alert->getReference()
+                    ? $alert->getReference()->getId()
+                    : $alert->getArticle()->getArticleFournisseur()->getReferenceArticle()->getId()
+            ]),
             "type" => Alert::TYPE_LABELS[$alert->getType()],
             "reference" => $reference ?? "Non défini",
             "code" => $code ?? "Non défini",
