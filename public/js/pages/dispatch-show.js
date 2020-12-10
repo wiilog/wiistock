@@ -188,6 +188,7 @@ function togglePackDetails(emptyDetails = false) {
             $modal.find('.pack-details').removeClass('d-none');
         }
     }
+    setTimeout(function() { $('input[name="pack"]').focus() }, 500);
 }
 
 function openNewPackModal() {
