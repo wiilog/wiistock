@@ -94,18 +94,57 @@ class Alert {
         return $this;
     }
 
-    public function serialize(): array {
+    public function serialize(): array
+    {
+        $type = $this->getType();
+        $dateAlerte = FormatHelper::date($this->getDate());
+
+        if ($this->getReference()) {
+            $referenceArticle = $this->getReference();
+            $article = null;
+        }
+        else if ($this->getArticle()) {
+            $article = $this->getArticle();
+            $articleFournisseur = $article->getArticleFournisseur();
+            $referenceArticle = $articleFournisseur
+                ? $articleFournisseur->getReferenceArticle()
+                : null;
+        }
+        else {
+            $referenceArticle = null;
+            $article = null;
+        }
+
         return [
-            'type' => $this->getType(),
-            'date' => FormatHelper::date($this->getDate()),
-            'label' => $this->getReference() ? $this->getReference()->getLibelle() : '',
-            'reference' => $this->getReference() ? $this->getReference()->getReference() : '',
-            'barcode' =>$this->getReference() ? $this->getReference()->getBarCode() : '',
-            'availableQuantity' => $this->getReference() ? $this->getReference()->getQuantiteDisponible() : '',
-            'typeQuantity' => $this->getReference() ? $this->getReference()->getTypeQuantite() : '',
-            'limitWarning' => $this->getReference() ? $this->getReference()->getLimitWarning() : '',
-            'limitSecurity' => $this->getReference() ? $this->getReference()->getLimitSecurity() : ''
+            'type' => self::TYPE_LABELS[$type],
+            'date' => $dateAlerte,
+            'label' => $referenceArticle ? $referenceArticle->getLibelle() : '',
+            'reference' => $referenceArticle ? $referenceArticle->getReference() : '',
+            'barcode' => ($article
+                ? $article->getBarCode()
+                : ($referenceArticle
+                    ? $referenceArticle->getBarCode()
+                    : '')),
+            'availableQuantity' => ($this->getReference()
+                ? $this->getReference()->getQuantiteDisponible()
+                : ($this->getArticle()
+                    ? $this->getArticle()->getQuantite()
+                    : '' )),
+            'typeQuantity' => $referenceArticle->getTypeQuantite()
+                ? $referenceArticle->getTypeQuantite()
+                : '',
+            'limitWarning' => $this->getReference()
+                ? $this->getReference()->getLimitWarning()
+                : '',
+            'limitSecurity' => $this->getReference()
+                ? $this->getReference()->getLimitSecurity()
+                : '',
+            'expiryDate' => $this->getArticle()
+                ? FormatHelper::date($this->getArticle()->getExpiryDate())
+                : '',
+            'managers' => $this->getReference()
+                ? FormatHelper::users($this->getReference()->getManagers()->toArray())
+                : '',
         ];
     }
-
 }

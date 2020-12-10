@@ -50,7 +50,15 @@ class AlertRepository extends EntityRepository {
         $total = QueryCounter::count($qb, "a");
 
         foreach($filters as $filter) {
-            switch($filter['field']) {
+            switch ($filter['field']) {
+                case 'dateMin':
+                    $qb->andWhere('a.date >= :dateMin')
+                        ->setParameter('dateMin', $filter['value']. ' 00:00:00');
+                    break;
+                case 'dateMax':
+                    $qb->andWhere('a.date <= :dateMax')
+                        ->setParameter('dateMax', $filter['value']. ' 23:59:59');
+                    break;
                 case 'type':
                     $qb
                         ->join('reference.type', 't3')
@@ -189,6 +197,20 @@ class AlertRepository extends EntityRepository {
         return $qb
             ->getQuery()
             ->getResult();
+    }
+
+    public function iterateBetween(DateTime $start, DateTime $end) {
+        $qb = $this->createQueryBuilder('alert');
+        $exprBuilder = $qb->expr();
+        $iterator = $this->createQueryBuilder('alert')
+            ->where($exprBuilder->between('alert.date',':start',':end'))
+            ->setParameter('start',$start)
+            ->setParameter('end',$end)
+            ->getQuery()
+            ->iterate();
+        foreach($iterator as $item) {
+            yield array_pop($item);
+        }
     }
 
 }

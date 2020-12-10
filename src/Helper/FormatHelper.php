@@ -26,6 +26,14 @@ class FormatHelper {
         return $user ? $user->getUsername() : $else;
     }
 
+    public static function users(?array $users) {
+       return Stream::from($users)
+            ->map(function (?Utilisateur $user) {
+                return self::user($user);
+            })
+            ->join(" / ");
+    }
+
     public static function bool(?bool $bool, $else = "") {
         return isset($bool) ? ($bool ? 'oui' : 'non') : $else;
     }

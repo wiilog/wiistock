@@ -118,7 +118,7 @@ class CSVExportService {
 
         $disposition = HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $name);
 
-        $response->headers->set('Content-Type', "test/csv");
+        $response->headers->set('Content-Type', "text/csv");
         $response->headers->set('Content-Disposition', $disposition);
         return $response;
     }

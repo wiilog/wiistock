@@ -54,9 +54,10 @@ class AlertController extends AbstractController
         }
 
         $typeRepository = $this->getDoctrine()->getRepository(Type::class);
-
+        $allowExportAlert = $userService->hasRightFunction(Menu::STOCK, Action::EXPORT_ALER);
         return $this->render('alerte_reference/index.html.twig', [
             "types" => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]),
+            "hasRihgtExportAlert" => $allowExportAlert,
             "alerts" => [
                 "security" => "Seuil de sécurité",
                 "alert" => "Seuil d'alerte",
@@ -97,44 +98,47 @@ class AlertController extends AbstractController
      */
     public function export(Request $request,
                            EntityManagerInterface $entityManager,
-                           CSVExportService $CSVExportService): Response {
+                           CSVExportService $CSVExportService): Response
+    {
         $dateMin = $request->query->get("dateMin");
         $dateMax = $request->query->get("dateMax");
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (Throwable $throwable) {
+        }
 
-        $dateTimeMin = DateTime::createFromFormat("Y-m-d H:i:s", $dateMin . " 00:00:00");
-        $dateTimeMax = DateTime::createFromFormat("Y-m-d H:i:s", $dateMax . " 23:59:59");
+        if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
 
-        if(isset($dateTimeMin, $dateTimeMax)) {
-            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+            $today = new DateTime();
+            $todayStr = $today->format("d-m-Y-H-i-s");
 
-            $alertRepository = $entityManager->getRepository(Alert::class);
-
-            $alert = $alertRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             $header = [
-                "type d\'alerte",
-                "date d\'alerte",
+                "type d'alerte",
+                "date d'alerte",
                 "libellé",
                 "référence",
                 "code barre",
                 "quantite disponible",
                 "type quantité",
-                "seuil d\'alerte",
+                "seuil d'alerte",
                 "seuil de sécurité",
                 "date de péremption",
                 "gestionnaire(s)"
             ];
 
-            return $CSVExportService->createBinaryResponseFromData(
-                "export_alertes" . $now->format("d_m_Y") . ".csv",
-                $alert,
-                $header,
-                function (Alert $alert) {
-                    return $alert->serialize();
-                }
-            );
-        }
+            return $CSVExportService->streamResponse(function ($output) use ($entityManager, $CSVExportService, $dateTimeMin, $dateTimeMax) {
+                $alertRepository = $entityManager->getRepository(Alert::class);
 
-        throw new BadRequestHttpException();
+                $alerts = $alertRepository->iterateBetween($dateTimeMin, $dateTimeMax);
+                /** @var Alert $alert */
+                foreach ($alerts as $alert) {
+                    $CSVExportService->putLine($output, $alert->serialize());
+                }
+            }, "export_alert_${todayStr}.csv", $header);
+        } else {
+            throw new BadRequestHttpException();
+        }
     }
 }

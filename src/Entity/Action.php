@@ -76,7 +76,8 @@ class Action
 	const DISPLAY_MOUV_STOC = 'afficher mouvements de stock';
 	const DISPLAY_INVE = 'afficher inventaires';
 	const DISPLAY_ALER = 'afficher alertes';
-	const INVENTORY_MANAGER = "gestionnaire d'inventaire";
+	const INVENTORY_MANAGER = 'gestionnaire d\'inventaire';
+	const EXPORT_ALER = 'exporter alertes d\'inventaire';
 
 	// menu référentiel
 	const DISPLAY_FOUR = 'afficher fournisseurs';
