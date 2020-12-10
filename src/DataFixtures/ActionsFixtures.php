@@ -98,7 +98,8 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::EDIT,
 				Action::DELETE,
 				Action::EXPORT,
-				Action::INVENTORY_MANAGER
+				Action::INVENTORY_MANAGER,
+                Action::EXPORT_ALER
 			],
 			Menu::REFERENTIEL => [
 				Action::DISPLAY_FOUR,

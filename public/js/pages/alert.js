@@ -34,6 +34,7 @@ let tableAlerteConfig = {
 let tableAlerte = initDataTable('tableAlerte', tableAlerteConfig);
 
 $(function() {
+    initDateTimePicker();
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ALERTE);
 

@@ -1,6 +1,7 @@
 {% extends 'filters/filters.html.twig' %}
 
 {% block filters %}
+    {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterType.html.twig' with {
         arrivalType: false } %}
     {% include 'filters/filter_item/filterAlert.html.twig' %}

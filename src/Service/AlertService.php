@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Alert;
 use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
 use App\Entity\FreeField;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
@@ -33,7 +34,7 @@ class AlertService {
         $expired = $manager->getRepository(Article::class)->findExpiredToGenerate($expiry);
         $noLongerExpired = $manager->getRepository(Alert::class)->findNoLongerExpired();
 
-        foreach ($noLongerExpired as $alert) {
+        foreach($noLongerExpired as $alert) {
             $manager->remove($alert);
         }
 
@@ -42,12 +43,12 @@ class AlertService {
         foreach($expired as $article) {
             $hasExistingAlert = !(
             Stream::from($article->getAlerts())
-                ->filter(function (Alert $alert) {
+                ->filter(function(Alert $alert) {
                     return $alert->getType() === Alert::EXPIRY;
                 })->isEmpty()
             );
 
-            if (!$hasExistingAlert) {
+            if(!$hasExistingAlert) {
                 $alert = new Alert();
                 $alert->setArticle($article);
                 $alert->setType(Alert::EXPIRY);
@@ -59,7 +60,7 @@ class AlertService {
                 ->getReferenceArticle()
                 ->getManagers();
 
-            foreach ($recipients as $recipient) {
+            foreach($recipients as $recipient) {
                 $this->addArticle($managers, $recipient->getEmail(), $article);
                 $this->addArticle($managers, $recipient->getSecondaryEmails(), $article);
             }
@@ -139,6 +140,58 @@ class AlertService {
         ]);
 
         $this->mailer->sendMail('FOLLOW GT // Seuil de péremption atteint', $content, $manager);
+    }
+
+    public function putLineAlert(EntityManagerInterface $entityManager,
+                                 SpecificService $specificService,
+                                 CSVExportService $CSVExportService,
+                                 $output,
+                                 Alert $alert) {
+        $serializedAlert = $alert->serialize();
+
+        [$reference, $article] = $alert->getLinkedArticles();
+
+        if($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+            $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+            $freeFieldMachinePDT = $freeFieldRepository->findOneBy(['label' => 'Machine (PDT)']);
+
+            if(($article || $reference)) {
+                $freeFields = $reference->getFreeFields();
+                if($freeFieldMachinePDT
+                    && $freeFields
+                    && $freeFields[(string)$freeFieldMachinePDT->getId()]) {
+                    $freeFieldMachinePDTValue = $freeFields[(string)$freeFieldMachinePDT->getId()];
+                } else {
+                    $freeFieldMachinePDTValue = '';
+                }
+
+                $supplierArticles = $article
+                    ? [$article->getArticleFournisseur()]
+                    : $reference->getArticlesFournisseur()->toArray();
+
+                if(!empty($supplierArticles)) {
+                    /** @var ArticleFournisseur $supplierArticle */
+                    foreach($supplierArticles as $supplierArticle) {
+                        $supplier = $supplierArticle->getFournisseur();
+                        $row = array_merge(array_values($serializedAlert), [
+                            $supplier->getNom(),
+                            $supplierArticle->getReference(),
+                            $freeFieldMachinePDTValue
+                        ]);
+                        $CSVExportService->putLine($output, $row);
+                    }
+                } else {
+                    $row = array_merge(array_values($serializedAlert), [
+                        '', //supplier name
+                        '', //supplier article reference
+                        $freeFieldMachinePDTValue
+                    ]);
+                    $CSVExportService->putLine($output, $row);
+                }
+            }
+        } else {
+            $CSVExportService->putLine($output, $serializedAlert);
+        }
     }
 
 }

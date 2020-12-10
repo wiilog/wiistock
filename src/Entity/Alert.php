@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Helper\FormatHelper;
 use App\Repository\AlertRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -93,4 +94,62 @@ class Alert {
         return $this;
     }
 
+    public function serialize(): array {
+        [$reference, $article] = $this->getLinkedArticles();
+
+        return [
+            'type' => self::TYPE_LABELS[$this->getType()],
+            'date' => FormatHelper::date($this->getDate()),
+            'label' => $reference ? $reference->getLibelle() : '',
+            'reference' => $reference ? $reference->getReference() : '',
+            'barcode' => ($article
+                ? $article->getBarCode()
+                : ($reference
+                    ? $reference->getBarCode()
+                    : '')),
+            'availableQuantity' => ($this->getReference()
+                ? $this->getReference()->getQuantiteDisponible()
+                : ($this->getArticle()
+                    ? $this->getArticle()->getQuantite()
+                    : '' )),
+            'typeQuantity' => $reference->getTypeQuantite()
+                ? $reference->getTypeQuantite()
+                : '',
+            'limitWarning' => $reference
+                ? $reference->getLimitWarning()
+                : '',
+            'limitSecurity' => $reference
+                ? $reference->getLimitSecurity()
+                : '',
+            'expiryDate' => $article
+                ? FormatHelper::date($article->getExpiryDate())
+                : '',
+            'managers' => $reference
+                ? FormatHelper::users($reference->getManagers())
+                : ""
+        ];
+    }
+
+    public function getLinkedArticles(): array {
+        if ($this->getReference()) {
+            $referenceArticle = $this->getReference();
+            $article = null;
+        }
+        else if ($this->getArticle()) {
+            $article = $this->getArticle();
+            $articleFournisseur = $article->getArticleFournisseur();
+            $referenceArticle = $articleFournisseur
+                ? $articleFournisseur->getReferenceArticle()
+                : null;
+        }
+        else {
+            $referenceArticle = null;
+            $article = null;
+        }
+
+        return [
+            $referenceArticle,
+            $article
+        ];
+    }
 }

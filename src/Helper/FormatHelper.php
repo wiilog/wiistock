@@ -7,6 +7,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use DateTimeInterface;
+use Traversable;
 
 class FormatHelper {
 
@@ -24,6 +25,14 @@ class FormatHelper {
 
     public static function user(?Utilisateur $user, $else = "") {
         return $user ? $user->getUsername() : $else;
+    }
+
+    public static function users(?Traversable $users) {
+       return Stream::from($users)
+            ->map(function (?Utilisateur $user) {
+                return self::user($user);
+            })
+            ->join(" / ");
     }
 
     public static function bool(?bool $bool, $else = "") {

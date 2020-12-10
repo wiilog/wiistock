@@ -24,7 +24,6 @@ use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
-use App\Repository\TypeRepository;
 use App\Service\AlertService;
 use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
@@ -1178,5 +1177,4 @@ class ParametrageGlobalController extends AbstractController {
             }
         }
     }
-
 }
