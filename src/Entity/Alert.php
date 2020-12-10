@@ -99,21 +99,9 @@ class Alert {
         $type = $this->getType();
         $dateAlerte = FormatHelper::date($this->getDate());
 
-        if ($this->getReference()) {
-            $referenceArticle = $this->getReference();
-            $article = null;
-        }
-        else if ($this->getArticle()) {
-            $article = $this->getArticle();
-            $articleFournisseur = $article->getArticleFournisseur();
-            $referenceArticle = $articleFournisseur
-                ? $articleFournisseur->getReferenceArticle()
-                : null;
-        }
-        else {
-            $referenceArticle = null;
-            $article = null;
-        }
+        $linked = $this->getLinkedArticles();
+        $referenceArticle = $linked['referenceArticle'];
+        $article = $linked['article'];
 
         return [
             'type' => self::TYPE_LABELS[$type],
@@ -144,7 +132,29 @@ class Alert {
                 : '',
             'managers' => $this->getReference()
                 ? FormatHelper::users($this->getReference()->getManagers()->toArray())
-                : '',
+                : ''
+        ];
+    }
+
+    public function getLinkedArticles(): array {
+        if ($this->getReference()) {
+            $referenceArticle = $this->getReference();
+            $article = null;
+        }
+        else if ($this->getArticle()) {
+            $article = $this->getArticle();
+            $articleFournisseur = $article->getArticleFournisseur();
+            $referenceArticle = $articleFournisseur
+                ? $articleFournisseur->getReferenceArticle()
+                : null;
+        }
+        else {
+            $referenceArticle = null;
+            $article = null;
+        }
+        return [
+            'referenceArticle' => $referenceArticle,
+            'article' => $article
         ];
     }
 }

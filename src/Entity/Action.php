@@ -77,7 +77,7 @@ class Action
 	const DISPLAY_INVE = 'afficher inventaires';
 	const DISPLAY_ALER = 'afficher alertes';
 	const INVENTORY_MANAGER = 'gestionnaire d\'inventaire';
-	const EXPORT_ALER = 'exporter alertes d\'inventaire';
+	const EXPORT_ALER = 'exporter alertes';
 
 	// menu référentiel
 	const DISPLAY_FOUR = 'afficher fournisseurs';

@@ -4,20 +4,16 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Alert;
-use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
-use App\Entity\ReferenceArticle;
-use App\Entity\TransferOrder;
 use App\Entity\Type;
-use App\Helper\Stream;
+use App\Service\AlertService;
 use App\Service\CSVExportService;
 use App\Service\RefArticleDataService;
+use App\Service\SpecificService;
 use App\Service\UserService;
 use DateTime;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use http\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,6 +21,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Throwable;
 
 /**
  * @Route("/alerte")
@@ -54,10 +51,8 @@ class AlertController extends AbstractController
         }
 
         $typeRepository = $this->getDoctrine()->getRepository(Type::class);
-        $allowExportAlert = $userService->hasRightFunction(Menu::STOCK, Action::EXPORT_ALER);
         return $this->render('alerte_reference/index.html.twig', [
             "types" => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]),
-            "hasRihgtExportAlert" => $allowExportAlert,
             "alerts" => [
                 "security" => "Seuil de sécurité",
                 "alert" => "Seuil d'alerte",
@@ -91,12 +86,15 @@ class AlertController extends AbstractController
     /**
      * @Route("/csv", name="alert_export",options={"expose"=true}, methods="GET|POST" )
      * @param Request $request
+     * @param AlertService $alertService
+     * @param SpecificService $specificService
      * @param EntityManagerInterface $entityManager
      * @param CSVExportService $CSVExportService
      * @return Response
-     * @throws \Exception
      */
     public function export(Request $request,
+                           AlertService $alertService,
+                           SpecificService $specificService,
                            EntityManagerInterface $entityManager,
                            CSVExportService $CSVExportService): Response
     {
@@ -109,10 +107,8 @@ class AlertController extends AbstractController
         }
 
         if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
-
             $today = new DateTime();
             $todayStr = $today->format("d-m-Y-H-i-s");
-
 
             $header = [
                 "type d'alerte",
@@ -128,13 +124,13 @@ class AlertController extends AbstractController
                 "gestionnaire(s)"
             ];
 
-            return $CSVExportService->streamResponse(function ($output) use ($entityManager, $CSVExportService, $dateTimeMin, $dateTimeMax) {
+            return $CSVExportService->streamResponse(function ($output) use ($alertService, $specificService, $entityManager, $CSVExportService, $dateTimeMin, $dateTimeMax) {
                 $alertRepository = $entityManager->getRepository(Alert::class);
 
                 $alerts = $alertRepository->iterateBetween($dateTimeMin, $dateTimeMax);
                 /** @var Alert $alert */
                 foreach ($alerts as $alert) {
-                    $CSVExportService->putLine($output, $alert->serialize());
+                    $alertService->putLineAlert($entityManager, $specificService, $CSVExportService, $output, $alert);
                 }
             }, "export_alert_${todayStr}.csv", $header);
         } else {

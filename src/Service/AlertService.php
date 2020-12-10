@@ -4,6 +4,8 @@ namespace App\Service;
 
 use App\Entity\Alert;
 use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
+use App\Entity\FreeField;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
@@ -127,6 +129,72 @@ class AlertService {
         ]);
 
         $this->mailer->sendMail('FOLLOW GT // Seuil de péremption atteint', $content, $manager);
+    }
+
+    public function putLineAlert(EntityManagerInterface $entityManager,
+                                 SpecificService $specificService,
+                                 CSVExportService $CSVExportService,
+                                 $output,
+                                 Alert $alert) {
+        $serializedAlert = $alert->serialize();
+
+        $linked = $alert->getLinkedArticles();
+        /** @var ReferenceArticle|null $referenceArticle */
+        $referenceArticle = $linked['referenceArticle'];
+
+        /** @var Article|null $article */
+        $article = $linked['article'];
+
+        if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+            $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+            $freeFieldMachinePDT = $freeFieldRepository->findOneBy(['label' => 'Machine (PDT)']);
+
+            if (($article || $referenceArticle)) {
+                $freeFields = $referenceArticle->getFreeFields();
+                if ($freeFieldMachinePDT
+                    && $freeFields
+                    && $freeFields[(string) $freeFieldMachinePDT->getId()]) {
+                    $freeFieldMachinePDTValue = $freeFields[(string) $freeFieldMachinePDT->getId()];
+                }
+                else {
+                    $freeFieldMachinePDTValue = '';
+                }
+
+                $supplierArticles = $article
+                    ? [$article->getArticleFournisseur()]
+                    : $referenceArticle->getArticlesFournisseur()->toArray();
+
+                if (!empty($supplierArticles)) {
+                    /** @var ArticleFournisseur $supplierArticle */
+                    foreach ($supplierArticles as $supplierArticle) {
+                        $supplier = $supplierArticle->getFournisseur();
+                        $row = array_merge(
+                            array_values($serializedAlert),
+                            [
+                                $supplier->getNom(),
+                                $supplierArticle->getReference(),
+                                $freeFieldMachinePDTValue
+                            ]
+                        );
+                        $CSVExportService->putLine($output, $row);
+                    }
+                }
+                else {
+                    $row = array_merge(
+                        array_values($serializedAlert),
+                        [
+                            '',
+                            '',
+                            $freeFieldMachinePDTValue
+                        ]
+                    );
+                    $CSVExportService->putLine($output, $row);
+                }
+            }
+        }
+        else {
+            $CSVExportService->putLine($output, $serializedAlert);
+        }
     }
 
 }
