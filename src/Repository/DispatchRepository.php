@@ -44,8 +44,8 @@ class DispatchRepository extends EntityRepository
                     $value = explode(',', $filter['value']);
                     $qb
                         ->join('dispatch.type', 'filter_type')
-                        ->andWhere('filter_type.id in (:type)')
-                        ->setParameter('type', $value);
+                        ->andWhere('filter_type.id in (:filter_type_value)')
+                        ->setParameter('filter_type_value', $value);
                     break;
                 case FiltreSup::FIELD_REQUESTERS:
                     $value = explode(',', $filter['value']);
@@ -65,29 +65,29 @@ class DispatchRepository extends EntityRepository
                     $value = explode(',', $filter['value']);
                     $qb
                         ->join('dispatch.carrier', 'filter_carrier')
-                        ->andWhere('filter_carrier.id in (:carrier)')
-                        ->setParameter('carrier', $value);
+                        ->andWhere('filter_carrier.id in (:filter_carrier_value)')
+                        ->setParameter('filter_carrier_value', $value);
                     break;
                 case FiltreSup::FIELD_DISPATCH_NUMBER:
                     $value = explode(',', $filter['value']);
-                    $qb->andWhere("dispatch.id = :dispatchnumber")
-                        ->setParameter("dispatchnumber", $value);
+                    $qb->andWhere("dispatch.id = :filter_dispatchnumber_value")
+                        ->setParameter("filter_dispatchnumber_value", $value);
                     break;
                 case FiltreSup::FIELD_EMERGENCY_MULTIPLE:
                     $value = array_map(function($value) {
                         return explode(":", $value)[0];
                     }, explode(',', $filter['value']));
 
-                    $qb->andWhere("dispatch.emergency IN (:emergencies)")
-                        ->setParameter("emergencies", $value);
+                    $qb->andWhere("dispatch.emergency IN (:filter_emergencies_value)")
+                        ->setParameter("filter_emergencies_value", $value);
                     break;
                 case 'dateMin':
-                    $qb->andWhere('dispatch.creationDate >= :dateMin')
-                        ->setParameter('dateMin', $filter['value'] . ' 00.00.00');
+                    $qb->andWhere('dispatch.creationDate >= :filter_dateMin_value')
+                        ->setParameter('filter_dateMin_value', $filter['value'] . ' 00.00.00');
                     break;
                 case 'dateMax':
-                    $qb->andWhere('dispatch.creationDate <= :dateMax')
-                        ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
+                    $qb->andWhere('dispatch.creationDate <= :filter_dateMax_value')
+                        ->setParameter('filter_dateMax_value', $filter['value'] . ' 23:59:59');
                     break;
             }
         }
@@ -97,18 +97,18 @@ class DispatchRepository extends EntityRepository
                 if (!empty($search)) {
                     $qb
                         ->andWhere('(' . $exprBuilder->orX(
-                            "DATE_FORMAT(dispatch.creationDate, '%e/%m/%Y') LIKE :value",
-                            "DATE_FORMAT(dispatch.validationDate, '%e/%m/%Y') LIKE :value",
-                            "DATE_FORMAT(dispatch.treatmentDate, '%e/%m/%Y') LIKE :value",
-                            "DATE_FORMAT(dispatch.endDate, '%e/%m/%Y') LIKE :value",
-                            'search_type.label LIKE :value',
-                            'search_requester.username LIKE :value',
-                            'search_receiver.username LIKE :value',
-                            'dispatch.number LIKE :value',
-                            'search_locationFrom.label LIKE :value',
-                            'search_locationTo.label LIKE :value',
-                            'search_statut.nom LIKE :value',
-                            'dispatch.freeFields LIKE :value'
+                            "DATE_FORMAT(dispatch.creationDate, '%e/%m/%Y') LIKE :search_value",
+                            "DATE_FORMAT(dispatch.validationDate, '%e/%m/%Y') LIKE :search_value",
+                            "DATE_FORMAT(dispatch.treatmentDate, '%e/%m/%Y') LIKE :search_value",
+                            "DATE_FORMAT(dispatch.endDate, '%e/%m/%Y') LIKE :search_value",
+                            'search_type.label LIKE :search_value',
+                            'search_requester.username LIKE :search_value',
+                            'search_receiver.username LIKE :search_value',
+                            'dispatch.number LIKE :search_value',
+                            'search_locationFrom.label LIKE :search_value',
+                            'search_locationTo.label LIKE :search_value',
+                            'search_statut.nom LIKE :search_value',
+                            'dispatch.freeFields LIKE :search_value'
                         ) . ')')
                         ->leftJoin('dispatch.locationFrom', 'search_locationFrom')
                         ->leftJoin('dispatch.locationTo', 'search_locationTo')
@@ -116,7 +116,7 @@ class DispatchRepository extends EntityRepository
                         ->leftJoin('dispatch.type', 'search_type')
                         ->leftJoin('dispatch.requester','search_requester')
                         ->leftJoin('dispatch.receiver', 'search_receiver')
-                        ->setParameter('value', '%' . $search . '%');
+                        ->setParameter('search_value', '%' . $search . '%');
                 }
             }
             if (!empty($params->get('order'))) {
