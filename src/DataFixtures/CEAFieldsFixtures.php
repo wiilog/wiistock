@@ -92,8 +92,11 @@ class CEAFieldsFixtures extends Fixture implements FixtureGroupInterface {
         }
 
         foreach($reference->getArticlesFournisseur() as $article) {
-            $concerned = $this->sanitize($article->getReference()) == "A DETERMINER" &&
-                $this->sanitize($article->getLabel()) == "A DETERMINER";
+            $supplier = $article->getFournisseur();
+            $concerned = (
+                $this->sanitize($supplier->getCodeReference()) == "A DETERMINER"
+                && $this->sanitize($article->getReference()) == "A DETERMINER"
+            );
 
             if($concerned) {
                 $article->setFournisseur($oem)
