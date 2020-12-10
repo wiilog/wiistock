@@ -1,7 +1,7 @@
 <a data-toggle="collapse" href="#dimsForm" role="button" aria-expanded="false"
    aria-controls="dimsForm" class="col-12 mb-4">
     <h1 class="btn btn-primary m-0 w-100 border-radius-light">Configuration des étiquettes<i
-                class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+            class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
 </a>
 <div class="collapse col-12" id="dimsForm">
     <div class="float-right btn btn-success" onclick="ajaxDims()">
@@ -17,25 +17,9 @@
         <input type="text" class="form-control data" name="width"
                value="{{ dimensions_etiquettes.width is defined ? dimensions_etiquettes.width : '' }}">
     </div>
-    <div class="form-group w-fit-content">
-        <label for="param-type-etiquette">Champ libre présent sur les étiquettes</label>
-        <select name="param-cl-etiquette" class="data form-control select2 w-100">
-            {% for cl in cls %}
-                <option value="{{ cl.label }}" {{ cl.label == blChosen ? 'selected' : '' }}>{{ cl.label }}</option>
-            {% endfor %}
-        </select>
-    </div>
     <span class="toggle-collapsible">Arrivages</span>
     <div class="collapsible mb-2">
         <div class="row mt-2">
-            <div class="form-group col-6">
-                <label for="param-bl-etiquette">Champ libre <span class="blChosen">"{{ blChosen }}"</span> sur les étiquettes</label>
-                <label class="switch">
-                    <input type="checkbox" class="checkbox col-3 data"
-                           name="param-bl-etiquette" {{ wantsBL ? 'checked' : '' }}>
-                    <span class="slider round"></span>
-                </label>
-            </div>
             <div class="form-group col-6">
                 <label for="param-bl-etiquette">Afficher le destinataire sur étiquette colis d'arrivage</label>
                 <label class="switch">
@@ -98,7 +82,7 @@
                     <img src="{{ emergencyIcon ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ emergencyIcon : '' }}"
                          id="preview-emergency-icon" alt="Logo douane" height="50px" class="{{ emergencyIcon ? '' : 'd-none' }}"/>
 
-                    <button class="btn btn-primary" onclick="$('#upload-emergency-icon').click();">{{ emergencyIcon ? "<i class='fas fa-pencil-alt'></i> ": ' Choisir un icône'}}</button>
+                    <button class="btn btn-primary" onclick="$('#upload-emergency-icon').click();">{{ emergencyIcon ? "<i class='fas fa-pencil-alt'></i> ": ' Choisir un icône' }}</button>
 
                     <input type="file" id="upload-emergency-icon" name="emergency-icon" accept="image/png, image/jpeg, image/jpg" hidden>
                 </div>
@@ -119,7 +103,7 @@
                     <img src="{{ customIcon ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ customIcon : '' }}"
                          id="preview-custom-icon" alt="Logo urgence" height="50px" class="{{ customIcon ? '' : 'd-none' }}"/>
 
-                    <button class="btn btn-primary" onclick="$('#upload-custom-icon').click();">{{ customIcon ? "<i class='fas fa-pencil-alt'></i> ": ' Choisir un icône'}}</button>
+                    <button class="btn btn-primary" onclick="$('#upload-custom-icon').click();">{{ customIcon ? "<i class='fas fa-pencil-alt'></i> ": ' Choisir un icône' }}</button>
 
                     <input type="file" id="upload-custom-icon" name="custom-icon" accept="image/png, image/jpeg, image/jpg" hidden>
                 </div>
@@ -130,6 +114,24 @@
     <span class="toggle-collapsible">Articles</span>
     <div class="collapsible mb-2">
         <div class="row mt-2">
+            <div class="form-group col-6">
+                <label for="param-type-etiquette">Champ libre présent sur les étiquettes</label>
+                <select name="param-cl-etiquette" class="data form-control select2 w-100">
+                    {% for cl in cls %}
+                        <option value="{{ cl.label }}" {{ cl.label == blChosen ? 'selected' : '' }}>{{ cl.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group col-6">
+                <label for="param-bl-etiquette">Champ libre <span class="blChosen">"{{ blChosen }}"</span> sur les étiquettes</label>
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3 data"
+                           name="param-bl-etiquette" {{ wantsBL ? 'checked' : '' }}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
             <div class="form-group col-6">
                 <label for="param-add-destination-location-article-label">Afficher l’emplacement de destination sur étiquette article de réception</label>
                 <label class="switch">
@@ -200,10 +202,10 @@
         </select>
     </div>
     <div class="form-group d-flex">
-            <img src="{{ logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ logo : '' }}"
-                 id="preview-label-logo" alt="Logo choisi" height="50px" class="{{ logo ? '' : 'd-none' }}"/>
+        <img src="{{ logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ logo : '' }}"
+             id="preview-label-logo" alt="Logo choisi" height="50px" class="{{ logo ? '' : 'd-none' }}"/>
 
-        <button class="btn btn-primary" onclick="$('#upload-label-logo').click();">{{ logo ? "<i class='fas fa-pencil-alt'></i> ": 'Choisir un logo'}}</button>
+        <button class="btn btn-primary" onclick="$('#upload-label-logo').click();">{{ logo ? "<i class='fas fa-pencil-alt'></i> ": 'Choisir un logo' }}</button>
 
         <input type="file" id="upload-label-logo" name="logo" accept="image/png, image/jpeg, image/jpg" hidden>
     </div>
