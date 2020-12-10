@@ -63,7 +63,7 @@ class CEAFieldsFixtures extends Fixture implements FixtureGroupInterface {
         $oem = $this->getOEM($reference);
         $oemReference = $this->getOEMReference($reference);
 
-        if($oem !== null && $oemReference !== null) {
+        if($oem !== null && $oemReference !== null && !$this->getToBeDetermined($reference)) {
             $article = (new ArticleFournisseur())
                 ->setReferenceArticle($reference)
                 ->setReference($oemReference)
@@ -91,21 +91,23 @@ class CEAFieldsFixtures extends Fixture implements FixtureGroupInterface {
             return;
         }
 
+        $article = $this->getToBeDetermined($reference);
+        if($article) {
+            $article->setFournisseur($oem)
+                ->setReference($oemReference)
+                ->setLabel($reference->getLibelle());
+        }
+    }
+
+    private function getToBeDetermined(ReferenceArticle $reference): ?ArticleFournisseur {
         foreach($reference->getArticlesFournisseur() as $article) {
-            $supplier = $article->getFournisseur();
-            $concerned = (
-                $this->sanitize($supplier->getCodeReference()) == "A DETERMINER"
-                && $this->sanitize($article->getReference()) == "A DETERMINER"
-            );
-
-            if($concerned) {
-                $article->setFournisseur($oem)
-                    ->setReference($oemReference)
-                    ->setLabel($reference->getLibelle());
-
-                break;
+            if($this->sanitize($article->getReference(), true) == "A DETERMINER" &&
+                $this->sanitize($article->getLabel(), true) == "A DETERMINER") {
+                return $article;
             }
         }
+
+        return null;
     }
 
     private function getOEM(ReferenceArticle $reference): ?Fournisseur {
