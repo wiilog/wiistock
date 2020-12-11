@@ -166,6 +166,7 @@ function initPageDatatable() {
         columns: [
             {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'Référence', 'title': 'Référence'},
+            {"data": 'barcode', 'title': 'Code barre'},
             {"data": 'Libellé', 'title': 'Libellé'},
             {"data": 'Emplacement', 'title': 'Emplacement'},
             {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
