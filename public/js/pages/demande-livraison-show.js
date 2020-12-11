@@ -38,7 +38,11 @@ function ajaxGetAndFillArticle($select) {
     if ($select.val() !== null) {
         let path = Routing.generate('demande_article_by_refArticle', true);
         let refArticle = $select.val();
-        let params = JSON.stringify(refArticle);
+        const deliveryRequestId = $('[name="delivery-request-id"]').val();
+        let params = {
+            refArticle: refArticle,
+            deliveryRequestId: deliveryRequestId
+        };
         let $selection = $('#selection');
         let $editNewArticle = $('#editNewArticle');
         let $modalFooter = $('#modalNewArticle').find('.modal-footer');
@@ -47,7 +51,7 @@ function ajaxGetAndFillArticle($select) {
         $editNewArticle.html('');
         $modalFooter.addClass('d-none');
 
-        $.post(path, params, function (data) {
+        $.post(path, JSON.stringify(params), function (data) {
             $selection.html(data.selection);
             $editNewArticle.html(data.modif);
             $modalFooter.removeClass('d-none');

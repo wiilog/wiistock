@@ -165,13 +165,14 @@ class ArticleDataService
     /**
      * @param ReferenceArticle $refArticle
      * @param Utilisateur $user
+     * @param int|null $deliveryRequestId
      * @return array
      *
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
      */
-    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle, Utilisateur $user)
+    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle, Utilisateur $user, ?int $deliveryRequestId)
     {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
@@ -241,6 +242,7 @@ class ArticleDataService
                         'articles' => $articles,
                         'preselect' => isset($management),
                         'maximum' => $availableQuantity,
+                        'deliveryRequestId' => $deliveryRequestId
                     ])
                 ];
             }
@@ -350,6 +352,7 @@ class ArticleDataService
      * @return Article
      *
      * @throws NonUniqueResultException
+     * @throws \Exception
      */
     public function newArticle($data, EntityManagerInterface $entityManager, Demande $demande = null) {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
