@@ -19,22 +19,19 @@ $(function () {
 
 function loadPage() {
     let idLocationsToDisplay = $('#emplacement').val();
-    const $message = $('.error-msg');
     const locationFiltersCounter = idLocationsToDisplay.length;
     const min = Number($('#encours-min-location-filter').val());
     const max = Number($('#encours-max-location-filter').val());
     if (locationFiltersCounter < min || locationFiltersCounter > max) {
         $('.block-encours').addClass('d-none');
-        $message.removeClass('d-none');
         if (locationFiltersCounter < min) {
-            $message.text('Vous devez sélectionner au moins un emplacement dans les filtres')
+            showBSAlert('Vous devez sélectionner au moins un emplacement dans les filtres', 'danger')
         }
         else { // locationFiltersCounter > max
-            $message.text(`Le nombre maximum d\'emplacements dans les filtres est de ${max}`)
+            showBSAlert(`Le nombre maximum d\'emplacements dans les filtres est de ${max}`, 'danger')
         }
     }
     else {
-        $message.addClass('d-none');
         $('.block-encours').each(function () {
             const $blockEncours = $(this);
             let $tableEncours = $blockEncours.find('.encours-table').filter(function() {
