@@ -284,6 +284,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('join_dispatchPack_pack.code AS packCode')
             ->addSelect('join_dispatchPack_nature.label AS packNatureLabel')
             ->addSelect('join_dispatchPack_pack.quantity AS packQuantity')
+            ->addSelect('join_dispatchPack_pack.weight AS weight')
             ->addSelect('join_dispatchPack_lastTracking.datetime AS lastMovement')
             ->addSelect('join_dispatchPack_lastTracking_location.label AS lastLocation')
             ->addSelect('join_dispatchPack_lastTracking_operator.username AS operator')
