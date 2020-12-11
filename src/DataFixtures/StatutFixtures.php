@@ -107,6 +107,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
             CategorieStatut::LITIGE_ARR => [],
             CategorieStatut::LITIGE_RECEPT => [],
             CategorieStatut::DISPATCH => [],
+            CategorieStatut::HANDLING => [],
             CategorieStatut::TRANSFER_REQUEST => [
                 TransferRequest::DRAFT,
                 TransferRequest::TO_TREAT,
