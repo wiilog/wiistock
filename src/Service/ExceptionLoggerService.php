@@ -19,7 +19,7 @@ use Throwable;
 
 class ExceptionLoggerService {
 
-    const DEFAULT_LOGGER_URL = "https://logger.follow-gt.fr/api/log";
+    const DEFAULT_LOGGER_URL = "http://logger/api/log";
 
     private $security;
     private $client;
