@@ -1,0 +1,13 @@
+{% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
+<div class="d-flex">
+    <div class="dropdown dropright">
+        {{ include('datatable/dotsRow.html.twig') }}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            <a class="dropdown-item"
+               href="{{ path('reference_article_index', {'open-modal': 'edit', 'modal-edit-id': referenceId }) }}">
+                <i class='fas fa-share-square mr-2'></i>Aller sur la référence
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
