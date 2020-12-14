@@ -1,5 +1,3 @@
 controllers:
     resource: ../../src/Controller/
     type: annotation
-    defaults:
-        schemes: [https]
