@@ -35,7 +35,7 @@ security:
                 use_forward: false
                 check_path: login
                 provider: our_db_provider
-                default_target_path: /accueil
+                default_target_path: accueil
                 always_use_default_target_path: false
                 csrf_token_generator: security.csrf.token_manager
                 use_referer: true

@@ -13,7 +13,11 @@ use App\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Twig\Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class AlertService {
 
@@ -25,6 +29,11 @@ class AlertService {
         $this->templating = $templating;
     }
 
+    /**
+     * @param EntityManagerInterface $manager
+     * @throws NonUniqueResultException
+     * @throws Exception
+     */
     public function generateAlerts(EntityManagerInterface $manager) {
         $now = new DateTime("now", new \DateTimeZone("Europe/Paris"));
         $parametrage = $manager->getRepository(ParametrageGlobal::class);
@@ -129,6 +138,14 @@ class AlertService {
             });
     }
 
+    /**
+     * @param $manager
+     * @param $articles
+     * @param $delay
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
     public function sendExpiryMails($manager, $articles, $delay) {
         if(!is_array($articles)) {
             $articles = [$articles];
@@ -153,12 +170,13 @@ class AlertService {
 
         if($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
             $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-            $freeFieldMachinePDT = $freeFieldRepository->findOneBy(['label' => 'Machine (PDT)']);
+            $freeFieldMachinePDT = $freeFieldRepository->findOneBy(['label' => 'Machine PDT']);
 
             if(($article || $reference)) {
                 $freeFields = $reference->getFreeFields();
                 if($freeFieldMachinePDT
                     && $freeFields
+                    && array_key_exists($freeFieldMachinePDT->getId(), $freeFields)
                     && $freeFields[(string)$freeFieldMachinePDT->getId()]) {
                     $freeFieldMachinePDTValue = $freeFields[(string)$freeFieldMachinePDT->getId()];
                 } else {

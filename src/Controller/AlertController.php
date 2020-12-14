@@ -124,6 +124,15 @@ class AlertController extends AbstractController
                 "gestionnaire(s)"
             ];
 
+            if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+                $specificHeader = [
+                    'Nom fournisseur',
+                    'Réf art Fournisseur',
+                    'Machine (PDT)'
+                ];
+                $header = array_merge($header, $specificHeader);
+            }
+
             return $CSVExportService->streamResponse(function ($output) use ($alertService, $specificService, $entityManager, $CSVExportService, $dateTimeMin, $dateTimeMax) {
                 $alertRepository = $entityManager->getRepository(Alert::class);
 
