@@ -78,7 +78,7 @@ security:
         # - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED, requires_channel: https}
 #        - { path: ^/tests, roles: ROLE_API }
         - { path: ^/api, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/login, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/login, role: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https }
         - { path: ^/register, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/oubli, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/change-password, role: IS_AUTHENTICATED_ANONYMOUSLY }
@@ -87,4 +87,4 @@ security:
         - { path: ^/check_last_login, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/dashboard-externe, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/statistiques/, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED }
+        - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED, requires_channel: https }
