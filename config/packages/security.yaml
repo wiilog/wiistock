@@ -87,4 +87,4 @@ security:
         - { path: ^/check_last_login, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/dashboard-externe, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/statistiques/, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED, requires_channel: https }
+        - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED }
