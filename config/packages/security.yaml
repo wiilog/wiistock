@@ -32,13 +32,11 @@ security:
             pattern: ^/
             form_login:
                 login_path: login
-                use_forward: false
                 check_path: login
                 provider: our_db_provider
-                default_target_path: accueil
-                always_use_default_target_path: false
+                default_target_path: /accueil
+                always_use_default_target_path: true
                 csrf_token_generator: security.csrf.token_manager
-                use_referer: true
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: 604800 # 1 semaine
