@@ -15,8 +15,6 @@ parameters:
     env(APP_FORBIDDEN_PHONES): ''
     env(APP_LAST_CACHE_CLEAR): ''
 
-    router.request_context.scheme: 'https'
-
     #menu_config added via menu.yaml
 
 services:
