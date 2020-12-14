@@ -38,7 +38,7 @@ security:
                 default_target_path: accueil
                 always_use_default_target_path: false
                 csrf_token_generator: security.csrf.token_manager
-                use_referer: false
+                use_referer: true
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: 604800 # 1 semaine
