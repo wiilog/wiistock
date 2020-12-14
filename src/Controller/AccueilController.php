@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\AverageRequestTime;
@@ -11,6 +12,7 @@ use App\Entity\Demande;
 use App\Entity\FiabilityByReference;
 use App\Entity\Handling;
 use App\Entity\LocationCluster;
+use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -23,6 +25,8 @@ use App\Service\DashboardService;
 use App\Service\DemandeCollecteService;
 use App\Service\DemandeLivraisonService;
 use App\Service\HandlingService;
+use App\Service\RoleService;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -43,8 +47,9 @@ class AccueilController extends AbstractController
      * @param AverageRequestTimeRepository $averageRequestTimeRepository
      * @param DateService $dateService
      * @param DemandeCollecteService $demandeCollecteService
-     * @param DemandeLivraisonService $demandeLivraisonService
      * @param HandlingService $handlingService
+     * @param UserService $userService
+     * @param DemandeLivraisonService $demandeLivraisonService
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
@@ -54,6 +59,7 @@ class AccueilController extends AbstractController
                           DateService $dateService,
                           DemandeCollecteService $demandeCollecteService,
                           HandlingService $handlingService,
+                          UserService $userService,
                           DemandeLivraisonService $demandeLivraisonService): Response
     {
         $data = $this->getDashboardData(
@@ -63,7 +69,9 @@ class AccueilController extends AbstractController
             $handlingService,
             $demandeCollecteService,
             $averageRequestTimeRepository,
-            $dateService);
+            $dateService,
+            $userService
+        );
         return $this->render('accueil/index.html.twig', $data);
     }
 
@@ -101,16 +109,16 @@ class AccueilController extends AbstractController
 
     /**
      * @param EntityManagerInterface $entityManager
+     * @param bool $isDashboardExt
      * @param DemandeLivraisonService|null $demandeLivraisonService
      * @param HandlingService|null $handlingService
      * @param DemandeCollecteService|null $demandeCollecteService
      * @param AverageRequestTimeRepository|null $averageRequestTimeRepository
      * @param DateService|null $dateService
-     * @param bool $isDashboardExt
+     * @param UserService|null $userService
      * @return array
      * @throws NoResultException
      * @throws NonUniqueResultException
-     * @throws Exception
      */
     private function getDashboardData(EntityManagerInterface $entityManager,
                                       bool $isDashboardExt,
@@ -118,7 +126,8 @@ class AccueilController extends AbstractController
                                       HandlingService $handlingService = null,
                                       DemandeCollecteService $demandeCollecteService = null,
                                       AverageRequestTimeRepository $averageRequestTimeRepository = null,
-                                      DateService $dateService = null)
+                                      DateService $dateService = null,
+                                      UserService $userService = null)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -185,21 +194,33 @@ class AccueilController extends AbstractController
 
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
-            $pendingDeliveries = Stream::from($demandeRepository->findRequestToTreatByUser($loggedUser))
-                ->map(function (Demande $demande) use ($demandeLivraisonService, $dateService, $averageRequestTimesByType) {
-                    return $demandeLivraisonService->parseRequestForCard($demande, $dateService, $averageRequestTimesByType);
-                })
-                ->toArray();
-            $pendingCollects = Stream::from($collecteRepository->findRequestToTreatByUser($loggedUser))
-                ->map(function (Collecte $collecte) use ($demandeCollecteService, $dateService, $averageRequestTimesByType) {
-                    return $demandeCollecteService->parseRequestForCard($collecte, $dateService, $averageRequestTimesByType);
-                })
-                ->toArray();
-            $pendingHandlings = Stream::from($handlingRepository->findRequestToTreatByUser($loggedUser))
-                ->map(function (Handling $handling) use ($handlingService, $dateService, $averageRequestTimesByType) {
-                    return $handlingService->parseRequestForCard($handling, $dateService, $averageRequestTimesByType);
-                })
-                ->toArray();
+            if ($userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR, $loggedUser)) {
+                $pendingDeliveries = Stream::from($demandeRepository->findRequestToTreatByUser($loggedUser))
+                    ->map(function (Demande $demande) use ($demandeLivraisonService, $dateService, $averageRequestTimesByType) {
+                        return $demandeLivraisonService->parseRequestForCard($demande, $dateService, $averageRequestTimesByType);
+                    })
+                    ->toArray();
+            } else {
+                $pendingDeliveries = [];
+            }
+            if ($userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL, $loggedUser)) {
+                $pendingCollects = Stream::from($collecteRepository->findRequestToTreatByUser($loggedUser))
+                    ->map(function (Collecte $collecte) use ($demandeCollecteService, $dateService, $averageRequestTimesByType) {
+                        return $demandeCollecteService->parseRequestForCard($collecte, $dateService, $averageRequestTimesByType);
+                    })
+                    ->toArray();
+            } else {
+                $pendingCollects = [];
+            }
+            if ($userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND, $loggedUser)) {
+                $pendingHandlings = Stream::from($handlingRepository->findRequestToTreatByUser($loggedUser))
+                    ->map(function (Handling $handling) use ($handlingService, $dateService, $averageRequestTimesByType) {
+                        return $handlingService->parseRequestForCard($handling, $dateService, $averageRequestTimesByType);
+                    })
+                    ->toArray();
+            } else {
+                $pendingHandlings = [];
+            }
         } else {
             $pendingDeliveries = [];
             $pendingHandlings = [];
