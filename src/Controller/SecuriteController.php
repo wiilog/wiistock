@@ -81,8 +81,12 @@ class SecuriteController extends AbstractController {
      */
     public function login(AuthenticationUtils $authenticationUtils,
                           EntityManagerInterface $entityManager,
-                          string $info = '')
-    {
+                          string $info = '') {
+        $loggedUser = $this->getUser();
+        if($loggedUser && $loggedUser instanceof Utilisateur) {
+            return $this->redirectToRoute('accueil');
+        }
+
         $error = $authenticationUtils->getLastAuthenticationError();
         $errorToDisplay = "";
 
@@ -90,9 +94,9 @@ class SecuriteController extends AbstractController {
         $lastUsername = $authenticationUtils->getLastUsername();
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $user = $utilisateurRepository->findOneBy(['email' => $lastUsername]);
-        if ($user && $user->getStatus() === false) {
+        if($user && $user->getStatus() === false) {
             $errorToDisplay = 'Utilisateur inactif.';
-        } else if ($error) {
+        } else if($error) {
             $errorToDisplay = 'Identifiants incorrects.';
         }
 
