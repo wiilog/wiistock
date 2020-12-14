@@ -9,6 +9,8 @@ use ReflectionClass;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -19,7 +21,7 @@ use Throwable;
 
 class ExceptionLoggerService {
 
-    const DEFAULT_LOGGER_URL = "https://logger.follow-gt.fr/api/log";
+    const DEFAULT_LOGGER_URL = "http://logger/api/log";
 
     private $security;
     private $client;
@@ -41,8 +43,7 @@ class ExceptionLoggerService {
     }
 
     public function sendLog(Throwable $throwable, Request $request) {
-        $env = $_SERVER["APP_ENV"];
-        if ($env === "dev") {
+        if ($throwable instanceof NotFoundHttpException || $throwable instanceof AccessDeniedHttpException) {
             return;
         }
 
