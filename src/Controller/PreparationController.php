@@ -15,6 +15,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Exceptions\NegativeQuantityException;
+use App\Service\CSVExportService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
@@ -29,6 +30,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\ArticleDataService;
 use App\Entity\Demande;
@@ -566,20 +568,24 @@ class PreparationController extends AbstractController
      * @return Response
      */
     public function getOrdrePrepaIntels(Request $request,
+                                        CSVExportService $CSVExportService,
                                         EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
 
-            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (\Throwable $throwable) {
+        }
+
+        if(isset($dateTimeMin) && isset($dateTimeMax)) {
 
             $preparationRepository = $entityManager->getRepository(Preparation::class);
-
             $preparations = $preparationRepository->findByDates($dateTimeMin, $dateTimeMax);
 
-            $headers = [
+            $csvHeader = [
                 'numéro',
                 'statut',
                 'date création',
@@ -591,15 +597,44 @@ class PreparationController extends AbstractController
                 'quantité à collecter',
                 'code-barre'
             ];
+            $nowStr = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 
-            $data = [];
-            $data[] = $headers;
-            foreach ($preparations as $preparation) {
-                $this->buildInfos($preparation, $data);
-            }
-            return new JsonResponse($data);
+            return $CSVExportService->createBinaryResponseFromData(
+                "Export-Ordre-Preparation-" . $nowStr->format('d_m_Y') . ".csv",
+                $preparations,
+                $csvHeader,
+
+                function (Preparation $preparation) {
+                    $preparationBaseData = $preparation->serialize();
+                    $preparationData = [];
+
+                    foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
+                        $referenceArticle = $ligneArticle->getReference();
+                        $preparationData[] = array_merge($preparationBaseData, [
+                            $referenceArticle->getReference() ?? '',
+                            $referenceArticle->getLibelle() ?? '',
+                            $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
+                            $ligneArticle->getQuantite() ?? 0,
+                            $referenceArticle->getBarCode()
+                        ]);
+                    }
+
+                    foreach ($preparation->getArticles() as $article) {
+                        $articleFournisseur = $article->getArticleFournisseur();
+                        $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+                        $reference = $referenceArticle ? $referenceArticle->getReference() : '';
+                        $preparationData[] = array_merge($preparationBaseData, [
+                            $reference,
+                            $article->getLabel() ?? '',
+                            $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                            $article->getQuantite() ?? 0,
+                            $article->getBarCode()
+                        ]);
+                    }
+                    return $preparationData;
+                });
         } else {
-            throw new BadRequestHttpException();
+            throw new NotFoundHttpException('404');
         }
     }
 
