@@ -147,68 +147,69 @@ class LitigeController extends AbstractController
      *
      * @return Response
      */
-	public function getLitigesIntels(Request $request,
+    public function getLitigesIntels(Request $request,
                                      EntityManagerInterface $entityManager,
                                      CSVExportService $CSVExportService): Response
-	{
-		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $litigeRepository = $entityManager->getRepository(Litige::class);
+    {
 
-			$dateMin = $data['dateMin'] . ' 00:00:00';
-			$dateMax = $data['dateMax'] . ' 23:59:59';
+        $litigeRepository = $entityManager->getRepository(Litige::class);
 
-			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
 
-            $arrivalLitiges = $litigeRepository->findArrivalsLitigeByDates($dateTimeMin, $dateTimeMax);
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (\Throwable $throwable) {
+        }
+        $arrivalLitiges = $litigeRepository->findArrivalsLitigeByDates($dateTimeMin, $dateTimeMax);
 
-			$headers = [
-			    'Numéro de litige',
-			    'Type',
-                'Statut',
-                'Date création',
-                'Date modification',
-                'Colis / Réferences',
-                'Code barre',
-                'QteArticle',
-                'Ordre arrivage / réception',
-				'N° Commande / BL',
-                'Déclarant',
-                'Fournisseur',
-                'N° ligne',
-                'Acheteur(s)',
-                'Date commentaire',
-            	'Utilisateur',
-            	'Commentaire'
-            ];
+        $headers = [
+            'Numéro de litige',
+            'Type',
+            'Statut',
+            'Date création',
+            'Date modification',
+            'Colis / Réferences',
+            'Code barre',
+            'QteArticle',
+            'Ordre arrivage / réception',
+            'N° Commande / BL',
+            'Déclarant',
+            'Fournisseur',
+            'N° ligne',
+            'Acheteur(s)',
+            'Date commentaire',
+            'Utilisateur',
+            'Commentaire'
+        ];
 
-			$data = [$headers];
+        $nowStr = date("d-m-Y_H-i");
 
-            /** @var Litige $litige */
-            foreach ($arrivalLitiges as $litige) {
+        return $CSVExportService->createBinaryResponseFromData(
+            "Export-Litiges" . $nowStr . ".csv",
+            $arrivalLitiges,
+            $headers,
+            function ($litige) use ($CSVExportService, $litigeRepository, $dateTimeMax, $dateTimeMin) {
+                $rows = [];
+
                 $colis = $litige->getPacks();
                 foreach ($colis as $coli) {
-
                     $colis = $litige->getPacks();
                     /** @var Arrivage $arrivage */
                     $arrivage = ($colis->count() > 0 && $colis->first()->getArrivage())
                         ? $colis->first()->getArrivage()
                         : null;
                     $acheteurs = $arrivage->getAcheteurs()->toArray();
-                    $buyersMailsStr = implode('/', array_map(function(Utilisateur $acheteur) {
+                    $buyersMailsStr = implode('/', array_map(function (Utilisateur $acheteur) {
                         return $acheteur->getEmail();
                     }, $acheteurs));
 
-                    $litigeData = [];
+                    $litigeData = $litige->serialize();
 
-                    $litigeData[] = $litige->getNumeroLitige();
-                    $litigeData[] = $CSVExportService->escapeCSV($litige->getType() ? $litige->getType()->getLabel() : '');
-                    $litigeData[] = $CSVExportService->escapeCSV($litige->getStatus() ? $litige->getStatus()->getNom() : '');
-                    $litigeData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
-                    $litigeData[] = $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '';
                     $litigeData[] = $coli->getCode();
                     $litigeData[] = ' ';
-                    $litigeData[] = '' ;
+                    $litigeData[] = '';
 
                     $litigeData[] = $arrivage ? $arrivage->getNumeroArrivage() : '';
 
@@ -217,99 +218,71 @@ class LitigeController extends AbstractController
                     $declarant = $litige->getDeclarant() ? $litige->getDeclarant()->getUsername() : '';
                     $litigeData[] = $declarant;
                     $fournisseur = $arrivage ? $arrivage->getFournisseur() : null;
-                    $litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
+                    $litigeData[] = $fournisseur ? $fournisseur->getNom() : '';
                     $litigeData[] = ''; // N° de ligne
                     $litigeData[] = $buyersMailsStr;
                     $litigeHistorics = $litige->getLitigeHistorics();
-                    if ($litigeHistorics->count() === 0) {
-                        $litigeData[] = '';
-                        $litigeData[] = '';
-                        $litigeData[] = '';
-                        $data[] = $litigeData;
-                    } else {
+                    if (!$litigeHistorics->isEmpty()) {
                         $historic = $litigeHistorics->last();
-                        $data[] = array_merge(
-                            $litigeData,
-                            [
-                                $historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '',
-                                $CSVExportService->escapeCSV($historic->getUser() ? $historic->getUser()->getUsername() : ''),
-                                $CSVExportService->escapeCSV($historic->getComment()),
-                            ]
-                        );
+                        $litigeData[] = $historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '';
+                        $litigeData[] = $historic->getUser() ? $historic->getUser()->getUsername() : '';
+                        $litigeData[] = $historic->getComment();
+                    }
+                    $rows[] = $litigeData;
+                }
+
+                $receptionLitiges = $litigeRepository->findReceptionLitigeByDates($dateTimeMin, $dateTimeMax);
+
+                /** @var Litige $litige */
+                foreach ($receptionLitiges as $litige) {
+                    $articles = $litige->getArticles();
+                    foreach ($articles as $article) {
+
+                        $buyers = $litige->getBuyers()->toArray();
+                        $buyersMailsStr = implode('/', array_map(function (Utilisateur $acheteur) {
+                            return $acheteur->getEmail();
+                        }, $buyers));
+
+                        $litigeData = $litige->serialize();
+
+                        $referencesStr = implode(', ', $litigeRepository->getReferencesByLitigeId($litige->getId()));
+
+                        $litigeData[] = $referencesStr;
+
+                        /** @var Article $firstArticle */
+                        $firstArticle = ($articles->count() > 0 ? $articles->first() : null);
+                        $qteArticle = $article->getQuantite();
+                        $receptionRefArticle = isset($firstArticle) ? $firstArticle->getReceptionReferenceArticle() : null;
+                        $reception = isset($receptionRefArticle) ? $receptionRefArticle->getReception() : null;
+                        $litigeData[] = $article->getBarCode();
+                        $litigeData[] = $qteArticle;
+                        $litigeData[] = (isset($reception) ? $reception->getNumeroReception() : '');
+
+                        $litigeData[] = (isset($reception) ? $reception->getOrderNumber() : null);
+
+                        $declarant = $litige->getDeclarant() ? $litige->getDeclarant()->getUsername() : '';
+                        $litigeData[] = $declarant;
+                        $fournisseur = (isset($reception) ? $reception->getFournisseur() : null);
+                        $litigeData[] = isset($fournisseur) ? $fournisseur->getNom() : '';
+
+                        $litigeData[] = implode(', ', $litigeRepository->getCommandesByLitigeId($litige->getId()));
+
+                        $litigeHistorics = $litige->getLitigeHistorics();
+
+                        $litigeData[] = $buyersMailsStr;
+                        if (!$litigeHistorics->isEmpty()) {
+                            $historic = $litigeHistorics->last();
+                            $litigeData[] = ($historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '');
+                            $litigeData[] = $historic->getUser() ? $historic->getUser()->getUsername() : '';
+                            $litigeData[] = $historic->getComment();
+                        }
+                        $rows[] = $litigeData;
                     }
                 }
+                return $rows;
             }
-
-            $receptionLitiges = $litigeRepository->findReceptionLitigeByDates($dateTimeMin, $dateTimeMax);
-
-            /** @var Litige $litige */
-            foreach ($receptionLitiges as $litige) {
-                $articles = $litige->getArticles();
-                foreach ($articles as $article) {
-
-                    $buyers = $litige->getBuyers()->toArray();
-                    $buyersMailsStr = implode('/', array_map(function(Utilisateur $acheteur) {
-                        return $acheteur->getEmail();
-                    }, $buyers));
-
-                    $litigeData = [];
-
-                    $litigeData[] = $litige->getNumeroLitige();
-                    $litigeData[] = $CSVExportService->escapeCSV($litige->getType() ? $litige->getType()->getLabel() : '');
-                    $litigeData[] = $CSVExportService->escapeCSV($litige->getStatus() ? $litige->getStatus()->getNom() : '');
-                    $litigeData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
-                    $litigeData[] = $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '';
-
-                    $referencesStr = implode(', ', $litigeRepository->getReferencesByLitigeId($litige->getId()));
-
-                    $litigeData[] = $referencesStr;
-
-                    /** @var Article $firstArticle */
-                    $firstArticle = ($articles->count() > 0 ? $articles->first() : null);
-                    $qteArticle = $article->getQuantite();
-                    $receptionRefArticle = isset($firstArticle) ? $firstArticle->getReceptionReferenceArticle() : null;
-                    $reception = isset($receptionRefArticle) ? $receptionRefArticle->getReception() : null;
-                    $litigeData[] = $article->getBarCode();
-                    $litigeData[] = $qteArticle;
-                    $litigeData[] = (isset($reception) ? $reception->getNumeroReception() : '');
-
-                    $litigeData[] = (isset($reception) ? $reception->getOrderNumber() : null);
-
-                    $declarant = $litige->getDeclarant() ? $litige->getDeclarant()->getUsername() : '';
-                    $litigeData[] = $declarant;
-                    $fournisseur = (isset($reception) ? $reception->getFournisseur() : null);
-                    $litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
-
-                    $litigeData[] = implode(', ', $litigeRepository->getCommandesByLitigeId($litige->getId()));
-
-                    $litigeHistorics = $litige->getLitigeHistorics();
-
-                    $litigeData[] = $buyersMailsStr;
-                    if ($litigeHistorics->count() === 0) {
-                        $litigeData[] = '';
-                        $litigeData[] = '';
-                        $litigeData[] = '';
-
-                        $data[] = $litigeData;
-                    } else {
-                        $historic = $litigeHistorics->last();
-                        $data[] = array_merge(
-                            $litigeData,
-                            [
-                                ($historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : ''),
-                                $CSVExportService->escapeCSV($historic->getUser() ? $historic->getUser()->getUsername() : ''),
-                                $CSVExportService->escapeCSV($historic->getComment()),
-                            ]
-                        );
-                    }
-                }
-			}
-
-			return new JsonResponse($data);
-		} else {
-			throw new BadRequestHttpException();
-		}
-	}
+        );
+    }
 
     /**
      * @Route("/supprime-pj-litige", name="litige_delete_attachement", options={"expose"=true}, methods="GET|POST")

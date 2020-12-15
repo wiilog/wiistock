@@ -377,4 +377,15 @@ class Litige
         return $this;
     }
 
+    public function serialize()
+    {
+        return [
+            'numeroLitige' => $this->getNumeroLitige(),
+            'type' => $this->getType() ? $this->getType()->getLabel() : '',
+            'status' => $this->getStatus() ? $this->getStatus()->getNom() : '',
+            'creationDate' => $this->getCreationDate() ? $this->getCreationDate()->format('d/m/Y') : '',
+            'updateDate' => $this->getUpdateDate() ? $this->getUpdateDate()->format('d/m/Y') : '',
+        ];
+    }
+
 }
