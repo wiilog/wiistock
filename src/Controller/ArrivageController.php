@@ -693,11 +693,17 @@ class ArrivageController extends AbstractController
                     foreach ($pack->getTrackingMovements() as $arrivageMvtTraca) {
                         $entityManager->remove($arrivageMvtTraca);
                     }
+
+                    $pack->getTrackingMovements()->clear();
+
                     $litiges = $pack->getLitiges();
                     foreach ($litiges as $litige) {
                         $entityManager->remove($litige);
                     }
+                    $pack->getLitiges()->clear();
                 }
+                $arrivage->getPacks()->clear();
+
                 foreach ($arrivage->getAttachments() as $attachement) {
                     $this->attachmentService->removeAndDeleteAttachment($attachement, $arrivage);
                 }

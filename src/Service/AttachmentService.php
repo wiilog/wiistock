@@ -13,6 +13,7 @@ use ReflectionClass;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Throwable;
 
 
 class AttachmentService {
@@ -100,7 +101,12 @@ class AttachmentService {
         $pieceJointeAlreadyInDB = $attachmentRepository->findOneByFileName($attachment->getFileName());
         if (count($pieceJointeAlreadyInDB) === 1) {
             $path = $this->getServerPath($attachment);
-            unlink($path);
+            try {
+                unlink($path);
+            }
+            catch(Throwable $ignored) {
+                // ignored
+            }
         }
 
         $this->em->remove($attachment);
