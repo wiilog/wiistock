@@ -33,7 +33,7 @@
     </div>
 
     <div class="form-group w-fit-content">
-        <label for="param-type-encodage">Logo du nomade login</label>
+        <label for="param-type-encodage">Logo nomade page connexion</label>
         <div class="form-group d-flex">
             <img src="{{ mobile_logo_login ? app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ mobile_logo_login : '' }}"
                  id="preview-mobile-logo-login" alt="Logo choisi" height="50px" class="{{ not mobile_logo_login ? 'd-none' }}"/>
@@ -52,7 +52,7 @@
     </div>
 
     <div class="form-group w-fit-content">
-        <label for="param-type-encodage">Logo du nomade header</label>
+        <label for="param-type-encodage">Logo nomade entête</label>
         <div class="form-group d-flex">
             <img src="{{ mobile_logo_header ? app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ mobile_logo_header : '' }}"
                  id="preview-mobile-logo-header" alt="Logo choisi" height="50px" class="{{ not mobile_logo_header ? 'd-none' }}"/>
