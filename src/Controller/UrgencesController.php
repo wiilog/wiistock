@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Urgence;
+use App\Service\CSVExportService;
 use App\Service\SpecificService;
 use App\Service\UrgenceService;
 use App\Service\UserService;
@@ -17,6 +18,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 
@@ -262,25 +264,29 @@ class UrgencesController extends AbstractController
      * @Route("/urgences-infos", name="get_urgence_for_csv", options={"expose"=true}, methods={"GET","POST"})
      * @param EntityManagerInterface $entityManager
      * @param Request $request
+     * @param CSVExportService $CSVExportService
      * @return Response
-     * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function getUrgencesIntels(EntityManagerInterface $entityManager,
-                                      Request $request): Response
+                                      Request $request,
+                                      CSVExportService $CSVExportService): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
 
-            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+        try {
+        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (\Throwable $throwable) {
 
+        }
+        if (isset($dateTimeMin) && isset($dateTimeMax)) {
 
             $urgenceRepositoty = $entityManager->getRepository(Urgence::class);
-
             $urgences = $urgenceRepositoty->findByDates($dateTimeMin, $dateTimeMax);
-            // en-têtes champs fixes
-            $headers = [
+
+            $csvheader = [
                 'Debut delais livraison',
                 'Fin delais livraison',
                 'Numero de commande',
@@ -293,34 +299,19 @@ class UrgencesController extends AbstractController
                 "Numero d'arrivage",
                 'Date de creation',
             ];
+            $nowStr = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 
-            $data = [$headers];
+            return $CSVExportService->createBinaryResponseFromData(
+                "Export-Urgence-" . $nowStr->format('d_m_y') . ".csv",
+                $urgences,
+                $csvheader,
 
-            /** @var Urgence $urgence */
-            foreach ($urgences as $urgence) {
-                $dateStart = $urgence->getDateStart();
-                $dateEnd = $urgence->getDateEnd();
-                $dateArrival = $urgence->getLastArrival() ? $urgence->getLastArrival()->getDate() : null;
-                $dateCreation = $urgence->getCreatedAt() ? $urgence->getCreatedAt() : null;
-                $urgenceData = [];
-                $urgenceData[] = date_format($dateStart, 'd/m/Y H:i:s');
-                $urgenceData[] = date_format($dateEnd, 'd/m/Y H:i:s');
-                $urgenceData[] = $urgence->getCommande() ? $urgence->getCommande() : '';
-                $urgenceData[] = $urgence->getPostNb() ? $urgence->getPostNb() : '';
-                $urgenceData[] = $urgence->getBuyer() ? $urgence->getBuyer()->getUsername() : '';
-                $urgenceData[] = $urgence->getProvider() ? $urgence->getProvider()->getNom() : '';
-                $urgenceData[] = $urgence->getCarrier() ? $urgence->getCarrier()->getLabel() : '';
-                $urgenceData[] = $urgence->getTrackingNb() ? $urgence->getTrackingNb() : '';
-                $urgenceData[] = $dateArrival ? date_format($dateArrival, 'd/m/Y H:i:s') : '';
-                $urgenceData[] = $dateArrival ? $urgence->getLastArrival()->getNumeroArrivage() : '';
-                $urgenceData[] = $dateCreation ? date_format($dateCreation, 'd/m/Y H:i:s') : '';
-
-                $data[] = $urgenceData;
-            }
-
-            return new JsonResponse($data);
+                function (Urgence $urgence) {
+                    return [$urgence->serialize()];
+                }
+            );
         } else {
-            throw new BadRequestHttpException();
+            throw new NotFoundHttpException('404');
         }
     }
 

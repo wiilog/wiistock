@@ -199,4 +199,21 @@ class Urgence
         $this->createdAt = $createdAt;
         return $this;
     }
+
+    public function serialize()
+    {
+        return [
+            'dateStart' => $this->getDateStart() ? $this->getDateStart()->format('d/m/Y H:i:s') : '',
+            'dateEnd' => $this->getDateEnd() ? $this->getDateEnd()->format('d/m/Y H:i:s') : '',
+            'commande' => $this->getCommande() ? $this->getCommande() : '',
+            'numposte' => $this->getPostNb() ? $this->getPostNb() : '',
+            'buyer' => $this->getBuyer() ? $this->getBuyer()->getUsername() : '',
+            'provider' => $this->getProvider() ? $this->getProvider()->getNom() : '',
+            'carrier' => $this->getCarrier() ? $this->getCarrier()->getLabel() : '',
+            'trackingnum' => $this->getTrackingNb() ? $this->getTrackingNb() : '',
+            'datearrival' => $this->getLastArrival() ? $this->getLastArrival()->getDate()->format('d/m/Y H:i:s') : '',
+            'arrivageNumber' => $this->getLastArrival() ? $this->getLastArrival()->getNumeroArrivage() : '',
+            'creationDate' => $this->getCreatedAt() ? $this->getCreatedAt()->format('d/m/Y H:i:s') : '',
+        ];
+    }
 }
