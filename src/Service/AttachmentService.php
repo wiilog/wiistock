@@ -25,7 +25,8 @@ class AttachmentService {
     const OVERCONSUMPTION_LOGO = 'logo_for_overconsumption';
     const WEBSITE_LOGO = 'website_logo';
     const EMAIL_LOGO = 'email_logo';
-    const MOBILE_LOGO = 'mobile_logo';
+    const MOBILE_LOGO_LOGIN = 'mobile_logo_login';
+    const MOBILE_LOGO_HEADER = 'mobile_logo_header';
 
     private $attachmentDirectory;
 	private $em;
