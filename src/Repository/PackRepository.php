@@ -10,6 +10,7 @@ use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query;
 use Exception;
 
 /**
@@ -59,9 +60,17 @@ class PackRepository extends EntityRepository
      */
     public function getByDates(DateTime $dateMin, DateTime $dateMax)
     {
-        return $this->createQueryBuilder('pack')
+        $iterator =  $this->createQueryBuilder('pack')
             ->select('pack')
+            ->addSelect('pack.code as code')
+            ->addSelect('n.label as nature')
+            ->addSelect('m.datetime as lastMvtDate')
+            ->addSelect('m.id as fromTo')
+            ->addSelect('emplacement.label as location')
             ->leftJoin('pack.lastTracking', 'm')
+            ->leftJoin('m.emplacement','emplacement')
+            ->leftJoin('pack.nature','n')
+            ->leftJoin('pack.arrivage', 'arrivage')
             ->where(
                 'm.datetime BETWEEN :dateMin AND :dateMax'
             )
@@ -70,7 +79,12 @@ class PackRepository extends EntityRepository
                 'dateMax' => $dateMax
             ])
             ->getQuery()
-            ->getResult();
+            ->iterate(null, Query::HYDRATE_ARRAY);
+
+        foreach($iterator as $item) {
+            // $item [index => article array]
+            yield array_pop($item);
+        }
     }
 
     /**

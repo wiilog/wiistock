@@ -106,9 +106,9 @@ class CSVExportService {
     }
 
     public function streamResponse(callable $generator, string $name, ?array $header = null): StreamedResponse {
-        $response = new StreamedResponse(function() use ($generator, $header) {
+        $response = new StreamedResponse(function () use ($generator, $header) {
             $output = fopen("php://output", "wb");
-            if($header) {
+            if ($header) {
                 $this->putLine($output, $header);
             }
 

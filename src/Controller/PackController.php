@@ -9,14 +9,18 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 
+use App\Entity\TrackingMovement;
 use App\Entity\Type;
+use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\PackService;
+use App\Service\TrackingMovementService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\Entity;
 use Exception;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -31,7 +35,8 @@ use Throwable;
 /**
  * @Route("/colis")
  */
-class PackController extends AbstractController {
+class PackController extends AbstractController
+{
 
     /**
      * @Route("/", name="pack_index", options={"expose"=true})
@@ -40,8 +45,9 @@ class PackController extends AbstractController {
      * @return RedirectResponse|Response
      */
     public function index(EntityManagerInterface $entityManager,
-                          UserService $userService) {
-        if(!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_PACK)) {
+                          UserService $userService)
+    {
+        if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_PACK)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -64,9 +70,10 @@ class PackController extends AbstractController {
      */
     public function api(Request $request,
                         UserService $userService,
-                        PackService $packService): Response {
-        if($request->isXmlHttpRequest()) {
-            if(!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_PACK)) {
+                        PackService $packService): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_PACK)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -82,17 +89,22 @@ class PackController extends AbstractController {
      * @param Request $request
      * @param CSVExportService $CSVExportService
      * @param UserService $userService
+     * @param TrackingMovementService $trackingMovementService
      * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
+     * @param LoggerInterface $logger
      * @return Response
      */
     public function printCSVPacks(Request $request,
                                   CSVExportService $CSVExportService,
                                   UserService $userService,
+                                  TrackingMovementService $trackingMovementService,
                                   TranslatorInterface $translator,
-                                  EntityManagerInterface $entityManager): Response {
+                                  EntityManagerInterface $entityManager,
+                                  LoggerInterface $logger): Response
+    {
 
-        if(!$userService->hasRightFunction(Menu::TRACA, Action::EXPORT)) {
+        if (!$userService->hasRightFunction(Menu::TRACA, Action::EXPORT)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -102,13 +114,10 @@ class PackController extends AbstractController {
         try {
             $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
             $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch(Throwable $throwable) {
+        } catch (Throwable $throwable) {
         }
 
-        if(isset($dateTimeMin) && isset($dateTimeMax)) {
-            $packRepository = $entityManager->getRepository(Pack::class);
-
-            $packs = $packRepository->getByDates($dateTimeMin, $dateTimeMax);
+        if (isset($dateTimeMin) && isset($dateTimeMax)) {
 
             $csvHeader = [
                 'Numéro colis',
@@ -116,35 +125,24 @@ class PackController extends AbstractController {
                 'Date du dernier mouvement',
                 'Issu de',
                 'Emplacement',
-                'Type d\'arrivage'
             ];
 
-            return $CSVExportService->createBinaryResponseFromData(
-                'export_packs.csv',
-                $packs,
-                $csvHeader,
-                function(Pack $pack) use ($translator) {
-                    $lastPackMovement = $pack->getLastTracking();
-                    $row = [];
-                    $row[] = $pack->getCode();
-                    $row[] = $pack->getNature() ? $pack->getNature()->getLabel() : '';
-                    $row[] = $lastPackMovement
-                        ? ($lastPackMovement->getDatetime()
-                            ? $lastPackMovement->getDatetime()->format('d/m/Y \à H:i:s')
-                            : '')
-                        : '';
-                    $row[] = $pack->getArrivage() ? $translator->trans('arrivage.arrivage') : '-';
-                    $row[] = $lastPackMovement
-                        ? ($lastPackMovement->getEmplacement()
-                            ? $lastPackMovement->getEmplacement()->getLabel()
-                            : '')
-                        : '';
-                    $row[] = $pack->getArrivage() ? $pack->getArrivage()->getType()->getLabel(): '';
-                    return [$row];
-                }
+            return $CSVExportService->streamResponse(
+
+                function ($output) use ($CSVExportService, $translator, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
+                    $packRepository = $entityManager->getRepository(Pack::class);
+                    $packs = $packRepository->getByDates($dateTimeMin, $dateTimeMax);
+                    $trackingMouvementRepository = $entityManager->getRepository(TrackingMovement::class);
+
+                    foreach ($packs as $pack) {
+                        $trackingMouvment = $trackingMouvementRepository->find($pack['fromTo']);
+                        $mvtData = $trackingMovementService->getFromColumnData($trackingMouvment);
+                        $pack['fromTo'] = $translator->trans($mvtData['fromLabel']) . '-' . $mvtData['from'];
+                        $this->putPackLine($output, $CSVExportService, $pack);
+                    }
+                }, 'export_packs.csv',
+                $csvHeader
             );
-        } else {
-            throw new BadRequestHttpException();
         }
     }
 
@@ -155,14 +153,15 @@ class PackController extends AbstractController {
      * @return JsonResponse
      */
     public function getPackIntel(EntityManagerInterface $entityManager,
-                                 string $packCode): JsonResponse {
+                                 string $packCode): JsonResponse
+    {
         $packRepository = $entityManager->getRepository(Pack::class);
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $natures = $naturesRepository->findAll();
         $uniqueNature = count($natures) === 1;
         $pack = $packRepository->findOneBy(['code' => $packCode]);
 
-        if($pack && $pack->getNature()) {
+        if ($pack && $pack->getNature()) {
             $nature = [
                 'id' => $pack->getNature()->getId(),
                 'label' => $pack->getNature()->getLabel(),
@@ -196,9 +195,10 @@ class PackController extends AbstractController {
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager,
-                            UserService $userService): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if($userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
+                            UserService $userService): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if ($userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 $packRepository = $entityManager->getRepository(Pack::class);
                 $natureRepository = $entityManager->getRepository(Nature::class);
                 $pack = $packRepository->find($data['id']);
@@ -228,8 +228,9 @@ class PackController extends AbstractController {
                          EntityManagerInterface $entityManager,
                          UserService $userService,
                          PackService $packService,
-                         TranslatorInterface $translator): Response {
-        if(!$userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
+                         TranslatorInterface $translator): Response
+    {
+        if (!$userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
         $data = json_decode($request->getContent(), true);
@@ -239,7 +240,7 @@ class PackController extends AbstractController {
 
         $pack = $packRepository->find($data['id']);
         $packDataIsValid = $packService->checkPackDataBeforeEdition($data);
-        if(!empty($pack) && $packDataIsValid['success']) {
+        if (!empty($pack) && $packDataIsValid['success']) {
             $packService
                 ->editPack($data, $natureRepository, $pack);
 
@@ -250,7 +251,7 @@ class PackController extends AbstractController {
                         "{numéro}" => '<strong>' . $pack->getCode() . '</strong>'
                     ]) . '.'
             ];
-        } else if(!$packDataIsValid['success']) {
+        } else if (!$packDataIsValid['success']) {
             $response = $packDataIsValid;
         }
         return new JsonResponse($response);
@@ -268,9 +269,10 @@ class PackController extends AbstractController {
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
                            UserService $userService,
-                           TranslatorInterface $translator): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
+                           TranslatorInterface $translator): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $packRepository = $entityManager->getRepository(Pack::class);
@@ -279,24 +281,24 @@ class PackController extends AbstractController {
             $pack = $packRepository->find($data['pack']);
             $packCode = $pack->getCode();
             $arrivage = isset($data['arrivage']) ? $arrivageRepository->find($data['arrivage']) : null;
-            if(!$pack->getTrackingMovements()->isEmpty()) {
+            if (!$pack->getTrackingMovements()->isEmpty()) {
                 $msg = $translator->trans("colis.Ce colis est référencé dans un ou plusieurs mouvements de traçabilité");
             }
 
-            if(!$pack->getDispatchPacks()->isEmpty()) {
+            if (!$pack->getDispatchPacks()->isEmpty()) {
                 $msg = $translator->trans("colis.Ce colis est référencé dans un ou plusieurs acheminements");
             }
 
-            if(!$pack->getLitiges()->isEmpty()) {
+            if (!$pack->getLitiges()->isEmpty()) {
                 $msg = $translator->trans("colis.Ce colis est référencé dans un ou plusieurs litiges");
             }
-            if($pack->getArrivage() && $arrivage !== $pack->getArrivage()) {
+            if ($pack->getArrivage() && $arrivage !== $pack->getArrivage()) {
                 $msg = $translator->trans('colis.Ce colis est utilisé dans l\'arrivage {arrivage}', [
                     "{arrivage}" => $pack->getArrivage()->getNumeroArrivage()
                 ]);
             }
 
-            if(isset($msg)) {
+            if (isset($msg)) {
                 return $this->json([
                     "success" => false,
                     "msg" => $msg
@@ -317,4 +319,15 @@ class PackController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
+    private function putPackLine($handle, CSVExportService $csvService, array $pack)
+    {
+        $line = [
+            $pack['code'],
+            $pack['nature'],
+            FormatHelper::datetime($pack['lastMvtDate']),
+            $pack['fromTo'],
+            $pack['location']
+        ];
+        $csvService->putLine($handle, $line);
+    }
 }
