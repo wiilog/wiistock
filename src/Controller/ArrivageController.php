@@ -1532,10 +1532,22 @@ class ArrivageController extends AbstractController
                                        EntityManagerInterface $entityManager,
                                        PDFGeneratorService $PDFGeneratorService)
     {
-        $packIdsFilter = $request->query->get('packIds') ?: [];
+        $packIdsFilter = $request->query->get('packs') ?: [];
         return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService, null, $packIdsFilter);
     }
 
+    /**
+     * @param Arrivage $arrivage
+     * @param bool|null $typeArrivalParamIsDefined
+     * @param bool|null $usernameParamIsDefined
+     * @param bool|null $dropzoneParamIsDefined
+     * @param bool|null $packCountParamIsDefined
+     * @param bool|null $commandAndProjectNumberIsDefined
+     * @param array|null $firstCustomIconConfig
+     * @param array|null $secondCustomIconConfig
+     * @param array $packIdsFilter
+     * @return array
+     */
     private function getBarcodeConfigPrintAllColis(Arrivage $arrivage,
                                                    ?bool $typeArrivalParamIsDefined = false,
                                                    ?bool $usernameParamIsDefined = false,
