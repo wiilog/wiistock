@@ -33,14 +33,40 @@
     </div>
 
     <div class="form-group w-fit-content">
-        <label for="param-type-encodage">Logo du nomade</label>
+        <label for="param-type-encodage">Logo du nomade login</label>
         <div class="form-group d-flex">
-            <img src="{{ mobile_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ mobile_logo : '' }}"
-                 id="preview-mobile-logo" alt="Logo choisi" height="50px" class="{{ not mobile_logo ? 'd-none' }}"/>
+            <img src="{{ mobile_logo_login ? app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ mobile_logo_login : '' }}"
+                 id="preview-mobile-logo-login" alt="Logo choisi" height="50px" class="{{ not mobile_logo_login ? 'd-none' }}"/>
 
-            <button class="btn btn-primary" onclick="$('#upload-mobile-logo').click();">{{ mobile_logo ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo'}}</button>
+            <button class="btn btn-primary"
+                    onclick="$('#upload-mobile-logo-login').click();">
+                {{ mobile_logo_login ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo'}}
+            </button>
 
-            <input type="file" id="upload-mobile-logo" accept="image/png, image/jpeg, image/jpg" hidden>
+            <input type="file"
+                   name="mobile-logo-login"
+                   id="upload-mobile-logo-login"
+                   accept="image/png, image/jpeg, image/jpg"
+                   hidden>
+        </div>
+    </div>
+
+    <div class="form-group w-fit-content">
+        <label for="param-type-encodage">Logo du nomade header</label>
+        <div class="form-group d-flex">
+            <img src="{{ mobile_logo_header ? app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ mobile_logo_header : '' }}"
+                 id="preview-mobile-logo-header" alt="Logo choisi" height="50px" class="{{ not mobile_logo_header ? 'd-none' }}"/>
+
+            <button class="btn btn-primary"
+                    onclick="$('#upload-mobile-logo-header').click();">
+                {{ mobile_logo_header ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo'}}
+            </button>
+
+            <input type="file"
+                   name="mobile-logo-header"
+                   id="upload-mobile-logo-header"
+                   accept="image/png, image/jpeg, image/jpg"
+                   hidden>
         </div>
     </div>
 

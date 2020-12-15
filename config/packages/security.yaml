@@ -27,6 +27,9 @@ security:
         nomade_apk:
             pattern: ^/telecharger/nomade.apk$
             security: false
+        api_logos:
+            pattern: ^/api/logos$
+            security: false
         main:
             provider: our_db_provider
             pattern: ^/

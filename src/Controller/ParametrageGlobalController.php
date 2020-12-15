@@ -86,10 +86,11 @@ class ParametrageGlobalController extends AbstractController {
         $customIcon = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_ICON);
         $deliveryNoteLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
         $waybillLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
-        $overconsumptionLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO);
+
         $websiteLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::WEBSITE_LOGO);
         $emailLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMAIL_LOGO);
-        $mobileLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO);
+        $mobileLogoHeader = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
+        $mobileLogoLogin = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
 
         $clsForLabels = $champsLibreRepository->findBy([
             'categorieCL' => $categoryCLRepository->findOneByLabel(CategorieCL::ARTICLE)
@@ -170,7 +171,8 @@ class ParametrageGlobalController extends AbstractController {
                 'fontFamily' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FONT_FAMILY) ?? ParametrageGlobal::DEFAULT_FONT_FAMILY,
                 'website_logo' => ($websiteLogo && file_exists(getcwd() . "/" . $websiteLogo) ? $websiteLogo : null),
                 'email_logo' => ($emailLogo && file_exists(getcwd() . "/" . $emailLogo) ? $emailLogo : null),
-                'mobile_logo' => ($mobileLogo && file_exists(getcwd() . "/" . $mobileLogo) ? $mobileLogo : null),
+                'mobile_logo_header' => ($mobileLogoHeader && file_exists(getcwd() . "/" . $mobileLogoHeader) ? $mobileLogoHeader : null),
+                'mobile_logo_login' => ($mobileLogoLogin && file_exists(getcwd() . "/" . $mobileLogoLogin) ? $mobileLogoLogin : null),
                 'redirectMvtTraca' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT),
                 'workFreeDays' => $workFreeDays,
                 'paramDashboard' => [
@@ -901,14 +903,28 @@ class ParametrageGlobalController extends AbstractController {
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         }
 
-        if($request->files->has("mobile-logo")) {
-            $logo = $request->files->get("mobile-logo");
+        if($request->files->has("mobile-logo-login")) {
+            $logo = $request->files->get("mobile-logo-login");
 
-            $fileName = $attachmentService->saveFile($logo, AttachmentService::MOBILE_LOGO);
-            $setting = $pgr->findOneByLabel(ParametrageGlobal::MOBILE_LOGO);
+            $fileName = $attachmentService->saveFile($logo, AttachmentService::MOBILE_LOGO_LOGIN);
+            $setting = $pgr->findOneByLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
             if(!$setting) {
                 $setting = new ParametrageGlobal();
-                $setting->setLabel(ParametrageGlobal::MOBILE_LOGO);
+                $setting->setLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
+                $em->persist($setting);
+            }
+
+            $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
+        }
+
+        if($request->files->has("mobile-logo-header")) {
+            $logo = $request->files->get("mobile-logo-header");
+
+            $fileName = $attachmentService->saveFile($logo, AttachmentService::MOBILE_LOGO_HEADER);
+            $setting = $pgr->findOneByLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
+            if(!$setting) {
+                $setting = new ParametrageGlobal();
+                $setting->setLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
                 $em->persist($setting);
             }
 

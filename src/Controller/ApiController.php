@@ -21,6 +21,7 @@ use App\Entity\Livraison;
 use App\Entity\Handling;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
+use App\Entity\ParametrageGlobal;
 use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
 use App\Entity\DispatchPack;
@@ -69,6 +70,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use DateTime;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -1701,6 +1703,58 @@ class ApiController extends AbstractFOSRestController {
             "nature" => !empty($nature)
                 ? $natureService->serializeNature($nature)
                 : null
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/server-images", name="api_images", condition="request.isXmlHttpRequest()")
+     *
+     * @param EntityManagerInterface $entityManager
+     * @param KernelInterface $kernel
+     * @param Request $request
+     * @return JsonResponse
+     * @throws NonUniqueResultException
+     */
+    public function getLogos(EntityManagerInterface $entityManager,
+                             KernelInterface $kernel,
+                             Request $request): Response {
+        $logoKey = $request->get('key');
+        if (!in_array($logoKey, [ParametrageGlobal::MOBILE_LOGO_HEADER, ParametrageGlobal::MOBILE_LOGO_LOGIN])) {
+            throw new BadRequestHttpException('Unknown logo key');
+        }
+
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $logo = $parametrageGlobalRepository->getOneParamByLabel($logoKey);
+
+        if (!$logo) {
+            return $this->json([
+                "success" => false,
+                'message' => 'Image non renseignée AAA'
+            ]);
+        }
+
+        $projectDir = $kernel->getProjectDir();
+
+        try {
+            $imagePath = $projectDir . '/public/' . $logo;
+
+            $type = pathinfo($imagePath, PATHINFO_EXTENSION);
+            $type = ($type === 'svg' ? 'svg+xml' : $type);
+
+            $data = file_get_contents($imagePath);
+            $image = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        }
+        catch (Throwable $ignored) {
+            dump($ignored);
+            return $this->json([
+                "success" => false,
+                'message' => 'Image non renseignée BBB'
+            ]);
+        }
+
+        return $this->json([
+            "success" => true,
+            'image' => $image
         ]);
     }
 
