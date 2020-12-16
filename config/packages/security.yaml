@@ -79,7 +79,7 @@ security:
         # - { path: ^/admin, roles: ROLE_ADMIN, requires_channel: https}
         # - { path: ^/super/admin, roles: ROLE_SUPER_ADMIN, requires_channel: https}
         # - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED, requires_channel: https}
-#        - { path: ^/tests, roles: ROLE_API }
+        # - { path: ^/tests, roles: ROLE_API }
         - { path: ^/api, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/login, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/register, role: IS_AUTHENTICATED_ANONYMOUSLY }
