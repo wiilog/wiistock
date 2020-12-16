@@ -10,13 +10,14 @@ let droppedFiles = [];
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path url to call on submit
- * @param {{tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean, validator: undefined|function}} options Object containing some option.
+ * @param {{confirmMessage: function|undefined, tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean, validator: undefined|function}} options Object containing some option.
  *   - tables is an array of datatable
  *   - keepForm is an array of datatable
  *   - keepModal true if we do not close form
  *   - success success handler
  *   - clearOnClose clear the modal on close action
- *   - validator Validation function
+ *   - validator function which calculate custom form validation
+ *   - confirmMessage Function which return promise throwing when form can be submited
  */
 function InitModal($modal, $submit, path, options = {}) {
     if(options.clearOnClose) {
@@ -56,11 +57,12 @@ function InitModal($modal, $submit, path, options = {}) {
 
 /**
  *
- * @param {{tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean}} options Object containing some options.
+ * @param {{confirmMessage: function|undefined, tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
  *   - tables is an array of datatable
  *   - keepForm true if we do not clear form
  *   - keepModal true if we do not close form
- *   - validator true if we do not close form
+ *   - validator function which calculate custom form validation
+ *   - confirmMessage Function which return promise throwing when form can be submited
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -68,8 +70,36 @@ function InitModal($modal, $submit, path, options = {}) {
 function SubmitAction($modal,
                       $submit,
                       path,
-                      {tables, keepModal, keepForm, validator} = {}) {
+                      {confirmMessage, ...options} = {}) {
     clearFormErrors($modal);
+
+    return (
+        confirmMessage
+            ? confirmMessage($modal)
+            : (new Promise ((resolve) => resolve(true)))
+    )
+        .then((success) => {
+            if (success) {
+                return processSubmitAction($modal, $submit, path, options);
+            }
+        });
+}
+
+/**
+ *
+ * @param {{tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
+ *   - tables is an array of datatable
+ *   - keepForm true if we do not clear form
+ *   - keepModal true if we do not close form
+ *   - validator function which calculate custom form validation
+ * @param {jQuery} $modal jQuery element of the modal
+ * @param {jQuery} $submit jQuery element of the submit button
+ * @param {string} path
+ */
+function processSubmitAction($modal,
+                             $submit,
+                             path,
+                             {tables, keepModal, keepForm, validator} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
     const {success, errorMessages, $isInvalidElements, data} = processForm($modal, isAttachmentForm, validator);
     if (success) {
