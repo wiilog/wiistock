@@ -1078,6 +1078,7 @@ class DispatchController extends AbstractController {
                     $translator->trans('natures.nature'),
                     'Code',
                     $translator->trans('acheminement.Quantité à acheminer'),
+                    'Poids',
                     'Date dernier mouvement',
                     'Dernier emplacement',
                     'Opérateur',
@@ -1106,6 +1107,7 @@ class DispatchController extends AbstractController {
                     $row[] = $dispatch['packNatureLabel'] ?? '';
                     $row[] = $dispatch['packCode'] ?? '';
                     $row[] = $dispatch['packQuantity'] ?? '';
+                    $row[] = $dispatch['weight'] ?? '';
                     $row[] = $dispatch['lastMovement'] ? $dispatch['lastMovement']->format('Y/m/d H:i') : '';
                     $row[] = $dispatch['lastLocation'] ?? '';
                     $row[] = $dispatch['operator'] ?? '';
