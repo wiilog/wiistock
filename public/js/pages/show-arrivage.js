@@ -86,6 +86,7 @@ let tableColisConfig = {
     domConfig: {
         removeInfo: true
     },
+    processing: true,
     rowConfig: {
         needsRowClickAction: true
     },
