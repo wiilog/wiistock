@@ -25,6 +25,8 @@ use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use DateTime;
+use DateTimeZone;
 
 class SecuriteController extends AbstractController {
 
@@ -84,6 +86,8 @@ class SecuriteController extends AbstractController {
                           string $info = '') {
         $loggedUser = $this->getUser();
         if($loggedUser && $loggedUser instanceof Utilisateur) {
+            $loggedUser->setLastLogin(new DateTime('now', new DateTimeZone('Europe/Paris')));
+            $entityManager->flush();
             return $this->redirectToRoute('accueil');
         }
 

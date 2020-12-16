@@ -46,7 +46,8 @@ $(function () {
     updateImagePreview('#preview-custom-icon', '#upload-custom-icon');
     updateImagePreview('#preview-website-logo', '#upload-website-logo');
     updateImagePreview('#preview-email-logo', '#upload-email-logo');
-    updateImagePreview('#preview-mobile-logo', '#upload-mobile-logo');
+    updateImagePreview('#preview-mobile-logo-header', '#upload-mobile-logo-header');
+    updateImagePreview('#preview-mobile-logo-login', '#upload-mobile-logo-login');
 
     updateImagePreview('#preview-delivery-note-logo', '#upload-delivery-note-logo');
     updateImagePreview('#preview-waybill-logo', '#upload-waybill-logo');
@@ -358,10 +359,13 @@ function editAppearance() {
         data.append("email-logo", $emailLogo[0].files[0]);
     }
 
-    const $mobileLogo = $('#upload-mobile-logo');
-    if ($mobileLogo[0].files && $mobileLogo[0].files[0]) {
-        data.append("mobile-logo", $mobileLogo[0].files[0]);
-    }
+    const $mobileLogos = $('#upload-mobile-logo-login, #upload-mobile-logo-header');
+    $mobileLogos.each(function() {
+        const $mobileLogo = $(this);
+        if ($mobileLogo[0].files && $mobileLogo[0].files[0]) {
+            data.append($mobileLogo.attr('name'), $mobileLogo[0].files[0]);
+        }
+    });
 
     showBSAlert("Mise à jour de l'apparence. Veuillez patienter.", 'success', false);
 
