@@ -5,9 +5,11 @@ namespace App\DataFixtures;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
+use App\Repository\ArticleFournisseurRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 class CEAFieldsFixtures extends Fixture implements FixtureGroupInterface {
 
@@ -16,10 +18,18 @@ class CEAFieldsFixtures extends Fixture implements FixtureGroupInterface {
     ];
 
     private $manager;
+    /** @var Fournisseur[] */
     private $suppliers = [];
 
+    private $toBeDeterminedSupplier = null;
+
     public function load(ObjectManager $manager) {
+        $output = new ConsoleOutput();
         $this->cache($manager);
+        $articleFournisseurRepository = $manager->getRepository(ArticleFournisseur::class);
+
+        $this->flatMergeToBeDetermined($output, $manager, $articleFournisseurRepository);
+        $output->writeln('----');
 
         $references = $manager->getRepository(ReferenceArticle::class)->findBy([
             "type" => 1
@@ -32,9 +42,65 @@ class CEAFieldsFixtures extends Fixture implements FixtureGroupInterface {
 
             if(++$count % 5000 == 0) {
                 $manager->flush();
+                $output->writeln('Flush 5000 references');
+            }
+        }
+        $output->writeln('Flush last references');
+        $manager->flush();
+
+        $output->writeln('----');
+
+        $this->flatMergeToBeDetermined($output, $manager, $articleFournisseurRepository);
+        $output->writeln('----');
+
+        $referenceSupplierArticlesDuplicatesResult = $articleFournisseurRepository
+            ->createQueryBuilder('article_fournisseur')
+            ->select('article_fournisseur.reference AS reference')
+            ->groupBy('article_fournisseur.reference')
+            ->having('COUNT(article_fournisseur.reference) > 1')
+            ->getQuery()
+            ->getScalarResult();
+
+        $supplierArticlesDuplicates = $articleFournisseurRepository->findBy([
+            'reference' => array_column($referenceSupplierArticlesDuplicatesResult, "reference")
+        ]);
+
+        $treatedReferences = [];
+        $countToDefine = 0;
+
+        foreach($supplierArticlesDuplicates as $supplierArticle) {
+            $countToDefine++;
+            $referenceSanitized = $this->sanitize($supplierArticle->getReference());
+            $reference = $supplierArticle->getReference();
+            if (!isset($treatedReferences[$referenceSanitized])) {
+                $treatedReferences[$referenceSanitized] = 0;
+            }
+
+            if (in_array($this->sanitize($reference, true), [$this->sanitize('CAISSE', true), $this->sanitize('CP-3.5 REF 100-90206', true)])) {
+
+                $manager->flush();
+                do {
+                    $treatedReferences[$referenceSanitized]++;
+                    $newReference = $reference . ' ' . $treatedReferences[$referenceSanitized];
+                    $result = $articleFournisseurRepository->findOneBy(['reference' => $newReference]);
+                }
+                while(!empty($result));
+            }
+            else {
+                $treatedReferences[$referenceSanitized]++;
+                $newReference = $reference . ' ' . $treatedReferences[$referenceSanitized];
+            }
+
+            $supplierArticle
+                ->setReference($newReference);
+
+            if($countToDefine % 5000 == 0) {
+                $output->writeln('Flush 5000 duplicates');
+                $manager->flush();
             }
         }
 
+        $output->writeln('Flush last duplicates');
         $manager->flush();
     }
 
@@ -61,16 +127,18 @@ class CEAFieldsFixtures extends Fixture implements FixtureGroupInterface {
     // * Libellé article = Libellé Référence
     private function applyFirstRule(ReferenceArticle $reference) {
         $oem = $this->getOEM($reference);
-        $oemReference = $this->getOEMReference($reference);
+        $oemReferenceInitial = $this->getOEMReference($reference);
 
-        if($oem !== null
-            && $oemReference !== null
-            && !$this->getToBeDetermined($reference)
+        $oemReference = ($oemReferenceInitial === null || $oemReferenceInitial === '') ? 'A DETERMINER' : $oemReferenceInitial;
+
+        if(($oem !== null || $oemReferenceInitial !== null)
+            && !$this->getToBeDeterminedSupplierArticle($reference, $oem ? $oem->getCodeReference() : null)
             && !$this->getExistingArticle($reference)) {
+            $supplier = $this->getToBeDeterminedSupplier($oem);
             $article = (new ArticleFournisseur())
                 ->setReferenceArticle($reference)
                 ->setReference($oemReference)
-                ->setFournisseur($oem)
+                ->setFournisseur($supplier)
                 ->setLabel($reference->getLibelle());
 
             $this->manager->persist($article);
@@ -88,24 +156,29 @@ class CEAFieldsFixtures extends Fixture implements FixtureGroupInterface {
     // * Libellé article = Libellé Référence
     private function applySecondRule(ReferenceArticle $reference) {
         $oem = $this->getOEM($reference);
-        $oemReference = $this->getOEMReference($reference);
+        $oemReferenceInitial = $this->getOEMReference($reference);
 
-        if($oem !== null && $oemReference !== null) {
-            $article = $this->getToBeDetermined($reference);
+        $oemReference = ($oemReferenceInitial === null || $oemReferenceInitial === '') ? 'A DETERMINER' : $oemReferenceInitial;
+
+        if($oem !== null || $oemReferenceInitial !== null) {
+            $article = $this->getToBeDeterminedSupplierArticle($reference, $oem ? $oem->getCodeReference() : null);
             if($article) {
-                $article->setFournisseur($oem)
+                $article
                     ->setReference($oemReference)
                     ->setLabel($reference->getLibelle());
             }
         }
     }
 
-    private function getToBeDetermined(ReferenceArticle $reference): ?ArticleFournisseur {
+    private function getToBeDeterminedSupplierArticle(ReferenceArticle $reference, $oem): ?ArticleFournisseur {
 
         foreach($reference->getArticlesFournisseur() as $article) {
             $supplier = $article->getFournisseur();
             $concerned = (
-                $this->sanitize($supplier->getCodeReference()) == "A DETERMINER"
+                (
+                    ($oem && $this->sanitize($supplier->getCodeReference()) == $this->sanitize($oem))
+                    || (!$oem && $this->sanitize($supplier->getCodeReference()) == "A_DETERMINER")
+                )
                 && $this->sanitize($article->getReference()) == "A DETERMINER"
             );
 
@@ -117,6 +190,33 @@ class CEAFieldsFixtures extends Fixture implements FixtureGroupInterface {
         return null;
     }
 
+    private function getToBeDeterminedSupplier($oem): ?Fournisseur {
+        $supplier = null;
+        if ($oem) {
+            $supplier = $oem;
+        }
+        else if ($this->toBeDeterminedSupplier) {
+            $supplier = $this->toBeDeterminedSupplier;
+        }
+        else {
+            $indexSupplier = 0;
+            $suppliers = array_values($this->suppliers);
+            $supplierCount = count($suppliers);
+            while(!$supplier && $indexSupplier < $supplierCount) {
+                if ($suppliers[$indexSupplier]->getCodeReference() === 'A_DETERMINER') {
+                    $supplier = $suppliers[$indexSupplier];
+                }
+                $indexSupplier++;
+            }
+
+            if ($this->toBeDeterminedSupplier) {
+                $this->toBeDeterminedSupplier = $supplier;
+            }
+        }
+
+        return $supplier;
+    }
+
     private function getExistingArticle(ReferenceArticle $reference): ?ArticleFournisseur {
         $oem = $this->getOEM($reference);
         $oemReference = $this->getOEMReference($reference);
@@ -124,7 +224,7 @@ class CEAFieldsFixtures extends Fixture implements FixtureGroupInterface {
         foreach($reference->getArticlesFournisseur() as $article) {
             $supplier = $article->getFournisseur();
             $concerned = (
-                $this->sanitize($supplier->getCodeReference()) == $oem->getCodeReference()
+                (!$oem || $this->sanitize($supplier->getCodeReference()) == $oem->getCodeReference())
                 && $this->sanitize($article->getReference()) == $oemReference
             );
 
@@ -142,6 +242,8 @@ class CEAFieldsFixtures extends Fixture implements FixtureGroupInterface {
         if(!$sanitized) {
             return null;
         }
+
+        $superSanitized = ($superSanitized == 'A DETERMINER') ? 'A_DETERMINER' : $superSanitized;
 
         if(!isset($this->suppliers[$superSanitized])) {
             $this->suppliers[$superSanitized] = (new Fournisseur())
@@ -172,6 +274,35 @@ class CEAFieldsFixtures extends Fixture implements FixtureGroupInterface {
 
     public static function getGroups(): array {
         return ["cea-fields"];
+    }
+
+    public function flatMergeToBeDetermined(ConsoleOutput $output, ObjectManager $manager, ArticleFournisseurRepository $articleFournisseurRepository) {
+
+        $supplierArticlesToDefine = $articleFournisseurRepository->findBy([
+            "reference" => [
+                '.',
+                '*',
+                'a    determiner',
+                'A DETER',
+                ''
+            ]
+        ]);
+
+        $countToDefine = 0;
+
+        foreach($supplierArticlesToDefine as $supplierArticle) {
+            $countToDefine++;
+
+            $supplierArticle
+                ->setReference('A DETERMINER');
+
+            if($countToDefine % 5000 == 0) {
+                $output->writeln('Flush 5000 "A DETERMINER"');
+                $manager->flush();
+            }
+        }
+        $output->writeln('Flush last "A DETERMINER"');
+        $manager->flush();
     }
 
 }
