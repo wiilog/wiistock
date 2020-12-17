@@ -124,6 +124,11 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                                 ->leftJoin('a.dropzone', 'd_order')
                                 ->orderBy('d_order.label', $order);
                             break;
+                        case 'role':
+                            $qb
+                                ->leftJoin('a.role', 'a_order')
+                                ->orderBy('a_order.label', $order);
+                            break;
                         default:
                             $qb->orderBy('a.' . self::DtToDbLabels[$column], $order);
                     }
