@@ -49,7 +49,7 @@ class PackController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
 
         return $this->render('pack/index.html.twig', [
-            'natures' => $naturesRepository->findAll(),
+            'natures' => $naturesRepository->findBy([], ['label' => 'ASC']),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE])
         ]);
     }
@@ -158,7 +158,7 @@ class PackController extends AbstractController {
                                  string $packCode): JsonResponse {
         $packRepository = $entityManager->getRepository(Pack::class);
         $naturesRepository = $entityManager->getRepository(Nature::class);
-        $natures = $naturesRepository->findAll();
+        $natures = $naturesRepository->findBy([], ['label' => 'ASC']);
         $uniqueNature = count($natures) === 1;
         $pack = $packRepository->findOneBy(['code' => $packCode]);
 
@@ -203,7 +203,7 @@ class PackController extends AbstractController {
                 $natureRepository = $entityManager->getRepository(Nature::class);
                 $pack = $packRepository->find($data['id']);
                 $html = $this->renderView('pack/modalEditPackContent.html.twig', [
-                    'natures' => $natureRepository->findAll(),
+                    'natures' => $natureRepository->findBy([], ['label' => 'ASC']),
                     'pack' => $pack
                 ]);
             } else {
