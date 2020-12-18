@@ -1,7 +1,7 @@
 SELECT
     arrivage.id,
     arrivage.numero_arrivage AS no_arrivage,
-    arrivage.date AS date,
+    DATE_FORMAT(arrivage.date, '%d/%m/%Y %H:%i:%s') AS date,
     IF(pack.id IS NOT NULL, pack.code, NULL) AS code_colis,
     IF(pack.id IS NOT NULL, nature.label, NULL) AS nature_colis,
     (SELECT COUNT(pack_count.id)

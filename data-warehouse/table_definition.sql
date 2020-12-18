@@ -229,7 +229,7 @@ create table dw_arrivage
         constraint arrivage_pk
         primary key,
     no_arrivage            varchar(255),
-    date                   date,
+    date                   varchar(255),
     code_colis             varchar(255),
     nature_colis           varchar(255),
     nb_colis               integer,
@@ -238,7 +238,7 @@ create table dw_arrivage
     transporteur           varchar(255),
     chauffeur              varchar(255),
     no_tracking_transporteur varchar(255),
-    no_commande            varchar(255),
+    no_commande_bl            varchar(255),
     type                   varchar(255),
     acheteurs              varchar(255),
     urgence                varchar(255),
