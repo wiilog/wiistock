@@ -25,7 +25,7 @@ class ArticleFournisseur
     private $referenceArticle;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="articlesFournisseur")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="articlesFournisseur", cascade={"PERSIST"})
      * @ORM\JoinColumn(nullable=false)
      */
     private $fournisseur;
@@ -70,6 +70,9 @@ class ArticleFournisseur
     public function setReferenceArticle(?ReferenceArticle $referenceArticle): self
     {
         $this->referenceArticle = $referenceArticle;
+        if(!$referenceArticle->getArticlesFournisseur()->contains($this)) {
+            $referenceArticle->addArticleFournisseur($this);
+        }
 
         return $this;
     }
