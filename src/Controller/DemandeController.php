@@ -450,6 +450,7 @@ class DemandeController extends AbstractController
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
                     "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
                     "Quantité à prélever" => $ligneArticle->getQuantite() ?? '',
+                    "barcode" => $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '',
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
@@ -470,6 +471,7 @@ class DemandeController extends AbstractController
                     "Libellé" => ($article->getLabel() ? $article->getLabel() : ''),
                     "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
                     "Quantité à prélever" => ($article->getQuantiteAPrelever() ? $article->getQuantiteAPrelever() : ''),
+                    "barcode" => $article->getBarCode() ?? '',
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
