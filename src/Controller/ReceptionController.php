@@ -1798,7 +1798,7 @@ class ReceptionController extends AbstractController {
                             $rows[] = $row;
                         }
 
-                        if($reception['referenceArticleId'] && $reception['referenceArticleTypeQuantite'] == "reference") {
+                        else {
                             if (!isset($addedRefs[$reception['referenceArticleId']])) {
                                 $addedRefs[$reception['referenceArticleId']] = true;
                                 $row = $this->serializeReception($reception);
@@ -1836,7 +1836,10 @@ class ReceptionController extends AbstractController {
             $reception['dateFinReception'] ? $reception['dateFinReception']->format('d/m/Y H:i') : '',
             $reception['commentaire'] ? strip_tags($reception['commentaire']) : '',
             $reception['receptionRefArticleQuantiteAR'] ?: '',
-            $reception['receptionRefArticleQuantite'] ?: '',
+            (!$reception['referenceArticleId'] && !$reception['articleId']
+                ? ''
+                : ($reception['receptionRefArticleQuantite']
+                    ?: 0)),
             $reception['storageLocation'] ?: '',
             $reception['emergency'] ? 'oui' : 'non'
         ];
