@@ -18,27 +18,27 @@ class DashboardComponent
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity=DashboardComponentType::class, inversedBy="dashboardComponents", nullable=true )
+     * @ORM\ManyToOne(targetEntity=DashboardComponentType::class, inversedBy="componentsUsing")
      */
     private $type;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(type="integer")
      */
     private $columnIndex;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255)
      */
     private $title;
 
     /**
-     * @ORM\Column(type="json", nullable=true)
+     * @ORM\Column(type="json")
      */
     private $config = [];
 
     /**
-     * @ORM\ManyToOne(targetEntity=DashboardPageRow::class, inversedBy="dashboardComponents")
+     * @ORM\ManyToOne(targetEntity=DashboardPageRow::class, inversedBy="components")
      */
     private $row;
 

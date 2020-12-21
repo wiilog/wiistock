@@ -20,7 +20,7 @@ class DashboardPageRow
     private $id;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(type="integer")
      */
     private $rowSize;
 
@@ -32,11 +32,11 @@ class DashboardPageRow
     /**
      * @ORM\OneToMany(targetEntity=DashboardComponent::class, mappedBy="row")
      */
-    private $dashboardComponents;
+    private $components;
 
     public function __construct()
     {
-        $this->dashboardComponents = new ArrayCollection();
+        $this->components = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -71,24 +71,24 @@ class DashboardPageRow
     /**
      * @return Collection|DashboardComponent[]
      */
-    public function getDashboardComponents(): Collection
+    public function getComponents(): Collection
     {
-        return $this->dashboardComponents;
+        return $this->components;
     }
 
-    public function addDashboardComponent(DashboardComponent $dashboardComponent): self
+    public function addComponent(DashboardComponent $dashboardComponent): self
     {
-        if (!$this->dashboardComponents->contains($dashboardComponent)) {
-            $this->dashboardComponents[] = $dashboardComponent;
+        if (!$this->components->contains($dashboardComponent)) {
+            $this->components[] = $dashboardComponent;
             $dashboardComponent->setRow($this);
         }
 
         return $this;
     }
 
-    public function removeDashboardComponent(DashboardComponent $dashboardComponent): self
+    public function removeComponent(DashboardComponent $dashboardComponent): self
     {
-        if ($this->dashboardComponents->removeElement($dashboardComponent)) {
+        if ($this->components->removeElement($dashboardComponent)) {
             // set the owning side to null (unless already changed)
             if ($dashboardComponent->getRow() === $this) {
                 $dashboardComponent->setRow(null);

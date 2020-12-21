@@ -20,23 +20,18 @@ class DashboardPage
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255)
      */
     private $name;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $slug;
-
-    /**
      * @ORM\OneToMany(targetEntity=DashboardPageRow::class, mappedBy="page")
      */
-    private $dashboardPageRows;
+    private $rows;
 
     public function __construct()
     {
-        $this->dashboardPageRows = new ArrayCollection();
+        $this->rows = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -52,43 +47,30 @@ class DashboardPage
     public function setName(?string $name): self
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    public function getSlug(): ?string
-    {
-        return $this->slug;
-    }
-
-    public function setSlug(?string $slug): self
-    {
-        $this->slug = $slug;
-
         return $this;
     }
 
     /**
      * @return Collection|DashboardPageRow[]
      */
-    public function getDashboardPageRows(): Collection
+    public function getRows(): Collection
     {
-        return $this->dashboardPageRows;
+        return $this->rows;
     }
 
-    public function addDashboardPageRow(DashboardPageRow $dashboardPageRow): self
+    public function addRow(DashboardPageRow $dashboardPageRow): self
     {
-        if (!$this->dashboardPageRows->contains($dashboardPageRow)) {
-            $this->dashboardPageRows[] = $dashboardPageRow;
+        if (!$this->rows->contains($dashboardPageRow)) {
+            $this->rows[] = $dashboardPageRow;
             $dashboardPageRow->setPage($this);
         }
 
         return $this;
     }
 
-    public function removeDashboardPageRow(DashboardPageRow $dashboardPageRow): self
+    public function removeRow(DashboardPageRow $dashboardPageRow): self
     {
-        if ($this->dashboardPageRows->removeElement($dashboardPageRow)) {
+        if ($this->rows->removeElement($dashboardPageRow)) {
             // set the owning side to null (unless already changed)
             if ($dashboardPageRow->getPage() === $this) {
                 $dashboardPageRow->setPage(null);

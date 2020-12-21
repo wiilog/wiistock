@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\FormConfig;
 use App\Repository\DashboardComponentTypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -20,28 +21,28 @@ class DashboardComponentType
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255)
      */
     private $name;
 
     /**
-     * @ORM\Column(type="json", nullable=true)
+     * @ORM\Column(type="json")
      */
     private $formConfig = [];
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="json")
      */
-    private $exampleKey;
+    private $exampleValues;
 
     /**
      * @ORM\OneToMany(targetEntity=DashboardComponent::class, mappedBy="type")
      */
-    private $dashboardComponents;
+    private $componentsUsing;
 
     public function __construct()
     {
-        $this->dashboardComponents = new ArrayCollection();
+        $this->componentsUsing = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -61,6 +62,9 @@ class DashboardComponentType
         return $this;
     }
 
+    /**
+     * @return FormConfig[]
+     */
     public function getFormConfig(): ?array
     {
         return $this->formConfig;
@@ -73,14 +77,14 @@ class DashboardComponentType
         return $this;
     }
 
-    public function getExampleKey(): ?string
+    public function getExampleValues(): ?string
     {
-        return $this->exampleKey;
+        return $this->exampleValues;
     }
 
-    public function setExampleKey(?string $exampleKey): self
+    public function setExampleValues(?string $exampleValues): self
     {
-        $this->exampleKey = $exampleKey;
+        $this->exampleValues = $exampleValues;
 
         return $this;
     }
@@ -88,15 +92,15 @@ class DashboardComponentType
     /**
      * @return Collection|DashboardComponent[]
      */
-    public function getDashboardComponents(): Collection
+    public function getComponentsUsing(): Collection
     {
-        return $this->dashboardComponents;
+        return $this->componentsUsing;
     }
 
     public function addDashboardComponent(DashboardComponent $dashboardComponent): self
     {
-        if (!$this->dashboardComponents->contains($dashboardComponent)) {
-            $this->dashboardComponents[] = $dashboardComponent;
+        if (!$this->componentsUsing->contains($dashboardComponent)) {
+            $this->componentsUsing[] = $dashboardComponent;
             $dashboardComponent->setType($this);
         }
 
@@ -105,7 +109,7 @@ class DashboardComponentType
 
     public function removeDashboardComponent(DashboardComponent $dashboardComponent): self
     {
-        if ($this->dashboardComponents->removeElement($dashboardComponent)) {
+        if ($this->componentsUsing->removeElement($dashboardComponent)) {
             // set the owning side to null (unless already changed)
             if ($dashboardComponent->getType() === $this) {
                 $dashboardComponent->setType(null);
