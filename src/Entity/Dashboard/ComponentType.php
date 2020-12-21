@@ -25,6 +25,16 @@ class ComponentType
     private $name;
 
     /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $template;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $hint;
+
+    /**
      * @ORM\Column(type="json")
      */
     private $exampleValues;
@@ -37,6 +47,7 @@ class ComponentType
     public function __construct()
     {
         $this->componentsUsing = new ArrayCollection();
+        $this->exampleValues = [];
     }
 
     public function getId(): ?int
@@ -56,12 +67,35 @@ class ComponentType
         return $this;
     }
 
-    public function getExampleValues(): ?string
+    public function getTemplate(): ?string
+    {
+        return $this->template;
+    }
+
+    public function setTemplate(string $template): self
+    {
+        $this->template = $template;
+
+        return $this;
+    }
+
+    public function getHint(): ?string
+    {
+        return $this->hint;
+    }
+
+    public function setHint(string $hint): self
+    {
+        $this->hint = $hint;
+        return $this;
+    }
+
+    public function getExampleValues(): ?array
     {
         return $this->exampleValues;
     }
 
-    public function setExampleValues(?string $exampleValues): self
+    public function setExampleValues(array $exampleValues): self
     {
         $this->exampleValues = $exampleValues;
 
