@@ -1127,17 +1127,16 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function findForReferenceWithoutTransfer($reference, Emplacement $emplacement) {
+    public function findActiveOrDisputeForReference($reference, Emplacement $emplacement) {
         return $this->createQueryBuilder("a")
             ->join("a.articleFournisseur", "af")
-            ->leftJoin("a.transferRequests", "tr")
-            ->leftJoin("tr.status", "status")
-            ->where("af.referenceArticle = :reference")
-            ->andWhere("tr.id IS NULL OR status.nom = :label")
+            ->leftJoin("a.statut", "articleStatut")
+            ->where("articleStatut.nom IN (:statuses)")
+            ->andWhere("af.referenceArticle = :reference")
             ->andWhere('a.emplacement = :location')
             ->setParameter("reference", $reference)
             ->setParameter("location", $emplacement)
-            ->setParameter("label", TransferRequest::DRAFT)
+            ->setParameter("statuses", [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE])
             ->getQuery()
             ->getResult();
     }
