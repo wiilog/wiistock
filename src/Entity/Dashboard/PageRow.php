@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass=DashboardRepository\PageRowRepository::class)
+ * @ORM\Table(name="dashboard_page_row")
  */
 class PageRow
 {

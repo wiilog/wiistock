@@ -33,28 +33,24 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
     }
 
     public function load(ObjectManager $manager) {
-
-        $componentTypeKeys = array_keys(self::COMPONENT_TYPES);
-
         $componentTypeRepository = $manager->getRepository(Dashboard\ComponentType::class);
         $alreadyExisting = $componentTypeRepository->findAll();
         $alreadyExistingName = [];
 
-        // we remove unused ComponentType
+        // remove unused ComponentType
         foreach ($alreadyExisting as $componentType) {
             $name = $componentType->getName();
-            if (!in_array($name, $componentTypeKeys)) {
+            if (!isset(self::COMPONENT_TYPES[$name])) {
                 $manager->remove($componentType);
                 $this->output->writeln("Component Type \"$name\" removed");
-            }
-            else {
-                $alreadyExistingName[] = $name;
+            } else {
+                $alreadyExistingName[$name] = true;
             }
         }
 
         // we persist new ComponentType
         foreach (self::COMPONENT_TYPES as $name => $config) {
-            if (!in_array($name, $alreadyExistingName)) {
+            if (!isset($alreadyExistingName[$name])) {
                 $componentType = new Dashboard\ComponentType();
                 $componentType
                     ->setName($name)
@@ -63,6 +59,11 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ->setTemplate($config['template']);
                 $manager->persist($componentType);
                 $this->output->writeln("Component Type \"$name\" persisted");
+            } else {
+                $alreadyExistingName[$name]
+                    ->setHint($config['hint'])
+                    ->setExampleValues($config['exampleValues'])
+                    ->setTemplate($config['template']);
             }
         }
 

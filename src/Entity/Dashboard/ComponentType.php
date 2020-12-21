@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass=DashboardRepository\ComponentTypeRepository::class)
+ * @ORM\Table(name="dashboard_component_type")
  */
 class ComponentType
 {
@@ -20,7 +21,7 @@ class ComponentType
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, unique=true)
      */
     private $name;
 
