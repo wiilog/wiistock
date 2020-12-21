@@ -89,6 +89,7 @@ class Action
 	const DISPLAY_GLOB = 'afficher paramétrage global';
 	const DISPLAY_ROLE = 'afficher rôles';
 	const DISPLAY_UTIL = 'afficher utilisateurs';
+	const DISPLAY_DASHBOARDS = 'afficher dashboards';
 	const DISPLAY_CL = 'afficher champs libres';
 	const DISPLAY_EXPO = 'afficher exports';
 	const DISPLAY_TYPE = 'afficher types';

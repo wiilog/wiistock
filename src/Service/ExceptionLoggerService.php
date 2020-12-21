@@ -43,7 +43,7 @@ class ExceptionLoggerService {
     }
 
     public function sendLog(Throwable $throwable, Request $request) {
-        if ($throwable instanceof NotFoundHttpException || $throwable instanceof AccessDeniedHttpException) {
+        if (!empty($_SERVER["APP_NO_LOGGER"]) || $throwable instanceof NotFoundHttpException || $throwable instanceof AccessDeniedHttpException) {
             return;
         }
 
