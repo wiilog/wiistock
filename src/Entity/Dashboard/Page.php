@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Dashboard;
 
-use App\Repository\DashboardPageRepository;
+use App\Repository\Dashboard as DashboardRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass=DashboardPageRepository::class)
+ * @ORM\Entity(repositoryClass=DashboardRepository\PageRepository::class)
  */
-class DashboardPage
+class Page
 {
     /**
      * @ORM\Id
@@ -25,7 +25,7 @@ class DashboardPage
     private $name;
 
     /**
-     * @ORM\OneToMany(targetEntity=DashboardPageRow::class, mappedBy="page")
+     * @ORM\OneToMany(targetEntity=PageRow::class, mappedBy="page")
      */
     private $rows;
 
@@ -51,29 +51,29 @@ class DashboardPage
     }
 
     /**
-     * @return Collection|DashboardPageRow[]
+     * @return Collection|PageRow[]
      */
     public function getRows(): Collection
     {
         return $this->rows;
     }
 
-    public function addRow(DashboardPageRow $dashboardPageRow): self
+    public function addRow(PageRow $pageRow): self
     {
-        if (!$this->rows->contains($dashboardPageRow)) {
-            $this->rows[] = $dashboardPageRow;
-            $dashboardPageRow->setPage($this);
+        if (!$this->rows->contains($pageRow)) {
+            $this->rows[] = $pageRow;
+            $pageRow->setPage($this);
         }
 
         return $this;
     }
 
-    public function removeRow(DashboardPageRow $dashboardPageRow): self
+    public function removeRow(PageRow $pageRow): self
     {
-        if ($this->rows->removeElement($dashboardPageRow)) {
+        if ($this->rows->removeElement($pageRow)) {
             // set the owning side to null (unless already changed)
-            if ($dashboardPageRow->getPage() === $this) {
-                $dashboardPageRow->setPage(null);
+            if ($pageRow->getPage() === $this) {
+                $pageRow->setPage(null);
             }
         }
 

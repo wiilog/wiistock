@@ -1,17 +1,16 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Dashboard;
 
-use App\Entity\Interfaces\FormConfig;
-use App\Repository\DashboardComponentTypeRepository;
+use App\Repository\Dashboard as DashboardRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass=DashboardComponentTypeRepository::class)
+ * @ORM\Entity(repositoryClass=DashboardRepository\ComponentTypeRepository::class)
  */
-class DashboardComponentType
+class ComponentType
 {
     /**
      * @ORM\Id
@@ -28,15 +27,10 @@ class DashboardComponentType
     /**
      * @ORM\Column(type="json")
      */
-    private $formConfig = [];
-
-    /**
-     * @ORM\Column(type="json")
-     */
     private $exampleValues;
 
     /**
-     * @ORM\OneToMany(targetEntity=DashboardComponent::class, mappedBy="type")
+     * @ORM\OneToMany(targetEntity=Component::class, mappedBy="type")
      */
     private $componentsUsing;
 
@@ -62,21 +56,6 @@ class DashboardComponentType
         return $this;
     }
 
-    /**
-     * @return FormConfig[]
-     */
-    public function getFormConfig(): ?array
-    {
-        return $this->formConfig;
-    }
-
-    public function setFormConfig(array $formConfig): self
-    {
-        $this->formConfig = $formConfig;
-
-        return $this;
-    }
-
     public function getExampleValues(): ?string
     {
         return $this->exampleValues;
@@ -90,29 +69,29 @@ class DashboardComponentType
     }
 
     /**
-     * @return Collection|DashboardComponent[]
+     * @return Collection|Component[]
      */
     public function getComponentsUsing(): Collection
     {
         return $this->componentsUsing;
     }
 
-    public function addDashboardComponent(DashboardComponent $dashboardComponent): self
+    public function addComponentUsing(Component $component): self
     {
-        if (!$this->componentsUsing->contains($dashboardComponent)) {
-            $this->componentsUsing[] = $dashboardComponent;
-            $dashboardComponent->setType($this);
+        if (!$this->componentsUsing->contains($component)) {
+            $this->componentsUsing[] = $component;
+            $component->setType($this);
         }
 
         return $this;
     }
 
-    public function removeDashboardComponent(DashboardComponent $dashboardComponent): self
+    public function removeComponentUsing(Component $component): self
     {
-        if ($this->componentsUsing->removeElement($dashboardComponent)) {
+        if ($this->componentsUsing->removeElement($component)) {
             // set the owning side to null (unless already changed)
-            if ($dashboardComponent->getType() === $this) {
-                $dashboardComponent->setType(null);
+            if ($component->getType() === $this) {
+                $component->setType(null);
             }
         }
 

@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Dashboard;
 
-use App\Repository\DashboardPageRowRepository;
+use App\Repository\Dashboard as DashboardRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass=DashboardPageRowRepository::class)
+ * @ORM\Entity(repositoryClass=DashboardRepository\PageRowRepository::class)
  */
-class DashboardPageRow
+class PageRow
 {
     /**
      * @ORM\Id
@@ -25,12 +25,12 @@ class DashboardPageRow
     private $rowSize;
 
     /**
-     * @ORM\ManyToOne(targetEntity=DashboardPage::class, inversedBy="dashboardPageRows")
+     * @ORM\ManyToOne(targetEntity=Page::class, inversedBy="rows")
      */
     private $page;
 
     /**
-     * @ORM\OneToMany(targetEntity=DashboardComponent::class, mappedBy="row")
+     * @ORM\OneToMany(targetEntity=Component::class, mappedBy="row")
      */
     private $components;
 
@@ -56,12 +56,12 @@ class DashboardPageRow
         return $this;
     }
 
-    public function getPage(): ?DashboardPage
+    public function getPage(): ?Page
     {
         return $this->page;
     }
 
-    public function setPage(?DashboardPage $page): self
+    public function setPage(?Page $page): self
     {
         $this->page = $page;
 
@@ -69,29 +69,29 @@ class DashboardPageRow
     }
 
     /**
-     * @return Collection|DashboardComponent[]
+     * @return Collection|Component[]
      */
     public function getComponents(): Collection
     {
         return $this->components;
     }
 
-    public function addComponent(DashboardComponent $dashboardComponent): self
+    public function addComponent(Component $component): self
     {
-        if (!$this->components->contains($dashboardComponent)) {
-            $this->components[] = $dashboardComponent;
-            $dashboardComponent->setRow($this);
+        if (!$this->components->contains($component)) {
+            $this->components[] = $component;
+            $component->setRow($this);
         }
 
         return $this;
     }
 
-    public function removeComponent(DashboardComponent $dashboardComponent): self
+    public function removeComponent(Component $component): self
     {
-        if ($this->components->removeElement($dashboardComponent)) {
+        if ($this->components->removeElement($component)) {
             // set the owning side to null (unless already changed)
-            if ($dashboardComponent->getRow() === $this) {
-                $dashboardComponent->setRow(null);
+            if ($component->getRow() === $this) {
+                $component->setRow(null);
             }
         }
 

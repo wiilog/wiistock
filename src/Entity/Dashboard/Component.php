@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Dashboard;
 
-use App\Repository\DashboardComponentRepository;
+use App\Repository\Dashboard as DashboardRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass=DashboardComponentRepository::class)
+ * @ORM\Entity(repositoryClass=DashboardRepository\ComponentRepository::class)
  */
-class DashboardComponent
+class Component
 {
     /**
      * @ORM\Id
@@ -18,7 +18,7 @@ class DashboardComponent
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity=DashboardComponentType::class, inversedBy="componentsUsing")
+     * @ORM\ManyToOne(targetEntity=ComponentType::class, inversedBy="componentsUsing")
      */
     private $type;
 
@@ -38,7 +38,7 @@ class DashboardComponent
     private $config = [];
 
     /**
-     * @ORM\ManyToOne(targetEntity=DashboardPageRow::class, inversedBy="components")
+     * @ORM\ManyToOne(targetEntity=PageRow::class, inversedBy="components")
      */
     private $row;
 
@@ -47,12 +47,12 @@ class DashboardComponent
         return $this->id;
     }
 
-    public function getType(): ?DashboardComponentType
+    public function getType(): ?ComponentType
     {
         return $this->type;
     }
 
-    public function setType(?DashboardComponentType $type): self
+    public function setType(?ComponentType $type): self
     {
         $this->type = $type;
 
@@ -95,12 +95,12 @@ class DashboardComponent
         return $this;
     }
 
-    public function getRow(): ?DashboardPageRow
+    public function getRow(): ?PageRow
     {
         return $this->row;
     }
 
-    public function setRow(?DashboardPageRow $row): self
+    public function setRow(?PageRow $row): self
     {
         $this->row = $row;
 
