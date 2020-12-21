@@ -374,13 +374,14 @@ label.required:after {
 }
 
 .full-page {
-    height: calc(100% - 50px);
+    height: 100%;
+    display: flex;
 }
 
 .full-page .wii-page-card {
     display: flex;
     flex-direction: column;
-    height: calc(100% - 50px);
+    flex: 1;
 }
 
 .square-sm {
