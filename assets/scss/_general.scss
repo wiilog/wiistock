@@ -372,3 +372,18 @@ label.required:after {
 .popover{
     max-width: 100%;
 }
+
+.full-page {
+    height: calc(100% - 50px);
+}
+
+.full-page .wii-page-card {
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 50px);
+}
+
+.square-sm {
+    width: 20px;
+    height: 20px;
+}
