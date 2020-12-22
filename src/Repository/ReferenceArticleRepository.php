@@ -394,6 +394,9 @@ class ReferenceArticleRepository extends EntityRepository {
         if (!empty($params) && !empty($params->get('search'))) {
             $searchValue = is_string($params->get('search')) ? $params->get('search') : $params->get('search')['value'];
             if (!empty($searchValue)) {
+                $date = DateTime::createFromFormat('d/m/Y', $searchValue)
+                    ? DateTime::createFromFormat('d/m/Y', $searchValue)->format('Y-m-d')
+                    : null;
                 $search = "%$searchValue%";
                 $ids = [];
                 $query = [];
@@ -461,10 +464,18 @@ class ReferenceArticleRepository extends EntityRepository {
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($searchField);
                             if(is_numeric($freeFieldId)) {
                                 $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
-                                $qb->setParameter("search", $search);
+                                $qb->setParameter("search", $date ?: $search);
                             } else if (property_exists(ReferenceArticle::class, $searchField)) {
-                                $query[] = "ra.$searchField LIKE :search";
-                                $qb->setParameter('search', $search);
+                                if ($date) {
+                                    $query[] = "ra.$searchField BETWEEN :dateMin AND :dateMax";
+                                    $qb->setParameters([
+                                        'dateMin' => $date . ' 00:00:00',
+                                        'dateMax' => $date . ' 23:59:59'
+                                    ]);
+                                } else {
+                                    $query[] = "ra.$searchField LIKE :search";
+                                    $qb->setParameter('search', $search);
+                                }
                             }
                             break;
                     }
@@ -802,29 +813,6 @@ class ReferenceArticleRepository extends EntityRepository {
 
         return $query->getSingleScalarResult();
     }
-
-//    public function getIdAndReferenceBySearch($search, $activeOnly = false)
-//    {
-//        $em = $this->getEntityManager();
-//
-//        $dql = "SELECT r.id, r.reference as text
-//          FROM App\Entity\ReferenceArticle r
-//          LEFT JOIN r.statut s
-//          WHERE r.reference LIKE :search AND r.typeQuantite = :qte_ref";
-//
-//        if ($activeOnly) {
-//            $dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
-//        }
-//
-//        $query = $em
-//            ->createQuery($dql)
-//            ->setParameters([
-//            'search' => '%' . $search . '%',
-//            'qte_ref' => ReferenceArticle::TYPE_QUANTITE_REFERENCE
-//        ]);
-//
-//        return $query->execute();
-//    }
 
     /**
      * @param InventoryFrequency $frequency

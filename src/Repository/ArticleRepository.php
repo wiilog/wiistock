@@ -26,6 +26,7 @@ use Doctrine\ORM\ORMException;
 
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
+use Exception;
 
 /**
  * @method Article|null find($id, $lockMode = null, $lockVersion = null)
@@ -36,11 +37,21 @@ use Doctrine\ORM\QueryBuilder;
 class ArticleRepository extends EntityRepository {
 
     private const FIELD_ENTITY_NAME = [
-        "quantity" => "quantite",
         "location" => "emplacement",
         "unitPrice" => "prixUnitaire"
     ];
 
+    private const FIELDS_TYPE_DATE = [
+        "dateLastInventory",
+        "expiryDate",
+        "stockEntryDate"
+    ];
+
+    /**
+     * @param int $delay
+     * @return int|mixed|string
+     * @throws Exception
+     */
     public function findExpiredToGenerate($delay = 0) {
         $since = new DateTime("now", new DateTimeZone("Europe/Paris"));
         $since->modify("+{$delay}day");
@@ -462,6 +473,9 @@ class ArticleRepository extends EntityRepository {
 					}
 
                     foreach ($searchForArticle as $key => $searchField) {
+                        $date = DateTime::createFromFormat('d/m/Y', $searchValue)
+                            ? DateTime::createFromFormat('d/m/Y', $searchValue)->format('Y-m-d')
+                            : null;
                         switch ($searchField) {
                             case "type":
                                 $subqb = $this->createQueryBuilder("a")
@@ -523,16 +537,21 @@ class ArticleRepository extends EntityRepository {
                                 break;
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
-
                                 $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
                                 if(is_numeric($freeFieldId)) {
-                                    $query[] = "JSON_SEARCH(a.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL
-                                    OR DATE_FORMAT(JSON_EXTRACT(a.freeFields,'$.\"$freeFieldId\"'), '%e/%m/%Y') LIKE :search";
-                                    $qb->setParameter("search", $search);
+                                    $query[] = "JSON_SEARCH(a.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                    $qb->setParameter("search", $date ?: $search);
                                 } else if (property_exists(Article::class, $field)) {
-                                    $query[] = "a.$field LIKE :search ";
-
-                                    $qb->setParameter('search', $search);
+                                    if ($date && in_array($searchField, self::FIELDS_TYPE_DATE)) {
+                                        $query[] = "a.$searchField BETWEEN :dateMin AND :dateMax";
+                                        $qb->setParameters([
+                                            'dateMin' => $date . ' 00:00:00',
+                                            'dateMax' => $date . ' 23:59:59'
+                                        ]);
+                                    } else {
+                                        $query[] = "a.$searchField LIKE :search";
+                                        $qb->setParameter('search', $search);
+                                    }
                                 }
                                 break;
                         }
