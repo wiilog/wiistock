@@ -5,6 +5,9 @@
     "composer/ca-bundle": {
         "version": "1.2.8"
     },
+    "composer/semver": {
+        "version": "3.2.4"
+    },
     "doctrine/annotations": {
         "version": "1.0",
         "recipe": {
@@ -137,6 +140,15 @@
         "files": [
             "./config/packages/knp_snappy.yaml"
         ]
+    },
+    "laminas/laminas-code": {
+        "version": "3.4.1"
+    },
+    "laminas/laminas-eventmanager": {
+        "version": "3.2.1"
+    },
+    "laminas/laminas-zendframework-bridge": {
+        "version": "1.1.1"
     },
     "monolog/monolog": {
         "version": "2.1.1"
@@ -608,11 +620,5 @@
     },
     "willdurand/negotiation": {
         "version": "v2.3.1"
-    },
-    "zendframework/zend-code": {
-        "version": "3.4.1"
-    },
-    "zendframework/zend-eventmanager": {
-        "version": "3.2.1"
     }
 }
