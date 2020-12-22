@@ -34,7 +34,8 @@
                         </a>
                     </div>
                 </div>
-                <button class="btn btn-primary btn-ripple">
+                <button class="btn btn-primary btn-ripple"
+                        onclick="openModalComponentTypeFirstStep()">
                     <span class="fa fa-check mr-2"></span> Enregistrer
                 </button>
             </div>
@@ -70,8 +71,12 @@
             </button>
         </div>
     </div>
+
+    {% include 'dashboard/component_type/first_step.html.twig' with componentTypeConfig %}
+    {% include 'dashboard/component_type/second_step.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="{{ asset('js/pages/dashboard/settings.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}

@@ -32,7 +32,7 @@ function InitModal($modal, $submit, path, options = {}) {
 
     $submit
         .click(function () {
-            if ($submit.find('.spinner-border').length > 0) {
+            if ($submit.hasClass(LOADING_CLASS)) {
                 showBSAlert('L\'opération est en cours de traitement', 'success');
             }
             else {
@@ -107,18 +107,9 @@ function processSubmitAction($modal,
             ? createFormData(data)
             : JSON.stringify(data);
 
-        // spinner on submit button
-        const $spinner = $('<div/>', {
-            class: 'spinner-border spinner-border-sm mr-2',
-            role: 'status',
-            html: $('<span/>', {
-                class: 'sr-only',
-                text: 'Chargement...'
-            })
-        });
+        $submit.pushLoader('white');
 
-        $submit.prepend($spinner);
-        // launch ajax request
+        /*// launch ajax request
         return $
             .ajax({
                 url: path,
@@ -130,7 +121,7 @@ function processSubmitAction($modal,
                 dataType: 'json',
             })
             .then((data) => {
-                $submit.find('.spinner-border').remove();
+                $submit.popLoader();
 
                 if (data.success === false) {
                     displayFormErrors($modal, {
@@ -148,9 +139,9 @@ function processSubmitAction($modal,
                 return data;
             })
             .catch((err) => {
-                $submit.find('.spinner-border').remove();
+                $submit.popLoader();
                 throw err;
-            })
+            });*/
     }
     else {
         displayFormErrors($modal, {
@@ -809,4 +800,4 @@ function saveData($input, data, name, val, isAttachmentForm) {
             data[name] = val;
         }
     }
-};
+}
