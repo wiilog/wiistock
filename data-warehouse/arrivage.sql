@@ -2,8 +2,6 @@ SELECT
     arrivage.id,
     arrivage.numero_arrivage AS no_arrivage,
     DATE_FORMAT(arrivage.date, '%d/%m/%Y %H:%i:%s') AS date,
-    IF(pack.id IS NOT NULL, pack.code, NULL) AS code_colis,
-    IF(pack.id IS NOT NULL, nature.label, NULL) AS nature_colis,
     (SELECT COUNT(pack_count.id)
      FROM arrivage AS sub_arrivage
               LEFT JOIN pack
@@ -37,13 +35,10 @@ FROM arrivage
          LEFT JOIN statut ON arrivage.statut_id = statut.id
          LEFT JOIN arrivage_utilisateur ON arrivage.id = arrivage_utilisateur.arrivage_id
          LEFT JOIN utilisateur AS acheteurs ON arrivage_utilisateur.utilisateur_id = acheteurs.id
-         LEFT JOIN pack ON arrivage.id = pack.arrivage_id
-         LEFT JOIN nature ON pack.nature_id = nature.id
 
 GROUP BY
+    id,
     no_arrivage,
-    code_colis,
-    nature_colis,
     nb_colis,
     destinataire,
     fournisseur,

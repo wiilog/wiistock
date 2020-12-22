@@ -97,6 +97,8 @@ class ApiController extends AbstractFOSRestController {
     /**
      * @Rest\Post("/api/api-key", condition="request.isXmlHttpRequest()")
      * @Rest\View()
+     * @Wii\RestVersionChecked()
+     *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param UserService $userService
@@ -148,7 +150,8 @@ class ApiController extends AbstractFOSRestController {
     /**
      * @Rest\Post("/api/mouvements-traca", name="api-post-mouvements-traca", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param MailerService $mailerService
@@ -448,7 +451,8 @@ class ApiController extends AbstractFOSRestController {
     /**
      * @Rest\Post("/api/beginPrepa", name="api-begin-prepa", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -478,7 +482,8 @@ class ApiController extends AbstractFOSRestController {
     /**
      * @Rest\Post("/api/finishPrepa", name="api-finish-prepa", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param ExceptionLoggerService $exceptionLoggerService
@@ -644,7 +649,8 @@ class ApiController extends AbstractFOSRestController {
     /**
      * @Rest\Post("/api/beginLivraison", name="api-begin-livraison", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -679,12 +685,12 @@ class ApiController extends AbstractFOSRestController {
     /**
      * @Rest\Post("/api/beginCollecte", name="api-begin-collecte", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
-     * @throws NonUniqueResultException
      */
     public function beginCollecte(Request $request,
                                   EntityManagerInterface $entityManager) {
@@ -716,7 +722,8 @@ class ApiController extends AbstractFOSRestController {
     /**
      * @Rest\Post("/api/handlings", name="api-validate-handling", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param AttachmentService $attachmentService
@@ -725,7 +732,6 @@ class ApiController extends AbstractFOSRestController {
      * @param HandlingService $handlingService
      * @return JsonResponse
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -812,7 +818,8 @@ class ApiController extends AbstractFOSRestController {
     /**
      * @Rest\Post("/api/finishLivraison", name="api-finish-livraison", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param ExceptionLoggerService $exceptionLoggerService
@@ -896,7 +903,8 @@ class ApiController extends AbstractFOSRestController {
     /**
      * @Rest\Post("/api/finishCollecte", name="api-finish-collecte", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param ExceptionLoggerService $exceptionLoggerService
@@ -1036,7 +1044,8 @@ class ApiController extends AbstractFOSRestController {
     /**
      * @Rest\Post("/api/valider-dl", name="api_validate_dl", condition="request.isXmlHttpRequest()")
      * @Rest\View()
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -1085,7 +1094,8 @@ class ApiController extends AbstractFOSRestController {
      * @Rest\Post("/api/addInventoryEntries", name="api-add-inventory-entry", condition="request.isXmlHttpRequest()")
      * @Rest\Get("/api/addInventoryEntries")
      * @Rest\View()
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -1186,7 +1196,8 @@ class ApiController extends AbstractFOSRestController {
     /**
      * @Rest\Get("/api/demande-livraison-data", name="api_get_demande_livraison_data")
      * @Rest\View()
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param UserService $userService
      * @param EntityManagerInterface $entityManager
@@ -1226,7 +1237,8 @@ class ApiController extends AbstractFOSRestController {
     /**
      * @Rest\Post("/api/transfer/finish", name="transfer_finish")
      * @Rest\View()
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param TransferOrderService $transferOrderService
@@ -1463,7 +1475,8 @@ class ApiController extends AbstractFOSRestController {
 
     /**
      * @Rest\Post("/api/getData", name="api-get-data")
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param UserService $userService
@@ -1497,7 +1510,8 @@ class ApiController extends AbstractFOSRestController {
 
     /**
      * @Rest\Post("/api/treatAnomalies", name= "api-treat-anomalies-inv", condition="request.isXmlHttpRequest()")
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param InventoryService $inventoryService
@@ -1557,7 +1571,8 @@ class ApiController extends AbstractFOSRestController {
 
     /**
      * @Rest\Post("/api/emplacement", name="api-new-emp", condition="request.isXmlHttpRequest()")
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -1588,7 +1603,8 @@ class ApiController extends AbstractFOSRestController {
 
     /**
      * @Rest\Get("/api/articles", name="api-get-articles", condition="request.isXmlHttpRequest()")
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -1645,7 +1661,8 @@ class ApiController extends AbstractFOSRestController {
 
     /**
      * @Rest\Get("/api/tracking-drops", name="api-get-tracking-drops-on-location", condition="request.isXmlHttpRequest()")
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -1682,7 +1699,8 @@ class ApiController extends AbstractFOSRestController {
 
     /**
      * @Rest\Get("/api/packs/{code}/nature", name="api_pack_nature", condition="request.isXmlHttpRequest()")
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param EntityManagerInterface $entityManager
      * @param NatureService $natureService
@@ -1708,6 +1726,7 @@ class ApiController extends AbstractFOSRestController {
 
     /**
      * @Rest\Get("/api/server-images", name="api_images", condition="request.isXmlHttpRequest()")
+     * @Wii\RestVersionChecked()
      *
      * @param EntityManagerInterface $entityManager
      * @param KernelInterface $kernel
@@ -1760,7 +1779,8 @@ class ApiController extends AbstractFOSRestController {
 
     /**
      * @Rest\Post("/api/dispatches", name="api_patch_dispatches", condition="request.isXmlHttpRequest()")
-     * @Wii\Authenticated()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
      *
      * @param Request $request
      * @param DispatchService $dispatchService

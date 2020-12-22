@@ -9,6 +9,6 @@ use Doctrine\Common\Annotations\Annotation\Target;
  * @Annotation
  * @Target("METHOD")
  */
-class Authenticated {
+class RestAuthenticated {
 
 }
