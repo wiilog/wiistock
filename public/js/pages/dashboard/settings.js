@@ -441,10 +441,10 @@ function createDashboardSelectorItem(dashboard) {
                 <div class="dropdown-menu dropdown-follow-gt pointer">
                     <a class="dropdown-item rename-dashboard" role="button" data-dashboard="${dashboard.index}"
                          data-toggle="modal" data-target="#rename-dashboard-modal">
-                        <i class="fas fa-edit"></i> Renommer
+                        <i class="fas fa-edit mr-2"></i>Renommer
                     </a>
                     <a class="dropdown-item delete-dashboard" role="button" data-dashboard="${dashboard.index}">
-                        <i class="fas fa-trash"></i> Supprimer
+                        <i class="fas fa-trash mr-2"></i>Supprimer
                     </a>
                 </div>
             </div>
