@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -43,7 +44,10 @@ class ExceptionLoggerService {
     }
 
     public function sendLog(Throwable $throwable, Request $request) {
-        if (!empty($_SERVER["APP_NO_LOGGER"]) || $throwable instanceof NotFoundHttpException || $throwable instanceof AccessDeniedHttpException) {
+        if (!empty($_SERVER["APP_NO_LOGGER"]) ||
+            $throwable instanceof NotFoundHttpException ||
+            $throwable instanceof AccessDeniedHttpException ||
+            $throwable instanceof UnauthorizedHttpException) {
             return;
         }
 
