@@ -179,29 +179,12 @@ create table dw_tracabilite
     statut_acheminement         varchar(255),
     nature                      varchar(255),
     business_unit_acheminement  varchar(255),
-    no_arrivage                 varchar(255),
-    destinataire_arrivage       varchar(255),
-    fournisseur                 varchar(255),
-    transporteur                varchar(255),
-    chauffeur                   varchar(255),
-    no_tracking                 varchar(255),
-    no_commande                 varchar(255),
-    type_arrivage               varchar(255),
-    acheteur_arrivage           varchar(255),
-    statut_arrivage             varchar(255),
-    commentaire                 text,
-    date_arrivage               date,
-    nb_colis_arrivage           integer,
-    business_unit_arrivage      varchar(255),
     mouvement_traca_id          integer,
     acheminement_id             integer,
     arrivage_id                 integer,
     delta_date_acheminement     float,
     commentaire_mouvement_traca text,
-    piece_jointe                text,
-    douane                      varchar(3),
-    urgence                     varchar(3),
-    numero_projet               varchar(255)
+    piece_jointe                text
 );
 
 create table dw_urgence
@@ -230,8 +213,6 @@ create table dw_arrivage
         primary key,
     no_arrivage            varchar(255),
     date                   varchar(255),
-    code_colis             varchar(255),
-    nature_colis           varchar(255),
     nb_colis               integer,
     destinataire           varchar(255),
     fournisseur            varchar(255),
@@ -249,4 +230,11 @@ create table dw_arrivage
     utilisateur            varchar(255),
     numero_projet          varchar(255),
     business_unit          varchar(255)
+);
+
+CREATE TABLE dw_arrivage_nature_colis
+(
+    arrivage_id integer,
+    nature_colis varchar(255),
+    quantite_colis integer
 );
