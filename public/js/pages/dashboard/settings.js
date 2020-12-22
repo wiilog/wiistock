@@ -18,6 +18,7 @@ let current = null;
 
 const $addRowButton = $('button.add-row-modal-submit');
 const $dashboard = $('.dashboard');
+const $pagination = $('.dashboard-pagination');
 const $dashboardRowSelector = $('.dashboard-row-selector');
 
 $(document).ready(() => {
@@ -76,15 +77,16 @@ $addRowButton.click(function () {
         renderDashboard(current);
         updateAddRowButton();
     }
+
     $addRowButton.closest('.modal').modal('hide');
 });
 
 $('button.add-dashboard-modal-submit').click(function () {
-    const $dashboardNameInput = $('input[name="dashboard-name"]');
+    const $dashboardNameInput = $('input[name="add-dashboard-name"]');
     const name = $dashboardNameInput.val();
     $dashboardNameInput.val(``);
 
-    if(dashboards.length >= 8) {
+    if (dashboards.length >= 8) {
         console.error("Too many dashboards");
     } else {
         dashboards.push({
@@ -97,7 +99,26 @@ $('button.add-dashboard-modal-submit').click(function () {
     }
 });
 
-$('.dashboard-pagination').on(`click`, `.delete-dashboard`, function () {
+$pagination.on(`click`, `[data-target="#rename-dashboard-modal"]`, function () {
+    const dashboard = $(this).data(`dashboard`);
+    const $indexInput = $(`input[name="rename-dashboard-index"]`);
+    const $nameInput = $(`input[name="rename-dashboard-name"]`);
+
+    $indexInput.val(dashboard);
+    $nameInput.val(dashboards[dashboard].name);
+});
+
+$(`.rename-dashboard-modal-submit`).click(function () {
+    const dashboard = $(`input[name="rename-dashboard-index"]`).val();
+    const $dashboardNameInput = $('input[name="rename-dashboard-name"]');
+    const name = $dashboardNameInput.val();
+    $dashboardNameInput.val(``);
+
+    dashboards[dashboard].name = name;
+    renderDashboardPagination();
+});
+
+$pagination.on(`click`, `.delete-dashboard`, function () {
     const dashboard = Number($(this).data(`dashboard`));
 
     dashboards.splice(dashboard, 1);
@@ -311,7 +332,7 @@ function recalculateIndexes() {
         dashboard.index = i;
 
         dashboard.rows.forEach((row, i) => {
-            if(dashboard === current) {
+            if (dashboard === current) {
                 $(`[data-row="${row.index}"]`)
                     .data(`row`, i)
                     .attr(`data-row`, i); //update the dom too
@@ -403,7 +424,7 @@ function createDashboardSelectorItem(dashboard) {
     const number = dashboard.index + 1;
 
     let name;
-    if(dashboard.name.length >= 20) {
+    if (dashboard.name.length >= 20) {
         name = $.trim(dashboard.name).substring(0, 17) + "...";
     } else {
         name = dashboard.name;
@@ -418,7 +439,8 @@ function createDashboardSelectorItem(dashboard) {
                 </span>
 
                 <div class="dropdown-menu dropdown-follow-gt pointer">
-                    <a class="dropdown-item rename-dashboard" role="button" data-dashboard="${dashboard.index}">
+                    <a class="dropdown-item rename-dashboard" role="button" data-dashboard="${dashboard.index}"
+                         data-toggle="modal" data-target="#rename-dashboard-modal">
                         <i class="fas fa-edit"></i> Renommer
                     </a>
                     <a class="dropdown-item delete-dashboard" role="button" data-dashboard="${dashboard.index}">
