@@ -42,12 +42,12 @@ class RestSecurityListener {
             throw new RuntimeException("Failed to read annotation");
         }
 
-        $annotation = $reader->getMethodAnnotation($method, RestAuthenticated::class);
-
+        $annotation = $reader->getMethodAnnotation($method, RestVersionChecked::class);
         if ($annotation instanceof RestVersionChecked) {
             $this->handleRestVersionChecked($event);
         }
 
+        $annotation = $reader->getMethodAnnotation($method, RestAuthenticated::class);
         if ($annotation instanceof RestAuthenticated) {
             $this->handleRestAuthenticated($event, $controller);
         }
