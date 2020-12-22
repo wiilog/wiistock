@@ -16,6 +16,10 @@
 const dashboards = [];
 let current = null;
 
+const $addRowButton = $('button.add-row-modal-submit');
+const $dashboard = $('.dashboard');
+const $dashboardRowSelector = $('.dashboard-row-selector');
+
 $(document).ready(() => {
     loadSampleData().then(() => {
         const selected = window.location.hash.replace(`#`, ``);
@@ -46,22 +50,22 @@ $(window).on("hashchange", function () {
     }
 });
 
-$('.dashboard-row-selector').click(function () {
+$dashboardRowSelector.click(function () {
     const button = $(this);
 
     $('input[name="new-row-columns-count"]').val(button.data("columns"));
-    $(".dashboard-row-selector").removeClass("selected");
+    $dashboardRowSelector.removeClass("selected");
     button.addClass("selected");
-    $('button.add-row-modal-submit').attr(`disabled`, false);
+    $addRowButton.attr(`disabled`, false);
 });
 
-$('button.add-row-modal-submit').click(function () {
+$addRowButton.click(function () {
     const $newRowColumnsCountInput = $('input[name="new-row-columns-count"]');
 
     const columns = $newRowColumnsCountInput.val();
     $newRowColumnsCountInput.val(``);
-    $(".dashboard-row-selector").removeClass("selected");
-    $('button.add-row-modal-submit').attr(`disabled`, true);
+    $dashboardRowSelector.removeClass("selected");
+    $addRowButton.attr(`disabled`, true);
 
     if (current !== undefined) {
         current.rows.push({
@@ -72,6 +76,7 @@ $('button.add-row-modal-submit').click(function () {
         renderDashboard(current);
         updateAddRowButton();
     }
+    $addRowButton.closest('.modal').modal('hide');
 });
 
 $('button.add-dashboard-modal-submit').click(function () {
@@ -107,7 +112,7 @@ $('.dashboard-pagination').on(`click`, `.delete-dashboard`, function () {
     renderDashboardPagination();
 });
 
-$('.dashboard').on(`click`, `.delete-row`, function () {
+$dashboard.on(`click`, `.delete-row`, function () {
     const $row = $(this).parent();
     const rowIndex = $row.data(`row`);
 
@@ -118,7 +123,7 @@ $('.dashboard').on(`click`, `.delete-row`, function () {
     updateAddRowButton();
 });
 
-$('.dashboard').on(`click`, `.delete-component`, function () {
+$dashboard.on(`click`, `.delete-component`, function () {
     const $component = $(this).parent();
     const componentIndex = $component.data(`component`);
     const rowIndex = $component.parents(`.dashboard-row`).data(`row`);
@@ -321,12 +326,11 @@ function renderDashboard(dashboard) {
     if (dashboard === undefined)
         return;
 
-    const container = $('.dashboard');
-    container.empty();
+    $dashboard.empty();
 
     dashboard.rows
         .map(renderRow)
-        .forEach(row => container.append(row));
+        .forEach(row => $dashboard.append(row));
 }
 
 function updateAddRowButton() {
