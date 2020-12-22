@@ -79,13 +79,17 @@ $('button.add-dashboard-modal-submit').click(function () {
     const name = $dashboardNameInput.val();
     $dashboardNameInput.val(``);
 
-    dashboards.push({
-        index: dashboards.length,
-        name,
-        rows: [],
-    });
+    if(dashboards.length >= 8) {
+        console.error("Too many dashboards");
+    } else {
+        dashboards.push({
+            index: dashboards.length,
+            name,
+            rows: [],
+        });
 
-    renderDashboardPagination();
+        renderDashboardPagination();
+    }
 });
 
 $('.dashboard-pagination').on(`click`, `.delete-dashboard`, function () {
@@ -381,19 +385,29 @@ function renderDashboardPagination() {
 
     dashboards
         .map(dashboard => createDashboardSelectorItem(dashboard))
-        .forEach(item => item.insertBefore(".dashboard-pagination > button"))
+        .forEach(item => item.insertBefore(".dashboard-pagination > button"));
 
     dashboards
         .map(dashboard => createExternalDashboardLink(dashboard))
-        .forEach(item => $('.external-dashboards').append(item))
+        .forEach(item => $('.external-dashboards').append(item));
+
+    $('[data-target="#add-dashboard-modal"]')
+        .attr(`disabled`, dashboards.length >= 8);
 }
 
 function createDashboardSelectorItem(dashboard) {
     const number = dashboard.index + 1;
 
+    let name;
+    if(dashboard.name.length >= 20) {
+        name = $.trim(dashboard.name).substring(0, 17) + "...";
+    } else {
+        name = dashboard.name;
+    }
+
     return $(`
         <div class="d-flex align-items-center mr-3">
-            <a href="#${number}" title="${dashboard.name}">Dashboard ${number}</a>
+            <a href="#${number}" title="${dashboard.name}">${name}</a>
             <div class="dropdown dropright ml-1">
                 <span class="badge badge-primary square-sm pointer" data-toggle="dropdown">
                     <i class="fas fa-pen"></i>
