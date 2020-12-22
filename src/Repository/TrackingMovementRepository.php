@@ -106,7 +106,7 @@ class TrackingMovementRepository extends EntityRepository
             ->addSelect('pack_arrival.numeroArrivage')
             ->addSelect('pack_arrival.numeroCommandeList AS numeroCommandeListArrivage')
             ->addSelect('pack_arrival.isUrgent')
-            ->addSelect('join_reception.numeroReception')
+            ->addSelect('join_reception.number')
             ->addSelect('join_reception.orderNumber AS orderNumber')
             ->addSelect('tracking_movement.freeFields')
 

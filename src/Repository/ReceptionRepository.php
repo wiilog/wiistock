@@ -55,8 +55,8 @@ class ReceptionRepository extends ServiceEntityRepository
      */
     public function getLastNumberByDate(string $date): ?string {
         $result = $this->createQueryBuilder('reception')
-            ->select('reception.numeroReception AS number')
-            ->where('reception.numeroReception LIKE :value')
+            ->select('reception.number AS number')
+            ->where('reception.number LIKE :value')
             ->orderBy('reception.date', 'DESC')
             ->addOrderBy('reception.id', 'DESC')
             ->setParameter('value', Reception::PREFIX_NUMBER . $date . '%')
@@ -95,7 +95,7 @@ class ReceptionRepository extends ServiceEntityRepository
             ->select('reception.id')
             ->addSelect('article.id AS articleId')
             ->addSelect('referenceArticle.id AS referenceArticleId')
-            ->addSelect('reception.numeroReception')
+            ->addSelect('reception.number')
             ->addSelect('reception.orderNumber')
             ->addSelect('provider.nom AS providerName')
             ->addSelect('user.username AS userUsername')
@@ -225,7 +225,7 @@ class ReceptionRepository extends ServiceEntityRepository
                         ->andWhere('
                             r.date LIKE :value
                             OR r.dateAttendue LIKE :value
-                            OR r.numeroReception LIKE :value
+                            OR r.number LIKE :value
                             OR r.orderNumber LIKE :value
                             OR r.commentaire LIKE :value
                             OR search_status.nom LIKE :value

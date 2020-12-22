@@ -163,7 +163,7 @@ class ReceptionService
             ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
             ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null)
             ->setStatut($statut)
-            ->setNumeroReception($numero)
+            ->setNumber($numero)
             ->setDate($date)
             ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
             ->setUtilisateur($currentUser)
@@ -225,7 +225,7 @@ class ReceptionService
                     })
                     ->toArray())
             ),
-            "numeroReception" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
+            "number" => ($reception->getNumber() ? $reception->getNumber() : ''),
             "orderNumber" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
             "storageLocation" => ($reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : ''),
             "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
@@ -278,8 +278,8 @@ class ReceptionService
             [
                 'label' => $this->translator->trans('réception.n° de réception'),
                 'title' => 'n° de réception',
-                'value' => $reception->getNumeroReception(),
-                'show' => [ 'fieldName' => 'numeroReception' ]
+                'value' => $reception->getNumber(),
+                'show' => [ 'fieldName' => 'number' ]
             ],
             [
                 'label' => 'Fournisseur',

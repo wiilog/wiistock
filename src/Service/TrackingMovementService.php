@@ -113,7 +113,7 @@ class TrackingMovementService
                 $data ['entityPath'] = 'reception_show';
                 $data ['fromLabel'] = 'réception.réception';
                 $data ['entityId'] = $movement->getReception()->getId();
-                $data ['from'] = $movement->getReception()->getNumeroReception();
+                $data ['from'] = $movement->getReception()->getNumber();
             } else if ($movement->getDispatch()) {
                 $data ['entityPath'] = 'dispatch_show';
                 $data ['fromLabel'] = 'acheminement.Acheminement';

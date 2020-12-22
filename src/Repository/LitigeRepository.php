@@ -246,7 +246,7 @@ class LitigeRepository extends EntityRepository
             ->leftJoin('litige.declarant', 'declarant')
 			->leftJoin('a.fournisseur', 'aFourn')
 			// litiges sur réceptions
-            ->addSelect('r.numeroReception')
+            ->addSelect('r.number')
             ->addSelect('r.orderNumber')
             ->addSelect('r.id as receptionId')
             ->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
@@ -343,7 +343,7 @@ class LitigeRepository extends EntityRepository
 						declarant.username LIKE :value OR
 						declarant.email LIKE :value OR
 						a.numeroArrivage LIKE :value OR
-						r.numeroReception LIKE :value OR
+						r.number LIKE :value OR
 						r.orderNumber LIKE :value OR
                         rra.commande LIKE :value OR
 						ach.username LIKE :value OR
@@ -386,7 +386,7 @@ class LitigeRepository extends EntityRepository
                                 ->addOrderBy('a.numeroArrivage', $order);
                         } else if ($column === 'numeroReception') {
                             $qb
-                                ->addOrderBy('r.numeroReception', $order);
+                                ->addOrderBy('r.number', $order);
                         } else if ($column === 'provider') {
                             $qb
                                 ->addOrderBy('provider', $order);

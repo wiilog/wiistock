@@ -329,7 +329,7 @@ class MouvementStockController extends AbstractController
                     } else if ($mouvement->getCollecteOrder()) {
                         $orderNo = $mouvement->getCollecteOrder()->getNumero();
                     } else if ($mouvement->getReceptionOrder()) {
-                        $orderNo = $mouvement->getReceptionOrder()->getNumeroReception();
+                        $orderNo = $mouvement->getReceptionOrder()->getNumber();
                     }
                     $mouvementData[] = $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '';
                     $mouvementData[] = $orderNo ? ' ' . $orderNo : '';

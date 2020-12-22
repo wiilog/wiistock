@@ -271,7 +271,7 @@ class LitigeController extends AbstractController
                     $reception = isset($receptionRefArticle) ? $receptionRefArticle->getReception() : null;
                     $litigeData[] = $article->getBarCode();
                     $litigeData[] = $qteArticle;
-                    $litigeData[] = (isset($reception) ? $reception->getNumeroReception() : '');
+                    $litigeData[] = (isset($reception) ? $reception->getNumber() : '');
 
                     $litigeData[] = (isset($reception) ? $reception->getOrderNumber() : null);
 
