@@ -44,7 +44,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 $manager->remove($componentType);
                 $this->output->writeln("Component Type \"$name\" removed");
             } else {
-                $alreadyExistingName[$name] = true;
+                $alreadyExistingName[$name] = $componentType;
             }
         }
 

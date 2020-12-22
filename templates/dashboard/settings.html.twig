@@ -8,7 +8,7 @@
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto">
-                <button class="btn btn-primary btn-ripple">
+                <button class="btn btn-primary btn-ripple" data-toggle="modal" data-target="#add-row-modal">
                     <i class="fas fa-plus mr-2"></i> Ajouter une ligne<br>
                     <small style="display:block;font-size:0.8rem;margin-top:-5px;">(6 lignes max)</small>
                 </button>
@@ -19,7 +19,7 @@
                         Affichage externe <i class="fas fa-caret-down ml-1"></i>
                     </button>
 
-                    <div class="dropdown-menu dropdown-menu-right dropdown-follow-gt pointer">
+                    <div class="external-dashboards dropdown-menu dropdown-menu-right dropdown-follow-gt pointer">
                         <a class="dropdown-item">
                             <i class="fas fa-external-link-alt"></i> Dashboard "Nom de dashboard"
                         </a>
@@ -39,39 +39,19 @@
                 </button>
             </div>
         </div>
-        <div class="dashboard">
-            {% for i in range(1, random(6)) %} {# placeholder #}
-                <div class="dashboard-row"></div>
-            {% endfor %}
-        </div>
-        <div class="dashboard-selector">
-            {% for i in range(1, random(2, 4)) %} {# placeholder #}
-                <div class="d-flex align-items-center mr-3">
-                    <a href="#{{ i }}">Dashboard {{ i }}</a>
-                    <div class="dropdown dropright ml-1">
-                        <span class="badge badge-primary square-sm pointer" data-toggle="dropdown">
-                            <i class="fas fa-pen"></i>
-                        </span>
-
-                        <div class="dropdown-menu dropdown-follow-gt pointer">
-                            <a class="dropdown-item">
-                                <i class="fas fa-edit"></i> Renommer
-                            </a>
-                            <a class="dropdown-item">
-                                <i class="fas fa-trash"></i> Supprimer
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-
-            <button class="btn btn-primary btn-ripple">
+        <div class="dashboard"></div>
+        <div class="dashboard-pagination">
+            <button class="btn btn-primary btn-ripple" data-toggle="modal" data-target="#add-dashboard-modal">
                 <span class="fa fa-plus mr-2"></span> Ajouter un dashboard
             </button>
         </div>
     </div>
+
+    {% include 'dashboard/modals/add_dashboard.html.twig' %}
+    {% include 'dashboard/modals/add_row.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="{{ asset('js/pages/dashboard/settings.js') }}?{{ app_last_cache_clear }}"></script>
 {% endblock %}
