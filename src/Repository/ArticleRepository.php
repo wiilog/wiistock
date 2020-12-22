@@ -526,10 +526,12 @@ class ArticleRepository extends EntityRepository {
 
                                 $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
                                 if(is_numeric($freeFieldId)) {
-                                    $query[] = "JSON_SEARCH(a.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                    $query[] = "JSON_SEARCH(a.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL
+                                    OR DATE_FORMAT(JSON_EXTRACT(a.freeFields,'$.\"$freeFieldId\"'), '%e/%m/%Y') LIKE :search";
                                     $qb->setParameter("search", $search);
                                 } else if (property_exists(Article::class, $field)) {
-                                    $query[] = "a.$field LIKE :search";
+                                    $query[] = "a.$field LIKE :search ";
+
                                     $qb->setParameter('search', $search);
                                 }
                                 break;
