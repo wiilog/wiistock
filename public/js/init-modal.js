@@ -101,7 +101,7 @@ function processSubmitAction($modal,
                              path,
                              {tables, keepModal, keepForm, validator} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
-    const {success, errorMessages, $isInvalidElements, data} = processForm($modal, isAttachmentForm, validator);
+    const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
     if (success) {
         const smartData = isAttachmentForm
             ? createFormData(data)
@@ -109,7 +109,7 @@ function processSubmitAction($modal,
 
         $submit.pushLoader('white');
 
-        /*// launch ajax request
+        // launch ajax request
         return $
             .ajax({
                 url: path,
@@ -141,7 +141,7 @@ function processSubmitAction($modal,
             .catch((err) => {
                 $submit.popLoader();
                 throw err;
-            });*/
+            });
     }
     else {
         displayFormErrors($modal, {
@@ -210,11 +210,11 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
 /**
  *
  * @param {jQuery} $modal jQuery modal
- * @param {boolean} isAttachmentForm
- * @param {undefined|function} validator
+ * @param {boolean} [isAttachmentForm]
+ * @param {function} [validator]
  * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
  */
-function processForm($modal, isAttachmentForm, validator) {
+function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined) {
     const data = {};
 
     const dataArrayForm = processDataArrayForm($modal, data);

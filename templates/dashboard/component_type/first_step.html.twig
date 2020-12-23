@@ -10,7 +10,9 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body form">
+                <input type="hidden" name="rowIndex" value/>
+                <input type="hidden" name="componentIndex" value/>
                 {% for categoryName, componentTypesByCategory in componentTypes %}
                     <div class="row component-type-container">
                         <div class="col-12">
