@@ -13,6 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class ComponentType
 {
+    public const OUTSTANDING_PACK = 'outstanding_pack';
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -44,6 +46,11 @@ class ComponentType
      * @ORM\Column(type="json")
      */
     private $exampleValues;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $meterKey;
 
     /**
      * @ORM\OneToMany(targetEntity=Component::class, mappedBy="type")
@@ -147,6 +154,15 @@ class ComponentType
             }
         }
 
+        return $this;
+    }
+
+    public function getMeterKey(): ?string {
+        return $this->meterKey;
+    }
+
+    public function setMeterKey(?string $meterKey): self {
+        $this->meterKey = $meterKey;
         return $this;
     }
 }

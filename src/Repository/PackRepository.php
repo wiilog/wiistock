@@ -276,7 +276,6 @@ class PackRepository extends EntityRepository
     /**
      * @param array $locations
      * @param array $natures
-     * @param array $dateBracket
      * @param bool $isCount
      * @param string $field
      * @param int|null $limit
@@ -289,7 +288,6 @@ class PackRepository extends EntityRepository
      */
     public function getCurrentPackOnLocations(array $locations,
                                               array $natures,
-                                              array $dateBracket,
                                               bool $isCount = true,
                                               string $field = 'colis.id',
                                               ?int $limit = null,
@@ -304,6 +302,7 @@ class PackRepository extends EntityRepository
             ->leftJoin('colis.nature', 'nature')
             ->join('colis.lastDrop', 'lastDrop')
             ->join('lastDrop.emplacement', 'emplacement');
+
         if (!empty($locations)) {
             $queryBuilder
                 ->andWhere(

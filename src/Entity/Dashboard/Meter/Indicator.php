@@ -1,18 +1,17 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Dashboard\Meter;
 
+use App\Entity\Dashboard;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\Dashboard as DashboardRepository;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\DashboardMeterRepository")
+ * @ORM\Entity(repositoryClass=DashboardRepository\IndicatorMeterRepository::class)
+ * @ORM\Table(name="dashboard_meter_indicator")
  */
-class DashboardMeter
+class Indicator
 {
-
-    public const DASHBOARD_PACKAGING = 'packaging';
-    public const DASHBOARD_ADMIN = 'admin';
-    public const DASHBOARD_DOCK = 'dock';
 
     /**
      * @ORM\Id()
@@ -20,11 +19,6 @@ class DashboardMeter
      * @ORM\Column(type="integer")
      */
     private $id;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $meterKey;
 
     /**
      * @ORM\Column(type="integer")
@@ -42,25 +36,14 @@ class DashboardMeter
     private $delay;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @var Dashboard\Component
+     * @ORM\OneToOne (targetEntity=Dashboard\Component::class, inversedBy="indicatorMeter")
      */
-    private $dashboard;
+    private $component;
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getMeterKey(): ?string
-    {
-        return $this->meterKey;
-    }
-
-    public function setMeterKey(string $meterKey): self
-    {
-        $this->meterKey = $meterKey;
-
-        return $this;
     }
 
     public function getCount(): ?int
@@ -99,14 +82,28 @@ class DashboardMeter
         return $this;
     }
 
-    public function getDashboard(): ?string
-    {
-        return $this->dashboard;
+    /**
+     * @return Dashboard\Component|null
+     */
+    public function getComponent(): ?Dashboard\Component {
+        return $this->component;
     }
 
-    public function setDashboard(string $dashboard): self
-    {
-        $this->dashboard = $dashboard;
+    /**
+     * @param Dashboard\Component|null $component
+     * @return self
+     */
+    public function setComponent(?Dashboard\Component $component): self {
+
+        if ($this->component) {
+            $this->component->setMeter(null);
+        }
+
+        $this->component = $component;
+
+        if ($this->component) {
+            $this->component->setMeter($this);
+        }
 
         return $this;
     }

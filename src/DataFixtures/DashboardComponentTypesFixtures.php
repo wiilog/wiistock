@@ -22,7 +22,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => 'location_for_outstanding',
             'hint' => 'Nombre de colis en encours sur les emplacements sélectionnés',
             'exampleValues' => [],
-            'category' => 'Indicateurs'
+            'category' => 'Indicateurs',
+            'meterKey' => Dashboard\ComponentType::OUTSTANDING_PACK
         ],
         'Nombre d\'arrivages quotidiens' => [
             'template' => 'daily_arrivals',
@@ -67,10 +68,11 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             }
 
             $componentType
-                ->setHint($config['hint'] ?? '')
+                ->setHint($config['hint'] ?? null)
                 ->setExampleValues($config['exampleValues'] ?? [])
-                ->setCategory($config['category'] ?? [])
-                ->setTemplate($config['template'] ?? '');
+                ->setCategory($config['category'] ?? null)
+                ->setMeterKey($config['meterKey'] ?? null)
+                ->setTemplate($config['template'] ?? null);
 
             $action = !$componentTypeExisted ? 'persisted' : 'updated';
             $this->output->writeln("Component Type \"$name\" $action");

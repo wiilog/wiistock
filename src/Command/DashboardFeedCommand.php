@@ -14,6 +14,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
+use App\Entity\Dashboard;
 
 class DashboardFeedCommand extends Command
 {
@@ -44,7 +45,20 @@ class DashboardFeedCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->dashboardService->retrieveAndInsertGlobalDashboardData($this->getEntityManager());
+        $entityManager = $this->getEntityManager();
+        $dashboardComponentRepository = $entityManager->getRepository(Dashboard\Component::class);
+        $components = $dashboardComponentRepository->findAll();
+
+        foreach ($components as $component) {
+            $componentType = $component->getType();
+            switch ($componentType->getMeterKey()) {
+                case Dashboard\ComponentType::OUTSTANDING_PACK:
+                    $this->dashboardService->persistOutstandingPack($entityManager, $component);
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     /**
