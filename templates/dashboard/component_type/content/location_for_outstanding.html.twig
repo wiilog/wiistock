@@ -1,0 +1,66 @@
+<div class="row form-group">
+    <div class="col-12">
+        <label>Choix des emplacements*</label>
+    </div>
+    <div class="col-12">
+        <select class="ajax-autocomplete-location data form-control w-100 needed"
+                name="locations"
+                multiple
+                title="Emplacements">
+        </select>
+    </div>
+</div>
+
+<div class="row form-group align-items-center">
+    <div class="col-auto">
+        <label class="switch">
+            <input class="checkbox"
+                   type="checkbox"
+                   name="withTreatmentDelay">
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <div class="col">
+        Afficher le delai de traitement  (Les emplacements choisis doivent avoir un délai de paramétré)
+    </div>
+</div>
+
+<div class="row form-group align-items-center">
+    <div class="col-auto">
+        <label class="switch">
+            <input class="checkbox"
+                   type="checkbox"
+                   name="withLocationNames">
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <div class="col">
+        Afficher le nom des emplacements paramétrés sous le titre
+    </div>
+</div>
+
+<div class="row form-group align-items-center">
+    <div class="col-auto">
+        <label class="switch">
+            <input class="checkbox"
+                   type="checkbox"
+                   name="redirect">
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <div class="col">
+        Rediriger au clic vers la page Encours
+    </div>
+</div>
+
+<div class="row form-group">
+    <div class="col-12">
+        <label>Titre du composant*</label>
+    </div>
+    <div class="col-12">
+        <input class="data form-control w-100 needed"
+               name="title"
+               type="text"
+               title="Titre du composant"/>
+    </div>
+</div>

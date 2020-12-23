@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Dashboard;
+use App\Entity\Type;
 use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -21,6 +22,13 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => 'location_for_outstanding',
             'hint' => 'Nombre de colis en encours sur les emplacements sélectionnés',
             'exampleValues' => [],
+            'category' => 'Indicateurs'
+        ],
+        'Nombre d\'arrivages quotidiens' => [
+            'template' => 'daily_arrivals',
+            'hint' => 'Nombre d\'arrivages créés par jour',
+            'exampleValues' => [],
+            'category' => 'Graphiques'
         ]
     ];
 
@@ -50,21 +58,22 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
 
         // we persist new ComponentType
         foreach (self::COMPONENT_TYPES as $name => $config) {
-            if (!isset($alreadyExistingName[$name])) {
+            $componentType = $alreadyExistingName[$name] ?? null;
+            $componentTypeExisted = isset($componentType);
+            if (!$componentTypeExisted) {
                 $componentType = new Dashboard\ComponentType();
-                $componentType
-                    ->setName($name)
-                    ->setHint($config['hint'])
-                    ->setExampleValues($config['exampleValues'])
-                    ->setTemplate($config['template']);
+                $componentType->setName($name);
                 $manager->persist($componentType);
-                $this->output->writeln("Component Type \"$name\" persisted");
-            } else {
-                $alreadyExistingName[$name]
-                    ->setHint($config['hint'])
-                    ->setExampleValues($config['exampleValues'])
-                    ->setTemplate($config['template']);
             }
+
+            $componentType
+                ->setHint($config['hint'] ?? '')
+                ->setExampleValues($config['exampleValues'] ?? [])
+                ->setCategory($config['category'] ?? [])
+                ->setTemplate($config['template'] ?? '');
+
+            $action = !$componentTypeExisted ? 'persisted' : 'updated';
+            $this->output->writeln("Component Type \"$name\" $action");
         }
 
         $manager->flush();

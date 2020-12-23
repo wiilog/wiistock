@@ -36,6 +36,11 @@ class ComponentType
     private $hint;
 
     /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $category;
+
+    /**
      * @ORM\Column(type="json")
      */
     private $exampleValues;
@@ -76,6 +81,18 @@ class ComponentType
     public function setTemplate(string $template): self
     {
         $this->template = $template;
+
+        return $this;
+    }
+
+    public function getCategory(): ?string
+    {
+        return $this->category;
+    }
+
+    public function setCategory(string $category): self
+    {
+        $this->category = $category;
 
         return $this;
     }
