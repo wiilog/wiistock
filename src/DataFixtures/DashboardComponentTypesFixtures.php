@@ -19,7 +19,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
 
     private const COMPONENT_TYPES = [
         'Quantité en cours sur n emplacement(s)' => [
-            'template' => 'location_for_outstanding',
+            'template' => 'outstanding_packs',
             'hint' => 'Nombre de colis en encours sur les emplacements sélectionnés',
             'exampleValues' => [],
             'category' => 'Indicateurs'
@@ -29,6 +29,9 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'hint' => 'Nombre d\'arrivages créés par jour',
             'exampleValues' => [],
             'category' => 'Graphiques'
+        ],
+        'Colis en retard' => [
+            'hint' => 'Les 100 colis les plus anciens ayant dépassé le délai de présence sur leur emplacement'
         ]
     ];
 
