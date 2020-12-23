@@ -34,7 +34,7 @@
                         </a>
                     </div>
                 </div>
-                <button class="btn btn-primary btn-ripple">
+                <button class="btn btn-primary btn-ripple save-dashboards">
                     <span class="fa fa-check mr-2"></span> Enregistrer
                 </button>
             </div>
@@ -47,9 +47,12 @@
         </div>
     </div>
 
+    <input type="hidden" class="dashboards-data" value="{{ dashboards }}">
+
     {% include 'dashboard/modals/add_dashboard.html.twig' %}
     {% include 'dashboard/modals/rename_dashboard.html.twig' %}
     {% include 'dashboard/modals/add_row.html.twig' %}
+    {% include 'dashboard/modals/error.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}

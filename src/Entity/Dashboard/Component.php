@@ -24,8 +24,15 @@ class Component
 
     /**
      * @ORM\ManyToOne(targetEntity=ComponentType::class, inversedBy="componentsUsing")
+     * @ORM\JoinColumn(nullable=false)
      */
     private $type;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=PageRow::class, inversedBy="components")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $row;
 
     /**
      * @ORM\Column(type="integer")
@@ -41,11 +48,6 @@ class Component
      * @ORM\Column(type="json")
      */
     private $config = [];
-
-    /**
-     * @ORM\ManyToOne(targetEntity=PageRow::class, inversedBy="components")
-     */
-    private $row;
 
     public function getId(): ?int
     {

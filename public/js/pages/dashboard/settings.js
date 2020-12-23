@@ -3,7 +3,7 @@
  *     index: int
  *     name: string,
  *     rows: {
- *         rowSize: int,
+ *         size: int,
  *         components: {
  *             type: int,
  *             title: string,
@@ -13,7 +13,8 @@
  *     }[],
  * }[]}
  */
-const dashboards = [];
+let dashboards = [];
+let cache = [];
 let current = null;
 
 const $addRowButton = $('button.add-row-modal-submit');
@@ -22,19 +23,21 @@ const $pagination = $('.dashboard-pagination');
 const $dashboardRowSelector = $('.dashboard-row-selector');
 
 $(document).ready(() => {
-    loadSampleData().then(() => {
-        const selected = window.location.hash.replace(`#`, ``);
-        if (dashboards[selected - 1] !== undefined) {
-            current = dashboards[selected - 1];
-        } else if (dashboards.length !== 0) {
-            current = dashboards[0];
-            window.location.hash = `#1`;
-        }
+    dashboards = JSON.parse($(`.dashboards-data`).val());
+    recalculateIndexes();
+    cacheOriginalDashboard();
 
-        updateAddRowButton();
-        renderDashboard(current);
-        renderDashboardPagination();
-    })
+    const selected = window.location.hash.replace(`#`, ``);
+    if (dashboards[selected - 1] !== undefined) {
+        current = dashboards[selected - 1];
+    } else if (dashboards.length !== 0) {
+        current = dashboards[0];
+        window.location.hash = `#1`;
+    }
+
+    updateAddRowButton();
+    renderDashboard(current);
+    renderDashboardPagination();
 });
 
 $(window).on("hashchange", function () {
@@ -50,6 +53,56 @@ $(window).on("hashchange", function () {
         window.location.hash = `#1`;
     }
 });
+
+$(window).bind('beforeunload', function () {
+    return cache !== JSON.stringify(dashboards) ?
+        true :
+        undefined;
+});
+
+$(`.save-dashboards`).click(function () {
+    const content = {
+        dashboards: JSON.stringify(dashboards)
+    };
+
+    $.post(Routing.generate(`save_dashboard_settings`), content)
+        .then(function (data) {
+            if (data.success) {
+                showBSAlert("Dashboards enregistrés avec succès", "success");
+                dashboards = JSON.parse(data.dashboards);
+                recalculateIndexes();
+                cacheOriginalDashboard();
+
+                current = dashboards[current.index];
+
+                updateAddRowButton();
+                renderDashboard(current);
+                renderDashboardPagination();
+            } else {
+                throw data;
+            }
+        })
+        .catch(function (error) {
+            const date = new Date().toISOString();
+            error.responseText = undefined;
+
+            const context = {
+                date,
+                error,
+                dashboards
+            };
+
+            $(`[name="error-context"]`).val(JSON.stringify(context));
+            $(`#error-modal`).modal(`show`);
+
+            showBSAlert("Une erreur est survenue lors de la sauvegarde des dashboards", "danger");
+        });
+});
+
+$(`.download-trace`).click(function () {
+    const blob = new Blob([$(`[name="error-context"]`).val()]);
+    saveAs(blob, `dashboards-error.txt`);
+})
 
 $dashboardRowSelector.click(function () {
     const button = $(this);
@@ -70,7 +123,8 @@ $addRowButton.click(function () {
 
     if (current !== undefined) {
         current.rows.push({
-            rowSize: columns,
+            index: current.rows.length,
+            size: columns,
             components: []
         });
 
@@ -155,178 +209,6 @@ $dashboard.on(`click`, `.delete-component`, function () {
     $(this).parent().replaceWith(renderComponent(componentIndex));
 });
 
-function loadSampleData() {
-    dashboards.push({
-        index: 0,
-        name: "Test de dashboard",
-        rows: [
-            {
-                index: 0,
-                rowSize: 2,
-                components: [
-                    {
-                        type: 0,
-                        title: "Hello",
-                        index: 0,
-                        config: {}
-                    },
-                    {
-                        type: 0,
-                        title: "Hello",
-                        index: 1,
-                        config: {}
-                    }
-                ]
-            },
-            {
-                index: 1,
-                rowSize: 1,
-                components: [
-                    {
-                        type: 0,
-                        title: "Hello",
-                        index: 0,
-                        config: {}
-                    }
-                ]
-            },
-            {
-                index: 2,
-                rowSize: 5,
-                components: [
-                    {
-                        index: 0,
-                        type: 0,
-                        title: "Hello",
-                        config: {}
-                    },
-                    undefined,
-                    {
-                        index: 2,
-                        type: 0,
-                        title: "Hello",
-                        config: {}
-                    },
-                    undefined,
-                    {
-                        index: 4,
-                        type: 0,
-                        title: "Hello",
-                        config: {}
-                    }
-                ]
-            },
-            {
-                index: 3,
-                rowSize: 4,
-                components: [
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                ]
-            },
-            {
-                index: 4,
-                rowSize: 6,
-                components: [
-                    undefined,
-                    {
-                        type: 0,
-                        title: "Hello",
-                        index: 1,
-                        config: {}
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                ]
-            }
-        ]
-    });
-
-    dashboards.push({
-        index: 1,
-        name: "Autre test",
-        rows: [
-            {
-                index: 0,
-                rowSize: 3,
-                components: [
-                    {
-                        type: 0,
-                        title: "Hello",
-                        index: 0,
-                        config: {}
-                    },
-                    {
-                        type: 0,
-                        title: "Hello",
-                        index: 1,
-                        config: {}
-                    },
-                    {
-                        type: 0,
-                        title: "Hello",
-                        index: 2,
-                        config: {}
-                    }
-                ]
-            },
-            {
-                index: 1,
-                rowSize: 6,
-                components: [
-                    undefined,
-                    {
-                        index: 1,
-                        type: 0,
-                        title: "Hello",
-                        config: {}
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    {
-                        index: 5,
-                        type: 0,
-                        title: "Hello",
-                        config: {}
-                    },
-                ]
-            },
-            {
-                index: 2,
-                rowSize: 4,
-                components: [
-                    {
-                        index: 0,
-                        type: 0,
-                        title: "Hello",
-                        config: {}
-                    },
-                    {
-                        index: 1,
-                        type: 0,
-                        title: "Hello",
-                        config: {}
-                    },
-                    {
-                        index: 2,
-                        type: 0,
-                        title: "Hello",
-                        config: {}
-                    },
-                    undefined,
-                ]
-            }
-        ]
-    });
-
-    return Promise.resolve();
-}
-
 function recalculateIndexes() {
     dashboards.forEach((dashboard, i) => {
         dashboard.index = i;
@@ -341,6 +223,10 @@ function recalculateIndexes() {
             row.index = i;
         });
     })
+}
+
+function cacheOriginalDashboard() {
+    cache = JSON.stringify(dashboards);
 }
 
 function renderDashboard(dashboard) {
@@ -364,7 +250,7 @@ function updateAddRowButton() {
 function renderRow(row) {
     const $row = $(`<div class="dashboard-row" data-row="${row.index}"></div>`);
 
-    for (let i = 0; i < row.rowSize; ++i) {
+    for (let i = 0; i < row.size; ++i) {
         $row.append(renderComponent(row.components[i] !== undefined ? row.components[i] : i));
     }
 

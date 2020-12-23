@@ -220,7 +220,7 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
     }
 
     public function toArray(): array {
-        $streamArray = array_merge($this->elements);
+        $streamArray = $this->elements;
         $this->elements = null;
         return $streamArray;
     }
