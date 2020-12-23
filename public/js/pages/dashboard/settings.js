@@ -251,7 +251,7 @@ function renderRow(row) {
     const $row = $(`<div class="dashboard-row" data-row="${row.index}"></div>`);
 
     for (let i = 0; i < row.size; ++i) {
-        $row.append(renderComponent(row.components[i] !== undefined ? row.components[i] : i));
+        $row.append(renderComponent(row.components[i] != undefined ? row.components[i] : i));
     }
 
     $row.append(`
