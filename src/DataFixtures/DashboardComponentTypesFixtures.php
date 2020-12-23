@@ -29,6 +29,12 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'hint' => 'Nombre d\'arrivages créés par jour',
             'exampleValues' => [],
             'category' => 'Graphiques'
+        ],
+        'Suivi des transporteur' => [
+            'template' => 'carrier_tracking',
+            'hint' => 'Transporteur ayant effectué un arrivage dans la journée',
+            'exampleValues' => [],
+            'category' => 'Indicateurs'
         ]
     ];
 
