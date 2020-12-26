@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Helper\Stream;
 use App\Service\DashboardSettingsService;
 use Doctrine\ORM\EntityManagerInterface;
+use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,7 +48,7 @@ class DashboardSettingController extends AbstractController {
     }
 
     /**
-     * @Route("/save", name="save_dashboard_settings", options={"expose"=true})
+     * @Route("/save", name="save_dashboard_settings", options={"expose"=true}, methods={"POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param DashboardSettingsService $dashboardSettingsService

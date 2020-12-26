@@ -55,39 +55,50 @@ class DashboardSettingsService {
         $componentsToDelete = $this->byId($componentRepository->findAll());
 
         foreach($jsonDashboard as $jsonPage) {
-            [$update, $page] = $this->getEntity($entityManager, Dashboard\Page::class, $jsonPage);
-            if ($update && $page) {
-                $page->setName($jsonPage["name"]);
+            [$updatePage, $page] = $this->getEntity($entityManager, Dashboard\Page::class, $jsonPage);
 
-                foreach($jsonPage["rows"] as $jsonRow) {
-                    [$update, $row] = $this->getEntity($entityManager, Dashboard\PageRow::class, $jsonRow);
-                    if($update && $row) {
-                        $row->setPage($page);
-                        $row->setSize($jsonRow["size"]);
-                        foreach($jsonRow["components"] as $jsonComponent) {
-                            [$update, $component] = $this->getEntity($entityManager, Dashboard\Component::class, $jsonComponent);
-                            if($update && $component) {
-                                $type = $componentTypeRepository->find($jsonComponent["type"]);
-                                if(!$type) {
-                                    throw new InvalidArgumentException(self::UNKNOWN_COMPONENT . '-' . $jsonComponent["type"]);
+            if ($page) {
+                if ($updatePage) {
+                    $page->setName($jsonPage["name"]);
+
+                    foreach($jsonPage["rows"] as $jsonRow) {
+                        [$updateRow, $row] = $this->getEntity($entityManager, Dashboard\PageRow::class, $jsonRow);
+                        if ($row) {
+                            if ($updateRow) {
+                                $row->setPage($page);
+                                $row->setSize($jsonRow["size"]);
+                                foreach ($jsonRow["components"] as $jsonComponent) {
+                                    [$updateComponent, $component] = $this->getEntity($entityManager, Dashboard\Component::class, $jsonComponent);
+                                    if ($updateComponent && $component) {
+                                        $type = $componentTypeRepository->find($jsonComponent["type"]);
+                                        if (!$type) {
+                                            throw new InvalidArgumentException(self::UNKNOWN_COMPONENT . '-' . $jsonComponent["type"]);
+                                        }
+
+                                        $component->setType($type);
+                                        $component->setRow($row);
+                                        $component->setTitle($jsonComponent["title"]);
+                                        $component->setColumnIndex($jsonComponent["index"]);
+                                        $component->setConfig($jsonComponent["config"]);
+                                    }
+
+                                    if (isset($jsonComponent["id"], $componentsToDelete[$jsonComponent["id"]])) {
+                                        unset($componentsToDelete[$jsonComponent["id"]]);
+                                    }
                                 }
-
-                                $component->setType($type);
-                                $component->setRow($row);
-                                $component->setTitle($jsonComponent["title"]);
-                                $component->setColumnIndex($jsonComponent["index"]);
-                                $component->setConfig($jsonComponent["config"]);
                             }
-
-                            if(isset($jsonComponent["id"], $componentsToDelete[$jsonComponent["id"]])) {
-                                unset($componentsToDelete[$jsonComponent["id"]]);
+                            else {
+                                $this->ignoreRow($row, $componentsToDelete);
                             }
                         }
-                    }
 
-                    if(isset($jsonRow["id"], $pageRowsToDelete[$jsonRow["id"]])) {
-                        unset($pageRowsToDelete[$jsonRow["id"]]);
+                        if(isset($jsonRow["id"], $pageRowsToDelete[$jsonRow["id"]])) {
+                            unset($pageRowsToDelete[$jsonRow["id"]]);
+                        }
                     }
+                }
+                else {
+                    $this->ignorePage($page, $pageRowsToDelete, $componentsToDelete);
                 }
             }
 
@@ -135,5 +146,28 @@ class DashboardSettingsService {
                 return [$element->getId(), $element];
             })
             ->toArray();
+    }
+
+    private function ignorePage(Dashboard\Page $page,
+                                array &$pageRowsToDelete,
+                                array &$componentsToDelete) {
+        foreach ($page->getRows() as $row) {
+            $rowId = $row->getId();
+            if (isset($pageRowsToDelete[$rowId])) {
+                unset($pageRowsToDelete[$rowId]);
+            }
+            $this->ignoreRow($row, $componentsToDelete);
+        }
+    }
+
+    private function ignoreRow(Dashboard\PageRow $component,
+                               array &$componentsToDelete) {
+
+        foreach ($component->getComponents() as $component) {
+            $componentId = $component->getId();
+            if (isset($componentsToDelete[$componentId])) {
+                unset($componentsToDelete[$componentId]);
+            }
+        }
     }
 }

@@ -1,10 +1,16 @@
+const MAX_NUMBER_ROWS = 6;
+const MAX_NUMBER_PAGES = 8;
+
 /**
  * @type {{
  *     index: int
  *     name: string,
+ *     updated: boolean,
  *     rows: {
  *         size: int,
+ *         updated: boolean,
  *         components: {
+ *             updated: boolean,
  *             type: int,
  *             title: string,
  *             index: int,
@@ -14,8 +20,8 @@
  * }[]}
  */
 let dashboards = [];
-let cache = [];
 let current = null;
+let somePagesDeleted = false;
 
 const $addRowButton = $('button.add-row-modal-submit');
 const $dashboard = $('.dashboard');
@@ -26,20 +32,23 @@ const $modalComponentTypeSecondStep = $('#modalComponentTypeSecondStep');
 
 $(document).ready(() => {
     dashboards = JSON.parse($(`.dashboards-data`).val());
-    loadCurrentDashboard();
+    loadCurrentDashboard(true);
 
-    $(window).on("hashchange", () => loadCurrentDashboard());
+    $(window).on("hashchange", loadCurrentDashboard);
 
-    $(`.save-dashboards`).on('click', () => onDashboardSaved());
+    $(`.save-dashboards`).on('click', function() {
+        wrapLoadingOnActionButton($(this), onDashboardSaved);
+    });
+
+    $addRowButton.on('click', onRowAdded);
     $dashboard.on(`click`, `.delete-row`, onRowDeleted);
-    $dashboard.on(`click`, `.delete-component`, onComponentDeleted);
-    $pagination.on(`click`, `.delete-dashboard`, onDashboardDeleted);
-});
 
-$(window).bind('beforeunload', function () {
-    return cache !== JSON.stringify(dashboards) ?
-        true :
-        undefined;
+    $dashboard.on(`click`, `.delete-component`, onComponentDeleted);
+
+    $('button.add-dashboard-modal-submit').on('click', onPageAdded);
+    $pagination.on(`click`, `.delete-dashboard`, onPageDeleted);
+
+    $(window).bind('beforeunload', hasEditDashboard);
 });
 
 $(`.download-trace`).click(function () {
@@ -54,46 +63,6 @@ $dashboardRowSelector.click(function () {
     $dashboardRowSelector.removeClass("selected");
     button.addClass("selected");
     $addRowButton.attr(`disabled`, false);
-});
-
-$addRowButton.click(function () {
-    const $newRowColumnsCountInput = $('input[name="new-row-columns-count"]');
-
-    const columns = $newRowColumnsCountInput.val();
-    $newRowColumnsCountInput.val(``);
-    $dashboardRowSelector.removeClass("selected");
-    $addRowButton.attr(`disabled`, true);
-
-    if (current !== undefined) {
-        current.rows.push({
-            index: current.rows.length,
-            size: columns,
-            components: []
-        });
-
-        renderDashboard(current);
-        updateAddRowButton();
-    }
-
-    $addRowButton.closest('.modal').modal('hide');
-});
-
-$('button.add-dashboard-modal-submit').click(function () {
-    const $dashboardNameInput = $('input[name="add-dashboard-name"]');
-    const name = $dashboardNameInput.val();
-    $dashboardNameInput.val(``);
-
-    if (dashboards.length >= 8) {
-        console.error("Too many dashboards");
-    } else {
-        dashboards.push({
-            index: dashboards.length,
-            name,
-            rows: [],
-        });
-
-        renderDashboardPagination();
-    }
 });
 
 $pagination.on(`click`, `[data-target="#rename-dashboard-modal"]`, function () {
@@ -111,7 +80,10 @@ $(`.rename-dashboard-modal-submit`).click(function () {
     const name = $dashboardNameInput.val();
     $dashboardNameInput.val(``);
 
-    dashboards[dashboard].name = name;
+    if (dashboards[dashboard].name !== name) {
+        dashboards[dashboard].name = name;
+        dashboards[dashboard].updated = true;
+    }
     renderDashboardPagination();
 });
 
@@ -132,26 +104,18 @@ function recalculateIndexes() {
     });
 }
 
-function cacheOriginalDashboard() {
-    cache = JSON.stringify(dashboards);
-}
-
-function renderDashboard(dashboard) {
-    if (dashboard === undefined)
-        return;
-
+function renderCurrentDashboard() {
     $dashboard.empty();
-
-    dashboard.rows
-        .map(renderRow)
-        .forEach(row => $dashboard.append(row));
+    if (current) {
+        current.rows
+            .map(renderRow)
+            .forEach(row => $dashboard.append(row));
+    }
 }
 
 function updateAddRowButton() {
-    if (current !== undefined) {
-        $(`[data-target="#add-row-modal"]`)
-            .prop(`disabled`, current.rows.length >= 6);
-    }
+    $(`[data-target="#add-row-modal"]`)
+        .prop(`disabled`, !current || current.rows.length >= MAX_NUMBER_ROWS);
 }
 
 function renderRow(row) {
@@ -204,47 +168,65 @@ function renderDashboardPagination() {
     $('.dashboard-pagination > div, .external-dashboards > a').remove();
 
     dashboards
-        .map(dashboard => createDashboardSelectorItem(dashboard))
-        .forEach(item => item.insertBefore(".dashboard-pagination > button"));
+        .map((dashboard) => createDashboardSelectorItem(dashboard))
+        .forEach(($item) => {
+            $item.insertBefore(".dashboard-pagination > button")
+        });
 
     dashboards
-        .map(dashboard => createExternalDashboardLink(dashboard))
-        .forEach(item => $('.external-dashboards').append(item));
+        .map((dashboard) => createExternalDashboardLink(dashboard))
+        .forEach(($item) => {
+            $('.external-dashboards').append($item)
+        });
 
     $('[data-target="#add-dashboard-modal"]')
-        .attr(`disabled`, dashboards.length >= 8);
+        .attr(`disabled`, dashboards.length >= MAX_NUMBER_PAGES);
 }
 
 function createDashboardSelectorItem(dashboard) {
-    const number = dashboard.index + 1;
+    const index = dashboard.index;
+    const currentDashboardIndex = current && current.index;
+    const subContainerClasses = (index === currentDashboardIndex ? 'p-2 bg-light rounded bold' : undefined);
 
     let name;
+
     if (dashboard.name.length >= 20) {
         name = $.trim(dashboard.name).substring(0, 17) + "...";
     } else {
         name = dashboard.name;
     }
 
-    return $(`
-        <div class="d-flex align-items-center mr-3">
-            <a href="#${number}" title="${dashboard.name}">${name}</a>
-            <div class="dropdown dropright ml-1">
-                <span class="badge badge-primary square-sm pointer" data-toggle="dropdown">
-                    <i class="fas fa-pen"></i>
-                </span>
+    const $link = $('<a/>', {
+        href: `#${index + 1}`,
+        title: dashboard.name,
+        text: name,
+        class: 'mr-2'
+    });
 
-                <div class="dropdown-menu dropdown-follow-gt pointer">
-                    <a class="dropdown-item rename-dashboard" role="button" data-dashboard="${dashboard.index}"
-                         data-toggle="modal" data-target="#rename-dashboard-modal">
-                        <i class="fas fa-edit mr-2"></i>Renommer
-                    </a>
-                    <a class="dropdown-item delete-dashboard" role="button" data-dashboard="${dashboard.index}">
-                        <i class="fas fa-trash mr-2"></i>Supprimer
-                    </a>
-                </div>
+    const $dropdown = $(`
+        <div class="dropdown">
+            <span class="badge badge-primary square-sm pointer" data-toggle="dropdown">
+                <i class="fas fa-pen"></i>
+            </span>
+            <div class="dropdown-menu dropdown-follow-gt pointer">
+                <a class="dropdown-item rename-dashboard" role="button" data-dashboard="${dashboard.index}"
+                     data-toggle="modal" data-target="#rename-dashboard-modal">
+                    <i class="fas fa-edit mr-2"></i>Renommer
+                </a>
+                <a class="dropdown-item delete-dashboard" role="button" data-dashboard="${dashboard.index}">
+                    <i class="fas fa-trash mr-2"></i>Supprimer
+                </a>
             </div>
         </div>
     `);
+
+    return $('<div/>', {
+        class: `d-flex align-items-center mx-1 ${subContainerClasses}`,
+        html: [
+            $link,
+            $dropdown
+        ]
+    });
 }
 
 function createExternalDashboardLink(dashboard) {
@@ -255,28 +237,41 @@ function createExternalDashboardLink(dashboard) {
     `);
 }
 
-function loadCurrentDashboard(selected) {
-    recalculateIndexes();
-    cacheOriginalDashboard();
-
-    const hash = selected !== undefined
-        ? (selected + 1)
-        : window.location.hash.replace(`#`, ``);
-    const validHash = (hash && dashboards[hash - 1]);
-    const selectedIndex = validHash ? hash : 1;
-
-    if (selected !== undefined || !validHash) {
-        if (!validHash) {
-            console.error(`Unknown dashboard "${selectedIndex}"`);
-        }
-
-        window.location.hash = `#${selectedIndex}`;
+/**
+ *
+ * @param {boolean=false} init
+ * @param {number=undefined} selected
+ */
+function loadCurrentDashboard(init = false, selected = undefined) {
+    if (init) {
+        recalculateIndexes();
     }
 
-    current = dashboards[selectedIndex - 1];
+    if (dashboards && dashboards.length > 0) {
+        const hash = selected !== undefined
+            ? (selected + 1)
+            : window.location.hash.replace(`#`, ``);
 
+        const validHash = (hash && dashboards[hash - 1]);
+        const selectedIndex = validHash ? hash : 1;
+
+        if (selected !== undefined || !validHash) {
+            if (!validHash) {
+                console.error(`Unknown dashboard "${selectedIndex}"`);
+            }
+
+            window.location.hash = `#${selectedIndex}`;
+        }
+
+        current = dashboards[selectedIndex - 1];
+    }
+    // no pages already saved
+    else if (window.location.hash) {
+        window.location.hash = '';
+    }
+
+    renderCurrentDashboard();
     updateAddRowButton();
-    renderDashboard(current);
     renderDashboardPagination();
 }
 
@@ -285,12 +280,14 @@ function onDashboardSaved() {
         dashboards: JSON.stringify(dashboards)
     };
 
-    $.post(Routing.generate(`save_dashboard_settings`), content)
+    return $.post(Routing.generate(`save_dashboard_settings`), content)
         .then(function (data) {
             if (data.success) {
                 showBSAlert("Dashboards enregistrés avec succès", "success");
                 dashboards = JSON.parse(data.dashboards);
-                loadCurrentDashboard(current.index);
+
+                loadCurrentDashboard(false, current && current.index);
+                resetUpdatedElements();
             } else {
                 throw data;
             }
@@ -312,12 +309,80 @@ function onDashboardSaved() {
         });
 }
 
+function onPageAdded() {
+    const $dashboardNameInput = $('input[name="add-dashboard-name"]');
+    const name = $dashboardNameInput.val();
+    $dashboardNameInput.val(``);
+
+    if (dashboards.length >= MAX_NUMBER_PAGES) {
+        console.error("Too many dashboards");
+    } else {
+        current = {
+            updated: true,
+            index: dashboards.length,
+            name,
+            rows: [],
+        };
+        dashboards.push(current);
+
+        renderDashboardPagination();
+        renderCurrentDashboard();
+        updateAddRowButton();
+    }
+}
+
+function onPageDeleted() {
+    const dashboard = Number($(this).data(`dashboard`));
+
+    dashboards.splice(dashboard, 1);
+    recalculateIndexes();
+
+    if (dashboards.length === 0) {
+        current = undefined;
+    }
+    else if (dashboard === current.index) {
+        current = dashboards[0];
+    }
+    somePagesDeleted = true;
+
+    renderCurrentDashboard();
+    renderDashboardPagination();
+    updateAddRowButton();
+}
+
+function onRowAdded() {
+    const $newRowColumnsCountInput = $('input[name="new-row-columns-count"]');
+
+    const columns = $newRowColumnsCountInput.val();
+    $newRowColumnsCountInput.val(``);
+    $dashboardRowSelector.removeClass("selected");
+    $addRowButton.attr(`disabled`, true);
+
+    if (current) {
+        current.updated = true;
+        current.rows.push({
+            index: current.rows.length,
+            size: columns,
+            updated: true,
+            components: []
+        });
+
+        renderCurrentDashboard();
+    }
+
+    updateAddRowButton();
+    $addRowButton.closest('.modal').modal('hide');
+}
+
 function onRowDeleted() {
     const $row = $(this).parent();
     const rowIndex = $row.data(`row`);
 
     $row.remove();
-    current.rows.splice(rowIndex, 1);
+    if (current) {
+        current.updated = true;
+        current.rows.splice(rowIndex, 1);
+    }
 
     recalculateIndexes();
     updateAddRowButton();
@@ -328,25 +393,12 @@ function onComponentDeleted() {
     const componentIndex = $component.data(`component`);
     const rowIndex = $component.parents(`.dashboard-row`).data(`row`);
 
+    current.updated = true;
     const row = current.rows[rowIndex];
+    row.updated = true;
     delete row.components[componentIndex];
 
     $(this).parent().replaceWith(renderComponent(componentIndex));
-}
-
-function onDashboardDeleted() {
-    const dashboard = Number($(this).data(`dashboard`));
-
-    dashboards.splice(dashboard, 1);
-    recalculateIndexes();
-
-    if (dashboard === current.index) {
-        current = dashboards[0];
-        renderDashboard(current);
-        updateAddRowButton();
-    }
-
-    renderDashboardPagination();
 }
 
 function openModalComponentTypeFirstStep() {
@@ -389,7 +441,7 @@ function openModalComponentTypeNextStep($button) {
     }
 }
 
-function onComponentTypeSaved($modal) {
+function onComponentSaved($modal) {
     clearFormErrors($modal);
     const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal);
 
@@ -398,11 +450,14 @@ function onComponentTypeSaved($modal) {
 
         const currentRow = getCurrentDashboardRow(rowIndex);
         if (currentRow && componentIndex < currentRow.size) {
+            current.updated = true;
+            currentRow.updated = true;
             let currentComponent = getRowComponent(currentRow, componentIndex);
             if (!currentComponent) {
                 currentComponent = {index: componentIndex};
                 currentRow.components[componentIndex] = currentComponent;
             }
+            currentComponent.updated = true;
             currentComponent.config = config;
             currentComponent.title = title;
             currentComponent.type = componentType;
@@ -432,7 +487,7 @@ function initSecondStep(html) {
 
     const $submitButton = $modalComponentTypeSecondStep.find('button[type="submit"]');
     $submitButton.off('click');
-    $submitButton.on('click', () => onComponentTypeSaved($modalComponentTypeSecondStep));
+    $submitButton.on('click', () => onComponentSaved($modalComponentTypeSecondStep));
 }
 
 function getRowComponent(row, componentIndex) {
@@ -445,4 +500,43 @@ function getRowComponent(row, componentIndex) {
 function getCurrentDashboardRow(rowIndex) {
     // noinspection EqualityComparisonWithCoercionJS
     return current.rows.find(({index}) => (index == rowIndex));
+}
+
+/**
+ * @returns {boolean}
+ */
+function hasEditDashboard() {
+    // we return undefined to not trigger the browser alert
+    return somePagesDeleted
+        || dashboards.some(({updated: pageUpdated, rows}) => (
+            pageUpdated
+            || (
+                rows
+                && rows.some(({updated: rowUpdated, components}) => (
+                    rowUpdated
+                    || (
+                        components
+                        && components.some(({updated: componentUpdated}) => componentUpdated)
+                    )
+                ))
+            )
+        ))
+        || undefined;
+}
+
+function resetUpdatedElements() {
+    dashboards.forEach((dashboard) => {
+        dashboard.updated = false;
+        if (dashboard.rows) {
+            dashboard.rows.forEach((row) => {
+                row.updated = false;
+                if (row.components) {
+                    row.components.forEach((component) => {
+                        component.updated = false;
+                    });
+                }
+            });
+        }
+    });
+    somePagesDeleted = false;
 }
