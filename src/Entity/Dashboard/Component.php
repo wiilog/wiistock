@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Entity(repositoryClass=DashboardRepository\ComponentRepository::class)
  * @ORM\Table(name="dashboard_component",
  *    uniqueConstraints={
- *        @ORM\UniqueConstraint(name="video_unique", columns={"column_index", "row_id"})
+ *        @ORM\UniqueConstraint(name="component_row_unique", columns={"column_index", "row_id"})
  *    }
  * )
  */

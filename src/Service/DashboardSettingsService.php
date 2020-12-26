@@ -2,55 +2,28 @@
 
 namespace App\Service;
 
-use App\Entity\Dashboard\Page as DashboardPage;
-use App\Entity\Dashboard\PageRow as DashboardPageRow;
-use App\Entity\Dashboard\Component as DashboardComponent;
-use App\Entity\Dashboard\ComponentType as DashboardComponentType;
 use App\Helper\Stream;
-use App\Repository\Dashboard\PageRepository as DashboardPageRepository;
-use App\Repository\Dashboard\PageRowRepository as DashboardPageRowRepository;
-use App\Repository\Dashboard\ComponentRepository as DashboardComponentRepository;
-use App\Repository\Dashboard\ComponentTypeRepository as DashboardComponentTypeRepository;
+use App\Entity\Dashboard as Dashboard;
 use Doctrine\ORM\EntityManagerInterface;
-use Traversable;
+use InvalidArgumentException;
 
 class DashboardSettingsService {
+    const UNKNOWN_COMPONENT = 'unknown-component';
 
-    private $entityManager;
-    private $pageRepository;
-    private $pageRowRepository;
-    private $componentRepository;
-    private $componentTypeRepository;
+    public function serialize(EntityManagerInterface $entityManager): string {
+        $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
+        $pages = Stream::from($pageRepository->findAll());
 
-    public function __construct(EntityManagerInterface $entityManager) {
-        $this->entityManager = $entityManager;
-        $this->pageRepository = $entityManager->getRepository(DashboardPage::class);
-        $this->pageRowRepository = $entityManager->getRepository(DashboardPageRow::class);
-        $this->componentRepository = $entityManager->getRepository(DashboardComponent::class);
-        $this->componentTypeRepository = $entityManager->getRepository(DashboardComponentType::class);
-    }
-
-    public function byId($elements): array {
-        return Stream::from($elements)
-            ->keymap(function($element) {
-                return [$element->getId(), $element];
-            })
-            ->toArray();
-    }
-
-    public function serialize(): string {
-        $pages = Stream::from($this->pageRepository->findAll());
-
-        $dashboards = $pages->map(function(DashboardPage $page) {
+        $dashboards = $pages->map(function(Dashboard\Page $page) {
             return [
                 "id" => $page->getId(),
                 "name" => $page->getName(),
-                "rows" => $page->getRows()->map(function(DashboardPageRow $row) {
+                "rows" => $page->getRows()->map(function(Dashboard\PageRow $row) {
                     return [
                         "id" => $row->getId(),
                         "size" => $row->getSize(),
                         "components" => Stream::from($row->getComponents())
-                            ->keymap(function(DashboardComponent $component) {
+                            ->keymap(function(Dashboard\Component $component) {
                                 $json = [
                                     "id" => $component->getId(),
                                     "type" => $component->getType()->getId(),
@@ -70,26 +43,97 @@ class DashboardSettingsService {
         return json_encode($dashboards);
     }
 
+    public function treatJsonDashboard(EntityManagerInterface $entityManager,
+                                       $jsonDashboard) {
+        $componentTypeRepository = $entityManager->getRepository(Dashboard\ComponentType::class);
+        $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
+        $pageRowRepository = $entityManager->getRepository(Dashboard\PageRow::class);
+        $componentRepository = $entityManager->getRepository(Dashboard\Component::class);
+
+        $pagesToDelete = $this->byId($pageRepository->findAll());
+        $pageRowsToDelete = $this->byId($pageRowRepository->findAll());
+        $componentsToDelete = $this->byId($componentRepository->findAll());
+
+        foreach($jsonDashboard as $jsonPage) {
+            [$update, $page] = $this->getEntity($entityManager, Dashboard\Page::class, $jsonPage);
+            if ($update && $page) {
+                $page->setName($jsonPage["name"]);
+
+                foreach($jsonPage["rows"] as $jsonRow) {
+                    [$update, $row] = $this->getEntity($entityManager, Dashboard\PageRow::class, $jsonRow);
+                    if($update && $row) {
+                        $row->setPage($page);
+                        $row->setSize($jsonRow["size"]);
+                        foreach($jsonRow["components"] as $jsonComponent) {
+                            [$update, $component] = $this->getEntity($entityManager, Dashboard\Component::class, $jsonComponent);
+                            if($update && $component) {
+                                $type = $componentTypeRepository->find($jsonComponent["type"]);
+                                if(!$type) {
+                                    throw new InvalidArgumentException(self::UNKNOWN_COMPONENT . '-' . $jsonComponent["type"]);
+                                }
+
+                                $component->setType($type);
+                                $component->setRow($row);
+                                $component->setTitle($jsonComponent["title"]);
+                                $component->setColumnIndex($jsonComponent["index"]);
+                                $component->setConfig($jsonComponent["config"]);
+                            }
+
+                            if(isset($jsonComponent["id"], $componentsToDelete[$jsonComponent["id"]])) {
+                                unset($componentsToDelete[$jsonComponent["id"]]);
+                            }
+                        }
+                    }
+
+                    if(isset($jsonRow["id"], $pageRowsToDelete[$jsonRow["id"]])) {
+                        unset($pageRowsToDelete[$jsonRow["id"]]);
+                    }
+                }
+            }
+
+            if (isset($jsonPage["id"], $pagesToDelete[$jsonPage["id"]])) {
+                unset($pagesToDelete[$jsonPage["id"]]);
+            }
+        }
+
+        Stream::from($pagesToDelete, $pageRowsToDelete, $componentsToDelete)
+            ->each(function($entity) use ($entityManager) {
+                $entityManager->remove($entity);
+            });
+    }
+
     /**
+     * @param EntityManagerInterface $entityManager
      * @param string $class
      * @param array|null $json
      * @return array
      */
-    public function getEntity(string $class, ?array $json): array {
+    private function getEntity(EntityManagerInterface $entityManager,
+                               string $class,
+                               ?array $json): array {
         $set = $json["updated"] ?? false;
         if(!$json) {
             return [false, null];
         }
 
         if(isset($json["id"])) {
-            $dashboard = $this->entityManager->getRepository($class)->find($json["id"]) ?? new $class();
-        } else {
+            $dashboard = $entityManager->find($class, $json["id"]);
+        }
+
+        if (!isset($dashboard)) {
             $set = true;
             $dashboard = new $class();
-            $this->entityManager->persist($dashboard);
+            $entityManager->persist($dashboard);
         }
 
         return [$set, $dashboard ?? null];
     }
 
+    private function byId($elements): array {
+        return Stream::from($elements)
+            ->keymap(function($element) {
+                return [$element->getId(), $element];
+            })
+            ->toArray();
+    }
 }
