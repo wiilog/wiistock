@@ -21,6 +21,8 @@ const $addRowButton = $('button.add-row-modal-submit');
 const $dashboard = $('.dashboard');
 const $pagination = $('.dashboard-pagination');
 const $dashboardRowSelector = $('.dashboard-row-selector');
+const $modalComponentTypeFirstStep = $('#modalComponentTypeFistStep');
+const $modalComponentTypeSecondStep = $('#modalComponentTypeSecondStep');
 
 $(document).ready(() => {
     dashboards = JSON.parse($(`.dashboards-data`).val());
@@ -39,7 +41,6 @@ $(window).bind('beforeunload', function () {
         true :
         undefined;
 });
-
 
 $(`.download-trace`).click(function () {
     const blob = new Blob([$(`[name="error-context"]`).val()]);
@@ -156,8 +157,8 @@ function updateAddRowButton() {
 function renderRow(row) {
     const $row = $(`<div class="dashboard-row" data-row="${row.index}"></div>`);
 
-    for (let i = 0; i < row.size; ++i) {
-        $row.append(renderComponent(row.components[i] != undefined ? row.components[i] : i));
+    for (let componentIndex = 0; componentIndex < row.size; ++componentIndex) {
+        $row.append(renderComponent(row.components[componentIndex] || componentIndex));
     }
 
     $row.append(`
@@ -185,13 +186,15 @@ function renderComponent(component) {
             </div>
         `);
     } else {
-        $component = $(`
-            <div class="dashboard-component empty" data-component="${component}">
-                <button class="btn btn-primary btn-ripple btn-sm" data-toggle="modal" data-target="#add-component-modal">
-                    <i class="fas fa-plus mr-2"></i> Ajouter un composant<br>
-                </button>
-            </div>
-        `);
+        $component = $('<div/>', {
+            class: 'dashboard-component empty',
+            'data-component': component,
+            html: $('<div/>', {
+                class: 'btn btn-primary btn-ripple btn-sm',
+                click: openModalComponentTypeFirstStep,
+                html: `<i class="fas fa-plus mr-2"></i> Ajouter un composant`
+            })
+        });
     }
 
     return $component;
@@ -344,4 +347,102 @@ function onDashboardDeleted() {
     }
 
     renderDashboardPagination();
+}
+
+function openModalComponentTypeFirstStep() {
+    $modalComponentTypeFirstStep.modal('show');
+
+    const $button = $(this);
+    const $component = $button.closest('.dashboard-component');
+    const $row = $component.closest('.dashboard-row');
+
+    $modalComponentTypeFirstStep
+        .find('input[name="componentIndex"]')
+        .val($component.data('component'));
+
+    $modalComponentTypeFirstStep
+        .find('input[name="rowIndex"]')
+        .val($row.data('row'));
+}
+
+function openModalComponentTypeNextStep($button) {
+    const firstStepIsShown = $modalComponentTypeFirstStep.hasClass('show');
+    if (firstStepIsShown) {
+        const componentTypeId = $button.data('component-type-id');
+        const $form = $button.closest('.form');
+        const apiRoute = Routing.generate('dashboard_component_type_form', {componentType: componentTypeId});
+
+        wrapLoadingOnActionButton($button, () => $.post(
+            apiRoute,
+            {
+                rowIndex: $form.find('[name="rowIndex"]').val(),
+                componentIndex: $form.find('[name="componentIndex"]').val(),
+                values: JSON.stringify({})
+            },
+            function (data) {
+                initSecondStep(data.html);
+                $modalComponentTypeFirstStep.modal('hide');
+                $modalComponentTypeSecondStep.modal('show');
+            },
+            'json'
+        ), true);
+    }
+}
+
+function onComponentTypeSaved($modal) {
+    clearFormErrors($modal);
+    const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal);
+
+    if (success) {
+        const {rowIndex, componentIndex, componentType, title, ...config} = data;
+
+        const currentRow = getCurrentDashboardRow(rowIndex);
+        if (currentRow && componentIndex < currentRow.size) {
+            let currentComponent = getRowComponent(currentRow, componentIndex);
+            if (!currentComponent) {
+                currentComponent = {index: componentIndex};
+                currentRow.components[componentIndex] = currentComponent;
+            }
+            currentComponent.config = config;
+            currentComponent.title = title;
+            currentComponent.type = componentType;
+
+            const $currentComponent = $dashboard
+                .find(`.dashboard-row[data-row="${rowIndex}"]`)
+                .find(`.dashboard-component[data-component="${componentIndex}"]`);
+            $currentComponent.replaceWith(renderComponent(currentComponent));
+        }
+
+        $modalComponentTypeSecondStep.modal('hide');
+    }
+    else {
+        displayFormErrors($modal, {
+            $isInvalidElements,
+            errorMessages
+        });
+    }
+}
+
+function initSecondStep(html) {
+    const $modalComponentTypeSecondStepContent = $modalComponentTypeSecondStep.find('.content');
+    $modalComponentTypeSecondStepContent.html('');
+    $modalComponentTypeSecondStepContent.html(html);
+
+    Select2.location($modalComponentTypeSecondStep.find('.ajax-autocomplete-location'));
+
+    const $submitButton = $modalComponentTypeSecondStep.find('button[type="submit"]');
+    $submitButton.off('click');
+    $submitButton.on('click', () => onComponentTypeSaved($modalComponentTypeSecondStep));
+}
+
+function getRowComponent(row, componentIndex) {
+    // noinspection EqualityComparisonWithCoercionJS
+    return (row && componentIndex < row.size)
+        ? row.components.find(({index} = {}) => (index == componentIndex))
+        : undefined;
+}
+
+function getCurrentDashboardRow(rowIndex) {
+    // noinspection EqualityComparisonWithCoercionJS
+    return current.rows.find(({index}) => (index == rowIndex));
 }

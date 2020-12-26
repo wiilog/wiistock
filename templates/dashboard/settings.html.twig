@@ -20,18 +20,6 @@
                     </button>
 
                     <div class="external-dashboards dropdown-menu dropdown-menu-right dropdown-follow-gt pointer">
-                        <a class="dropdown-item">
-                            <i class="fas fa-external-link-alt"></i> Dashboard "Nom de dashboard"
-                        </a>
-                        <a class="dropdown-item">
-                            <i class="fas fa-external-link-alt"></i> Dashboard "Nom de dashboard"
-                        </a>
-                        <a class="dropdown-item">
-                            <i class="fas fa-external-link-alt"></i> Dashboard "Nom de dashboard"
-                        </a>
-                        <a class="dropdown-item">
-                            <i class="fas fa-external-link-alt"></i> Dashboard "Nom de dashboard"
-                        </a>
                     </div>
                 </div>
                 <button class="btn btn-primary btn-ripple save-dashboards">
@@ -49,6 +37,8 @@
 
     <input type="hidden" class="dashboards-data" value="{{ dashboards }}">
 
+    {% include 'dashboard/component_type/first_step.html.twig' with componentTypeConfig %}
+    {% include 'dashboard/component_type/second_step.html.twig' %}
     {% include 'dashboard/modals/add_dashboard.html.twig' %}
     {% include 'dashboard/modals/rename_dashboard.html.twig' %}
     {% include 'dashboard/modals/add_row.html.twig' %}

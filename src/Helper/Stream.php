@@ -159,9 +159,9 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         return $this;
     }
 
-    public function reduce(callable $callable, $carry) {
+    public function reduce(callable $callable, $initial) {
         if(isset($this->elements)) {
-            return array_reduce($this->elements, $callable, $carry);
+            return array_reduce($this->elements, $callable, $initial);
         } else {
             throw new Error(self::INVALID_STREAM);
         }

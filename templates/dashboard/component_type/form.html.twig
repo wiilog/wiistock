@@ -1,0 +1,4 @@
+<input type="hidden" class="data" name="componentType" value="{{ componentTypeId }}"/>
+<input type="hidden" class="data" name="rowIndex" value="{{ rowIndex }}"/>
+<input type="hidden" class="data" name="componentIndex" value="{{ componentIndex }}"/>
+{% include ('dashboard/component_type/content/' ~ templateName ~ '.html.twig') %}

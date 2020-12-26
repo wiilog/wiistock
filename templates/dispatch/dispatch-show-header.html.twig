@@ -38,7 +38,7 @@
                         data-id='{{ dispatch.id }}'
                         onclick="openValidateDispatchModal()"
                         class="btn btn-primary btn-ripple split-button">
-                    <i class="fa fa-check mr-2 button-icon"></i>
+                    <i class="fa fa-check mr-2"></i>
                     Valider la demande
                 </button>
             {% elseif not dispatch.statut.treated %}
@@ -46,7 +46,7 @@
                         data-id='{{ dispatch.id }}'
                         onclick="openTreatDispatchModal()"
                         class="btn btn-primary btn-ripple split-button">
-                    <i class="fa fa-check mr-2 button-icon"></i>
+                    <i class="fa fa-check mr-2"></i>
                     Terminer la demande
                 </button>
             {% endif %}
