@@ -3,7 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\Dashboard;
-use App\Entity\Type;
 use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
