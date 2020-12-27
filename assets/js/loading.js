@@ -50,7 +50,7 @@ jQuery.fn.popLoader = function() {
  * @param {function} action Function retuning a promise
  * @param {boolean} endLoading default to true
  */
-function wrapLoadingOnActionButton ($button, action = null, endLoading = true) {
+export default function wrapLoadingOnActionButton($button, action = null, endLoading = true) {
     if (!$button.hasClass(LOADING_CLASS)) {
         const loadingColor = ($button.hasClass('btn-light') || $button.hasClass('btn-link'))
             ? 'black'

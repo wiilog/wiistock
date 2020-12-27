@@ -69,10 +69,6 @@
     height: 15px;
     flex: 1;
 
-    &:hover {
-        background-color: #190094;
-    }
-
     &:not(:last-child) {
         margin-right: 1px;
     }

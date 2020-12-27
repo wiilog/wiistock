@@ -10,7 +10,7 @@ use App\Entity\Dashboard\Meter as DashboardMeter;
  * @ORM\Entity(repositoryClass=DashboardRepository\ComponentRepository::class)
  * @ORM\Table(name="dashboard_component",
  *    uniqueConstraints={
- *        @ORM\UniqueConstraint(name="video_unique", columns={"column_index", "row_id"})
+ *        @ORM\UniqueConstraint(name="component_row_unique", columns={"column_index", "row_id"})
  *    }
  * )
  */
@@ -25,8 +25,15 @@ class Component
 
     /**
      * @ORM\ManyToOne(targetEntity=ComponentType::class, inversedBy="componentsUsing")
+     * @ORM\JoinColumn(nullable=false)
      */
     private $type;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=PageRow::class, inversedBy="components")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $row;
 
     /**
      * @ORM\Column(type="integer")
@@ -42,11 +49,6 @@ class Component
      * @ORM\Column(type="json")
      */
     private $config = [];
-
-    /**
-     * @ORM\ManyToOne(targetEntity=PageRow::class, inversedBy="components")
-     */
-    private $row;
 
     /**
      * @var null|DashboardMeter\Indicator;

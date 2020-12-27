@@ -22,24 +22,27 @@
                     <div class="external-dashboards dropdown-menu dropdown-menu-right dropdown-follow-gt pointer">
                     </div>
                 </div>
-                <button class="btn btn-primary btn-ripple">
+                <button class="btn btn-primary btn-ripple save-dashboards">
                     <span class="fa fa-check mr-2"></span> Enregistrer
                 </button>
             </div>
         </div>
         <div class="dashboard"></div>
         <div class="dashboard-pagination">
-            <button class="btn btn-primary btn-ripple" data-toggle="modal" data-target="#add-dashboard-modal">
+            <button class="btn btn-primary btn-ripple mx-1" data-toggle="modal" data-target="#add-dashboard-modal">
                 <span class="fa fa-plus mr-2"></span> Ajouter un dashboard
             </button>
         </div>
     </div>
+
+    <input type="hidden" class="dashboards-data" value="{{ dashboards }}">
 
     {% include 'dashboard/component_type/first_step.html.twig' with componentTypeConfig %}
     {% include 'dashboard/component_type/second_step.html.twig' %}
     {% include 'dashboard/modals/add_dashboard.html.twig' %}
     {% include 'dashboard/modals/rename_dashboard.html.twig' %}
     {% include 'dashboard/modals/add_row.html.twig' %}
+    {% include 'dashboard/modals/error.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}

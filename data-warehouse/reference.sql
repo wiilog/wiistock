@@ -11,14 +11,14 @@ SELECT
     reference_article.limit_security AS seuil_securite,
     reference_article.limit_warning AS seuil_alerte,
     IF(alerte_stock.reference_id IS NOT NULL AND alerte_stock.type = 1,
-       DATE_FORMAT(alerte_stock.date, '%d/%m/%Y %H:%i:%s'),
+       alerte_stock.date,
        NULL) AS date_securite_stock, -- Alert::SECURITY
     IF(alerte_stock.reference_id IS NOT NULL AND alerte_stock.type = 2,
-       DATE_FORMAT(alerte_stock.date, '%d/%m/%Y %H:%i:%s'),
+       alerte_stock.date,
        NULL) AS date_alerte_stock, -- Alert::WARNING
     reference_article.prix_unitaire AS prix_unitaire,
     inventory_category.label AS categorie_inventaire,
-    DATE_FORMAT(reference_article.date_last_inventory, '%d/%m/%Y %H:%i:%s') AS date_dernier_inventaire,
+    reference_article.date_last_inventory AS date_dernier_inventaire,
     IF(reference_article.needs_mobile_sync = 1, 'oui', 'non') AS synchronisation_inventaire,
     reference_article.stock_management AS gestion_stock,
     GROUP_CONCAT(gestionnaires.username SEPARATOR ', ') AS gestionnaires

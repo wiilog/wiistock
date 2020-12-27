@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Helper\Stream;
+use App\Service\DashboardSettingsService;
 use Doctrine\ORM\EntityManagerInterface;
+use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,13 +20,16 @@ class DashboardSettingController extends AbstractController {
 
     /**
      * @Route("/", name="dashboard_settings", methods={"GET"})
+     * @param DashboardSettingsService $dashboardSettingsService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function settings(EntityManagerInterface $entityManager): Response {
+    public function settings(DashboardSettingsService $dashboardSettingsService,
+                             EntityManagerInterface $entityManager): Response {
         $componentTypeRepository = $entityManager->getRepository(Dashboard\ComponentType::class);
         $componentTypes = $componentTypeRepository->findAll();
         return $this->render("dashboard/settings.html.twig", [
+            "dashboards" => $dashboardSettingsService->serialize($entityManager),
             'componentTypeConfig' => [
                 // component types group by category
                 'componentTypes' => Stream::from($componentTypes)
@@ -39,6 +44,44 @@ class DashboardSettingController extends AbstractController {
                         return $carry;
                     }, [])
             ]
+        ]);
+    }
+
+    /**
+     * @Route("/save", name="save_dashboard_settings", options={"expose"=true}, methods={"POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param DashboardSettingsService $dashboardSettingsService
+     * @return Response
+     */
+    public function save(Request $request,
+                         EntityManagerInterface $entityManager,
+                         DashboardSettingsService $dashboardSettingsService): Response {
+        $dashboards = json_decode($request->request->get("dashboards"), true);
+
+        try {
+            $dashboardSettingsService->treatJsonDashboard($entityManager, $dashboards);
+        }
+        catch(InvalidArgumentException $exception) {
+            $message = $exception->getMessage();
+            $unknownComponentCode = DashboardSettingsService::UNKNOWN_COMPONENT;
+            if (preg_match("/$unknownComponentCode-(.*)/", $message, $matches)) {
+                $unknownComponentLabel = $matches[1] ?? '';
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Type de composant ${unknownComponentLabel} inconnu"
+                ]);
+            }
+            else {
+                throw $exception;
+            }
+        }
+
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "dashboards" => $dashboardSettingsService->serialize($entityManager),
         ]);
     }
 
