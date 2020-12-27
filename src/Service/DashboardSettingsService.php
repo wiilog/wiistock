@@ -14,29 +14,35 @@ class DashboardSettingsService {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
         $pages = Stream::from($pageRepository->findAll());
 
-        $dashboards = $pages->map(function(Dashboard\Page $page) {
+        $pageIndex = 0;
+        $dashboards = $pages->map(function(Dashboard\Page $page) use (&$pageIndex) {
+            $rowIndex = 0;
             return [
                 "id" => $page->getId(),
                 "name" => $page->getName(),
-                "rows" => $page->getRows()->map(function(Dashboard\PageRow $row) {
-                    return [
-                        "id" => $row->getId(),
-                        "size" => $row->getSize(),
-                        "components" => Stream::from($row->getComponents())
-                            ->keymap(function(Dashboard\Component $component) {
-                                $json = [
-                                    "id" => $component->getId(),
-                                    "type" => $component->getType()->getId(),
-                                    "title" => $component->getTitle(),
-                                    "index" => $component->getColumnIndex(),
-                                    "config" => $component->getConfig(),
-                                ];
+                "index" => $pageIndex++,
+                "rows" => $page->getRows()
+                    ->map(function(Dashboard\PageRow $row) use (&$rowIndex) {
+                        return [
+                            "id" => $row->getId(),
+                            "size" => $row->getSize(),
+                            "index" => $rowIndex++,
+                            "components" => Stream::from($row->getComponents())
+                                ->keymap(function(Dashboard\Component $component) {
+                                    $json = [
+                                        "id" => $component->getId(),
+                                        "type" => $component->getType()->getId(),
+                                        "title" => $component->getTitle(),
+                                        "index" => $component->getColumnIndex(),
+                                        "config" => $component->getConfig(),
+                                    ];
 
-                                return [$component->getColumnIndex(), $json];
-                            })
-                            ->toArray(),
-                    ];
-                })->toArray(),
+                                    return [$component->getColumnIndex(), $json];
+                                })
+                                ->toArray(),
+                        ];
+                    })
+                    ->toArray(),
             ];
         })->toArray();
 
