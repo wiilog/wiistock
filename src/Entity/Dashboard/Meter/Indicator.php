@@ -28,7 +28,7 @@ class Indicator
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $label;
+    private $subtitle;
 
     /**
      * @ORM\Column(type="bigint", nullable=true)
@@ -58,14 +58,14 @@ class Indicator
         return $this;
     }
 
-    public function getLabel(): ?string
+    public function getSubtitle(): ?string
     {
-        return $this->label;
+        return $this->subtitle;
     }
 
-    public function setLabel(?string $label): self
+    public function setSubtitle(?string $subtitle): self
     {
-        $this->label = $label;
+        $this->subtitle = $subtitle;
 
         return $this;
     }

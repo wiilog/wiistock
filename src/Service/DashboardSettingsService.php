@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Emplacement;
 use App\Helper\Stream;
 use App\Entity\Dashboard as Dashboard;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,23 +16,26 @@ class DashboardSettingsService {
         $pages = Stream::from($pageRepository->findAll());
 
         $pageIndex = 0;
-        $dashboards = $pages->map(function(Dashboard\Page $page) use (&$pageIndex) {
+        $dashboards = $pages->map(function(Dashboard\Page $page) use (&$pageIndex, $entityManager) {
             $rowIndex = 0;
             return [
                 "id" => $page->getId(),
                 "name" => $page->getName(),
                 "index" => $pageIndex++,
                 "rows" => $page->getRows()
-                    ->map(function(Dashboard\PageRow $row) use (&$rowIndex) {
+                    ->map(function(Dashboard\PageRow $row) use (&$rowIndex, $entityManager) {
                         return [
                             "id" => $row->getId(),
                             "size" => $row->getSize(),
                             "index" => $rowIndex++,
                             "components" => Stream::from($row->getComponents())
-                                ->keymap(function(Dashboard\Component $component) {
+                                ->keymap(function(Dashboard\Component $component) use ($entityManager) {
+                                    $type = $component->getType();
                                     $json = [
                                         "id" => $component->getId(),
-                                        "type" => $component->getType()->getId(),
+                                        "type" => $type->getId(),
+                                        "meterKey" => $type->getMeterKey(),
+                                        "exampleValue" => $this->serializeExampleValues($entityManager, $component->getType(), $component->getConfig()),
                                         "title" => $component->getTitle(),
                                         "index" => $component->getColumnIndex(),
                                         "config" => $component->getConfig(),
@@ -47,6 +51,52 @@ class DashboardSettingsService {
         })->toArray();
 
         return json_encode($dashboards);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\ComponentType $componentType
+     * @param array $config
+     * @return array
+     */
+    public function serializeExampleValues(EntityManagerInterface $entityManager,
+                                           Dashboard\ComponentType $componentType,
+                                           array $config): array {
+        $exampleValues = $componentType->getExampleValues();
+        $meterKey = $componentType->getMeterKey();
+        if (!empty($config['title'])) {
+            $exampleValues['title'] = $config['title'];
+        }
+
+        if ($meterKey === Dashboard\ComponentType::OUTSTANDING_PACK) {
+            if (isset($exampleValues['delay'])
+                && (!isset($config['withTreatmentDelay']) || !$config['withTreatmentDelay'])) {
+                unset($exampleValues['delay']);
+            }
+            if (isset($exampleValues['subtitle'])
+                && (
+                    !isset($config['withLocationLabels'])
+                    || !$config['withLocationLabels']
+                    || empty($config['locations'])
+                )) {
+                unset($exampleValues['subtitle']);
+            }
+            else if (!empty($config['locations'])) {
+                $locationRepository = $entityManager->getRepository(Emplacement::class);
+                $locations = $locationRepository->findBy(['id' => $config['locations']]);
+                if (empty($locations)) {
+                    unset($exampleValues['subtitle']);
+                }
+                else {
+                    $exampleValues['subtitle'] = Stream::from($locations)
+                        ->map(function (Emplacement $emplacement) {
+                            return $emplacement->getLabel();
+                        })
+                        ->join(', ');
+                }
+            }
+        }
+        return $exampleValues;
     }
 
     public function treatJsonDashboard(EntityManagerInterface $entityManager,

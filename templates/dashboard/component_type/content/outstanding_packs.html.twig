@@ -1,3 +1,9 @@
+{% set title = title is defined ? title %}
+{% set withTreatmentDelay = withTreatmentDelay is defined ? withTreatmentDelay : false %}
+{% set withLocationLabels = withLocationLabels is defined ? withLocationLabels : false %}
+{% set redirect = redirect is defined ? redirect : false %}
+{% set location = location is defined ? location : [] %}
+
 <div class="row form-group">
     <div class="col-12">
         <label>Choix des emplacements*</label>
@@ -7,6 +13,9 @@
                 name="locations"
                 multiple
                 title="Emplacements">
+            {% for location in locations %}
+                <option value="{{ location.id }}" selected>{{ location.label }}</option>
+            {% endfor %}
         </select>
     </div>
 </div>
@@ -16,7 +25,8 @@
         <label class="switch">
             <input class="checkbox"
                    type="checkbox"
-                   name="withTreatmentDelay">
+                   name="withTreatmentDelay"
+                   {{ withTreatmentDelay ? 'checked' }}>
             <span class="slider round"></span>
         </label>
     </div>
@@ -30,7 +40,8 @@
         <label class="switch">
             <input class="checkbox"
                    type="checkbox"
-                   name="withLocationLabels">
+                   name="withLocationLabels"
+                   {{ withLocationLabels ? 'checked' }}/>
             <span class="slider round"></span>
         </label>
     </div>
@@ -44,7 +55,8 @@
         <label class="switch">
             <input class="checkbox"
                    type="checkbox"
-                   name="redirect">
+                   name="redirect"
+                   {{ withTreatmentDelay ? 'checked' }}/>
             <span class="slider round"></span>
         </label>
     </div>
@@ -61,6 +73,7 @@
         <input class="data form-control w-100 needed"
                name="title"
                type="text"
-               title="Titre du composant"/>
+               title="Titre du composant"
+               value="{{ title }}"/>
     </div>
 </div>

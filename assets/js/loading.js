@@ -4,16 +4,18 @@ const LOADING_CLASS = 'wii-loading';
 /**
  * Add a loader on the element
  * @param {"white"|"black"} color
+ * @param {"small"|"normal"} size
  * @returns {jQuery}
  */
-jQuery.fn.pushLoader = function(color) {
+jQuery.fn.pushLoader = function(color, size = 'small') {
     const $element = $(this[0]) // This is the element
 
     if ($element.find(`.${SPINNER_WRAPPER_CLASS}`).length === 0) {
+        const sizeClass = size === 'small' ? 'spinner-border-sm' : ''
         const $loaderWrapper = $('<div/>', {
             class: SPINNER_WRAPPER_CLASS,
             html: $('<div/>', {
-                class: `spinner-border spinner-border-sm text-${color}`,
+                class: `spinner-border ${sizeClass} text-${color}`,
                 role: 'status',
                 html: $('<span/>', {
                     class: 'sr-only',

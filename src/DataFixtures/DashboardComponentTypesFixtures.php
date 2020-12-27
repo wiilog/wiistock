@@ -18,9 +18,14 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
 
     private const COMPONENT_TYPES = [
         'Quantité en cours sur n emplacement(s)' => [
-            'template' => 'location_for_outstanding',
+            'template' => 'outstanding_packs',
             'hint' => 'Nombre de colis en encours sur les emplacements sélectionnés',
-            'exampleValues' => [],
+            'exampleValues' => [
+                'title' => 'Litige en cours',
+                'count' => 5,
+                'subtitle' => 'Litige',
+                'delay' => 20634860
+            ],
             'category' => 'Indicateurs',
             'meterKey' => Dashboard\ComponentType::OUTSTANDING_PACK
         ],

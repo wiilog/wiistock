@@ -48,6 +48,7 @@ class DashboardFeedCommand extends Command
         $entityManager = $this->getEntityManager();
         $dashboardComponentRepository = $entityManager->getRepository(Dashboard\Component::class);
         $components = $dashboardComponentRepository->findAll();
+        // TODO use wiilock
 
         foreach ($components as $component) {
             $componentType = $component->getType();
@@ -59,6 +60,8 @@ class DashboardFeedCommand extends Command
                     break;
             }
         }
+
+        $entityManager->flush();
     }
 
     /**

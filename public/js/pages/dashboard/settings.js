@@ -12,6 +12,7 @@ const MAX_NUMBER_PAGES = 8;
  *         components: {
  *             updated: boolean,
  *             type: int,
+ *             meterKey: string,
  *             title: string,
  *             index: int,
  *             config: Object.<string,*>,
@@ -43,6 +44,7 @@ $(document).ready(() => {
     $addRowButton.on('click', onRowAdded);
     $dashboard.on(`click`, `.delete-row`, onRowDeleted);
 
+    $dashboard.on(`click`, `.edit-component`, onComponentEdited);
     $dashboard.on(`click`, `.delete-component`, onComponentDeleted);
 
     $('button.add-dashboard-modal-submit').on('click', onPageAdded);
@@ -122,7 +124,7 @@ function renderRow(row) {
     const $row = $(`<div class="dashboard-row" data-row="${row.index}"></div>`);
 
     for (let componentIndex = 0; componentIndex < row.size; ++componentIndex) {
-        $row.append(renderComponent(row.components[componentIndex] || componentIndex));
+        $row.append(renderConfigComponent(row.components[componentIndex] || componentIndex));
     }
 
     $row.append(`
@@ -134,23 +136,33 @@ function renderRow(row) {
     return $row;
 }
 
-function renderComponent(component) {
-    let $component;
+function renderConfigComponent(component) {
+    let $componentContainer;
 
     if (!Number.isInteger(component)) {
-        const content = ``; //TODO: call proper render function
 
-        $component = $(`
-            <div class="dashboard-component" data-component="${component.index}">
-                <span class="title">${component.title}</span>
-                <div class="component-content">${content}</div>
-                <button class="btn btn-danger btn-sm delete-component">
-                    <i class="fa fa-trash"></i>
-                </button>
-            </div>
-        `);
+        $componentContainer = $('<div/>', {
+            class: 'dashboard-component',
+            'data-component': component.index
+        });
+
+        $componentContainer.pushLoader('black', 'normal');
+
+        renderComponentExample($componentContainer, component.type, component.meterKey, {title: component.title, ...(component.config || {})})
+            .then(() => {
+                $componentContainer.append($(`
+                    <div class="component-toolbox">
+                        <button class="btn btn-primary btn-sm edit-component m-1">
+                            <i class="fa fa-pen"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm delete-component m-1">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
+                `));
+            });
     } else {
-        $component = $('<div/>', {
+        $componentContainer = $('<div/>', {
             class: 'dashboard-component empty',
             'data-component': component,
             html: $('<div/>', {
@@ -161,7 +173,7 @@ function renderComponent(component) {
         });
     }
 
-    return $component;
+    return $componentContainer;
 }
 
 function renderDashboardPagination() {
@@ -388,17 +400,39 @@ function onRowDeleted() {
     updateAddRowButton();
 }
 
+function onComponentEdited() {
+    const $button = $(this);
+    const {row, component} = getComponentFromTooltipButton($button);
+    openModalComponentTypeSecondStep(
+        $button,
+        row.index,
+        component
+    );
+}
+
 function onComponentDeleted() {
-    const $component = $(this).parent();
-    const componentIndex = $component.data(`component`);
-    const rowIndex = $component.parents(`.dashboard-row`).data(`row`);
+    const $button = $(this);
+    const $component = $button.closest('.dashboard-component');
+
+    const {row, component} = getComponentFromTooltipButton($button);
+    const componentIndex = component.index;
 
     current.updated = true;
-    const row = current.rows[rowIndex];
     row.updated = true;
     delete row.components[componentIndex];
 
-    $(this).parent().replaceWith(renderComponent(componentIndex));
+    $component.replaceWith(renderConfigComponent(componentIndex));
+}
+
+function getComponentFromTooltipButton($button) {
+    const $component = $button.closest('.dashboard-component');
+    const componentIndex = $component.data(`component`);
+    const rowIndex = $component.parents(`.dashboard-row`).data(`row`);
+    const row = current.rows[rowIndex];
+    return {
+        row,
+        component: row.components[componentIndex]
+    };
 }
 
 function openModalComponentTypeFirstStep() {
@@ -422,23 +456,38 @@ function openModalComponentTypeNextStep($button) {
     if (firstStepIsShown) {
         const componentTypeId = $button.data('component-type-id');
         const $form = $button.closest('.form');
-        const apiRoute = Routing.generate('dashboard_component_type_form', {componentType: componentTypeId});
+        const rowIndex = $form.find('[name="rowIndex"]').val();
+        const componentIndex = $form.find('[name="rowIndex"]').val();
 
-        wrapLoadingOnActionButton($button, () => $.post(
-            apiRoute,
+        openModalComponentTypeSecondStep(
+            $button,
+            rowIndex,
             {
-                rowIndex: $form.find('[name="rowIndex"]').val(),
-                componentIndex: $form.find('[name="componentIndex"]').val(),
-                values: JSON.stringify({})
-            },
-            function (data) {
-                initSecondStep(data.html);
-                $modalComponentTypeFirstStep.modal('hide');
-                $modalComponentTypeSecondStep.modal('show');
-            },
-            'json'
-        ), true);
+                index: componentIndex,
+                type: componentTypeId
+            }
+        );
     }
+}
+
+function openModalComponentTypeSecondStep($button, rowIndex, component) {
+    wrapLoadingOnActionButton($button, () => $.post(
+        Routing.generate('dashboard_component_type_form', {componentType: component.type}),
+        {
+            rowIndex,
+            componentIndex: component.index,
+            values: JSON.stringify({
+                title: component.title,
+                ...(component.config || {})
+            })
+        },
+        function (data) {
+            initSecondStep(data.html);
+            $modalComponentTypeFirstStep.modal('hide');
+            $modalComponentTypeSecondStep.modal('show');
+        },
+        'json'
+    ), true);
 }
 
 function onComponentSaved($modal) {
@@ -454,7 +503,12 @@ function onComponentSaved($modal) {
             currentRow.updated = true;
             let currentComponent = getRowComponent(currentRow, componentIndex);
             if (!currentComponent) {
-                currentComponent = {index: componentIndex};
+                const $exampleContainer = $modal.find('.component-example-container');
+                currentComponent = {
+                    index: componentIndex,
+                    meterKey: $exampleContainer.data('meter-key'),
+                    componentType: $exampleContainer.data('component-type'),
+                };
                 currentRow.components[componentIndex] = currentComponent;
             }
             currentComponent.updated = true;
@@ -465,7 +519,7 @@ function onComponentSaved($modal) {
             const $currentComponent = $dashboard
                 .find(`.dashboard-row[data-row="${rowIndex}"]`)
                 .find(`.dashboard-component[data-component="${componentIndex}"]`);
-            $currentComponent.replaceWith(renderComponent(currentComponent));
+            $currentComponent.replaceWith(renderConfigComponent(currentComponent));
         }
 
         $modalComponentTypeSecondStep.modal('hide');
@@ -488,6 +542,11 @@ function initSecondStep(html) {
     const $submitButton = $modalComponentTypeSecondStep.find('button[type="submit"]');
     $submitButton.off('click');
     $submitButton.on('click', () => onComponentSaved($modalComponentTypeSecondStep));
+
+    renderFormComponentExample();
+    const $formInputs = $modalComponentTypeSecondStep.find('select.data, input.data, input.checkbox');
+    $formInputs.off('change.secondStepComponentType');
+    $formInputs.on('change.secondStepComponentType', () => renderFormComponentExample());
 }
 
 function getRowComponent(row, componentIndex) {
@@ -539,4 +598,35 @@ function resetUpdatedElements() {
         }
     });
     somePagesDeleted = false;
+}
+
+function renderFormComponentExample() {
+    const $exampleContainer = $modalComponentTypeSecondStep.find('.component-example-container');
+    const $exampleContainerParent = $exampleContainer.parent();
+
+    const componentType = $exampleContainer.data('component-type');
+    const {data: formData} = ProcessForm($modalComponentTypeSecondStep);
+
+    return renderComponentExample($exampleContainer, componentType, $exampleContainer.data('meter-key'), formData)
+        .then((renderingSuccess) => {
+            if (renderingSuccess) {
+                $exampleContainerParent.removeClass('d-none');
+            }
+            else {
+                $exampleContainerParent.addClass('d-none');
+            }
+        })
+        .catch(() => {
+            $exampleContainerParent.addClass('d-none');
+        });
+}
+
+function renderComponentExample($container, componentType, meterKey, formData) {
+    return $.post(
+        Routing.generate('dashboard_component_type_example_values', {componentType}),
+        {values: JSON.stringify(formData) }
+    )
+        .then(({exampleValues}) => {
+            return renderComponent(meterKey, $container, exampleValues, true);
+        });
 }

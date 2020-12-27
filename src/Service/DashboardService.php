@@ -250,6 +250,7 @@ class DashboardService
     /**
      * @return array
      * @throws Exception
+     * @deprecated
      */
     public function getDataForMonitoringPackagingDashboard()
     {
@@ -663,8 +664,7 @@ class DashboardService
                     $response['delay'] = $timeInformation['countDownLateTimespan'];
                 }
             }
-            $response['count'] = 0;
-            $response['label'] = $includeLocationLabels
+            $response['subtitle'] = $includeLocationLabels
                 ? array_reduce(
                     $locations,
                     function (string $carry, Emplacement $location) {
@@ -848,6 +848,7 @@ class DashboardService
 
     /**
      * @param EntityManagerInterface $entityManager
+     * @deprecated
      */
     private function flushAndClearEm(EntityManagerInterface $entityManager)
     {
@@ -906,6 +907,7 @@ class DashboardService
      * @param string $dashboard
      * @param EntityManagerInterface $entityManager
      * @throws NonUniqueResultException
+     * @deprecated
      */
     private function parseRetrievedDataAndPersistMeter($data, string $dashboard, EntityManagerInterface $entityManager): void
     {
@@ -922,7 +924,7 @@ class DashboardService
                 $dashboardMeter
                     ->setCount($datum['count'])
                     ->setDelay($datum['delay'])
-                    ->setLabel($datum['label']);
+                    ->setSubtitle($datum['subtitle']);
             } else {
                 $dashboardMeter->setCount(intval($datum));
             }
@@ -964,6 +966,7 @@ class DashboardService
     /**
      * @param EntityManagerInterface $entityManager
      * @throws Exception
+     * @deprecated
      */
     public function retrieveAndInsertLastEnCours(EntityManagerInterface $entityManager)
     {
@@ -1019,7 +1022,7 @@ class DashboardService
         $meter
             ->setCount($calculatedData['count'])
             ->setDelay($calculatedData['delay'])
-            ->setLabel($calculatedData['label'] ?? null);
+            ->setSubtitle($calculatedData['subtitle'] ?? null);
     }
 
     private function getDaysWorked(EntityManagerInterface $entityManager): array {

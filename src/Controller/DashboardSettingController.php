@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Emplacement;
 use App\Helper\Stream;
 use App\Service\DashboardSettingsService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -88,25 +89,51 @@ class DashboardSettingController extends AbstractController {
     /**
      * @Route("/api-component-type/{componentType}", name="dashboard_component_type_form", methods={"POST"}, options={"expose"=true})
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param Dashboard\ComponentType $componentType
      * @return JsonResponse
      */
     public function apiComponentTypeForm(Request $request,
+                                         EntityManagerInterface $entityManager,
                                          Dashboard\ComponentType $componentType): JsonResponse {
         $templateName = $componentType->getTemplate();
 
-        $values = json_decode($request->request->get('values'), true); // TODO
+        $values = json_decode($request->request->get('values'), true);
+
+        if (!empty($values['locations'])) {
+            $locationRepository = $entityManager->getRepository(Emplacement::class);
+            $values['locations'] = $locationRepository->findByIds($values['locations']);
+        }
 
         return $this->json([
             'html' => $this->renderView('dashboard/component_type/form.html.twig', [
-                'componentTypeId' => $componentType->getId(),
+                'componentType' => $componentType,
                 'templateName' => $templateName,
                 'rowIndex' => $request->request->get('rowIndex'),
                 'componentIndex' => $request->request->get('componentIndex'),
-                'values' => [
-                    // "fieldName" => value
-                ]
+                'values' => $values
             ])
+        ]);
+    }
+
+    /**
+     * @Route("/api-component-type/{componentType}/example-values", name="dashboard_component_type_example_values", methods={"POST"}, options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param DashboardSettingsService $dashboardSettingsService
+     * @param Dashboard\ComponentType $componentType
+     * @return JsonResponse
+     */
+    public function apiComponentTypeExample(Request $request,
+                                            EntityManagerInterface $entityManager,
+                                            DashboardSettingsService $dashboardSettingsService,
+                                            Dashboard\ComponentType $componentType): JsonResponse {
+
+        $values = json_decode($request->request->get('values'), true);
+
+        return $this->json([
+            'success' => true,
+            'exampleValues' => $dashboardSettingsService->serializeExampleValues($entityManager, $componentType, $values)
         ]);
     }
 
