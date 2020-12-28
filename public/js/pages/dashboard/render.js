@@ -1,6 +1,6 @@
 
 
-const METER_KEY_ONGOING_PACK = 'ongoing_pack';
+const METER_KEY_ONGOING_PACK = 'ongoing_packs';
 
 const creators = {
     [METER_KEY_ONGOING_PACK]: createOngoingPackElement
