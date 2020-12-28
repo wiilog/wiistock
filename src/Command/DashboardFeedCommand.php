@@ -53,7 +53,7 @@ class DashboardFeedCommand extends Command
         foreach ($components as $component) {
             $componentType = $component->getType();
             switch ($componentType->getMeterKey()) {
-                case Dashboard\ComponentType::OUTSTANDING_PACK:
+                case Dashboard\ComponentType::ONGOING_PACKS:
                     $this->dashboardService->persistOutstandingPack($entityManager, $component);
                     break;
                 default:

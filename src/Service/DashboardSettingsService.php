@@ -67,7 +67,7 @@ class DashboardSettingsService {
             $exampleValues['title'] = $config['title'];
         }
 
-        if ($meterKey === Dashboard\ComponentType::OUTSTANDING_PACK) {
+        if ($meterKey === Dashboard\ComponentType::ONGOING_PACKS) {
             if (isset($exampleValues['delay'])
                 && (!isset($config['withTreatmentDelay']) || !$config['withTreatmentDelay'])) {
                 unset($exampleValues['delay']);

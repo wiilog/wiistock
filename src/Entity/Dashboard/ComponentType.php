@@ -13,7 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class ComponentType
 {
-    public const OUTSTANDING_PACK = 'outstanding_pack';
+    public const ONGOING_PACKS = 'ongoing_packs';
+    public const DAILY_ARRIVALS = 'daily_arrivals';
 
     /**
      * @ORM\Id
