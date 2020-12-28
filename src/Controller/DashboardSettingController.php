@@ -128,15 +128,15 @@ class DashboardSettingController extends AbstractController {
             return $this->json([
                 'success' => true,
                 'html' => $this->renderView('dashboard/component_type/form.html.twig', [
-                    'componentType' => $componentType->getId(),
+                    'componentType' => $componentType,
                     'templateName' => $templateName,
                     'rowIndex' => $request->request->get('rowIndex'),
                     'componentIndex' => $request->request->get('componentIndex'),
                     'values' => [
-                        'locations' => $locations,
-                        'carriers' => $carriers,
-                        'arrivalTypes' => $arrivalTypes,
-                        'arrivalStatuses' => $arrivalStatuses
+                        'locations' => $locations ?? null,
+                        'carriers' => $carriers ?? null,
+                        'arrivalTypes' => $arrivalTypes ?? null,
+                        'arrivalStatuses' => $arrivalStatuses ?? null,
                     ]
                 ])
             ]);

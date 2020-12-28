@@ -18,7 +18,6 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
 
     private const COMPONENT_TYPES = [
         'Quantité en cours sur n emplacement(s)' => [
-            'key' => Dashboard\ComponentType::ONGOING_PACKS,
             'hint' => 'Nombre de colis en encours sur les emplacements sélectionnés',
             'exampleValues' => [
                 'title' => 'Litige en cours',
@@ -27,24 +26,29 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'delay' => 20634860
             ],
             'category' => 'Indicateurs',
+            'meterKey' => Dashboard\ComponentType::ONGOING_PACKS,
+            'template' => Dashboard\ComponentType::ONGOING_PACKS,
         ],
         'Nombre d\'arrivages quotidiens' => [
-            'key' => Dashboard\ComponentType::DAILY_ARRIVALS,
             'hint' => 'Nombre d\'arrivages créés par jour',
-            'exampleValues' => [],
-            'category' => 'Graphiques'
+            'exampleValues' => null,
+            'category' => 'Graphiques',
+            'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
+            'template' => null,
         ],
         'Colis en retard' => [
-            'key' => Dashboard\ComponentType::LATE_PACKS,
             'hint' => 'Les 100 colis les plus anciens ayant dépassé le délai de présence sur leur emplacement',
             'exampleValues' => null,
-            'category' => 'Indicateurs'
+            'category' => 'Indicateurs',
+            'meterKey' => Dashboard\ComponentType::LATE_PACKS,
+            'template' => null,
         ],
         'Nombre d\'arrivages et de colis quotidiens' => [
-            'key' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
-            'hint' => 'Nombre d\'arrivages créés par jour',
-            'exampleValues' => [],
-            'category' => 'Graphiques'
+            'hint' => 'Nombre d\'arrivages et de colis créés par jour',
+            'exampleValues' => null,
+            'category' => 'Graphiques',
+            'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
+            'template' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
         ],
     ];
 

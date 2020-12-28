@@ -15,6 +15,8 @@ class ComponentType
 {
     public const ONGOING_PACKS = 'ongoing_packs';
     public const DAILY_ARRIVALS = 'daily_arrivals';
+    public const LATE_PACKS = 'late_packs';
+    public const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
 
     /**
      * @ORM\Id
@@ -29,7 +31,7 @@ class ComponentType
     private $name;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $template;
 
@@ -86,7 +88,7 @@ class ComponentType
         return $this->template;
     }
 
-    public function setTemplate(string $template): self
+    public function setTemplate(?string $template): self
     {
         $this->template = $template;
 
