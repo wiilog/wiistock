@@ -997,8 +997,8 @@ class DashboardService
      * @param Dashboard\Component $component
      * @throws Exception
      */
-    public function persistOutstandingPack(EntityManagerInterface $entityManager,
-                                           Dashboard\Component $component): void {
+    public function persistOngoingPack(EntityManagerInterface $entityManager,
+                                       Dashboard\Component $component): void {
         $config = $component->getConfig();
         $daysWorked = $this->getDaysWorked($entityManager);
 

@@ -54,7 +54,7 @@ class DashboardFeedCommand extends Command
             $componentType = $component->getType();
             switch ($componentType->getMeterKey()) {
                 case Dashboard\ComponentType::ONGOING_PACKS:
-                    $this->dashboardService->persistOutstandingPack($entityManager, $component);
+                    $this->dashboardService->persistOngoingPack($entityManager, $component);
                     break;
                 default:
                     break;

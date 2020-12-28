@@ -1,9 +1,9 @@
 
 
-const METER_KEY_OUTSTANDING_PACK = 'outstanding_pack';
+const METER_KEY_ONGOING_PACK = 'ongoing_pack';
 
 const creators = {
-    [METER_KEY_OUTSTANDING_PACK]: createOutstandingPackElement
+    [METER_KEY_ONGOING_PACK]: createOngoingPackElement
 };
 
 
@@ -38,11 +38,11 @@ function renderComponent(meterKey,
  * @param {boolean=false} isExample
  * @return {boolean|jQuery}
  */
-function createOutstandingPackElement(data,
+function createOngoingPackElement(data,
                                       isExample) {
     if (!data
         || data.count === undefined) {
-        console.error(`Invalid data for outstanding pack element.`);
+        console.error(`Invalid data for ongoing pack element.`);
         return false;
     }
 
