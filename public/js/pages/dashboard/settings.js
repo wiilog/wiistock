@@ -146,7 +146,7 @@ function renderRow(row) {
 function renderConfigComponent(component, init = false) {
     let $componentContainer;
 
-    if (!Number.isInteger(component)) {
+    if (component && typeof component === 'object') {
         $componentContainer = $('<div/>', {
             class: 'dashboard-component',
             'data-component': component.index
@@ -489,16 +489,19 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
             values: JSON.stringify(component.config || {})
         },
         function (data) {
-            if(data.html) {
+            if (data.html) {
                 initSecondStep(data.html);
-            } else {
+            }
+            else {
                 editComponent(rowIndex, component.index, {
                     config: component.config,
-                    componentType: component.type
+                    type: component.type,
+                    meterKey: component.meterKey
                 });
             }
 
             $modalComponentTypeFirstStep.modal('hide');
+
             if(data.html) {
                 $modalComponentTypeSecondStep.modal('show');
             }
@@ -512,8 +515,12 @@ function onComponentSaved($modal) {
     const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal);
 
     if (success) {
-        const {rowIndex, componentIndex, componentType, ...config} = data;
-        editComponent(rowIndex, componentIndex, {config, componentType});
+        const {rowIndex, componentIndex, meterKey, componentType, ...config} = data;
+        editComponent(rowIndex, componentIndex, {
+            config,
+            type: componentType,
+            meterKey
+        });
 
         $modalComponentTypeSecondStep.modal('hide');
     }
@@ -525,7 +532,7 @@ function onComponentSaved($modal) {
     }
 }
 
-function editComponent(rowIndex, componentIndex, {config, componentType}) {
+function editComponent(rowIndex, componentIndex, {config, type, meterKey}) {
     const currentRow = getCurrentDashboardRow(rowIndex);
 
     if (currentRow && componentIndex < currentRow.size) {
@@ -534,18 +541,14 @@ function editComponent(rowIndex, componentIndex, {config, componentType}) {
 
         let currentComponent = getRowComponent(currentRow, componentIndex);
         if (!currentComponent) {
-            const $exampleContainer = $modal.find('.component-example-container');
-            currentComponent = {
-                index: componentIndex,
-                meterKey: $exampleContainer.data('meter-key'),
-                componentType: $exampleContainer.data('component-type'),
-            };
+            currentComponent = {index: componentIndex};
             currentRow.components[componentIndex] = currentComponent;
         }
 
         currentComponent.updated = true;
         currentComponent.config = config;
-        currentComponent.type = componentType;
+        currentComponent.type = type;
+        currentComponent.meterKey = meterKey;
 
         const $currentComponent = $dashboard
             .find(`.dashboard-row[data-row="${rowIndex}"]`)
@@ -628,6 +631,7 @@ function renderFormComponentExample() {
 
 function renderComponentExample($container, componentType, meterKey, formData, initData) {
     let exampleValuesPromise;
+    console.log(componentType)
     if (initData) {
         exampleValuesPromise = new Promise((resolve) => {
             resolve({exampleValues: initData});

@@ -95,7 +95,6 @@ class DashboardSettingController extends AbstractController {
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param Dashboard\ComponentType $componentType
-     * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      */
     public function apiComponentTypeForm(Request $request,
@@ -110,18 +109,19 @@ class DashboardSettingController extends AbstractController {
             $values['locations'] = $locationRepository->findByIds($values['locations']);
         }
 
-       if (!empty($values['locations'])) {
-           $locationRepository = $entityManager->getRepository(Emplacement::class);
-           $locations = $locationRepository->findByIds($values['locations']);
-       } else if (!empty($values['carrier'])) {
+       if (!empty($values['carriers'])) {
            $carrierRepository = $entityManager->getRepository(Transporteur::class);
-           $carriers = $carrierRepository->findByIds($values['carrier']);
-       } else if (!empty($values['arrivalTypes'])) {
+           $values['carriers'] = $carrierRepository->findByIds($values['carriers']);
+       }
+
+       if (!empty($values['arrivalTypes'])) {
            $typeRepository = $entityManager->getRepository(Type::class);
-           $arrivalTypes = $typeRepository->findByIds($values['arrivalTypes']);
-       } else if (!empty($values['arrivalStatuses'])) {
+           $values['arrivalTypes'] = $typeRepository->findByIds($values['arrivalTypes']);
+       }
+
+       if (!empty($values['arrivalStatuses'])) {
            $statusRepository = $entityManager->getRepository(Statut::class);
-           $arrivalStatuses = $statusRepository->findByIds($values['arrivalStatuses']);
+           $values['arrivalStatuses'] = $statusRepository->findByIds($values['arrivalStatuses']);
        }
 
         if($templateName) {
@@ -132,12 +132,7 @@ class DashboardSettingController extends AbstractController {
                     'templateName' => $templateName,
                     'rowIndex' => $request->request->get('rowIndex'),
                     'componentIndex' => $request->request->get('componentIndex'),
-                    'values' => [
-                        'locations' => $locations ?? null,
-                        'carriers' => $carriers ?? null,
-                        'arrivalTypes' => $arrivalTypes ?? null,
-                        'arrivalStatuses' => $arrivalStatuses ?? null,
-                    ]
+                    'values' => $values
                 ])
             ]);
         } else {
