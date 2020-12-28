@@ -513,7 +513,7 @@ function onComponentSaved($modal) {
 
     if (success) {
         const {rowIndex, componentIndex, componentType, ...config} = data;
-        editComponent($modal, rowIndex, componentIndex, {config, componentType});
+        editComponent(rowIndex, componentIndex, {config, componentType});
 
         $modalComponentTypeSecondStep.modal('hide');
     }
@@ -525,7 +525,7 @@ function onComponentSaved($modal) {
     }
 }
 
-function editComponent(modal, rowIndex, componentIndex, {config, componentType}) {
+function editComponent(rowIndex, componentIndex, {config, componentType}) {
     const currentRow = getCurrentDashboardRow(rowIndex);
 
     if (currentRow && componentIndex < currentRow.size) {
@@ -534,7 +534,7 @@ function editComponent(modal, rowIndex, componentIndex, {config, componentType})
 
         let currentComponent = getRowComponent(currentRow, componentIndex);
         if (!currentComponent) {
-            const $exampleContainer = modal.find('.component-example-container');
+            const $exampleContainer = $modal.find('.component-example-container');
             currentComponent = {
                 index: componentIndex,
                 meterKey: $exampleContainer.data('meter-key'),
