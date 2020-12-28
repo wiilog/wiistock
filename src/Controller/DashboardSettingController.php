@@ -28,6 +28,7 @@ class DashboardSettingController extends AbstractController {
                              EntityManagerInterface $entityManager): Response {
         $componentTypeRepository = $entityManager->getRepository(Dashboard\ComponentType::class);
         $componentTypes = $componentTypeRepository->findAll();
+
         return $this->render("dashboard/settings.html.twig", [
             "dashboards" => $dashboardSettingsService->serialize($entityManager),
             'componentTypeConfig' => [

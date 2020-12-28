@@ -23,23 +23,31 @@ class DashboardSettingsService {
                 "index" => $pageIndex++,
                 "rows" => $page->getRows()
                     ->map(function(Dashboard\PageRow $row) use (&$rowIndex) {
+                        $components = Stream::from($row->getComponents())
+                            ->keymap(function(Dashboard\Component $component) {
+                                $json = [
+                                    "id" => $component->getId(),
+                                    "type" => $component->getType()->getId(),
+                                    "title" => $component->getTitle(),
+                                    "index" => $component->getColumnIndex(),
+                                    "config" => $component->getConfig(),
+                                ];
+
+                                return [$component->getColumnIndex(), $json];
+                            })
+                            ->toArray();
+
+                        for($i = 0; $i < $row->getSize(); $i++) {
+                            if(!isset($components[$i])) {
+                                $components[$i] = null;
+                            }
+                        }
+
                         return [
                             "id" => $row->getId(),
                             "size" => $row->getSize(),
                             "index" => $rowIndex++,
-                            "components" => Stream::from($row->getComponents())
-                                ->keymap(function(Dashboard\Component $component) {
-                                    $json = [
-                                        "id" => $component->getId(),
-                                        "type" => $component->getType()->getId(),
-                                        "title" => $component->getTitle(),
-                                        "index" => $component->getColumnIndex(),
-                                        "config" => $component->getConfig(),
-                                    ];
-
-                                    return [$component->getColumnIndex(), $json];
-                                })
-                                ->toArray(),
+                            "components" => $components,
                         ];
                     })
                     ->toArray(),
