@@ -31,15 +31,13 @@ class DashboardSettingsService {
                             "components" => Stream::from($row->getComponents())
                                 ->map(function(Dashboard\Component $component) use ($entityManager) {
                                     $type = $component->getType();
-
                                     return [
                                         "id" => $component->getId(),
                                         "type" => $component->getType()->getId(),
                                         "meterKey" => $type->getMeterKey(),
-                                        "exampleValue" => $this->serializeExampleValues($entityManager, $component->getType(), $component->getConfig()),
-                                        "title" => $component->getTitle(),
+                                        "initData" => $this->serializeExampleValues($entityManager, $component->getType(), $component->getConfig()),
                                         "index" => $component->getColumnIndex(),
-                                        "config" => $component->getConfig(),
+                                        "config" => $component->getConfig()
                                     ];
                                 })
                                 ->toArray(),
@@ -95,6 +93,7 @@ class DashboardSettingsService {
                 }
             }
         }
+
         return $exampleValues;
     }
 
@@ -132,7 +131,6 @@ class DashboardSettingsService {
 
                                         $component->setType($type);
                                         $component->setRow($row);
-                                        $component->setTitle($jsonComponent["title"]);
                                         $component->setColumnIndex($jsonComponent["index"]);
                                         $component->setConfig($jsonComponent["config"]);
                                     }

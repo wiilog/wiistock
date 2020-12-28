@@ -39,7 +39,7 @@ function renderComponent(meterKey,
  * @return {boolean|jQuery}
  */
 function createOngoingPackElement(data,
-                                      isExample) {
+                                  isExample) {
     if (!data
         || data.count === undefined) {
         console.error(`Invalid data for ongoing pack element.`);

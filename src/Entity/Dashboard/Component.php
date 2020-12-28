@@ -41,11 +41,6 @@ class Component
     private $columnIndex;
 
     /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $title;
-
-    /**
      * @ORM\Column(type="json")
      */
     private $config = [];
@@ -87,18 +82,6 @@ class Component
     public function setColumnIndex(int $columnIndex): self
     {
         $this->columnIndex = $columnIndex;
-
-        return $this;
-    }
-
-    public function getTitle(): ?string
-    {
-        return $this->title;
-    }
-
-    public function setTitle(?string $title): self
-    {
-        $this->title = $title;
 
         return $this;
     }

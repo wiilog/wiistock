@@ -277,6 +277,7 @@ class DashboardService
     /**
      * @param EntityManagerInterface $entityManager
      * @throws Exception
+     * @deprecated
      */
     public function getAndSetGraphDataForDock(EntityManagerInterface $entityManager)
     {
@@ -416,6 +417,7 @@ class DashboardService
      * @param string $clusterCode
      * @throws NonUniqueResultException
      * @throws Exception
+     * @deprecated
      */
     public function getAndSetGraphDataForAdmin(EntityManagerInterface $entityManager, string $clusterCode)
     {

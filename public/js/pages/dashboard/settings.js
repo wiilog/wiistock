@@ -13,7 +13,6 @@ const MAX_NUMBER_PAGES = 8;
  *             updated: boolean,
  *             type: int,
  *             meterKey: string,
- *             title: string,
  *             index: int,
  *             config: Object.<string,*>,
  *         }[],
@@ -124,7 +123,8 @@ function renderRow(row) {
     const $row = $(`<div class="dashboard-row" data-row="${row.index}"></div>`);
 
     for (let componentIndex = 0; componentIndex < row.size; ++componentIndex) {
-        $row.append(renderConfigComponent(getRowComponent(row, componentIndex) || componentIndex));
+        const component = getRowComponent(row, componentIndex);
+        $row.append(renderConfigComponent(component || componentIndex, true));
     }
 
     $row.append(`
@@ -136,11 +136,10 @@ function renderRow(row) {
     return $row;
 }
 
-function renderConfigComponent(component) {
+function renderConfigComponent(component, init = false) {
     let $componentContainer;
 
     if (!Number.isInteger(component)) {
-
         $componentContainer = $('<div/>', {
             class: 'dashboard-component',
             'data-component': component.index
@@ -148,7 +147,13 @@ function renderConfigComponent(component) {
 
         $componentContainer.pushLoader('black', 'normal');
 
-        renderComponentExample($componentContainer, component.type, component.meterKey, {title: component.title, ...(component.config || {})})
+        renderComponentExample(
+            $componentContainer,
+            component.type,
+            component.meterKey,
+            component.config || {},
+            init ? component.initData : undefined
+        )
             .then(() => {
                 $componentContainer.append($(`
                     <div class="component-toolbox">
@@ -198,7 +203,7 @@ function renderDashboardPagination() {
 function createDashboardSelectorItem(dashboard) {
     const index = dashboard.index;
     const currentDashboardIndex = current && current.index;
-    const subContainerClasses = (index === currentDashboardIndex ? 'p-2 bg-light rounded bold' : undefined);
+    const subContainerClasses = (index === currentDashboardIndex ? 'bg-light rounded bold' : '');
 
     let name;
 
@@ -216,7 +221,7 @@ function createDashboardSelectorItem(dashboard) {
     });
 
     const $dropdown = $(`
-        <div class="dropdown">
+        <div class="dropdown d-inline-flex">
             <span class="badge badge-primary square-sm pointer" data-toggle="dropdown">
                 <i class="fas fa-pen"></i>
             </span>
@@ -233,7 +238,7 @@ function createDashboardSelectorItem(dashboard) {
     `);
 
     return $('<div/>', {
-        class: `d-flex align-items-center mx-1 ${subContainerClasses}`,
+        class: `d-flex align-items-center mx-1 p-2 ${subContainerClasses}`,
         html: [
             $link,
             $dropdown
@@ -419,7 +424,7 @@ function onComponentDeleted() {
 function getComponentFromTooltipButton($button) {
     const $component = $button.closest('.dashboard-component');
     const componentIndex = $component.data(`component`);
-    const rowIndex = $component.parents(`.dashboard-row`).data(`row`);
+    const rowIndex = $component.closest(`.dashboard-row`).data(`row`);
     const row = current.rows[rowIndex];
     return {
         row,
@@ -449,7 +454,7 @@ function openModalComponentTypeNextStep($button) {
         const componentTypeId = $button.data('component-type-id');
         const $form = $button.closest('.form');
         const rowIndex = $form.find('[name="rowIndex"]').val();
-        const componentIndex = $form.find('[name="rowIndex"]').val();
+        const componentIndex = $form.find('[name="componentIndex"]').val();
 
         openModalComponentTypeSecondStep(
             $button,
@@ -468,10 +473,7 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
         {
             rowIndex,
             componentIndex: component.index,
-            values: JSON.stringify({
-                title: component.title,
-                ...(component.config || {})
-            })
+            values: JSON.stringify(component.config || {})
         },
         function (data) {
             initSecondStep(data.html);
@@ -487,7 +489,7 @@ function onComponentSaved($modal) {
     const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal);
 
     if (success) {
-        const {rowIndex, componentIndex, componentType, title, ...config} = data;
+        const {rowIndex, componentIndex, componentType, ...config} = data;
 
         const currentRow = getCurrentDashboardRow(rowIndex);
         if (currentRow && componentIndex < currentRow.size) {
@@ -505,7 +507,6 @@ function onComponentSaved($modal) {
             }
             currentComponent.updated = true;
             currentComponent.config = config;
-            currentComponent.title = title;
             currentComponent.type = componentType;
 
             const $currentComponent = $dashboard
@@ -596,12 +597,18 @@ function renderFormComponentExample() {
         });
 }
 
-function renderComponentExample($container, componentType, meterKey, formData) {
-    return $.post(
-        Routing.generate('dashboard_component_type_example_values', {componentType}),
-        {values: JSON.stringify(formData) }
-    )
-        .then(({exampleValues}) => {
-            return renderComponent(meterKey, $container, exampleValues, true);
+function renderComponentExample($container, componentType, meterKey, formData, initData) {
+    let exampleValuesPromise;
+    if(initData) {
+        exampleValuesPromise = new Promise((resolve) => {
+            resolve({exampleValues: initData});
         });
+    } else {
+        exampleValuesPromise = $.post(
+            Routing.generate('dashboard_component_type_example_values', {componentType}),
+            {values: JSON.stringify(formData) }
+        );
+    }
+
+    return exampleValuesPromise.then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues, true));
 }

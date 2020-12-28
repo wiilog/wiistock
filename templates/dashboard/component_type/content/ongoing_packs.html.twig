@@ -4,6 +4,20 @@
 {% set redirect = redirect is defined ? redirect : false %}
 {% set locations = locations is defined ? locations : [] %}
 
+
+<div class="row form-group">
+    <div class="col-12">
+        <label>Titre du composant*</label>
+    </div>
+    <div class="col-12">
+        <input class="data form-control w-100 needed"
+               name="title"
+               type="text"
+               title="Titre du composant"
+               value="{{ title }}"/>
+    </div>
+</div>
+
 <div class="row form-group">
     <div class="col-12">
         <label>Choix des emplacements*</label>
@@ -62,18 +76,5 @@
     </div>
     <div class="col">
         Rediriger au clic vers la page Encours
-    </div>
-</div>
-
-<div class="row form-group">
-    <div class="col-12">
-        <label>Titre du composant*</label>
-    </div>
-    <div class="col-12">
-        <input class="data form-control w-100 needed"
-               name="title"
-               type="text"
-               title="Titre du composant"
-               value="{{ title }}"/>
     </div>
 </div>
