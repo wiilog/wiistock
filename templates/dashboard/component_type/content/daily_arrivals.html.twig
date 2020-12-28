@@ -1,1 +1,83 @@
-DAILY ARRIVALS
+<div class="row form-group">
+    <div class="col-12">
+        <label>Type(s) d'arrivage*</label>
+    </div>
+    <div class="col-12">
+        <select class="data form-control w-100 needed"
+                name="arrivalsTypes"
+                multiple
+                title="Type(s) d'arrivage">
+            {% if arrivalTypes is defined and arrivalTypes is not empty %}
+                {% for arrivalType in arrivalTypes %}
+                    <option selected value="{{ arrivalType.id }}">{{ arrivalType.label }}</option>
+                {% endfor %}
+            {% endif %}
+        </select>
+    </div>
+</div>
+
+<div class="row form-group">
+    <div class="col-12">
+        <label>Statut(s)*</label>
+    </div>
+    <div class="col-12">
+        <select class="data form-control w-100 needed"
+                name="status"
+                multiple
+                title="Statut(s)">
+            {% if arrivalStatuses is defined and arrivalStatuses is not empty %}
+                {% for arrivalStatus in arrivalStatuses %}
+                    <option selected value="{{ arrivalStatus.id }}">{{ arrivalStatus.nom }}</option>
+                {% endfor %}
+            {% endif %}
+        </select>
+    </div>
+</div>
+
+<div class="form-group">
+    <label class="switch">
+        <input class="checkbox data needs-default"
+               type="checkbox"
+               name="display-pack-nature">
+        <span class="slider round"></span>
+    </label>
+    <label>Montrer les natures de colis</label>
+</div>
+
+<div class="form-group d-flex">
+    <label class="mt-2">Voir sur les</label>
+    <input class="form-control data ml-3"
+           name="days-number"
+           type="number"
+           min=1
+           max=7
+           style="width: 70px">
+    <select class="data form-control w-25 ml-3" name="days-setting">
+        <option value="derniers jours">derniers jours</option>
+        <option value="prochains jours">prochains jours</option>
+    </select>
+</div>
+
+<div class="row form-group">
+    <div class="col-12">
+        <label>Titre*</label>
+    </div>
+    <div class="col-12">
+        <input class="data form-control w-100 needed"
+               name="title"
+               type="text"
+               title="Titre"/>
+    </div>
+</div>
+
+<div class="row form-group">
+    <div class="col-12">
+        <label>Infobulle*</label>
+    </div>
+    <div class="col-12">
+        <input class="data form-control w-100 needed"
+               name="tooltip"
+               type="text"
+               title="Infobulle"/>
+    </div>
+</div>

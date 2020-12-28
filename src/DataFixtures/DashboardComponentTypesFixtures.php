@@ -31,7 +31,10 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'category' => 'Graphiques'
         ],
         'Colis en retard' => [
-            'hint' => 'Les 100 colis les plus anciens ayant dépassé le délai de présence sur leur emplacement'
+            'template' => null,
+            'hint' => 'Les 100 colis les plus anciens ayant dépassé le délai de présence sur leur emplacement',
+            'exampleValues' => null,
+            'category' => 'Indicateurs'
         ]
     ];
 
@@ -70,10 +73,10 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             }
 
             $componentType
-                ->setHint($config['hint'] ?? '')
+                ->setHint($config['hint'] ?? null)
                 ->setExampleValues($config['exampleValues'] ?? [])
-                ->setCategory($config['category'] ?? [])
-                ->setTemplate($config['template'] ?? '');
+                ->setCategory($config['category'] ?? null)
+                ->setTemplate($config['template'] ?? null);
 
             $action = !$componentTypeExisted ? 'persisted' : 'updated';
             $this->output->writeln("Component Type \"$name\" $action");

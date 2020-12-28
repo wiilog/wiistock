@@ -483,20 +483,38 @@ function openModalComponentTypeNextStep($button) {
     const firstStepIsShown = $modalComponentTypeFirstStep.hasClass('show');
     if (firstStepIsShown) {
         const componentTypeId = $button.data('component-type-id');
+        const componentTypeName = $button.data('component-type-name');
         const $form = $button.closest('.form');
         const apiRoute = Routing.generate('dashboard_component_type_form', {componentType: componentTypeId});
+        const rowIndex = $form.find('[name="rowIndex"]').val();
+        const componentIndex = $form.find('[name="componentIndex"]').val();
+
+        const component = {};
 
         wrapLoadingOnActionButton($button, () => $.post(
             apiRoute,
             {
-                rowIndex: $form.find('[name="rowIndex"]').val(),
-                componentIndex: $form.find('[name="componentIndex"]').val(),
-                values: JSON.stringify({})
+                rowIndex,
+                componentIndex,
+                values: JSON.stringify({
+                    title: component.title,
+                    config: component.config
+                })
             },
             function (data) {
-                initSecondStep(data.html);
+                if(data.html) {
+                    initSecondStep(data.html);
+                } else {
+                    editComponent(rowIndex, componentIndex, {
+                        config: [],
+                        title: componentTypeName,
+                        componentType: componentTypeId
+                    })
+                }
                 $modalComponentTypeFirstStep.modal('hide');
-                $modalComponentTypeSecondStep.modal('show');
+                if(data.html) {
+                    $modalComponentTypeSecondStep.modal('show');
+                }
             },
             'json'
         ), true);
@@ -509,23 +527,7 @@ function onComponentTypeSaved($modal) {
 
     if (success) {
         const {rowIndex, componentIndex, componentType, title, ...config} = data;
-
-        const currentRow = getCurrentDashboardRow(rowIndex);
-        if (currentRow && componentIndex < currentRow.size) {
-            let currentComponent = getRowComponent(currentRow, componentIndex);
-            if (!currentComponent) {
-                currentComponent = {index: componentIndex};
-                currentRow.components[componentIndex] = currentComponent;
-            }
-            currentComponent.config = config;
-            currentComponent.title = title;
-            currentComponent.type = componentType;
-
-            const $currentComponent = $dashboard
-                .find(`.dashboard-row[data-row="${rowIndex}"]`)
-                .find(`.dashboard-component[data-component="${componentIndex}"]`);
-            $currentComponent.replaceWith(renderComponent(currentComponent));
-        }
+        editComponent(rowIndex, componentIndex, {title, config, componentType});
 
         $modalComponentTypeSecondStep.modal('hide');
     }
@@ -537,12 +539,32 @@ function onComponentTypeSaved($modal) {
     }
 }
 
+function editComponent(rowIndex, componentIndex, {title, config, componentType}) {
+    const currentRow = getCurrentDashboardRow(rowIndex);
+    if (currentRow && componentIndex < currentRow.size) {
+        let currentComponent = getRowComponent(currentRow, componentIndex);
+        if (!currentComponent) {
+            currentComponent = {index: componentIndex};
+            currentRow.components[componentIndex] = currentComponent;
+        }
+        currentComponent.config = config;
+        currentComponent.title = title;
+        currentComponent.type = componentType;
+
+        const $currentComponent = $dashboard
+            .find(`.dashboard-row[data-row="${rowIndex}"]`)
+            .find(`.dashboard-component[data-component="${componentIndex}"]`);
+        $currentComponent.replaceWith(renderComponent(currentComponent));
+    }
+}
+
 function initSecondStep(html) {
     const $modalComponentTypeSecondStepContent = $modalComponentTypeSecondStep.find('.content');
     $modalComponentTypeSecondStepContent.html('');
     $modalComponentTypeSecondStepContent.html(html);
 
     Select2.location($modalComponentTypeSecondStep.find('.ajax-autocomplete-location'));
+    Select2.carrier($modalComponentTypeSecondStep.find('.ajax-autocomplete-transporteur'));
 
     const $submitButton = $modalComponentTypeSecondStep.find('button[type="submit"]');
     $submitButton.off('click');

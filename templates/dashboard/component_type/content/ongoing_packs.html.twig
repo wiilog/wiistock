@@ -7,6 +7,11 @@
                 name="locations"
                 multiple
                 title="Emplacements">
+            {% if locations is defined and locations is not empty %}
+                {% for location in locations %}
+                    <option selected value="{{ location.id }}">{{ location.label }}</option>
+                {% endfor %}
+            {% endif %}
         </select>
     </div>
 </div>
@@ -55,12 +60,12 @@
 
 <div class="row form-group">
     <div class="col-12">
-        <label>Titre du composant*</label>
+        <label>Titre*</label>
     </div>
     <div class="col-12">
         <input class="data form-control w-100 needed"
                name="title"
                type="text"
-               title="Titre du composant"/>
+               title="Titre"/>
     </div>
 </div>

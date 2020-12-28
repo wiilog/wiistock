@@ -123,4 +123,16 @@ class TransporteurRepository extends ServiceEntityRepository
 
 		return $query->getSingleScalarResult();
 	}
+
+    /**
+     * @param array $ids
+     * @return array
+     */
+    public function findByIds(array $ids): array {
+        return $this->createQueryBuilder('carrier')
+            ->where('carrier.id IN (:ids)')
+            ->setParameter('ids', $ids, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->getResult();
+    }
 }

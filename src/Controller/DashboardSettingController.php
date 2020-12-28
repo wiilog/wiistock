@@ -2,6 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\Emplacement;
+use App\Entity\Statut;
+use App\Entity\Transporteur;
+use App\Entity\Type;
 use App\Helper\Stream;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -46,25 +50,52 @@ class DashboardSettingController extends AbstractController {
      * @Route("/api-component-type/{componentType}", name="dashboard_component_type_form", methods={"POST"}, options={"expose"=true})
      * @param Request $request
      * @param Dashboard\ComponentType $componentType
+     * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      */
     public function apiComponentTypeForm(Request $request,
-                                         Dashboard\ComponentType $componentType): JsonResponse {
+                                         Dashboard\ComponentType $componentType,
+                                         EntityManagerInterface $entityManager): JsonResponse {
         $templateName = $componentType->getTemplate();
 
         $values = json_decode($request->request->get('values'), true); // TODO
 
-        return $this->json([
-            'html' => $this->renderView('dashboard/component_type/form.html.twig', [
-                'componentTypeId' => $componentType->getId(),
-                'templateName' => $templateName,
-                'rowIndex' => $request->request->get('rowIndex'),
-                'componentIndex' => $request->request->get('componentIndex'),
-                'values' => [
-                    // "fieldName" => value
-                ]
-            ])
-        ]);
-    }
+       if (!empty($values['locations'])) {
+           $locationRepository = $entityManager->getRepository(Emplacement::class);
+           $locations = $locationRepository->findByIds($values['locations']);
+       } else if (!empty($values['carrier'])) {
+           $carrierRepository = $entityManager->getRepository(Transporteur::class);
+           $carriers = $carrierRepository->findByIds($values['carrier']);
+       } else if (!empty($values['arrivalTypes'])) {
+           $typeRepository = $entityManager->getRepository(Type::class);
+           $arrivalTypes = $typeRepository->findByIds($values['arrivalTypes']);
+       } else if (!empty($values['arrivalStatuses'])) {
+           $statusRepository = $entityManager->getRepository(Statut::class);
+           $arrivalStatuses = $statusRepository->findByIds($values['arrivalStatuses']);
+       }
 
+        if($templateName) {
+            $result =  [
+                'success' => true,
+                'html' => $this->renderView('dashboard/component_type/form.html.twig', [
+                    'componentTypeId' => $componentType->getId(),
+                    'templateName' => $templateName,
+                    'rowIndex' => $request->request->get('rowIndex'),
+                    'componentIndex' => $request->request->get('componentIndex'),
+                    'values' => [
+                        'locations' => $locations,
+                        'carriers' => $carriers,
+                        'arrivalTypes' => $arrivalTypes,
+                        'arrivalStatuses' => $arrivalStatuses
+                    ]
+                ])
+            ];
+        }
+        else {
+            $result = [
+                'success' => true
+            ];
+        }
+        return $this->json($result);
+    }
 }
