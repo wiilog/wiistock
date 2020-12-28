@@ -41,7 +41,7 @@ class Chart
 
     /**
      * @var Dashboard\Component
-     * @ORM\ManyToOne(targetEntity=Dashboard\Component::class, inversedBy="chartMeters")
+     * @ORM\OneToOne(targetEntity=Dashboard\Component::class, inversedBy="chartMeter")
      */
     private $component;
 

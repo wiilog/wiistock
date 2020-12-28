@@ -24,35 +24,25 @@ class DashboardSettingsService {
                 "index" => $pageIndex++,
                 "rows" => $page->getRows()
                     ->map(function(Dashboard\PageRow $row) use (&$rowIndex, $entityManager) {
-                        $components = Stream::from($row->getComponents())
-                            ->keymap(function(Dashboard\Component $component) use ($entityManager) {
-                                $type = $component->getType();
-
-                                $json = [
-                                    "id" => $component->getId(),
-                                    "type" => $component->getType()->getId(),
-                                    "meterKey" => $type->getMeterKey(),
-                                    "exampleValue" => $this->serializeExampleValues($entityManager, $component->getType(), $component->getConfig()),
-                                    "title" => $component->getTitle(),
-                                    "index" => $component->getColumnIndex(),
-                                    "config" => $component->getConfig(),
-                                ];
-
-                                return [$component->getColumnIndex(), $json];
-                            })
-                            ->toArray();
-
-                        for($i = 0; $i < $row->getSize(); $i++) {
-                            if(!isset($components[$i])) {
-                                $components[$i] = null;
-                            }
-                        }
-
                         return [
                             "id" => $row->getId(),
                             "size" => $row->getSize(),
                             "index" => $rowIndex++,
-                            "components" => $components,
+                            "components" => Stream::from($row->getComponents())
+                                ->map(function(Dashboard\Component $component) use ($entityManager) {
+                                    $type = $component->getType();
+
+                                    return [
+                                        "id" => $component->getId(),
+                                        "type" => $component->getType()->getId(),
+                                        "meterKey" => $type->getMeterKey(),
+                                        "exampleValue" => $this->serializeExampleValues($entityManager, $component->getType(), $component->getConfig()),
+                                        "title" => $component->getTitle(),
+                                        "index" => $component->getColumnIndex(),
+                                        "config" => $component->getConfig(),
+                                    ];
+                                })
+                                ->toArray(),
                         ];
                     })
                     ->toArray(),

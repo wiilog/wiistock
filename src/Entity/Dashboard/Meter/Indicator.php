@@ -37,7 +37,7 @@ class Indicator
 
     /**
      * @var Dashboard\Component
-     * @ORM\OneToOne (targetEntity=Dashboard\Component::class, inversedBy="indicatorMeter")
+     * @ORM\OneToOne(targetEntity=Dashboard\Component::class, inversedBy="indicatorMeter")
      */
     private $component;
 
