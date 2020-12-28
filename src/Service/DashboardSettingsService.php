@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Emplacement;
+use App\Entity\Transporteur;
 use App\Helper\Stream;
 use App\Entity\Dashboard as Dashboard;
 use Doctrine\ORM\EntityManagerInterface;
@@ -64,6 +65,10 @@ class DashboardSettingsService {
         if (!empty($config['title'])) {
             $exampleValues['title'] = $config['title'];
         }
+        if (!empty($config['tooltip'])) {
+            $exampleValues['tooltip'] = $config['tooltip'];
+        }
+
 
         if ($meterKey === Dashboard\ComponentType::ONGOING_PACKS) {
             if (isset($exampleValues['delay'])
@@ -91,6 +96,15 @@ class DashboardSettingsService {
                         })
                         ->join(', ');
                 }
+            }
+        } else if ($meterKey === Dashboard\ComponentType::CARRIER_INDICATOR) {
+            $carrierRepository = $entityManager->getRepository(Transporteur::class);
+            if (isset($config['carriers'])) {
+                $exampleValues['carriers'] = Stream::from($carrierRepository->findByIds($config['carriers']))
+                    ->map(function (Transporteur $transporteur) {
+                        return $transporteur->getLabel();
+                    })
+                    ->join(', ');
             }
         }
 

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Emplacement;
+use App\Entity\Transporteur;
 use App\Helper\Stream;
 use App\Service\DashboardSettingsService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -106,6 +107,11 @@ class DashboardSettingController extends AbstractController {
             $values['locations'] = $locationRepository->findByIds($values['locations']);
         }
 
+        if (!empty($values['carriers'])) {
+            $carrierRepository = $entityManager->getRepository(Transporteur::class);
+            $values['carriers'] = $carrierRepository->findByIds($values['carriers']);
+        }
+
         return $this->json([
             'html' => $this->renderView('dashboard/component_type/form.html.twig', [
                 'componentType' => $componentType,
@@ -129,7 +135,6 @@ class DashboardSettingController extends AbstractController {
                                             EntityManagerInterface $entityManager,
                                             DashboardSettingsService $dashboardSettingsService,
                                             Dashboard\ComponentType $componentType): JsonResponse {
-
         $values = json_decode($request->request->get('values'), true);
 
         return $this->json([

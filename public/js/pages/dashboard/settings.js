@@ -487,10 +487,8 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
 function onComponentSaved($modal) {
     clearFormErrors($modal);
     const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal);
-
     if (success) {
         const {rowIndex, componentIndex, componentType, ...config} = data;
-
         const currentRow = getCurrentDashboardRow(rowIndex);
         if (currentRow && componentIndex < currentRow.size) {
             current.updated = true;
@@ -531,6 +529,7 @@ function initSecondStep(html) {
     $modalComponentTypeSecondStepContent.html(html);
 
     Select2.location($modalComponentTypeSecondStep.find('.ajax-autocomplete-location'));
+    Select2.carrier($modalComponentTypeSecondStep.find('.ajax-autocomplete-carrier'));
 
     const $submitButton = $modalComponentTypeSecondStep.find('button[type="submit"]');
     $submitButton.off('click');
@@ -582,7 +581,6 @@ function renderFormComponentExample() {
 
     const componentType = $exampleContainer.data('component-type');
     const {data: formData} = ProcessForm($modalComponentTypeSecondStep);
-
     return renderComponentExample($exampleContainer, componentType, $exampleContainer.data('meter-key'), formData)
         .then((renderingSuccess) => {
             if (renderingSuccess) {

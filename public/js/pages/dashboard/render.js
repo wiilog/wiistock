@@ -1,9 +1,11 @@
 
 
 const METER_KEY_ONGOING_PACK = 'ongoing_packs';
+const CARRIER_INDICATOR = 'carrier_indicator';
 
 const creators = {
-    [METER_KEY_ONGOING_PACK]: createOngoingPackElement
+    [METER_KEY_ONGOING_PACK]: createOngoingPackElement,
+    [CARRIER_INDICATOR]: createCarrierIndicatorElement
 };
 
 
@@ -31,6 +33,36 @@ function renderComponent(meterKey,
         }
         return !!$element;
     }
+}
+
+/**
+ * @param {*} data
+ * @param {boolean=false} isExample
+ * @return {boolean|jQuery}
+ */
+function createCarrierIndicatorElement(data, isExample = false) {
+    if (!data
+        || data.carriers === undefined) {
+        console.error(`Invalid data for carrier indicator element.`);
+        return false;
+    }
+    let carriers = Array.isArray(data.carriers) ? data.carriers.join() : data.carriers;
+    let tooltip = data.tooltip || "";
+    let title = data.title || "";
+    return $('<div/>', {
+        class: `dashboard-box-container ${isExample ? 'flex-fill' : ''}`,
+        html: $('<div/>', {
+            class: 'dashboard-box justify-content-around dashboard-stats-container',
+            html: `<div class="title">
+                        ${title}
+                    </div>
+                    <div class="points has-tooltip"
+                        title="${tooltip}">
+                            <i class="fa fa-question ml-1"></i>
+                    </div>
+                    <p>${carriers}</p>`
+        })
+    });
 }
 
 /**

@@ -15,6 +15,10 @@ class ComponentType
 {
     public const ONGOING_PACKS = 'ongoing_packs';
     public const DAILY_ARRIVALS = 'daily_arrivals';
+    public const CARRIER_INDICATOR = 'carrier_indicator';
+
+    public const INDICATOR_TYPE = 'Indicateurs';
+    public const GRAPH_TYPE = 'Graphiques';
 
     /**
      * @ORM\Id

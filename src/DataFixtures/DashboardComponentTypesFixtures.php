@@ -26,21 +26,29 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'subtitle' => 'Litige',
                 'delay' => 20634860
             ],
-            'category' => 'Indicateurs',
+            'category' => Dashboard\ComponentType::INDICATOR_TYPE,
             'meterKey' => Dashboard\ComponentType::ONGOING_PACKS
         ],
         'Nombre d\'arrivages quotidiens' => [
             'template' => Dashboard\ComponentType::DAILY_ARRIVALS,
             'hint' => 'Nombre d\'arrivages créés par jour',
             'exampleValues' => [],
-            'category' => 'Graphiques',
+            'category' => Dashboard\ComponentType::GRAPH_TYPE,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
         ],
         'Suivi des transporteur' => [
             'template' => 'carrier_tracking',
             'hint' => 'Transporteur ayant effectué un arrivage dans la journée',
-            'exampleValues' => [],
-            'category' => 'Indicateurs'
+            'exampleValues' => [
+                'carriers' => [
+                    'TRANS1',
+                    'TRANS2',
+                    'TRANS3',
+                    'TRANS4',
+                ]
+            ],
+            'category' => Dashboard\ComponentType::INDICATOR_TYPE,
+            'meterKey' => Dashboard\ComponentType::CARRIER_INDICATOR,
         ]
     ];
 
