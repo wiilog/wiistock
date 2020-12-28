@@ -250,32 +250,25 @@ function createExternalDashboardLink(dashboard) {
 }
 
 /**
- *
  * @param {boolean=false} init
- * @param {number=undefined} selected
  */
-function loadCurrentDashboard(init = false, selected = undefined) {
+function loadCurrentDashboard(init = false) {
     if (init) {
         recalculateIndexes();
     }
 
     if (dashboards && dashboards.length > 0) {
-        const hash = selected !== undefined
-            ? (selected + 1)
-            : window.location.hash.replace(`#`, ``);
-
-        const validHash = (hash && dashboards[hash - 1]);
-        const selectedIndex = validHash ? hash : 1;
-
-        if (selected !== undefined || !validHash) {
-            if (!validHash) {
-                console.error(`Unknown dashboard "${selectedIndex}"`);
-            }
-
-            window.location.hash = `#${selectedIndex}`;
+        let hash = window.location.hash.replace(`#`, ``);
+        if(!hash || !dashboards[hash - 1]) {
+            hash = 1;
         }
 
-        current = dashboards[selectedIndex - 1];
+        if (!dashboards[hash - 1]) {
+            console.error(`Unknown dashboard "${hash}"`);
+        } else {
+            current = dashboards[hash - 1];
+            window.location.hash = `#${hash}`;
+        }
     }
     // no pages already saved
     else if (window.location.hash) {
@@ -298,8 +291,7 @@ function onDashboardSaved() {
                 showBSAlert("Dashboards enregistrés avec succès", "success");
                 dashboards = JSON.parse(data.dashboards);
 
-                loadCurrentDashboard(false, current && current.index);
-                resetUpdatedElements();
+                loadCurrentDashboard(false);
             } else {
                 throw data;
             }
@@ -581,23 +573,6 @@ function hasEditDashboard() {
             )
         ))
         || undefined;
-}
-
-function resetUpdatedElements() {
-    dashboards.forEach((dashboard) => {
-        dashboard.updated = false;
-        if (dashboard.rows) {
-            dashboard.rows.forEach((row) => {
-                row.updated = false;
-                if (row.components) {
-                    row.components.forEach((component) => {
-                        component.updated = false;
-                    });
-                }
-            });
-        }
-    });
-    somePagesDeleted = false;
 }
 
 function renderFormComponentExample() {
