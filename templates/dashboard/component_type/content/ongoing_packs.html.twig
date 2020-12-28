@@ -1,3 +1,23 @@
+{% set title = title is defined ? title %}
+{% set withTreatmentDelay = withTreatmentDelay is defined ? withTreatmentDelay : false %}
+{% set withLocationLabels = withLocationLabels is defined ? withLocationLabels : false %}
+{% set redirect = redirect is defined ? redirect : false %}
+{% set locations = locations is defined ? locations : [] %}
+
+
+<div class="row form-group">
+    <div class="col-12">
+        <label>Titre*</label>
+    </div>
+    <div class="col-12">
+        <input class="data form-control w-100 needed"
+               name="title"
+               type="text"
+               title="Titre du composant"
+               value="{{ title }}"/>
+    </div>
+</div>
+
 <div class="row form-group">
     <div class="col-12">
         <label>Choix des emplacements*</label>
@@ -7,11 +27,9 @@
                 name="locations"
                 multiple
                 title="Emplacements">
-            {% if locations is defined and locations is not empty %}
-                {% for location in locations %}
-                    <option selected value="{{ location.id }}">{{ location.label }}</option>
-                {% endfor %}
-            {% endif %}
+            {% for location in locations %}
+                <option value="{{ location.id }}" selected>{{ location.label }}</option>
+            {% endfor %}
         </select>
     </div>
 </div>
@@ -21,7 +39,8 @@
         <label class="switch">
             <input class="checkbox"
                    type="checkbox"
-                   name="withTreatmentDelay">
+                   name="withTreatmentDelay"
+                   {{ withTreatmentDelay ? 'checked' }}>
             <span class="slider round"></span>
         </label>
     </div>
@@ -35,7 +54,8 @@
         <label class="switch">
             <input class="checkbox"
                    type="checkbox"
-                   name="withLocationNames">
+                   name="withLocationLabels"
+                   {{ withLocationLabels ? 'checked' }}/>
             <span class="slider round"></span>
         </label>
     </div>
@@ -49,23 +69,12 @@
         <label class="switch">
             <input class="checkbox"
                    type="checkbox"
-                   name="redirect">
+                   name="redirect"
+                   {{ withTreatmentDelay ? 'checked' }}/>
             <span class="slider round"></span>
         </label>
     </div>
     <div class="col">
         Rediriger au clic vers la page Encours
-    </div>
-</div>
-
-<div class="row form-group">
-    <div class="col-12">
-        <label>Titre*</label>
-    </div>
-    <div class="col-12">
-        <input class="data form-control w-100 needed"
-               name="title"
-               type="text"
-               title="Titre"/>
     </div>
 </div>

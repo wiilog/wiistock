@@ -1,17 +1,22 @@
 <div class="modal fade" id="error-modal" tabindex="-1" role="dialog" aria-labelledby="error-label" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="add-row-label">Erreur</h5>
+                <h5 class="modal-title" id="add-row-label">Une erreur est survenue</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <p class="error-content"></p>
+            <div class="modal-body text-danger bold">
+                Une erreur est survenue lors de l'enregistrement. Les modifications apportées aux
+                dashboards ont été sauvegardées dans un fichier à joindre dans votre demande
+                de support.
+
+                <input type="hidden" name="error-context">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-primary download-trace">Télécharger le fichier d'erreur</button>
             </div>
         </div>
     </div>

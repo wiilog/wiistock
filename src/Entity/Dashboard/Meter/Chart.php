@@ -1,13 +1,16 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Dashboard\Meter;
 
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Dashboard;
+use App\Repository\Dashboard as DashboardRepository;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\DashboardChartMeterRepository")
+ * @ORM\Entity(repositoryClass=DashboardRepository\ChartMeterRepository::class)
+ * @ORM\Table(name="dashboard_meter_chart")
  */
-class DashboardChartMeter
+class Chart
 {
     /**
      * @ORM\Id()
@@ -15,18 +18,6 @@ class DashboardChartMeter
      * @ORM\Column(type="integer")
      */
     private $id;
-
-    /**
-     * @var string
-     * @ORM\Column(type="string", length=255)
-     */
-    private $chartKey;
-
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $dashboard;
 
     /**
      * @ORM\Column(type="json")
@@ -48,38 +39,15 @@ class DashboardChartMeter
      */
     private $chartColors = [];
 
+    /**
+     * @var Dashboard\Component
+     * @ORM\OneToOne(targetEntity=Dashboard\Component::class, inversedBy="chartMeter")
+     */
+    private $component;
+
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-
-    public function getDashboard(): ?string
-    {
-        return $this->dashboard;
-    }
-
-    public function setDashboard(string $dashboard): self
-    {
-        $this->dashboard = $dashboard;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getChartKey(): string {
-        return $this->chartKey;
-    }
-
-    /**
-     * @param string $chartKey
-     * @return self
-     */
-    public function setChartKey(string $chartKey): self {
-        $this->chartKey = $chartKey;
-        return $this;
     }
 
     public function getData(): ?array
@@ -138,6 +106,32 @@ class DashboardChartMeter
     public function setChartColors(array $chartColors): self
     {
         $this->chartColors = $chartColors;
+
+        return $this;
+    }
+
+    /**
+     * @return Dashboard\Component|null
+     */
+    public function getComponent(): ?Dashboard\Component {
+        return $this->component;
+    }
+
+    /**
+     * @param Dashboard\Component|null $component
+     * @return self
+     */
+    public function setComponent(?Dashboard\Component $component): self {
+
+        if ($this->component) {
+            $this->component->setMeter(null);
+        }
+
+        $this->component = $component;
+
+        if ($this->component) {
+            $this->component->setMeter($this);
+        }
 
         return $this;
     }

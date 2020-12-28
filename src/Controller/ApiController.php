@@ -1764,10 +1764,9 @@ class ApiController extends AbstractFOSRestController {
             $image = 'data:image/' . $type . ';base64,' . base64_encode($data);
         }
         catch (Throwable $ignored) {
-            dump($ignored);
             return $this->json([
                 "success" => false,
-                'message' => 'Image non renseignée BBB'
+                'message' => 'Image non renseignée'
             ]);
         }
 

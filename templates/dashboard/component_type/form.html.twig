@@ -1,4 +1,15 @@
-<input type="hidden" class="data" name="componentType" value="{{ componentTypeId }}"/>
+<input type="hidden" class="data" name="componentType" value="{{ componentType.id }}"/>
 <input type="hidden" class="data" name="rowIndex" value="{{ rowIndex }}"/>
 <input type="hidden" class="data" name="componentIndex" value="{{ componentIndex }}"/>
-{% include ('dashboard/component_type/content/' ~ templateName ~ '.html.twig') %}
+
+{% include ('dashboard/component_type/content/' ~ templateName ~ '.html.twig') with values %}
+
+<div class="row form-group">
+    <div class="col-12">
+        <label>Exemple composant</label>
+    </div>
+    <div class="col-12 col-md-6 col-lg-3 component-example-container"
+         data-component-type="{{ componentType.id }}"
+         data-meter-key="{{ componentType.meterKey }}">
+    </div>
+</div>

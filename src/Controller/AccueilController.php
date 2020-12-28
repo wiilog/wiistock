@@ -25,7 +25,6 @@ use App\Service\DashboardService;
 use App\Service\DemandeCollecteService;
 use App\Service\DemandeLivraisonService;
 use App\Service\HandlingService;
-use App\Service\RoleService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
