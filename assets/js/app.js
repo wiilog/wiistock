@@ -10,7 +10,7 @@ import Toolbar from 'quill/modules/toolbar';
 import Snow from 'quill/themes/snow';
 import BrowserSupport from './support';
 import Wiistock from './general';
-import wrapLoadingOnActionButton from './loading';
+import {LOADING_CLASS, wrapLoadingOnActionButton} from './loading';
 
 import '../scss/app.scss';
 
@@ -25,6 +25,8 @@ importRouting();
 ///////////////// Functions
 
 function importWiistock() {
+    global.LOADING_CLASS = LOADING_CLASS;
+
     global.Wiistock = Wiistock;
     global.wrapLoadingOnActionButton = wrapLoadingOnActionButton;
 }

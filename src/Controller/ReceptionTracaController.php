@@ -4,13 +4,10 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Arrivage;
-use App\Entity\Article;
-use App\Entity\CategorieCL;
 use App\Entity\Menu;
 use App\Entity\ReceptionTraca;
 use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
-use App\Service\FreeFieldService;
 use App\Service\ReceptionTracaService;
 use App\Service\UserService;
 use DateTime;

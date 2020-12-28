@@ -16,13 +16,16 @@
 }
 
 .dashboard .dashboard-component {
+    display: flex;
     position: relative;
     width: 100%;
     flex: 1;
     background: #EEE;
     border-radius: 4px;
 
-    .delete-component {
+    .component-toolbox {
+        max-width: 40px;
+        text-align: right;
         position: absolute;
         top: 3px;
         right: 3px;
@@ -69,11 +72,12 @@
     height: 15px;
     flex: 1;
 
-    &:hover {
-        background-color: #190094;
-    }
-
     &:not(:last-child) {
         margin-right: 1px;
     }
+}
+
+.component-example-container {
+    min-height: 120px;
+    display: flex;
 }

@@ -3,7 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\Dashboard;
-use App\Entity\Type;
 use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -11,24 +10,31 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInterface
-{
+class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInterface {
+
     private $encoder;
     private $specificService;
     private $output;
 
     private const COMPONENT_TYPES = [
         'Quantité en cours sur n emplacement(s)' => [
-            'template' => 'location_for_outstanding',
+            'template' => Dashboard\ComponentType::ONGOING_PACKS,
             'hint' => 'Nombre de colis en encours sur les emplacements sélectionnés',
-            'exampleValues' => [],
-            'category' => 'Indicateurs'
+            'exampleValues' => [
+                'title' => 'Litige en cours',
+                'count' => 5,
+                'subtitle' => 'Litige',
+                'delay' => 20634860
+            ],
+            'category' => 'Indicateurs',
+            'meterKey' => Dashboard\ComponentType::ONGOING_PACKS
         ],
         'Nombre d\'arrivages quotidiens' => [
-            'template' => 'daily_arrivals',
+            'template' => Dashboard\ComponentType::DAILY_ARRIVALS,
             'hint' => 'Nombre d\'arrivages créés par jour',
             'exampleValues' => [],
-            'category' => 'Graphiques'
+            'category' => 'Graphiques',
+            'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
         ],
         'Suivi des transporteur' => [
             'template' => 'carrier_tracking',
@@ -39,8 +45,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
     ];
 
     public function __construct(UserPasswordEncoderInterface $encoder,
-                                SpecificService $specificService)
-    {
+                                SpecificService $specificService) {
         $this->encoder = $encoder;
         $this->specificService = $specificService;
         $this->output = new ConsoleOutput();
@@ -52,9 +57,9 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         $alreadyExistingName = [];
 
         // remove unused ComponentType
-        foreach ($alreadyExisting as $componentType) {
+        foreach($alreadyExisting as $componentType) {
             $name = $componentType->getName();
-            if (!isset(self::COMPONENT_TYPES[$name])) {
+            if(!isset(self::COMPONENT_TYPES[$name])) {
                 $manager->remove($componentType);
                 $this->output->writeln("Component Type \"$name\" removed");
             } else {
@@ -63,20 +68,21 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         }
 
         // we persist new ComponentType
-        foreach (self::COMPONENT_TYPES as $name => $config) {
+        foreach(self::COMPONENT_TYPES as $name => $config) {
             $componentType = $alreadyExistingName[$name] ?? null;
             $componentTypeExisted = isset($componentType);
-            if (!$componentTypeExisted) {
+            if(!$componentTypeExisted) {
                 $componentType = new Dashboard\ComponentType();
                 $componentType->setName($name);
                 $manager->persist($componentType);
             }
 
             $componentType
-                ->setHint($config['hint'] ?? '')
+                ->setHint($config['hint'] ?? null)
                 ->setExampleValues($config['exampleValues'] ?? [])
-                ->setCategory($config['category'] ?? [])
-                ->setTemplate($config['template'] ?? '');
+                ->setCategory($config['category'] ?? null)
+                ->setMeterKey($config['meterKey'] ?? null)
+                ->setTemplate($config['template'] ?? null);
 
             $action = !$componentTypeExisted ? 'persisted' : 'updated';
             $this->output->writeln("Component Type \"$name\" $action");
@@ -85,8 +91,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         $manager->flush();
     }
 
-    public static function getGroups(): array
-    {
+    public static function getGroups(): array {
         return ['fixtures'];
     }
+
 }

@@ -6,11 +6,11 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
+use App\Entity\Dashboard;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
 use App\Entity\Pack;
-use App\Entity\DashboardChartMeter;
-use App\Entity\DashboardMeter;
+use App\Entity\Dashboard\Meter as DashboardMeter;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\LatePack;
@@ -39,6 +39,8 @@ class DashboardService
     private $enCoursService;
     private $entityManager;
     private $wiilockService;
+
+    private $cacheDaysWorked;
 
     public function __construct(EnCoursService $enCoursService,
                                 WiilockService $wiilockService,
@@ -162,6 +164,7 @@ class DashboardService
 
     /**
      * @return array
+     * @deprecated
      */
     public function getDataForReceptionDockDashboard()
     {
@@ -195,6 +198,7 @@ class DashboardService
 
     /**
      * @return array
+     * @deprecated
      */
     public function getDataForReceptionAdminDashboard()
     {
@@ -246,6 +250,7 @@ class DashboardService
     /**
      * @return array
      * @throws Exception
+     * @deprecated
      */
     public function getDataForMonitoringPackagingDashboard()
     {
@@ -272,6 +277,7 @@ class DashboardService
     /**
      * @param EntityManagerInterface $entityManager
      * @throws Exception
+     * @deprecated
      */
     public function getAndSetGraphDataForDock(EntityManagerInterface $entityManager)
     {
@@ -391,10 +397,10 @@ class DashboardService
      */
     private function updateOrPersistDashboardGraphMeter(EntityManagerInterface $entityManager, array $data)
     {
-        $dashboardChartMeterRepository = $entityManager->getRepository(DashboardChartMeter::class);
+        $dashboardChartMeterRepository = $entityManager->getRepository(DashboardMeter\Chart::class);
         $dashboardChartMeter = $dashboardChartMeterRepository->findEntityByDashboardAndId($data['dashboard'], $data['key']);
         if (!isset($dashboardChartMeter)) {
-            $dashboardChartMeter = new DashboardChartMeter();
+            $dashboardChartMeter = new DashboardMeter\Chart();
             $entityManager->persist($dashboardChartMeter);
         }
         $dashboardChartMeter
@@ -411,6 +417,7 @@ class DashboardService
      * @param string $clusterCode
      * @throws NonUniqueResultException
      * @throws Exception
+     * @deprecated
      */
     public function getAndSetGraphDataForAdmin(EntityManagerInterface $entityManager, string $clusterCode)
     {
@@ -456,10 +463,9 @@ class DashboardService
             $packsOnCluster = $locationClusterRepository->getPacksOnCluster($clusterCode, $naturesForGraph);
             $packsOnClusterVerif = Stream::from(
                 $packsRepository->getCurrentPackOnLocations(
-                $cluster->getLocations()->toArray(),
-                $naturesIdForGraph,
-                [],
-                false,
+                    $cluster->getLocations()->toArray(),
+                    $naturesIdForGraph,
+                    false,
                     'colis.id, emplacement.label'
                 )
             )->reduce(function(array $carry, array $pack) {
@@ -581,7 +587,7 @@ class DashboardService
      */
     public function getChartData(EntityManagerInterface $entityManager, string $dashboard, string $id)
     {
-        $dashboardChartMeterRepository = $entityManager->getRepository(DashboardChartMeter::class);
+        $dashboardChartMeterRepository = $entityManager->getRepository(DashboardMeter\Chart::class);
         return $dashboardChartMeterRepository->findByDashboardAndId($dashboard, $id);
     }
 
@@ -591,13 +597,15 @@ class DashboardService
      */
     public function getMeterData(string $dashboard): array
     {
-        $dashboardMeterRepository = $this->entityManager->getRepository(DashboardMeter::class);
+        $dashboardMeterRepository = $this->entityManager->getRepository(DashboardMeter\Indicator::class);
         return $dashboardMeterRepository->getByDashboard($dashboard);
     }
 
     /**
      * @param array $counterConfig
      * @return array
+     * @throws Exception
+     * @deprecated
      */
     private function getLocationCounters(array $counterConfig): array
     {
@@ -612,71 +620,67 @@ class DashboardService
                 $param = is_array($counterConfig[$key])
                     ? $counterConfig[$key][0]
                     : $counterConfig[$key];
-                $carry[$key] = $this->getDashboardCounter($param, [], $daysWorked, $delay);
+                $carry[$key] = $this->getDashboardCounter($param, $daysWorked, $delay);
                 return $carry;
             },
             []);
     }
 
     /**
-     * @param string $paramName
-     * @param bool $isPack
-     * @param DateTime[]|null $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
+     * @param EntityManagerInterface $entityManager
+     * @param array $locationIds
      * @param array $daysWorked
-     * @param string|null $delay
+     * @param bool $includeDelay
+     * @param bool $includeLocationLabels
      * @return array|null
-     * @throws Exception
+     * @throws NonUniqueResultException
+     * @throws \Doctrine\ORM\NoResultException
      */
-    public function getDashboardCounter(string $paramName,
-                                        array $onDateBracket = [],
+    public function getDashboardCounter(EntityManagerInterface $entityManager,
+                                        array $locationIds,
                                         array $daysWorked = [],
-                                        ?string $delay = null): ?array
+                                        bool $includeDelay = false,
+                                        bool $includeLocationLabels = false): ?array
     {
-        $packRepository = $this->entityManager->getRepository(Pack::class);
-        $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
-        $locations = $this->findEmplacementsParam($paramName);
-        $locationsId = array_map(function (Emplacement $emplacement) {
-            return $emplacement->getId();
-        }, $locations);
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+
+        if ($includeLocationLabels && !empty($locationIds)) {
+            $locationRepository = $entityManager->getRepository(Emplacement::class);
+            $locations = $locationRepository->findByIds($locationIds);
+        }
+        else {
+            $locations = [];
+        }
+
         if (!empty($locations)) {
             $response = [];
             $response['delay'] = null;
-            if ($delay) {
-                $lastEnCours = $packRepository->getCurrentPackOnLocations($locationsId, [], $onDateBracket, false, 'lastDrop.datetime', 1);
-                if (!empty($lastEnCours[0])) {
+            if ($includeDelay) {
+                $lastEnCours = $packRepository->getCurrentPackOnLocations($locationIds, [], false, 'lastDrop.datetime, emplacement.dateMaxTime', 1);
+                if (!empty($lastEnCours[0]) && $lastEnCours[0]['dateMaxTime']) {
                     $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
                     $lastEnCoursDateTime = $lastEnCours[0]['datetime'];
                     $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $lastEnCoursDateTime, $workFreeDays);
-                    $timeInformation = $this->enCoursService->getTimeInformation($date, $delay);
+                    $timeInformation = $this->enCoursService->getTimeInformation($date, $lastEnCours[0]['dateMaxTime']);
                     $response['delay'] = $timeInformation['countDownLateTimespan'];
                 }
             }
-            $response['count'] = 0;
-            $response['label'] = array_reduce(
-                $locations,
-                function (string $carry, Emplacement $location) {
-                    return $carry . (!empty($carry) ? ', ' : '') . $location->getLabel();
-                },
-                ''
-            );
-            $response['count'] = $packRepository->getCurrentPackOnLocations($locationsId, [], $onDateBracket);
+            $response['subtitle'] = $includeLocationLabels
+                ? array_reduce(
+                    $locations,
+                    function (string $carry, Emplacement $location) {
+                        return $carry . (!empty($carry) ? ', ' : '') . $location->getLabel();
+                    },
+                    ''
+                )
+                : null;
+            $response['count'] = $packRepository->getCurrentPackOnLocations($locationIds, []);
         } else {
             $response = null;
         }
+
         return $response;
-    }
-
-    private function findEmplacementsParam(string $paramName): ?array
-    {
-        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
-
-        $param = $parametrageGlobalRepository->findOneByLabel($paramName);
-        $locations = [];
-        if ($param && $param->getValue()) {
-            $locations = $emplacementRepository->findByIds(explode(',', $param->getValue()));
-        }
-        return $locations;
     }
 
     /**
@@ -812,6 +816,7 @@ class DashboardService
     /**
      * @param EntityManagerInterface $entityManager
      * @throws Throwable
+     * @deprecated
      */
     public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager): void
     {
@@ -845,6 +850,7 @@ class DashboardService
 
     /**
      * @param EntityManagerInterface $entityManager
+     * @deprecated
      */
     private function flushAndClearEm(EntityManagerInterface $entityManager)
     {
@@ -855,6 +861,7 @@ class DashboardService
     /**
      * @param EntityManagerInterface $entityManager
      * @throws Exception
+     * @deprecated
      */
     private function retrieveAndInsertGlobalGraphData(EntityManagerInterface $entityManager) {
         $this->getAndSetGraphDataForDock($entityManager);
@@ -874,6 +881,7 @@ class DashboardService
     /**
      * @param EntityManagerInterface $entityManager
      * @throws Exception
+     * @deprecated
      */
     private function retrieveAndInsertGlobalMeterData(EntityManagerInterface $entityManager) {
         $dockData = $this->getDataForReceptionDockDashboard();
@@ -901,14 +909,15 @@ class DashboardService
      * @param string $dashboard
      * @param EntityManagerInterface $entityManager
      * @throws NonUniqueResultException
+     * @deprecated
      */
     private function parseRetrievedDataAndPersistMeter($data, string $dashboard, EntityManagerInterface $entityManager): void
     {
-        $dashboardMeterRepository = $entityManager->getRepository(DashboardMeter::class);
+        $dashboardMeterRepository = $entityManager->getRepository(DashboardMeter\Indicator::class);
         foreach ($data as $key => $datum) {
-            $dashboardMeter = $dashboardMeterRepository->getByKeyAndDashboard($key, $dashboard);
+            $dashboardMeter = $dashboardMeterRepository->findByKeyAndDashboard($key, $dashboard);
             if (!isset($dashboardMeter)) {
-                $dashboardMeter = new DashboardMeter();
+                $dashboardMeter = new DashboardMeter\Indicator();
                 $entityManager->persist($dashboardMeter);
             }
             $dashboardMeter->setMeterKey($key);
@@ -917,7 +926,7 @@ class DashboardService
                 $dashboardMeter
                     ->setCount($datum['count'])
                     ->setDelay($datum['delay'])
-                    ->setLabel($datum['label']);
+                    ->setSubtitle($datum['subtitle']);
             } else {
                 $dashboardMeter->setCount(intval($datum));
             }
@@ -959,6 +968,7 @@ class DashboardService
     /**
      * @param EntityManagerInterface $entityManager
      * @throws Exception
+     * @deprecated
      */
     public function retrieveAndInsertLastEnCours(EntityManagerInterface $entityManager)
     {
@@ -982,5 +992,46 @@ class DashboardService
         return ($dashboardLock && $dashboardLock->getUpdateDate())
             ? $dashboardLock->getUpdateDate()->format('d/m/Y H:i')
             : 'Aucune données';
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @throws Exception
+     */
+    public function persistOngoingPack(EntityManagerInterface $entityManager,
+                                       Dashboard\Component $component): void {
+        $config = $component->getConfig();
+        $daysWorked = $this->getDaysWorked($entityManager);
+
+        $calculatedData = $this->getDashboardCounter(
+            $entityManager,
+            $config['locations'],
+            $daysWorked,
+            (bool) $config['withTreatmentDelay'],
+            (bool) $config['withLocationLabels']
+        );
+
+        /** @var DashboardMeter\Indicator|null $meter */
+        $meter = $component->getMeter();
+
+        if (!isset($meter)) {
+            $meter = new DashboardMeter\Indicator();
+            $meter->setComponent($component);
+            $entityManager->persist($meter);
+        }
+
+        $meter
+            ->setCount($calculatedData['count'])
+            ->setDelay($calculatedData['delay'])
+            ->setSubtitle($calculatedData['subtitle'] ?? null);
+    }
+
+    private function getDaysWorked(EntityManagerInterface $entityManager): array {
+        $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
+        if (!isset($this->cacheDaysWorked)) {
+            $this->cacheDaysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
+        }
+        return $this->cacheDaysWorked;
     }
 }

@@ -5,7 +5,6 @@ namespace App\EventListener;
 use App\Annotation\RestAuthenticated;
 use App\Annotation\RestVersionChecked;
 use App\Entity\Utilisateur;
-use App\Repository\Dashboard\ComponentRepository;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
