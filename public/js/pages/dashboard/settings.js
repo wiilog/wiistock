@@ -79,13 +79,20 @@ $(`.rename-dashboard-modal-submit`).click(function () {
     const dashboard = $(`input[name="rename-dashboard-index"]`).val();
     const $dashboardNameInput = $('input[name="rename-dashboard-name"]');
     const name = $dashboardNameInput.val();
-    $dashboardNameInput.val(``);
+    const $modal = $dashboardNameInput.closest('.modal');
+    if(name) {
+        $dashboardNameInput.val(``);
 
-    if (dashboards[dashboard].name !== name) {
-        dashboards[dashboard].name = name;
-        dashboards[dashboard].updated = true;
+        if (dashboards[dashboard].name !== name) {
+            dashboards[dashboard].name = name;
+            dashboards[dashboard].updated = true;
+        }
+        renderDashboardPagination();
+        $modal.modal('hide');
     }
-    renderDashboardPagination();
+    else {
+        showBSAlert("Veuillez renseigner un nom de dashboard.", "danger");
+    }
 });
 
 
@@ -321,22 +328,29 @@ function onDashboardSaved() {
 function onPageAdded() {
     const $dashboardNameInput = $('input[name="add-dashboard-name"]');
     const name = $dashboardNameInput.val();
-    $dashboardNameInput.val(``);
+    const $modal = $dashboardNameInput.closest('.modal');
+    if(name) {
+        $dashboardNameInput.val(``);
 
-    if (dashboards.length >= MAX_NUMBER_PAGES) {
-        console.error("Too many dashboards");
-    } else {
-        current = {
-            updated: true,
-            index: dashboards.length,
-            name,
-            rows: [],
-        };
-        dashboards.push(current);
+        if (dashboards.length >= MAX_NUMBER_PAGES) {
+            console.error("Too many dashboards");
+        } else {
+            current = {
+                updated: true,
+                index: dashboards.length,
+                name,
+                rows: [],
+            };
+            dashboards.push(current);
 
-        renderDashboardPagination();
-        renderCurrentDashboard();
-        updateAddRowButton();
+            renderDashboardPagination();
+            renderCurrentDashboard();
+            updateAddRowButton();
+            $modal.modal('hide');
+        }
+    }
+    else {
+        showBSAlert("Veuillez renseigner un nom de dashboard.", "danger");
     }
 }
 
@@ -499,7 +513,7 @@ function onComponentSaved($modal) {
 
     if (success) {
         const {rowIndex, componentIndex, componentType, ...config} = data;
-        editComponent(rowIndex, componentIndex, {config, componentType});
+        editComponent($modal, rowIndex, componentIndex, {config, componentType});
 
         $modalComponentTypeSecondStep.modal('hide');
     }
@@ -511,7 +525,7 @@ function onComponentSaved($modal) {
     }
 }
 
-function editComponent(rowIndex, componentIndex, {config, componentType}) {
+function editComponent(modal, rowIndex, componentIndex, {config, componentType}) {
     const currentRow = getCurrentDashboardRow(rowIndex);
 
     if (currentRow && componentIndex < currentRow.size) {
@@ -520,7 +534,7 @@ function editComponent(rowIndex, componentIndex, {config, componentType}) {
 
         let currentComponent = getRowComponent(currentRow, componentIndex);
         if (!currentComponent) {
-            const $exampleContainer = $modal.find('.component-example-container');
+            const $exampleContainer = modal.find('.component-example-container');
             currentComponent = {
                 index: componentIndex,
                 meterKey: $exampleContainer.data('meter-key'),
