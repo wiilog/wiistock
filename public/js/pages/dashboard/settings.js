@@ -132,8 +132,7 @@ function renderCurrentDashboard() {
 }
 
 function updateAddRowButton() {
-    $(`[data-target="#add-row-modal"]`)
-        .prop(`disabled`, !current || current.rows.length >= MAX_NUMBER_ROWS);
+    $(`[data-target="#add-row-modal"]`).prop(`disabled`, !current || current.rows.length >= MAX_NUMBER_ROWS);
     $('[name="external-display"], .save-dashboards').prop(`disabled`, !current || current.rows.length === 0);
 }
 
@@ -436,6 +435,7 @@ function onRowDeleted() {
 function onComponentEdited() {
     const $button = $(this);
     const {row, component} = getComponentFromTooltipButton($button);
+
     openModalComponentTypeSecondStep(
         $button,
         row.index,
@@ -460,11 +460,11 @@ function onComponentDeleted() {
 function getComponentFromTooltipButton($button) {
     const $component = $button.closest('.dashboard-component');
     const componentIndex = $component.data(`component`);
-    const rowIndex = $component.closest(`.dashboard-row`).data(`row`);
-    const row = current.rows[rowIndex];
+    const row = current.rows[$component.closest(`.dashboard-row`).data(`row`)];
+
     return {
         row,
-        component: row.components[componentIndex]
+        component: getRowComponent(row, componentIndex),
     };
 }
 
@@ -504,18 +504,17 @@ function openModalComponentTypeNextStep($button) {
 }
 
 function openModalComponentTypeSecondStep($button, rowIndex, component) {
-    wrapLoadingOnActionButton($button, () => $.post(
-        Routing.generate('dashboard_component_type_form', {componentType: component.type}),
-        {
-            rowIndex,
-            componentIndex: component.index,
-            values: JSON.stringify(component.config || {})
-        },
-        function (data) {
+    const route = Routing.generate('dashboard_component_type_form', {componentType: component.type});
+    const content = {
+        rowIndex,
+        componentIndex: component.index,
+        values: JSON.stringify(component.config || {})
+    };
+
+    wrapLoadingOnActionButton($button, () => $.post(route, content, function (data) {
             if (data.html) {
                 initSecondStep(data.html);
-            }
-            else {
+            } else {
                 editComponent(rowIndex, component.index, {
                     config: component.config,
                     type: component.type,
@@ -653,7 +652,6 @@ function renderFormComponentExample() {
 
 function renderComponentExample($container, componentType, meterKey, formData, initData) {
     let exampleValuesPromise;
-    console.log(componentType)
     if (initData) {
         exampleValuesPromise = new Promise((resolve) => {
             resolve({exampleValues: initData});

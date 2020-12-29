@@ -4,39 +4,41 @@ namespace App\Service;
 
 use App\Entity\Emplacement;
 use App\Entity\Transporteur;
+use App\Helper\FormatHelper;
 use App\Helper\Stream;
 use App\Entity\Dashboard as Dashboard;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 
 class DashboardSettingsService {
+
     const UNKNOWN_COMPONENT = 'unknown-component';
 
-    public function serialize(EntityManagerInterface $entityManager): string {
+    public function serialize(EntityManagerInterface $entityManager, bool $example = false): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
         $pages = Stream::from($pageRepository->findAll());
 
         $pageIndex = 0;
-        $dashboards = $pages->map(function(Dashboard\Page $page) use (&$pageIndex, $entityManager) {
+        $dashboards = $pages->map(function(Dashboard\Page $page) use (&$pageIndex, $entityManager, $example) {
             $rowIndex = 0;
             return [
                 "id" => $page->getId(),
                 "name" => $page->getName(),
                 "index" => $pageIndex++,
                 "rows" => $page->getRows()
-                    ->map(function(Dashboard\PageRow $row) use (&$rowIndex, $entityManager) {
+                    ->map(function(Dashboard\PageRow $row) use (&$rowIndex, $entityManager, $example) {
                         return [
                             "id" => $row->getId(),
                             "size" => $row->getSize(),
                             "index" => $rowIndex++,
                             "components" => Stream::from($row->getComponents())
-                                ->map(function(Dashboard\Component $component) use ($entityManager) {
+                                ->map(function(Dashboard\Component $component) use ($entityManager, $example) {
                                     $type = $component->getType();
                                     return [
                                         "id" => $component->getId(),
                                         "type" => $component->getType()->getId(),
                                         "meterKey" => $type->getMeterKey(),
-                                        "initData" => $this->serializeExampleValues($entityManager, $component->getType(), $component->getConfig()),
+                                        "initData" => $this->serializeValues($entityManager, $component->getType(), $component->getConfig(), $example),
                                         "index" => $component->getColumnIndex(),
                                         "config" => $component->getConfig()
                                     ];
@@ -58,64 +60,85 @@ class DashboardSettingsService {
      * @return array
      * @throws \Exception
      */
-    public function serializeExampleValues(EntityManagerInterface $entityManager,
-                                           Dashboard\ComponentType $componentType,
-                                           array $config): array {
-        $exampleValues = $componentType->getExampleValues();
+    public function serializeValues(EntityManagerInterface $entityManager,
+                                    Dashboard\ComponentType $componentType,
+                                    array $config, bool $example = false): array {
+        $values = [];
         $meterKey = $componentType->getMeterKey();
         if (!empty($config['title'])) {
-            $exampleValues['title'] = $config['title'];
+            $values['title'] = $config['title'];
         }
         if (!empty($config['tooltip'])) {
-            $exampleValues['tooltip'] = $config['tooltip'];
+            $values['tooltip'] = $config['tooltip'];
         }
-
 
         if ($meterKey === Dashboard\ComponentType::ONGOING_PACKS) {
-            if (isset($exampleValues['delay'])
-                && (!isset($config['withTreatmentDelay']) || !$config['withTreatmentDelay'])) {
-                unset($exampleValues['delay']);
-            }
-            if (isset($exampleValues['subtitle'])
-                && (
-                    !isset($config['withLocationLabels'])
-                    || !$config['withLocationLabels']
-                    || empty($config['locations'])
-                )) {
-                unset($exampleValues['subtitle']);
-            }
-            else if (!empty($config['locations'])) {
-                $locationRepository = $entityManager->getRepository(Emplacement::class);
-                $locations = $locationRepository->findBy(['id' => $config['locations']]);
-                if (empty($locations)) {
-                    unset($exampleValues['subtitle']);
-                }
-                else {
-                    $exampleValues['subtitle'] = Stream::from($locations)
-                        ->map(function (Emplacement $emplacement) {
-                            return $emplacement->getLabel();
-                        })
-                        ->join(', ');
-                }
-            }
+            $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example);
         } else if ($meterKey === Dashboard\ComponentType::CARRIER_INDICATOR) {
-            $carrierRepository = $entityManager->getRepository(Transporteur::class);
-            if (isset($config['carriers'])) {
-                $carriers = $carrierRepository->findByIds($config['carriers']);
-                // Si vrai dashboard : $carrierRepository->getDailyArrivalCarriersLabel($config['carriers']);
-                $exampleValues['carriers'] = Stream::from($carriers)
-                    ->map(function (Transporteur $transporteur) {
-                        return $transporteur->getLabel();
-                    })
-                    ->join(', ');
-            }
+            $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
         }
 
-        return $exampleValues;
+        return $values;
     }
 
-    public function treatJsonDashboard(EntityManagerInterface $entityManager,
-                                       $jsonDashboard) {
+    private function serializeOngoingPacks(EntityManagerInterface $manager,
+                                           Dashboard\ComponentType $componentType,
+                                           array $config,
+                                           bool $example = false): array {
+        $values = [];
+        $shouldShowTreatmentDelay = isset($config['withTreatmentDelay']) && $config['withTreatmentDelay'];
+        $shouldShowLocationLabels = isset($config['withLocationLabels']) && $config['withLocationLabels'];
+
+//      if($example) {
+            $values = $componentType->getExampleValues();
+
+            if(!$shouldShowTreatmentDelay) {
+                unset($values['delay']);
+            }
+
+            if(!$shouldShowLocationLabels || empty($config['locations'])) {
+                unset($values['subtitle']);
+            }
+
+            if(!empty($config['locations'])) {
+                $locationRepository = $manager->getRepository(Emplacement::class);
+                $locations = $locationRepository->findBy(['id' => $config['locations']]);
+
+                if(empty($locations)) {
+                    unset($values['subtitle']);
+                } else {
+                    $values['subtitle'] = FormatHelper::locations($locations);
+                }
+            }
+//      } else {
+//          TODO: get real values
+//      }
+
+        return $values;
+    }
+
+    private function serializeCarrierIndicator(EntityManagerInterface $manager,
+                                               Dashboard\ComponentType $componentType,
+                                               array $config,
+                                               bool $example = false): array {
+        $values = [];
+
+        if (isset($config["carriers"])) {
+            $carrierRepository = $manager->getRepository(Transporteur::class);
+
+            if($example) {
+                $carriers = $carrierRepository->findByIds($config['carriers']);
+            } else {
+                $carriers = $carrierRepository->getDailyArrivalCarriersLabel($config['carriers']);
+            }
+
+            $values["carriers"] = FormatHelper::locations($carriers);
+        }
+
+        return $values;
+    }
+
+    public function save(EntityManagerInterface $entityManager, array $jsonDashboard) {
         $componentTypeRepository = $entityManager->getRepository(Dashboard\ComponentType::class);
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
         $pageRowRepository = $entityManager->getRepository(Dashboard\PageRow::class);
@@ -134,12 +157,15 @@ class DashboardSettingsService {
 
                     foreach($jsonPage["rows"] as $jsonRow) {
                         [$updateRow, $row] = $this->getEntity($entityManager, Dashboard\PageRow::class, $jsonRow);
+
                         if ($row) {
                             if ($updateRow) {
                                 $row->setPage($page);
                                 $row->setSize($jsonRow["size"]);
+
                                 foreach ($jsonRow["components"] as $jsonComponent) {
                                     [$updateComponent, $component] = $this->getEntity($entityManager, Dashboard\Component::class, $jsonComponent);
+
                                     if ($updateComponent && $component) {
                                         $type = $componentTypeRepository->find($jsonComponent["type"]);
                                         if (!$type) {

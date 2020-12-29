@@ -34,7 +34,7 @@ class DashboardSettingController extends AbstractController {
         $componentTypes = $componentTypeRepository->findAll();
 
         return $this->render("dashboard/settings.html.twig", [
-            "dashboards" => $dashboardSettingsService->serialize($entityManager),
+            "dashboards" => $dashboardSettingsService->serialize($entityManager, true),
             'componentTypeConfig' => [
                 // component types group by category
                 'componentTypes' => Stream::from($componentTypes)
@@ -65,9 +65,8 @@ class DashboardSettingController extends AbstractController {
         $dashboards = json_decode($request->request->get("dashboards"), true);
 
         try {
-            $dashboardSettingsService->treatJsonDashboard($entityManager, $dashboards);
-        }
-        catch(InvalidArgumentException $exception) {
+            $dashboardSettingsService->save($entityManager, $dashboards);
+        } catch(InvalidArgumentException $exception) {
             $message = $exception->getMessage();
             $unknownComponentCode = DashboardSettingsService::UNKNOWN_COMPONENT;
             if (preg_match("/$unknownComponentCode-(.*)/", $message, $matches)) {
@@ -86,7 +85,7 @@ class DashboardSettingController extends AbstractController {
 
         return $this->json([
             "success" => true,
-            "dashboards" => $dashboardSettingsService->serialize($entityManager),
+            "dashboards" => $dashboardSettingsService->serialize($entityManager, true),
         ]);
     }
 
@@ -158,7 +157,7 @@ class DashboardSettingController extends AbstractController {
 
         return $this->json([
             'success' => true,
-            'exampleValues' => $dashboardSettingsService->serializeExampleValues($entityManager, $componentType, $values)
+            'exampleValues' => $dashboardSettingsService->serializeValues($entityManager, $componentType, $values, true)
         ]);
     }
 }
