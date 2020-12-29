@@ -1,5 +1,6 @@
 import 'bootstrap';
 import 'select2';
+import Chart from 'chart.js';
 import moment from 'moment';
 import 'datatables.net';
 import 'datatables.net-dt/js/dataTables.dataTables';
@@ -21,6 +22,7 @@ importJquery();
 importMoment();
 importQuill();
 importRouting();
+importChart();
 
 ///////////////// Functions
 
@@ -33,6 +35,10 @@ function importWiistock() {
 
 function importJquery() {
     global.$ = global.jQuery = $;
+}
+
+function importChart() {
+    global.Chart = Chart;
 }
 
 function importMoment() {

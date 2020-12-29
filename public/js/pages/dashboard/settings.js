@@ -629,7 +629,6 @@ function renderFormComponentExample() {
 
 function renderComponentExample($container, componentType, meterKey, formData, initData) {
     let exampleValuesPromise;
-    console.log(componentType)
     if (initData) {
         exampleValuesPromise = new Promise((resolve) => {
             resolve({exampleValues: initData});
@@ -640,6 +639,6 @@ function renderComponentExample($container, componentType, meterKey, formData, i
             {values: JSON.stringify(formData)}
         );
     }
-
-    return exampleValuesPromise.then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues, true));
+    let mode = 0;
+    return exampleValuesPromise.then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues, mode === 0));
 }

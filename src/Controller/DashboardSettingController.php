@@ -149,6 +149,7 @@ class DashboardSettingController extends AbstractController {
      * @param DashboardSettingsService $dashboardSettingsService
      * @param Dashboard\ComponentType $componentType
      * @return JsonResponse
+     * @throws \Exception
      */
     public function apiComponentTypeExample(Request $request,
                                             EntityManagerInterface $entityManager,
