@@ -1,3 +1,7 @@
+const MODE_EDIT = 0;
+const MODE_DISPLAY = 1;
+const MODE_EXTERNAL = 2;
+
 const MAX_NUMBER_ROWS = 6;
 const MAX_NUMBER_PAGES = 8;
 
@@ -22,6 +26,7 @@ const MAX_NUMBER_PAGES = 8;
 let dashboards = [];
 let current = null;
 let somePagesDeleted = false;
+let mode = undefined;
 
 const $addRowButton = $('button.add-row-modal-submit');
 const $dashboard = $('.dashboard');
@@ -30,7 +35,12 @@ const $dashboardRowSelector = $('.dashboard-row-selector');
 const $modalComponentTypeFirstStep = $('#modalComponentTypeFistStep');
 const $modalComponentTypeSecondStep = $('#modalComponentTypeSecondStep');
 
-$(document).ready(() => {
+function loadDashboards(m) {
+    mode = m;
+    if (mode === undefined) {
+        alert("Configuration invalide");
+    }
+
     dashboards = JSON.parse($(`.dashboards-data`).val());
     loadCurrentDashboard(true);
 
@@ -50,7 +60,19 @@ $(document).ready(() => {
     $pagination.on(`click`, `.delete-dashboard`, onPageDeleted);
 
     $(window).bind('beforeunload', hasEditDashboard);
-});
+
+    if(mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
+        setInterval(function () {
+            $.get(Routing.generate("dashboards_fetch"), function (response) {
+                dashboards = JSON.parse(response.dashboards);
+                current = dashboards.find(d => d.index === current.index);
+
+                renderCurrentDashboard();
+                renderDashboardPagination();
+            })
+        }, 5 * 60 * 1000);
+    }
+}
 
 $(`.download-trace`).click(function () {
     const blob = new Blob([$(`[name="error-context"]`).val()]);
@@ -122,8 +144,7 @@ function renderCurrentDashboard() {
 }
 
 function updateAddRowButton() {
-    $(`[data-target="#add-row-modal"]`)
-        .prop(`disabled`, !current || current.rows.length >= MAX_NUMBER_ROWS);
+    $(`[data-target="#add-row-modal"]`).prop(`disabled`, !current || current.rows.length >= MAX_NUMBER_ROWS);
     $('[name="external-display"], .save-dashboards').prop(`disabled`, !current || current.rows.length === 0);
 }
 
@@ -135,11 +156,13 @@ function renderRow(row) {
         $row.append(renderConfigComponent(component || componentIndex, true));
     }
 
-    $row.append(`
-        <button class="btn btn-danger btn-sm delete-row ml-1">
-            <i class="fa fa-trash"></i>
-        </button>
-    `);
+    if (mode === MODE_EDIT) {
+        $row.append(`
+            <button class="btn btn-danger btn-sm delete-row ml-1">
+                <i class="fa fa-trash"></i>
+            </button>
+        `);
+    }
 
     return $row;
 }
@@ -163,7 +186,8 @@ function renderConfigComponent(component, init = false) {
             init ? component.initData : undefined
         )
             .then(() => {
-                $componentContainer.append($(`
+                if(mode === MODE_EDIT) {
+                    $componentContainer.append($(`
                     <div class="component-toolbox">
                         <button class="btn btn-primary btn-sm edit-component m-1">
                             <i class="fa fa-pen"></i>
@@ -173,16 +197,17 @@ function renderConfigComponent(component, init = false) {
                         </button>
                     </div>
                 `));
+                }
             });
     } else {
         $componentContainer = $('<div/>', {
             class: 'dashboard-component empty',
             'data-component': component,
-            html: $('<div/>', {
+            html: mode === MODE_EDIT ? $('<div/>', {
                 class: 'btn btn-primary btn-ripple btn-sm',
                 click: openModalComponentTypeFirstStep,
                 html: `<i class="fas fa-plus mr-2"></i> Ajouter un composant`
-            })
+            }) : ``,
         });
     }
 
@@ -190,19 +215,24 @@ function renderConfigComponent(component, init = false) {
 }
 
 function renderDashboardPagination() {
-    $('.dashboard-pagination > div, .external-dashboards > a').remove();
+    $('.dashboard-pagination, .external-dashboards').empty();
 
     dashboards
-        .map((dashboard) => createDashboardSelectorItem(dashboard))
-        .forEach(($item) => {
-            $item.insertBefore(".dashboard-pagination > button")
-        });
+        .map(dashboard => createDashboardSelectorItem(dashboard))
+        .reverse()
+        .forEach($item => $pagination.prepend($item));
+
+    if (mode === MODE_EDIT) {
+        $(`.dashboard-pagination`).append(`
+            <button class="btn btn-primary btn-ripple mx-1" data-toggle="modal" data-target="#add-dashboard-modal">
+                <span class="fa fa-plus mr-2"></span> Ajouter un dashboard
+            </button>
+        `);
+    }
 
     dashboards
-        .map((dashboard) => createExternalDashboardLink(dashboard))
-        .forEach(($item) => {
-            $('.external-dashboards').append($item)
-        });
+        .map(dashboard => createExternalDashboardLink(dashboard))
+        .forEach($item => $('.external-dashboards').append($item));
 
     $('[data-target="#add-dashboard-modal"]')
         .attr(`disabled`, dashboards.length >= MAX_NUMBER_PAGES);
@@ -228,28 +258,31 @@ function createDashboardSelectorItem(dashboard) {
         class: 'mr-2'
     });
 
-    const $dropdown = $(`
-        <div class="dropdown d-inline-flex">
-            <span class="badge badge-primary square-sm pointer" data-toggle="dropdown">
+    let $editable = ``;
+    if (mode === MODE_EDIT) {
+        $editable = `
+            <div class="dropdown d-inline-flex">
+                <span class="badge badge-primary square-sm pointer" data-toggle="dropdown">
                 <i class="fas fa-pen"></i>
-            </span>
-            <div class="dropdown-menu dropdown-follow-gt pointer">
-                <a class="dropdown-item rename-dashboard" role="button" data-dashboard="${dashboard.index}"
-                     data-toggle="modal" data-target="#rename-dashboard-modal">
-                    <i class="fas fa-edit mr-2"></i>Renommer
-                </a>
-                <a class="dropdown-item delete-dashboard" role="button" data-dashboard="${dashboard.index}">
-                    <i class="fas fa-trash mr-2"></i>Supprimer
-                </a>
+                </span>
+                <div class="dropdown-menu dropdown-follow-gt pointer">
+                    <a class="dropdown-item rename-dashboard" role="button" data-dashboard="${dashboard.index}"
+                         data-toggle="modal" data-target="#rename-dashboard-modal">
+                        <i class="fas fa-edit mr-2"></i>Renommer
+                    </a>
+                    <a class="dropdown-item delete-dashboard" role="button" data-dashboard="${dashboard.index}">
+                        <i class="fas fa-trash mr-2"></i>Supprimer
+                    </a>
+                </div>
             </div>
-        </div>
-    `);
+        `;
+    }
 
     return $('<div/>', {
         class: `d-flex align-items-center mx-1 p-2 ${subContainerClasses}`,
         html: [
             $link,
-            $dropdown
+            $editable,
         ]
     });
 }
@@ -414,6 +447,7 @@ function onRowDeleted() {
 function onComponentEdited() {
     const $button = $(this);
     const {row, component} = getComponentFromTooltipButton($button);
+
     openModalComponentTypeSecondStep(
         $button,
         row.index,
@@ -438,11 +472,11 @@ function onComponentDeleted() {
 function getComponentFromTooltipButton($button) {
     const $component = $button.closest('.dashboard-component');
     const componentIndex = $component.data(`component`);
-    const rowIndex = $component.closest(`.dashboard-row`).data(`row`);
-    const row = current.rows[rowIndex];
+    const row = current.rows[$component.closest(`.dashboard-row`).data(`row`)];
+
     return {
         row,
-        component: row.components[componentIndex]
+        component: getRowComponent(row, componentIndex),
     };
 }
 
@@ -482,18 +516,17 @@ function openModalComponentTypeNextStep($button) {
 }
 
 function openModalComponentTypeSecondStep($button, rowIndex, component) {
-    wrapLoadingOnActionButton($button, () => $.post(
-        Routing.generate('dashboard_component_type_form', {componentType: component.type}),
-        {
-            rowIndex,
-            componentIndex: component.index,
-            values: JSON.stringify(component.config || {})
-        },
-        function (data) {
+    const route = Routing.generate('dashboard_component_type_form', {componentType: component.type});
+    const content = {
+        rowIndex,
+        componentIndex: component.index,
+        values: JSON.stringify(component.config || {})
+    };
+
+    wrapLoadingOnActionButton($button, () => $.post(route, content, function (data) {
             if (data.html) {
                 initSecondStep(data.html);
-            }
-            else {
+            } else {
                 editComponent(rowIndex, component.index, {
                     config: component.config,
                     type: component.type,
@@ -503,7 +536,7 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
 
             $modalComponentTypeFirstStep.modal('hide');
 
-            if(data.html) {
+            if (data.html) {
                 $modalComponentTypeSecondStep.modal('show');
             }
         },

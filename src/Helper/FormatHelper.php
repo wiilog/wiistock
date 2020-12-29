@@ -27,12 +27,27 @@ class FormatHelper {
         return $user ? $user->getUsername() : $else;
     }
 
-    public static function users(?Traversable $users) {
-       return Stream::from($users)
-            ->map(function (?Utilisateur $user) {
-                return self::user($user);
+    public static function entity($entities, string $field, string $separator = ", ") {
+        return Stream::from($entities)
+            ->filter(function($entity) use ($field) {
+                return $entity !== null && $entity->{"get$field"}();
             })
-            ->join(" / ");
+            ->map(function($entity) use ($field) {
+                return $entity->{"get$field"}();
+            })
+            ->join($separator);
+    }
+
+    public static function users($users) {
+        return self::entity($users, "username");
+    }
+
+    public static function carrier($carriers) {
+        return self::entity($carriers, "username");
+    }
+
+    public static function locations($locations) {
+        return self::entity($locations, "label");
     }
 
     public static function bool(?bool $bool, $else = "") {
