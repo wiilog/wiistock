@@ -1,26 +1,27 @@
-{% set title = title is defined ? title %}
-{% set tooltip = tooltip is defined ? tooltip %}
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
 
-<div class="row form-group">
-    <div class="col-12">
-        <label>Titre*</label>
+{% block content %}
+    <div class="row form-group">
+        <div class="col-12">
+            <label>Titre*</label>
+        </div>
+        <div class="col-12">
+            <input class="data form-control w-100 needed"
+                   name="title"
+                   type="text"
+                   title="Titre" value="{{ title }}"/>
+        </div>
     </div>
-    <div class="col-12">
-        <input class="data form-control w-100 needed"
-               name="title"
-               type="text"
-               title="Titre" value="{{ title }}"/>
-    </div>
-</div>
 
-<div class="row form-group">
-    <div class="col-12">
-        <label>Infobulle*</label>
+    <div class="row form-group">
+        <div class="col-12">
+            <label>Infobulle*</label>
+        </div>
+        <div class="col-12">
+            <input class="data form-control w-100 needed"
+                   name="tooltip"
+                   type="text"
+                   title="Infobulle" value="{{ tooltip }}"/>
+        </div>
     </div>
-    <div class="col-12">
-        <input class="data form-control w-100 needed"
-               name="tooltip"
-               type="text"
-               title="Infobulle" value="{{ tooltip }}"/>
-    </div>
-</div>
+{% endblock %}

@@ -37,7 +37,7 @@ const $modalComponentTypeSecondStep = $('#modalComponentTypeSecondStep');
 
 function loadDashboards(m) {
     mode = m;
-    if (mode === undefined) {
+    if(mode === undefined) {
         alert("Configuration invalide");
     }
 
@@ -46,7 +46,7 @@ function loadDashboards(m) {
 
     $(window).on("hashchange", loadCurrentDashboard);
 
-    $(`.save-dashboards`).on('click', function () {
+    $(`.save-dashboards`).on('click', function() {
         wrapLoadingOnActionButton($(this), onDashboardSaved);
     });
 
@@ -62,8 +62,8 @@ function loadDashboards(m) {
     $(window).bind('beforeunload', hasEditDashboard);
 
     if(mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
-        setInterval(function () {
-            $.get(Routing.generate("dashboards_fetch"), function (response) {
+        setInterval(function() {
+            $.get(Routing.generate("dashboards_fetch"), function(response) {
                 dashboards = JSON.parse(response.dashboards);
                 current = dashboards.find(d => d.index === current.index);
 
@@ -74,12 +74,12 @@ function loadDashboards(m) {
     }
 }
 
-$(`.download-trace`).click(function () {
+$(`.download-trace`).click(function() {
     const blob = new Blob([$(`[name="error-context"]`).val()]);
     saveAs(blob, `dashboards-error.txt`);
 })
 
-$dashboardRowSelector.click(function () {
+$dashboardRowSelector.click(function() {
     const button = $(this);
 
     $('input[name="new-row-columns-count"]').val(button.data("columns"));
@@ -88,7 +88,7 @@ $dashboardRowSelector.click(function () {
     $addRowButton.attr(`disabled`, false);
 });
 
-$pagination.on(`click`, `[data-target="#rename-dashboard-modal"]`, function () {
+$pagination.on(`click`, `[data-target="#rename-dashboard-modal"]`, function() {
     const dashboard = $(this).data(`dashboard`);
     const $indexInput = $(`input[name="rename-dashboard-index"]`);
     const $nameInput = $(`input[name="rename-dashboard-name"]`);
@@ -97,7 +97,7 @@ $pagination.on(`click`, `[data-target="#rename-dashboard-modal"]`, function () {
     $nameInput.val(dashboards[dashboard].name);
 });
 
-$(`.rename-dashboard-modal-submit`).click(function () {
+$(`.rename-dashboard-modal-submit`).click(function() {
     const dashboard = $(`input[name="rename-dashboard-index"]`).val();
     const $dashboardNameInput = $('input[name="rename-dashboard-name"]');
     const name = $dashboardNameInput.val();
@@ -105,14 +105,13 @@ $(`.rename-dashboard-modal-submit`).click(function () {
     if(name) {
         $dashboardNameInput.val(``);
 
-        if (dashboards[dashboard].name !== name) {
+        if(dashboards[dashboard].name !== name) {
             dashboards[dashboard].name = name;
             dashboards[dashboard].updated = true;
         }
         renderDashboardPagination();
         $modal.modal('hide');
-    }
-    else {
+    } else {
         showBSAlert("Veuillez renseigner un nom de dashboard.", "danger");
     }
 });
@@ -123,7 +122,7 @@ function recalculateIndexes() {
         dashboard.index = dashboardIndex;
 
         (dashboard.rows || []).forEach((row, rowIndex) => {
-            if (dashboard === current) {
+            if(dashboard === current) {
                 $(`[data-row="${row.index}"]`)
                     .data(`row`, rowIndex)
                     .attr(`data-row`, rowIndex); //update the dom too
@@ -136,7 +135,7 @@ function recalculateIndexes() {
 
 function renderCurrentDashboard() {
     $dashboard.empty();
-    if (current) {
+    if(current) {
         current.rows
             .map(renderRow)
             .forEach(row => $dashboard.append(row));
@@ -151,12 +150,12 @@ function updateAddRowButton() {
 function renderRow(row) {
     const $row = $(`<div class="dashboard-row" data-row="${row.index}"></div>`);
 
-    for (let componentIndex = 0; componentIndex < row.size; ++componentIndex) {
+    for(let componentIndex = 0; componentIndex < row.size; ++componentIndex) {
         const component = getRowComponent(row, componentIndex);
         $row.append(renderConfigComponent(component || componentIndex, true));
     }
 
-    if (mode === MODE_EDIT) {
+    if(mode === MODE_EDIT) {
         $row.append(`
             <button class="btn btn-danger btn-sm delete-row ml-1">
                 <i class="fa fa-trash"></i>
@@ -170,7 +169,7 @@ function renderRow(row) {
 function renderConfigComponent(component, init = false) {
     let $componentContainer;
 
-    if (component && typeof component === 'object') {
+    if(component && typeof component === 'object') {
         $componentContainer = $('<div/>', {
             class: 'dashboard-component',
             'data-component': component.index
@@ -222,7 +221,7 @@ function renderDashboardPagination() {
         .reverse()
         .forEach($item => $pagination.prepend($item));
 
-    if (mode === MODE_EDIT) {
+    if(mode === MODE_EDIT) {
         $(`.dashboard-pagination`).append(`
             <button class="btn btn-primary btn-ripple mx-1" data-toggle="modal" data-target="#add-dashboard-modal">
                 <span class="fa fa-plus mr-2"></span> Ajouter un dashboard
@@ -245,7 +244,7 @@ function createDashboardSelectorItem(dashboard) {
 
     let name;
 
-    if (dashboard.name.length >= 20) {
+    if(dashboard.name.length >= 20) {
         name = $.trim(dashboard.name).substring(0, 17) + "...";
     } else {
         name = dashboard.name;
@@ -259,7 +258,7 @@ function createDashboardSelectorItem(dashboard) {
     });
 
     let $editable = ``;
-    if (mode === MODE_EDIT) {
+    if(mode === MODE_EDIT) {
         $editable = `
             <div class="dropdown d-inline-flex">
                 <span class="badge badge-primary square-sm pointer" data-toggle="dropdown">
@@ -299,17 +298,17 @@ function createExternalDashboardLink(dashboard) {
  * @param {boolean=false} init
  */
 function loadCurrentDashboard(init = false) {
-    if (init) {
+    if(init) {
         recalculateIndexes();
     }
 
-    if (dashboards && dashboards.length > 0) {
+    if(dashboards && dashboards.length > 0) {
         let hash = window.location.hash.replace(`#`, ``);
-        if (!hash || !dashboards[hash - 1]) {
+        if(!hash || !dashboards[hash - 1]) {
             hash = 1;
         }
 
-        if (!dashboards[hash - 1]) {
+        if(!dashboards[hash - 1]) {
             console.error(`Unknown dashboard "${hash}"`);
         } else {
             current = dashboards[hash - 1];
@@ -317,7 +316,7 @@ function loadCurrentDashboard(init = false) {
         }
     }
     // no pages already saved
-    else if (window.location.hash) {
+    else if(window.location.hash) {
         window.location.hash = '';
     }
 
@@ -332,8 +331,8 @@ function onDashboardSaved() {
     };
 
     return $.post(Routing.generate(`save_dashboard_settings`), content)
-        .then(function (data) {
-            if (data.success) {
+        .then(function(data) {
+            if(data.success) {
                 showBSAlert("Dashboards enregistrés avec succès", "success");
                 dashboards = JSON.parse(data.dashboards);
 
@@ -342,7 +341,7 @@ function onDashboardSaved() {
                 throw data;
             }
         })
-        .catch(function (error) {
+        .catch(function(error) {
             const date = new Date().toISOString();
             error.responseText = undefined;
 
@@ -366,7 +365,7 @@ function onPageAdded() {
     if(name) {
         $dashboardNameInput.val(``);
 
-        if (dashboards.length >= MAX_NUMBER_PAGES) {
+        if(dashboards.length >= MAX_NUMBER_PAGES) {
             console.error("Too many dashboards");
         } else {
             current = {
@@ -382,8 +381,7 @@ function onPageAdded() {
             updateAddRowButton();
             $modal.modal('hide');
         }
-    }
-    else {
+    } else {
         showBSAlert("Veuillez renseigner un nom de dashboard.", "danger");
     }
 }
@@ -394,9 +392,9 @@ function onPageDeleted() {
     dashboards.splice(dashboard, 1);
     recalculateIndexes();
 
-    if (dashboards.length === 0) {
+    if(dashboards.length === 0) {
         current = undefined;
-    } else if (dashboard === current.index) {
+    } else if(dashboard === current.index) {
         current = dashboards[0];
     }
     somePagesDeleted = true;
@@ -414,7 +412,7 @@ function onRowAdded() {
     $dashboardRowSelector.removeClass("selected");
     $addRowButton.attr(`disabled`, true);
 
-    if (current) {
+    if(current) {
         current.updated = true;
         current.rows.push({
             index: current.rows.length,
@@ -435,7 +433,7 @@ function onRowDeleted() {
     const rowIndex = $row.data(`row`);
 
     $row.remove();
-    if (current) {
+    if(current) {
         current.updated = true;
         current.rows.splice(rowIndex, 1);
     }
@@ -498,7 +496,7 @@ function openModalComponentTypeFirstStep() {
 
 function openModalComponentTypeNextStep($button) {
     const firstStepIsShown = $modalComponentTypeFirstStep.hasClass('show');
-    if (firstStepIsShown) {
+    if(firstStepIsShown) {
         const componentTypeId = $button.data('component-type-id');
         const $form = $button.closest('.form');
         const rowIndex = $form.find('[name="rowIndex"]').val();
@@ -516,39 +514,37 @@ function openModalComponentTypeNextStep($button) {
 }
 
 function openModalComponentTypeSecondStep($button, rowIndex, component) {
-    const route = Routing.generate('dashboard_component_type_form', {componentType: component.type});
+    const route = Routing.generate(`dashboard_component_type_form`, {componentType: component.type});
     const content = {
         rowIndex,
         componentIndex: component.index,
         values: JSON.stringify(component.config || {})
     };
 
-    wrapLoadingOnActionButton($button, () => $.post(route, content, function (data) {
-            if (data.html) {
-                initSecondStep(data.html);
-            } else {
-                editComponent(rowIndex, component.index, {
-                    config: component.config,
-                    type: component.type,
-                    meterKey: component.meterKey
-                });
-            }
+    wrapLoadingOnActionButton($button, () => $.post(route, content, function(data) {
+        if(data.html) {
+            initSecondStep(data.html);
+        } else {
+            editComponent(rowIndex, component.index, {
+                config: component.config,
+                type: component.type,
+                meterKey: component.meterKey
+            });
+        }
 
-            $modalComponentTypeFirstStep.modal('hide');
+        $modalComponentTypeFirstStep.modal(`hide`);
 
-            if (data.html) {
-                $modalComponentTypeSecondStep.modal('show');
-            }
-        },
-        'json'
-    ), true);
+        if(data.html) {
+            $modalComponentTypeSecondStep.modal(`show`);
+        }
+    }, 'json'), true);
 }
 
 function onComponentSaved($modal) {
     clearFormErrors($modal);
     const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal);
 
-    if (success) {
+    if(success) {
         const {rowIndex, componentIndex, meterKey, componentType, ...config} = data;
         editComponent(rowIndex, componentIndex, {
             config,
@@ -568,12 +564,12 @@ function onComponentSaved($modal) {
 function editComponent(rowIndex, componentIndex, {config, type, meterKey}) {
     const currentRow = getCurrentDashboardRow(rowIndex);
 
-    if (currentRow && componentIndex < currentRow.size) {
+    if(currentRow && componentIndex < currentRow.size) {
         current.updated = true;
         currentRow.updated = true;
 
         let currentComponent = getRowComponent(currentRow, componentIndex);
-        if (!currentComponent) {
+        if(!currentComponent) {
             currentComponent = {index: componentIndex};
             currentRow.components[componentIndex] = currentComponent;
         }
@@ -595,6 +591,7 @@ function initSecondStep(html) {
     $modalComponentTypeSecondStepContent.html('');
     $modalComponentTypeSecondStepContent.html(html);
 
+    $(`.select2`).select2();
     Select2.location($modalComponentTypeSecondStep.find('.ajax-autocomplete-location'));
     Select2.carrier($modalComponentTypeSecondStep.find('.ajax-autocomplete-carrier'));
 
@@ -651,7 +648,7 @@ function renderFormComponentExample() {
 
     return renderComponentExample($exampleContainer, componentType, $exampleContainer.data('meter-key'), formData)
         .then((renderingSuccess) => {
-            if (renderingSuccess) {
+            if(renderingSuccess) {
                 $exampleContainerParent.removeClass('d-none');
             } else {
                 $exampleContainerParent.addClass('d-none');
@@ -664,7 +661,7 @@ function renderFormComponentExample() {
 
 function renderComponentExample($container, componentType, meterKey, formData, initData) {
     let exampleValuesPromise;
-    if (initData) {
+    if(initData) {
         exampleValuesPromise = new Promise((resolve) => {
             resolve({exampleValues: initData});
         });
@@ -674,6 +671,6 @@ function renderComponentExample($container, componentType, meterKey, formData, i
             {values: JSON.stringify(formData)}
         );
     }
-    let mode = 0;
+
     return exampleValuesPromise.then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues, mode === 0));
 }
