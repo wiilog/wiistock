@@ -31,10 +31,20 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         ],
         'Nombre d\'arrivages quotidiens' => [
             'hint' => 'Nombre d\'arrivages créés par jour',
-            'exampleValues' => null,
+            'exampleValues' => [
+                'graphData' => [
+                    'j1' => 5,
+                    'j2' => 12,
+                    'j3' => 8,
+                    'j4' => 1,
+                    'j5' => 0,
+                    'j6' => 9,
+                    'j7' => 7
+                ]
+            ],
             'category' => Dashboard\ComponentType::GRAPH_TYPE,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
-            'template' => null,
+            'template' => Dashboard\ComponentType::DAILY_ARRIVALS,
         ],
         'Colis en retard' => [
             'hint' => 'Les 100 colis les plus anciens ayant dépassé le délai de présence sur leur emplacement',
@@ -50,12 +60,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
             'template' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
         ],
-            'exampleValues' => [],
-            'category' => Dashboard\ComponentType::GRAPH_TYPE,
-            'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
-        ],
         'Suivi des transporteur' => [
-            'template' => 'carrier_tracking',
             'hint' => 'Transporteur ayant effectué un arrivage dans la journée',
             'exampleValues' => [
                 'carriers' => [
@@ -66,7 +71,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 ]
             ],
             'category' => Dashboard\ComponentType::INDICATOR_TYPE,
-            'template' => 'carrier_tracking',
+            'template' => Dashboard\ComponentType::CARRIER_INDICATOR,
             'meterKey' => Dashboard\ComponentType::CARRIER_INDICATOR,
         ]
     ];

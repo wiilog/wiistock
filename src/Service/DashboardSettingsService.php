@@ -109,18 +109,7 @@ class DashboardSettingsService {
                     })
                     ->join(', ');
             }
-        } else if ($meterKey === Dashboard\ComponentType::DAILY_ARRIVALS) {
-            $exampleValues['graphData'] = [
-                'j1' => 5,
-                'j2' => 12,
-                'j3' => 8,
-                'j4' => 1,
-                'j5' => 0,
-                'j6' => 9,
-                'j7' => 7
-            ];
         }
-
         return $exampleValues;
     }
 

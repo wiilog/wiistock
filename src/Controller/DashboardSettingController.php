@@ -103,7 +103,6 @@ class DashboardSettingController extends AbstractController {
         $templateName = $componentType->getTemplate();
 
         $values = json_decode($request->request->get('values'), true);
-
         if (!empty($values['locations'])) {
             $locationRepository = $entityManager->getRepository(Emplacement::class);
             $values['locations'] = $locationRepository->findByIds($values['locations']);
@@ -156,7 +155,6 @@ class DashboardSettingController extends AbstractController {
                                             DashboardSettingsService $dashboardSettingsService,
                                             Dashboard\ComponentType $componentType): JsonResponse {
         $values = json_decode($request->request->get('values'), true);
-
         return $this->json([
             'success' => true,
             'exampleValues' => $dashboardSettingsService->serializeExampleValues($entityManager, $componentType, $values)
