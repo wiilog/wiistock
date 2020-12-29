@@ -25,16 +25,26 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'subtitle' => 'Litige',
                 'delay' => 20634860
             ],
-            'category' => Dashboard\ComponentType::INDICATOR_TYPE,
-            'meterKey' => Dashboard\ComponentType::ONGOING_PACKS,
             'template' => Dashboard\ComponentType::ONGOING_PACKS,
+            'category' => Dashboard\ComponentType::INDICATOR_TYPE,
+            'meterKey' => Dashboard\ComponentType::ONGOING_PACKS
         ],
         'Nombre d\'arrivages quotidiens' => [
             'hint' => 'Nombre d\'arrivages créés par jour',
-            'exampleValues' => [],
+            'exampleValues' => [
+                'graphData' => [
+                    'j1' => 5,
+                    'j2' => 12,
+                    'j3' => 8,
+                    'j4' => 1,
+                    'j5' => 0,
+                    'j6' => 9,
+                    'j7' => 7
+                ]
+            ],
             'category' => Dashboard\ComponentType::GRAPH_TYPE,
-            'template' => null,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
+            'template' => Dashboard\ComponentType::DAILY_ARRIVALS,
         ],
         'Suivi des transporteur' => [
             'hint' => 'Transporteur ayant effectué un arrivage dans la journée',
@@ -47,7 +57,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 ]
             ],
             'category' => Dashboard\ComponentType::INDICATOR_TYPE,
-            'template' => 'carrier_tracking',
+            'template' => Dashboard\ComponentType::CARRIER_INDICATOR,
             'meterKey' => Dashboard\ComponentType::CARRIER_INDICATOR,
         ],
         'Colis en retard' => [

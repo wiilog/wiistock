@@ -28,11 +28,7 @@
             </div>
         </div>
         <div class="dashboard"></div>
-        <div class="dashboard-pagination">
-            <button class="btn btn-primary btn-ripple mx-1" data-toggle="modal" data-target="#add-dashboard-modal">
-                <span class="fa fa-plus mr-2"></span> Ajouter un dashboard
-            </button>
-        </div>
+        <div class="dashboard-pagination"></div>
     </div>
 
     <input type="hidden" class="dashboards-data" value="{{ dashboards }}">
@@ -49,4 +45,8 @@
     {{ parent() }}
     <script src="{{ asset('js/pages/dashboard/render.js') }}?{{ app_last_cache_clear }}"></script>
     <script src="{{ asset('js/pages/dashboard/settings.js') }}?{{ app_last_cache_clear }}"></script>
+
+    <script>
+        $(document).ready(() => loadDashboards(MODE_EDIT));
+    </script>
 {% endblock %}

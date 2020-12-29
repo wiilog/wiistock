@@ -22,7 +22,6 @@ class ComponentType
 
     public const INDICATOR_TYPE = 'Indicateurs';
     public const GRAPH_TYPE = 'Graphiques';
-
     /**
      * @ORM\Id
      * @ORM\GeneratedValue

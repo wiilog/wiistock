@@ -2,12 +2,15 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\Emplacement;
+use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Helper\Stream;
 use App\Service\DashboardSettingsService;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use InvalidArgumentException;
@@ -23,6 +26,12 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class DashboardSettingController extends AbstractController {
 
+    private $userService;
+
+    public function __construct(UserService $userService) {
+        $this->userService = $userService;
+    }
+
     /**
      * @Route("/", name="dashboard_settings", methods={"GET"})
      * @param DashboardSettingsService $dashboardSettingsService
@@ -31,11 +40,15 @@ class DashboardSettingController extends AbstractController {
      */
     public function settings(DashboardSettingsService $dashboardSettingsService,
                              EntityManagerInterface $entityManager): Response {
+        if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_DASHBOARDS)) {
+            return $this->userService->accessDenied(UserService::IN_RENDER);
+        }
+
         $componentTypeRepository = $entityManager->getRepository(Dashboard\ComponentType::class);
         $componentTypes = $componentTypeRepository->findAll();
 
         return $this->render("dashboard/settings.html.twig", [
-            "dashboards" => $dashboardSettingsService->serialize($entityManager),
+            "dashboards" => $dashboardSettingsService->serialize($entityManager, true),
             'componentTypeConfig' => [
                 // component types group by category
                 'componentTypes' => Stream::from($componentTypes)
@@ -63,12 +76,15 @@ class DashboardSettingController extends AbstractController {
     public function save(Request $request,
                          EntityManagerInterface $entityManager,
                          DashboardSettingsService $dashboardSettingsService): Response {
+        if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_DASHBOARDS)) {
+            return $this->userService->accessDenied(UserService::IN_JSON);
+        }
+
         $dashboards = json_decode($request->request->get("dashboards"), true);
 
         try {
-            $dashboardSettingsService->treatJsonDashboard($entityManager, $dashboards);
-        }
-        catch(InvalidArgumentException $exception) {
+            $dashboardSettingsService->save($entityManager, $dashboards);
+        } catch(InvalidArgumentException $exception) {
             $message = $exception->getMessage();
             $unknownComponentCode = DashboardSettingsService::UNKNOWN_COMPONENT;
             if (preg_match("/$unknownComponentCode-(.*)/", $message, $matches)) {
@@ -87,7 +103,7 @@ class DashboardSettingController extends AbstractController {
 
         return $this->json([
             "success" => true,
-            "dashboards" => $dashboardSettingsService->serialize($entityManager),
+            "dashboards" => $dashboardSettingsService->serialize($entityManager, true),
         ]);
     }
 
@@ -100,11 +116,14 @@ class DashboardSettingController extends AbstractController {
      */
     public function apiComponentTypeForm(Request $request,
                                          EntityManagerInterface $entityManager,
-                                         Dashboard\ComponentType $componentType): JsonResponse {
+                                         Dashboard\ComponentType $componentType): Response {
+        if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_DASHBOARDS)) {
+            return $this->userService->accessDenied(UserService::IN_JSON);
+        }
+
         $templateName = $componentType->getTemplate();
 
         $values = json_decode($request->request->get('values'), true);
-
         if (!empty($values['locations'])) {
             $locationRepository = $entityManager->getRepository(Emplacement::class);
             $values['locations'] = $locationRepository->findByIds($values['locations']);
@@ -155,12 +174,15 @@ class DashboardSettingController extends AbstractController {
     public function apiComponentTypeExample(Request $request,
                                             EntityManagerInterface $entityManager,
                                             DashboardSettingsService $dashboardSettingsService,
-                                            Dashboard\ComponentType $componentType): JsonResponse {
-        $values = json_decode($request->request->get('values'), true);
+                                            Dashboard\ComponentType $componentType): Response {
+        if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_DASHBOARDS)) {
+            return $this->userService->accessDenied(UserService::IN_JSON);
+        }
 
+        $values = json_decode($request->request->get('values'), true);
         return $this->json([
             'success' => true,
-            'exampleValues' => $dashboardSettingsService->serializeExampleValues($entityManager, $componentType, $values)
+            'exampleValues' => $dashboardSettingsService->serializeValues($entityManager, $componentType, $values, true)
         ]);
     }
 }

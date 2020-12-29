@@ -1,46 +1,43 @@
-{% set title = title is defined ? title %}
-{% set tooltip = tooltip is defined ? tooltip %}
-{% set carriers = carriers is defined ? carriers : [] %}
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
 
+{% block content %}
+    <div class="row form-group">
+        <div class="col-12">
+            <label>Transporteurs*</label>
+        </div>
+        <div class="col-12">
+            <select class="ajax-autocomplete-carrier data form-control w-100 needed"
+                    name="carriers"
+                    multiple
+                    title="Transporteurs">
+                {% for carrier in carriers %}
+                    <option value="{{ carrier.id }}" selected>{{ carrier.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
 
-<div class="row form-group">
-    <div class="col-12">
-        <label>Transporteurs*</label>
+    <div class="row form-group">
+        <div class="col-12">
+            <label>Titre*</label>
+        </div>
+        <div class="col-12">
+            <input class="data form-control w-100 needed"
+                   name="title"
+                   type="text"
+                   title="Titre du composant" value="{{ title }}"/>
+        </div>
     </div>
-    <div class="col-12">
-        <select class="ajax-autocomplete-carrier data form-control w-100 needed"
-                name="carriers"
-                multiple
-                title="Transporteurs">
-            {% for carrier in carriers %}
-                <option value="{{ carrier.id }}" selected>{{ carrier.label }}</option>
-            {% endfor %}
-        </select>
-    </div>
-</div>
 
-<div class="row form-group">
-    <div class="col-12">
-        <label>Titre*</label>
+    <div class="row form-group">
+        <div class="col-12">
+            <label>Infobulle</label>
+        </div>
+        <div class="col-12">
+            <input class="data form-control w-100 needed"
+                   name="tooltip"
+                   type="text"
+                   title="Infobulle du composant" value="{{ tooltip }}"/>
+        </div>
     </div>
-    <div class="col-12">
-        <input class="data form-control w-100 needed"
-               name="title"
-               type="text"
-               title="Titre du composant" value="{{ title }}"/>
-    </div>
-</div>
-
-<div class="row form-group">
-    <div class="col-12">
-        <label>Infobulle</label>
-    </div>
-    <div class="col-12">
-        <input class="data form-control w-100 needed"
-               name="tooltip"
-               type="text"
-               title="Infobulle du composant" value="{{ tooltip }}"/>
-    </div>
-</div>
-
-
+{% endblock %}
