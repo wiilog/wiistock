@@ -70,7 +70,7 @@ function loadDashboards(m) {
                 renderCurrentDashboard();
                 renderDashboardPagination();
             })
-        }, 5000);
+        }, 5 * 60 * 1000);
     }
 }
 
