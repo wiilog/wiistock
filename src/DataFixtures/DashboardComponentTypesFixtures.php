@@ -68,7 +68,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'hint' => 'Nombre d\'arrivage et de colis créés par semaine',
             'exampleValues' => null,
             'category' => Dashboard\ComponentType::GRAPH_TYPE,
-            'template' => null,
+            'template' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
             'meterKey' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
         ],
     ];
