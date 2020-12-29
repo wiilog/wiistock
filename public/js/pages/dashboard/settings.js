@@ -60,6 +60,18 @@ function loadDashboards(m) {
     $pagination.on(`click`, `.delete-dashboard`, onPageDeleted);
 
     $(window).bind('beforeunload', hasEditDashboard);
+
+    if(mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
+        setInterval(function () {
+            $.get(Routing.generate("dashboards_fetch"), function (response) {
+                dashboards = JSON.parse(response.dashboards);
+                current = dashboards.find(d => d.index === current.index);
+
+                renderCurrentDashboard();
+                renderDashboardPagination();
+            })
+        }, 5000);
+    }
 }
 
 $(`.download-trace`).click(function () {

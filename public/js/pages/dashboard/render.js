@@ -1,11 +1,19 @@
+function todo() { //TODO: remove todo
+    console.error("To do");
+}
 
-
-const METER_KEY_ONGOING_PACK = 'ongoing_packs';
+const ONGOING_PACK = 'ongoing_packs';
+const DAILY_ARRIVALS = 'daily_arrivals';
+const LATE_PACKS = 'late_packs';
 const CARRIER_INDICATOR = 'carrier_indicator';
+const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
 
 const creators = {
-    [METER_KEY_ONGOING_PACK]: createOngoingPackElement,
-    [CARRIER_INDICATOR]: createCarrierIndicatorElement
+    [ONGOING_PACK]: createOngoingPackElement,
+    [DAILY_ARRIVALS]: todo,
+    [LATE_PACKS]: todo,
+    [CARRIER_INDICATOR]: createCarrierIndicatorElement,
+    [DAILY_ARRIVALS_AND_PACKS]: todo,
 };
 
 
@@ -23,7 +31,7 @@ function renderComponent(meterKey,
                          isExample = false) {
     $container.html('');
     if (!creators[meterKey]) {
-        console.error(`No function for create element for ${meterKey} key.`);
+        console.error(`No creator function for ${meterKey} key.`);
         return false;
     }
     else {
