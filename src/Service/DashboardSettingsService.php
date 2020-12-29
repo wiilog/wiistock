@@ -57,8 +57,8 @@ class DashboardSettingsService {
      * @param EntityManagerInterface $entityManager
      * @param Dashboard\ComponentType $componentType
      * @param array $config
+     * @param bool $example
      * @return array
-     * @throws \Exception
      */
     public function serializeValues(EntityManagerInterface $entityManager,
                                     Dashboard\ComponentType $componentType,

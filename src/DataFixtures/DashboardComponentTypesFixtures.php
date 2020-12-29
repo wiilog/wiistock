@@ -44,7 +44,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             ],
             'category' => Dashboard\ComponentType::GRAPH_TYPE,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
-            'template' => Dashboard\ComponentType::DAILY_ARRIVALS,
+            'template' => null,
         ],
         'Colis en retard' => [
             'hint' => 'Les 100 colis les plus anciens ayant dépassé le délai de présence sur leur emplacement',
@@ -73,6 +73,13 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'category' => Dashboard\ComponentType::INDICATOR_TYPE,
             'template' => Dashboard\ComponentType::CARRIER_INDICATOR,
             'meterKey' => Dashboard\ComponentType::CARRIER_INDICATOR,
+        ],
+        'Colis à traiter en provenance' => [
+            'hint' => 'A définir',
+            'exampleValues' => null,
+            'category' => Dashboard\ComponentType::GRAPH_TYPE,
+            'meterKey' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
+            'template' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
         ]
     ];
 

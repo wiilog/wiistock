@@ -5,4 +5,25 @@
 {% set arrivalTypes = values.arrivalTypes is defined ? values.arrivalTypes : [] %}
 {% set arrivalStatuses = values.arrivalStatuses is defined ? values.arrivalStatuses : [] %}
 
+<div class="row">
+    <div class="form-group col-6">
+    <label>Titre</label>
+    <input class="data form-control w-100 needed"
+           name="title"
+           type="text"
+           title="Titre du composant"
+           value="{{ title }}"/>
+    </div>
+</div>
+
+<div class="row">
+    <div class="form-group col-6">
+    <label>Infobulle</label>
+    <input class="data form-control w-100"
+           name="tooltip"
+           type="text"
+           title="Infobulle"
+           value="{{ tooltip }}"/>
+    </div>
+</div>
 {% block content %}{% endblock %}

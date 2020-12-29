@@ -5,77 +5,62 @@
 {% set redirect = redirect is defined ? redirect : false %}
 
 {% block content %}
-    <div class="row form-group">
-        <div class="col-12">
-            <label>Titre*</label>
-        </div>
-        <div class="col-12">
-            <input class="data form-control w-100 needed"
-                   name="title"
-                   type="text"
-                   title="Titre du composant"
-                   value="{{ title }}"/>
-        </div>
+<div class="row">
+    <div class="form-group col-6">
+        <label>Choix des emplacements*</label>
+        <select class="ajax-autocomplete-location data form-control w-100 needed"
+                name="locations"
+                multiple
+                title="Emplacements">
+            {% for location in locations %}
+                <option value="{{ location.id }}" selected>{{ location.label }}</option>
+            {% endfor %}
+        </select>
     </div>
+</div>
 
-    <div class="row form-group">
-        <div class="col-12">
-            <label>Choix des emplacements*</label>
-        </div>
-        <div class="col-12">
-            <select class="ajax-autocomplete-location data form-control w-100 needed"
-                    name="locations"
-                    multiple
-                    title="Emplacements">
-                {% for location in locations %}
-                    <option value="{{ location.id }}" selected>{{ location.label }}</option>
-                {% endfor %}
-            </select>
-        </div>
+<div class="row form-group align-items-center">
+    <div class="col-auto">
+        <label class="switch">
+            <input class="checkbox"
+                   type="checkbox"
+                   name="withTreatmentDelay"
+                {{ withTreatmentDelay ? 'checked' }}>
+            <span class="slider round"></span>
+        </label>
     </div>
+    <div class="col">
+        Afficher le delai de traitement (Les emplacements choisis doivent avoir un délai de paramétré)
+    </div>
+</div>
 
-    <div class="row form-group align-items-center">
-        <div class="col-auto">
-            <label class="switch">
-                <input class="checkbox"
-                       type="checkbox"
-                       name="withTreatmentDelay"
-                    {{ withTreatmentDelay ? 'checked' }}>
-                <span class="slider round"></span>
-            </label>
-        </div>
-        <div class="col">
-            Afficher le delai de traitement (Les emplacements choisis doivent avoir un délai de paramétré)
-        </div>
+<div class="row form-group align-items-center">
+    <div class="col-auto">
+        <label class="switch">
+            <input class="checkbox"
+                   type="checkbox"
+                   name="withLocationLabels"
+                {{ withLocationLabels ? 'checked' }}/>
+            <span class="slider round"></span>
+        </label>
     </div>
+    <div class="col">
+        Afficher le nom des emplacements paramétrés sous le titre
+    </div>
+</div>
 
-    <div class="row form-group align-items-center">
-        <div class="col-auto">
-            <label class="switch">
-                <input class="checkbox"
-                       type="checkbox"
-                       name="withLocationLabels"
-                    {{ withLocationLabels ? 'checked' }}/>
-                <span class="slider round"></span>
-            </label>
-        </div>
-        <div class="col">
-            Afficher le nom des emplacements paramétrés sous le titre
-        </div>
+<div class="row form-group align-items-center">
+    <div class="col-auto">
+        <label class="switch">
+            <input class="checkbox"
+                   type="checkbox"
+                   name="redirect"
+                {{ withTreatmentDelay ? 'checked' }}/>
+            <span class="slider round"></span>
+        </label>
     </div>
-
-    <div class="row form-group align-items-center">
-        <div class="col-auto">
-            <label class="switch">
-                <input class="checkbox"
-                       type="checkbox"
-                       name="redirect"
-                    {{ withTreatmentDelay ? 'checked' }}/>
-                <span class="slider round"></span>
-            </label>
-        </div>
-        <div class="col">
-            Rediriger au clic vers la page Encours
-        </div>
+    <div class="col">
+        Rediriger au clic vers la page Encours
     </div>
+</div>
 {% endblock %}

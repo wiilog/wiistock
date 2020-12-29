@@ -18,6 +18,7 @@ class ComponentType
     public const LATE_PACKS = 'late_packs';
     public const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
     public const CARRIER_INDICATOR = 'carrier_indicator';
+    public const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
 
     public const INDICATOR_TYPE = 'Indicateurs';
     public const GRAPH_TYPE = 'Graphiques';
