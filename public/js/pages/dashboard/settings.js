@@ -124,6 +124,7 @@ function renderCurrentDashboard() {
 function updateAddRowButton() {
     $(`[data-target="#add-row-modal"]`)
         .prop(`disabled`, !current || current.rows.length >= MAX_NUMBER_ROWS);
+    $('[name="external-display"], .save-dashboards').prop(`disabled`, !current || current.rows.length === 0);
 }
 
 function renderRow(row) {
@@ -513,6 +514,7 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
 function onComponentSaved($modal) {
     clearFormErrors($modal);
     const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal);
+
     if (success) {
         const {rowIndex, componentIndex, meterKey, componentType, ...config} = data;
         editComponent(rowIndex, componentIndex, {
@@ -522,8 +524,7 @@ function onComponentSaved($modal) {
         });
 
         $modalComponentTypeSecondStep.modal('hide');
-    }
-    else {
+    } else {
         displayFormErrors($modal, {
             $isInvalidElements,
             errorMessages
@@ -614,6 +615,7 @@ function renderFormComponentExample() {
 
     const componentType = $exampleContainer.data('component-type');
     const {data: formData} = ProcessForm($modalComponentTypeSecondStep);
+
     return renderComponentExample($exampleContainer, componentType, $exampleContainer.data('meter-key'), formData)
         .then((renderingSuccess) => {
             if (renderingSuccess) {
