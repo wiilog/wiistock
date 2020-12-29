@@ -49,14 +49,14 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Colis en retard' => [
             'hint' => 'Les 100 colis les plus anciens ayant dépassé le délai de présence sur leur emplacement',
             'exampleValues' => null,
-            'category' => 'Indicateurs',
+            'category' => Dashboard\ComponentType::INDICATOR_TYPE,
             'meterKey' => Dashboard\ComponentType::LATE_PACKS,
             'template' => null,
         ],
         'Nombre d\'arrivages et de colis quotidiens' => [
             'hint' => 'Nombre d\'arrivages et de colis créés par jour',
             'exampleValues' => null,
-            'category' => 'Graphiques',
+            'category' => Dashboard\ComponentType::GRAPH_TYPE,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
             'template' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
         ],
@@ -73,7 +73,14 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'category' => Dashboard\ComponentType::INDICATOR_TYPE,
             'template' => Dashboard\ComponentType::CARRIER_INDICATOR,
             'meterKey' => Dashboard\ComponentType::CARRIER_INDICATOR,
-        ]
+        ],
+        'Nombre d\'associations Arrivages - Réceptions' => [
+            'hint' => 'Nombre de réceptions de traçabilité par jour',
+            'exampleValues' => null,
+            'category' => Dashboard\ComponentType::GRAPH_TYPE,
+            'meterKey' => Dashboard\ComponentType::RECEIPT_ASSOCIATION,
+            'template' => null,
+        ],
     ];
 
     public function __construct(UserPasswordEncoderInterface $encoder,
