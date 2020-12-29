@@ -25,30 +25,44 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'subtitle' => 'Litige',
                 'delay' => 20634860
             ],
-            'category' => 'Indicateurs',
+            'category' => Dashboard\ComponentType::INDICATOR_TYPE,
             'meterKey' => Dashboard\ComponentType::ONGOING_PACKS,
             'template' => Dashboard\ComponentType::ONGOING_PACKS,
         ],
         'Nombre d\'arrivages quotidiens' => [
             'hint' => 'Nombre d\'arrivages créés par jour',
-            'exampleValues' => null,
-            'category' => 'Graphiques',
-            'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
+            'exampleValues' => [],
+            'category' => Dashboard\ComponentType::GRAPH_TYPE,
             'template' => null,
+            'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
+        ],
+        'Suivi des transporteur' => [
+            'hint' => 'Transporteur ayant effectué un arrivage dans la journée',
+            'exampleValues' => [
+                'carriers' => [
+                    'TRANS1',
+                    'TRANS2',
+                    'TRANS3',
+                    'TRANS4',
+                ]
+            ],
+            'category' => Dashboard\ComponentType::INDICATOR_TYPE,
+            'template' => 'carrier_tracking',
+            'meterKey' => Dashboard\ComponentType::CARRIER_INDICATOR,
         ],
         'Colis en retard' => [
             'hint' => 'Les 100 colis les plus anciens ayant dépassé le délai de présence sur leur emplacement',
             'exampleValues' => null,
-            'category' => 'Indicateurs',
-            'meterKey' => Dashboard\ComponentType::LATE_PACKS,
+            'category' => Dashboard\ComponentType::INDICATOR_TYPE,
             'template' => null,
+            'meterKey' => Dashboard\ComponentType::LATE_PACKS,
         ],
         'Nombre d\'arrivages et de colis quotidiens' => [
             'hint' => 'Nombre d\'arrivages et de colis créés par jour',
             'exampleValues' => null,
-            'category' => 'Graphiques',
-            'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
+            'category' => Dashboard\ComponentType::GRAPH_TYPE,
             'template' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
+            'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
         ],
     ];
 

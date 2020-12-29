@@ -524,8 +524,7 @@ function onComponentSaved($modal) {
         });
 
         $modalComponentTypeSecondStep.modal('hide');
-    }
-    else {
+    } else {
         displayFormErrors($modal, {
             $isInvalidElements,
             errorMessages
@@ -564,7 +563,7 @@ function initSecondStep(html) {
     $modalComponentTypeSecondStepContent.html(html);
 
     Select2.location($modalComponentTypeSecondStep.find('.ajax-autocomplete-location'));
-    Select2.carrier($modalComponentTypeSecondStep.find('.ajax-autocomplete-transporteur'));
+    Select2.carrier($modalComponentTypeSecondStep.find('.ajax-autocomplete-carrier'));
 
     const $submitButton = $modalComponentTypeSecondStep.find('button[type="submit"]');
     $submitButton.off('click');
