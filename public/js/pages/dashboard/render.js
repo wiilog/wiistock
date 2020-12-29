@@ -85,7 +85,7 @@ function createDailyArrivalsGraph(data) {
                 <div class="h-100">
                     <canvas width="300" height="90"></canvas>
                 </div>
-                <div class="range-buttons ${isExample ? 'd-none' : ''}">
+                <div class="range-buttons ${mode === MODE_EDIT ? 'd-none' : ''}">
                     <div class="arrow-chart"
                          onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'before', chartArrivalUm)">
                         <i class="fas fa-chevron-left pointer"></i>
