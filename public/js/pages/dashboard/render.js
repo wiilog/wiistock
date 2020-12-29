@@ -32,27 +32,25 @@ const creators = {
  *
  * @param {jQuery} $container
  * @param {string} meterKey
- * @param {boolean=false} isExample
  * @param {*} data
  * @return {boolean}
  */
-function renderComponent(meterKey,
-                         $container,
-                         data,
-                         isExample = false) {
-    $container.html('');
+function renderComponent(meterKey, $container, data) {
+    $container.empty();
+
     if (!creators[meterKey]) {
         console.error(`No creator function for ${meterKey} key.`);
         return false;
     }
     else {
-        const $element = creators[meterKey](data, isExample);
+        const $element = creators[meterKey](data);
         if ($element) {
             $container.html($element);
             if ($element.find('canvas').length > 0) {
                 createAndUpdateSimpleChart($element.find('canvas'), null, data.graphData);
             }
         }
+
         return !!$element;
     }
 }
@@ -64,52 +62,51 @@ function calculateChartsFontSize() {
 
 /**
  * @param {*} data
- * @param {boolean=false} isExample
  * @return {boolean|jQuery}
  */
-function createDailyArrivalsGraph(data, isExample = false) {
+function createDailyArrivalsGraph(data) {
     if (!data) {
         console.error(`Invalid data for daily arrivals graphs element.`);
         return false;
     }
     let tooltip = data.tooltip || "";
     let title = data.title || "";
-    return $('<div/>', {
-        class: `dashboard-box-container ${isExample ? 'flex-fill' : ''}`,
-        html: $('<div/>', {
-            class: 'dashboard-box justify-content-around dashboard-stats-container',
-            html: `<div class="title">
-                        ${title}
+
+    return $(`
+        <div class="dashboard-box-container">
+            <div class="dashboard-box justify-content-around dashboard-stats-container">
+                <div class="title">
+                    ${title}
+                </div>
+                <div class="points has-tooltip"
+                    title="${tooltip}">
+                        <i class="fa fa-question ml-1"></i>
+                </div>
+                <div class="h-100">
+                    <canvas width="300" height="90"></canvas>
+                </div>
+                <div class="range-buttons ${isExample ? 'd-none' : ''}">
+                    <div class="arrow-chart"
+                         onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'before', chartArrivalUm)">
+                        <i class="fas fa-chevron-left pointer"></i>
                     </div>
-                    <div class="points has-tooltip"
-                        title="${tooltip}">
-                            <i class="fa fa-question ml-1"></i>
+                    <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
+                    <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
+                    <div class="arrow-chart"
+                         onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'after', chartArrivalUm)">
+                        <i class="fas fa-chevron-right pointer"></i>
                     </div>
-                    <div class="h-100">
-                        <canvas width="300" height="90"></canvas>
-                    </div>
-                    <div class="range-buttons ${isExample ? 'd-none' : ''}">
-                        <div class="arrow-chart"
-                             onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'before', chartArrivalUm)">
-                            <i class="fas fa-chevron-left pointer"></i>
-                        </div>
-                        <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
-                        <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
-                        <div class="arrow-chart"
-                             onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'after', chartArrivalUm)">
-                            <i class="fas fa-chevron-right pointer"></i>
-                        </div>
-                    </div>`
-        })
-    });
+                </div>
+            </div>
+        </div>
+    `);
 }
 
 /**
  * @param {*} data
- * @param {boolean=false} isExample
  * @return {boolean|jQuery}
  */
-function createCarrierIndicatorElement(data, isExample = false) {
+function createCarrierIndicatorElement(data) {
     if (!data || data.carriers === undefined) {
         console.error(`Invalid data for carrier indicator element.`);
         return false;
@@ -119,11 +116,9 @@ function createCarrierIndicatorElement(data, isExample = false) {
     let tooltip = data.tooltip || "";
     let title = data.title || "";
 
-    return $('<div/>', {
-        class: `dashboard-box-container ${isExample ? 'flex-fill' : ''}`,
-        html: $('<div/>', {
-            class: `dashboard-box justify-content-around dashboard-stats-container`,
-            html: `
+    return $(`
+        <div class="dashboard-box-container">
+            <div class="dashboard-box justify-content-around dashboard-stats-container">
                 <div class="title">
                     ${title}
                 </div>
@@ -131,25 +126,23 @@ function createCarrierIndicatorElement(data, isExample = false) {
                     <i class="fa fa-question ml-1"></i>
                 </div>
                 <p>${carriers}</p>
-            `,
-        })
-    });
+            </div>
+        </div>
+    `);
 }
 
 /**
  * @param {*} data
- * @param {boolean=false} isExample
  * @return {boolean|jQuery}
  */
-function createOngoingPackElement(data,
-                                  isExample) {
+function createOngoingPackElement(data) {
     if (!data || data.count === undefined) {
         console.error(`Invalid data for ongoing pack element.`);
         return false;
     }
 
     return $('<div/>', {
-        class: `dashboard-box-container ${isExample ? 'flex-fill' : ''}`,
+        class: `dashboard-box-container`,
         html: $('<div/>', {
             class: 'dashboard-box text-center justify-content-around dashboard-stats-container',
             html: [
@@ -190,6 +183,36 @@ function createOngoingPackElement(data,
         })
     });
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//fonctions à sortir dans un autre fichier
 
 function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null, preferCacheData = false) {
     return new Promise(function (resolve) {
@@ -233,12 +256,11 @@ function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null, pr
     });
 }
 
-function updateSimpleChartData(chart,
-                               data,
-                               label,
+function updateSimpleChartData(chart, data, label,
                                {data: subData, label: lineChartLabel} = {data: undefined, label: undefined}) {
     chart.data.datasets = [{data: [], label}];
     chart.data.labels = [];
+
     const dataKeys = Object.keys(data);
     for (const key of dataKeys) {
         chart.data.labels.push(key);

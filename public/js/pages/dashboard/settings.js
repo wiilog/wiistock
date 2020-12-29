@@ -672,5 +672,5 @@ function renderComponentExample($container, componentType, meterKey, formData, i
         );
     }
 
-    return exampleValuesPromise.then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues, mode === 0));
+    return exampleValuesPromise.then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues));
 }
