@@ -25,8 +25,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'subtitle' => 'Litige',
                 'delay' => 20634860
             ],
-            'template' => Dashboard\ComponentType::ONGOING_PACKS,
             'category' => Dashboard\ComponentType::INDICATOR_TYPE,
+            'template' => Dashboard\ComponentType::ONGOING_PACKS,
             'meterKey' => Dashboard\ComponentType::ONGOING_PACKS
         ],
         'Nombre d\'arrivages quotidiens' => [
@@ -43,8 +43,22 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 ]
             ],
             'category' => Dashboard\ComponentType::GRAPH_TYPE,
-            'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
             'template' => Dashboard\ComponentType::DAILY_ARRIVALS,
+            'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
+        ],
+        'Colis en retard' => [
+            'hint' => 'Les 100 colis les plus anciens ayant dépassé le délai de présence sur leur emplacement',
+            'exampleValues' => null,
+            'category' => Dashboard\ComponentType::INDICATOR_TYPE,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::LATE_PACKS,
+        ],
+        'Nombre d\'arrivages et de colis quotidiens' => [
+            'hint' => 'Nombre d\'arrivages et de colis créés par jour',
+            'exampleValues' => null,
+            'category' => Dashboard\ComponentType::GRAPH_TYPE,
+            'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
+            'template' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
         ],
         'Suivi des transporteur' => [
             'hint' => 'Transporteur ayant effectué un arrivage dans la journée',
@@ -60,19 +74,12 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::CARRIER_INDICATOR,
             'meterKey' => Dashboard\ComponentType::CARRIER_INDICATOR,
         ],
-        'Colis en retard' => [
-            'hint' => 'Les 100 colis les plus anciens ayant dépassé le délai de présence sur leur emplacement',
-            'exampleValues' => null,
-            'category' => Dashboard\ComponentType::INDICATOR_TYPE,
-            'template' => null,
-            'meterKey' => Dashboard\ComponentType::LATE_PACKS,
-        ],
-        'Nombre d\'arrivages et de colis quotidiens' => [
-            'hint' => 'Nombre d\'arrivages et de colis créés par jour',
+        'Nombre d\'associations Arrivages - Réceptions' => [
+            'hint' => 'Nombre de réceptions de traçabilité par jour',
             'exampleValues' => null,
             'category' => Dashboard\ComponentType::GRAPH_TYPE,
-            'template' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
-            'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::RECEIPT_ASSOCIATION,
         ],
         'Nombre d\'arrivages et de colis hebdomadaires' => [
             'hint' => 'Nombre d\'arrivage et de colis créés par semaine',

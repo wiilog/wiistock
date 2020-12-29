@@ -19,6 +19,7 @@ class ComponentType
     public const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
     public const WEEKLY_ARRIVALS_AND_PACKS = 'weekly_arrivals_and_packs';
     public const CARRIER_INDICATOR = 'carrier_indicator';
+    public const RECEIPT_ASSOCIATION = 'receipt_association';
 
     public const INDICATOR_TYPE = 'Indicateurs';
     public const GRAPH_TYPE = 'Graphiques';
