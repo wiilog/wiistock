@@ -124,6 +124,7 @@ function renderCurrentDashboard() {
 function updateAddRowButton() {
     $(`[data-target="#add-row-modal"]`)
         .prop(`disabled`, !current || current.rows.length >= MAX_NUMBER_ROWS);
+    $('[name="external-display"], .save-dashboards').prop(`disabled`, !current || current.rows.length > 0);
 }
 
 function renderRow(row) {
