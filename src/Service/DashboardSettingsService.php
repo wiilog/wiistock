@@ -56,6 +56,7 @@ class DashboardSettingsService {
      * @param Dashboard\ComponentType $componentType
      * @param array $config
      * @return array
+     * @throws \Exception
      */
     public function serializeExampleValues(EntityManagerInterface $entityManager,
                                            Dashboard\ComponentType $componentType,
@@ -100,7 +101,9 @@ class DashboardSettingsService {
         } else if ($meterKey === Dashboard\ComponentType::CARRIER_INDICATOR) {
             $carrierRepository = $entityManager->getRepository(Transporteur::class);
             if (isset($config['carriers'])) {
-                $exampleValues['carriers'] = Stream::from($carrierRepository->findByIds($config['carriers']))
+                $carriers = $carrierRepository->findByIds($config['carriers']);
+                // Si vrai dashboard : $carrierRepository->getDailyArrivalCarriersLabel($config['carriers']);
+                $exampleValues['carriers'] = Stream::from($carriers)
                     ->map(function (Transporteur $transporteur) {
                         return $transporteur->getLabel();
                     })
