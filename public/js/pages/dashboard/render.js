@@ -41,26 +41,28 @@ function renderComponent(meterKey,
  * @return {boolean|jQuery}
  */
 function createCarrierIndicatorElement(data, isExample = false) {
-    if (!data
-        || data.carriers === undefined) {
+    if (!data || data.carriers === undefined) {
         console.error(`Invalid data for carrier indicator element.`);
         return false;
     }
+
     let carriers = Array.isArray(data.carriers) ? data.carriers.join() : data.carriers;
     let tooltip = data.tooltip || "";
     let title = data.title || "";
+
     return $('<div/>', {
         class: `dashboard-box-container ${isExample ? 'flex-fill' : ''}`,
         html: $('<div/>', {
-            class: 'dashboard-box justify-content-around dashboard-stats-container',
-            html: `<div class="title">
-                        ${title}
-                    </div>
-                    <div class="points has-tooltip"
-                        title="${tooltip}">
-                            <i class="fa fa-question ml-1"></i>
-                    </div>
-                    <p>${carriers}</p>`
+            class: `dashboard-box justify-content-around dashboard-stats-container`,
+            html: `
+                <div class="title">
+                    ${title}
+                </div>
+                <div class="points has-tooltip" title="${tooltip}">
+                    <i class="fa fa-question ml-1"></i>
+                </div>
+                <p>${carriers}</p>
+            `,
         })
     });
 }
@@ -72,8 +74,7 @@ function createCarrierIndicatorElement(data, isExample = false) {
  */
 function createOngoingPackElement(data,
                                   isExample) {
-    if (!data
-        || data.count === undefined) {
+    if (!data || data.count === undefined) {
         console.error(`Invalid data for ongoing pack element.`);
         return false;
     }
@@ -117,7 +118,6 @@ function createOngoingPackElement(data,
                     : undefined,
 
             ].filter(Boolean)
-
         })
     });
 }

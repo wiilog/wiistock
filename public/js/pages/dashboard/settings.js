@@ -487,12 +487,15 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
 function onComponentSaved($modal) {
     clearFormErrors($modal);
     const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal);
+
     if (success) {
         const {rowIndex, componentIndex, componentType, ...config} = data;
         const currentRow = getCurrentDashboardRow(rowIndex);
+
         if (currentRow && componentIndex < currentRow.size) {
             current.updated = true;
             currentRow.updated = true;
+
             let currentComponent = getRowComponent(currentRow, componentIndex);
             if (!currentComponent) {
                 const $exampleContainer = $modal.find('.component-example-container');
@@ -503,6 +506,7 @@ function onComponentSaved($modal) {
                 };
                 currentRow.components[componentIndex] = currentComponent;
             }
+
             currentComponent.updated = true;
             currentComponent.config = config;
             currentComponent.type = componentType;
@@ -581,6 +585,7 @@ function renderFormComponentExample() {
 
     const componentType = $exampleContainer.data('component-type');
     const {data: formData} = ProcessForm($modalComponentTypeSecondStep);
+
     return renderComponentExample($exampleContainer, componentType, $exampleContainer.data('meter-key'), formData)
         .then((renderingSuccess) => {
             if (renderingSuccess) {
