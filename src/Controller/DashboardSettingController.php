@@ -154,7 +154,6 @@ class DashboardSettingController extends AbstractController {
                                             EntityManagerInterface $entityManager,
                                             DashboardSettingsService $dashboardSettingsService,
                                             Dashboard\ComponentType $componentType): JsonResponse {
-
         $values = json_decode($request->request->get('values'), true);
 
         return $this->json([
