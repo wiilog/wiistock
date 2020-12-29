@@ -9,6 +9,7 @@ use App\Entity\Type;
 use App\Helper\Stream;
 use App\Service\DashboardSettingsService;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -149,6 +150,7 @@ class DashboardSettingController extends AbstractController {
      * @param DashboardSettingsService $dashboardSettingsService
      * @param Dashboard\ComponentType $componentType
      * @return JsonResponse
+     * @throws Exception
      */
     public function apiComponentTypeExample(Request $request,
                                             EntityManagerInterface $entityManager,

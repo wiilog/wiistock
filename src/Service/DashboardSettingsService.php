@@ -36,6 +36,7 @@ class DashboardSettingsService {
                                         "id" => $component->getId(),
                                         "type" => $component->getType()->getId(),
                                         "meterKey" => $type->getMeterKey(),
+                                        "template" => $type->getTemplate(),
                                         "initData" => $this->serializeExampleValues($entityManager, $component->getType(), $component->getConfig()),
                                         "index" => $component->getColumnIndex(),
                                         "config" => $component->getConfig()

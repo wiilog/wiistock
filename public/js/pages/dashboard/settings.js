@@ -154,7 +154,6 @@ function renderConfigComponent(component, init = false) {
         });
 
         $componentContainer.pushLoader('black', 'normal');
-
         renderComponentExample(
             $componentContainer,
             component.type,
@@ -165,7 +164,7 @@ function renderConfigComponent(component, init = false) {
             .then(() => {
                 $componentContainer.append($(`
                     <div class="component-toolbox">
-                        <button class="btn btn-primary btn-sm edit-component m-1">
+                        <button class="btn btn-primary btn-sm edit-component m-1 ${component.template === null ? 'd-none' : ''}">
                             <i class="fa fa-pen"></i>
                         </button>
                         <button class="btn btn-danger btn-sm delete-component m-1">

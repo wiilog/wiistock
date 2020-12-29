@@ -20,11 +20,18 @@
                         </div>
                         {% for componentType in componentTypesByCategory %}
                             <div class="col-3">
-                                <div class="component-type btn btn-light"
+                                {% if componentType.hint is defined and componentType.hint is not null %}
+                                    <div class="points has-tooltip"
+                                         style="position: absolute; right: 1.2rem; top: .2rem"
+                                         title="{{ componentType.hint }}">
+                                        <i class="fa fa-question fa-sm"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="component-type btn btn-light w-100 h-100 d-flex"
                                      data-component-type-id="{{ componentType.id }}"
                                      data-component-type-name="{{ componentType.name }}"
                                      onclick="openModalComponentTypeNextStep($(this))">
-                                    {{ componentType.name }}
+                                    <span class="m-auto">{{ componentType.name }}</span>
                                 </div>
                             </div>
                         {% endfor %}
