@@ -10,7 +10,7 @@
                     name="carriers"
                     multiple
                     title="Transporteurs">
-                {% for carrier in carriers %}
+                {% for carrier in values.carriers %}
                     <option value="{{ carrier.id }}" selected>{{ carrier.label }}</option>
                 {% endfor %}
             </select>

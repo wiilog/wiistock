@@ -73,7 +73,6 @@ $(function () {
     }, reloadFrequency);
 
     if (!isDashboardExt()) {
-        initTooltips($('.has-tooltip'));
         let blockDisplayed = false;
         $('.blocIndicators')
             .mouseenter(function () {

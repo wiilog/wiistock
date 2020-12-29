@@ -1,69 +1,69 @@
-<div class="row form-group">
-    <div class="col-12">
-        <label>Type(s) d'arrivage*</label>
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
+
+{% block content %}
+    <div class="row form-group">
+        <div class="col-12">
+            <label>Titre*</label>
+        </div>
+        <div class="col-12">
+            <input class="data form-control w-100 needed"
+                   name="title"
+                   type="text"
+                   title="Titre"/>
+        </div>
     </div>
-    <div class="col-12">
-        <select class="data form-control w-100 needed select2"
-                name="arrivalsTypes"
-                multiple
-                title="Type(s) d'arrivage">
-            {% if arrivalTypes is defined and arrivalTypes is not empty %}
+
+    <div class="row form-group">
+        <div class="col-12">
+            <label>Infobulle*</label>
+        </div>
+        <div class="col-12">
+            <input class="data form-control w-100 needed"
+                   name="tooltip"
+                   type="text"
+                   title="Infobulle"/>
+        </div>
+    </div>
+
+    <div class="row form-group">
+        <div class="col-12">
+            <label>Type(s) d'arrivage*</label>
+        </div>
+        <div class="col-12">
+            <select class="data form-control w-100 needed select2"
+                    name="arrivalsTypes"
+                    multiple
+                    title="Type(s) d'arrivage">
                 {% for arrivalType in arrivalTypes %}
-                    <option selected value="{{ arrivalType.id }}">{{ arrivalType.label }}</option>
+                    <option value="{{ arrivalType.id }}" {{ arrivalType in values.arrivalTypes ? 'selected' }}>{{ arrivalType.label }}</option>
                 {% endfor %}
-            {% endif %}
-        </select>
+            </select>
+        </div>
     </div>
-</div>
 
-<div class="row form-group">
-    <div class="col-12">
-        <label>Statut(s)*</label>
-    </div>
-    <div class="col-12">
-        <select class="data form-control w-100 needed select2"
-                name="status"
-                multiple
-                title="Statut(s)">
-            {% if arrivalStatuses is defined and arrivalStatuses is not empty %}
+    <div class="row form-group">
+        <div class="col-12">
+            <label>Statut(s)*</label>
+        </div>
+        <div class="col-12">
+            <select class="data form-control w-100 needed select2"
+                    name="status"
+                    multiple
+                    title="Statut(s)">
                 {% for arrivalStatus in arrivalStatuses %}
-                    <option selected value="{{ arrivalStatus.id }}">{{ arrivalStatus.nom }}</option>
+                    <option value="{{ arrivalStatus.id }}" {{ arrivalStatus in values.arrivalStatuses ? 'selected' }}>{{ arrivalStatus.nom }}</option>
                 {% endfor %}
-            {% endif %}
-        </select>
+            </select>
+        </div>
     </div>
-</div>
 
-<div class="form-group">
-    <label class="switch">
-        <input class="checkbox data needs-default"
-               type="checkbox"
-               name="display-pack-nature">
-        <span class="slider round"></span>
-    </label>
-    <label>Montrer les natures de colis</label>
-</div>
-
-<div class="row form-group">
-    <div class="col-12">
-        <label>Titre*</label>
+    <div class="form-group">
+        <label class="switch">
+            <input class="checkbox data needs-default"
+                   type="checkbox"
+                   name="display-pack-nature">
+            <span class="slider round"></span>
+        </label>
+        <label>Montrer les natures de colis</label>
     </div>
-    <div class="col-12">
-        <input class="data form-control w-100 needed"
-               name="title"
-               type="text"
-               title="Titre"/>
-    </div>
-</div>
-
-<div class="row form-group">
-    <div class="col-12">
-        <label>Infobulle*</label>
-    </div>
-    <div class="col-12">
-        <input class="data form-control w-100 needed"
-               name="tooltip"
-               type="text"
-               title="Infobulle"/>
-    </div>
-</div>
+{% endblock %}

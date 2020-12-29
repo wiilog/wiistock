@@ -9,9 +9,12 @@ import Routing from '../../vendor/friendsofsymfony/jsrouting-bundle/Resources/pu
 import Quill from 'quill/dist/quill.js';
 import Toolbar from 'quill/modules/toolbar';
 import Snow from 'quill/themes/snow';
+import 'arrive';
+
 import BrowserSupport from './support';
 import Wiistock from './general';
 import {LOADING_CLASS, wrapLoadingOnActionButton} from './loading';
+import './tooltips';
 
 import '../scss/app.scss';
 

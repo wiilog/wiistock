@@ -34,11 +34,9 @@
                     name="arrivalsTypes"
                     multiple
                     title="Type(s) d'arrivage">
-                {% if arrivalTypes is defined and arrivalTypes is not empty %}
-                    {% for arrivalType in arrivalTypes %}
-                        <option selected value="{{ arrivalType.id }}">{{ arrivalType.label }}</option>
-                    {% endfor %}
-                {% endif %}
+                {% for arrivalType in arrivalTypes %}
+                    <option value="{{ arrivalType.id }}" {{ arrivalType in values.arrivalTypes ? 'selected' }}>{{ arrivalType.label }}</option>
+                {% endfor %}
             </select>
         </div>
     </div>
@@ -52,11 +50,9 @@
                     name="status"
                     multiple
                     title="Statut(s)">
-                {% if arrivalStatuses is defined and arrivalStatuses is not empty %}
-                    {% for arrivalStatus in arrivalStatuses %}
-                        <option selected value="{{ arrivalStatus.id }}">{{ arrivalStatus.nom }}</option>
-                    {% endfor %}
-                {% endif %}
+                {% for arrivalStatus in arrivalStatuses %}
+                    <option value="{{ arrivalStatus.id }}" {{ arrivalStatus in values.arrivalStatuses ? 'selected' }}>{{ arrivalStatus.nom }}</option>
+                {% endfor %}
             </select>
         </div>
     </div>

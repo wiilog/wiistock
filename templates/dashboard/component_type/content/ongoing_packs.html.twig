@@ -1,9 +1,5 @@
 {% extends 'dashboard/component_type/content/base_form.html.twig' %}
 
-{% set withTreatmentDelay = withTreatmentDelay is defined ? withTreatmentDelay : false %}
-{% set withLocationLabels = withLocationLabels is defined ? withLocationLabels : false %}
-{% set redirect = redirect is defined ? redirect : false %}
-
 {% block content %}
     <div class="row form-group">
         <div class="col-12">
@@ -27,7 +23,7 @@
                     name="locations"
                     multiple
                     title="Emplacements">
-                {% for location in locations %}
+                {% for location in values.locations %}
                     <option value="{{ location.id }}" selected>{{ location.label }}</option>
                 {% endfor %}
             </select>
@@ -40,7 +36,7 @@
                 <input class="checkbox"
                        type="checkbox"
                        name="withTreatmentDelay"
-                    {{ withTreatmentDelay ? 'checked' }}>
+                    {{ values.withTreatmentDelay ?? false ? 'checked' }}>
                 <span class="slider round"></span>
             </label>
         </div>
@@ -55,7 +51,7 @@
                 <input class="checkbox"
                        type="checkbox"
                        name="withLocationLabels"
-                    {{ withLocationLabels ? 'checked' }}/>
+                    {{ values.withLocationLabels ?? false ? 'checked' }}/>
                 <span class="slider round"></span>
             </label>
         </div>
@@ -70,7 +66,7 @@
                 <input class="checkbox"
                        type="checkbox"
                        name="redirect"
-                    {{ withTreatmentDelay ? 'checked' }}/>
+                    {{ values.withTreatmentDelay ?? false ? 'checked' }}/>
                 <span class="slider round"></span>
             </label>
         </div>
