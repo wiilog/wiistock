@@ -1,0 +1,17 @@
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
+
+{% block content %}
+    <div class="row">
+        <div class="form-group col-6">
+            <label>Emplacements Drop zone*</label>
+            <select class="ajax-autocomplete-location data form-control w-100 needed"
+                    name="locations"
+                    multiple
+                    title="Emplacements">
+                {% for location in values.locations %}
+                    <option value="{{ location.id }}" selected>{{ location.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+{% endblock %}
