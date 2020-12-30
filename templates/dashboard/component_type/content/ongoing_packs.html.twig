@@ -1,32 +1,21 @@
 {% extends 'dashboard/component_type/content/base_form.html.twig' %}
 
 {% block content %}
-    <div class="row form-group">
-        <div class="col-12">
-            <label>Titre*</label>
-        </div>
-        <div class="col-12">
-            <input class="data form-control w-100 needed"
-                   name="title"
-                   type="text"
-                   title="Titre du composant"
-                   value="{{ title }}"/>
-        </div>
-    </div>
-
-    <div class="row form-group">
-        <div class="col-12">
-            <label>Choix des emplacements*</label>
-        </div>
-        <div class="col-12">
-            <select class="ajax-autocomplete-location data form-control w-100 needed"
-                    name="locations"
-                    multiple
-                    title="Emplacements">
-                {% for location in values.locations %}
-                    <option value="{{ location.id }}" selected>{{ location.label }}</option>
-                {% endfor %}
-            </select>
+    <div class="row">
+        <div class="col-6 form-group">
+            <div class="col-12">
+                <label>Choix des emplacements*</label>
+            </div>
+            <div class="col-12">
+                <select class="ajax-autocomplete-location data form-control w-100 needed"
+                        name="locations"
+                        multiple
+                        title="Emplacements">
+                    {% for location in values.locations %}
+                        <option value="{{ location.id }}" selected>{{ location.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
     </div>
 
