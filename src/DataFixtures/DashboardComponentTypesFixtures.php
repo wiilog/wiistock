@@ -32,13 +32,15 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Nombre d\'arrivages quotidiens' => [
             'hint' => 'Nombre d\'arrivages créés par jour',
             'exampleValues' => [
-                'j1' => 5,
-                'j2' => 12,
-                'j3' => 8,
-                'j4' => 1,
-                'j5' => 0,
-                'j6' => 9,
-                'j7' => 7,
+                'chartData' => [
+                    'j1' => 5,
+                    'j2' => 12,
+                    'j3' => 8,
+                    'j4' => 1,
+                    'j5' => 0,
+                    'j6' => 9,
+                    'j7' => 7,
+                ],
             ],
             'category' => Dashboard\ComponentType::GRAPH_TYPE,
             'template' => null,
@@ -77,7 +79,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Nombre d\'associations Arrivages - Réceptions' => [
             'hint' => 'Nombre de réceptions de traçabilité par jour',
             'exampleValues' => [
-                'graphData' => [
+                'chartData' => [
                     'j1' => 4,
                     'j2' => 8,
                     'j3' => 6,

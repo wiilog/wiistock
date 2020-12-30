@@ -28,7 +28,7 @@ const creators = {
     [DAILY_ARRIVALS]: createDailyArrivalsGraph,
     [LATE_PACKS]: createLatePacksElement,
     [DAILY_ARRIVALS_AND_PACKS]: todo,
-    [DAILY_RECEIPT_ASSOCIATION]: createDailyAssoc
+    [DAILY_RECEIPT_ASSOCIATION]: createDailyAssoc,
     [WEEKLY_ARRIVALS_AND_PACKS]: todo,
     [ENTRIES_TO_HANDLE]: todo,
 };
@@ -51,7 +51,7 @@ function renderComponent(meterKey, $container, exampleValues) {
         if ($element) {
             $container.html($element);
             if ($element.find('canvas').length > 0) {
-                createAndUpdateSimpleChart($element.find('canvas'), null, exampleValues);
+                createAndUpdateSimpleChart($element.find('canvas'), null, exampleValues.chartData);
             } else if ($element.find('table').length > 0) {
                 if ($element.find('table').hasClass('retards-table')) {
                     loadLatePacks($element.find('table'), exampleValues);
