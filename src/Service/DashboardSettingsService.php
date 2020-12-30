@@ -58,12 +58,13 @@ class DashboardSettingsService {
      * @param EntityManagerInterface $entityManager
      * @param Dashboard\ComponentType $componentType
      * @param array $config
+     * @param bool $example
      * @return array
-     * @throws \Exception
      */
     public function serializeValues(EntityManagerInterface $entityManager,
                                     Dashboard\ComponentType $componentType,
-                                    array $config, bool $example = false): array {
+                                    array $config,
+                                    bool $example = false): array {
         $values = [];
         $meterKey = $componentType->getMeterKey();
         if (!empty($config['title'])) {
@@ -72,15 +73,14 @@ class DashboardSettingsService {
         if (!empty($config['tooltip'])) {
             $values['tooltip'] = $config['tooltip'];
         }
-
         if ($meterKey === Dashboard\ComponentType::ONGOING_PACKS) {
             $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example);
-        } else if ($meterKey === Dashboard\ComponentType::CARRIER_INDICATOR) {
+        } else if ($meterKey === Dashboard\ComponentType::CARRIER_TRACKING) {
             $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
         } else {
-            $values = $componentType->getExampleValues();
+            //TODO:remove
+            $values += $componentType->getExampleValues();
         }
-
         return $values;
     }
 
@@ -136,8 +136,10 @@ class DashboardSettingsService {
             }
 
             $values["carriers"] = FormatHelper::locations($carriers);
+        } else {
+            $values = $componentType->getExampleValues();
         }
-
+        dump($values);
         return $values;
     }
 

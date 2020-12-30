@@ -8,25 +8,24 @@ let fontSizeYAxes;
 const ONGOING_PACK = 'ongoing_packs';
 const DAILY_ARRIVALS = 'daily_arrivals';
 const LATE_PACKS = 'late_packs';
-const CARRIER_INDICATOR = 'carrier_indicator';
+const CARRIER_TRACKING = 'carrier_tracking';
 const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
 
-$(function() {
+$(function () {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
     Chart.defaults.global.responsive = true;
     Chart.defaults.global.maintainAspectRatio = false;
     currentChartsFontSize = calculateChartsFontSize();
-    fontSizeYAxes = currentChartsFontSize *0.5;
+    fontSizeYAxes = currentChartsFontSize * 0.5;
 });
 
 const creators = {
     [ONGOING_PACK]: createOngoingPackElement,
-    [CARRIER_INDICATOR]: createCarrierIndicatorElement,
+    [CARRIER_TRACKING]: createCarrierIndicatorElement,
     [DAILY_ARRIVALS]: createDailyArrivalsGraph,
-    [LATE_PACKS]: todo,
+    [LATE_PACKS]: createLatePacksElement,
     [DAILY_ARRIVALS_AND_PACKS]: todo,
 };
-
 
 /**
  *
@@ -41,18 +40,50 @@ function renderComponent(meterKey, $container, data) {
     if (!creators[meterKey]) {
         console.error(`No creator function for ${meterKey} key.`);
         return false;
-    }
-    else {
+    } else {
         const $element = creators[meterKey](data);
         if ($element) {
             $container.html($element);
             if ($element.find('canvas').length > 0) {
                 createAndUpdateSimpleChart($element.find('canvas'), null, data.graphData);
+            } else if ($element.find('table').length > 0) {
+                if ($element.find('table').hasClass('retards-table')) {
+                    loadRetards($element.find('table'));
+                }
             }
         }
 
         return !!$element;
     }
+}
+
+/**
+ * @param {*} data
+ * @return {boolean|jQuery}
+ */
+function createLatePacksElement(data) {
+    if (!data) {
+        console.error(`Invalid data for late packs element.`);
+        return false;
+    }
+
+    let tooltip = data.tooltip || "";
+    let title = data.title || "";
+
+    return $(`
+        <div class="dashboard-box-container">
+            <div class="dashboard-box justify-content-around dashboard-stats-container">
+                <div class="title">
+                    ${title}
+                </div>
+                <div class="points has-tooltip" title="${tooltip}">
+                    <i class="fa fa-question ml-1"></i>
+                </div>
+                <table class="table retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
+                </table>
+            </div>
+        </div>
+    `);
 }
 
 function calculateChartsFontSize() {
@@ -109,6 +140,7 @@ function createDailyArrivalsGraph(data) {
 function createCarrierIndicatorElement(data) {
     if (!data || data.carriers === undefined) {
         console.error(`Invalid data for carrier indicator element.`);
+        console.log(data);
         return false;
     }
 
@@ -183,33 +215,6 @@ function createOngoingPackElement(data) {
         })
     });
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 //fonctions à sortir dans un autre fichier
@@ -428,4 +433,41 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
             }
         }
     });
+}
+
+function loadRetards($table) {
+    let datatableColisConfig = {
+        responsive: true,
+        domConfig: {
+            needsMinimalDomOverride: true
+        },
+        paging: false,
+        scrollCollapse: true,
+        scrollY: '22vh',
+        processing: true,
+        order: [[2, 'desc']],
+        columns: [
+            {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
+            {"data": 'date', 'name': 'date', 'title': 'Dépose'},
+            {
+                "data": 'delay',
+                'name': 'delay',
+                'title': 'Délai',
+                render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)
+            },
+            {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
+        ]
+    };
+    if (mode === MODE_EDIT) {
+        datatableColisConfig.data = [
+            {'colis': 'COLIS1', 'date': '06/04/2020 10:27:09', 'delay': '10000', 'emp': "EMP1"},
+            {'colis': 'COLIS2', 'date': '06/08/2020 20:57:89', 'delay': '10000', 'emp': "EMP2"},
+        ]
+    } else {
+        datatableColisConfig.ajax = {
+            "url": Routing.generate('api_retard', true),
+            "type": "GET",
+        };
+    }
+    initDataTable($table.attr('id'), datatableColisConfig);
 }
