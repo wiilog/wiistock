@@ -88,6 +88,13 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
             'meterKey' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
         ],
+        'Entrées à effectuer' => [
+            'hint' => 'Nombre d\'arrivage et de colis créés par semaine',
+            'exampleValues' => null,
+            'category' => Dashboard\ComponentType::GRAPH_TYPE,
+            'template' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
+            'meterKey' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
+        ],
     ];
 
     public function __construct(UserPasswordEncoderInterface $encoder,

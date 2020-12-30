@@ -602,6 +602,11 @@ function initSecondStep(html) {
     const $formInputs = $modalComponentTypeSecondStep.find('select.data, input.data, input.checkbox');
     $formInputs.off('change.secondStepComponentType');
     $formInputs.on('change.secondStepComponentType', () => renderFormComponentExample());
+
+    if($modalComponentTypeSecondStep.find('.segments-list').length > 0) {
+        const segments = $modalComponentTypeSecondStep.find(`.segments-list`).data(`segments`);
+        initializeEntryTimeIntervals(segments);
+    }
 }
 
 function getRowComponent(row, componentIndex) {
@@ -672,4 +677,63 @@ function renderComponentExample($container, componentType, meterKey, formData, i
     }
 
     return exampleValuesPromise.then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues));
+}
+
+function initializeEntryTimeIntervals(segments) {
+    const $button = $(`.add-time-interval`);
+
+    for(const segment of segments) {
+        addEntryTimeInterval($button, segment);
+    }
+}
+
+function addEntryTimeInterval($button, time = null) {
+    const current = $button.data("current");
+
+    $(`
+        <div class="row mt-2 interval">
+            <div class="col-5">
+                <label>Heure 1</label>
+                <input class="data form-control w-100 needed display-previous"
+                       type="text"
+                       disabled
+                       ${current === 0 ? 'value="1"' : ''}
+                       title="Heure de début du segment"/>
+            </div>
+            <div class="col-5">
+                <label>Heure 2</label>
+                <input class="data-array form-control w-100 needed"
+                       name="segments"
+                       data-no-stringify
+                       type="text"
+                       title="Heure de fin du segment"
+                       ${time !== null ? 'value="' + time + '"' : ''}
+                       onkeyup="recalculateIntervals()"/>
+            </div>
+            <div class="col-2">
+                <label></label>
+                <button class="btn btn-danger d-block" onclick="deleteEntryTimeInterval($(this))"><i class="fa fa-trash"></i></button>
+            </div>
+        </div>
+        `).insertBefore($button);
+
+    $button.data("current", current + 1);
+    recalculateIntervals();
+}
+
+function deleteEntryTimeInterval($button) {
+    $button.parent().parent().remove();
+    recalculateIntervals();
+}
+
+function recalculateIntervals() {
+    let previous = null;
+
+    $(`.segments-list > .interval`).each(function() {
+        if(previous) {
+            $(this).find(`.display-previous`).val(previous);
+        }
+
+        previous = $(this).find(`input[name="segments"]`).val();
+    });
 }

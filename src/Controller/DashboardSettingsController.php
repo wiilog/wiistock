@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
+use App\Entity\Nature;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
@@ -27,7 +28,7 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * @Route("/parametrage-global/dashboard")
  */
-class DashboardSettingController extends AbstractController {
+class DashboardSettingsController extends AbstractController {
 
     private $userService;
 
@@ -127,15 +128,16 @@ class DashboardSettingController extends AbstractController {
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
 
-        $values = [
+        $values = array_replace(json_decode($request->request->get('values'), true));
+        $values += [
             "locations" => [],
             "carriers" => [],
             "arrivalTypes" => [],
             "arrivalStatuses" => [],
+            "natures" => [],
         ];
-
-        $values += json_decode($request->request->get('values'), true);
 
         if(!empty($values['locations'])) {
             $locationRepository = $entityManager->getRepository(Emplacement::class);
@@ -155,8 +157,13 @@ class DashboardSettingController extends AbstractController {
             $values['arrivalStatuses'] = $statusRepository->findByIds($values['arrivalStatuses']);
         }
 
+        if(!empty($values['natures'])) {
+            $values['natures'] = $natureRepository->findByIds($values['natures']);
+        }
+
         $arrivalTypes = $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]);
         $arrivalStatuses = $statusRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
+        $natures = $natureRepository->findAll();
 
         if($templateName) {
             return $this->json([
@@ -168,6 +175,7 @@ class DashboardSettingController extends AbstractController {
                     'componentIndex' => $request->request->get('componentIndex'),
                     'arrivalTypes' => $arrivalTypes,
                     'arrivalStatuses' => $arrivalStatuses,
+                    'natures' => $natures,
                     'values' => $values
                 ])
             ]);
