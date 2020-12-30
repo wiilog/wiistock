@@ -1,36 +1,8 @@
-{# Does not extend base_form because there are multiple tooltips #}
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
 
-{% set title = values.title is defined ? values.title %}
-{% set tooltip = values.tooltip is defined ? values.tooltip %}
-
+{% block content %}
 <div class="row">
     <div class="col-md-6 col-12">
-        <div class="row form-group">
-            <div class="col-12">
-                <label>Titre*</label>
-            </div>
-            <div class="col-12">
-                <input class="data form-control w-100 needed"
-                       name="title"
-                       type="text"
-                       value="{{ title }}"
-                       title="Titre"/>
-            </div>
-        </div>
-
-        <div class="row form-group">
-            <div class="col-12">
-                <label>Infobulle graphique</label>
-            </div>
-            <div class="col-12">
-                <input class="data form-control w-100"
-                       name="chartTooltip"
-                       type="text"
-                       value="{{ values.chartTooltip ?? '' }}"
-                       title="Infobulle graphique"/>
-            </div>
-        </div>
-
         <div class="row form-group">
             <div class="col-12">
                 <label>Infobulle "Nombre de lignes à traiter"</label>
@@ -101,9 +73,12 @@
         </div>
     </div>
     <div class="col-md-6 col-12 segments-list" data-segments="{{ (values.segments ?? []) | json_encode }}">
-        <div><label>Segments (en heures)</label></div>
+        <div>
+            <label>Segments (en heures)</label>
+        </div>
         <button class="btn btn-primary add-time-interval d-block mt-3" onclick="addEntryTimeInterval($(this))" data-current="0" type="button">
             <i class="fa fa-plus"></i>
         </button>
     </div>
 </div>
+{% endblock %}
