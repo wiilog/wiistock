@@ -2,37 +2,51 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
 use App\Entity\Emplacement;
+use App\Entity\Menu;
 use App\Entity\Transporteur;
 use App\Helper\FormatHelper;
 use App\Helper\Stream;
 use App\Entity\Dashboard as Dashboard;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
+use Symfony\Component\Security\Core\Security;
 
 class DashboardSettingsService {
 
     const UNKNOWN_COMPONENT = 'unknown-component';
 
-    public function serialize(EntityManagerInterface $entityManager, bool $example = false): string {
+    private $security;
+
+    public function __construct(Security $security) {
+        $this->security = $security;
+    }
+
+    public function serialize(EntityManagerInterface $entityManager, bool $edit = false): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
-        $pages = Stream::from($pageRepository->findAll());
+
+        if(!$edit) {
+            $pages = Stream::from($pageRepository->findAllowedToAccess($this->security->getUser()));
+        } else {
+            $pages = Stream::from($pageRepository->findAll());
+        }
 
         $pageIndex = 0;
-        $dashboards = $pages->map(function(Dashboard\Page $page) use (&$pageIndex, $entityManager, $example) {
+        $dashboards = $pages->map(function(Dashboard\Page $page) use (&$pageIndex, $entityManager, $edit) {
             $rowIndex = 0;
             return [
                 "id" => $page->getId(),
                 "name" => $page->getName(),
                 "index" => $pageIndex++,
                 "rows" => $page->getRows()
-                    ->map(function(Dashboard\PageRow $row) use (&$rowIndex, $entityManager, $example) {
+                    ->map(function(Dashboard\PageRow $row) use (&$rowIndex, $entityManager, $edit) {
                         return [
                             "id" => $row->getId(),
                             "size" => $row->getSize(),
                             "index" => $rowIndex++,
                             "components" => Stream::from($row->getComponents())
-                                ->map(function(Dashboard\Component $component) use ($entityManager, $example) {
+                                ->map(function(Dashboard\Component $component) use ($entityManager, $edit) {
                                     $type = $component->getType();
                                     return [
                                         "id" => $component->getId(),
@@ -41,7 +55,7 @@ class DashboardSettingsService {
                                         "template" => $type->getTemplate(),
                                         "config" => $component->getConfig(),
                                         "meterKey" => $type->getMeterKey(),
-                                        "initData" => $this->serializeValues($entityManager, $component->getType(), $component->getConfig(), $example),
+                                        "initData" => $this->serializeValues($entityManager, $component->getType(), $component->getConfig(), $edit),
                                     ];
                                 })
                                 ->toArray(),
@@ -226,16 +240,26 @@ class DashboardSettingsService {
         }
 
         if(isset($json["id"])) {
-            $dashboard = $entityManager->find($class, $json["id"]);
+            $entity = $entityManager->find($class, $json["id"]);
         }
 
-        if (!isset($dashboard)) {
+        if (!isset($entity)) {
             $set = true;
-            $dashboard = new $class();
-            $entityManager->persist($dashboard);
+            $entity = new $class();
+            if($entity instanceof Dashboard\Page) {
+                $menu = $entityManager->getRepository(Menu::class)
+                    ->findOneBy(["label" => Menu::DASHBOARDS]);
+
+                $action = new Action();
+                $action->setMenu($menu);
+
+                $entity->setAction($action);
+            }
+
+            $entityManager->persist($entity);
         }
 
-        return [$set, $dashboard ?? null];
+        return [$set, $entity ?? null];
     }
 
     private function byId($elements): array {

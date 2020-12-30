@@ -562,7 +562,7 @@ function loadLatePacks($table, example) {
         processing: true,
         order: [[2, 'desc']],
         columns: [
-            {"data": 'pack', 'name': 'colis', 'title': 'Colis'},
+            {"data": 'pack', 'name': 'pack', 'title': 'Colis'},
             {"data": 'date', 'name': 'date', 'title': 'Dépose'},
             {
                 "data": 'delay',
@@ -570,7 +570,7 @@ function loadLatePacks($table, example) {
                 'title': 'Délai',
                 render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)
             },
-            {"data": 'location', 'name': 'emp', 'title': 'Emplacement'},
+            {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
         ]
     };
     if (mode === MODE_EDIT) {
