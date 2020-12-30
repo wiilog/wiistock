@@ -174,7 +174,6 @@ function renderConfigComponent(component, init = false) {
             class: 'dashboard-component',
             'data-component': component.index
         });
-
         $componentContainer.pushLoader('black', 'normal');
         renderComponentExample(
             $componentContainer,
@@ -187,7 +186,7 @@ function renderConfigComponent(component, init = false) {
                 if(mode === MODE_EDIT) {
                     $componentContainer.append($(`
                     <div class="component-toolbox">
-                        <button class="btn btn-primary btn-sm edit-component m-1 ${component.template === null ? 'd-none' : ''}">
+                        <button class="btn btn-primary btn-sm edit-component m-1 ${!component.template ? 'd-none' : ''}">
                             <i class="fa fa-pen"></i>
                         </button>
                         <button class="btn btn-danger btn-sm delete-component m-1">
@@ -461,7 +460,11 @@ function onComponentDeleted() {
 
     current.updated = true;
     row.updated = true;
-    delete row.components[componentIndex];
+
+    const indexOfComponentToDelete = row.components.findIndex((component) => component.index === componentIndex);
+    if (indexOfComponentToDelete >= 0) {
+        row.components.splice(indexOfComponentToDelete, 1);
+    }
 
     $component.replaceWith(renderConfigComponent(componentIndex));
 }
@@ -501,13 +504,17 @@ function openModalComponentTypeNextStep($button) {
         const rowIndex = $form.find('[name="rowIndex"]').val();
         const componentIndex = $form.find('[name="componentIndex"]').val();
         const componentTypeName = $button.data('component-type-name');
+        const componentTypeMeterKey = $button.data('component-meter-key');
+        const componentTypeTemplate = $button.data('component-template');
 
         openModalComponentTypeSecondStep($button, rowIndex, {
             index: componentIndex,
             config: {
                 title: componentTypeName,
             },
-            type: componentTypeId
+            type: componentTypeId,
+            meterKey: componentTypeMeterKey,
+            template: componentTypeTemplate,
         });
     }
 }
@@ -527,7 +534,8 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
             editComponent(rowIndex, component.index, {
                 config: component.config,
                 type: component.type,
-                meterKey: component.meterKey
+                meterKey: component.meterKey,
+                template: component.template,
             });
         }
 
@@ -542,13 +550,13 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
 function onComponentSaved($modal) {
     clearFormErrors($modal);
     const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal);
-
     if(success) {
-        const {rowIndex, componentIndex, meterKey, componentType, ...config} = data;
+        const {rowIndex, componentIndex, meterKey, template, componentType, ...config} = data;
         editComponent(rowIndex, componentIndex, {
             config,
             type: componentType,
-            meterKey
+            meterKey,
+            template
         });
 
         $modalComponentTypeSecondStep.modal('hide');
@@ -560,7 +568,7 @@ function onComponentSaved($modal) {
     }
 }
 
-function editComponent(rowIndex, componentIndex, {config, type, meterKey}) {
+function editComponent(rowIndex, componentIndex, {config, type, meterKey, template = null}) {
     const currentRow = getCurrentDashboardRow(rowIndex);
 
     if(currentRow && componentIndex < currentRow.size) {
@@ -577,7 +585,7 @@ function editComponent(rowIndex, componentIndex, {config, type, meterKey}) {
         currentComponent.config = config;
         currentComponent.type = type;
         currentComponent.meterKey = meterKey;
-
+        currentComponent.template = template;
         const $currentComponent = $dashboard
             .find(`.dashboard-row[data-row="${rowIndex}"]`)
             .find(`.dashboard-component[data-component="${componentIndex}"]`);

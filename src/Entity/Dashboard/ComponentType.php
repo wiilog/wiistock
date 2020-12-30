@@ -18,7 +18,7 @@ class ComponentType
     public const LATE_PACKS = 'late_packs';
     public const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
     public const WEEKLY_ARRIVALS_AND_PACKS = 'weekly_arrivals_and_packs';
-    public const CARRIER_INDICATOR = 'carrier_indicator';
+    public const CARRIER_TRACKING = 'carrier_tracking';
     public const RECEIPT_ASSOCIATION = 'receipt_association';
     public const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
 
