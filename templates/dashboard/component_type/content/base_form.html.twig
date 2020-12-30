@@ -1,9 +1,9 @@
-{% set title = title is defined ? title %}
-{% set tooltip = tooltip is defined ? tooltip %}
+{% set title = values.title is defined ? values.title %}
+{% set tooltip = values.tooltip is defined ? values.tooltip %}
 
 <div class="row">
     <div class="form-group col-6">
-    <label>Titre</label>
+    <label>Titre*</label>
     <input class="data form-control w-100 needed"
            name="title"
            type="text"

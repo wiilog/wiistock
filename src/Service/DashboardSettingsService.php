@@ -138,7 +138,7 @@ class DashboardSettingsService {
         } else {
             $values = $componentType->getExampleValues();
         }
-        dump($values);
+
         return $values;
     }
 

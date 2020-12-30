@@ -128,18 +128,23 @@ class DashboardSettingController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
 
-        $values = [
+        $values = json_decode($request->request->get('values'), true);
+        $values += [
             "locations" => [],
+            "firstOriginLocation" => [],
+            "secondOriginLocation" => [],
+            "firstDestinationLocation" => [],
+            "secondDestinationLocation" => [],
             "carriers" => [],
             "arrivalTypes" => [],
             "arrivalStatuses" => [],
         ];
 
-        $values += json_decode($request->request->get('values'), true);
-
-        if(!empty($values['locations'])) {
-            $locationRepository = $entityManager->getRepository(Emplacement::class);
-            $values['locations'] = $locationRepository->findByIds($values['locations']);
+        foreach(["locations", "firstOriginLocation", "secondOriginLocation", "firstDestinationLocation", "secondDestinationLocation"] as $field) {
+            if(!empty($values[$field])) {
+                $locationRepository = $entityManager->getRepository(Emplacement::class);
+                $values[$field] = $locationRepository->findByIds($values[$field]);
+            }
         }
 
         if(!empty($values['carriers'])) {
