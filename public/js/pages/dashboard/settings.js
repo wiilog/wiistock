@@ -147,11 +147,16 @@ function updateAddRowButton() {
 }
 
 function renderRow(row) {
-    const $row = $(`<div class="dashboard-row" data-row="${row.index}"></div>`);
+    const $rowWrapper = $(`<div/>`, {class: `dashboard-row-wrapper`});
+    const $row = $(`<div/>`, {
+        class: `dashboard-row dashboard-row-size-${row.size}`,
+        'data-row': `${row.index}`,
+        html: $rowWrapper
+    });
 
     for(let componentIndex = 0; componentIndex < row.size; ++componentIndex) {
         const component = getRowComponent(row, componentIndex);
-        $row.append(renderConfigComponent(component || componentIndex, true));
+        $rowWrapper.append(renderConfigComponent(component || componentIndex, true));
     }
 
     if(mode === MODE_EDIT) {
@@ -182,6 +187,13 @@ function renderConfigComponent(component, init = false) {
             init ? component.initData : undefined
         )
             .then(() => {
+                $componentContainer.popLoader();
+                if ($componentContainer.children().length === 0) {
+                    $componentContainer.append($('<div/>', {
+                        class: 'text-danger d-flex flex-fill align-items-center justify-content-center',
+                        html: `<i class="fas fa-exclamation-triangle mr-2"></i>Erreur lors de l'affichage du composant`
+                    }))
+                }
                 if(mode === MODE_EDIT) {
                     $componentContainer.append($(`
                     <div class="component-toolbox">
@@ -199,11 +211,13 @@ function renderConfigComponent(component, init = false) {
         $componentContainer = $('<div/>', {
             class: 'dashboard-component empty',
             'data-component': component,
-            html: mode === MODE_EDIT ? $('<div/>', {
-                class: 'btn btn-primary btn-ripple btn-sm',
-                click: openModalComponentTypeFirstStep,
-                html: `<i class="fas fa-plus mr-2"></i> Ajouter un composant`
-            }) : ``,
+            html: mode === MODE_EDIT
+                ? $('<div/>', {
+                    class: 'btn btn-primary btn-ripple btn-sm',
+                    click: openModalComponentTypeFirstStep,
+                    html: `<i class="fas fa-plus mr-2"></i> Ajouter un composant`
+                })
+                : ``,
         });
     }
 
@@ -585,6 +599,7 @@ function editComponent(rowIndex, componentIndex, {config, type, meterKey, templa
         currentComponent.type = type;
         currentComponent.meterKey = meterKey;
         currentComponent.template = template;
+
         const $currentComponent = $dashboard
             .find(`.dashboard-row[data-row="${rowIndex}"]`)
             .find(`.dashboard-component[data-component="${componentIndex}"]`);
@@ -683,7 +698,9 @@ function renderComponentExample($container, componentType, meterKey, formData, i
         );
     }
 
-    return exampleValuesPromise.then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues));
+    return exampleValuesPromise
+        .then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues))
+        .catch(() => {});
 }
 
 function initializeEntryTimeIntervals(segments) {

@@ -38,9 +38,9 @@ jQuery.fn.pushLoader = function(color, size = 'small') {
 jQuery.fn.popLoader = function() {
     const $element = $(this[0]) // This is the element
     const $loaderWrapper = $element.find(`.${SPINNER_WRAPPER_CLASS}`)
+    $element.removeClass(LOADING_CLASS);
     if ($loaderWrapper.length > 0) {
         $loaderWrapper.remove();
-        $element.removeClass(LOADING_CLASS);
     }
 
     return this;
