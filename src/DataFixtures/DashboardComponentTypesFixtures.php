@@ -96,7 +96,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
         ],
         'Nombre de colis distribués en Drop zone' => [
-            'hint' => 'Nombre de colis présents sur le(s) emplacement(s) Drop zone paramétré(s)',
+            'hint' => 'Nombre de colis présents sur les emplacements Drop zone paramétrés',
             'exampleValues' => null,
             'category' => Dashboard\ComponentType::GRAPH_TYPE,
             'template' => Dashboard\ComponentType::DROPPED_PACKS_DROPZONE,
