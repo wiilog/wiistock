@@ -88,6 +88,13 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
             'meterKey' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
         ],
+        'Nombre de colis distribués en Drop zone' => [
+            'hint' => 'Nombre de colis présents sur le(s) emplacement(s) Drop zone paramétré(s)',
+            'exampleValues' => null,
+            'category' => Dashboard\ComponentType::GRAPH_TYPE,
+            'template' => Dashboard\ComponentType::DROPPED_PACKS_DROPZONE,
+            'meterKey' => Dashboard\ComponentType::DROPPED_PACKS_DROPZONE,
+        ],
     ];
 
     public function __construct(UserPasswordEncoderInterface $encoder,
