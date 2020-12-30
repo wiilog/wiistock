@@ -10,6 +10,9 @@ const DAILY_ARRIVALS = 'daily_arrivals';
 const LATE_PACKS = 'late_packs';
 const CARRIER_INDICATOR = 'carrier_indicator';
 const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
+const WEEKLY_ARRIVALS_AND_PACKS = 'weekly_arrivals_and_packs';
+const CARRIER_TRACKING = 'carrier_tracking';
+const ENTRIES_TO_HANDLE = 'entries_to_handle';
 
 $(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -25,6 +28,9 @@ const creators = {
     [DAILY_ARRIVALS]: createDailyArrivalsGraph,
     [LATE_PACKS]: todo,
     [DAILY_ARRIVALS_AND_PACKS]: todo,
+    [WEEKLY_ARRIVALS_AND_PACKS]: todo,
+    [CARRIER_TRACKING]: todo,
+    [ENTRIES_TO_HANDLE]: todo,
 };
 
 

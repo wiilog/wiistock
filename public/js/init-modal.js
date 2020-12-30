@@ -534,6 +534,13 @@ function processFilesForm($modal, data) {
  */
 function processDataArrayForm($modal, data) {
     const $inputsArray = $modal.find(".data-array");
+
+    let noStringify = false;
+    if($modal.find(".data-array[data-no-stringify]").length) {
+        noStringify = true;
+    }
+    console.log(noStringify);
+
     const dataArray = {};
     const dataArrayNeedPositive = {};
     const $isInvalidElements = [];
@@ -586,7 +593,7 @@ function processDataArrayForm($modal, data) {
     }
 
     for(const currentName in dataArray) {
-        data[currentName] = JSON.stringify(dataArray[currentName]);
+        data[currentName] = !noStringify ? JSON.stringify(dataArray[currentName]) : dataArray[currentName];
     }
 
     return {

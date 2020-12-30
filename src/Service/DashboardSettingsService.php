@@ -101,9 +101,7 @@ class DashboardSettingsService {
 
             if(!$shouldShowLocationLabels || empty($config['locations'])) {
                 unset($values['subtitle']);
-            }
-
-            if(!empty($config['locations'])) {
+            } else if(!empty($config['locations'])) {
                 $locationRepository = $manager->getRepository(Emplacement::class);
                 $locations = $locationRepository->findBy(['id' => $config['locations']]);
 
