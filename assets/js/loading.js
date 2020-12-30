@@ -68,6 +68,6 @@ export function wrapLoadingOnActionButton($button, action = null, endLoading = t
             });
         }
     } else {
-        showBSAlert('L\'opération est en cours de traitement', 'success');
+        showBSAlert('L\'opération est en cours de traitement', 'warning');
     }
 }
