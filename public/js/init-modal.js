@@ -33,9 +33,8 @@ function InitModal($modal, $submit, path, options = {}) {
     $submit
         .click(function () {
             if ($submit.hasClass(LOADING_CLASS)) {
-                showBSAlert('L\'opération est en cours de traitement', 'success');
-            }
-            else {
+                showBSAlert('L\'opération est en cours de traitement', 'warning');
+            } else {
                 SubmitAction(
                     $modal,
                     $submit,
