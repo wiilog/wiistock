@@ -33,8 +33,8 @@ $columnGutters: 6px;
                 position: relative;
                 background: #EEE;
                 border-radius: 4px;
-                margin-left: 3px;
-                margin-right: 3px;
+                margin-left: $columnGutters / 2;
+                margin-right: $columnGutters / 2;
 
                 &.empty {
                     display: flex;
