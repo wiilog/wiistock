@@ -1,21 +1,17 @@
 {% extends 'dashboard/component_type/content/base_form.html.twig' %}
 
 {% block content %}
-    <div class="row">
-        <div class="form-group col-6">
-            <div class="col-12">
-                <label>Transporteurs*</label>
-            </div>
-            <div class="col-12">
-                <select class="ajax-autocomplete-carrier data form-control w-100 needed"
-                        name="carriers"
-                        multiple
-                        title="Transporteurs">
-                    {% for carrier in values.carriers %}
-                        <option value="{{ carrier.id }}" selected>{{ carrier.label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
+<div class="row">
+    <div class="form-group col-6">
+        <label>Transporteurs*</label>
+        <select class="ajax-autocomplete-carrier data form-control w-100 needed"
+                name="carriers"
+                multiple
+                title="Transporteurs">
+            {% for carrier in values.carriers %}
+                <option value="{{ carrier.id }}" selected>{{ carrier.label }}</option>
+            {% endfor %}
+        </select>
     </div>
+</div>
 {% endblock %}

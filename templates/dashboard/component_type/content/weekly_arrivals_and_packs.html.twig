@@ -1,33 +1,29 @@
 {% extends 'dashboard/component_type/content/base_form.html.twig' %}
 
 {% block content %}
-    <div class="row form-group">
-        <div class="col-12">
+    <div class="row">
+        <div class="form-group col-6">
             <label>Type(s) d'arrivage*</label>
-        </div>
-        <div class="col-12">
             <select class="data form-control w-100 needed select2"
                     name="types"
                     multiple
                     title="Type(s) d'arrivage">
-                {% for arrivalType in arrivalTypes %}
-                    <option value="{{ arrivalType.id }}" {{ arrivalType in values.types ? 'selected' }}>{{ arrivalType.label }}</option>
+                {% for type in arrivalTypes %}
+                    <option value="{{ type.id }}" {{ type in values.types ? 'selected' }}>{{ type.label }}</option>
                 {% endfor %}
             </select>
         </div>
     </div>
 
-    <div class="row form-group">
-        <div class="col-12">
+    <div class="row">
+        <div class="form-group col-6">
             <label>Statut(s)*</label>
-        </div>
-        <div class="col-12">
             <select class="data form-control w-100 needed select2"
-                    name="status"
+                    name="statuses"
                     multiple
                     title="Statut(s)">
-                {% for arrivalStatus in arrivalStatuses %}
-                    <option value="{{ arrivalStatus.id }}" {{ arrivalStatus in values.statuses ? 'selected' }}>{{ arrivalStatus.nom }}</option>
+                {% for status in arrivalStatuses %}
+                    <option value="{{ status.id }}" {{ status in values.statuses ? 'selected' }}>{{ status.nom }}</option>
                 {% endfor %}
             </select>
         </div>

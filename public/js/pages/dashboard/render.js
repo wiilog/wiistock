@@ -24,7 +24,7 @@ $(function () {
 
 const creators = {
     [ONGOING_PACK]: createOngoingPackElement,
-    [CARRIER_TRACKING]: createCarrierIndicatorElement,
+    [CARRIER_TRACKING]: createCarrierTrackingElement,
     [DAILY_ARRIVALS]: createDailyArrivalsGraph,
     [LATE_PACKS]: createLatePacksElement,
     [DAILY_ARRIVALS_AND_PACKS]: todo,
@@ -185,9 +185,9 @@ function createDailyAssoc(data) {
  * @param {*} data
  * @return {boolean|jQuery}
  */
-function createCarrierIndicatorElement(data) {
+function createCarrierTrackingElement(data) {
     if (!data || data.carriers === undefined) {
-        console.error(`Invalid data for carrier indicator element.`);
+        console.error(`Invalid data for carrier tracking element.`);
         return false;
     }
 
