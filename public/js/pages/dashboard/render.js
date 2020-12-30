@@ -10,6 +10,7 @@ const DAILY_ARRIVALS = 'daily_arrivals';
 const LATE_PACKS = 'late_packs';
 const CARRIER_TRACKING = 'carrier_tracking';
 const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
+const DAILY_RECEIPT_ASSOCIATION = 'receipt_association';
 
 $(function () {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -25,6 +26,7 @@ const creators = {
     [DAILY_ARRIVALS]: createDailyArrivalsGraph,
     [LATE_PACKS]: createLatePacksElement,
     [DAILY_ARRIVALS_AND_PACKS]: todo,
+    [DAILY_RECEIPT_ASSOCIATION]: createDailyAssoc
 };
 
 /**
@@ -125,6 +127,48 @@ function createDailyArrivalsGraph(data) {
                     <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
                     <div class="arrow-chart"
                          onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'after', chartArrivalUm)">
+                        <i class="fas fa-chevron-right pointer"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `);
+}
+
+/**
+ * @param {*} data
+ * @return {boolean|jQuery}
+ */
+function createDailyAssoc(data) {
+    if (!data) {
+        console.error(`Invalid data for daily arrivals graphs element.`);
+        return false;
+    }
+    let tooltip = data.tooltip || "";
+    let title = data.title || "";
+
+    return $(`
+        <div class="dashboard-box-container">
+            <div class="dashboard-box justify-content-around dashboard-stats-container">
+                <div class="title">
+                    ${title}
+                </div>
+                <div class="points has-tooltip"
+                    title="${tooltip}">
+                        <i class="fa fa-question ml-1"></i>
+                </div>
+                <div class="h-100">
+                    <canvas width="300" height="90"></canvas>
+                </div>
+                <div class="range-buttons ${mode === MODE_EDIT ? 'd-none' : ''}">
+                    <div class="arrow-chart"
+                        onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'before', chartAssoRecep)">
+                        <i class="fas fa-chevron-left pointer"></i>
+                    </div>
+                    <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
+                    <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
+                    <div class="arrow-chart"
+                         onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'after', chartAssoRecep)">
                         <i class="fas fa-chevron-right pointer"></i>
                     </div>
                 </div>

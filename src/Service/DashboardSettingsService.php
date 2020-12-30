@@ -67,9 +67,9 @@ class DashboardSettingsService {
                                     bool $example = false): array {
         $values = [];
         $meterKey = $componentType->getMeterKey();
-        if (!empty($config['title'])) {
-            $values['title'] = $config['title'];
-        }
+
+        $values['title'] = !empty($config['title']) ? $config['title'] : $componentType->getName();
+
         if (!empty($config['tooltip'])) {
             $values['tooltip'] = $config['tooltip'];
         }

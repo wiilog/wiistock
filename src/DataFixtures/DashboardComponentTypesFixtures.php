@@ -75,7 +75,17 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         ],
         'Nombre d\'associations Arrivages - Réceptions' => [
             'hint' => 'Nombre de réceptions de traçabilité par jour',
-            'exampleValues' => null,
+            'exampleValues' => [
+                'graphData' => [
+                    'j1' => 4,
+                    'j2' => 8,
+                    'j3' => 6,
+                    'j4' => 2,
+                    'j5' => 8,
+                    'j6' => 0,
+                    'j7' => 13
+                ]
+            ],
             'category' => Dashboard\ComponentType::GRAPH_TYPE,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::RECEIPT_ASSOCIATION,
