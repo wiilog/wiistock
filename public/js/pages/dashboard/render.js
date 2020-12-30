@@ -8,7 +8,6 @@ let fontSizeYAxes;
 const ONGOING_PACK = 'ongoing_packs';
 const DAILY_ARRIVALS = 'daily_arrivals';
 const LATE_PACKS = 'late_packs';
-const CARRIER_INDICATOR = 'carrier_indicator';
 const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
 const WEEKLY_ARRIVALS_AND_PACKS = 'weekly_arrivals_and_packs';
 const CARRIER_TRACKING = 'carrier_tracking';
@@ -24,12 +23,11 @@ $(function() {
 
 const creators = {
     [ONGOING_PACK]: createOngoingPackElement,
-    [CARRIER_INDICATOR]: createCarrierIndicatorElement,
+    [CARRIER_TRACKING]: createCarrierTrackingElement,
     [DAILY_ARRIVALS]: createDailyArrivalsGraph,
     [LATE_PACKS]: todo,
     [DAILY_ARRIVALS_AND_PACKS]: todo,
     [WEEKLY_ARRIVALS_AND_PACKS]: todo,
-    [CARRIER_TRACKING]: todo,
     [ENTRIES_TO_HANDLE]: todo,
 };
 
@@ -112,7 +110,7 @@ function createDailyArrivalsGraph(data) {
  * @param {*} data
  * @return {boolean|jQuery}
  */
-function createCarrierIndicatorElement(data) {
+function createCarrierTrackingElement(data) {
     if (!data || data.carriers === undefined) {
         console.error(`Invalid data for carrier indicator element.`);
         return false;

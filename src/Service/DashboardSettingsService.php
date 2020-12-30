@@ -75,7 +75,7 @@ class DashboardSettingsService {
 
         if ($meterKey === Dashboard\ComponentType::ONGOING_PACKS) {
             $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example);
-        } else if ($meterKey === Dashboard\ComponentType::CARRIER_INDICATOR) {
+        } else if ($meterKey === Dashboard\ComponentType::CARRIER_TRACKING) {
             $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
         } else {
             $values = $componentType->getExampleValues();

@@ -71,8 +71,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 ]
             ],
             'category' => Dashboard\ComponentType::INDICATOR_TYPE,
-            'template' => Dashboard\ComponentType::CARRIER_INDICATOR,
-            'meterKey' => Dashboard\ComponentType::CARRIER_INDICATOR,
+            'template' => Dashboard\ComponentType::CARRIER_TRACKING,
+            'meterKey' => Dashboard\ComponentType::CARRIER_TRACKING,
         ],
         'Nombre d\'associations Arrivages - Réceptions' => [
             'hint' => 'Nombre de réceptions de traçabilité par jour',
