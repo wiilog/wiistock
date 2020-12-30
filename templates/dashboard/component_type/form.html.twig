@@ -3,15 +3,15 @@
 <input type="hidden" class="data" name="template" value="{{ componentType.template }}"/>
 <input type="hidden" class="data" name="rowIndex" value="{{ rowIndex }}"/>
 <input type="hidden" class="data" name="componentIndex" value="{{ componentIndex }}"/>
-
+{% set isGraph = componentType.category == constant('App\\Entity\\Dashboard\\ComponentType::GRAPH_TYPE') %}
 {% include ('dashboard/component_type/content/' ~ templateName ~ '.html.twig') %}
 
-<div class="row form-group">
-    <div class="col-12">
-        <label>Exemple composant</label>
-    </div>
-    <div class="col-12 col-md-6 col-lg-3 component-example-container"
-         data-component-type="{{ componentType.id }}"
-         data-meter-key="{{ componentType.meterKey }}">
+<span class="toggle-collapsible">Example de composant</span>
+<div class="collapsible mb-2">
+    <div class="row form-group">
+        <div class="col-12 col-md-{{ isGraph ? '12' : '6' }} col-lg-{{ isGraph ? '12' : '3' }} component-example-container graph"
+             data-component-type="{{ componentType.id }}"
+             data-meter-key="{{ componentType.meterKey }}">
+        </div>
     </div>
 </div>

@@ -58,7 +58,39 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         ],
         'Nombre d\'arrivages et de colis quotidiens' => [
             'hint' => 'Nombre d\'arrivages et de colis créés par jour',
-            'exampleValues' => null,
+            'exampleValues' => [
+                'stack' => true,
+                'label' => 'Arrivages',
+                'chartData' => [
+                    'j1' => 5,
+                    'j2' => 12,
+                    'j3' => 8,
+                    'j4' => 1,
+                    'j5' => 0,
+                    'j6' => 9,
+                    'j7' => 7,
+                    'stack' => [
+                        [
+                            'label' => 'Nature1',
+                            'backgroundColor' => '#a0c',
+                            'stack' => 'stack',
+                            'data' => [15, 0, 5, 4, 7, 12, 4]
+                        ],
+                        [
+                            'label' => 'Nature2',
+                            'backgroundColor' => '#888',
+                            'stack' => 'stack',
+                            'data' => [15, 0, 5, 4, 7, 12, 4]
+                        ],
+                        [
+                            'label' => 'Nature3',
+                            'backgroundColor' => '#e8b',
+                            'stack' => 'stack',
+                            'data' => [15, 0, 5, 4, 7, 12, 4]
+                        ]
+                    ]
+                ]
+            ],
             'category' => Dashboard\ComponentType::GRAPH_TYPE,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
             'template' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
@@ -95,7 +127,39 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         ],
         'Nombre d\'arrivages et de colis hebdomadaires' => [
             'hint' => 'Nombre d\'arrivage et de colis créés par semaine',
-            'exampleValues' => null,
+            'exampleValues' => [
+                'stack' => true,
+                'label' => 'Arrivages',
+                'chartData' => [
+                    's1' => 102,
+                    's2' => 60,
+                    's3' => 80,
+                    's4' => 12,
+                    's5' => 15,
+                    's6' => 89,
+                    's7' => 45,
+                    'stack' => [
+                        [
+                            'label' => 'Nature1',
+                            'backgroundColor' => '#a0c',
+                            'stack' => 'stack',
+                            'data' => [45, 12, 10, 15, 22, 35, 4]
+                        ],
+                        [
+                            'label' => 'Nature2',
+                            'backgroundColor' => '#888',
+                            'stack' => 'stack',
+                            'data' => [15, 6, 5, 4, 7, 12, 4]
+                        ],
+                        [
+                            'label' => 'Nature3',
+                            'backgroundColor' => '#e8b',
+                            'stack' => 'stack',
+                            'data' => [10, 9, 36, 23, 12, 45, 6]
+                        ]
+                    ]
+                ]
+            ],
             'category' => Dashboard\ComponentType::GRAPH_TYPE,
             'template' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
             'meterKey' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,

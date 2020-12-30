@@ -92,4 +92,7 @@ $columnGutters: 6px;
 .component-example-container {
     min-height: 120px;
     display: flex;
+    &.graph {
+        min-height: 250px;
+    }
 }

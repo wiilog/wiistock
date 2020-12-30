@@ -141,6 +141,7 @@ class DashboardSettingsController extends AbstractController {
             "arrivalTypes" => [],
             "arrivalStatuses" => [],
             "natures" => [],
+            'tooltip' => $componentType->getHint()
         ];
 
         foreach(["locations", "firstOriginLocation", "secondOriginLocation", "firstDestinationLocation", "secondDestinationLocation"] as $field) {

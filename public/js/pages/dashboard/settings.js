@@ -156,7 +156,7 @@ function renderRow(row) {
 
     for(let componentIndex = 0; componentIndex < row.size; ++componentIndex) {
         const component = getRowComponent(row, componentIndex);
-        $rowWrapper.append(renderConfigComponent(component || componentIndex, true));
+        $rowWrapper.append(renderConfigComponent($.deepCopy(component) || componentIndex, true));
     }
 
     if(mode === MODE_EDIT) {
@@ -172,7 +172,6 @@ function renderRow(row) {
 
 function renderConfigComponent(component, init = false) {
     let $componentContainer;
-
     if(component && typeof component === 'object') {
         $componentContainer = $('<div/>', {
             class: 'dashboard-component',
@@ -337,6 +336,7 @@ function loadCurrentDashboard(init = false) {
 }
 
 function onDashboardSaved() {
+    console.log(dashboards);
     const content = {
         dashboards: JSON.stringify(dashboards)
     };
@@ -346,7 +346,6 @@ function onDashboardSaved() {
             if(data.success) {
                 showBSAlert("Dashboards enregistrés avec succès", "success");
                 dashboards = JSON.parse(data.dashboards);
-
                 loadCurrentDashboard(false);
             } else {
                 throw data;

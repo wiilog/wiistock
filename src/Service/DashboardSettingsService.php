@@ -79,7 +79,6 @@ class DashboardSettingsService {
             //TODO:remove
             $values += $componentType->getExampleValues();
         }
-
         return $values;
     }
 

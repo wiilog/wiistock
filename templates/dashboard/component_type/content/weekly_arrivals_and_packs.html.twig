@@ -1,15 +1,14 @@
 {% extends 'dashboard/component_type/content/base_form.html.twig' %}
-
 {% block content %}
     <div class="row">
         <div class="form-group col-6">
             <label>Type(s) d'arrivage*</label>
             <select class="data form-control w-100 needed select2"
-                    name="types"
+                    name="arrivalTypes"
                     multiple
                     title="Type(s) d'arrivage">
                 {% for type in arrivalTypes %}
-                    <option value="{{ type.id }}" {{ type in values.types ? 'selected' }}>{{ type.label }}</option>
+                    <option value="{{ type.id }}" {{ type in values.arrivalTypes ? 'selected' }}>{{ type.label }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -19,11 +18,11 @@
         <div class="form-group col-6">
             <label>Statut(s)*</label>
             <select class="data form-control w-100 needed select2"
-                    name="statuses"
+                    name="arrivalStatuses"
                     multiple
                     title="Statut(s)">
                 {% for status in arrivalStatuses %}
-                    <option value="{{ status.id }}" {{ status in values.statuses ? 'selected' }}>{{ status.nom }}</option>
+                    <option value="{{ status.id }}" {{ status in values.arrivalStatuses ? 'selected' }}>{{ status.nom }}</option>
                 {% endfor %}
             </select>
         </div>

@@ -27,9 +27,9 @@ const creators = {
     [CARRIER_TRACKING]: createCarrierTrackingElement,
     [DAILY_ARRIVALS]: createDailyArrivalsGraph,
     [LATE_PACKS]: createLatePacksElement,
-    [DAILY_ARRIVALS_AND_PACKS]: todo,
+    [DAILY_ARRIVALS_AND_PACKS]: createArrivalsAndPacksGraph,
     [DAILY_RECEIPT_ASSOCIATION]: createDailyAssoc,
-    [WEEKLY_ARRIVALS_AND_PACKS]: todo,
+    [WEEKLY_ARRIVALS_AND_PACKS]: createArrivalsAndPacksGraph,
     [ENTRIES_TO_HANDLE]: todo,
 };
 
@@ -50,8 +50,15 @@ function renderComponent(meterKey, $container, exampleValues) {
         const $element = creators[meterKey](exampleValues);
         if ($element) {
             $container.html($element);
+            const isCardExample = $container.parents('#modalComponentTypeSecondStep').length > 0;
             if ($element.find('canvas').length > 0) {
-                createAndUpdateSimpleChart($element.find('canvas'), null, exampleValues.chartData);
+                createAndUpdateSimpleChart(
+                    $element.find('canvas'),
+                    null,
+                    exampleValues,
+                    false,
+                    isCardExample
+                );
             } else if ($element.find('table').length > 0) {
                 if ($element.find('table').hasClass('retards-table')) {
                     loadLatePacks($element.find('table'), exampleValues);
@@ -133,6 +140,37 @@ function createDailyArrivalsGraph(data) {
                          onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'after', chartArrivalUm)">
                         <i class="fas fa-chevron-right pointer"></i>
                     </div>
+                </div>
+            </div>
+        </div>
+    `);
+}
+
+/**
+ * @param {*} data
+ * @return {boolean|jQuery}
+ */
+function createArrivalsAndPacksGraph(data) {
+    if (!data) {
+        console.error(`Invalid data for daily arrivals and packs graphs element.`);
+        return false;
+    }
+    let tooltip = data.tooltip || "";
+    let title = data.title || "";
+
+    return $(`
+        <div class="dashboard-box-container">
+            <div class="dashboard-box justify-content-around dashboard-stats-container">
+                <div class="title">
+                    ${title}
+                </div>
+                <div class="points has-tooltip"
+                    title="${tooltip}">
+                        <i class="fa fa-question ml-1"></i>
+                </div>
+
+                <div class="h-100">
+                    <canvas width="300" height="90" class="daily-packs-arrivals"></canvas>
                 </div>
             </div>
         </div>
@@ -376,12 +414,11 @@ function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null, pr
     });
 }
 
-function updateSimpleChartData(chart, data, label,
+function updateSimpleChartData(chart, data, label, stack = false,
                                {data: subData, label: lineChartLabel} = {data: undefined, label: undefined}) {
     chart.data.datasets = [{data: [], label}];
     chart.data.labels = [];
-
-    const dataKeys = Object.keys(data);
+    const dataKeys = Object.keys(data).filter((key) => key !== 'stack');
     for (const key of dataKeys) {
         chart.data.labels.push(key);
         chart.data.datasets[0].data.push(data[key]);
@@ -403,20 +440,27 @@ function updateSimpleChartData(chart, data, label,
 
         chart.legend.display = true;
     }
+    if (stack) {
+        chart.options.scales.yAxes[0].stacked = true;
+        chart.options.scales.xAxes[0].stacked = true;
+        data.stack.forEach((stack) => {
+            chart.data.datasets.push(stack);
+        });
+    }
 
     chart.update();
 }
 
-function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false) {
+function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false, disableAnimation = false) {
     if (forceCreation || !chart) {
-        chart = newChart($canvas, false);
+        chart = newChart($canvas, false, disableAnimation);
     }
-
     if (data) {
         updateSimpleChartData(
             chart,
-            data.data || data,
-            data.data && data.label,
+            data.chartData || data,
+            data.label || '',
+            data.stack || false,
             {
                 data: data.subCounters,
                 label: data.subLabel
@@ -427,7 +471,7 @@ function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false)
     return chart;
 }
 
-function newChart($canvasId, redForLastData = false) {
+function newChart($canvasId, redForLastData = false, disableAnimation = false) {
     if ($canvasId.length) {
         const fontSize = currentChartsFontSize;
         const fontStyle = undefined;
@@ -475,6 +519,7 @@ function newChart($canvasId, redForLastData = false) {
                 },
                 hover: {mode: null},
                 animation: {
+                    duration: disableAnimation ? 0 : 1000,
                     onComplete() {
                         buildLabelOnBarChart(this, redForLastData);
                     }
@@ -490,7 +535,6 @@ function newChart($canvasId, redForLastData = false) {
 function buildLabelOnBarChart(chartInstance, redForFirstData) {
     let ctx = (chartInstance.chart.ctx);
     ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontFamily, 'bold', Chart.defaults.global.defaultFontFamily);
-
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.strokeStyle = 'black';
@@ -505,7 +549,7 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
     const rectColor = '#FFFFFF';
 
     const yAdjust = 23;
-
+    let stackedQuantities = [];
     chartInstance.data.datasets.forEach(function (dataset, index) {
         if (chartInstance.isDatasetVisible(index)) {
             let containsNegativValues = dataset.data.some((current) => (current < 0));
@@ -516,38 +560,54 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
                     if (value !== 0) {
                         let {x, y, base} = dataset._meta[key].data[i]._model;
                         const figure = dataset.data[i];
-                        const {width} = ctx.measureText(figure);
-                        const rectWidth = width + (figurePaddingHorizontal * 2);
                         const rectHeight = fontSize + (figurePaddingVertical * 2);
-
                         y = isNegativ
                             ? (base - rectHeight)
                             : (containsNegativValues
                                 ? (base + (rectHeight / 2))
                                 : (y - yAdjust));
 
-                        const rectX = x - (width / 2) - figurePaddingHorizontal;
-                        const rectY = y - figurePaddingVertical;
 
-                        // context only for rect
-                        ctx.shadowBlur = 2;
-                        ctx.shadowOffsetX = 1;
-                        ctx.shadowOffsetY = 1;
-                        ctx.fillStyle = rectColor;
-                        ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
-
-                        // context only for text
-                        ctx.shadowBlur = 0;
-                        ctx.shadowOffsetX = 0;
-                        ctx.shadowOffsetY = 0;
-                        const applyRedFont = (redForFirstData && (i === 0));
-                        ctx.fillStyle = applyRedFont ? 'red' : figureColor;
-                        ctx.fillText(figure, x, y);
+                        if (stackedQuantities[x]) {
+                            if (stackedQuantities[x].y > y) {
+                                stackedQuantities[x].y = y;
+                            }
+                            stackedQuantities[x].figure += figure;
+                        } else {
+                            stackedQuantities[x] = {
+                                y,
+                                figure
+                            }
+                        }
                     }
                 }
             }
         }
     });
+    Object.keys(stackedQuantities).forEach((x) => {
+        const y = stackedQuantities[x].y;
+        const figure = stackedQuantities[x].figure;
+        const {width} = ctx.measureText(figure);
+        const rectY = y - figurePaddingVertical;
+        const rectX = x - (width / 2) - figurePaddingHorizontal;
+        const rectWidth = width + (figurePaddingHorizontal * 2);
+        const rectHeight = fontSize + (figurePaddingVertical * 2);
+
+        // context only for rect
+        ctx.shadowBlur = 2;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+        ctx.fillStyle = rectColor;
+        ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+
+        // context only for text
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        const applyRedFont = (redForFirstData && (i === 0));
+        ctx.fillStyle = applyRedFont ? 'red' : figureColor;
+        ctx.fillText(figure, x, y);
+    })
 }
 
 function loadLatePacks($table, example) {

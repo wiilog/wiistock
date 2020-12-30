@@ -1,11 +1,10 @@
 {% extends 'dashboard/component_type/content/base_form.html.twig' %}
-
 {% block content %}
-<div class="row">
+    <div class="row">
     <div class="form-group col-6">
         <label>Type(s) d'arrivage*</label>
         <select class="data form-control w-100 needed select2"
-                name="arrivalsTypes"
+                name="arrivalTypes"
                 multiple
                 title="Type(s) d'arrivage">
             {% for arrivalType in arrivalTypes %}
@@ -19,7 +18,7 @@
     <div class="form-group col-6">
         <label>Statut(s)*</label>
         <select class="data form-control w-100 needed select2"
-                name="status"
+                name="arrivalStatuses"
                 multiple
                 title="Statut(s)">
             {% for arrivalStatus in arrivalStatuses %}

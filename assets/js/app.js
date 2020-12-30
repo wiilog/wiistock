@@ -64,6 +64,10 @@ function importRouting() {
     global.Routing = Routing;
 }
 
+jQuery.deepCopy = function(object) {
+    return object !== undefined ? JSON.parse(JSON.stringify(object)) : object;
+};
+
 $(document).ready(() => {
     if (!BrowserSupport.input("datetime-local")) {
         const observer = new MutationObserver(function () {
