@@ -33,24 +33,24 @@ const creators = {
  *
  * @param {jQuery} $container
  * @param {string} meterKey
- * @param {*} data
+ * @param {*} exampleValues
  * @return {boolean}
  */
-function renderComponent(meterKey, $container, data) {
+function renderComponent(meterKey, $container, exampleValues) {
     $container.empty();
 
     if (!creators[meterKey]) {
         console.error(`No creator function for ${meterKey} key.`);
         return false;
     } else {
-        const $element = creators[meterKey](data);
+        const $element = creators[meterKey](exampleValues);
         if ($element) {
             $container.html($element);
             if ($element.find('canvas').length > 0) {
-                createAndUpdateSimpleChart($element.find('canvas'), null, data.graphData);
+                createAndUpdateSimpleChart($element.find('canvas'), null, exampleValues);
             } else if ($element.find('table').length > 0) {
                 if ($element.find('table').hasClass('retards-table')) {
-                    loadRetards($element.find('table'));
+                    loadLatePacks($element.find('table'), exampleValues);
                 }
             }
         }
@@ -184,7 +184,6 @@ function createDailyAssoc(data) {
 function createCarrierIndicatorElement(data) {
     if (!data || data.carriers === undefined) {
         console.error(`Invalid data for carrier indicator element.`);
-        console.log(data);
         return false;
     }
 
@@ -259,6 +258,74 @@ function createOngoingPackElement(data) {
         })
     });
 }
+
+
+
+//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
+
+
+
+
+
+//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
+
+
+
+
+
+//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
+
+
+
+
+//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
+
+
+
+
+
+//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
+
+
+
+
+
+//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
+
+
+
+
+
+
+//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
+
+
+
+
+
+
+
+//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
+
+
+
+
+
+
+//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
+
+
+
+
+
+
+
+
+//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
+
+
+
+
 
 
 //fonctions à sortir dans un autre fichier
@@ -479,7 +546,7 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
     });
 }
 
-function loadRetards($table) {
+function loadLatePacks($table, example) {
     let datatableColisConfig = {
         responsive: true,
         domConfig: {
@@ -491,7 +558,7 @@ function loadRetards($table) {
         processing: true,
         order: [[2, 'desc']],
         columns: [
-            {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
+            {"data": 'pack', 'name': 'colis', 'title': 'Colis'},
             {"data": 'date', 'name': 'date', 'title': 'Dépose'},
             {
                 "data": 'delay',
@@ -499,19 +566,17 @@ function loadRetards($table) {
                 'title': 'Délai',
                 render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)
             },
-            {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
+            {"data": 'location', 'name': 'emp', 'title': 'Emplacement'},
         ]
     };
     if (mode === MODE_EDIT) {
-        datatableColisConfig.data = [
-            {'colis': 'COLIS1', 'date': '06/04/2020 10:27:09', 'delay': '10000', 'emp': "EMP1"},
-            {'colis': 'COLIS2', 'date': '06/08/2020 20:57:89', 'delay': '10000', 'emp': "EMP2"},
-        ]
+        datatableColisConfig.data = example;
     } else {
         datatableColisConfig.ajax = {
             "url": Routing.generate('api_retard', true),
             "type": "GET",
         };
     }
+
     initDataTable($table.attr('id'), datatableColisConfig);
 }

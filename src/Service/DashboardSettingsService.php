@@ -69,10 +69,8 @@ class DashboardSettingsService {
         $meterKey = $componentType->getMeterKey();
 
         $values['title'] = !empty($config['title']) ? $config['title'] : $componentType->getName();
+        $values['tooltip'] = !empty($config['tooltip']) ? $config['tooltip'] : $componentType->getHint();
 
-        if (!empty($config['tooltip'])) {
-            $values['tooltip'] = $config['tooltip'];
-        }
         if ($meterKey === Dashboard\ComponentType::ONGOING_PACKS) {
             $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example);
         } else if ($meterKey === Dashboard\ComponentType::CARRIER_TRACKING) {
@@ -81,6 +79,7 @@ class DashboardSettingsService {
             //TODO:remove
             $values += $componentType->getExampleValues();
         }
+
         return $values;
     }
 

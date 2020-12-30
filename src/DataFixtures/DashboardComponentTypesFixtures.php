@@ -32,15 +32,13 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Nombre d\'arrivages quotidiens' => [
             'hint' => 'Nombre d\'arrivages créés par jour',
             'exampleValues' => [
-                'graphData' => [
-                    'j1' => 5,
-                    'j2' => 12,
-                    'j3' => 8,
-                    'j4' => 1,
-                    'j5' => 0,
-                    'j6' => 9,
-                    'j7' => 7
-                ]
+                'j1' => 5,
+                'j2' => 12,
+                'j3' => 8,
+                'j4' => 1,
+                'j5' => 0,
+                'j6' => 9,
+                'j7' => 7,
             ],
             'category' => Dashboard\ComponentType::GRAPH_TYPE,
             'template' => null,
@@ -48,7 +46,10 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         ],
         'Colis en retard' => [
             'hint' => 'Les 100 colis les plus anciens ayant dépassé le délai de présence sur leur emplacement',
-            'exampleValues' => null,
+            'exampleValues' => [
+                ['pack' => 'COLIS1', 'date' => '06/04/2020 10:27:09', 'delay' => '10000', 'location' => "EMP1"],
+                ['pack' => 'COLIS2', 'date' => '06/08/2020 20:57:89', 'delay' => '10000', 'location' => "EMP2"],
+            ],
             'category' => Dashboard\ComponentType::INDICATOR_TYPE,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::LATE_PACKS,
