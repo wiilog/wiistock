@@ -3,6 +3,10 @@ parameters:
     menu_config:
         -   label: 'Accueil'
             icon: 'accueil'
+            path: 'dashboards'
+
+        -   label: 'Ancien accueil'
+            icon: 'accueil'
             path: 'accueil'
 
         -   label: 'Traçabilité'

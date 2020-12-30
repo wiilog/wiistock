@@ -19,7 +19,8 @@
     display: flex;
     position: relative;
     width: 100%;
-    flex: 1;
+    flex-grow: 1;
+    flex-basis: 0;
     background: #EEE;
     border-radius: 4px;
 

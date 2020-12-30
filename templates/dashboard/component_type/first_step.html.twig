@@ -19,7 +19,7 @@
                             <h4 class="bold my-2">{{ categoryName }}</h4>
                         </div>
                         {% for componentType in componentTypesByCategory %}
-                            <div class="col-3">
+                            <div class="col-3 mb-4">
                                 {% if componentType.hint is defined and componentType.hint is not null %}
                                     <div class="points has-tooltip"
                                          style="position: absolute;right:15px;top:0;width:25px;height:25px;display:flex;justify-content:center;align-items:center"
@@ -28,6 +28,7 @@
                                     </div>
                                 {% endif %}
                                 <div class="component-type btn btn-light w-100 h-100 d-flex"
+                                     style="padding: 0 30px;"
                                      data-component-type-id="{{ componentType.id }}"
                                      data-component-type-name="{{ componentType.name }}"
                                      data-component-meter-key="{{ componentType.meterKey }}"

@@ -105,6 +105,20 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'meterKey' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
             'template' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
         ],
+        'Nombre de colis distribués en Drop zone' => [
+            'hint' => 'Nombre de colis présents sur les emplacements Drop zone paramétrés',
+            'exampleValues' => null,
+            'category' => Dashboard\ComponentType::GRAPH_TYPE,
+            'template' => Dashboard\ComponentType::DROPPED_PACKS_DROPZONE,
+            'meterKey' => Dashboard\ComponentType::DROPPED_PACKS_DROPZONE,
+        ],
+        'Entrées à effectuer' => [
+            'hint' => 'Nombre de colis par natures paramétrées présents sur la durée paramétrée sur l\'ensemble des emplacements paramétrés',
+            'exampleValues' => null,
+            'category' => Dashboard\ComponentType::GRAPH_TYPE,
+            'template' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
+            'meterKey' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
+        ],
     ];
 
     public function __construct(UserPasswordEncoderInterface $encoder,

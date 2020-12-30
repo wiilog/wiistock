@@ -21,6 +21,8 @@ class ComponentType
     public const CARRIER_TRACKING = 'carrier_tracking';
     public const RECEIPT_ASSOCIATION = 'receipt_association';
     public const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
+    public const DROPPED_PACKS_DROPZONE = 'dropped_packs_dropzone';
+    public const ENTRIES_TO_HANDLE = 'entries_to_handle';
 
     public const INDICATOR_TYPE = 'Indicateurs';
     public const GRAPH_TYPE = 'Graphiques';
