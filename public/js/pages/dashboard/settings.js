@@ -336,7 +336,6 @@ function loadCurrentDashboard(init = false) {
 }
 
 function onDashboardSaved() {
-    console.log(dashboards);
     const content = {
         dashboards: JSON.stringify(dashboards)
     };
@@ -346,6 +345,7 @@ function onDashboardSaved() {
             if(data.success) {
                 showBSAlert("Dashboards enregistrés avec succès", "success");
                 dashboards = JSON.parse(data.dashboards);
+
                 loadCurrentDashboard(false);
             } else {
                 throw data;

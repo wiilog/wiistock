@@ -1,32 +1,33 @@
 {% extends 'dashboard/component_type/content/base_form.html.twig' %}
+
 {% block content %}
     <div class="row">
-    <div class="form-group col-6">
-        <label>Type(s) d'arrivage*</label>
-        <select class="data form-control w-100 needed select2"
-                name="arrivalTypes"
-                multiple
-                title="Type(s) d'arrivage">
-            {% for arrivalType in arrivalTypes %}
-                <option value="{{ arrivalType.id }}" {{ arrivalType in values.arrivalTypes ? 'selected' }}>{{ arrivalType.label }}</option>
-            {% endfor %}
-        </select>
+        <div class="form-group col-6">
+            <label>Type(s) d'arrivage*</label>
+            <select class="data form-control w-100 needed select2"
+                    name="arrivalTypes"
+                    multiple
+                    title="Type(s) d'arrivage">
+                {% for arrivalType in arrivalTypes %}
+                    <option value="{{ arrivalType.id }}" {{ arrivalType in values.arrivalTypes ? 'selected' }}>{{ arrivalType.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="form-group col-6">
-        <label>Statut(s)*</label>
-        <select class="data form-control w-100 needed select2"
-                name="arrivalStatuses"
-                multiple
-                title="Statut(s)">
-            {% for arrivalStatus in arrivalStatuses %}
-                <option value="{{ arrivalStatus.id }}" {{ arrivalStatus in values.arrivalStatuses ? 'selected' }}>{{ arrivalStatus.nom }}</option>
-            {% endfor %}
-        </select>
+    <div class="row">
+        <div class="form-group col-6">
+            <label>Statut(s)*</label>
+            <select class="data form-control w-100 needed select2"
+                    name="arrivalStatuses"
+                    multiple
+                    title="Statut(s)">
+                {% for arrivalStatus in arrivalStatuses %}
+                    <option value="{{ arrivalStatus.id }}" {{ arrivalStatus in values.arrivalStatuses ? 'selected' }}>{{ arrivalStatus.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
     </div>
-</div>
 
     <div class="form-group">
         <label class="switch">
@@ -39,18 +40,18 @@
         <label>Montrer les natures de colis</label>
     </div>
 
-<div class="form-group d-flex">
-    <label class="mt-2">Voir sur les</label>
-    <input class="form-control data ml-3"
-           name="daysNumber"
-           value="{{ values.daysNumber ?? '' }}"
-           type="number"
-           min=1
-           max=7
-           style="width: 70px">
-    <select class="data form-control w-25 ml-3" name="daysSetting">
-        <option value="derniers jours">derniers jours</option>
-        <option value="prochains jours">prochains jours</option>
-    </select>
-</div>
+    <div class="form-group d-flex">
+        <label class="mt-2">Voir sur les</label>
+        <input class="form-control data ml-3"
+               name="daysNumber"
+               value="{{ values.daysNumber ?? '' }}"
+               type="number"
+               min=1
+               max=7
+               style="width: 70px">
+        <select class="data form-control w-25 ml-3" name="daysSetting">
+            <option value="derniers jours">derniers jours</option>
+            <option value="prochains jours">prochains jours</option>
+        </select>
+    </div>
 {% endblock %}

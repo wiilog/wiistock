@@ -131,7 +131,7 @@ class DashboardSettingsController extends AbstractController {
         $natureRepository = $entityManager->getRepository(Nature::class);
 
         $values = json_decode($request->request->get('values'), true);
-        $values += [
+        $values += [ //default values should be initialized hered
             "locations" => [],
             "firstOriginLocation" => [],
             "secondOriginLocation" => [],
