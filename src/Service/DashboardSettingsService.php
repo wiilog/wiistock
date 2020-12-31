@@ -89,7 +89,12 @@ class DashboardSettingsService {
             $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example);
         } else if ($meterKey === Dashboard\ComponentType::CARRIER_TRACKING) {
             $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
-        } else {
+        } else if ($meterKey === Dashboard\ComponentType::ENTRIES_TO_HANDLE) {
+            $values['linesCountTooltip'] = !empty($config['linesCountTooltip']) ? $config['linesCountTooltip'] : '';
+            $values['nextLocationTooltip'] = !empty($config['nextLocationTooltip']) ? $config['linesCountTooltip'] : '';
+            $values += $componentType->getExampleValues();
+        }
+        else {
             //TODO:remove
             $values += $componentType->getExampleValues();
         }

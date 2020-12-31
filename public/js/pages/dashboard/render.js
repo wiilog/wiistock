@@ -32,7 +32,7 @@ const creators = {
     [DAILY_ARRIVALS_AND_PACKS]: createSimpleChart,
     [RECEIPT_ASSOCIATION]: [createSimpleChart, {route: `get_asso_recep_statistics`, variable: `chartAssoRecep`}],
     [WEEKLY_ARRIVALS_AND_PACKS]: createSimpleChart,
-    [ENTRIES_TO_HANDLE]: todo,
+    [ENTRIES_TO_HANDLE]: createEntriesToTreatElement,
     [PACK_TO_TREAT_FROM]: [createSimpleChart, {cssClass: 'multiple'}],
     [DROPPED_PACKS_DROPZONE]: createSimpleChart,
 };
@@ -87,6 +87,44 @@ function renderComponent(meterKey, $container, data) {
 
         return !!$element;
     }
+}
+
+function createEntriesToTreatElement(data) {
+    if (!data) {
+        console.error(`Invalid data for entries element.`);
+        return false;
+    }
+    data.chartData.forEach((arrayToUnfold, initialKey) => {
+        const key = Object.keys(arrayToUnfold)[0];
+        data.chartData[key] = arrayToUnfold[key];
+        delete data.chartData[initialKey];
+    });
+    const $graph = createSimpleChart(data, {route: null, variable: null, cssClass: 'multiple'})[0].outerHTML;
+    const $firstComponent = createOngoingPackElement({
+        title: 'Nombres de lignes à traiter',
+        tooltip: data.linesCountTooltip,
+        count: data.count
+    })[0].outerHTML;
+    const $secondComponent = createOngoingPackElement({
+        title: 'Prochain emplacement à traiter',
+        tooltip: data.nextLocationTooltip,
+        count: data.nextLocation
+    })[0].outerHTML;
+    return $(`
+        <div class="row">
+            <div class="col-8 pr-1">
+                ${$graph}
+            </div>
+            <div class="col-4 pl-1">
+                <div class="row h-100">
+                    <div class="col-12 mb-2">${$firstComponent}</div>
+                    <div class="col-12">${$secondComponent}</div>
+                </div>
+            </div>
+        </div>
+    `)
+
+
 }
 
 /**
@@ -156,7 +194,7 @@ function createSimpleChart(data, {route, variable, cssClass} = {route: null, var
     }
 
     return $(`
-        <div class="dashboard-box-container">
+        <div class="dashboard-box-container h-100">
             <div class="dashboard-box justify-content-around dashboard-stats-container">
                 <div class="title">
                     ${title}
@@ -212,12 +250,18 @@ function createOngoingPackElement(data) {
         console.error(`Invalid data for ongoing pack element.`);
         return false;
     }
+    let tooltip = data.tooltip || "";
 
     return $('<div/>', {
-        class: `dashboard-box-container`,
+        class: `dashboard-box-container h-100`,
         html: $('<div/>', {
             class: 'dashboard-box text-center justify-content-around dashboard-stats-container',
             html: [
+                $('<div/>', {
+                    class: 'points has-tooltip',
+                    title: tooltip,
+                    html: '<i class="fa fa-question ml-1"></i>'
+                }),
                 data.title
                     ? $('<div/>', {
                         class: 'text-center title ellipsis',
