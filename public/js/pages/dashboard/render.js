@@ -10,9 +10,10 @@ const DAILY_ARRIVALS = 'daily_arrivals';
 const LATE_PACKS = 'late_packs';
 const CARRIER_TRACKING = 'carrier_tracking';
 const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
-const DAILY_RECEIPT_ASSOCIATION = 'receipt_association';
+const RECEIPT_ASSOCIATION = 'receipt_association';
 const WEEKLY_ARRIVALS_AND_PACKS = 'weekly_arrivals_and_packs';
 const ENTRIES_TO_HANDLE = 'entries_to_handle';
+const DROPPED_PACKS_DROPZONE = 'dropped_packs_dropzone';
 
 $(function () {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -25,43 +26,55 @@ $(function () {
 const creators = {
     [ONGOING_PACK]: createOngoingPackElement,
     [CARRIER_TRACKING]: createCarrierTrackingElement,
-    [DAILY_ARRIVALS]: createDailyArrivalsGraph,
+    [DAILY_ARRIVALS]: [createSimpleChart, {route: `get_arrival_um_statistics`, variable: `chartArrivalUm`}],
     [LATE_PACKS]: createLatePacksElement,
-    [DAILY_ARRIVALS_AND_PACKS]: createArrivalsAndPacksGraph,
-    [DAILY_RECEIPT_ASSOCIATION]: createDailyAssoc,
-    [WEEKLY_ARRIVALS_AND_PACKS]: createArrivalsAndPacksGraph,
+    [DAILY_ARRIVALS_AND_PACKS]: createSimpleChart,
+    [RECEIPT_ASSOCIATION]: [createSimpleChart, {route: `get_asso_recep_statistics`, variable: `chartAssoRecep`}],
+    [WEEKLY_ARRIVALS_AND_PACKS]: createSimpleChart,
     [ENTRIES_TO_HANDLE]: todo,
+    [DROPPED_PACKS_DROPZONE]: createSimpleChart,
 };
 
 /**
  *
  * @param {jQuery} $container
  * @param {string} meterKey
- * @param {*} exampleValues
+ * @param {*} data
  * @return {boolean}
  */
-function renderComponent(meterKey, $container, exampleValues) {
+function renderComponent(meterKey, $container, data) {
     $container.empty();
 
     if (!creators[meterKey]) {
         console.error(`No creator function for ${meterKey} key.`);
         return false;
     } else {
-        const $element = creators[meterKey](exampleValues);
+        const callback = creators[meterKey];
+        let $element;
+        if(Array.isArray(callback)) {
+            const fn = callback[0];
+            const arguments = callback.splice(1);
+
+            $element = fn.apply(null, [data, ...arguments]);
+        } else {
+            $element = callback(data);
+        }
+
         if ($element) {
-            $container.html($element);
             const isCardExample = $container.parents('#modalComponentTypeSecondStep').length > 0;
+            $container.html($element);
+
             if ($element.find('canvas').length > 0) {
                 createAndUpdateSimpleChart(
                     $element.find('canvas'),
                     null,
-                    exampleValues,
+                    data,
                     false,
                     isCardExample
                 );
             } else if ($element.find('table').length > 0) {
                 if ($element.find('table').hasClass('retards-table')) {
-                    loadLatePacks($element.find('table'), exampleValues);
+                    loadLatePacks($element.find('table'), data);
                 }
             }
         }
@@ -106,15 +119,36 @@ function calculateChartsFontSize() {
 
 /**
  * @param {*} data
+ * @param {{route: string|null, variable: string|null}} pagination
  * @return {boolean|jQuery}
  */
-function createDailyArrivalsGraph(data) {
+function createSimpleChart(data, {route, variable} = {route: null, variable: null}) {
     if (!data) {
-        console.error(`Invalid data for daily arrivals graphs element.`);
+        console.error(`Invalid data for "${data.title}"`);
         return false;
     }
+
     let tooltip = data.tooltip || "";
     let title = data.title || "";
+
+    let pagination = ``;
+    console.log(route, variable, mode);
+    if(route !== null && variable !== null) {
+        pagination = `
+            <div class="range-buttons ${mode === MODE_EDIT ? 'd-none' : ''}">
+                <div class="arrow-chart"
+                     onclick="drawChartWithHisto($(this), '${route}', 'before', ${variable})">
+                    <i class="fas fa-chevron-left pointer"></i>
+                </div>
+                <span class="firstDay" data-day="TO DO"></span> -
+                <span class="lastDay" data-day="TO DO"></span>
+                <div class="arrow-chart"
+                     onclick="drawChartWithHisto($(this), '${route}', 'after', ${variable})">
+                    <i class="fas fa-chevron-right pointer"></i>
+                </div>
+            </div>
+        `;
+    }
 
     return $(`
         <div class="dashboard-box-container">
@@ -129,91 +163,7 @@ function createDailyArrivalsGraph(data) {
                 <div class="h-100">
                     <canvas width="300" height="90"></canvas>
                 </div>
-                <div class="range-buttons ${mode === MODE_EDIT ? 'd-none' : ''}">
-                    <div class="arrow-chart"
-                         onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'before', chartArrivalUm)">
-                        <i class="fas fa-chevron-left pointer"></i>
-                    </div>
-                    <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
-                    <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
-                    <div class="arrow-chart"
-                         onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'after', chartArrivalUm)">
-                        <i class="fas fa-chevron-right pointer"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `);
-}
-
-/**
- * @param {*} data
- * @return {boolean|jQuery}
- */
-function createArrivalsAndPacksGraph(data) {
-    if (!data) {
-        console.error(`Invalid data for daily arrivals and packs graphs element.`);
-        return false;
-    }
-    let tooltip = data.tooltip || "";
-    let title = data.title || "";
-
-    return $(`
-        <div class="dashboard-box-container">
-            <div class="dashboard-box justify-content-around dashboard-stats-container">
-                <div class="title">
-                    ${title}
-                </div>
-                <div class="points has-tooltip"
-                    title="${tooltip}">
-                        <i class="fa fa-question ml-1"></i>
-                </div>
-
-                <div class="h-100">
-                    <canvas width="300" height="90" class="daily-packs-arrivals"></canvas>
-                </div>
-            </div>
-        </div>
-    `);
-}
-
-/**
- * @param {*} data
- * @return {boolean|jQuery}
- */
-function createDailyAssoc(data) {
-    if (!data) {
-        console.error(`Invalid data for daily arrivals graphs element.`);
-        return false;
-    }
-    let tooltip = data.tooltip || "";
-    let title = data.title || "";
-
-    return $(`
-        <div class="dashboard-box-container">
-            <div class="dashboard-box justify-content-around dashboard-stats-container">
-                <div class="title">
-                    ${title}
-                </div>
-                <div class="points has-tooltip"
-                    title="${tooltip}">
-                        <i class="fa fa-question ml-1"></i>
-                </div>
-                <div class="h-100">
-                    <canvas width="300" height="90"></canvas>
-                </div>
-                <div class="range-buttons ${mode === MODE_EDIT ? 'd-none' : ''}">
-                    <div class="arrow-chart"
-                        onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'before', chartAssoRecep)">
-                        <i class="fas fa-chevron-left pointer"></i>
-                    </div>
-                    <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
-                    <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
-                    <div class="arrow-chart"
-                         onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'after', chartAssoRecep)">
-                        <i class="fas fa-chevron-right pointer"></i>
-                    </div>
-                </div>
+                ${pagination}
             </div>
         </div>
     `);
@@ -610,7 +560,7 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
     })
 }
 
-function loadLatePacks($table, example) {
+function loadLatePacks($table, data) {
     let datatableColisConfig = {
         responsive: true,
         domConfig: {
@@ -634,7 +584,7 @@ function loadLatePacks($table, example) {
         ]
     };
     if (mode === MODE_EDIT) {
-        datatableColisConfig.data = example;
+        datatableColisConfig.data = data.tableData;
     } else {
         datatableColisConfig.ajax = {
             "url": Routing.generate('api_retard', true),

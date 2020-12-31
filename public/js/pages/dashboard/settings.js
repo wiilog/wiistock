@@ -468,13 +468,16 @@ function onComponentDeleted() {
     const $component = $button.closest('.dashboard-component');
 
     const {row, component} = getComponentFromTooltipButton($button);
-    const componentIndex = component.index;
+    const componentIndex = Number(component.index);
 
     current.updated = true;
     row.updated = true;
 
-    const indexOfComponentToDelete = row.components.findIndex((component) => component.index === componentIndex);
-    if (indexOfComponentToDelete >= 0) {
+    const indexOfComponentToDelete = row.components
+        .filter(c => !!c)
+        .findIndex((component) => component.index === componentIndex);
+
+    if (indexOfComponentToDelete !== -1) {
         row.components.splice(indexOfComponentToDelete, 1);
     }
 
@@ -543,7 +546,7 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
         if(data.html) {
             initSecondStep(data.html);
         } else {
-            editComponent(rowIndex, component.index, {
+            editComponent(Number(rowIndex), Number(component.index), {
                 config: component.config,
                 type: component.type,
                 meterKey: component.meterKey,
@@ -564,7 +567,7 @@ function onComponentSaved($modal) {
     const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal);
     if(success) {
         const {rowIndex, componentIndex, meterKey, template, componentType, ...config} = data;
-        editComponent(rowIndex, componentIndex, {
+        editComponent(Number(rowIndex), Number(componentIndex), {
             config,
             type: componentType,
             meterKey,

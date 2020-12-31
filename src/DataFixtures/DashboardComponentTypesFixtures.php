@@ -49,8 +49,10 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Colis en retard' => [
             'hint' => 'Les 100 colis les plus anciens ayant dépassé le délai de présence sur leur emplacement',
             'exampleValues' => [
-                ['pack' => 'COLIS1', 'date' => '06/04/2020 10:27:09', 'delay' => '10000', 'location' => "EMP1"],
-                ['pack' => 'COLIS2', 'date' => '06/08/2020 20:57:89', 'delay' => '10000', 'location' => "EMP2"],
+                'tableData' => [
+                    ['pack' => 'COLIS1', 'date' => '06/04/2020 10:27:09', 'delay' => '10000', 'location' => "EMP1"],
+                    ['pack' => 'COLIS2', 'date' => '06/08/2020 20:57:89', 'delay' => '10000', 'location' => "EMP2"],
+                ],
             ],
             'category' => Dashboard\ComponentType::INDICATOR_TYPE,
             'template' => null,
@@ -173,7 +175,17 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         ],
         'Nombre de colis distribués en Drop zone' => [
             'hint' => 'Nombre de colis présents sur les emplacements Drop zone paramétrés',
-            'exampleValues' => null,
+            'exampleValues' => [
+                'chartData' => [
+                    'j1' => 6,
+                    'j2' => 5,
+                    'j3' => 2,
+                    'j4' => 9,
+                    'j5' => 11,
+                    'j6' => 12,
+                    'j7' => 3,
+                ],
+            ],
             'category' => Dashboard\ComponentType::GRAPH_TYPE,
             'template' => Dashboard\ComponentType::DROPPED_PACKS_DROPZONE,
             'meterKey' => Dashboard\ComponentType::DROPPED_PACKS_DROPZONE,
