@@ -218,6 +218,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 $componentType = new Dashboard\ComponentType();
                 $componentType->setName($name);
                 $manager->persist($componentType);
+
+                $this->output->writeln("Component type \"$name\" created");
             }
 
             $componentType
@@ -226,9 +228,6 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 ->setCategory($config['category'] ?? null)
                 ->setMeterKey($config['meterKey'] ?? null)
                 ->setTemplate($config['template'] ?? null);
-
-            $action = !$componentTypeExisted ? 'persisted' : 'updated';
-            $this->output->writeln("Component Type \"$name\" $action");
         }
 
         $manager->flush();

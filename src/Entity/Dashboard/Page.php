@@ -2,6 +2,7 @@
 
 namespace App\Entity\Dashboard;
 
+use App\Entity\Action;
 use App\Repository\Dashboard as DashboardRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -30,6 +31,11 @@ class Page
      */
     private $rows;
 
+    /**
+     * @ORM\OneToOne(targetEntity=Action::class, cascade={"persist", "remove"}, inversedBy="dashboard")
+     */
+    private $action;
+
     public function __construct()
     {
         $this->rows = new ArrayCollection();
@@ -48,6 +54,9 @@ class Page
     public function setName(?string $name): self
     {
         $this->name = $name;
+        $this->getAction()
+            ->setLabel("Dashboard \"$name\"");
+
         return $this;
     }
 
@@ -76,6 +85,23 @@ class Page
             if ($pageRow->getPage() === $this) {
                 $pageRow->setPage(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getAction(): ?Action {
+        return $this->action;
+    }
+
+    public function setAction(?Action $action): self {
+        if($this->action != null) {
+            $this->action->setDashboard($this);
+        }
+
+        $this->action = $action;
+        if($action->getDashboard() !== $this) {
+            $action->setDashboard($this);
         }
 
         return $this;

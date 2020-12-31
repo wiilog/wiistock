@@ -80,28 +80,6 @@ class RoleService
         return [
             'menus' => $menus,
             'params' => $params,
-            'dashboards' => [
-                [
-                    "id" => 'demandes',
-                    'label' => "Demandes en cours"
-                ],
-                [
-                    "id" => 'arrivage',
-                    'label' => "Dashboard Réception Arrivage"
-                ],
-                [
-                    "id" => 'quai',
-                    'label' => "Dashboard Réception Quai"
-                ],
-                [
-                    "id" => 'admin',
-                    'label' => "Dashboard Réception Administrative"
-                ],
-                [
-                    "id" => 'emballage',
-                    'label' => "Dashboard Monitoring Emballage"
-                ]
-            ]
         ];
     }
 }
