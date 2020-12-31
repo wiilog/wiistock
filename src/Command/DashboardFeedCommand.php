@@ -60,6 +60,7 @@ class DashboardFeedCommand extends Command
                     break;
             }
         }
+        $this->dashboardService->retrieveAndInsertGlobalDashboardData($this->getEntityManager());
 
         $entityManager->flush();
     }

@@ -10,7 +10,8 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInterface {
+class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInterface
+{
 
     private $encoder;
     private $specificService;
@@ -168,7 +169,42 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         ],
         'Colis à traiter en provenance' => [
             'hint' => 'A définir',
-            'exampleValues' => null,
+            'exampleValues' => [
+                'chartColors' => [
+                    'Legende1' => '#a3d1ff',
+                    'Legende2' => '#a3efdf'
+                ],
+                'chartData' => [
+                    'j1' => [
+                        'Legende1' => 25,
+                        'Legende2' => 12,
+                    ],
+                    'j2' => [
+                        'Legende1' => 50,
+                        'Legende2' => 5,
+                    ],
+                    'j3' => [
+                        'Legende1' => 45,
+                        'Legende2' => 36,
+                    ],
+                    'j4' => [
+                        'Legende1' => 89,
+                        'Legende2' => 102,
+                    ],
+                    'j5' => [
+                        'Legende1' => 70,
+                        'Legende2' => 74,
+                    ],
+                    'j6' => [
+                        'Legende1' => 65,
+                        'Legende2' => 52,
+                    ],
+                    'j7' => [
+                        'Legende1' => 23,
+                        'Legende2' => 47,
+                    ]
+                ],
+            ],
             'category' => Dashboard\ComponentType::GRAPH_TYPE,
             'meterKey' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
             'template' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
@@ -200,21 +236,23 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
     ];
 
     public function __construct(UserPasswordEncoderInterface $encoder,
-                                SpecificService $specificService) {
+                                SpecificService $specificService)
+    {
         $this->encoder = $encoder;
         $this->specificService = $specificService;
         $this->output = new ConsoleOutput();
     }
 
-    public function load(ObjectManager $manager) {
+    public function load(ObjectManager $manager)
+    {
         $componentTypeRepository = $manager->getRepository(Dashboard\ComponentType::class);
         $alreadyExisting = $componentTypeRepository->findAll();
         $alreadyExistingName = [];
 
         // remove unused ComponentType
-        foreach($alreadyExisting as $componentType) {
+        foreach ($alreadyExisting as $componentType) {
             $name = $componentType->getName();
-            if(!isset(self::COMPONENT_TYPES[$name])) {
+            if (!isset(self::COMPONENT_TYPES[$name])) {
                 $manager->remove($componentType);
                 $this->output->writeln("Component Type \"$name\" removed");
             } else {
@@ -223,10 +261,10 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         }
 
         // we persist new ComponentType
-        foreach(self::COMPONENT_TYPES as $name => $config) {
+        foreach (self::COMPONENT_TYPES as $name => $config) {
             $componentType = $alreadyExistingName[$name] ?? null;
             $componentTypeExisted = isset($componentType);
-            if(!$componentTypeExisted) {
+            if (!$componentTypeExisted) {
                 $componentType = new Dashboard\ComponentType();
                 $componentType->setName($name);
                 $manager->persist($componentType);
@@ -245,7 +283,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         $manager->flush();
     }
 
-    public static function getGroups(): array {
+    public static function getGroups(): array
+    {
         return ['fixtures'];
     }
 

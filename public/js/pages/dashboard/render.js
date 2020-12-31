@@ -13,6 +13,7 @@ const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
 const RECEIPT_ASSOCIATION = 'receipt_association';
 const WEEKLY_ARRIVALS_AND_PACKS = 'weekly_arrivals_and_packs';
 const ENTRIES_TO_HANDLE = 'entries_to_handle';
+const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
 const DROPPED_PACKS_DROPZONE = 'dropped_packs_dropzone';
 
 $(function () {
@@ -32,6 +33,7 @@ const creators = {
     [RECEIPT_ASSOCIATION]: [createSimpleChart, {route: `get_asso_recep_statistics`, variable: `chartAssoRecep`}],
     [WEEKLY_ARRIVALS_AND_PACKS]: createSimpleChart,
     [ENTRIES_TO_HANDLE]: todo,
+    [PACK_TO_TREAT_FROM]: [createSimpleChart, {cssClass: 'multiple'}],
     [DROPPED_PACKS_DROPZONE]: createSimpleChart,
 };
 
@@ -53,28 +55,32 @@ function renderComponent(meterKey, $container, data) {
         let $element;
         if(Array.isArray(callback)) {
             const fn = callback[0];
-            const arguments = callback.splice(1);
-
+            const arguments = callback.slice(1);
             $element = fn.apply(null, [data, ...arguments]);
         } else {
             $element = callback(data);
         }
 
         if ($element) {
-            const isCardExample = $container.parents('#modalComponentTypeSecondStep').length > 0;
             $container.html($element);
-
-            if ($element.find('canvas').length > 0) {
-                createAndUpdateSimpleChart(
-                    $element.find('canvas'),
-                    null,
-                    data,
-                    false,
-                    isCardExample
-                );
-            } else if ($element.find('table').length > 0) {
-                if ($element.find('table').hasClass('retards-table')) {
-                    loadLatePacks($element.find('table'), data);
+            const isCardExample = $container.parents('#modalComponentTypeSecondStep').length > 0;
+            const $canvas = $element.find('canvas');
+            const $table = $element.find('table');
+            if ($canvas.length > 0) {
+                if (!$canvas.hasClass('multiple')) {
+                    createAndUpdateSimpleChart(
+                        $canvas,
+                        null,
+                        data,
+                        false,
+                        isCardExample
+                    );
+                } else {
+                    createAndUpdateMultipleCharts($canvas, null, data, false, true, isCardExample);
+                }
+            } else if ($table.length > 0) {
+                if ($table.hasClass('retards-table')) {
+                    loadLatePacks($table, data);
                 }
             }
         }
@@ -122,7 +128,7 @@ function calculateChartsFontSize() {
  * @param {{route: string|null, variable: string|null}} pagination
  * @return {boolean|jQuery}
  */
-function createSimpleChart(data, {route, variable} = {route: null, variable: null}) {
+function createSimpleChart(data, {route, variable, cssClass} = {route: null, variable: null, cssClass: null}) {
     if (!data) {
         console.error(`Invalid data for "${data.title}"`);
         return false;
@@ -132,7 +138,6 @@ function createSimpleChart(data, {route, variable} = {route: null, variable: nul
     let title = data.title || "";
 
     let pagination = ``;
-    console.log(route, variable, mode);
     if(route !== null && variable !== null) {
         pagination = `
             <div class="range-buttons ${mode === MODE_EDIT ? 'd-none' : ''}">
@@ -161,7 +166,7 @@ function createSimpleChart(data, {route, variable} = {route: null, variable: nul
                         <i class="fa fa-question ml-1"></i>
                 </div>
                 <div class="h-100">
-                    <canvas width="300" height="90"></canvas>
+                    <canvas width="300" height="90" class="${cssClass || ''}"></canvas>
                 </div>
                 ${pagination}
             </div>
@@ -380,6 +385,7 @@ function updateSimpleChartData(chart, data, label, stack = false,
         chart.data.datasets[0].backgroundColor.fill('#A3D1FF');
     }
 
+
     if (subData) {
         const subColor = '#999';
         chart.data.datasets.push({
@@ -554,8 +560,7 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
         ctx.shadowBlur = 0;
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
-        const applyRedFont = (redForFirstData && (i === 0));
-        ctx.fillStyle = applyRedFont ? 'red' : figureColor;
+        ctx.fillStyle = figureColor;
         ctx.fillText(figure, x, y);
     })
 }
@@ -593,4 +598,55 @@ function loadLatePacks($table, data) {
     }
 
     initDataTable($table.attr('id'), datatableColisConfig);
+}
+
+function createAndUpdateMultipleCharts($canvas,
+                                       chart,
+                                       data,
+                                       forceCreation = false,
+                                       redForLastData = true,
+                                       disableAnimation = false) {
+    if (forceCreation || !chart) {
+        chart = newChart($canvas, redForLastData, disableAnimation);
+    }
+    if (data) {
+        updateMultipleChartData(chart, data);
+    }
+    return chart;
+}
+
+/**
+ * @param chart
+ * @param data
+ */
+function updateMultipleChartData(chart, data) {
+    const chartColors = data.chartColors || [];
+    const chartData = data.chartData || [];
+    chart.data.labels = [];
+    chart.data.datasets = [];
+
+    const dataKeys = Object.keys(chartData);
+    for (const key of dataKeys) {
+        const dataSubKeys = Object.keys(chartData[key]);
+        chart.data.labels.push(key);
+        for (const subKey of dataSubKeys) {
+            let dataset = chart.data.datasets.find(({label}) => (label === subKey));
+            if (!dataset) {
+                dataset = {
+                    label: subKey,
+                    backgroundColor: (chartColors
+                            ? (
+                                (chartColors && chartColors[subKey])
+                                || (`#${((1 << 24) * Math.random() | 0).toString(16)}`)
+                            )
+                            : '#a3d1ff'
+                    ),
+                    data: []
+                };
+                chart.data.datasets.push(dataset);
+            }
+            dataset.data.push(chartData[key][subKey]);
+        }
+    }
+    chart.update();
 }
