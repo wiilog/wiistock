@@ -161,9 +161,7 @@ function renderRow(row) {
 
     if(mode === MODE_EDIT) {
         $row.append(`
-            <button class="btn btn-danger btn-sm delete-row ml-1">
-                <i class="fa fa-trash"></i>
-            </button>
+                <i class="fa fa-trash ml-1 h-100 delete-row"></i>
         `);
     }
 
@@ -187,7 +185,7 @@ function renderConfigComponent(component, init = false) {
         )
             .then(() => {
                 $componentContainer.popLoader();
-                if ($componentContainer.children().length === 0) {
+                if($componentContainer.children().length === 0) {
                     $componentContainer.append($('<div/>', {
                         class: 'text-danger d-flex flex-fill align-items-center justify-content-center',
                         html: `<i class="fas fa-exclamation-triangle mr-2"></i>Erreur lors de l'affichage du composant`
@@ -195,13 +193,16 @@ function renderConfigComponent(component, init = false) {
                 }
                 if(mode === MODE_EDIT) {
                     $componentContainer.append($(`
-                    <div class="component-toolbox">
-                        <button class="btn btn-primary btn-sm edit-component m-1 ${!component.template ? 'd-none' : ''}">
-                            <i class="fa fa-pen"></i>
-                        </button>
-                        <button class="btn btn-danger btn-sm delete-component m-1">
-                            <i class="fa fa-trash"></i>
-                        </button>
+                    <div class="component-toolbox dropdown">
+                        <i class="fas fa-cog" data-toggle="dropdown"></i>
+                        <div class="dropdown-menu pointer">
+                            <a class="dropdown-item edit-component ${!component.template ? 'd-none' : ''}" role="button">
+                                <i class="fa fa-pen mr-2"></i> Modifier
+                            </a>
+                            <a class="dropdown-item delete-component" role="button">
+                                <i class="fa fa-trash mr-2"></i> Supprimer
+                            </a>
+                        </div>
                     </div>
                 `));
                 }
@@ -211,8 +212,8 @@ function renderConfigComponent(component, init = false) {
             class: 'dashboard-component empty',
             'data-component': component,
             html: mode === MODE_EDIT
-                ? $('<div/>', {
-                    class: 'btn btn-primary btn-ripple btn-sm',
+                ? $('<button/>', {
+                    class: 'btn btn-sm',
                     click: openModalComponentTypeFirstStep,
                     html: `<i class="fas fa-plus mr-2"></i> Ajouter un composant`
                 })
@@ -477,7 +478,7 @@ function onComponentDeleted() {
         .filter(c => !!c)
         .findIndex((component) => component.index === componentIndex);
 
-    if (indexOfComponentToDelete !== -1) {
+    if(indexOfComponentToDelete !== -1) {
         row.components.splice(indexOfComponentToDelete, 1);
     }
 
@@ -687,7 +688,7 @@ function renderFormComponentExample() {
         });
 }
 
-function renderComponentExample($container, componentType, meterKey, formData, initData) {
+function renderComponentExample($container, componentType, meterKey, formData = null, initData = null) {
     let exampleValuesPromise;
     if(initData) {
         exampleValuesPromise = new Promise((resolve) => {
@@ -696,13 +697,14 @@ function renderComponentExample($container, componentType, meterKey, formData, i
     } else {
         exampleValuesPromise = $.post(
             Routing.generate('dashboard_component_type_example_values', {componentType}),
-            {values: JSON.stringify(formData)}
+            formData ? {values: JSON.stringify(formData)} : null
         );
     }
 
     return exampleValuesPromise
         .then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues))
-        .catch(() => {});
+        .catch(() => {
+        });
 }
 
 function initializeEntryTimeIntervals(segments) {

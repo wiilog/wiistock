@@ -26,7 +26,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'subtitle' => 'Litige',
                 'delay' => 20634860
             ],
-            'category' => Dashboard\ComponentType::INDICATOR_TYPE,
+            'category' => Dashboard\ComponentType::STOCK,
             'template' => Dashboard\ComponentType::ONGOING_PACKS,
             'meterKey' => Dashboard\ComponentType::ONGOING_PACKS
         ],
@@ -43,7 +43,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     'j7' => 7,
                 ],
             ],
-            'category' => Dashboard\ComponentType::GRAPH_TYPE,
+            'category' => Dashboard\ComponentType::TRACKING,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
         ],
@@ -55,7 +55,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ['pack' => 'COLIS2', 'date' => '06/08/2020 20:57:89', 'delay' => '10000', 'location' => "EMP2"],
                 ],
             ],
-            'category' => Dashboard\ComponentType::INDICATOR_TYPE,
+            'category' => Dashboard\ComponentType::TRACKING,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::LATE_PACKS,
         ],
@@ -94,7 +94,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ]
                 ]
             ],
-            'category' => Dashboard\ComponentType::GRAPH_TYPE,
+            'category' => Dashboard\ComponentType::TRACKING,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
             'template' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
         ],
@@ -107,7 +107,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     'TRANS3',
                 ]
             ],
-            'category' => Dashboard\ComponentType::INDICATOR_TYPE,
+            'category' => Dashboard\ComponentType::TRACKING,
             'template' => Dashboard\ComponentType::CARRIER_TRACKING,
             'meterKey' => Dashboard\ComponentType::CARRIER_TRACKING,
         ],
@@ -124,7 +124,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     'j7' => 13
                 ]
             ],
-            'category' => Dashboard\ComponentType::GRAPH_TYPE,
+            'category' => Dashboard\ComponentType::TRACKING,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::RECEIPT_ASSOCIATION,
         ],
@@ -163,7 +163,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ]
                 ]
             ],
-            'category' => Dashboard\ComponentType::GRAPH_TYPE,
+            'category' => Dashboard\ComponentType::TRACKING,
             'template' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
             'meterKey' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
         ],
@@ -205,7 +205,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ]
                 ],
             ],
-            'category' => Dashboard\ComponentType::GRAPH_TYPE,
+            'category' => Dashboard\ComponentType::ORDERS,
             'meterKey' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
             'template' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
         ],
@@ -222,7 +222,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     'j7' => 3,
                 ],
             ],
-            'category' => Dashboard\ComponentType::GRAPH_TYPE,
+            'category' => Dashboard\ComponentType::TRACKING,
             'template' => Dashboard\ComponentType::DROPPED_PACKS_DROPZONE,
             'meterKey' => Dashboard\ComponentType::DROPPED_PACKS_DROPZONE,
         ],
@@ -269,7 +269,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ]],
                 ],
             ],
-            'category' => Dashboard\ComponentType::GRAPH_TYPE,
+            'category' => Dashboard\ComponentType::ORDERS,
             'template' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
             'meterKey' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
         ],

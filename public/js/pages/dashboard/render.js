@@ -16,7 +16,7 @@ const ENTRIES_TO_HANDLE = 'entries_to_handle';
 const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
 const DROPPED_PACKS_DROPZONE = 'dropped_packs_dropzone';
 
-$(function () {
+$(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
     Chart.defaults.global.responsive = true;
     Chart.defaults.global.maintainAspectRatio = false;
@@ -47,7 +47,7 @@ const creators = {
 function renderComponent(meterKey, $container, data) {
     $container.empty();
 
-    if (!creators[meterKey]) {
+    if(!creators[meterKey]) {
         console.error(`No creator function for ${meterKey} key.`);
         return false;
     } else {
@@ -61,13 +61,13 @@ function renderComponent(meterKey, $container, data) {
             $element = callback(data);
         }
 
-        if ($element) {
+        if($element) {
             $container.html($element);
             const isCardExample = $container.parents('#modalComponentTypeSecondStep').length > 0;
             const $canvas = $element.find('canvas');
             const $table = $element.find('table');
-            if ($canvas.length > 0) {
-                if (!$canvas.hasClass('multiple')) {
+            if($canvas.length > 0) {
+                if(!$canvas.hasClass('multiple')) {
                     createAndUpdateSimpleChart(
                         $canvas,
                         null,
@@ -78,8 +78,8 @@ function renderComponent(meterKey, $container, data) {
                 } else {
                     createAndUpdateMultipleCharts($canvas, null, data, false, true, isCardExample);
                 }
-            } else if ($table.length > 0) {
-                if ($table.hasClass('retards-table')) {
+            } else if($table.length > 0) {
+                if($table.hasClass('retards-table')) {
                     loadLatePacks($table, data);
                 }
             }
@@ -89,8 +89,20 @@ function renderComponent(meterKey, $container, data) {
     }
 }
 
+function createTooltip(text) {
+    if(mode === MODE_EDIT) {
+        return ``;
+    } else {
+        return `
+            <div class="points has-tooltip" title="${text || ""}">
+                <i class="fa fa-question ml-1"></i>
+            </div>
+        `;
+    }
+}
+
 function createEntriesToTreatElement(data) {
-    if (!data) {
+    if(!data) {
         console.error(`Invalid data for entries element.`);
         return false;
     }
@@ -132,27 +144,22 @@ function createEntriesToTreatElement(data) {
  * @return {boolean|jQuery}
  */
 function createLatePacksElement(data) {
-    if (!data) {
+    if(!data) {
         console.error(`Invalid data for late packs element.`);
         return false;
     }
 
-    let tooltip = data.tooltip || "";
-    let title = data.title || "";
+    const title = data.title || "";
 
     return $(`
-        <div class="dashboard-box-container">
             <div class="dashboard-box justify-content-around dashboard-stats-container">
                 <div class="title">
                     ${title}
                 </div>
-                <div class="points has-tooltip" title="${tooltip}">
-                    <i class="fa fa-question ml-1"></i>
-                </div>
+                ${createTooltip(data.tooltip)}
                 <table class="table retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
                 </table>
             </div>
-        </div>
     `);
 }
 
@@ -167,13 +174,12 @@ function calculateChartsFontSize() {
  * @return {boolean|jQuery}
  */
 function createSimpleChart(data, {route, variable, cssClass} = {route: null, variable: null, cssClass: null}) {
-    if (!data) {
+    if(!data) {
         console.error(`Invalid data for "${data.title}"`);
         return false;
     }
 
-    let tooltip = data.tooltip || "";
-    let title = data.title || "";
+    const title = data.title || "";
 
     let pagination = ``;
     if(route !== null && variable !== null) {
@@ -192,22 +198,16 @@ function createSimpleChart(data, {route, variable, cssClass} = {route: null, var
             </div>
         `;
     }
-
     return $(`
-        <div class="dashboard-box-container h-100">
-            <div class="dashboard-box justify-content-around dashboard-stats-container">
-                <div class="title">
-                    ${title}
-                </div>
-                <div class="points has-tooltip"
-                    title="${tooltip}">
-                        <i class="fa fa-question ml-1"></i>
-                </div>
-                <div class="h-100">
-                    <canvas width="300" height="90" class="${cssClass || ''}"></canvas>
-                </div>
-                ${pagination}
+        <div class="dashboard-box justify-content-around dashboard-stats-container">
+            <div class="title">
+                ${title}
             </div>
+            ${createTooltip(data.tooltip)}
+            <div>
+                <canvas class="${cssClass || ''}"></canvas>
+            </div>
+            ${pagination}
         </div>
     `);
 }
@@ -217,27 +217,23 @@ function createSimpleChart(data, {route, variable, cssClass} = {route: null, var
  * @return {boolean|jQuery}
  */
 function createCarrierTrackingElement(data) {
-    if (!data || data.carriers === undefined) {
+    if(!data || data.carriers === undefined) {
         console.error(`Invalid data for carrier tracking element.`);
         return false;
     }
 
-    let carriers = Array.isArray(data.carriers) ? data.carriers.join() : data.carriers;
-    let tooltip = data.tooltip || "";
-    let title = data.title || "";
+    const carriers = Array.isArray(data.carriers) ? data.carriers.join() : data.carriers;
+    const tooltip = data.tooltip || "";
+    const title = data.title || "";
 
     return $(`
-        <div class="dashboard-box-container">
             <div class="dashboard-box justify-content-around dashboard-stats-container">
                 <div class="title">
                     ${title}
                 </div>
-                <div class="points has-tooltip" title="${tooltip}">
-                    <i class="fa fa-question ml-1"></i>
-                </div>
+                ${createTooltip(data.tooltip)}
                 <p>${carriers}</p>
             </div>
-        </div>
     `);
 }
 
@@ -246,134 +242,88 @@ function createCarrierTrackingElement(data) {
  * @return {boolean|jQuery}
  */
 function createOngoingPackElement(data) {
-    if (!data || data.count === undefined) {
+    if(!data || data.count === undefined) {
         console.error(`Invalid data for ongoing pack element.`);
         return false;
     }
-    let tooltip = data.tooltip || "";
 
     return $('<div/>', {
-        class: `dashboard-box-container h-100`,
-        html: $('<div/>', {
-            class: 'dashboard-box text-center justify-content-around dashboard-stats-container',
-            html: [
-                $('<div/>', {
-                    class: 'points has-tooltip',
-                    title: tooltip,
-                    html: '<i class="fa fa-question ml-1"></i>'
-                }),
-                data.title
-                    ? $('<div/>', {
-                        class: 'text-center title ellipsis',
-                        text: data.title
-                    })
-                    : undefined,
-                data.subtitle
-                    ? $('<div/>', {
-                        class: 'location-label ellipsis small',
-                        text: data.subtitle
-                    })
-                    : undefined,
-                data.count !== undefined
-                    ? $('<div/>', {
-                        class: 'align-items-center',
-                        html: `<div class="dashboard-stats dashboard-stats-counter">${data.count ? data.count : '-'}</div>`
-                    })
-                    : undefined,
-                data.delay
-                    ? $('<div/>', {
-                        class: `text-center title dashboard-stats-delay-title ${data.delay < 0 ? 'red' : ''}`,
-                        text: data.delay < 0
-                            ? 'Retard : '
-                            : 'A traiter sous :'
-                    })
-                    : undefined,
-                data.delay
-                    ? $('<div/>', {
-                        class: `dashboard-stats dashboard-stats-delay ${data.delay < 0 ? 'red' : ''}`,
-                        text: renderMillisecondsToDelay(Math.abs(data.delay), 'display')
-                    })
-                    : undefined,
+        class: 'dashboard-box text-center justify-content-around dashboard-stats-container',
+        html: [
+            createTooltip(data.tooltip),
+            data.title
+                ? $('<div/>', {
+                    class: 'text-center title ellipsis',
+                    text: data.title
+                })
+                : undefined,
+            data.subtitle
+                ? $('<div/>', {
+                    class: 'location-label ellipsis small',
+                    text: data.subtitle
+                })
+                : undefined,
+            data.count !== undefined
+                ? $('<div/>', {
+                    class: 'align-items-center',
+                    html: `<div class="dashboard-stats dashboard-stats-counter">${data.count ? data.count : '-'}</div>`
+                })
+                : undefined,
+            data.delay
+                ? $('<div/>', {
+                    class: `text-center title dashboard-stats-delay-title ${data.delay < 0 ? 'red' : ''}`,
+                    text: data.delay < 0
+                        ? 'Retard : '
+                        : 'A traiter sous :'
+                })
+                : undefined,
+            data.delay
+                ? $('<div/>', {
+                    class: `dashboard-stats dashboard-stats-delay ${data.delay < 0 ? 'red' : ''}`,
+                    text: renderMillisecondsToDelay(Math.abs(data.delay), 'display')
+                })
+                : undefined,
 
-            ].filter(Boolean)
-        })
+        ].filter(Boolean)
     });
 }
 
 
-
 //ne supprimez pas et mettez pas les fonction de creation des composants en dessous
-
-
-
 
 
 //ne supprimez pas et mettez pas les fonction de creation des composants en dessous
 
 
-
+//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
 
 
 //ne supprimez pas et mettez pas les fonction de creation des composants en dessous
 
 
+//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
 
 
 //ne supprimez pas et mettez pas les fonction de creation des composants en dessous
 
 
-
+//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
 
 
 //ne supprimez pas et mettez pas les fonction de creation des composants en dessous
 
 
-
-
-
 //ne supprimez pas et mettez pas les fonction de creation des composants en dessous
 
 
-
-
-
-
 //ne supprimez pas et mettez pas les fonction de creation des composants en dessous
-
-
-
-
-
-
-
-//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
-
-
-
-
-
-
-//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
-
-
-
-
-
-
-
-
-//ne supprimez pas et mettez pas les fonction de creation des composants en dessous
-
-
-
-
 
 
 //fonctions à sortir dans un autre fichier
 
 function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null, preferCacheData = false) {
-    return new Promise(function (resolve) {
-        if ($button.length == 0) {
+    return new Promise(function(resolve) {
+        if($button.length == 0) {
             resolve();
         } else {
             let $dashboardBox = $button.closest('.dashboard-box');
@@ -381,13 +331,13 @@ function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null, pr
             let $firstDay = $rangeBtns.find('.firstDay');
             let $lastDay = $rangeBtns.find('.lastDay');
             let $canvas = $dashboardBox.find('canvas');
-            if (!preferCacheData) {
+            if(!preferCacheData) {
                 let params = {
                     'firstDay': $firstDay.data('day'),
                     'lastDay': $lastDay.data('day'),
                     'beforeAfter': beforeAfter
                 };
-                $.get(Routing.generate(path), params, function (data) {
+                $.get(Routing.generate(path), params, function(data) {
                     $firstDay.text(data.firstDay);
                     $firstDay.data('day', data.firstDayData);
                     $lastDay.text(data.lastDay);
@@ -418,19 +368,19 @@ function updateSimpleChartData(chart, data, label, stack = false,
     chart.data.datasets = [{data: [], label}];
     chart.data.labels = [];
     const dataKeys = Object.keys(data).filter((key) => key !== 'stack');
-    for (const key of dataKeys) {
+    for(const key of dataKeys) {
         chart.data.labels.push(key);
         chart.data.datasets[0].data.push(data[key]);
     }
 
     const dataLength = chart.data.datasets[0].data.length;
-    if (dataLength > 0) {
+    if(dataLength > 0) {
         chart.data.datasets[0].backgroundColor = new Array(dataLength);
         chart.data.datasets[0].backgroundColor.fill('#A3D1FF');
     }
 
 
-    if (subData) {
+    if(subData) {
         const subColor = '#999';
         chart.data.datasets.push({
             label: lineChartLabel,
@@ -440,7 +390,7 @@ function updateSimpleChartData(chart, data, label, stack = false,
 
         chart.legend.display = true;
     }
-    if (stack) {
+    if(stack) {
         chart.options.scales.yAxes[0].stacked = true;
         chart.options.scales.xAxes[0].stacked = true;
         data.stack.forEach((stack) => {
@@ -452,10 +402,10 @@ function updateSimpleChartData(chart, data, label, stack = false,
 }
 
 function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false, disableAnimation = false) {
-    if (forceCreation || !chart) {
+    if(forceCreation || !chart) {
         chart = newChart($canvas, false, disableAnimation);
     }
-    if (data) {
+    if(data) {
         updateSimpleChartData(
             chart,
             data.chartData || data,
@@ -472,7 +422,7 @@ function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false,
 }
 
 function newChart($canvasId, redForLastData = false, disableAnimation = false) {
-    if ($canvasId.length) {
+    if($canvasId.length) {
         const fontSize = currentChartsFontSize;
         const fontStyle = undefined;
 
@@ -492,7 +442,7 @@ function newChart($canvasId, redForLastData = false, disableAnimation = false) {
                     labels: {
                         fontSize,
                         fontStyle,
-                        filter: function (item) {
+                        filter: function(item) {
                             return Boolean(item && item.text);
                         }
                     }
@@ -504,7 +454,7 @@ function newChart($canvasId, redForLastData = false, disableAnimation = false) {
                             fontStyle,
                             beginAtZero: true,
                             callback: (value) => {
-                                if (Math.floor(value) === value) {
+                                if(Math.floor(value) === value) {
                                     return value;
                                 }
                             }
@@ -550,14 +500,14 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
 
     const yAdjust = 23;
     let stackedQuantities = [];
-    chartInstance.data.datasets.forEach(function (dataset, index) {
-        if (chartInstance.isDatasetVisible(index)) {
+    chartInstance.data.datasets.forEach(function(dataset, index) {
+        if(chartInstance.isDatasetVisible(index)) {
             let containsNegativValues = dataset.data.some((current) => (current < 0));
-            for (let i = 0; i < dataset.data.length; i++) {
-                for (let key in dataset._meta) {
+            for(let i = 0; i < dataset.data.length; i++) {
+                for(let key in dataset._meta) {
                     const value = parseInt(dataset.data[i]);
                     const isNegativ = (value < 0);
-                    if (value !== 0) {
+                    if(value !== 0) {
                         let {x, y, base} = dataset._meta[key].data[i]._model;
                         const figure = dataset.data[i];
                         const rectHeight = fontSize + (figurePaddingVertical * 2);
@@ -568,8 +518,8 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
                                 : (y - yAdjust));
 
 
-                        if (stackedQuantities[x]) {
-                            if (stackedQuantities[x].y > y) {
+                        if(stackedQuantities[x]) {
+                            if(stackedQuantities[x].y > y) {
                                 stackedQuantities[x].y = y;
                             }
                             stackedQuantities[x].figure += figure;
@@ -632,7 +582,7 @@ function loadLatePacks($table, data) {
             {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
         ]
     };
-    if (mode === MODE_EDIT) {
+    if(mode === MODE_EDIT) {
         datatableColisConfig.data = data.tableData;
     } else {
         datatableColisConfig.ajax = {
@@ -650,10 +600,10 @@ function createAndUpdateMultipleCharts($canvas,
                                        forceCreation = false,
                                        redForLastData = true,
                                        disableAnimation = false) {
-    if (forceCreation || !chart) {
+    if(forceCreation || !chart) {
         chart = newChart($canvas, redForLastData, disableAnimation);
     }
-    if (data) {
+    if(data) {
         updateMultipleChartData(chart, data);
     }
     return chart;
@@ -670,12 +620,12 @@ function updateMultipleChartData(chart, data) {
     chart.data.datasets = [];
 
     const dataKeys = Object.keys(chartData);
-    for (const key of dataKeys) {
+    for(const key of dataKeys) {
         const dataSubKeys = Object.keys(chartData[key]);
         chart.data.labels.push(key);
-        for (const subKey of dataSubKeys) {
+        for(const subKey of dataSubKeys) {
             let dataset = chart.data.datasets.find(({label}) => (label === subKey));
-            if (!dataset) {
+            if(!dataset) {
                 dataset = {
                     label: subKey,
                     backgroundColor: (chartColors

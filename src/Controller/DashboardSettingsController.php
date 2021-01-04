@@ -210,7 +210,13 @@ class DashboardSettingsController extends AbstractController {
             return $this->userService->accessDenied(UserService::IN_JSON);
         }
 
-        $values = json_decode($request->request->get('values'), true);
+        if($request->request->has("values")) {
+            $values = json_decode($request->request->get("values"), true);
+        } else {
+            $values = $componentType->getExampleValues();
+            dump($values);
+        }
+
         return $this->json([
             'success' => true,
             'exampleValues' => $dashboardSettingsService->serializeValues($entityManager, $componentType, $values, true)

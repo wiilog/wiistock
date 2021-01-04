@@ -24,8 +24,11 @@ class ComponentType
     public const DROPPED_PACKS_DROPZONE = 'dropped_packs_dropzone';
     public const ENTRIES_TO_HANDLE = 'entries_to_handle';
 
-    public const INDICATOR_TYPE = 'Indicateurs';
-    public const GRAPH_TYPE = 'Graphiques';
+    public const TRACKING = "tracking";
+    public const REQUESTS = "requests";
+    public const ORDERS = "orders";
+    public const STOCK = "stock";
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
