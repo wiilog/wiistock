@@ -14,7 +14,7 @@ const RECEIPT_ASSOCIATION = 'receipt_association';
 const WEEKLY_ARRIVALS_AND_PACKS = 'weekly_arrivals_and_packs';
 const ENTRIES_TO_HANDLE = 'entries_to_handle';
 const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
-const DROPPED_PACKS_DROPZONE = 'dropped_packs_dropzone';
+const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
 
 $(function () {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -27,14 +27,14 @@ $(function () {
 const creators = {
     [ONGOING_PACK]: createOngoingPackElement,
     [CARRIER_TRACKING]: createCarrierTrackingElement,
-    [DAILY_ARRIVALS]: [createSimpleChart, {route: `get_arrival_um_statistics`, variable: `chartArrivalUm`}],
+    [DAILY_ARRIVALS]: [createSimpleChart, {route: `get_arrival_um_statistics`}],
     [LATE_PACKS]: createLatePacksElement,
     [DAILY_ARRIVALS_AND_PACKS]: createSimpleChart,
     [RECEIPT_ASSOCIATION]: [createSimpleChart, {route: `get_asso_recep_statistics`}],
     [WEEKLY_ARRIVALS_AND_PACKS]: createSimpleChart,
     [ENTRIES_TO_HANDLE]: createEntriesToTreatElement,
     [PACK_TO_TREAT_FROM]: [createSimpleChart, {cssClass: 'multiple'}],
-    [DROPPED_PACKS_DROPZONE]: createSimpleChart,
+    [DROP_OFF_DISTRIBUTED_PACKS]: createSimpleChart,
 };
 
 /**
