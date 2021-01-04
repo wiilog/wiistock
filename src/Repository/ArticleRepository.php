@@ -472,9 +472,9 @@ class ArticleRepository extends EntityRepository {
 					}
 
                     foreach ($searchForArticle as $key => $searchField) {
-                        $date = DateTime::createFromFormat('d/m/Y', $searchValue)
-                            ? DateTime::createFromFormat('d/m/Y', $searchValue)->format('Y-m-d')
-                            : null;
+
+                        $date = DateTime::createFromFormat('d/m/Y', $searchValue);
+                        $date = $date ? $date->format('Y-m-d') : null;
                         switch ($searchField) {
                             case "type":
                                 $subqb = $this->createQueryBuilder("a")
