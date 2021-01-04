@@ -15,6 +15,9 @@ class DashboardController extends AbstractController {
 
     /**
      * @Route("/accueil-futur", name="dashboards")
+     * @param DashboardSettingsService $dashboardSettingsService
+     * @param EntityManagerInterface $manager
+     * @return Response
      */
     public function dashboards(DashboardSettingsService $dashboardSettingsService, EntityManagerInterface $manager): Response {
         return $this->render("dashboard/dashboards.html.twig", [
@@ -24,6 +27,9 @@ class DashboardController extends AbstractController {
 
     /**
      * @Route("/accueil/actualiser", name="dashboards_fetch", options={"expose"=true})
+     * @param DashboardSettingsService $dashboardSettingsService
+     * @param EntityManagerInterface $manager
+     * @return Response
      */
     public function fetch(DashboardSettingsService $dashboardSettingsService, EntityManagerInterface $manager): Response {
         return $this->json([

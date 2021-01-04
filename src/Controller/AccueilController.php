@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\AverageRequestTime;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
+use App\Entity\Dashboard\ComponentType;
 use App\Entity\Demande;
 use App\Entity\FiabilityByReference;
 use App\Entity\Handling;
@@ -20,6 +21,7 @@ use App\Entity\Utilisateur;
 use App\Entity\Wiilock;
 use App\Helper\Stream;
 use App\Repository\AverageRequestTimeRepository;
+use App\Service\DashboardSettingsService;
 use App\Service\DateService;
 use App\Service\DashboardService;
 use App\Service\DemandeCollecteService;
@@ -529,18 +531,19 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param Request $request
-     * @param DashboardService $dashboardService
+     * @param EntityManagerInterface $entityManager
+     * @param DashboardSettingsService $dashboardSettingsService
      * @return Response
      */
     public function getAssoRecepStatistics(Request $request,
-                                           DashboardService $dashboardService): Response
+                                           EntityManagerInterface $entityManager,
+                                           DashboardSettingsService $dashboardSettingsService): Response
     {
-        $query = $request->query;
-        $data = $dashboardService->getWeekAssoc(
-            $query->get('firstDay'),
-            $query->get('lastDay'),
-            $query->get('beforeAfter')
-        );
+        $componentTypeRepository = $entityManager->getRepository(ComponentType::class);
+        $componentType = $componentTypeRepository->findOneBy([
+            'meterKey' => ComponentType::RECEIPT_ASSOCIATION
+        ]);
+        $data = $dashboardSettingsService->serializeValues($entityManager, $componentType, $request->query->all());
         return new JsonResponse($data);
     }
 
@@ -553,18 +556,20 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param Request $request
-     * @param DashboardService $dashboardService
+     * @param EntityManagerInterface $entityManager
+     * @param DashboardSettingsService $dashboardSettingsService
      * @return Response
+     * @throws Exception
      */
     public function getArrivalUmStatistics(Request $request,
-                                           DashboardService $dashboardService): Response
+                                           EntityManagerInterface $entityManager,
+                                           DashboardSettingsService $dashboardSettingsService): Response
     {
-        $query = $request->query;
-        $data = $dashboardService->getWeekArrival(
-            $query->get('firstDay'),
-            $query->get('lastDay'),
-            $query->get('beforeAfter')
-        );
+        $componentTypeRepository = $entityManager->getRepository(ComponentType::class);
+        $componentType = $componentTypeRepository->findOneBy([
+            'meterKey' => ComponentType::DAILY_ARRIVALS
+        ]);
+        $data = $dashboardSettingsService->serializeValues($entityManager, $componentType, $request->query->all());
         return new JsonResponse($data);
     }
 

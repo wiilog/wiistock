@@ -5,8 +5,14 @@
 {% block pageContainerClass 'full-page' %}
 
 {% block page_content %}
-    <div class="dashboard"></div>
-        <div class="dashboard-pagination"></div>
+    <div class="w-100">
+        <div class="h-90">
+            <div class="dashboard"></div>
+        </div>
+        <div class="h-10">
+            <div class="dashboard-pagination"></div>
+        </div>
+    </div>
 
     <input type="hidden" class="dashboards-data" value="{{ dashboards }}">
 {% endblock %}

@@ -209,8 +209,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'meterKey' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
             'template' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
         ],
-        'Nombre de colis distribués en Drop zone' => [
-            'hint' => 'Nombre de colis présents sur les emplacements Drop zone paramétrés',
+        'Nombre de colis distribués en dépose' => [
+            'hint' => 'Nombre de colis présents sur les emplacements de dépose paramétrés',
             'exampleValues' => [
                 'chartData' => [
                     'j1' => 6,
@@ -223,8 +223,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 ],
             ],
             'category' => Dashboard\ComponentType::TRACKING,
-            'template' => Dashboard\ComponentType::DROPPED_PACKS_DROPZONE,
-            'meterKey' => Dashboard\ComponentType::DROPPED_PACKS_DROPZONE,
+            'template' => Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS,
+            'meterKey' => Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS,
         ],
         'Entrées à effectuer' => [
             'hint' => 'Nombre de colis par natures paramétrées présents sur la durée paramétrée sur l\'ensemble des emplacements paramétrés',
