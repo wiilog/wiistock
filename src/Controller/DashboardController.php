@@ -23,7 +23,7 @@ class DashboardController extends AbstractController {
     }
 
     /**
-     * @Route("/dashboard/externe", name="dashboards_external")
+     * @Route("/dashboard/externe", name="dashboards_external", options={"expose"=true})
      */
     public function external(DashboardSettingsService $dashboardSettingsService, EntityManagerInterface $manager): Response {
         return $this->render("dashboard/external.html.twig", [

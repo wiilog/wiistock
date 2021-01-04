@@ -225,7 +225,7 @@ function renderConfigComponent(component, init = false) {
 }
 
 function renderDashboardPagination() {
-    $('.dashboard-pagination, .external-dashboards').empty();
+    $('.dashboard-pagination').empty();
 
     dashboards
         .map(dashboard => createDashboardSelectorItem(dashboard))
@@ -239,10 +239,6 @@ function renderDashboardPagination() {
             </button>
         `);
     }
-
-    dashboards
-        .map(dashboard => createExternalDashboardLink(dashboard))
-        .forEach($item => $('.external-dashboards').append($item));
 
     $('[data-target="#add-dashboard-modal"]')
         .attr(`disabled`, dashboards.length >= MAX_NUMBER_PAGES);
@@ -272,16 +268,19 @@ function createDashboardSelectorItem(dashboard) {
     if(mode === MODE_EDIT) {
         $editable = `
             <div class="dropdown d-inline-flex">
-                <span class="badge badge-primary square-sm pointer" data-toggle="dropdown">
-                <i class="fas fa-pen"></i>
+                <span class="pointer" data-toggle="dropdown">
+                <i class="fas fa-cog"></i>
                 </span>
-                <div class="dropdown-menu dropdown-follow-gt pointer">
+                <div class="dropdown-menu pointer">
                     <a class="dropdown-item rename-dashboard" role="button" data-dashboard="${dashboard.index}"
                          data-toggle="modal" data-target="#rename-dashboard-modal">
                         <i class="fas fa-edit mr-2"></i>Renommer
                     </a>
                     <a class="dropdown-item delete-dashboard" role="button" data-dashboard="${dashboard.index}">
                         <i class="fas fa-trash mr-2"></i>Supprimer
+                    </a>
+                    <a class="dropdown-item" href="${Routing.generate('dashboards_external')}#${dashboard.index + 1}" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> Dashboard externe
                     </a>
                 </div>
             </div>
@@ -295,14 +294,6 @@ function createDashboardSelectorItem(dashboard) {
             $editable,
         ]
     });
-}
-
-function createExternalDashboardLink(dashboard) {
-    return $(`
-        <a class="dropdown-item">
-            <i class="fas fa-external-link-alt"></i> Dashboard "${dashboard.name}"
-        </a>
-    `);
 }
 
 /**
