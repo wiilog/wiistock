@@ -725,10 +725,10 @@ class ArticleDataService
             ["title" => "Quantité", "name" => "quantity", 'searchable' => true],
             ["title" => "Emplacement", "name" => "location", 'searchable' => true],
             ["title" => "Prix unitaire", "name" => "unitPrice"],
-            ["title" => "Dernier inventaire", "name" => "dateLastInventory"],
+            ["title" => "Dernier inventaire", "name" => "dateLastInventory", 'searchable' => true],
             ["title" => "Lot", "name" => "batch"],
-            ["title" => "Date d'entrée en stock", "name" => "stockEntryDate"],
-            ["title" => "Date d'expiration", "name" => "expiryDate"],
+            ["title" => "Date d'entrée en stock", "name" => "stockEntryDate", 'searchable' => true],
+            ["title" => "Date d'expiration", "name" => "expiryDate", 'searchable' => true],
             ["title" => "Commentaire", "name" => "comment", 'searchable' => true]
         ];
 
