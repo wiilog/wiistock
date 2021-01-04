@@ -226,14 +226,12 @@ class DashboardSettingsService {
 
         foreach($jsonDashboard as $jsonPage) {
             [$updatePage, $page] = $this->getEntity($entityManager, Dashboard\Page::class, $jsonPage);
-
             if ($page) {
                 if ($updatePage) {
                     $page->setName($jsonPage["name"]);
 
                     foreach($jsonPage["rows"] as $jsonRow) {
                         [$updateRow, $row] = $this->getEntity($entityManager, Dashboard\PageRow::class, $jsonRow);
-
                         if ($row) {
                             if ($updateRow) {
                                 $row->setPage($page);
@@ -247,7 +245,6 @@ class DashboardSettingsService {
                                         if (!$type) {
                                             throw new InvalidArgumentException(self::UNKNOWN_COMPONENT . '-' . $jsonComponent["type"]);
                                         }
-
                                         $component->setType($type);
                                         $component->setRow($row);
                                         $component->setColumnIndex($jsonComponent["index"]);

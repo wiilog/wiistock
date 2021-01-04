@@ -204,7 +204,7 @@ function createSimpleChart(data, {route, variable, cssClass} = {route: null, css
                 ${title}
             </div>
             ${createTooltip(data.tooltip)}
-            <div>
+            <div class="h-100">
                 <canvas class="${cssClass || ''}"></canvas>
             </div>
             ${pagination}

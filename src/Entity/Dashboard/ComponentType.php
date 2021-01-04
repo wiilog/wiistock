@@ -24,10 +24,10 @@ class ComponentType
     public const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
     public const ENTRIES_TO_HANDLE = 'entries_to_handle';
 
-    public const TRACKING = "tracking";
-    public const REQUESTS = "requests";
-    public const ORDERS = "orders";
-    public const STOCK = "stock";
+    public const TRACKING = "Traçabilité";
+    public const REQUESTS = "Demandes";
+    public const ORDERS = "Ordres";
+    public const STOCK = "Stock";
 
     /**
      * @ORM\Id

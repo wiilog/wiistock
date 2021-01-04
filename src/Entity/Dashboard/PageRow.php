@@ -65,6 +65,7 @@ class PageRow
 
     public function setPage(?Page $page): self
     {
+        $page->addRow($this);
         $this->page = $page;
 
         return $this;
