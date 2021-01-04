@@ -56,11 +56,14 @@ class DashboardFeedCommand extends Command
                 case Dashboard\ComponentType::ONGOING_PACKS:
                     $this->dashboardService->persistOngoingPack($entityManager, $component);
                     break;
+                case Dashboard\ComponentType::DROPPED_PACKS_DROPZONE:
+                    $this->dashboardService->persistDroppedPacksDropZone($entityManager, $component);
+                    break;
                 default:
                     break;
             }
         }
-        $this->dashboardService->retrieveAndInsertGlobalDashboardData($this->getEntityManager());
+        //$this->dashboardService->retrieveAndInsertGlobalDashboardData($this->getEntityManager());
 
         $entityManager->flush();
     }

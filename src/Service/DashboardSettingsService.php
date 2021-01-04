@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\Emplacement;
+use App\Entity\LocationCluster;
 use App\Entity\Menu;
 use App\Entity\Transporteur;
 use App\Helper\FormatHelper;
@@ -57,7 +58,7 @@ class DashboardSettingsService {
                                         "template" => $type->getTemplate(),
                                         "config" => $component->getConfig(),
                                         "meterKey" => $type->getMeterKey(),
-                                        "initData" => $this->serializeValues($entityManager, $component->getType(), $component->getConfig(), $edit),
+                                        "initData" => $this->serializeValues($entityManager, $component->getType(), $component->getConfig(), $edit, $component->getMeter()),
                                     ];
                                 })
                                 ->toArray(),
@@ -75,12 +76,14 @@ class DashboardSettingsService {
      * @param Dashboard\ComponentType $componentType
      * @param array $config
      * @param bool $example
+     * @param Dashboard\Meter\Chart|null $chart
      * @return array
      */
     public function serializeValues(EntityManagerInterface $entityManager,
                                     Dashboard\ComponentType $componentType,
                                     array $config,
-                                    bool $example = false): array {
+                                    bool $example = false,
+                                    ?Dashboard\Meter\Chart $chart = null): array {
         $values = [];
         $meterKey = $componentType->getMeterKey();
 
@@ -97,6 +100,8 @@ class DashboardSettingsService {
             $values += $componentType->getExampleValues();
         } else if ($meterKey === Dashboard\ComponentType::RECEIPT_ASSOCIATION) {
             $values += $this->serializeDailyReceptions($componentType, $config, $example);
+        } else if ($meterKey === Dashboard\ComponentType::DROPPED_PACKS_DROPZONE) {
+            $values += $this->serializeDroppedPacksDropZone($entityManager, $componentType, $config, $example, $chart);
         } else {
             //TODO:remove
             $values += $componentType->getExampleValues();
@@ -158,6 +163,19 @@ class DashboardSettingsService {
             $values = $componentType->getExampleValues();
         }
 
+        return $values;
+    }
+
+    private function serializeDroppedPacksDropZone(EntityManagerInterface $entityManager,
+                                                   Dashboard\ComponentType $componentType,
+                                                   array $config,
+                                                   bool $example = false,
+                                                   ?Dashboard\Meter\Chart $chart = null): array {
+
+        $values = $componentType->getExampleValues();
+        if (!$example) {
+            $values['chartData'] = $chart->getData();
+        }
         return $values;
     }
 
