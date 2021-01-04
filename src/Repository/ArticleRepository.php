@@ -21,8 +21,6 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
@@ -38,7 +36,8 @@ class ArticleRepository extends EntityRepository {
 
     private const FIELD_ENTITY_NAME = [
         "location" => "emplacement",
-        "unitPrice" => "prixUnitaire"
+        "unitPrice" => "prixUnitaire",
+        "quantity" => "quantite"
     ];
 
     private const FIELDS_TYPE_DATE = [
@@ -542,14 +541,12 @@ class ArticleRepository extends EntityRepository {
                                     $query[] = "JSON_SEARCH(a.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                     $qb->setParameter("search", $date ?: $search);
                                 } else if (property_exists(Article::class, $field)) {
-                                    if ($date && in_array($searchField, self::FIELDS_TYPE_DATE)) {
-                                        $query[] = "a.$searchField BETWEEN :dateMin AND :dateMax";
-                                        $qb->setParameters([
-                                            'dateMin' => $date . ' 00:00:00',
-                                            'dateMax' => $date . ' 23:59:59'
-                                        ]);
+                                    if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
+                                        $query[] = "a.$field BETWEEN :dateMin AND :dateMax";
+                                        $qb->setParameter('dateMin' , $date . ' 00:00:00')
+                                            ->setParameter('dateMax' , $date . ' 23:59:59');
                                     } else {
-                                        $query[] = "a.$searchField LIKE :search";
+                                        $query[] = "a.$field LIKE :search";
                                         $qb->setParameter('search', $search);
                                     }
                                 }
