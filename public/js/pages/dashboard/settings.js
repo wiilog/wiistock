@@ -266,6 +266,10 @@ function createDashboardSelectorItem(dashboard) {
 
     let $editable = ``;
     if(mode === MODE_EDIT) {
+        const externalRoute = Routing.generate('dashboards_external', {
+            token: $(`.dashboards-token`).val(),
+        });
+
         $editable = `
             <div class="dropdown d-inline-flex">
                 <span class="pointer" data-toggle="dropdown">
@@ -279,7 +283,7 @@ function createDashboardSelectorItem(dashboard) {
                     <a class="dropdown-item delete-dashboard" role="button" data-dashboard="${dashboard.index}">
                         <i class="fas fa-trash mr-2"></i>Supprimer
                     </a>
-                    <a class="dropdown-item" href="${Routing.generate('dashboards_external')}#${dashboard.index + 1}" target="_blank">
+                    <a class="dropdown-item" href="${externalRoute}#${dashboard.index + 1}" target="_blank">
                         <i class="fas fa-external-link-alt"></i> Dashboard externe
                     </a>
                 </div>
