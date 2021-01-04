@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Annotation\HasPermission;
 use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\Arrivage;
@@ -28,9 +29,6 @@ use Twig\Error\SyntaxError;
 
 class UserService
 {
-
-    public const IN_RENDER = 0;
-    public const IN_JSON = 1;
 
     public const MIN_MOBILE_KEY_LENGTH = 14;
     public const MAX_MOBILE_KEY_LENGTH = 24;
@@ -90,19 +88,6 @@ class UserService
         }
 
         return false;
-    }
-
-    public function accessDenied(int $mode, $message = "Accès refusé"): Response {
-        if($mode == self::IN_JSON) {
-            return new JsonResponse([
-                "success" => false,
-                "msg" => $message,
-            ]);
-        } else if($mode == self::IN_RENDER) {
-            return new Response($this->templating->render("securite/access_denied.html.twig"));
-        } else {
-            throw new \RuntimeException("Unknown mode $mode");
-        }
     }
 
     public function getDataForDatatable($params = null)

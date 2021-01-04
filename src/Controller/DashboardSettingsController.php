@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
@@ -38,16 +39,10 @@ class DashboardSettingsController extends AbstractController {
 
     /**
      * @Route("/", name="dashboard_settings", methods={"GET"})
-     * @param DashboardSettingsService $dashboardSettingsService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS})
      */
     public function settings(DashboardSettingsService $dashboardSettingsService,
                              EntityManagerInterface $entityManager): Response {
-        if(!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_DASHBOARDS)) {
-            return $this->userService->accessDenied(UserService::IN_RENDER);
-        }
-
         $componentTypeRepository = $entityManager->getRepository(Dashboard\ComponentType::class);
         $componentTypes = $componentTypeRepository->findAll();
 
@@ -72,18 +67,11 @@ class DashboardSettingsController extends AbstractController {
 
     /**
      * @Route("/save", name="save_dashboard_settings", options={"expose"=true}, methods={"POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param DashboardSettingsService $dashboardSettingsService
-     * @return Response
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS}, mode=HasPermission::IN_JSON)
      */
     public function save(Request $request,
                          EntityManagerInterface $entityManager,
                          DashboardSettingsService $dashboardSettingsService): Response {
-        if(!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_DASHBOARDS)) {
-            return $this->userService->accessDenied(UserService::IN_JSON);
-        }
-
         $dashboards = json_decode($request->request->get("dashboards"), true);
         try {
             $dashboardSettingsService->save($entityManager, $dashboards);
@@ -109,18 +97,11 @@ class DashboardSettingsController extends AbstractController {
 
     /**
      * @Route("/api-component-type/{componentType}", name="dashboard_component_type_form", methods={"POST"}, options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param Dashboard\ComponentType $componentType
-     * @return JsonResponse
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS}, mode=HasPermission::IN_JSON)
      */
     public function apiComponentTypeForm(Request $request,
                                          EntityManagerInterface $entityManager,
                                          Dashboard\ComponentType $componentType): Response {
-        if(!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_DASHBOARDS)) {
-            return $this->userService->accessDenied(UserService::IN_JSON);
-        }
-
         $templateName = $componentType->getTemplate();
 
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -192,21 +173,12 @@ class DashboardSettingsController extends AbstractController {
 
     /**
      * @Route("/api-component-type/{componentType}/example-values", name="dashboard_component_type_example_values", methods={"POST"}, options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param DashboardSettingsService $dashboardSettingsService
-     * @param Dashboard\ComponentType $componentType
-     * @return JsonResponse
-     * @throws Exception
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS}, mode=HasPermission::IN_JSON)
      */
     public function apiComponentTypeExample(Request $request,
                                             EntityManagerInterface $entityManager,
                                             DashboardSettingsService $dashboardSettingsService,
                                             Dashboard\ComponentType $componentType): Response {
-        if(!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_DASHBOARDS)) {
-            return $this->userService->accessDenied(UserService::IN_JSON);
-        }
-
         if($request->request->has("values")) {
             $values = json_decode($request->request->get("values"), true);
         } else {
