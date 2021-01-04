@@ -70,6 +70,7 @@ let customExport = function () {
 
 function toggleArrivage(button) {
     let $arrivageBlock = $('.arrivalNb').first().parent();
+    const $arrivalNumber = $arrivageBlock.find('[name="numero_arrivage"]');
     if (button.data('arrivage')) {
         $arrivageBlock.find('input').each(function () {
             if ($(this).hasClass('arrivage-input')) {
@@ -81,12 +82,15 @@ function toggleArrivage(button) {
         });
         $arrivageBlock.hide();
         button.text('Avec Arrivage');
+
+        $arrivalNumber.removeClass('data-array');
     } else {
         $arrivageBlock.find('input').each(function () {
             $(this).addClass('needed');
         });
         $arrivageBlock.show();
         button.text('Sans Arrivage');
+        $arrivalNumber.addClass('data-array');
     }
     button.data('arrivage', !button.data('arrivage'));
 }

@@ -305,6 +305,7 @@ class StatutRepository extends EntityRepository {
             ->leftJoin('s.dispatches', 'dispatch')
             ->leftJoin('s.transferRequests', 'transferRequest')
             ->leftJoin('s.transferOrders', 'transferOrder')
+            ->leftJoin('s.arrivages', 'arrivals')
             ->where('s.id = :statusId')
             ->andWhere($exprBuilder->orX(
                 'a IS NOT NULL',
@@ -317,7 +318,8 @@ class StatutRepository extends EntityRepository {
                 'handling IS NOT NULL',
                 'dispatch IS NOT NULL',
                 'transferRequest IS NOT NULL',
-                'transferOrder IS NOT NULL'
+                'transferOrder IS NOT NULL',
+                'arrivals IS NOT NULL'
             ))
             ->setParameter('statusId', $id);
 
@@ -503,5 +505,17 @@ class StatutRepository extends EntityRepository {
                 ->getQuery()
                 ->getResult()
         );
+    }
+
+    /**
+     * @param array $ids
+     * @return array
+     */
+    public function findByIds(array $ids): array {
+        return $this->createQueryBuilder('type')
+            ->where('type.id IN (:ids)')
+            ->setParameter('ids', $ids, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->getResult();
     }
 }

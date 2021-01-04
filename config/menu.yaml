@@ -3,6 +3,10 @@ parameters:
     menu_config:
         -   label: 'Accueil'
             icon: 'accueil'
+            path: 'dashboards'
+
+        -   label: 'Ancien accueil'
+            icon: 'accueil'
             path: 'accueil'
 
         -   label: 'Traçabilité'
@@ -194,6 +198,12 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_UTIL
+                -   label: 'Dashboards'
+                    title: Dashboards
+                    path: 'dashboard_settings'
+                    rights:
+                        menu: App\Entity\Menu::PARAM
+                        action: App\Entity\Action::DISPLAY_DASHBOARDS
                 -   label: 'Export de données'
                     path: 'exports_params'
                     rights:

@@ -12,7 +12,7 @@ use App\Entity\Litige;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
-use App\Entity\Utilisateur;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 
@@ -209,4 +209,15 @@ class TypeRepository extends EntityRepository
 		return $query->getOneOrNullResult();
 	}
 
+    /**
+     * @param array $ids
+     * @return array
+     */
+    public function findByIds(array $ids): array {
+        return $this->createQueryBuilder('type')
+            ->where('type.id IN (:ids)')
+            ->setParameter('ids', $ids, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->getResult();
+    }
 }

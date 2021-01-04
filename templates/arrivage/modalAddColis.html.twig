@@ -25,8 +25,9 @@
                                                 {{nature.label | capitalize}}
                                             </label>
                                             <input type="number"
-                                                   class="form-control data-array needed-positiv"
+                                                   class="form-control data-array needed-positiv needs-default"
                                                    value="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}"
+                                                   data-init="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}"
                                                    name="colis"
                                                    data-id="{{ nature.id }}"
                                                    id="nbColisForNature_{{ nature.id }}"

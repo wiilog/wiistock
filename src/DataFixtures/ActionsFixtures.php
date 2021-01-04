@@ -114,6 +114,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DISPLAY_GLOB,
 				Action::DISPLAY_ROLE,
 				Action::DISPLAY_UTIL,
+				Action::DISPLAY_DASHBOARDS,
 				Action::DISPLAY_CL,
 				Action::DISPLAY_EXPO,
 				Action::DISPLAY_TYPE,
@@ -255,18 +256,20 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
             return $carry;
         }, []);
 
-
         foreach ($allSavedActions as $savedAction) {
             $menu = $savedAction->getMenu();
             $menuLabelToLower = mb_strtolower($menu->getLabel());
             $actionLabelToLower = mb_strtolower($savedAction->getLabel());
-
             if (!isset($menusToLower[$menuLabelToLower])) {
-                foreach ($menu->getActions() as $action) {
+                foreach ($menu->getActions()->filter(function (Action $action) {
+                    return !$action->getDashboard();
+                }) as $action) {
                     $manager->remove($action);
                     $this->output->writeln("Suppression du droit :  $menuLabelToLower / $actionLabelToLower");
                 }
-                $manager->remove($menu);
+                if (!$savedAction->getDashboard()) {
+                    $manager->remove($menu);
+                }
             } else if (!in_array($actionLabelToLower, $menusToLower[$menuLabelToLower])) {
                 $manager->remove($savedAction);
                 $this->output->writeln("Suppression du droit :  $menuLabelToLower / $actionLabelToLower");

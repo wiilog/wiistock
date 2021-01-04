@@ -60,7 +60,7 @@ class RefArticleDataService {
         ["title" => "Nom fournisseur", "name" => "supplierLabel", "type" => "text", "searchable" => true, "orderable" => false],
         ["title" => "Code fournisseur", "name" => "supplierCode", "type" => "text", "searchable" => true, "orderable" => false],
         ["title" => "Référence article fournisseur", "name" => "referenceSupplierArticle", "type" => "text", "searchable" => true, "hiddenColumn" => true],
-        ["title" => "Dernier inventaire", "name" => "lastInventory", "type" => "date"],
+        ["title" => "Dernier inventaire", "name" => "lastInventory", "searchable" => true, "type" => "date"],
         ["title" => "Gestion de stock", "name" => "stockManagement", "type" => "text", "searchable" => true],
         ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
         ["title" => "Commentaire", "name" => "comment", "type" => "text", "orderable" => false],

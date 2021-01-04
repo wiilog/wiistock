@@ -10,13 +10,14 @@ let droppedFiles = [];
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path url to call on submit
- * @param {{tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean, validator: undefined|function}} options Object containing some option.
+ * @param {{confirmMessage: function|undefined, tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean, validator: undefined|function}} options Object containing some option.
  *   - tables is an array of datatable
  *   - keepForm is an array of datatable
  *   - keepModal true if we do not close form
  *   - success success handler
  *   - clearOnClose clear the modal on close action
- *   - validator Validation function
+ *   - validator function which calculate custom form validation
+ *   - confirmMessage Function which return promise throwing when form can be submited
  */
 function InitModal($modal, $submit, path, options = {}) {
     if(options.clearOnClose) {
@@ -31,10 +32,9 @@ function InitModal($modal, $submit, path, options = {}) {
 
     $submit
         .click(function () {
-            if ($submit.find('.spinner-border').length > 0) {
-                showBSAlert('L\'opération est en cours de traitement', 'success');
-            }
-            else {
+            if ($submit.hasClass(LOADING_CLASS)) {
+                showBSAlert('L\'opération est en cours de traitement', 'warning');
+            } else {
                 SubmitAction(
                     $modal,
                     $submit,
@@ -56,11 +56,12 @@ function InitModal($modal, $submit, path, options = {}) {
 
 /**
  *
- * @param {{tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean}} options Object containing some options.
+ * @param {{confirmMessage: function|undefined, tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
  *   - tables is an array of datatable
  *   - keepForm true if we do not clear form
  *   - keepModal true if we do not close form
- *   - validator true if we do not close form
+ *   - validator function which calculate custom form validation
+ *   - confirmMessage Function which return promise throwing when form can be submited
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -68,26 +69,45 @@ function InitModal($modal, $submit, path, options = {}) {
 function SubmitAction($modal,
                       $submit,
                       path,
-                      {tables, keepModal, keepForm, validator} = {}) {
+                      {confirmMessage, ...options} = {}) {
     clearFormErrors($modal);
+
+    return (
+        confirmMessage
+            ? confirmMessage($modal)
+            : (new Promise ((resolve) => resolve(true)))
+    )
+        .then((success) => {
+            if (success) {
+                return processSubmitAction($modal, $submit, path, options);
+            }
+        });
+}
+
+/**
+ *
+ * @param {{tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
+ *   - tables is an array of datatable
+ *   - keepForm true if we do not clear form
+ *   - keepModal true if we do not close form
+ *   - validator function which calculate custom form validation
+ * @param {jQuery} $modal jQuery element of the modal
+ * @param {jQuery} $submit jQuery element of the submit button
+ * @param {string} path
+ */
+function processSubmitAction($modal,
+                             $submit,
+                             path,
+                             {tables, keepModal, keepForm, validator} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
-    const {success, errorMessages, $isInvalidElements, data} = processForm($modal, isAttachmentForm, validator);
+    const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
     if (success) {
         const smartData = isAttachmentForm
             ? createFormData(data)
             : JSON.stringify(data);
 
-        // spinner on submit button
-        const $spinner = $('<div/>', {
-            class: 'spinner-border spinner-border-sm mr-2',
-            role: 'status',
-            html: $('<span/>', {
-                class: 'sr-only',
-                text: 'Chargement...'
-            })
-        });
+        $submit.pushLoader('white');
 
-        $submit.prepend($spinner);
         // launch ajax request
         return $
             .ajax({
@@ -100,7 +120,7 @@ function SubmitAction($modal,
                 dataType: 'json',
             })
             .then((data) => {
-                $submit.find('.spinner-border').remove();
+                $submit.popLoader();
 
                 if (data.success === false) {
                     displayFormErrors($modal, {
@@ -118,9 +138,9 @@ function SubmitAction($modal,
                 return data;
             })
             .catch((err) => {
-                $submit.find('.spinner-border').remove();
+                $submit.popLoader();
                 throw err;
-            })
+            });
     }
     else {
         displayFormErrors($modal, {
@@ -189,11 +209,11 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
 /**
  *
  * @param {jQuery} $modal jQuery modal
- * @param {boolean} isAttachmentForm
- * @param {undefined|function} validator
+ * @param {boolean} [isAttachmentForm]
+ * @param {function} [validator]
  * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
  */
-function processForm($modal, isAttachmentForm, validator) {
+function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined) {
     const data = {};
 
     const dataArrayForm = processDataArrayForm($modal, data);
@@ -513,6 +533,13 @@ function processFilesForm($modal, data) {
  */
 function processDataArrayForm($modal, data) {
     const $inputsArray = $modal.find(".data-array");
+
+    let noStringify = false;
+    if($modal.find(".data-array[data-no-stringify]").length) {
+        noStringify = true;
+    }
+    console.log(noStringify);
+
     const dataArray = {};
     const dataArrayNeedPositive = {};
     const $isInvalidElements = [];
@@ -565,7 +592,7 @@ function processDataArrayForm($modal, data) {
     }
 
     for(const currentName in dataArray) {
-        data[currentName] = JSON.stringify(dataArray[currentName]);
+        data[currentName] = !noStringify ? JSON.stringify(dataArray[currentName]) : dataArray[currentName];
     }
 
     return {
@@ -779,4 +806,4 @@ function saveData($input, data, name, val, isAttachmentForm) {
             data[name] = val;
         }
     }
-};
+}

@@ -86,6 +86,7 @@ let tableColisConfig = {
     domConfig: {
         removeInfo: true
     },
+    processing: true,
     rowConfig: {
         needsRowClickAction: true
     },
@@ -111,17 +112,21 @@ InitModal(
     {
         tables: [tableColis],
         success: (data) => {
-            if (data.colisIds && data.colisIds.length > 0) {
+            if (data.packs && data.packs.length > 0) {
+                // update list in dispute forms (new and edit)
+                $('#colisLitige, #colisEditLitige').append(
+                    ...data.packs.map(({id, code}) => $(`<option value="${id}">${code}</option>`))
+                );
+
                 window.location.href = Routing.generate(
                     'print_arrivage_bar_codes',
                     {
+                        packs: data.packs.map(({id}) => id),
                         arrivage: data.arrivageId,
                         printColis: 1
                     },
                     true);
             }
-
-            window.location.href = Routing.generate('arrivage_show', {id: $('#arrivageId').val()})
         }
     }
 );

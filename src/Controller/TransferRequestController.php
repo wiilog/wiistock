@@ -297,7 +297,7 @@ class TransferRequestController extends AbstractController {
             $locationLabel = $transfer->getOrigin()->getLabel();
             $articles = $this->getDoctrine()
                 ->getRepository(Article::class)
-                ->findForReferenceWithoutTransfer($reference, $transfer->getOrigin());
+                ->findActiveOrDisputeForReference($reference, $transfer->getOrigin());
 
             if (!empty($articles)) {
                 return $this->json([

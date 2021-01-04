@@ -6,7 +6,6 @@ use App\Entity\Arrivage;
 use App\Entity\Pack;
 use DateTime;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -247,50 +246,9 @@ class PackRepository extends EntityRepository
         ];
     }
 
-    public function getIdsByCode(string $code)
-    {
-        $queryBuilder = $this->createQueryBuilder('colis');
-        $queryBuilderExpr = $queryBuilder->expr();
-        return $queryBuilder
-            ->select('colis.id')
-            ->where(
-                $queryBuilderExpr->like('colis.code', "'" . $code . "'")
-            )
-            ->getQuery()
-            ->execute();
-    }
-
-    /**
-     * @param array $mvt
-     * @throws DBALException
-     */
-    public function createFromMvt(array $mvt)
-    {
-        $code = $mvt['colis'];
-        $id = $mvt['id'];
-        $sqlQuery = "
-            INSERT INTO pack (code, last_drop_id) VALUES ('${code}', '${id}')
-        ";
-        $connection = $this->getEntityManager()->getConnection();
-        $connection->executeQuery($sqlQuery, []);
-    }
-
-    public function updateByIds(array $ids, int $mvtId)
-    {
-        $arrayColisId = implode(',', array_map(function(array $idsSub) {
-            return $idsSub['id'];
-        }, $ids));
-        $sqlQuery = "
-            UPDATE pack SET last_drop_id = ${mvtId} WHERE id IN (${arrayColisId})
-        ";
-        $connection = $this->getEntityManager()->getConnection();
-        $connection->executeQuery($sqlQuery, []);
-    }
-
     /**
      * @param array $locations
      * @param array $natures
-     * @param array $dateBracket
      * @param bool $isCount
      * @param string $field
      * @param int|null $limit
@@ -303,7 +261,6 @@ class PackRepository extends EntityRepository
      */
     public function getCurrentPackOnLocations(array $locations,
                                               array $natures,
-                                              array $dateBracket,
                                               bool $isCount = true,
                                               string $field = 'colis.id',
                                               ?int $limit = null,
@@ -318,6 +275,7 @@ class PackRepository extends EntityRepository
             ->leftJoin('colis.nature', 'nature')
             ->join('colis.lastDrop', 'lastDrop')
             ->join('lastDrop.emplacement', 'emplacement');
+
         if (!empty($locations)) {
             $queryBuilder
                 ->andWhere(

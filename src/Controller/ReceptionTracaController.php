@@ -4,13 +4,10 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Arrivage;
-use App\Entity\Article;
-use App\Entity\CategorieCL;
 use App\Entity\Menu;
 use App\Entity\ReceptionTraca;
 use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
-use App\Service\FreeFieldService;
 use App\Service\ReceptionTracaService;
 use App\Service\UserService;
 use DateTime;
@@ -135,8 +132,8 @@ class ReceptionTracaController extends AbstractController
 		$arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $errors = [];
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $arrivages = json_decode($data['numero_arrivage'], true);
-            if (count($arrivages) > 0) {
+            $arrivages = json_decode($data['numero_arrivage'] ?? '[]', true);
+            if (!empty($arrivages)) {
                 foreach ($arrivages as $arrivage) {
                     $arrivageDB = $arrivageRepository->findOneBy([
                         'numeroArrivage' => $arrivage

@@ -4,7 +4,9 @@
             onchange="ajaxEditArticle($(this))" name="article">
         <option value="">Choisir un article</option>
         {% for article in articles %}
-            <option value="{{article.id}}" {{ preselect and loop.index0 == 0 ? 'selected' }}>{{article.barCode}}</option>
+            {% if (article.demande is not null and article.demande.id != deliveryRequestId) or (article.demande is null) %}
+                <option value="{{ article.id }}" {{ preselect and loop.index0 == 0 ? 'selected' }}>{{ article.barCode }}</option>
+            {% endif %}
         {% endfor %}
     </select>
 </div>

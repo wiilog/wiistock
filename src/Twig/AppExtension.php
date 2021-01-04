@@ -90,8 +90,7 @@ class AppExtension extends AbstractExtension {
             case "email":
                 $logo = $pgr->getOneParamByLabel(ParametrageGlobal::EMAIL_LOGO);
                 break;
-            case "mobile":
-                $logo = $pgr->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO);
+            default:
                 break;
         }
 

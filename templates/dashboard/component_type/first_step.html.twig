@@ -1,0 +1,59 @@
+{# Do not use simple quotes in this macro #}
+{% macro renderPopover(componentType) %}
+    {{ componentType.hint }}<br>
+    <div class="example-component"></div>
+    <img src="http://wiistock/uploads/attachements/website_logo.png" width="100">
+{% endmacro %}
+
+{% import _self as macros %}
+
+<div class="modal fade"
+     id="modalComponentTypeFistStep"
+     role="dialog"
+     aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Ajouter un composant</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body form">
+                <input type="hidden" name="rowIndex" value/>
+                <input type="hidden" name="componentIndex" value/>
+
+                <div class="d-flex">
+                    {% for categoryName, componentTypesByCategory in componentTypes %}
+                        <div class="component-type-container">
+                            <h4 class="bold my-2">{{ categoryName }}</h4>
+                            {% for componentType in componentTypesByCategory %}
+                                <div class="component-selector">
+                                    {% if componentType.hint is defined and componentType.hint is not null %}
+                                        <div class="points has-tooltip"
+                                             title="{{ componentType.hint }}"
+                                             style="position: absolute;top:0;right:0;width:25px;height:25px;display:flex;justify-content:center;align-items:center">
+                                            <i class="fa fa-question fa-sm"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="btn btn-light component-type"
+                                         style="padding: 0 30px;"
+                                         data-component-type-id="{{ componentType.id }}"
+                                         data-component-type-name="{{ componentType.name }}"
+                                         data-component-meter-key="{{ componentType.meterKey }}"
+                                         data-component-template="{{ componentType.template }}"
+                                         onclick="openModalComponentTypeNextStep($(this))">
+                                        <span class="m-auto">{{ componentType.name }}</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+            </div>
+        </div>
+    </div>
+</div>

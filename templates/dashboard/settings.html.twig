@@ -1,0 +1,38 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Paramétrage | Dashboards{% endblock %}
+
+{% block pageContainerClass 'dashboard-container' %}
+
+{% block page_content %}
+    <div class="dashboard"></div>
+    <div class="dashboard-bottom-bar">
+        <button class="btn btn-primary btn-ripple" data-toggle="modal" data-target="#add-row-modal">
+            <i class="fas fa-plus mr-2"></i> Ajouter une ligne<br>
+            <small style="display:block;font-size:0.8rem;margin-top:-5px;">(6 lignes max)</small>
+        </button>
+        <div class="dashboard-pagination"></div>
+        <button class="btn btn-primary btn-ripple save-dashboards" style="margin-right: 22px">
+            <span class="fa fa-check mr-2"></span> Enregistrer
+        </button>
+    </div>
+
+    <input type="hidden" class="dashboards-data" value="{{ dashboards }}">
+
+    {% include 'dashboard/component_type/first_step.html.twig' with componentTypeConfig %}
+    {% include 'dashboard/component_type/second_step.html.twig' %}
+    {% include 'dashboard/modals/add_dashboard.html.twig' %}
+    {% include 'dashboard/modals/rename_dashboard.html.twig' %}
+    {% include 'dashboard/modals/add_row.html.twig' %}
+    {% include 'dashboard/modals/error.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/pages/dashboard/render.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/dashboard/settings.js') }}?{{ app_last_cache_clear }}"></script>
+
+    <script>
+        $(document).ready(() => loadDashboards(MODE_EDIT));
+    </script>
+{% endblock %}

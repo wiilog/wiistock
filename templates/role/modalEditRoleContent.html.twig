@@ -5,31 +5,7 @@
     <label hidden>Libellé</label>
     <input type="text" class="data form-control needed" name="label" value="{{ role.label }}">
 </div>
-{% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
-    <div class="form-group ml-2">
-        <div class="row">
-            <div class="col-12 mb-3 pointer" data-toggle="collapse" href="#menu-dashboards">
-                                <span class="bold">
-                                    Affichage des dashboards
-                                </span>
-                <i class="fas fa-arrow-alt-circle-down ml-2"></i>
-            </div>
-            {% for dashboard in dashboards %}
-                {% set checked = dashboard.id in role.dashboardsVisible %}
-                <div id="menu-dashboards" class="collapse">
-                    <div class="col-auto mb-2">
-                        <label class="switch mini-switch">
-                            <input class="checkbox data" type="checkbox" name="{{ dashboard.id }}" {{ checked ? 'checked' }}>
-                            <span class="slider round"></span>
-                        </label>
-                        <span class="font-size-mini pointer"
-                              onclick="$(this).closest('div').find('.checkbox').click();">{{ dashboard.label }}</span>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-{% endif %}
+
 {% for menu in menus %}
     <div class="form-group ml-2">
         <div class="row">

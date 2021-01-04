@@ -5,6 +5,7 @@ namespace App\EventListener;
 use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\ParametrageGlobal;
+use App\Entity\Utilisateur;
 use App\Service\AlertService;
 use App\Service\RefArticleDataService;
 use DateTime;
@@ -115,6 +116,9 @@ class ArticleQuantityNotifier {
                 $managers = $article->getArticleFournisseur()
                     ->getReferenceArticle()
                     ->getManagers()
+                    ->map(function (Utilisateur $user) {
+                        return $user->getEmail();
+                    })
                     ->toArray();
 
                 $this->alertService->sendExpiryMails($managers, $article, $this->expiryDelay);

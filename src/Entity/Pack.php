@@ -56,7 +56,8 @@ class Pack
 
     /**
      * @var Collection
-     * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="pack", cascade={"remove"})
+     * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="pack")
+     * @ORM\JoinColumn(onDelete="CASCADE")
      * @ORM\OrderBy({"datetime" = "DESC", "id" = "DESC"})
      */
     private $trackingMovements;

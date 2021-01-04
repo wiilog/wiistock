@@ -7,7 +7,6 @@ use App\Entity\DimensionsEtiquettes;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Parametre;
 
-use App\Entity\Statut;
 use App\Repository\ParametrageGlobalRepository;
 
 use App\Service\SpecificService;
@@ -168,8 +167,11 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ParametrageGlobal::EMAIL_LOGO => [
                 'default' => "img/gtlogistics.jpg"
             ],
-            ParametrageGlobal::MOBILE_LOGO => [
-                'default' => "img/mobile_logo.svg"
+            ParametrageGlobal::MOBILE_LOGO_LOGIN => [
+                'default' => "img/mobile_logo_login.svg"
+            ],
+            ParametrageGlobal::MOBILE_LOGO_HEADER => [
+                'default' => "img/mobile_logo_header.svg"
             ],
             ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [],
             ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON => [],

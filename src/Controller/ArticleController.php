@@ -594,14 +594,14 @@ class ArticleController extends AbstractController
      */
     public function getLivraisonArticlesByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $refArticle = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $refArticle = $referenceArticleRepository->find($refArticle);
+            $refArticle = $referenceArticleRepository->find($data['refArticle']);
 
             if ($refArticle) {
                 /** @var Utilisateur $currentUser */
                 $currentUser = $this->getUser();
-                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $currentUser);
+                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $currentUser, $data['deliveryRequestId']);
             } else {
                 $json = false; //TODO gérer erreur retour
             }
@@ -825,7 +825,6 @@ class ArticleController extends AbstractController
      * @return Response
 
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -860,7 +859,6 @@ class ArticleController extends AbstractController
      * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */

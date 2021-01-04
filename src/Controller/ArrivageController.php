@@ -693,11 +693,17 @@ class ArrivageController extends AbstractController
                     foreach ($pack->getTrackingMovements() as $arrivageMvtTraca) {
                         $entityManager->remove($arrivageMvtTraca);
                     }
+
+                    $pack->getTrackingMovements()->clear();
+
                     $litiges = $pack->getLitiges();
                     foreach ($litiges as $litige) {
                         $entityManager->remove($litige);
                     }
+                    $pack->getLitiges()->clear();
                 }
+                $arrivage->getPacks()->clear();
+
                 foreach ($arrivage->getAttachments() as $attachement) {
                     $this->attachmentService->removeAndDeleteAttachment($attachement, $arrivage);
                 }
@@ -1113,8 +1119,12 @@ class ArrivageController extends AbstractController
             $entityManager->flush();
 
             return new JsonResponse([
-                'colisIds' => array_map(function (Pack $colis) {
-                    return $colis->getId();
+                'success' => true,
+                'packs' => array_map(function (Pack $pack) {
+                    return [
+                        'id' => $pack->getId(),
+                        'code' => $pack->getCode()
+                    ];
                 }, $persistedColis),
                 'arrivageId' => $arrivage->getId(),
                 'arrivage' => $arrivage->getNumeroArrivage()
@@ -1389,7 +1399,7 @@ class ArrivageController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param PDFGeneratorService $PDFGeneratorService
      * @param Pack|null $colis
-     *
+     * @param array $packIdsFilter
      * @return Response
      *
      * @throws LoaderError
@@ -1401,7 +1411,8 @@ class ArrivageController extends AbstractController
                                                Request $request,
                                                EntityManagerInterface $entityManager,
                                                PDFGeneratorService $PDFGeneratorService,
-                                               Pack $colis = null): Response
+                                               Pack $colis = null,
+                                               array $packIdsFilter = []): Response
     {
         $barcodeConfigs = [];
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
@@ -1448,7 +1459,8 @@ class ArrivageController extends AbstractController
                     $packCountParamIsDefined,
                     $commandAndProjectNumberIsDefined,
                     $firstCustomIconConfig,
-                    $secondCustomIconConfig
+                    $secondCustomIconConfig,
+                    $packIdsFilter
                 );
             }
 
@@ -1520,9 +1532,22 @@ class ArrivageController extends AbstractController
                                        EntityManagerInterface $entityManager,
                                        PDFGeneratorService $PDFGeneratorService)
     {
-        return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService);
+        $packIdsFilter = $request->query->get('packs') ?: [];
+        return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService, null, $packIdsFilter);
     }
 
+    /**
+     * @param Arrivage $arrivage
+     * @param bool|null $typeArrivalParamIsDefined
+     * @param bool|null $usernameParamIsDefined
+     * @param bool|null $dropzoneParamIsDefined
+     * @param bool|null $packCountParamIsDefined
+     * @param bool|null $commandAndProjectNumberIsDefined
+     * @param array|null $firstCustomIconConfig
+     * @param array|null $secondCustomIconConfig
+     * @param array $packIdsFilter
+     * @return array
+     */
     private function getBarcodeConfigPrintAllColis(Arrivage $arrivage,
                                                    ?bool $typeArrivalParamIsDefined = false,
                                                    ?bool $usernameParamIsDefined = false,
@@ -1530,24 +1555,27 @@ class ArrivageController extends AbstractController
                                                    ?bool $packCountParamIsDefined = false,
                                                    ?bool $commandAndProjectNumberIsDefined = false,
                                                    ?array $firstCustomIconConfig = null,
-                                                   ?array $secondCustomIconConfig = null) {
+                                                   ?array $secondCustomIconConfig = null,
+                                                   array $packIdsFilter = []) {
         $total = $arrivage->getPacks()->count();
         $packs = [];
 
         foreach($arrivage->getPacks() as $index => $pack) {
-            $position = $index+1;
-            $packs[] = $this->getBarcodeColisConfig(
-                $pack,
-                $arrivage->getDestinataire(),
-                "$position/$total",
-                $typeArrivalParamIsDefined,
-                $usernameParamIsDefined,
-                $dropzoneParamIsDefined,
-                $packCountParamIsDefined,
-                $commandAndProjectNumberIsDefined,
-                $firstCustomIconConfig,
-                $secondCustomIconConfig
-            );
+            $position = $index + 1;
+            if (empty($packIdsFilter) || in_array($pack->getId(), $packIdsFilter)) {
+                $packs[] = $this->getBarcodeColisConfig(
+                    $pack,
+                    $arrivage->getDestinataire(),
+                    "$position/$total",
+                    $typeArrivalParamIsDefined,
+                    $usernameParamIsDefined,
+                    $dropzoneParamIsDefined,
+                    $packCountParamIsDefined,
+                    $commandAndProjectNumberIsDefined,
+                    $firstCustomIconConfig,
+                    $secondCustomIconConfig
+                );
+            }
         }
 
         return $packs;

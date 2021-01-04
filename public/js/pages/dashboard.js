@@ -73,7 +73,6 @@ $(function () {
     }, reloadFrequency);
 
     if (!isDashboardExt()) {
-        initTooltips($('.has-tooltip'));
         let blockDisplayed = false;
         $('.blocIndicators')
             .mouseenter(function () {
@@ -614,7 +613,7 @@ function loadRetards() {
                 },
                 order: [[2, 'desc']],
                 columns: [
-                    {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
+                    {"data": 'pack', 'name': 'pack', 'title': 'Colis'},
                     {"data": 'date', 'name': 'date', 'title': 'Dépose'},
                     {
                         "data": 'delay',
@@ -622,7 +621,7 @@ function loadRetards() {
                         'title': 'Délai',
                         render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)
                     },
-                    {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
+                    {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
                 ]
             };
             datatableColis = initDataTable($retardsTable.attr('id'), datatableColisConfig);
