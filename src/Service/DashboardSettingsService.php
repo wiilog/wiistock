@@ -7,10 +7,12 @@ use App\Entity\Emplacement;
 use App\Entity\LocationCluster;
 use App\Entity\Menu;
 use App\Entity\Transporteur;
+use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Helper\Stream;
 use App\Entity\Dashboard as Dashboard;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use InvalidArgumentException;
 use Symfony\Component\Security\Core\Security;
 
@@ -30,7 +32,9 @@ class DashboardSettingsService {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
 
         if(!$edit) {
-            $pages = Stream::from($pageRepository->findAllowedToAccess($this->security->getUser()));
+            /** @var Utilisateur $user */
+            $user = $this->security->getUser();
+            $pages = Stream::from($pageRepository->findAllowedToAccess($user));
         } else {
             $pages = Stream::from($pageRepository->findAll());
         }
@@ -78,6 +82,7 @@ class DashboardSettingsService {
      * @param bool $example
      * @param Dashboard\Meter\Chart|null $chart
      * @return array
+     * @throws Exception
      */
     public function serializeValues(EntityManagerInterface $entityManager,
                                     Dashboard\ComponentType $componentType,
@@ -100,11 +105,41 @@ class DashboardSettingsService {
             $values += $componentType->getExampleValues();
         } else if ($meterKey === Dashboard\ComponentType::RECEIPT_ASSOCIATION) {
             $values += $this->serializeDailyReceptions($componentType, $config, $example);
+        } else if ($meterKey === Dashboard\ComponentType::DAILY_ARRIVALS) {
+            $values += $this->serializeDailyArrivals($componentType, $config, $example);
         } else if ($meterKey === Dashboard\ComponentType::DROPPED_PACKS_DROPZONE) {
             $values += $this->serializeDroppedPacksDropZone($entityManager, $componentType, $config, $example, $chart);
         } else {
             //TODO:remove
             $values += $componentType->getExampleValues();
+        }
+
+        return $values;
+    }
+
+    /**
+     * @param Dashboard\ComponentType $componentType
+     * @param array $config
+     * @param bool $example
+     * @return array
+     */
+    private function serializeDailyArrivals(Dashboard\ComponentType $componentType,
+                                            array $config,
+                                            bool $example = false): array {
+        $values = $componentType->getExampleValues();
+        if (!$example) {
+            $chartValues = $this->dashboardService->getWeekArrival(
+                isset($config['firstDay']) ? $config['firstDay'] : date("d/m/Y", strtotime('monday this week')),
+                isset($config['lastDay']) ? $config['lastDay'] : date("d/m/Y", strtotime('sunday this week')),
+                isset($config['beforeAfter']) ? $config['beforeAfter'] : 'now'
+            );
+            $chartData = Stream::from($chartValues['data'])
+                ->map(function (array $value) {
+                    return $value['count'];
+                })->toArray();
+            $values['chartData'] = $chartData;
+            unset($chartValues['data']);
+            $values += $chartValues;
         }
         return $values;
     }

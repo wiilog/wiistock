@@ -556,18 +556,20 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param Request $request
-     * @param DashboardService $dashboardService
+     * @param EntityManagerInterface $entityManager
+     * @param DashboardSettingsService $dashboardSettingsService
      * @return Response
+     * @throws Exception
      */
     public function getArrivalUmStatistics(Request $request,
-                                           DashboardService $dashboardService): Response
+                                           EntityManagerInterface $entityManager,
+                                           DashboardSettingsService $dashboardSettingsService): Response
     {
-        $query = $request->query;
-        $data = $dashboardService->getWeekArrival(
-            $query->get('firstDay'),
-            $query->get('lastDay'),
-            $query->get('beforeAfter')
-        );
+        $componentTypeRepository = $entityManager->getRepository(ComponentType::class);
+        $componentType = $componentTypeRepository->findOneBy([
+            'meterKey' => ComponentType::DAILY_ARRIVALS
+        ]);
+        $data = $dashboardSettingsService->serializeValues($entityManager, $componentType, $request->query->all());
         return new JsonResponse($data);
     }
 

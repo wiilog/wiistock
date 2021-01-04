@@ -48,13 +48,13 @@ class Component
 
     /**
      * @var null|DashboardMeter\Indicator;
-     * @ORM\OneToOne (targetEntity=DashboardMeter\Indicator::class, mappedBy="component")
+     * @ORM\OneToOne (targetEntity=DashboardMeter\Indicator::class, mappedBy="component", cascade={"remove"})
      */
     private $indicatorMeter;
 
     /**
      * @var null|DashboardMeter\Chart;
-     * @ORM\OneToOne(targetEntity=DashboardMeter\Chart::class, mappedBy="component")
+     * @ORM\OneToOne(targetEntity=DashboardMeter\Chart::class, mappedBy="component", cascade={"remove"})
      */
     private $chartMeter;
 
