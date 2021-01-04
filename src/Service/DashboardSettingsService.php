@@ -128,7 +128,11 @@ class DashboardSettingsService {
                 isset($config['lastDay']) ? $config['lastDay'] : date("d/m/Y", strtotime('sunday this week')),
                 isset($config['beforeAfter']) ? $config['beforeAfter'] : 'now'
             );
-            $values['chartData'] = $chartValues['data'];
+            $chartData = Stream::from($chartValues['data'])
+                ->map(function (array $value) {
+                    return $value['count'];
+                })->toArray();
+            $values['chartData'] = $chartData;
             unset($chartValues['data']);
             $values += $chartValues;
         }
