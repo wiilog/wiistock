@@ -394,9 +394,8 @@ class ReferenceArticleRepository extends EntityRepository {
         if (!empty($params) && !empty($params->get('search'))) {
             $searchValue = is_string($params->get('search')) ? $params->get('search') : $params->get('search')['value'];
             if (!empty($searchValue)) {
-                $date = DateTime::createFromFormat('d/m/Y', $searchValue)
-                    ? DateTime::createFromFormat('d/m/Y', $searchValue)->format('Y-m-d')
-                    : null;
+                $date = DateTime::createFromFormat('d/m/Y', $searchValue);
+                $date = $date ? $date->format('Y-m-d') : null;
                 $search = "%$searchValue%";
                 $ids = [];
                 $query = [];

@@ -727,7 +727,7 @@ class ArticleDataService
             ["title" => "Prix unitaire", "name" => "unitPrice"],
             ["title" => "Dernier inventaire", "name" => "dateLastInventory", 'searchable' => true],
             ["title" => "Lot", "name" => "batch"],
-            ["title" => "Date d'entrée en stock", "name" => "stockEntryDate"],
+            ["title" => "Date d'entrée en stock", "name" => "stockEntryDate", 'searchable' => true],
             ["title" => "Date d'expiration", "name" => "expiryDate", 'searchable' => true],
             ["title" => "Commentaire", "name" => "comment", 'searchable' => true]
         ];
