@@ -18,9 +18,11 @@ class DashboardSettingsService {
     const UNKNOWN_COMPONENT = 'unknown-component';
 
     private $security;
+    private $dashboardService;
 
-    public function __construct(Security $security) {
+    public function __construct(Security $security, DashboardService $dashboardService) {
         $this->security = $security;
+        $this->dashboardService = $dashboardService;
     }
 
     public function serialize(EntityManagerInterface $entityManager, bool $edit = false): string {
@@ -93,8 +95,9 @@ class DashboardSettingsService {
             $values['linesCountTooltip'] = !empty($config['linesCountTooltip']) ? $config['linesCountTooltip'] : '';
             $values['nextLocationTooltip'] = !empty($config['nextLocationTooltip']) ? $config['linesCountTooltip'] : '';
             $values += $componentType->getExampleValues();
-        }
-        else {
+        } else if ($meterKey === Dashboard\ComponentType::RECEIPT_ASSOCIATION) {
+            $values += $this->serializeDailyReceptions($componentType, $config, $example);
+        } else {
             //TODO:remove
             $values += $componentType->getExampleValues();
         }
@@ -155,6 +158,24 @@ class DashboardSettingsService {
             $values = $componentType->getExampleValues();
         }
 
+        return $values;
+    }
+
+    private function serializeDailyReceptions(Dashboard\ComponentType $componentType,
+                                              array $config,
+                                              bool $example = false): array {
+
+        $values = $componentType->getExampleValues();
+        if (!$example) {
+            $chartValues = $this->dashboardService->getWeekAssoc(
+                isset($config['firstDay']) ? $config['firstDay'] : date("d/m/Y", strtotime('monday this week')),
+                isset($config['lastDay']) ? $config['lastDay'] : date("d/m/Y", strtotime('sunday this week')),
+                isset($config['beforeAfter']) ? $config['beforeAfter'] : 'now'
+            );
+            $values['chartData'] = $chartValues['data'];
+            unset($chartValues['data']);
+            $values += $chartValues;
+        }
         return $values;
     }
 
