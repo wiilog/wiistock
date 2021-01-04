@@ -1,0 +1,84 @@
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 col-12">
+        <div class="row form-group">
+            <div class="col-12">
+                <label>Infobulle "Nombre de lignes à traiter"</label>
+            </div>
+            <div class="col-12">
+                <input class="data form-control w-100"
+                       name="linesCountTooltip"
+                       type="text"
+                       value="{{ values.linesCountTooltip ?? '' }}"
+                       title="Infobulle Nombre de lignes à traiter"/>
+            </div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-12">
+                <label>Infobulle "Prochain emplacement à traiter"</label>
+            </div>
+            <div class="col-12">
+                <input class="data form-control w-100"
+                       name="nextLocationTooltip"
+                       type="text"
+                       value="{{ values.nextLocationTooltip ?? '' }}"
+                       title="Infobulle Prochain emplacement à traiter"/>
+            </div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-12">
+                <label>Natures de colis</label>
+            </div>
+            <div class="col-12">
+                <select class="data form-control w-100 needed select2"
+                        name="natures"
+                        multiple
+                        title="Natures">
+                    {% for nature in natures %}
+                        <option value="{{ nature.id }}" {{ nature in values.natures ? 'selected' }}>{{ nature.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-12">
+                <label>Emplacements*</label>
+            </div>
+            <div class="col-12">
+                <select class="ajax-autocomplete-location data form-control w-100 needed"
+                        name="locations"
+                        multiple
+                        title="Emplacements">
+                    {% for location in values.locations %}
+                        <option value="{{ location.id }}" selected>{{ location.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="switch">
+                <input class="checkbox data needs-default"
+                       type="checkbox"
+                       name="redirectOngoing"
+                    {{ values.redirectOngoing ?? false ? 'checked' }}>
+                <span class="slider round"></span>
+            </label>
+            <label>Rediriger vers la page Encours au clic</label>
+        </div>
+    </div>
+    <div class="col-md-6 col-12 segments-list" data-segments="{{ (values.segments ?? []) | json_encode }}">
+        <div>
+            <label>Segments (en heures)</label>
+        </div>
+        <button class="btn btn-primary add-time-interval d-block mt-3" onclick="addEntryTimeInterval($(this))" data-current="0" type="button">
+            <i class="fa fa-plus"></i>
+        </button>
+    </div>
+</div>
+{% endblock %}

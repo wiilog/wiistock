@@ -50,9 +50,9 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
                 $output->writeln("Création de la catégorie " . $index);
             }
 
-            if (!$categorie->getCategoryType()) {
+            if ($categorie->getCategoryType() === null && $categorieType !== null) {
                 $categorie->setCategoryType($categorieType);
-                $output->writeln('Liaison categorieCL ' . $index . ' à categorieType ' . $categorieName);
+                $output->writeln("Liaison categorieCL $index à categorieType $categorieName");
             }
         }
         $manager->flush();

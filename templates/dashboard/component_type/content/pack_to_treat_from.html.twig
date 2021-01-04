@@ -1,0 +1,75 @@
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
+
+{% block content %}
+    <div class="row">
+        <div class="form-group col-6">
+            <label>Emplacement(s) origine 1</label>
+            <select class="ajax-autocomplete-location data form-control w-100 needed"
+                    name="firstOriginLocation"
+                    multiple
+                    title="Emplacement(s) origine 1">
+                {% for location in values.firstOriginLocation %}
+                    <option value="{{ location.id }}" selected>{{ location.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group col-6">
+            <label>Légende origine</label>
+            <input class="data form-control w-100"
+                   name="originCaption"
+                   type="text"
+                   title="Légende origine"
+                   value="{{ values.originCaption ?? '' }}"/>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="form-group col-6">
+            <label>Emplacement(s) origine 2</label>
+            <select class="ajax-autocomplete-location data form-control w-100 needed"
+                    name="secondOriginLocation"
+                    multiple
+                    title="Emplacement(s) origine 2">
+                {% for location in values.secondOriginLocation %}
+                    <option value="{{ location.id }}" selected>{{ location.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group col-6">
+            <label>Légende destination</label>
+            <input class="data form-control w-100"
+                   name="destinationCaption"
+                   type="text"
+                   title="Légende destination"
+                   value="{{ values.destinationCaption ?? '' }}"/>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="form-group col-6">
+            <label>Emplacement(s) destination 1</label>
+            <select class="ajax-autocomplete-location data form-control w-100 needed"
+                    name="firstDestinationLocation"
+                    multiple
+                    title="Emplacement(s) destination 1">
+                {% for location in values.firstDestinationLocation %}
+                    <option value="{{ location.id }}" selected>{{ location.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="form-group col-6">
+            <label>Emplacement(s) destination 2</label>
+            <select class="ajax-autocomplete-location data form-control w-100 needed"
+                    name="secondDestinationLocation"
+                    multiple
+                    title="Emplacement(s) destination 2">
+                {% for location in values.secondDestinationLocation %}
+                    <option value="{{ location.id }}" selected>{{ location.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+{% endblock %}

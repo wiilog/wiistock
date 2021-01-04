@@ -31,6 +31,19 @@ class TransporteurRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findByIds(array $ids): array {
+        if (!empty($ids)) {
+            return $this->createQueryBuilder('carrier')
+                ->where('carrier.id IN (:ids)')
+                ->setParameter('ids', $ids, Connection::PARAM_STR_ARRAY)
+                ->getQuery()
+                ->getResult();
+        }
+        else {
+            return [];
+        }
+    }
+
     public function getIdAndLibelleBySearch($search)
     {
         $em = $this->getEntityManager();

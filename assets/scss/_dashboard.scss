@@ -1,23 +1,98 @@
+$maxColumnOnRow: 12;
+$columnGutters: 6px;
+
 .dashboard {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     height: 100%;
+
+    .dashboard-row {
+        display: flex;
+        width: 100%;
+        flex: 1;
+
+        &:not(:first-child) {
+            margin-top: 10px;
+        }
+
+        @for $columnIndex from 1 through $maxColumnOnRow {
+            &.dashboard-row-size-#{$columnIndex} .dashboard-row-wrapper .dashboard-component {
+                flex: 0 0 calc(#{percentage(1 / $columnIndex)} - #{$columnGutters});
+                max-width: calc(#{percentage(1 / $columnIndex)} - #{$columnGutters});
+            }
+        }
+
+        .dashboard-row-wrapper {
+            display: flex;
+            width: 100%;
+            flex: 1;
+
+            .dashboard-component {
+                display: flex;
+                position: relative;
+                background: #EEE;
+                border-radius: 4px;
+                margin-left: $columnGutters / 2;
+                margin-right: $columnGutters / 2;
+
+                &.empty {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .component-toolbox {
+                    max-width: 40px;
+                    text-align: right;
+                    position: absolute;
+                    top: 3px;
+                    right: 3px;
+                }
+            }
+        }
+    }
 }
 
-.dashboard .dashboard-row {
-    width: 100%;
-    flex: 1;
-    background-color: red; /* placeholder */
-    border-radius: 4px; /* placeholder */
-}
-
-.dashboard .dashboard-row:not(:first-child) {
-    margin-top: 10px;
-}
-
-.dashboard-selector {
+.dashboard-pagination {
     display: flex;
     justify-content: center;
     margin-top: 10px;
+}
+
+.dashboard-row-selector {
+    border: 1px solid #EEE;
+    padding: 5px;
+    margin: 5px;
+    border-radius: 4px;
+    width: calc(50% - 10px);
+    cursor: pointer;
+
+    &.selected {
+        background-color: #EEE;
+        border-color: #BBB;
+    }
+
+    &:hover {
+        background-color: #F8F8F8;
+    }
+}
+
+.dashboard-example {
+    background-color: #130078;
+    border-radius: 3px;
+    height: 15px;
+    flex: 1;
+
+    &:not(:last-child) {
+        margin-right: 1px;
+    }
+}
+
+.component-example-container {
+    min-height: 120px;
+    display: flex;
+    &.graph {
+        min-height: 250px;
+    }
 }

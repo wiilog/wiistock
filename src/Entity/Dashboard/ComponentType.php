@@ -13,6 +13,19 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class ComponentType
 {
+    public const ONGOING_PACKS = 'ongoing_packs';
+    public const DAILY_ARRIVALS = 'daily_arrivals';
+    public const LATE_PACKS = 'late_packs';
+    public const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
+    public const WEEKLY_ARRIVALS_AND_PACKS = 'weekly_arrivals_and_packs';
+    public const CARRIER_TRACKING = 'carrier_tracking';
+    public const RECEIPT_ASSOCIATION = 'receipt_association';
+    public const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
+    public const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
+    public const ENTRIES_TO_HANDLE = 'entries_to_handle';
+
+    public const INDICATOR_TYPE = 'Indicateurs';
+    public const GRAPH_TYPE = 'Graphiques';
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -26,7 +39,7 @@ class ComponentType
     private $name;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $template;
 
@@ -36,9 +49,19 @@ class ComponentType
     private $hint;
 
     /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $category;
+
+    /**
      * @ORM\Column(type="json")
      */
     private $exampleValues;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $meterKey;
 
     /**
      * @ORM\OneToMany(targetEntity=Component::class, mappedBy="type")
@@ -73,9 +96,21 @@ class ComponentType
         return $this->template;
     }
 
-    public function setTemplate(string $template): self
+    public function setTemplate(?string $template): self
     {
         $this->template = $template;
+
+        return $this;
+    }
+
+    public function getCategory(): ?string
+    {
+        return $this->category;
+    }
+
+    public function setCategory(string $category): self
+    {
+        $this->category = $category;
 
         return $this;
     }
@@ -130,6 +165,15 @@ class ComponentType
             }
         }
 
+        return $this;
+    }
+
+    public function getMeterKey(): ?string {
+        return $this->meterKey;
+    }
+
+    public function setMeterKey(?string $meterKey): self {
+        $this->meterKey = $meterKey;
         return $this;
     }
 }

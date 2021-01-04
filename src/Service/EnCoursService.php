@@ -174,7 +174,6 @@ class EnCoursService
                 $oldestDrops[] = $packRepository->getCurrentPackOnLocations(
                     $locations,
                     $natures,
-                    [],
                     false,
                     'colis.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label',
                     $maxQueryResultLength,
@@ -212,7 +211,6 @@ class EnCoursService
             $oldestDrops[] = $packRepository->getCurrentPackOnLocations(
                 $locations,
                 $natures,
-                [],
                 false,
                 'colis.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label'
             );

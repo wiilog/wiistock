@@ -8,6 +8,7 @@
         "ext-mysqli": "*",
         "beberlei/doctrineextensions": "^1.2",
         "composer/package-versions-deprecated": "^1.11",
+        "composer/semver": "^3.2",
         "doctrine/annotations": "^1.6",
         "doctrine/doctrine-bundle": "^2.1",
         "doctrine/doctrine-fixtures-bundle": "^3.3",

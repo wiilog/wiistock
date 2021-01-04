@@ -7,7 +7,6 @@ use App\Entity\DimensionsEtiquettes;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Parametre;
 
-use App\Entity\Statut;
 use App\Repository\ParametrageGlobalRepository;
 
 use App\Service\SpecificService;

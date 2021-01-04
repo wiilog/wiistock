@@ -1,0 +1,28 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Dashboards{% endblock %}
+
+{% block pageContainerClass 'full-page' %}
+
+{% block page_content %}
+    <div class="w-100">
+        <div class="h-90">
+            <div class="dashboard"></div>
+        </div>
+        <div class="h-10">
+            <div class="dashboard-pagination"></div>
+        </div>
+    </div>
+
+    <input type="hidden" class="dashboards-data" value="{{ dashboards }}">
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/pages/dashboard/render.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/dashboard/settings.js') }}?{{ app_last_cache_clear }}"></script>
+
+    <script>
+        $(document).ready(() => loadDashboards(MODE_DISPLAY));
+    </script>
+{% endblock %}
