@@ -2,11 +2,11 @@
 
 {% block title %}Dashboards{% endblock %}
 
-{% block pageContainerClass 'full-page' %}
+{% block pageContainerClass 'dashboard-container' %}
 
 {% block page_content %}
     <div class="dashboard"></div>
-        <div class="dashboard-pagination"></div>
+    <div class="dashboard-pagination"></div>
 
     <input type="hidden" class="dashboards-data" value="{{ dashboards }}">
 {% endblock %}

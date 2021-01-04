@@ -199,6 +199,10 @@ $minimumWidth: 1300px;
     }
 }
 
+.dashboard-ext .dashboard-pagination {
+    display: none;
+}
+
 .dashboard-pagination {
     display: flex;
     justify-content: center;
