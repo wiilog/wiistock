@@ -47,13 +47,13 @@ class Component
 
     /**
      * @var null|DashboardMeter\Indicator;
-     * @ORM\OneToOne (targetEntity=DashboardMeter\Indicator::class, mappedBy="component")
+     * @ORM\OneToOne (targetEntity=DashboardMeter\Indicator::class, mappedBy="component", cascade={"remove"})
      */
     private $indicatorMeter;
 
     /**
      * @var null|DashboardMeter\Chart;
-     * @ORM\OneToOne(targetEntity=DashboardMeter\Chart::class, mappedBy="component")
+     * @ORM\OneToOne(targetEntity=DashboardMeter\Chart::class, mappedBy="component", cascade={"remove"})
      */
     private $chartMeter;
 
@@ -105,6 +105,7 @@ class Component
 
     public function setRow(?PageRow $row): self
     {
+        $row->addComponent($this);
         $this->row = $row;
 
         return $this;
@@ -113,7 +114,8 @@ class Component
     /**
      * @return DashboardMeter\Indicator|DashboardMeter\Chart|null
      */
-    public function getMeter() {
+    public function getMeter()
+    {
         return isset($this->indicatorMeter)
             ? $this->indicatorMeter
             : $this->chartMeter;
@@ -123,14 +125,13 @@ class Component
      * @param DashboardMeter\Indicator|DashboardMeter\Chart|null $meter
      * @return Component
      */
-    public function setMeter($meter): self {
+    public function setMeter($meter): self
+    {
         if ($meter instanceof DashboardMeter\Indicator) {
             $this->indicatorMeter = $meter;
-        }
-        else if ($meter instanceof DashboardMeter\Chart) {
+        } else if ($meter instanceof DashboardMeter\Chart) {
             $this->chartMeter = $meter;
-        }
-        else if (!isset($meter)) {
+        } else if (!isset($meter)) {
             $this->indicatorMeter = null;
             $this->chartMeter = null;
         }

@@ -86,7 +86,6 @@ class DashboardSettingsController extends AbstractController {
         }
 
         $dashboards = json_decode($request->request->get("dashboards"), true);
-
         try {
             $dashboardSettingsService->save($entityManager, $dashboards);
         } catch(InvalidArgumentException $exception) {
@@ -102,9 +101,7 @@ class DashboardSettingsController extends AbstractController {
                 throw $exception;
             }
         }
-
         $entityManager->flush();
-
         return $this->json([
             "success" => true,
             "dashboards" => $dashboardSettingsService->serialize($entityManager, true),

@@ -161,7 +161,7 @@ function renderRow(row) {
 
     if(mode === MODE_EDIT) {
         $row.append(`
-                <i class="fa fa-trash ml-1 h-100 delete-row"></i>
+                <div class="delete-row-container"><i class="fa fa-trash ml-1 delete-row pointer"></i></div>
         `);
     }
 
@@ -195,7 +195,7 @@ function renderConfigComponent(component, init = false) {
                     $componentContainer.append($(`
                     <div class="component-toolbox dropdown">
                         <i class="fas fa-cog" data-toggle="dropdown"></i>
-                        <div class="dropdown-menu pointer">
+                        <div class="dropdown-menu dropdown-menu-right pointer">
                             <a class="dropdown-item edit-component ${!component.template ? 'd-none' : ''}" role="button">
                                 <i class="fa fa-pen mr-2"></i> Modifier
                             </a>
@@ -335,13 +335,13 @@ function onDashboardSaved() {
     const content = {
         dashboards: JSON.stringify(dashboards)
     };
+    console.log($.deepCopy(dashboards));
 
     return $.post(Routing.generate(`save_dashboard_settings`), content)
         .then(function(data) {
             if(data.success) {
                 showBSAlert("Dashboards enregistrés avec succès", "success");
                 dashboards = JSON.parse(data.dashboards);
-
                 loadCurrentDashboard(false);
             } else {
                 throw data;
@@ -435,7 +435,7 @@ function onRowAdded() {
 }
 
 function onRowDeleted() {
-    const $row = $(this).parent();
+    const $row = $(this).parents('.dashboard-row');
     const rowIndex = $row.data(`row`);
 
     $row.remove();

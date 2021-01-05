@@ -6,10 +6,12 @@ use App\Entity\Action;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\Transporteur;
+use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Helper\Stream;
 use App\Entity\Dashboard as Dashboard;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use InvalidArgumentException;
 use Symfony\Component\Security\Core\Security;
 
@@ -18,16 +20,20 @@ class DashboardSettingsService {
     const UNKNOWN_COMPONENT = 'unknown-component';
 
     private $security;
+    private $dashboardService;
 
-    public function __construct(Security $security) {
+    public function __construct(Security $security, DashboardService $dashboardService) {
         $this->security = $security;
+        $this->dashboardService = $dashboardService;
     }
 
     public function serialize(EntityManagerInterface $entityManager, bool $edit = false): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
 
         if(!$edit) {
-            $pages = Stream::from($pageRepository->findAllowedToAccess($this->security->getUser()));
+            /** @var Utilisateur $user */
+            $user = $this->security->getUser();
+            $pages = Stream::from($pageRepository->findAllowedToAccess($user));
         } else {
             $pages = Stream::from($pageRepository->findAll());
         }
@@ -74,6 +80,7 @@ class DashboardSettingsService {
      * @param array $config
      * @param bool $example
      * @return array
+     * @throws Exception
      */
     public function serializeValues(EntityManagerInterface $entityManager,
                                     Dashboard\ComponentType $componentType,
@@ -93,10 +100,41 @@ class DashboardSettingsService {
             $values['linesCountTooltip'] = !empty($config['linesCountTooltip']) ? $config['linesCountTooltip'] : '';
             $values['nextLocationTooltip'] = !empty($config['nextLocationTooltip']) ? $config['linesCountTooltip'] : '';
             $values += $componentType->getExampleValues();
-        }
-        else {
+        } else if ($meterKey === Dashboard\ComponentType::RECEIPT_ASSOCIATION) {
+            $values += $this->serializeDailyReceptions($componentType, $config, $example);
+        } else if ($meterKey === Dashboard\ComponentType::DAILY_ARRIVALS) {
+            $values += $this->serializeDailyArrivals($componentType, $config, $example);
+        } else {
             //TODO:remove
             $values += $componentType->getExampleValues();
+        }
+
+        return $values;
+    }
+
+    /**
+     * @param Dashboard\ComponentType $componentType
+     * @param array $config
+     * @param bool $example
+     * @return array
+     */
+    private function serializeDailyArrivals(Dashboard\ComponentType $componentType,
+                                            array $config,
+                                            bool $example = false): array {
+        $values = $componentType->getExampleValues();
+        if (!$example) {
+            $chartValues = $this->dashboardService->getWeekArrival(
+                isset($config['firstDay']) ? $config['firstDay'] : date("d/m/Y", strtotime('monday this week')),
+                isset($config['lastDay']) ? $config['lastDay'] : date("d/m/Y", strtotime('sunday this week')),
+                isset($config['beforeAfter']) ? $config['beforeAfter'] : 'now'
+            );
+            $chartData = Stream::from($chartValues['data'])
+                ->map(function (array $value) {
+                    return $value['count'];
+                })->toArray();
+            $values['chartData'] = $chartData;
+            unset($chartValues['data']);
+            $values += $chartValues;
         }
         return $values;
     }
@@ -158,6 +196,24 @@ class DashboardSettingsService {
         return $values;
     }
 
+    private function serializeDailyReceptions(Dashboard\ComponentType $componentType,
+                                              array $config,
+                                              bool $example = false): array {
+
+        $values = $componentType->getExampleValues();
+        if (!$example) {
+            $chartValues = $this->dashboardService->getWeekAssoc(
+                isset($config['firstDay']) ? $config['firstDay'] : date("d/m/Y", strtotime('monday this week')),
+                isset($config['lastDay']) ? $config['lastDay'] : date("d/m/Y", strtotime('sunday this week')),
+                isset($config['beforeAfter']) ? $config['beforeAfter'] : 'now'
+            );
+            $values['chartData'] = $chartValues['data'];
+            unset($chartValues['data']);
+            $values += $chartValues;
+        }
+        return $values;
+    }
+
     public function save(EntityManagerInterface $entityManager, array $jsonDashboard) {
         $componentTypeRepository = $entityManager->getRepository(Dashboard\ComponentType::class);
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
@@ -170,14 +226,12 @@ class DashboardSettingsService {
 
         foreach($jsonDashboard as $jsonPage) {
             [$updatePage, $page] = $this->getEntity($entityManager, Dashboard\Page::class, $jsonPage);
-
             if ($page) {
                 if ($updatePage) {
                     $page->setName($jsonPage["name"]);
 
                     foreach($jsonPage["rows"] as $jsonRow) {
                         [$updateRow, $row] = $this->getEntity($entityManager, Dashboard\PageRow::class, $jsonRow);
-
                         if ($row) {
                             if ($updateRow) {
                                 $row->setPage($page);
@@ -191,7 +245,6 @@ class DashboardSettingsService {
                                         if (!$type) {
                                             throw new InvalidArgumentException(self::UNKNOWN_COMPONENT . '-' . $jsonComponent["type"]);
                                         }
-
                                         $component->setType($type);
                                         $component->setRow($row);
                                         $component->setColumnIndex($jsonComponent["index"]);

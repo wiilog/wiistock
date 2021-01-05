@@ -14,7 +14,7 @@ const RECEIPT_ASSOCIATION = 'receipt_association';
 const WEEKLY_ARRIVALS_AND_PACKS = 'weekly_arrivals_and_packs';
 const ENTRIES_TO_HANDLE = 'entries_to_handle';
 const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
-const DROPPED_PACKS_DROPZONE = 'dropped_packs_dropzone';
+const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
 
 $(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -27,14 +27,14 @@ $(function() {
 const creators = {
     [ONGOING_PACK]: createOngoingPackElement,
     [CARRIER_TRACKING]: createCarrierTrackingElement,
-    [DAILY_ARRIVALS]: [createSimpleChart, {route: `get_arrival_um_statistics`, variable: `chartArrivalUm`}],
+    [DAILY_ARRIVALS]: [createSimpleChart, {route: `get_arrival_um_statistics`}],
     [LATE_PACKS]: createLatePacksElement,
     [DAILY_ARRIVALS_AND_PACKS]: createSimpleChart,
-    [RECEIPT_ASSOCIATION]: [createSimpleChart, {route: `get_asso_recep_statistics`, variable: `chartAssoRecep`}],
+    [RECEIPT_ASSOCIATION]: [createSimpleChart, {route: `get_asso_recep_statistics`}],
     [WEEKLY_ARRIVALS_AND_PACKS]: createSimpleChart,
     [ENTRIES_TO_HANDLE]: createEntriesToTreatElement,
     [PACK_TO_TREAT_FROM]: [createSimpleChart, {cssClass: 'multiple'}],
-    [DROPPED_PACKS_DROPZONE]: createSimpleChart,
+    [DROP_OFF_DISTRIBUTED_PACKS]: createSimpleChart,
 };
 
 /**
@@ -173,8 +173,8 @@ function calculateChartsFontSize() {
  * @param {{route: string|null, variable: string|null}} pagination
  * @return {boolean|jQuery}
  */
-function createSimpleChart(data, {route, variable, cssClass} = {route: null, variable: null, cssClass: null}) {
-    if(!data) {
+function createSimpleChart(data, {route, variable, cssClass} = {route: null, cssClass: null}) {
+    if (!data) {
         console.error(`Invalid data for "${data.title}"`);
         return false;
     }
@@ -186,13 +186,13 @@ function createSimpleChart(data, {route, variable, cssClass} = {route: null, var
         pagination = `
             <div class="range-buttons ${mode === MODE_EDIT ? 'd-none' : ''}">
                 <div class="arrow-chart"
-                     onclick="drawChartWithHisto($(this), '${route}', 'before', ${variable})">
+                     onclick="drawChartWithHisto($(this), '${route}', 'before')">
                     <i class="fas fa-chevron-left pointer"></i>
                 </div>
-                <span class="firstDay" data-day="TO DO"></span> -
-                <span class="lastDay" data-day="TO DO"></span>
+                <span class="firstDay" data-day="${data.firstDayData}">${data.firstDay}</span> -
+                <span class="lastDay" data-day="${data.lastDayData}">${data.lastDay}</span>
                 <div class="arrow-chart"
-                     onclick="drawChartWithHisto($(this), '${route}', 'after', ${variable})">
+                     onclick="drawChartWithHisto($(this), '${route}', 'after')">
                     <i class="fas fa-chevron-right pointer"></i>
                 </div>
             </div>
@@ -204,7 +204,7 @@ function createSimpleChart(data, {route, variable, cssClass} = {route: null, var
                 ${title}
             </div>
             ${createTooltip(data.tooltip)}
-            <div>
+            <div class="h-100">
                 <canvas class="${cssClass || ''}"></canvas>
             </div>
             ${pagination}
@@ -321,47 +321,28 @@ function createOngoingPackElement(data) {
 
 //fonctions à sortir dans un autre fichier
 
-function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null, preferCacheData = false) {
-    return new Promise(function(resolve) {
-        if($button.length == 0) {
-            resolve();
-        } else {
-            let $dashboardBox = $button.closest('.dashboard-box');
-            let $rangeBtns = $dashboardBox.find('.range-buttons');
-            let $firstDay = $rangeBtns.find('.firstDay');
-            let $lastDay = $rangeBtns.find('.lastDay');
-            let $canvas = $dashboardBox.find('canvas');
-            if(!preferCacheData) {
-                let params = {
-                    'firstDay': $firstDay.data('day'),
-                    'lastDay': $lastDay.data('day'),
-                    'beforeAfter': beforeAfter
-                };
-                $.get(Routing.generate(path), params, function(data) {
-                    $firstDay.text(data.firstDay);
-                    $firstDay.data('day', data.firstDayData);
-                    $lastDay.text(data.lastDay);
-                    $lastDay.data('day', data.lastDayData);
-                    $rangeBtns.removeClass('d-none');
+function drawChartWithHisto($button, path, beforeAfter = 'now') {
+    let $dashboardBox = $button.closest('.dashboard-box');
+    let $rangeBtns = $dashboardBox.find('.range-buttons');
+    let $firstDay = $rangeBtns.find('.firstDay');
+    let $lastDay = $rangeBtns.find('.lastDay');
+    let $canvas = $dashboardBox.find('canvas');
+    let params = {
+        'firstDay': $firstDay.data('day'),
+        'lastDay': $lastDay.data('day'),
+        'beforeAfter': beforeAfter
+    };
+    $.get(Routing.generate(path), params, function (data) {
+        $firstDay.text(data.firstDay);
+        $firstDay.data('day', data.firstDayData);
+        $lastDay.text(data.lastDay);
+        $lastDay.data('day', data.lastDayData);
+        $rangeBtns.removeClass('d-none');
 
-                    const chartData = Object.keys(data.data).reduce((previous, currentKeys) => {
-                        previous[currentKeys] = (data.data[currentKeys].count || data.data[currentKeys] || 0);
-                        return previous;
-                    }, {});
-
-                    dashboardChartsData[$canvas.attr('id')] = chartData;
-                    chart = createAndUpdateSimpleChart($canvas, chart, chartData);
-                    resolve(chart);
-                });
-            } else {
-                const chartData = dashboardChartsData[$canvas.attr('id')];
-
-                chart = createAndUpdateSimpleChart($canvas, chart, chartData, true);
-                resolve(chart);
-            }
-        }
+        createAndUpdateSimpleChart($canvas, null, data);
     });
 }
+
 
 function updateSimpleChartData(chart, data, label, stack = false,
                                {data: subData, label: lineChartLabel} = {data: undefined, label: undefined}) {
