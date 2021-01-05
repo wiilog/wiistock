@@ -69,8 +69,9 @@ function loadDashboards(m) {
 
                 renderCurrentDashboard();
                 renderDashboardPagination();
+                renderRefreshDate(response.refreshed);
             })
-        }, 5 * 60 * 1000);
+        },  1000);
     }
 }
 
@@ -131,6 +132,10 @@ function recalculateIndexes() {
             row.index = rowIndex;
         });
     });
+}
+
+function renderRefreshDate(date) {
+    $(`.refresh-date`).html(`Actualisé le : ${date}`);
 }
 
 function renderCurrentDashboard() {

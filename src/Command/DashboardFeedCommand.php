@@ -3,10 +3,12 @@
  * Commande Cron exécutée toute les minutes tous les jours de 7h a 19h excepté le dimanche :
  *
  */
+
 // */1 6-18 * * 1-6
 namespace App\Command;
 
 use App\Service\DashboardService;
+use App\Service\WiilockService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;
@@ -16,23 +18,24 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 use App\Entity\Dashboard;
 
-class DashboardFeedCommand extends Command
-{
+class DashboardFeedCommand extends Command {
+
     protected static $defaultName = 'app:feed:dashboards';
 
     private $entityManager;
     private $dashboardService;
+    private $wiilockService;
 
     public function __construct(EntityManagerInterface $entityManager,
-                                DashboardService $dashboardService)
-    {
+                                DashboardService $dashboardService,
+                                WiilockService $wiilockService) {
         parent::__construct(self::$defaultName);
         $this->entityManager = $entityManager;
         $this->dashboardService = $dashboardService;
+        $this->wiilockService = $wiilockService;
     }
 
-    protected function configure()
-    {
+    protected function configure() {
         $this->setDescription('This command feeds the dashboard data.');
     }
 
@@ -43,12 +46,18 @@ class DashboardFeedCommand extends Command
      * @throws ORMException
      * @throws Throwable
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
+    protected function execute(InputInterface $input, OutputInterface $output) {
         $entityManager = $this->getEntityManager();
+        if($this->wiilockService->dashboardIsBeingFed($entityManager)) {
+            $output->writeln("Dashboards are being fed, aborting");
+            return 0;
+        }
+
+        $this->wiilockService->toggleFeedingDashboard($entityManager, true);
+        $entityManager->flush();
+
         $dashboardComponentRepository = $entityManager->getRepository(Dashboard\Component::class);
         $components = $dashboardComponentRepository->findAll();
-        // TODO use wiilock
 
         foreach ($components as $component) {
             $componentType = $component->getType();
@@ -69,16 +78,19 @@ class DashboardFeedCommand extends Command
         }
 
         $entityManager->flush();
+
+        $this->wiilockService->toggleFeedingDashboard($entityManager, false);
+        $entityManager->flush();
     }
 
     /**
      * @return EntityManagerInterface
      * @throws ORMException
      */
-    private function getEntityManager(): EntityManagerInterface
-    {
+    private function getEntityManager(): EntityManagerInterface {
         return $this->entityManager->isOpen()
             ? $this->entityManager
             : EntityManager::Create($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
     }
+
 }

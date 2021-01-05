@@ -3,8 +3,9 @@
 {% block body %}
     <div class="wrapper pl-0 bg-primary-followgt">
         <div class="dashboard-ext">
-            <div class="header-container header-ext">
+            <div class="header-container header-ext position-relative">
                 {% include 'header.html.twig' with {'isDashboardExt': 1} %}
+                <span class="refresh-date external">Actualisé le : {{ refreshed }}</span>
             </div>
             <div class="dashboard-container">
                 <div class="dashboard"></div>
