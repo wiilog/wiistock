@@ -4,8 +4,10 @@ namespace App\Entity\Dashboard;
 
 use App\Entity\LocationCluster;
 use App\Repository\Dashboard as DashboardRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Dashboard\Meter as DashboardMeter;
+use phpDocumentor\Reflection\Types\Collection;
 
 /**
  * @ORM\Entity(repositoryClass=DashboardRepository\ComponentRepository::class)
@@ -55,11 +57,18 @@ class Component
     private $chartMeter;
 
     /**
-     * @var null|LocationCluster;
-     * @ORM\OneToOne(targetEntity=LocationCluster::class, mappedBy="component")
+     * @var Collection;
+     * @ORM\OneToMany(targetEntity=LocationCluster::class, mappedBy="component", cascade={"remove"})
      */
-    private $locationCluster;
+    private $locationClusters;
 
+    /**
+     * Component constructor.
+     */
+    public function __construct()
+    {
+        $this->locationClusters = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -142,12 +151,29 @@ class Component
         return $this;
     }
 
-    public function getLocationCluster() : ?LocationCluster {
-        return $this->locationCluster;
+    public function getLocationClusters() : Collection {
+        return $this->locationClusters;
     }
 
-    public function setLocationCluster(?LocationCluster $locationCluster) {
-        $this->locationCluster = $locationCluster;
+    public function getLocationCluster(string $clusterKey) : ?LocationCluster {
+        $filteredClusters = $this->locationClusters->filter(function (LocationCluster $locationCluster) use ($clusterKey) {
+            return $locationCluster->getClusterKey() === $clusterKey;
+        });
+        return !$filteredClusters->isEmpty() ? $filteredClusters->first() : null;
+    }
+
+    public function addLocationCluster(LocationCluster $locationCluster) {
+        if (!$this->locationClusters->contains($locationCluster)) {
+            $this->locationClusters[] = $locationCluster;
+        }
+    }
+
+    public function removeLocationCluster(LocationCluster $locationCluster): self
+    {
+        if ($this->locationClusters->contains($locationCluster)) {
+            $this->locationClusters->removeElement($locationCluster);
+        }
+        return $this;
     }
 
 }
