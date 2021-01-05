@@ -73,6 +73,11 @@ function loadDashboards(m) {
             })
         }, 5 * 60 * 1000);
     }
+
+    $(document)
+        .arrive(".segments-list .segment-hour", function() {
+            onSegmentInputChange($(this), true);
+        });
 }
 
 $(`.download-trace`).click(function() {
@@ -347,7 +352,11 @@ function onDashboardSaved() {
                 showBSAlert("Dashboards enregistrés avec succès", "success");
                 dashboards = JSON.parse(data.dashboards);
                 loadCurrentDashboard(false);
-            } else {
+            }
+            else if(data.msg) {
+                showBSAlert(data.msg, "danger");
+            }
+            else {
                 throw data;
             }
         })
@@ -564,7 +573,7 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
 
 function onComponentSaved($modal) {
     clearFormErrors($modal);
-    const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal);
+    const {success, errorMessages, $isInvalidElements, data} = processSecondModalForm($modal);
     if(success) {
         const {rowIndex, componentIndex, meterKey, template, componentType, ...config} = data;
         editComponent(Number(rowIndex), Number(componentIndex), {
@@ -581,6 +590,14 @@ function onComponentSaved($modal) {
             errorMessages
         });
     }
+}
+
+function processSecondModalForm($modal) {
+    const {data, ...remaining} = ProcessForm($modal);
+    if(data.segments) {
+        data.segments = data.segments.map(clearSegmentHourValues);
+    }
+    return {data, ...remaining};
 }
 
 function editComponent(rowIndex, componentIndex, {config, type, meterKey, template = null}) {
@@ -625,9 +642,15 @@ function initSecondStep(html) {
     $formInputs.off('change.secondStepComponentType');
     $formInputs.on('change.secondStepComponentType', () => renderFormComponentExample());
 
-    if($modalComponentTypeSecondStep.find('.segments-list').length > 0) {
-        const segments = $modalComponentTypeSecondStep.find(`.segments-list`).data(`segments`);
-        initializeEntryTimeIntervals(segments);
+    const $segmentsList = $modalComponentTypeSecondStepContent.find('.segments-list');
+
+    if($segmentsList.length > 0) {
+        const segments = $segmentsList.data(`segments`);
+        if(segments.length > 0) {
+            initializeEntryTimeIntervals(segments);
+        } else {
+            addEntryTimeInterval($segmentsList.find('.add-time-interval'));
+        }
     }
 }
 
@@ -715,39 +738,50 @@ function initializeEntryTimeIntervals(segments) {
 function addEntryTimeInterval($button, time = null) {
     const current = $button.data(`current`);
 
-    $(`
-        <div class="row mt-2 interval">
-            <div class="col-5">
-                <label>Heure 1</label>
-                <input class="data form-control w-100 needed display-previous"
-                       type="text"
-                       disabled
-                       ${current === 0 ? 'value="1"' : ''}
-                       title="Heure de début du segment"/>
-            </div>
-            <div class="col-5">
-                <label>Heure 2</label>
-                <input class="data-array form-control w-100 needed"
-                       name="segments"
-                       data-no-stringify
-                       type="text"
-                       title="Heure de fin du segment"
-                       ${time !== null ? 'value="' + time + '"' : ''}
-                       onkeyup="recalculateIntervals()"/>
-            </div>
-            <div class="col-2">
-                <label></label>
-                <button class="btn btn-danger d-block" onclick="deleteEntryTimeInterval($(this))"><i class="fa fa-trash"></i></button>
+    const $segmentInput = $(`
+        <div class="container interval">
+            <div class="form-group row align-items-center">
+                <label class="col-3">Segment <span class="segment-value">0</span></label>
+                <div class="input-group col-7">
+                    <input type="text"
+                           class="data needed form-control text-center display-previous segment-hour"
+                           ${current === 0 ? 'value="1h"' : ''}
+                           title="Heure de début du segment"
+                           style="border: none; background-color: #e9ecef;"
+                           disabled />
+                    <div class="input-group-append input-group-prepend">
+                        <span class="input-group-text" style="border: none;">à</span>
+                    </div>
+                    <input type="text"
+                           class="data-array form-control needed text-center segment-hour"
+                           name="segments"
+                           data-no-stringify
+                           title="Heure de fin du segment"
+                           style="border: none; background-color: #e9ecef;"
+                           ${time !== null ? 'value="' + time + '"' : ''}
+                           onkeyup="onSegmentInputChange($(this), false)"
+                           onchange="onSegmentInputChange($(this), true)" />
+                </div>
+                <div class="col-2">
+                    <button class="btn d-block" onclick="deleteEntryTimeInterval($(this))"><i class="far fa-trash-alt"></i></button>
+                </div>
             </div>
         </div>
-        `).insertBefore($button);
+    `);
 
-    $button.data(`current`, current + 1);
+    $button.data("current", current + 1);
+    const $lastSegmentValues = $button.closest('.modal').find('.segment-value');
+    const $currentSegmentValue = $segmentInput.find('.segment-value');
+    const $lastSegmentValue = $lastSegmentValues.last();
+    const lastSegmentValue = parseInt($lastSegmentValue.text() || '0');
+    $currentSegmentValue.text(lastSegmentValue + 1);
+
+    $segmentInput.insertBefore($button);
     recalculateIntervals();
 }
 
 function deleteEntryTimeInterval($button) {
-    $button.parent().parent().remove();
+    $button.parent().parent().parent().remove();
     recalculateIntervals();
 }
 
@@ -761,4 +795,20 @@ function recalculateIntervals() {
 
         previous = $(this).find(`input[name="segments"]`).val();
     });
+}
+
+function onSegmentInputChange($input, isChanged = false) {
+    const value = $input.val();
+    const smartValue = clearSegmentHourValues(value);
+    const newVal = smartValue && (parseInt(smartValue) + (isChanged ? 'h' : ''));
+
+    $input.val(newVal);
+
+    if(isChanged) {
+        recalculateIntervals();
+    }
+}
+
+function clearSegmentHourValues(value) {
+    return (value || '').replace(/[^\d]/g, '');
 }

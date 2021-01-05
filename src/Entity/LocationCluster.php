@@ -3,7 +3,6 @@
 
 namespace App\Entity;
 
-use App\Entity\Dashboard\Component;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
@@ -56,7 +55,7 @@ class LocationCluster {
 
     /**
      * @var Dashboard\Component
-     * @ORM\ManyToOne(targetEntity=Dashboard\Component::class, inversedBy="locationCluster")
+     * @ORM\ManyToOne(targetEntity=Dashboard\Component::class, inversedBy="locationClusters")
      */
     private $component;
 

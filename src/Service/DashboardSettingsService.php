@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\Emplacement;
-use App\Entity\LocationCluster;
 use App\Entity\Menu;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
@@ -21,7 +20,8 @@ class DashboardSettingsService {
     const MODE_DISPLAY = 1;
     const MODE_EXTERNAL = 2;
 
-    const UNKNOWN_COMPONENT = 'unknown-component';
+    const UNKNOWN_COMPONENT = 'unknown_component';
+    const INVALID_SEGMENTS_ENTRY = 'invalid_segments_entry';
 
     private $enCoursService;
     private $dashboardService;
@@ -100,17 +100,14 @@ class DashboardSettingsService {
         }
         else if ($meterKey === Dashboard\ComponentType::CARRIER_TRACKING) {
             $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
-        }
-        else if ($meterKey === Dashboard\ComponentType::ENTRIES_TO_HANDLE) {
+        } else if ($meterKey === Dashboard\ComponentType::ENTRIES_TO_HANDLE) {
             $values['linesCountTooltip'] = !empty($config['linesCountTooltip']) ? $config['linesCountTooltip'] : '';
             $values['nextLocationTooltip'] = !empty($config['nextLocationTooltip']) ? $config['linesCountTooltip'] : '';
             $values += $componentType->getExampleValues();
-        }
-        else if ($meterKey === Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS
-                 || $meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS) {
+        } else if ($meterKey === Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS
+            || $meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS) {
             $values += $this->serializeArrivalsAndPacks($componentType, $config, $example, $meter);
-        }
-        else if ($meterKey === Dashboard\ComponentType::RECEIPT_ASSOCIATION) {
+        } else if ($meterKey === Dashboard\ComponentType::RECEIPT_ASSOCIATION) {
             $values += $this->serializeDailyReceptions($componentType, $config, $example);
         }
         else if ($meterKey === Dashboard\ComponentType::DAILY_ARRIVALS) {
@@ -339,6 +336,7 @@ class DashboardSettingsService {
                                         $component->setType($type);
                                         $component->setRow($row);
                                         $component->setColumnIndex($jsonComponent["index"]);
+                                        $this->validateComponentConfig($type, $jsonComponent["config"]);
                                         $component->setConfig($jsonComponent["config"]);
                                     }
 
@@ -368,6 +366,29 @@ class DashboardSettingsService {
             ->each(function($entity) use ($entityManager) {
                 $entityManager->remove($entity);
             });
+    }
+
+    /**
+     * @param Dashboard\ComponentType $componentType
+     * @param array $config
+     */
+    private function validateComponentConfig(Dashboard\ComponentType $componentType,
+                                             array $config) {
+        if($componentType->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE) {
+            if(empty($config['segments']) || count($config['segments']) < 2) {
+                throw new InvalidArgumentException(self::INVALID_SEGMENTS_ENTRY . '-' . $config['title']);
+            } else {
+                $previousSegment = 0;
+                foreach ($config['segments'] as $segment) {
+                    if($previousSegment > $segment) {
+                        throw new InvalidArgumentException(self::INVALID_SEGMENTS_ENTRY . '-' . $config['title']);
+                    }
+                    else {
+                        $previousSegment = $segment;
+                    }
+                }
+            }
+        }
     }
 
     /**

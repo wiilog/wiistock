@@ -103,7 +103,16 @@ class DashboardSettingsController extends AbstractController {
                     "msg" => "Type de composant ${unknownComponentLabel} inconnu"
                 ]);
             } else {
-                throw $exception;
+                $invalidSegmentsEntry = DashboardSettingsService::INVALID_SEGMENTS_ENTRY;
+                if (preg_match("/$invalidSegmentsEntry-(.*)/", $message, $matches)) {
+                    $title = $matches[1] ?? '';
+                    return $this->json([
+                        "success" => false,
+                        "msg" => 'Les valeurs de segments renseignées pour le composant "' . $title . '" ne sont pas valides'
+                    ]);
+                } else {
+                    throw $exception;
+                }
             }
         }
 

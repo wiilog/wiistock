@@ -5,9 +5,9 @@ namespace App\Entity\Dashboard;
 use App\Entity\LocationCluster;
 use App\Repository\Dashboard as DashboardRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Dashboard\Meter as DashboardMeter;
-use phpDocumentor\Reflection\Types\Collection;
 
 /**
  * @ORM\Entity(repositoryClass=DashboardRepository\ComponentRepository::class)
@@ -151,21 +151,23 @@ class Component
         return $this;
     }
 
-    public function getLocationClusters() : Collection {
+    public function getLocationClusters(): Collection {
         return $this->locationClusters;
     }
 
-    public function getLocationCluster(string $clusterKey) : ?LocationCluster {
+    public function getLocationCluster(string $clusterKey): ?LocationCluster {
         $filteredClusters = $this->locationClusters->filter(function (LocationCluster $locationCluster) use ($clusterKey) {
             return $locationCluster->getClusterKey() === $clusterKey;
         });
         return !$filteredClusters->isEmpty() ? $filteredClusters->first() : null;
     }
 
-    public function addLocationCluster(LocationCluster $locationCluster) {
+    public function addLocationCluster(LocationCluster $locationCluster): self {
         if (!$this->locationClusters->contains($locationCluster)) {
             $this->locationClusters[] = $locationCluster;
         }
+
+        return $this;
     }
 
     public function removeLocationCluster(LocationCluster $locationCluster): self

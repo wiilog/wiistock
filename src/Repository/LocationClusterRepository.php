@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\LocationCluster;
 use App\Entity\Nature;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -11,7 +12,7 @@ use Doctrine\ORM\EntityRepository;
  * @package App\Repository
  */
 class LocationClusterRepository extends EntityRepository {
-    public function getPacksOnCluster(string $code, array $naturesFilter): array {
+    public function getPacksOnCluster(LocationCluster $locationCluster, array $naturesFilter): array {
         $queryBuilder = $this->createQueryBuilder('cluster')
             ->select('nature.id as natureId')
             ->addSelect('nature.label as natureLabel')
@@ -29,8 +30,8 @@ class LocationClusterRepository extends EntityRepository {
             ->join('lastTracking.emplacement', 'currentLocation')
             ->leftJoin('pack.nature', 'nature')
             ->where('record.active = true')
-            ->andWhere('cluster.code = :code')
-            ->setParameter('code', $code);
+            ->andWhere('cluster = :locationCluster')
+            ->setParameter('locationCluster', $locationCluster);
 
         if (!empty($naturesFilter)) {
             $queryBuilder
