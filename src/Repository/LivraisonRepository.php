@@ -217,21 +217,22 @@ class LivraisonRepository extends EntityRepository
 	 * @param DateTime $dateMax
 	 * @return Livraison[]|null
 	 */
-	public function findByDates($dateMin, $dateMax)
+	public function getByDates($dateMin, $dateMax)
 	{
-		$dateMax = $dateMax->format('Y-m-d H:i:s');
-		$dateMin = $dateMin->format('Y-m-d H:i:s');
-
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			'SELECT l
-            FROM App\Entity\Livraison l
-            WHERE l.date BETWEEN :dateMin AND :dateMax'
-		)->setParameters([
+		$iterator = $this->createQueryBuilder('livraison')
+            ->where('livraison.date BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
 			'dateMin' => $dateMin,
 			'dateMax' => $dateMax
-		]);
-		return $query->execute();
+		])
+            ->getQuery()
+            ->iterate();
+
+        foreach($iterator as $item) {
+            // $item [index => article array]
+            yield array_pop($item);
+        };
+
 	}
 
     public function countByNumero(string $numero) {

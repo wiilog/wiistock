@@ -14,6 +14,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\NegativeQuantityException;
 use App\Helper\FormatHelper;
+use App\Service\CSVExportService;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PreparationsManagerService;
@@ -23,6 +24,7 @@ use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -325,27 +327,30 @@ class LivraisonController extends AbstractController
         return new JsonResponse($data);
     }
 
-	/**
-	 * @Route("/infos", name="get_ordres_livraison_for_csv", options={"expose"=true}, methods={"GET","POST"})
-	 * @param Request $request
-	 * @param EntityManagerInterface $entityManager
-	 * @return Response
-	 */
+    /**
+     * @Route("/infos", name="get_ordres_livraison_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @param Request $request
+     * @param CSVExportService $CSVExportService
+     * @param EntityManagerInterface $entityManager
+     * @param LoggerInterface $logger
+     * @return Response
+     */
     public function getOrdreLivraisonIntels(Request $request,
-                                            EntityManagerInterface $entityManager): Response
+                                            CSVExportService $CSVExportService,
+                                            EntityManagerInterface $entityManager,
+                                            LoggerInterface $logger): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
 
-            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (Throwable $throwable) {
+        }
+        if (isset($dateTimeMin) && isset($dateTimeMax)) {
 
-            $livraisonRepository = $entityManager->getRepository(Livraison::class);
-
-            $livraisons = $livraisonRepository->findByDates($dateTimeMin, $dateTimeMax);
-
-            $headers = [
+            $csvHeader = [
                 'numéro',
                 'statut',
                 'date création',
@@ -363,23 +368,37 @@ class LivraisonController extends AbstractController
                 'code-barre'
             ];
 
+            return $CSVExportService->streamResponse(
+
+                function ($output) use ($entityManager, $dateTimeMin, $dateTimeMax, $logger, $CSVExportService) {
+                    $livraisonRepository = $entityManager->getRepository(Livraison::class);
+                    $livraisons = $livraisonRepository->getByDates($dateTimeMin, $dateTimeMax);
+                    $logger->critical(json_encode($livraisons));
+                    foreach ($livraisons as $livraison) {
+
+                        $logger->critical(json_encode($livraison));
+                        $logger->critical(get_class($livraison));
+                        $this->putLivraisonLine($output, $CSVExportService, $livraison);
+                    }
+                }, 'export_Ordres_Livraison.csv',
+                $csvHeader
+            );
+
             $data = [];
             $data[] = $headers;
             foreach ($livraisons as $livraison) {
                 $this->buildInfos($livraison, $data);
             }
-            return new JsonResponse($data);
-        } else {
-            throw new BadRequestHttpException();
         }
     }
 
-    private function buildInfos(Livraison $livraison, &$data)
+    private function putLivraisonLine($handle,
+                                      CSVExportService $csvService,
+                                      Livraison $livraison)
     {
         $demande = $livraison->getDemande();
         $preparation = $livraison->getPreparation();
-        if (isset($demande)
-            && isset($preparation)) {
+        if (isset($demande) && isset($preparation)) {
             $dataLivraison = [
                 $livraison->getNumero() ?? '',
                 $livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
@@ -395,7 +414,7 @@ class LivraisonController extends AbstractController
             foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
                 if ($ligneArticle->getQuantitePrelevee() > 0) {
                     $referenceArticle = $ligneArticle->getReference();
-                    $data[] = array_merge($dataLivraison, [
+                    $line = array_merge($dataLivraison, [
                         $referenceArticle->getReference() ?? '',
                         $referenceArticle->getLibelle() ?? '',
                         $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
@@ -403,6 +422,7 @@ class LivraisonController extends AbstractController
                         $referenceArticle->getQuantiteStock() ?? 0,
                         $referenceArticle->getBarCode(),
                     ]);
+                    $csvService->putLine($handle, $line);
                 }
             }
 
@@ -412,7 +432,7 @@ class LivraisonController extends AbstractController
                     $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
                     $reference = $referenceArticle ? $referenceArticle->getReference() : '';
 
-                    $data[] = array_merge($dataLivraison, [
+                    $line = array_merge($dataLivraison, [
                         $reference,
                         $article->getLabel() ?? '',
                         $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
@@ -420,6 +440,7 @@ class LivraisonController extends AbstractController
                         $article->getQuantite() ?? 0,
                         $article->getBarCode(),
                     ]);
+                    $csvService->putLine($handle, $line);
                 }
             }
         }

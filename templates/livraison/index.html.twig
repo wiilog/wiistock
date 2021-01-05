@@ -40,7 +40,7 @@
                     </div>
                 {% else %}
                     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}
-                        <div class="btn btn-primary btn-ripple" onclick="generateCSV('get_ordres_livraison_for_csv', 'ordre-livr')">
+                        <div class="btn btn-primary btn-ripple" onclick="saveExportFile('get_ordres_livraison_for_csv')">
                             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                         </div>
                     {% endif %}
