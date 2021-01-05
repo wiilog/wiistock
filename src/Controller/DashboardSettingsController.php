@@ -52,7 +52,7 @@ class DashboardSettingsController extends AbstractController {
         $componentTypes = $componentTypeRepository->findAll();
 
         return $this->render("dashboard/settings.html.twig", [
-            "dashboards" => $dashboardSettingsService->serialize($entityManager, true),
+            "dashboards" => $dashboardSettingsService->serialize($entityManager, DashboardSettingsService::MODE_EDIT),
             "token" => $_SERVER["APP_DASHBOARD_TOKEN"],
             "componentTypeConfig" => [
                 // component types group by category
@@ -105,7 +105,7 @@ class DashboardSettingsController extends AbstractController {
         $entityManager->flush();
         return $this->json([
             "success" => true,
-            "dashboards" => $dashboardSettingsService->serialize($entityManager, true),
+            "dashboards" => $dashboardSettingsService->serialize($entityManager, DashboardSettingsService::MODE_EDIT),
         ]);
     }
 

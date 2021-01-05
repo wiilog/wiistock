@@ -63,7 +63,7 @@ function loadDashboards(m) {
 
     if(mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
         setInterval(function() {
-            $.get(Routing.generate("dashboards_fetch"), function(response) {
+            $.get(Routing.generate("dashboards_fetch", {mode}), function(response) {
                 dashboards = JSON.parse(response.dashboards);
                 currentDashboard = dashboards.find(d => d.index === currentDashboard.index);
 
