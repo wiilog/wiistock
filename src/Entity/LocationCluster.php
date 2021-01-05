@@ -38,19 +38,19 @@ class LocationCluster {
     private $locations;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="locationCluster")
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="locationCluster", cascade={"remove"})
      */
     private $locationClusterRecords;
 
     /**
      * @var Collection
-     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterMeter", mappedBy="locationClusterFrom")
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterMeter", mappedBy="locationClusterFrom", cascade={"remove"})
      */
     private $metersFrom;
 
     /**
      * @var Collection
-     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterMeter", mappedBy="locationClusterInto")
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterMeter", mappedBy="locationClusterInto", cascade={"remove"})
      */
     private $metersInto;
 

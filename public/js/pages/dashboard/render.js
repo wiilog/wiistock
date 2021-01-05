@@ -32,7 +32,7 @@ const creators = {
     [DAILY_ARRIVALS_AND_PACKS]: [createSimpleChart],
     [RECEIPT_ASSOCIATION]: [createSimpleChart, {route: `get_asso_recep_statistics`}],
     [WEEKLY_ARRIVALS_AND_PACKS]: [createSimpleChart],
-    [ENTRIES_TO_HANDLE]: createEntriesToTreatElement,
+    [ENTRIES_TO_HANDLE]: [createEntriesToTreatElement],
     [PACK_TO_TREAT_FROM]: [createSimpleChart, {cssClass: 'multiple'}],
     [DROP_OFF_DISTRIBUTED_PACKS]: [createSimpleChart],
 };
@@ -216,7 +216,6 @@ function createCarrierTrackingElement(data) {
     }
 
     const carriers = Array.isArray(data.carriers) ? data.carriers.join() : data.carriers;
-    const tooltip = data.tooltip || "";
     const title = data.title || "";
 
     return $(`
@@ -379,7 +378,6 @@ function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false,
         chart = newChart($canvas, false, disableAnimation);
     }
     if(data) {
-        console.log(data);
         updateSimpleChartData(
             chart,
             data.chartData || data,

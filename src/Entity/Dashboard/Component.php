@@ -56,7 +56,7 @@ class Component
 
     /**
      * @var null|LocationCluster;
-     * @ORM\OneToOne(targetEntity=LocationCluster::class, mappedBy="component")
+     * @ORM\OneToOne(targetEntity=LocationCluster::class, mappedBy="component", cascade={"remove"})
      */
     private $locationCluster;
 

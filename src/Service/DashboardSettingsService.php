@@ -116,7 +116,7 @@ class DashboardSettingsService {
         else if ($meterKey === Dashboard\ComponentType::DAILY_ARRIVALS) {
             $values += $this->serializeDailyArrivals($componentType, $config, $example);
         } else if ($meterKey === Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS) {
-            $values += $this->serializeDroppedPacks($entityManager, $componentType, $config, $example, $chart);
+            $values += $this->serializeDroppedPacks($entityManager, $componentType, $config, $example, $meter);
         } else {
             //TODO:remove
             $values += $componentType->getExampleValues();
@@ -233,11 +233,11 @@ class DashboardSettingsService {
         $values['stack'] = true;
 
         $dailyRequest = ($componentType->getMeterKey() === Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS);
-        $defaultScaleForDailyRequest = 7;
-        $defaultScaleForWeeklyRequest = 5;
-        $scale = $dailyRequest
-            ? ($config['daysNumber'] ?? $defaultScaleForDailyRequest)
-            : $defaultScaleForWeeklyRequest;
+        if($dailyRequest) {
+            $scale = $config['daysNumber'] ?? DashboardService::DEFAULT_DAILY_REQUESTS_SCALE;
+        } else {
+            $scale = DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE;
+        }
 
         // arrivals column
         if (!$example && isset($meterChart)) {
