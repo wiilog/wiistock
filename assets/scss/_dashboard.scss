@@ -42,7 +42,6 @@ $minimumWidth: 1300px;
         .dashboard-row-wrapper {
             display: flex;
             width: 100%;
-            flex: 1;
 
             @media all and (max-width: $minimumWidth) {
                 flex-direction: column;
@@ -108,9 +107,7 @@ $minimumWidth: 1300px;
     width: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
     box-shadow: 2px 2px 3px grey;
-    height: 100%;
     position: relative;
     background: $white;
     padding: 0.5rem;
