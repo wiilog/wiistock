@@ -11,10 +11,9 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Helper\Stream;
 use App\Entity\Dashboard as Dashboard;
+use App\Entity\Dashboard\Meter as DashboardMeter;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use InvalidArgumentException;
-use Symfony\Component\Security\Core\Security;
 
 class DashboardSettingsService {
 
@@ -24,20 +23,18 @@ class DashboardSettingsService {
 
     const UNKNOWN_COMPONENT = 'unknown-component';
 
-    private $security;
+    private $enCoursService;
     private $dashboardService;
 
-    public function __construct(Security $security, DashboardService $dashboardService) {
-        $this->security = $security;
+    public function __construct(EnCoursService $enCoursService, DashboardService $dashboardService) {
+        $this->enCoursService = $enCoursService;
         $this->dashboardService = $dashboardService;
     }
 
-    public function serialize(EntityManagerInterface $entityManager, int $mode): string {
+    public function serialize(EntityManagerInterface $entityManager, Utilisateur $user, int $mode): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
 
         if($mode === self::MODE_DISPLAY) {
-            /** @var Utilisateur $user */
-            $user = $this->security->getUser();
             $pages = Stream::from($pageRepository->findAllowedToAccess($user));
         } else {
             $pages = Stream::from($pageRepository->findAll());
@@ -84,15 +81,14 @@ class DashboardSettingsService {
      * @param Dashboard\ComponentType $componentType
      * @param array $config
      * @param bool $example
-     * @param Dashboard\Meter\Chart|null $chart
+     * @param DashboardMeter\Chart|DashboardMeter\Indicator $meter
      * @return array
-     * @throws Exception
      */
     public function serializeValues(EntityManagerInterface $entityManager,
                                     Dashboard\ComponentType $componentType,
                                     array $config,
                                     bool $example = false,
-                                    ?Dashboard\Meter\Chart $chart = null): array {
+                                    $meter = null): array {
         $values = [];
         $meterKey = $componentType->getMeterKey();
 
@@ -101,18 +97,26 @@ class DashboardSettingsService {
 
         if ($meterKey === Dashboard\ComponentType::ONGOING_PACKS) {
             $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example);
-        } else if ($meterKey === Dashboard\ComponentType::CARRIER_TRACKING) {
+        }
+        else if ($meterKey === Dashboard\ComponentType::CARRIER_TRACKING) {
             $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
-        } else if ($meterKey === Dashboard\ComponentType::ENTRIES_TO_HANDLE) {
+        }
+        else if ($meterKey === Dashboard\ComponentType::ENTRIES_TO_HANDLE) {
             $values['linesCountTooltip'] = !empty($config['linesCountTooltip']) ? $config['linesCountTooltip'] : '';
             $values['nextLocationTooltip'] = !empty($config['nextLocationTooltip']) ? $config['linesCountTooltip'] : '';
             $values += $componentType->getExampleValues();
-        } else if ($meterKey === Dashboard\ComponentType::RECEIPT_ASSOCIATION) {
+        }
+        else if ($meterKey === Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS
+                 || $meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS) {
+            $values += $this->serializeArrivalsAndPacks($componentType, $config, $example, $meter);
+        }
+        else if ($meterKey === Dashboard\ComponentType::RECEIPT_ASSOCIATION) {
             $values += $this->serializeDailyReceptions($componentType, $config, $example);
-        } else if ($meterKey === Dashboard\ComponentType::DAILY_ARRIVALS) {
+        }
+        else if ($meterKey === Dashboard\ComponentType::DAILY_ARRIVALS) {
             $values += $this->serializeDailyArrivals($componentType, $config, $example);
         } else if ($meterKey === Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS) {
-            $values += $this->serializeDroppedPacks($entityManager, $componentType, $config, $example, $chart);
+            $values += $this->serializeDroppedPacks($entityManager, $componentType, $config, $example, $meter);
         } else {
             //TODO:remove
             $values += $componentType->getExampleValues();
@@ -151,33 +155,42 @@ class DashboardSettingsService {
     private function serializeOngoingPacks(EntityManagerInterface $manager,
                                            Dashboard\ComponentType $componentType,
                                            array $config,
-                                           bool $example = false): array {
-        $values = [];
+                                           bool $example = false,
+                                          DashboardMeter\Indicator $meter = null): array {
         $shouldShowTreatmentDelay = isset($config['withTreatmentDelay']) && $config['withTreatmentDelay'];
         $shouldShowLocationLabels = isset($config['withLocationLabels']) && $config['withLocationLabels'];
 
-//      if($example) {
-        $values = $componentType->getExampleValues();
+        if ($example || !$meter) {
+            $values = $componentType->getExampleValues();
 
-        if (!$shouldShowTreatmentDelay) {
-            unset($values['delay']);
-        }
+            if (!$shouldShowTreatmentDelay) {
+                unset($values['delay']);
+            }
 
-        if (!$shouldShowLocationLabels || empty($config['locations'])) {
-            unset($values['subtitle']);
-        } else if (!empty($config['locations'])) {
-            $locationRepository = $manager->getRepository(Emplacement::class);
-            $locations = $locationRepository->findBy(['id' => $config['locations']]);
-
-            if (empty($locations)) {
+            if (!$shouldShowLocationLabels || empty($config['locations'])) {
                 unset($values['subtitle']);
-            } else {
-                $values['subtitle'] = FormatHelper::locations($locations);
+            }
+            else {
+                if (!empty($config['locations'])) {
+                    $locationRepository = $manager->getRepository(Emplacement::class);
+                    $locations = $locationRepository->findBy(['id' => $config['locations']]);
+
+                    if (empty($locations)) {
+                        unset($values['subtitle']);
+                    }
+                    else {
+                        $values['subtitle'] = FormatHelper::locations($locations);
+                    }
+                }
             }
         }
-//      } else {
-//          TODO: get real values
-//      }
+        else {
+            $values = [
+                'subtitle' => $meter->getSubtitle(),
+                'delay' => $meter->getDelay(),
+                'count' => $meter->getCount()
+            ];
+        }
 
         return $values;
     }
@@ -188,7 +201,7 @@ class DashboardSettingsService {
                                                bool $example = false): array {
         $values = [];
 
-        if (isset($config["carriers"])) {
+        if (!empty($config["carriers"])) {
             $carrierRepository = $manager->getRepository(Transporteur::class);
 
             if ($example) {
@@ -197,9 +210,60 @@ class DashboardSettingsService {
                 $carriers = $carrierRepository->getDailyArrivalCarriersLabel($config['carriers']);
             }
 
-            $values["carriers"] = FormatHelper::locations($carriers);
-        } else {
+            $values["carriers"] = FormatHelper::carriers($carriers);
+        }
+        else if($example) {
             $values = $componentType->getExampleValues();
+        }
+        else {
+            $values["carriers"] = '';
+        }
+
+        return $values;
+    }
+
+    public function serializeArrivalsAndPacks(Dashboard\ComponentType $componentType,
+                                              array $config,
+                                              bool $example = false,
+                                              DashboardMeter\Chart $meterChart = null): array {
+        $values = $example ? $componentType->getExampleValues() : [];
+
+        $displayPackNatures = $config['displayPackNatures'] ?? false;
+
+        $values['stack'] = true;
+
+        $dailyRequest = ($componentType->getMeterKey() === Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS);
+        if($dailyRequest) {
+            $scale = $config['daysNumber'] ?? DashboardService::DEFAULT_DAILY_REQUESTS_SCALE;
+        } else {
+            $scale = DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE;
+        }
+
+        // arrivals column
+        if (!$example && isset($meterChart)) {
+            $values['chartData'] = $meterChart->getData();
+        }
+        else {
+            $keysToKeep = array_slice(array_keys($values['chartData']), 0, $scale);
+            $keysToKeep[] = 'stack';
+            $chartData = $values['chartData'];
+            $values['chartData'] = Stream::from($keysToKeep)
+                ->reduce(function (array $carry, string $key) use ($chartData) {
+                    if (isset($chartData[$key])) {
+                        $carry[$key] = $chartData[$key];
+                    }
+                    return $carry;
+                }, []);
+
+            // packs column
+            if ($displayPackNatures && $scale) {
+                foreach ($values['chartData']['stack'] as $natureData) {
+                    $natureData['data'] = array_slice($natureData['data'], 0, $scale);
+                }
+            }
+            else if (isset($values['chartData']['stack'])) {
+                unset($values['chartData']['stack']);
+            }
         }
 
         return $values;
@@ -229,7 +293,9 @@ class DashboardSettingsService {
                 isset($config['lastDay']) ? $config['lastDay'] : date("d/m/Y", strtotime('sunday this week')),
                 isset($config['beforeAfter']) ? $config['beforeAfter'] : 'now'
             );
+
             $values['chartData'] = $chartValues['data'];
+
             unset($chartValues['data']);
             $values += $chartValues;
         }

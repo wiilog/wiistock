@@ -25,16 +25,16 @@ $(function() {
 });
 
 const creators = {
-    [ONGOING_PACK]: createOngoingPackElement,
-    [CARRIER_TRACKING]: createCarrierTrackingElement,
+    [ONGOING_PACK]: [createOngoingPackElement],
+    [CARRIER_TRACKING]: [createCarrierTrackingElement],
     [DAILY_ARRIVALS]: [createSimpleChart, {route: `get_arrival_um_statistics`}],
-    [LATE_PACKS]: createLatePacksElement,
-    [DAILY_ARRIVALS_AND_PACKS]: createSimpleChart,
+    [LATE_PACKS]: [createLatePacksElement],
+    [DAILY_ARRIVALS_AND_PACKS]: [createSimpleChart],
     [RECEIPT_ASSOCIATION]: [createSimpleChart, {route: `get_asso_recep_statistics`}],
-    [WEEKLY_ARRIVALS_AND_PACKS]: createSimpleChart,
-    [ENTRIES_TO_HANDLE]: createEntriesToTreatElement,
+    [WEEKLY_ARRIVALS_AND_PACKS]: [createSimpleChart],
+    [ENTRIES_TO_HANDLE]: [createEntriesToTreatElement],
     [PACK_TO_TREAT_FROM]: [createSimpleChart, {cssClass: 'multiple'}],
-    [DROP_OFF_DISTRIBUTED_PACKS]: createSimpleChart,
+    [DROP_OFF_DISTRIBUTED_PACKS]: [createSimpleChart],
 };
 
 /**
@@ -51,15 +51,8 @@ function renderComponent(meterKey, $container, data) {
         console.error(`No creator function for ${meterKey} key.`);
         return false;
     } else {
-        const callback = creators[meterKey];
-        let $element;
-        if(Array.isArray(callback)) {
-            const fn = callback[0];
-            const arguments = callback.slice(1);
-            $element = fn.apply(null, [data, ...arguments]);
-        } else {
-            $element = callback(data);
-        }
+        const [callback, ...arguments] = creators[meterKey];
+        const $element = callback(data, ...arguments);
 
         if($element) {
             $container.html($element);
@@ -223,7 +216,6 @@ function createCarrierTrackingElement(data) {
     }
 
     const carriers = Array.isArray(data.carriers) ? data.carriers.join() : data.carriers;
-    const tooltip = data.tooltip || "";
     const title = data.title || "";
 
     return $(`
@@ -360,8 +352,7 @@ function updateSimpleChartData(chart, data, label, stack = false,
         chart.data.datasets[0].backgroundColor.fill('#A3D1FF');
     }
 
-
-    if(subData) {
+    if (subData) {
         const subColor = '#999';
         chart.data.datasets.push({
             label: lineChartLabel,
@@ -374,7 +365,7 @@ function updateSimpleChartData(chart, data, label, stack = false,
     if(stack) {
         chart.options.scales.yAxes[0].stacked = true;
         chart.options.scales.xAxes[0].stacked = true;
-        data.stack.forEach((stack) => {
+        (data.stack || []).forEach((stack) => {
             chart.data.datasets.push(stack);
         });
     }

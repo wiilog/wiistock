@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Utilisateur;
 use App\Service\DashboardSettingsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,9 +17,12 @@ class DashboardController extends AbstractController {
     /**
      * @Route("/accueil", name="accueil")
      */
-    public function dashboards(DashboardSettingsService $dashboardSettingsService, EntityManagerInterface $manager): Response {
+    public function dashboards(DashboardSettingsService $dashboardSettingsService,
+                               EntityManagerInterface $manager): Response {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
         return $this->render("dashboard/dashboards.html.twig", [
-            "dashboards" => $dashboardSettingsService->serialize($manager, DashboardSettingsService::MODE_DISPLAY),
+            "dashboards" => $dashboardSettingsService->serialize($manager, $loggedUser, DashboardSettingsService::MODE_DISPLAY),
         ]);
     }
 
@@ -31,7 +35,7 @@ class DashboardController extends AbstractController {
         }
 
         return $this->render("dashboard/external.html.twig", [
-            "dashboards" => $dashboardSettingsService->serialize($manager, DashboardSettingsService::MODE_EXTERNAL),
+            "dashboards" => $dashboardSettingsService->serialize($manager, null, DashboardSettingsService::MODE_EXTERNAL),
             "title" => "Dashboard externe"
         ]);
     }
@@ -40,8 +44,10 @@ class DashboardController extends AbstractController {
      * @Route("/dashboard/actualiser/{mode}", name="dashboards_fetch", options={"expose"=true})
      */
     public function fetch(DashboardSettingsService $dashboardSettingsService, EntityManagerInterface $manager, int $mode): Response {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
         return $this->json([
-            "dashboards" => $dashboardSettingsService->serialize($manager, $mode),
+            "dashboards" => $dashboardSettingsService->serialize($manager, $loggedUser, $mode),
         ]);
     }
 

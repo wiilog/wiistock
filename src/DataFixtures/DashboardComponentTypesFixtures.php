@@ -65,28 +65,28 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'stack' => true,
                 'label' => 'Arrivages',
                 'chartData' => [
-                    'j1' => 5,
-                    'j2' => 12,
-                    'j3' => 8,
-                    'j4' => 1,
-                    'j5' => 0,
-                    'j6' => 9,
-                    'j7' => 7,
+                    '04/01' => 5,
+                    '05/01' => 12,
+                    '06/01' => 8,
+                    '07/01' => 1,
+                    '08/01' => 0,
+                    '11/01' => 9,
+                    '12/01' => 7,
                     'stack' => [
                         [
-                            'label' => 'Nature1',
+                            'label' => 'Standard',
                             'backgroundColor' => '#a0c',
                             'stack' => 'stack',
                             'data' => [15, 0, 5, 4, 7, 12, 4]
                         ],
                         [
-                            'label' => 'Nature2',
+                            'label' => 'Consommable',
                             'backgroundColor' => '#888',
                             'stack' => 'stack',
                             'data' => [15, 0, 5, 4, 7, 12, 4]
                         ],
                         [
-                            'label' => 'Nature3',
+                            'label' => 'Congelé',
                             'backgroundColor' => '#e8b',
                             'stack' => 'stack',
                             'data' => [15, 0, 5, 4, 7, 12, 4]
@@ -134,31 +134,29 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'stack' => true,
                 'label' => 'Arrivages',
                 'chartData' => [
-                    's1' => 102,
-                    's2' => 60,
-                    's3' => 80,
-                    's4' => 12,
-                    's5' => 15,
-                    's6' => 89,
-                    's7' => 45,
+                    'S01' => 102,
+                    'S02' => 60,
+                    'S03' => 80,
+                    'S04' => 12,
+                    'S05' => 15,
                     'stack' => [
                         [
-                            'label' => 'Nature1',
+                            'label' => 'Standard',
                             'backgroundColor' => '#a0c',
                             'stack' => 'stack',
-                            'data' => [45, 12, 10, 15, 22, 35, 4]
+                            'data' => [45, 12, 10, 15, 22]
                         ],
                         [
-                            'label' => 'Nature2',
+                            'label' => 'Consommable',
                             'backgroundColor' => '#888',
                             'stack' => 'stack',
-                            'data' => [15, 6, 5, 4, 7, 12, 4]
+                            'data' => [15, 6, 5, 4, 7]
                         ],
                         [
-                            'label' => 'Nature3',
+                            'label' => 'Congelé',
                             'backgroundColor' => '#e8b',
                             'stack' => 'stack',
-                            'data' => [10, 9, 36, 23, 12, 45, 6]
+                            'data' => [10, 9, 36, 23, 12]
                         ]
                     ]
                 ]

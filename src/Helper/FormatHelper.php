@@ -42,7 +42,7 @@ class FormatHelper {
         return self::entity($users, "username");
     }
 
-    public static function carrier($carriers) {
+    public static function carriers($carriers) {
         return self::entity($carriers, "username");
     }
 
