@@ -63,6 +63,9 @@ class DashboardFeedCommand extends Command
                 case Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS:
                     $this->dashboardService->persistArrivalsAndPacksMeter($entityManager, $component);
                     break;
+                case Dashboard\ComponentType::PACK_TO_TREAT_FROM:
+                    $this->dashboardService->persistPackToTreatFrom($entityManager, $component);
+                    break;
                 default:
                     break;
             }

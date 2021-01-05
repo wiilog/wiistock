@@ -56,7 +56,7 @@ class LocationCluster {
 
     /**
      * @var Dashboard\Component
-     * @ORM\ManyToOne(targetEntity=Dashboard\Component::class, inversedBy="locationCluster")
+     * @ORM\ManyToOne(targetEntity=Dashboard\Component::class, inversedBy="locationClusters")
      */
     private $component;
 

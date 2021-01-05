@@ -756,6 +756,68 @@ class DashboardService {
      * @param Dashboard\Component $component
      * @throws Exception
      */
+    public function persistPackToTreatFrom(EntityManagerInterface $entityManager,
+                                           Dashboard\Component $component): void
+    {
+
+        $locationClusterMeterRepository = $this->entityManager->getRepository(LocationClusterMeter::class);
+        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+
+        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
+
+        $config = $component->getConfig();
+
+        $legend1 = $config['originCaption'];
+        $legend2 = $config['destinationCaption'];
+        $clusterKeys = ['firstOriginLocation', 'secondOriginLocation', 'firstDestinationLocation', 'secondDestinationLocation'];
+        foreach ($clusterKeys as $key) {
+            $this->updateComponentLocationCluster($entityManager, $component, $key);
+        }
+
+        $entityManager->flush();
+        $needsFirstOriginFilter = $component->getLocationCluster('firstOriginLocation')
+            && $component->getLocationCluster('firstOriginLocation')->getLocations()->count() > 0;
+        $data = [
+            'chartColors' => [
+                $legend1 => '#a3d1ff',
+                $legend2 => '#a3efdf'
+            ],
+            'chartData' => $this->getDailyObjectsStatistics($entityManager, DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE, function (DateTime $date) use (
+                $legend1,
+                $legend2,
+                $locationClusterMeterRepository,
+                $component,
+                $needsFirstOriginFilter
+            ) {
+                return [
+                    $legend1 => $locationClusterMeterRepository->countByDate(
+                        $date,
+                        $component->getLocationCluster('firstDestinationLocation'),
+                        $needsFirstOriginFilter ? $component->getLocationCluster('firstOriginLocation') : null
+                    ),
+                    $legend2 => $locationClusterMeterRepository->countByDate(
+                        $date,
+                        $component->getLocationCluster('secondDestinationLocation'),
+                        $component->getLocationCluster('secondOriginLocation')
+                    )
+                ];
+            }, $workFreeDays)
+        ];
+
+        $chart = $component->getMeter();
+        if (!isset($chart)) {
+            $chart = new Dashboard\Meter\Chart();
+            $chart->setComponent($component);
+            $entityManager->persist($chart);
+        }
+        $chart->setData($data);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @throws Exception
+     */
     public function persistDroppedPacks(EntityManagerInterface $entityManager,
                                         Dashboard\Component $component): void {
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
@@ -766,7 +828,9 @@ class DashboardService {
         $this->updateComponentLocationCluster($entityManager, $component, $clusterKey);
 
         $locationCluster = $component->getLocationCluster($clusterKey);
-        $packsCountByDays = $this->getDailyObjectsStatistics(function (DateTime $date) use ($locationClusterMeterRepository, $locationCluster) {
+        $entityManager->flush();
+        $packsCountByDays = $this->getDailyObjectsStatistics($entityManager, DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE,
+            function (DateTime $date) use ($locationClusterMeterRepository, $locationCluster) {
             return $locationClusterMeterRepository->countByDate(
                 $date,
                 $locationCluster

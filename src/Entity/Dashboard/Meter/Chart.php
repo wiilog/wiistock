@@ -2,6 +2,7 @@
 
 namespace App\Entity\Dashboard\Meter;
 
+use App\Helper\Stream;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Dashboard;
 use App\Repository\Dashboard as DashboardRepository;
@@ -52,15 +53,21 @@ class Chart
 
     public function getData(): ?array
     {
-        return array_reduce($this->data, function (array $carry, $item) {
-            $carry[$item['dataKey']] = $item['data'];
-            return $carry;
-        }, []);
+        $this->data = $this->decodeData($this->data);
+        if (array_key_exists("chartData", $this->data)) {
+            $this->data['chartData'] = $this->decodeData($this->data['chartData']);
+        }
+        return $this->data;
     }
 
-    public function setData(array $data): self
-    {
+    private function decodeData(array $data) {
+        return Stream::from($data)
+            ->keymap(function ($value) {
+                return [$value['dataKey'], $value['data']];
+            })->toArray();
+    }
 
+    private function encodeData(array $data) {
         $savedData = [];
         foreach ($data as $key => $datum) {
             $savedData[] = [
@@ -68,8 +75,15 @@ class Chart
                 'data' => $datum
             ];
         }
-        $this->data = $savedData;
+        return $savedData;
+    }
 
+    public function setData(array $data): self
+    {
+        if (array_key_exists("chartData", $data)) {
+            $data['chartData'] = $this->encodeData($data['chartData']);
+        }
+        $this->data = $this->encodeData($data);
 
         return $this;
     }
