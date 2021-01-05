@@ -12,7 +12,6 @@
             {% block page_filter %}{% endblock %}
         </div>
         <div class="container-fluid {% block pageContainerClass '' %}">
-
             {% block page_content %}{% endblock %}
 
             {% include 'utils/modal-alert/modal-alert.html.twig' %}
@@ -20,5 +19,4 @@
     </div>
 
     {% include 'alerts-container.html.twig' %}
-
 {% endblock %}

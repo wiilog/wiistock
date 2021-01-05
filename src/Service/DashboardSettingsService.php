@@ -31,7 +31,7 @@ class DashboardSettingsService {
         $this->dashboardService = $dashboardService;
     }
 
-    public function serialize(EntityManagerInterface $entityManager, Utilisateur $user, int $mode): string {
+    public function serialize(EntityManagerInterface $entityManager, ?Utilisateur $user, int $mode): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
 
         if($mode === self::MODE_DISPLAY) {
@@ -246,10 +246,10 @@ class DashboardSettingsService {
             $values['chartData'] = $meterChart->getData();
         }
         else {
-            $keysToKeep = array_slice(array_keys($values['chartData']), 0, $scale);
+            $chartData = $values['chartData'] ?? [];
+            $keysToKeep = array_slice(array_keys($chartData), 0, $scale);
             $keysToKeep[] = 'stack';
-            $chartData = $values['chartData'];
-            $values['chartData'] = Stream::from($keysToKeep)
+            $chartData = Stream::from($keysToKeep)
                 ->reduce(function (array $carry, string $key) use ($chartData) {
                     if (isset($chartData[$key])) {
                         $carry[$key] = $chartData[$key];
@@ -258,14 +258,17 @@ class DashboardSettingsService {
                 }, []);
 
             // packs column
-            if ($displayPackNatures && $scale) {
-                foreach ($values['chartData']['stack'] as $natureData) {
-                    $natureData['data'] = array_slice($natureData['data'], 0, $scale);
+            if(isset($chartData['stack'])) {
+                if ($displayPackNatures && $scale) {
+                    foreach ($chartData['stack'] as $natureData) {
+                        $natureData['data'] = array_slice($natureData['data'], 0, $scale);
+                    }
+                } else if (isset($chartData['stack'])) {
+                    unset($chartData['stack']);
                 }
             }
-            else if (isset($values['chartData']['stack'])) {
-                unset($values['chartData']['stack']);
-            }
+
+            $values['chartData'] = $chartData;
         }
 
         return $values;
