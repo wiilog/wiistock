@@ -19,6 +19,8 @@ use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
 use App\Entity\Wiilock;
+use App\Helper\FormatHelper;
+use App\Helper\Stream;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -49,6 +51,17 @@ class DashboardService {
         $this->entityManager = $entityManager;
         $this->enCoursService = $enCoursService;
         $this->wiilockService = $wiilockService;
+    }
+
+    public function refreshDate(EntityManagerInterface $manager): string {
+        $lock = $manager->getRepository(Wiilock::class)
+            ->findOneBy(["lockKey" => Wiilock::DASHBOARD_FED_KEY]);
+
+        if($lock) {
+            return FormatHelper::datetime($lock->getUpdateDate());
+        } else {
+            return "(date inconnue)";
+        }
     }
 
     public function getWeekAssoc($firstDay, $lastDay, $beforeAfter) {
