@@ -70,7 +70,6 @@ class ParametrageGlobalController extends AbstractController {
         if(!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
-        $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
@@ -175,13 +174,6 @@ class ParametrageGlobalController extends AbstractController {
                 'mobile_logo_login' => ($mobileLogoLogin && file_exists(getcwd() . "/" . $mobileLogoLogin) ? $mobileLogoLogin : null),
                 'redirectMvtTraca' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT),
                 'workFreeDays' => $workFreeDays,
-                'paramDashboard' => [
-                    'existingNatureId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_NATURE_COLIS),
-                    'existingListNaturesId' => $globalParamService->getDashboardListNatures(),
-                    'natures' => $natureRepository->findAll(),
-                    'locations' => $globalParamService->getDashboardLocations(),
-                    'valueCarriers' => $globalParamService->getDashboardCarrierDock(),
-                ],
                 'wantsRecipient' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL),
                 'wantsDZLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL),
                 'wantsType' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_ARRIVAL_TYPE_IN_LABEL),

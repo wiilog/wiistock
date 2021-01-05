@@ -18,6 +18,7 @@
     </div>
 
     <input type="hidden" class="dashboards-data" value="{{ dashboards }}">
+    <input type="hidden" class="dashboards-token" value="{{ token }}">
 
     {% include 'dashboard/component_type/first_step.html.twig' with componentTypeConfig %}
     {% include 'dashboard/component_type/second_step.html.twig' %}

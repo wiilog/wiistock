@@ -225,6 +225,12 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         return $streamArray;
     }
 
+    public function values(): array {
+        $streamArray = $this->elements;
+        $this->elements = null;
+        return array_values($streamArray);
+    }
+
     public function isEmpty(): bool {
         if(isset($this->elements)) {
             return $this->count() === 0;

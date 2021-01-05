@@ -3,6 +3,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Dashboard\Component;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
@@ -31,12 +32,6 @@ class LocationCluster {
     private $id;
 
     /**
-     * @var string
-     * @ORM\Column(type="string", length=255, unique=true)
-     */
-    private $code;
-
-    /**
      * @var Collection
      * @ORM\ManyToMany(targetEntity="App\Entity\Emplacement", inversedBy="clusters")
      */
@@ -59,6 +54,12 @@ class LocationCluster {
      */
     private $metersInto;
 
+    /**
+     * @var Dashboard\Component
+     * @ORM\OneToOne(targetEntity=Dashboard\Component::class, inversedBy="locationCluster")
+     */
+    private $component;
+
     public function __construct() {
         $this->locations = new ArrayCollection();
         $this->locationClusterRecords = new ArrayCollection();
@@ -68,22 +69,6 @@ class LocationCluster {
 
     public function getId(): ?int {
         return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCode(): string {
-        return $this->code;
-    }
-
-    /**
-     * @param string $code
-     * @return self
-     */
-    public function setCode(string $code): self {
-        $this->code = $code;
-        return $this;
     }
 
     /**
@@ -236,6 +221,32 @@ class LocationCluster {
                 $meter->setLocationClusterInto(null);
             }
         }
+        return $this;
+    }
+
+    /**
+     * @return Dashboard\Component|null
+     */
+    public function getComponent(): ?Dashboard\Component {
+        return $this->component;
+    }
+
+    /**
+     * @param Dashboard\Component|null $component
+     * @return self
+     */
+    public function setComponent(?Dashboard\Component $component): self {
+
+        if ($this->component) {
+            $this->component->setLocationCluster(null);
+        }
+
+        $this->component = $component;
+
+        if ($this->component) {
+            $this->component->setLocationCluster($this);
+        }
+
         return $this;
     }
 }

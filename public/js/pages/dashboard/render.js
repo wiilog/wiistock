@@ -145,14 +145,14 @@ function createLatePacksElement(data) {
     const title = data.title || "";
 
     return $(`
-            <div class="dashboard-box justify-content-around dashboard-stats-container">
-                <div class="title">
-                    ${title}
-                </div>
-                ${createTooltip(data.tooltip)}
-                <table class="table retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
-                </table>
+        <div class="dashboard-box dashboard-stats-container">
+            <div class="title">
+                ${title}
             </div>
+            ${createTooltip(data.tooltip)}
+            <table class="table retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
+            </table>
+        </div>
     `);
 }
 
@@ -192,12 +192,12 @@ function createSimpleChart(data, {route, variable, cssClass} = {route: null, css
         `;
     }
     return $(`
-        <div class="dashboard-box justify-content-around dashboard-stats-container">
+        <div class="dashboard-box dashboard-stats-container">
             <div class="title">
                 ${title}
             </div>
             ${createTooltip(data.tooltip)}
-            <div class="h-100">
+            <div>
                 <canvas class="${cssClass || ''}"></canvas>
             </div>
             ${pagination}
@@ -220,13 +220,13 @@ function createCarrierTrackingElement(data) {
     const title = data.title || "";
 
     return $(`
-            <div class="dashboard-box justify-content-around dashboard-stats-container">
-                <div class="title">
-                    ${title}
-                </div>
-                ${createTooltip(data.tooltip)}
-                <p>${carriers}</p>
+        <div class="dashboard-box dashboard-stats-container">
+            <div class="title">
+                ${title}
             </div>
+            ${createTooltip(data.tooltip)}
+            <p>${carriers}</p>
+        </div>
     `);
 }
 
