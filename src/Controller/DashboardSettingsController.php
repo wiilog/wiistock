@@ -213,7 +213,6 @@ class DashboardSettingsController extends AbstractController {
             $values = json_decode($request->request->get("values"), true);
         } else {
             $values = $componentType->getExampleValues();
-            dump($values);
         }
 
         return $this->json([
