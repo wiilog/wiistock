@@ -107,8 +107,8 @@ class DashboardSettingsService {
             $values += $this->serializeDailyReceptions($componentType, $config, $example);
         } else if ($meterKey === Dashboard\ComponentType::DAILY_ARRIVALS) {
             $values += $this->serializeDailyArrivals($componentType, $config, $example);
-        } else if ($meterKey === Dashboard\ComponentType::DROPPED_PACKS_DROPZONE) {
-            $values += $this->serializeDroppedPacksDropZone($entityManager, $componentType, $config, $example, $chart);
+        } else if ($meterKey === Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS) {
+            $values += $this->serializeDroppedPacks($entityManager, $componentType, $config, $example, $chart);
         } else {
             //TODO:remove
             $values += $componentType->getExampleValues();
@@ -201,11 +201,11 @@ class DashboardSettingsService {
         return $values;
     }
 
-    private function serializeDroppedPacksDropZone(EntityManagerInterface $entityManager,
-                                                   Dashboard\ComponentType $componentType,
-                                                   array $config,
-                                                   bool $example = false,
-                                                   ?Dashboard\Meter\Chart $chart = null): array {
+    private function serializeDroppedPacks(EntityManagerInterface $entityManager,
+                                           Dashboard\ComponentType $componentType,
+                                           array $config,
+                                           bool $example = false,
+                                           ?Dashboard\Meter\Chart $chart = null): array {
 
         $values = $componentType->getExampleValues();
         if (!$example) {

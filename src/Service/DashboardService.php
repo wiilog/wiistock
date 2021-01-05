@@ -1032,8 +1032,8 @@ class DashboardService
      * @param Dashboard\Component $component
      * @throws Exception
      */
-    public function persistDroppedPacksDropZone(EntityManagerInterface $entityManager,
-                                       Dashboard\Component $component): void {
+    public function persistDroppedPacks(EntityManagerInterface $entityManager,
+                                        Dashboard\Component $component): void {
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $locationClusterMeterRepository = $entityManager->getRepository(LocationClusterMeter::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
