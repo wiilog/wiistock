@@ -191,7 +191,7 @@ class ArticleFournisseurController extends AbstractController
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $articleFournisseur = $articleFournisseurRepository->find(intval($data['article-fournisseur']));
 
-            if($articleFournisseur->getArticles()->isEmpty()) {
+            if(!$articleFournisseur->getArticles()->isEmpty()) {
                 return $this->json([
                     "success" => false,
                     "msg" => "Cet article fournisseur est lié à un ou plusieurs articles et ne peut pas être supprimé"

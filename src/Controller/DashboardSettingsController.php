@@ -52,10 +52,11 @@ class DashboardSettingsController extends AbstractController {
         $componentTypes = $componentTypeRepository->findAll();
 
         return $this->render("dashboard/settings.html.twig", [
-            "dashboards" => $dashboardSettingsService->serialize($entityManager, true),
-            'componentTypeConfig' => [
+            "dashboards" => $dashboardSettingsService->serialize($entityManager, DashboardSettingsService::MODE_EDIT),
+            "token" => $_SERVER["APP_DASHBOARD_TOKEN"],
+            "componentTypeConfig" => [
                 // component types group by category
-                'componentTypes' => Stream::from($componentTypes)
+                "componentTypes" => Stream::from($componentTypes)
                     ->reduce(function(array $carry, Dashboard\ComponentType $componentType) {
                         $category = $componentType->getCategory();
                         if(!isset($carry[$category])) {
@@ -100,10 +101,11 @@ class DashboardSettingsController extends AbstractController {
                 throw $exception;
             }
         }
+
         $entityManager->flush();
         return $this->json([
             "success" => true,
-            "dashboards" => $dashboardSettingsService->serialize($entityManager, true),
+            "dashboards" => $dashboardSettingsService->serialize($entityManager, DashboardSettingsService::MODE_EDIT),
         ]);
     }
 
@@ -211,7 +213,6 @@ class DashboardSettingsController extends AbstractController {
             $values = json_decode($request->request->get("values"), true);
         } else {
             $values = $componentType->getExampleValues();
-            dump($values);
         }
 
         return $this->json([

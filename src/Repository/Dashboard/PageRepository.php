@@ -16,12 +16,15 @@ use Doctrine\ORM\EntityRepository;
  */
 class PageRepository extends EntityRepository {
 
-    public function findAllowedToAccess(Utilisateur $user) {
-        return $this->createQueryBuilder("p")
-            ->where("p.action IN (:actions)")
-            ->setParameter("actions", $user->getRole()->getActions())
-            ->getQuery()
-            ->getResult();
+    public function findAllowedToAccess(?Utilisateur $user) {
+        $qb = $this->createQueryBuilder("p");
+
+        if($user) {
+            $qb->where("p.action IN (:actions)")
+                ->setParameter("actions", $user->getRole()->getActions());
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
 }

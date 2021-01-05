@@ -4,12 +4,13 @@
 namespace App\Repository;
 
 
+use App\Entity\LocationCluster;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 
 class LocationClusterMeterRepository extends EntityRepository {
     public function countByDate(DateTime $date,
-                                string $locationClusterCodeInto,
+                                LocationCluster $locationClusterCodeInto,
                                 string $locationClusterCodeFrom = null): int {
         $queryBuilder = $this->createQueryBuilder('meter');
 
@@ -18,9 +19,9 @@ class LocationClusterMeterRepository extends EntityRepository {
             ->join('meter.locationClusterInto', 'locationClusterInto')
             ->leftJoin('meter.locationClusterFrom', 'locationClusterFrom')
             ->where('meter.date = :date')
-            ->andWhere('locationClusterInto.code = :intoCode')
+            ->andWhere('locationClusterInto = :into')
             ->setParameter('date', $date->format('Y-m-d'))
-            ->setParameter('intoCode', $locationClusterCodeInto);;
+            ->setParameter('into', $locationClusterCodeInto);
 
         if (!empty($locationClusterCodeFrom)) {
             $queryBuilder
@@ -29,7 +30,7 @@ class LocationClusterMeterRepository extends EntityRepository {
         }
         else {
             $queryBuilder
-                ->andWhere('locationClusterFrom.code IS NULL');
+                ->andWhere('locationClusterFrom IS NULL');
         }
 
         $res = $queryBuilder

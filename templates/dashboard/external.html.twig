@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="wrapper pl-0 bg-primary-followgt">
+        <div class="dashboard-ext">
+            <div class="header-container header-ext">
+                {% include 'header.html.twig' with {'isDashboardExt': 1} %}
+            </div>
+            <div class="dashboard-container">
+                <div class="dashboard"></div>
+                <div class="dashboard-pagination"></div>
+
+                <input type="hidden" class="dashboards-data" value="{{ dashboards }}">
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ encore_entry_script_tags('app') }}
+    {{ encore_entry_script_tags('dashboard') }}
+
+    {{ parent() }}
+    <script src="{{ asset('js/pages/dashboard/render.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/dashboard/settings.js') }}?{{ app_last_cache_clear }}"></script>
+
+    <script>
+        $(document).ready(() => loadDashboards(MODE_EXTERNAL));
+    </script>
+{% endblock %}

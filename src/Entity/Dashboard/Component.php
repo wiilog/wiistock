@@ -2,17 +2,14 @@
 
 namespace App\Entity\Dashboard;
 
+use App\Entity\LocationCluster;
 use App\Repository\Dashboard as DashboardRepository;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Dashboard\Meter as DashboardMeter;
 
 /**
  * @ORM\Entity(repositoryClass=DashboardRepository\ComponentRepository::class)
- * @ORM\Table(name="dashboard_component",
- *    uniqueConstraints={
- *        @ORM\UniqueConstraint(name="component_row_unique", columns={"column_index", "row_id"})
- *    }
- * )
+ * @ORM\Table(name="dashboard_component")
  */
 class Component
 {
@@ -56,6 +53,13 @@ class Component
      * @ORM\OneToOne(targetEntity=DashboardMeter\Chart::class, mappedBy="component", cascade={"remove"})
      */
     private $chartMeter;
+
+    /**
+     * @var null|LocationCluster;
+     * @ORM\OneToOne(targetEntity=LocationCluster::class, mappedBy="component")
+     */
+    private $locationCluster;
+
 
     public function getId(): ?int
     {
@@ -136,6 +140,14 @@ class Component
             $this->chartMeter = null;
         }
         return $this;
+    }
+
+    public function getLocationCluster() : ?LocationCluster {
+        return $this->locationCluster;
+    }
+
+    public function setLocationCluster(?LocationCluster $locationCluster) {
+        $this->locationCluster = $locationCluster;
     }
 
 }
