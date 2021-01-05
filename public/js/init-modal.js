@@ -534,11 +534,7 @@ function processFilesForm($modal, data) {
 function processDataArrayForm($modal, data) {
     const $inputsArray = $modal.find(".data-array");
 
-    let noStringify = false;
-    if($modal.find(".data-array[data-no-stringify]").length) {
-        noStringify = true;
-    }
-    console.log(noStringify);
+    const noStringify = $modal.find(".data-array[data-no-stringify]").length > 0;
 
     const dataArray = {};
     const dataArrayNeedPositive = {};

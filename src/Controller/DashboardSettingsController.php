@@ -9,9 +9,11 @@ use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Helper\Stream;
 use App\Service\DashboardSettingsService;
 use App\Service\UserService;
@@ -51,8 +53,11 @@ class DashboardSettingsController extends AbstractController {
         $componentTypeRepository = $entityManager->getRepository(Dashboard\ComponentType::class);
         $componentTypes = $componentTypeRepository->findAll();
 
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
         return $this->render("dashboard/settings.html.twig", [
-            "dashboards" => $dashboardSettingsService->serialize($entityManager, DashboardSettingsService::MODE_EDIT),
+            "dashboards" => $dashboardSettingsService->serialize($entityManager, $loggedUser, DashboardSettingsService::MODE_EDIT),
             "token" => $_SERVER["APP_DASHBOARD_TOKEN"],
             "componentTypeConfig" => [
                 // component types group by category
@@ -103,9 +108,13 @@ class DashboardSettingsController extends AbstractController {
         }
 
         $entityManager->flush();
+
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
         return $this->json([
             "success" => true,
-            "dashboards" => $dashboardSettingsService->serialize($entityManager, DashboardSettingsService::MODE_EDIT),
+            "dashboards" => $dashboardSettingsService->serialize($entityManager, $loggedUser, DashboardSettingsService::MODE_EDIT),
         ]);
     }
 

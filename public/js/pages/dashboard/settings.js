@@ -69,6 +69,7 @@ function loadDashboards(m) {
 
                 renderCurrentDashboard();
                 renderDashboardPagination();
+                renderRefreshDate(response.refreshed);
             })
         }, 5 * 60 * 1000);
     }
@@ -131,6 +132,10 @@ function recalculateIndexes() {
             row.index = rowIndex;
         });
     });
+}
+
+function renderRefreshDate(date) {
+    $(`.refresh-date`).html(`Actualisé le : ${date}`);
 }
 
 function renderCurrentDashboard() {
@@ -213,7 +218,7 @@ function renderConfigComponent(component, init = false) {
             'data-component': component,
             html: mode === MODE_EDIT
                 ? $('<button/>', {
-                    class: 'btn btn-sm',
+                    class: 'btn btn-light',
                     click: openModalComponentTypeFirstStep,
                     html: `<i class="fas fa-plus mr-2"></i> Ajouter un composant`
                 })

@@ -40,18 +40,16 @@
         <label>Montrer les natures de colis</label>
     </div>
 
-    <div class="form-group d-flex">
-        <label class="mt-2">Voir sur les</label>
-        <input class="form-control data ml-3"
+    <div class="form-group d-flex align-items-center">
+        <label>Voir sur les</label>
+        <input class="form-control data mx-3 needed"
                name="daysNumber"
-               value="{{ values.daysNumber ?? '' }}"
+               value="{{ values.daysNumber ?? 7 }}"
                type="number"
                min=1
                max=7
+               step="1"
                style="width: 70px">
-        <select class="data form-control w-25 ml-3" name="daysSetting">
-            <option value="derniers jours">derniers jours</option>
-            <option value="prochains jours">prochains jours</option>
-        </select>
+        <label>dernier jours</label>
     </div>
 {% endblock %}
