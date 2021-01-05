@@ -3,7 +3,7 @@ parameters:
     menu_config:
         -   label: 'Accueil'
             icon: 'accueil'
-            path: 'dashboards'
+            path: 'accueil'
 
         -   label: 'Traçabilité'
             icon: 'traca'

@@ -24,7 +24,7 @@ const MAX_NUMBER_PAGES = 8;
  * }[]}
  */
 let dashboards = [];
-let current = null;
+let currentDashboard = null;
 let somePagesDeleted = false;
 let mode = undefined;
 
@@ -65,7 +65,7 @@ function loadDashboards(m) {
         setInterval(function() {
             $.get(Routing.generate("dashboards_fetch"), function(response) {
                 dashboards = JSON.parse(response.dashboards);
-                current = dashboards.find(d => d.index === current.index);
+                currentDashboard = dashboards.find(d => d.index === currentDashboard.index);
 
                 renderCurrentDashboard();
                 renderDashboardPagination();
@@ -82,9 +82,9 @@ $(`.download-trace`).click(function() {
 $dashboardRowSelector.click(function() {
     const button = $(this);
 
-    $('input[name="new-row-columns-count"]').val(button.data("columns"));
-    $dashboardRowSelector.removeClass("selected");
-    button.addClass("selected");
+    $(`input[name="new-row-columns-count"]`).val(button.data(`columns`));
+    $dashboardRowSelector.removeClass(`selected`);
+    button.addClass(`selected`);
     $addRowButton.attr(`disabled`, false);
 });
 
@@ -122,7 +122,7 @@ function recalculateIndexes() {
         dashboard.index = dashboardIndex;
 
         (dashboard.rows || []).forEach((row, rowIndex) => {
-            if(dashboard === current) {
+            if(dashboard === currentDashboard) {
                 $(`[data-row="${row.index}"]`)
                     .data(`row`, rowIndex)
                     .attr(`data-row`, rowIndex); //update the dom too
@@ -135,15 +135,15 @@ function recalculateIndexes() {
 
 function renderCurrentDashboard() {
     $dashboard.empty();
-    if(current) {
-        current.rows
+    if(currentDashboard) {
+        currentDashboard.rows
             .map(renderRow)
             .forEach(row => $dashboard.append(row));
     }
 }
 
 function updateAddRowButton() {
-    $(`[data-target="#add-row-modal"]`).prop(`disabled`, !current || current.rows.length >= MAX_NUMBER_ROWS);
+    $(`[data-target="#add-row-modal"]`).prop(`disabled`, !currentDashboard || currentDashboard.rows.length >= MAX_NUMBER_ROWS);
 }
 
 function renderRow(row) {
@@ -225,7 +225,7 @@ function renderConfigComponent(component, init = false) {
 }
 
 function renderDashboardPagination() {
-    $('.dashboard-pagination, .external-dashboards').empty();
+    $('.dashboard-pagination').empty();
 
     dashboards
         .map(dashboard => createDashboardSelectorItem(dashboard))
@@ -240,17 +240,13 @@ function renderDashboardPagination() {
         `);
     }
 
-    dashboards
-        .map(dashboard => createExternalDashboardLink(dashboard))
-        .forEach($item => $('.external-dashboards').append($item));
-
     $('[data-target="#add-dashboard-modal"]')
         .attr(`disabled`, dashboards.length >= MAX_NUMBER_PAGES);
 }
 
 function createDashboardSelectorItem(dashboard) {
     const index = dashboard.index;
-    const currentDashboardIndex = current && current.index;
+    const currentDashboardIndex = currentDashboard && currentDashboard.index;
     const subContainerClasses = (index === currentDashboardIndex ? 'bg-light rounded bold' : '');
 
     let name;
@@ -270,18 +266,25 @@ function createDashboardSelectorItem(dashboard) {
 
     let $editable = ``;
     if(mode === MODE_EDIT) {
+        const externalRoute = Routing.generate('dashboards_external', {
+            token: $(`.dashboards-token`).val(),
+        });
+
         $editable = `
             <div class="dropdown d-inline-flex">
-                <span class="badge badge-primary square-sm pointer" data-toggle="dropdown">
-                <i class="fas fa-pen"></i>
+                <span class="pointer" data-toggle="dropdown">
+                <i class="fas fa-cog"></i>
                 </span>
-                <div class="dropdown-menu dropdown-follow-gt pointer">
+                <div class="dropdown-menu pointer">
                     <a class="dropdown-item rename-dashboard" role="button" data-dashboard="${dashboard.index}"
                          data-toggle="modal" data-target="#rename-dashboard-modal">
                         <i class="fas fa-edit mr-2"></i>Renommer
                     </a>
                     <a class="dropdown-item delete-dashboard" role="button" data-dashboard="${dashboard.index}">
                         <i class="fas fa-trash mr-2"></i>Supprimer
+                    </a>
+                    <a class="dropdown-item" href="${externalRoute}#${dashboard.index + 1}" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> Dashboard externe
                     </a>
                 </div>
             </div>
@@ -295,14 +298,6 @@ function createDashboardSelectorItem(dashboard) {
             $editable,
         ]
     });
-}
-
-function createExternalDashboardLink(dashboard) {
-    return $(`
-        <a class="dropdown-item">
-            <i class="fas fa-external-link-alt"></i> Dashboard "${dashboard.name}"
-        </a>
-    `);
 }
 
 /**
@@ -322,7 +317,7 @@ function loadCurrentDashboard(init = false) {
         if(!dashboards[hash - 1]) {
             console.error(`Unknown dashboard "${hash}"`);
         } else {
-            current = dashboards[hash - 1];
+            currentDashboard = dashboards[hash - 1];
             window.location.hash = `#${hash}`;
         }
     }
@@ -340,7 +335,6 @@ function onDashboardSaved() {
     const content = {
         dashboards: JSON.stringify(dashboards)
     };
-    console.log($.deepCopy(dashboards));
 
     return $.post(Routing.generate(`save_dashboard_settings`), content)
         .then(function(data) {
@@ -379,13 +373,13 @@ function onPageAdded() {
         if(dashboards.length >= MAX_NUMBER_PAGES) {
             console.error("Too many dashboards");
         } else {
-            current = {
+            currentDashboard = {
                 updated: true,
                 index: dashboards.length,
                 name,
                 rows: [],
             };
-            dashboards.push(current);
+            dashboards.push(currentDashboard);
 
             renderDashboardPagination();
             renderCurrentDashboard();
@@ -404,9 +398,9 @@ function onPageDeleted() {
     recalculateIndexes();
 
     if(dashboards.length === 0) {
-        current = undefined;
-    } else if(dashboard === current.index) {
-        current = dashboards[0];
+        currentDashboard = undefined;
+    } else if(dashboard === currentDashboard.index) {
+        currentDashboard = dashboards[0];
     }
     somePagesDeleted = true;
 
@@ -423,10 +417,10 @@ function onRowAdded() {
     $dashboardRowSelector.removeClass("selected");
     $addRowButton.attr(`disabled`, true);
 
-    if(current) {
-        current.updated = true;
-        current.rows.push({
-            index: current.rows.length,
+    if(currentDashboard) {
+        currentDashboard.updated = true;
+        currentDashboard.rows.push({
+            index: currentDashboard.rows.length,
             size: columns,
             updated: true,
             components: []
@@ -444,9 +438,9 @@ function onRowDeleted() {
     const rowIndex = $row.data(`row`);
 
     $row.remove();
-    if(current) {
-        current.updated = true;
-        current.rows.splice(rowIndex, 1);
+    if(currentDashboard) {
+        currentDashboard.updated = true;
+        currentDashboard.rows.splice(rowIndex, 1);
     }
 
     recalculateIndexes();
@@ -471,7 +465,7 @@ function onComponentDeleted() {
     const {row, component} = getComponentFromTooltipButton($button);
     const componentIndex = Number(component.index);
 
-    current.updated = true;
+    currentDashboard.updated = true;
     row.updated = true;
 
     const indexOfComponentToDelete = row.components
@@ -488,7 +482,7 @@ function onComponentDeleted() {
 function getComponentFromTooltipButton($button) {
     const $component = $button.closest('.dashboard-component');
     const componentIndex = $component.data(`component`);
-    const row = current.rows[$component.closest(`.dashboard-row`).data(`row`)];
+    const row = currentDashboard.rows[$component.closest(`.dashboard-row`).data(`row`)];
 
     return {
         row,
@@ -497,19 +491,19 @@ function getComponentFromTooltipButton($button) {
 }
 
 function openModalComponentTypeFirstStep() {
-    $modalComponentTypeFirstStep.modal('show');
+    $modalComponentTypeFirstStep.modal(`show`);
 
     const $button = $(this);
-    const $component = $button.closest('.dashboard-component');
-    const $row = $component.closest('.dashboard-row');
+    const $component = $button.closest(`.dashboard-component`);
+    const $row = $component.closest(`.dashboard-row`);
 
     $modalComponentTypeFirstStep
-        .find('input[name="componentIndex"]')
-        .val($component.data('component'));
+        .find(`input[name="componentIndex"]`)
+        .val($component.data(`component`));
 
     $modalComponentTypeFirstStep
-        .find('input[name="rowIndex"]')
-        .val($row.data('row'));
+        .find(`input[name="rowIndex"]`)
+        .val($row.data(`row`));
 }
 
 function openModalComponentTypeNextStep($button) {
@@ -586,17 +580,15 @@ function onComponentSaved($modal) {
 
 function editComponent(rowIndex, componentIndex, {config, type, meterKey, template = null}) {
     const currentRow = getCurrentDashboardRow(rowIndex);
-
     if(currentRow && componentIndex < currentRow.size) {
-        current.updated = true;
+        currentDashboard.updated = true;
         currentRow.updated = true;
 
         let currentComponent = getRowComponent(currentRow, componentIndex);
         if(!currentComponent) {
             currentComponent = {index: componentIndex};
-            currentRow.components[componentIndex] = currentComponent;
+            currentRow.components.push(currentComponent);
         }
-
         currentComponent.updated = true;
         currentComponent.config = config;
         currentComponent.type = type;
@@ -643,7 +635,7 @@ function getRowComponent(row, componentIndex) {
 
 function getCurrentDashboardRow(rowIndex) {
     // noinspection EqualityComparisonWithCoercionJS
-    return current.rows.find(({index}) => (index == rowIndex));
+    return currentDashboard.rows.find(({index}) => (index == rowIndex));
 }
 
 /**
@@ -716,7 +708,7 @@ function initializeEntryTimeIntervals(segments) {
 }
 
 function addEntryTimeInterval($button, time = null) {
-    const current = $button.data("current");
+    const current = $button.data(`current`);
 
     $(`
         <div class="row mt-2 interval">
@@ -745,7 +737,7 @@ function addEntryTimeInterval($button, time = null) {
         </div>
         `).insertBefore($button);
 
-    $button.data("current", current + 1);
+    $button.data(`current`, current + 1);
     recalculateIntervals();
 }
 

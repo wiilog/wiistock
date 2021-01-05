@@ -8,11 +8,7 @@ use App\Entity\Dashboard\Meter as DashboardMeter;
 
 /**
  * @ORM\Entity(repositoryClass=DashboardRepository\ComponentRepository::class)
- * @ORM\Table(name="dashboard_component",
- *    uniqueConstraints={
- *        @ORM\UniqueConstraint(name="component_row_unique", columns={"column_index", "row_id"})
- *    }
- * )
+ * @ORM\Table(name="dashboard_component")
  */
 class Component
 {

@@ -223,7 +223,6 @@ class DashboardSettingsService {
         $pagesToDelete = $this->byId($pageRepository->findAll());
         $pageRowsToDelete = $this->byId($pageRowRepository->findAll());
         $componentsToDelete = $this->byId($componentRepository->findAll());
-
         foreach($jsonDashboard as $jsonPage) {
             [$updatePage, $page] = $this->getEntity($entityManager, Dashboard\Page::class, $jsonPage);
             if ($page) {
@@ -275,7 +274,6 @@ class DashboardSettingsService {
                 unset($pagesToDelete[$jsonPage["id"]]);
             }
         }
-
         Stream::from($pagesToDelete, $pageRowsToDelete, $componentsToDelete)
             ->each(function($entity) use ($entityManager) {
                 $entityManager->remove($entity);

@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class DashboardController extends AbstractController {
 
     /**
-     * @Route("/accueil", name="dashboards")
+     * @Route("/accueil", name="accueil")
      */
     public function dashboards(DashboardSettingsService $dashboardSettingsService, EntityManagerInterface $manager): Response {
         return $this->render("dashboard/dashboards.html.twig", [
@@ -23,7 +23,21 @@ class DashboardController extends AbstractController {
     }
 
     /**
-     * @Route("/accueil/actualiser", name="dashboards_fetch", options={"expose"=true})
+     * @Route("/dashboard/{token}", name="dashboards_external", options={"expose"=true})
+     */
+    public function external(DashboardSettingsService $dashboardSettingsService, EntityManagerInterface $manager, string $token): Response {
+        if($token != $_SERVER["APP_DASHBOARD_TOKEN"]) {
+            return $this->redirectToRoute("access_denied");
+        }
+
+        return $this->render("dashboard/external.html.twig", [
+            "dashboards" => $dashboardSettingsService->serialize($manager),
+            "title" => "Dashboard externe"
+        ]);
+    }
+
+    /**
+     * @Route("/dashboard/actualiser", name="dashboards_fetch", options={"expose"=true})
      */
     public function fetch(DashboardSettingsService $dashboardSettingsService, EntityManagerInterface $manager): Response {
         return $this->json([
