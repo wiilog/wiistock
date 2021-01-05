@@ -71,7 +71,7 @@ function loadDashboards(m) {
                 renderDashboardPagination();
                 renderRefreshDate(response.refreshed);
             })
-        },  1000);
+        }, 5 * 60 * 1000);
     }
 }
 
