@@ -1047,14 +1047,14 @@ class DashboardService
             $entityManager->persist($locationCluster);
         }
         $entityManager->flush();
-        Stream::from($config['locations'])
-            ->map(function(String $id) use ($locationRepository) {
-                return $locationRepository->find($id);
-            })
-            ->each(function(Emplacement $emplacement) use ($locationCluster){
-                $locationCluster
-                    ->addLocation($emplacement);
-            });
+
+        if($config['locations']) {
+            $locations = $locationRepository->findBy(["id" => $config['locations']]);
+            foreach($locations as $location) {
+                $locationCluster->addLocation($location);
+            }
+        }
+
         $packsCountByDays = $this->getDailyObjectsStatistics(function (DateTime $date) use ($locationClusterMeterRepository, $locationCluster) {
             return $locationClusterMeterRepository->countByDate(
                 $date,
@@ -1065,12 +1065,11 @@ class DashboardService
         $chart = $component->getMeter();
         if (!isset($chart)) {
             $chart = new Dashboard\Meter\Chart();
-            $chart
-                ->setComponent($component);
+            $chart->setComponent($component);
             $entityManager->persist($chart);
         }
-        $chart
-            ->setData($packsCountByDays);
+
+        $chart->setData($packsCountByDays);
     }
 
     private function getDaysWorked(EntityManagerInterface $entityManager): array {
