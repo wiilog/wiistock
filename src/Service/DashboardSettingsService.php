@@ -17,6 +17,10 @@ use Symfony\Component\Security\Core\Security;
 
 class DashboardSettingsService {
 
+    const MODE_EDIT = 0;
+    const MODE_DISPLAY = 1;
+    const MODE_EXTERNAL = 2;
+
     const UNKNOWN_COMPONENT = 'unknown-component';
 
     private $security;
@@ -27,10 +31,10 @@ class DashboardSettingsService {
         $this->dashboardService = $dashboardService;
     }
 
-    public function serialize(EntityManagerInterface $entityManager, bool $edit = false): string {
+    public function serialize(EntityManagerInterface $entityManager, int $mode): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
 
-        if(!$edit) {
+        if($mode === self::MODE_DISPLAY) {
             /** @var Utilisateur $user */
             $user = $this->security->getUser();
             $pages = Stream::from($pageRepository->findAllowedToAccess($user));
@@ -39,20 +43,20 @@ class DashboardSettingsService {
         }
 
         $pageIndex = 0;
-        $dashboards = $pages->map(function(Dashboard\Page $page) use (&$pageIndex, $entityManager, $edit) {
+        $dashboards = $pages->map(function(Dashboard\Page $page) use (&$pageIndex, $entityManager, $mode) {
             $rowIndex = 0;
             return [
                 "id" => $page->getId(),
                 "name" => $page->getName(),
                 "index" => $pageIndex++,
                 "rows" => $page->getRows()
-                    ->map(function(Dashboard\PageRow $row) use (&$rowIndex, $entityManager, $edit) {
+                    ->map(function(Dashboard\PageRow $row) use (&$rowIndex, $entityManager, $mode) {
                         return [
                             "id" => $row->getId(),
                             "size" => $row->getSize(),
                             "index" => $rowIndex++,
                             "components" => Stream::from($row->getComponents())
-                                ->map(function(Dashboard\Component $component) use ($entityManager, $edit) {
+                                ->map(function(Dashboard\Component $component) use ($entityManager, $mode) {
                                     $type = $component->getType();
                                     return [
                                         "id" => $component->getId(),
@@ -61,7 +65,7 @@ class DashboardSettingsService {
                                         "template" => $type->getTemplate(),
                                         "config" => $component->getConfig(),
                                         "meterKey" => $type->getMeterKey(),
-                                        "initData" => $this->serializeValues($entityManager, $component->getType(), $component->getConfig(), $edit),
+                                        "initData" => $this->serializeValues($entityManager, $component->getType(), $component->getConfig(), $mode === self::MODE_EDIT),
                                     ];
                                 })
                                 ->toArray(),

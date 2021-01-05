@@ -18,7 +18,7 @@ class DashboardController extends AbstractController {
      */
     public function dashboards(DashboardSettingsService $dashboardSettingsService, EntityManagerInterface $manager): Response {
         return $this->render("dashboard/dashboards.html.twig", [
-            "dashboards" => $dashboardSettingsService->serialize($manager),
+            "dashboards" => $dashboardSettingsService->serialize($manager, DashboardSettingsService::MODE_DISPLAY),
         ]);
     }
 
@@ -31,17 +31,17 @@ class DashboardController extends AbstractController {
         }
 
         return $this->render("dashboard/external.html.twig", [
-            "dashboards" => $dashboardSettingsService->serialize($manager),
+            "dashboards" => $dashboardSettingsService->serialize($manager, DashboardSettingsService::MODE_EXTERNAL),
             "title" => "Dashboard externe"
         ]);
     }
 
     /**
-     * @Route("/dashboard/actualiser", name="dashboards_fetch", options={"expose"=true})
+     * @Route("/dashboard/actualiser/{mode}", name="dashboards_fetch", options={"expose"=true})
      */
-    public function fetch(DashboardSettingsService $dashboardSettingsService, EntityManagerInterface $manager): Response {
+    public function fetch(DashboardSettingsService $dashboardSettingsService, EntityManagerInterface $manager, int $mode): Response {
         return $this->json([
-            "dashboards" => $dashboardSettingsService->serialize($manager),
+            "dashboards" => $dashboardSettingsService->serialize($manager, $mode),
         ]);
     }
 
