@@ -646,7 +646,6 @@ class ArrivageController extends AbstractController
 
             if ($canBeDeleted) {
                 foreach ($arrivage->getPacks() as $pack) {
-                    $entityManager->remove($pack);
                     foreach ($pack->getTrackingMovements() as $arrivageMvtTraca) {
                         $entityManager->remove($arrivageMvtTraca);
                     }
@@ -658,6 +657,8 @@ class ArrivageController extends AbstractController
                         $entityManager->remove($litige);
                     }
                     $pack->getLitiges()->clear();
+
+                    $entityManager->remove($pack);
                 }
                 $arrivage->getPacks()->clear();
 
