@@ -20,14 +20,14 @@ class DashboardFeedCommand extends Command
 {
     protected static $defaultName = 'app:feed:dashboards';
 
-    private $em;
+    private $entityManager;
     private $dashboardService;
 
     public function __construct(EntityManagerInterface $entityManager,
                                 DashboardService $dashboardService)
     {
         parent::__construct(self::$defaultName);
-        $this->em = $entityManager;
+        $this->entityManager = $entityManager;
         $this->dashboardService = $dashboardService;
     }
 
@@ -56,11 +56,14 @@ class DashboardFeedCommand extends Command
                 case Dashboard\ComponentType::ONGOING_PACKS:
                     $this->dashboardService->persistOngoingPack($entityManager, $component);
                     break;
+                case Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS:
+                case Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS:
+                    $this->dashboardService->persistArrivalsAndPacksMeter($entityManager, $component);
+                    break;
                 default:
                     break;
             }
         }
-        $this->dashboardService->retrieveAndInsertGlobalDashboardData($this->getEntityManager());
 
         $entityManager->flush();
     }
@@ -71,8 +74,8 @@ class DashboardFeedCommand extends Command
      */
     private function getEntityManager(): EntityManagerInterface
     {
-        return $this->em->isOpen()
-            ? $this->em
-            : EntityManager::Create($this->em->getConnection(), $this->em->getConfiguration());
+        return $this->entityManager->isOpen()
+            ? $this->entityManager
+            : EntityManager::Create($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
     }
 }

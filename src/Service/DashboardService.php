@@ -26,6 +26,7 @@ use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Exception;
 use Throwable;
 
@@ -684,88 +685,6 @@ class DashboardService
     }
 
     /**
-     * Make assoc array. Assoc a date like "d/m" to a counter returned by given function
-     * If table DaysWorked is no filled then the returned array is empty
-     * Else we return an array with 7 counters
-     * @param callable $getCounter (DateTime $dateMin, DateTime $dateMax) => integer
-     * @param array $workFreeDays Days we have to ignore
-     * @return array ['d/m' => integer]
-     * @throws Exception
-     */
-    public function getDailyObjectsStatistics(callable $getCounter, array $workFreeDays = []): array
-    {
-        $daysWorkedRepository = $this->entityManager->getRepository(DaysWorked::class);
-
-        $daysToReturn = [];
-        $nbDaysToReturn = 7;
-        $dayIndex = 0;
-
-        $workedDaysLabels = $daysWorkedRepository->getLabelWorkedDays();
-
-        if (!empty($workedDaysLabels)) {
-            while (count($daysToReturn) < $nbDaysToReturn) {
-                $dateToCheck = new DateTime("now - $dayIndex days", new DateTimeZone('Europe/Paris'));
-
-                if (!$this->enCoursService->isDayInArray($dateToCheck, $workFreeDays)) {
-                    $dateDayLabel = strtolower($dateToCheck->format('l'));
-
-                    if (in_array($dateDayLabel, $workedDaysLabels)) {
-                        $daysToReturn[] = $dateToCheck;
-                    }
-                }
-
-                $dayIndex++;
-            }
-        }
-
-        return array_reduce(
-            array_reverse($daysToReturn),
-            function (array $carry, DateTime $dateToCheck) use ($getCounter) {
-                $dateMin = clone $dateToCheck;
-                $dateMin->setTime(0, 0, 0);
-                $dateMax = clone $dateToCheck;
-                $dateMax->setTime(23, 59, 59);
-                $dateToCheck->setTime(0, 0);
-
-                $dayKey = $dateToCheck->format('d/m');
-                $carry[$dayKey] = $getCounter($dateMin, $dateMax);
-                return $carry;
-            },
-            []);
-    }
-
-    /**
-     * Make assoc array. Assoc a date like ('S' . weekNumber) to a counter returned by given function
-     * If table DaysWorked is no filled then the returned array is empty
-     * Else we return an array with 5 counters
-     * @param callable $getCounter (DateTime $dateMin, DateTime $dateMax) => integer
-     * @return array [('S' . weekNumber) => integer]
-     * @throws Exception
-     */
-    public function getWeeklyObjectsStatistics(callable $getCounter): array
-    {
-        $daysWorkedRepository = $this->entityManager->getRepository(DaysWorked::class);
-
-        $weekCountersToReturn = [];
-        $nbWeeksToReturn = 5;
-
-        $daysWorkedInWeek = $daysWorkedRepository->countDaysWorked();
-
-        if ($daysWorkedInWeek > 0) {
-            for ($weekIndex = ($nbWeeksToReturn - 2); $weekIndex >= -1; $weekIndex--) {
-                $dateMin = new DateTime("monday $weekIndex weeks ago");
-                $dateMin->setTime(0, 0, 0);
-                $dateMax = new DateTime("sunday $weekIndex weeks ago");
-                $dateMax->setTime(23, 59, 59);
-                $dayKey = ('S' . $dateMin->format('W'));
-                $weekCountersToReturn[$dayKey] = $getCounter($dateMin, $dateMax);
-            }
-        }
-
-        return $weekCountersToReturn;
-    }
-
-    /**
      * @param callable $getObject
      * @return array
      */
@@ -1027,11 +946,277 @@ class DashboardService
             ->setSubtitle($calculatedData['subtitle'] ?? null);
     }
 
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @throws Exception
+     */
+    public function persistArrivalsAndPacksMeter(EntityManagerInterface $entityManager,
+                                                 Dashboard\Component $component): void {
+        $config = $component->getConfig();
+        $type = $component->getType();
+        $weeklyRequest = ($type->getMeterKey() === Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS);
+        $dailyRequest = ($type->getMeterKey() === Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS);
+        $defaultScaleForDailyRequest = 7;
+        $defaultScaleForWeeklyRequest = 5;
+
+        if (!$dailyRequest && !$weeklyRequest) {
+            throw new \InvalidArgumentException('Invalid component type');
+        }
+
+        $displayPackNatures = $config['displayPackNatures'] ?? false;
+        $arrivalStatusesFilter = $config['arrivalStatuses'] ?? [];
+        $arrivalTypesFilter = $config['arrivalTypes'] ?? [];
+        $scale = $dailyRequest
+            ? ($config['daysNumber'] ?? $defaultScaleForDailyRequest)
+            : $defaultScaleForWeeklyRequest;
+
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+
+        if ($dailyRequest) {
+            $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+            $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
+            $getObjectsStatisticsCallable = 'getDailyObjectsStatistics';
+        }
+        else {
+            $workFreeDays = null;
+            $getObjectsStatisticsCallable = 'getWeeklyObjectsStatistics';
+        }
+
+        // arrivals column
+        $chartData = $this->{$getObjectsStatisticsCallable}(
+            $entityManager,
+            $scale,
+            function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository, $arrivalStatusesFilter, $arrivalTypesFilter) {
+                return $arrivageRepository->countByDates($dateMin, $dateMax, $arrivalStatusesFilter, $arrivalTypesFilter);
+            },
+            $workFreeDays
+        );
+
+        // packs column
+        if ($displayPackNatures && $scale) {
+            $natureData = $this->getPackArrivalNatures($entityManager, $getObjectsStatisticsCallable, $scale, $arrivalStatusesFilter, $arrivalTypesFilter, $workFreeDays);
+
+            if ($natureData) {
+                $chartData['stack'] = $natureData;
+            }
+        }
+
+        /** @var DashboardMeter\Chart|null $meter */
+        $meter = $component->getMeter();
+
+        if (!isset($meter)) {
+            $meter = new DashboardMeter\Chart();
+            $meter->setComponent($component);
+            $entityManager->persist($meter);
+        }
+
+        $meter
+            ->setData($chartData);
+    }
+
     private function getDaysWorked(EntityManagerInterface $entityManager): array {
         $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
         if (!isset($this->cacheDaysWorked)) {
             $this->cacheDaysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
         }
         return $this->cacheDaysWorked;
+    }
+
+    /**
+     * Make assoc array. Assoc a date like "d/m" to a counter returned by given function
+     * If table DaysWorked is no filled then the returned array is empty
+     * Else we return an array with 7 counters
+     * @param EntityManagerInterface $entityManager
+     * @param int $nbDaysToReturn
+     * @param callable $getCounter (DateTime $dateMin, DateTime $dateMax) => integer
+     * @param array $workFreeDays Days we have to ignore
+     * @return array ['d/m' => $getCounter return]
+     * @throws Exception
+     */
+    private function getDailyObjectsStatistics(EntityManagerInterface $entityManager,
+                                               int $nbDaysToReturn,
+                                               callable $getCounter,
+                                               array $workFreeDays = []): array
+    {
+        $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
+
+        $daysToReturn = [];
+        $dayIndex = 0;
+
+        $workedDaysLabels = $daysWorkedRepository->getLabelWorkedDays();
+
+        if (!empty($workedDaysLabels)) {
+            while (count($daysToReturn) < $nbDaysToReturn) {
+                $dateToCheck = new DateTime("now - $dayIndex days", new DateTimeZone('Europe/Paris'));
+
+                if (!$this->enCoursService->isDayInArray($dateToCheck, $workFreeDays)) {
+                    $dateDayLabel = strtolower($dateToCheck->format('l'));
+
+                    if (in_array($dateDayLabel, $workedDaysLabels)) {
+                        $daysToReturn[] = $dateToCheck;
+                    }
+                }
+
+                $dayIndex++;
+            }
+        }
+
+        return array_reduce(
+            array_reverse($daysToReturn),
+            function (array $carry, DateTime $dateToCheck) use ($getCounter) {
+                $dateMin = clone $dateToCheck;
+                $dateMin->setTime(0, 0, 0);
+                $dateMax = clone $dateToCheck;
+                $dateMax->setTime(23, 59, 59);
+                $dateToCheck->setTime(0, 0);
+
+                $dayKey = $dateToCheck->format('d/m');
+                $carry[$dayKey] = $getCounter($dateMin, $dateMax);
+                return $carry;
+            },
+            []);
+    }
+
+    /**
+     * Make assoc array. Assoc a date like ('S' . weekNumber) to a counter returned by given function
+     * If table DaysWorked is no filled then the returned array is empty
+     * Else we return an array with 5 counters
+     * @param EntityManagerInterface $entityManager
+     * @param int $nbWeeksToReturn
+     * @param callable $getCounter (DateTime $dateMin, DateTime $dateMax) => integer
+     * @return array [('S' . weekNumber) => $getCounter return]
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    private function getWeeklyObjectsStatistics(EntityManagerInterface $entityManager,
+                                                int $nbWeeksToReturn,
+                                                callable $getCounter): array
+    {
+        $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
+
+        $weekCountersToReturn = [];
+
+        $daysWorkedInWeek = $daysWorkedRepository->countDaysWorked();
+
+        if ($daysWorkedInWeek > 0) {
+            for ($weekIndex = ($nbWeeksToReturn - 2); $weekIndex >= -1; $weekIndex--) {
+                $dateMin = new DateTime("monday $weekIndex weeks ago");
+                $dateMin->setTime(0, 0);
+                $dateMax = new DateTime("sunday $weekIndex weeks ago");
+                $dateMax->setTime(23, 59, 59);
+                $dayKey = ('S' . $dateMin->format('W'));
+                $weekCountersToReturn[$dayKey] = $getCounter($dateMin, $dateMax);
+            }
+        }
+
+        return $weekCountersToReturn;
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param string $getObjectsStatisticsCallable
+     * @param int $scale
+     * @param array $arrivalStatusesFilter
+     * @param array $arrivalTypesFilter
+     * @param array|null $workFreeDays
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    private function getPackArrivalNatures(EntityManagerInterface $entityManager,
+                                           string $getObjectsStatisticsCallable,
+                                           int $scale,
+                                           array $arrivalStatusesFilter,
+                                           array $arrivalTypesFilter,
+                                           array $workFreeDays = null): array {
+
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+
+        $packCountByDay = $this->{$getObjectsStatisticsCallable}(
+            $entityManager,
+            $scale,
+            function (DateTime $dateMin, DateTime $dateMax) use ($packRepository, $arrivalStatusesFilter, $arrivalTypesFilter) {
+                return $packRepository->countByDates($dateMin, $dateMax, true, $arrivalStatusesFilter, $arrivalTypesFilter);
+            },
+            $workFreeDays
+        );
+
+        $natures = $natureRepository->findAll();
+        $naturesStack = [];
+        foreach ($natures as $nature) {
+            $natureId = $nature->getId();
+            if (!isset($naturesStack[$natureId])) {
+                $naturesStack[$natureId] = [
+                    'label' => $nature->getLabel(),
+                    'backgroundColor' => $nature->getColor(),
+                    'stack' => 'stack',
+                    'data' => []
+                ];
+            }
+            foreach ($packCountByDay as $countersGroupByNature) {
+                $found = false;
+                if (!empty($countersGroupByNature)) {
+                    foreach ($countersGroupByNature as $natureCount) {
+                        $currentNatureId = (int) $natureCount['natureId'];
+                        if ($natureId === $currentNatureId) {
+                            $naturesStack[$natureId]['data'][] = (int) $natureCount['count'];
+                            $found = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!$found) {
+                    $naturesStack[$nature->getId()]['data'][] = 0;
+                }
+            }
+            $total = Stream::from($naturesStack[$nature->getId()]['data'])
+                ->reduce(function ($counter, $current) {
+                    return $counter + $current;
+                }, 0);
+
+            if ($total === 0) {
+                unset($naturesStack[$nature->getId()]);
+            }
+        }
+
+//        $countedNatures = Stream::from($packCountByDay)
+//            ->reduce(function (array $carry, array $dataByDay) use ($natureRepository, &$treatedDay) {
+//                foreach ($dataByDay as $data) {
+//                    $natureId = !empty($data['natureId']) ? $data['natureId'] : null;
+//                    $count = !empty($data['count']) ? $data['count'] : 0;
+//
+//                    if (isset($natureId)) {
+//                        if (!isset($carry[$natureId])) {
+//                            $nature = $natureRepository->find($natureId);
+//                            if (isset($nature)) {
+//                                $carry[$natureId] = [
+//                                    'label' => $nature->getLabel(),
+//                                    'backgroundColor' => $nature->getColor(),
+//                                    'stack' => 'stack',
+//                                    'data' => []
+//                                ];
+//                            }
+//                        }
+//                    }
+//
+//                    if (isset($carry[$natureId])) {
+//                        $carry[$natureId]['data'][$treatedDay] = $count;
+//                    }
+//                }
+//                $treatedDay++;
+//                return $carry;
+//            }, []);
+//        foreach ($countedNatures as $index => $natureData) {
+//            for ($currentCounter = 0; $currentCounter < $treatedDay; $currentCounter++) {
+//                $countedNatures[$index]['data'][$currentCounter] = isset($natureData['data'][$currentCounter])
+//                    ? $countedNatures[$index]['data'][$currentCounter]
+//                    : 0;
+//            }
+//            $countedNatures[$index]['data'] = array_values($countedNatures[$index]['data']);
+//        }
+        return array_values($naturesStack);
     }
 }

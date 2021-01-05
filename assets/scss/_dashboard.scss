@@ -78,20 +78,6 @@ $minimumWidth: 1300px;
             min-height: 50px;
             display: none;
         }
-
-        button {
-            background-color: white;
-            color: black;
-            border-color: transparent;
-            box-shadow: none;
-            padding: 10px;
-
-            &:hover {
-                background-color: #F8F8F8;
-                color: black !important;
-                border-color: transparent;
-            }
-        }
     }
 
     .component-toolbox {

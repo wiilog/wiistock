@@ -47,14 +47,33 @@ class ArrivageRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @return Arrivage[]|null
+     * @param array $arrivalStatusesFilter
+     * @param array $arrivalTypesFilter
+     * @return int
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function countByDates($dateMin, $dateMax)
+    public function countByDates(DateTime $dateMin,
+                                 DateTime $dateMax,
+                                 array $arrivalStatusesFilter = [],
+                                 array $arrivalTypesFilter = []): int
     {
-		return $this->createQueryBuilderByDates($dateMin, $dateMax)
-            ->select('COUNT(arrivage)')
+		$queryBuilder = $this->createQueryBuilderByDates($dateMin, $dateMax)
+            ->select('COUNT(arrivage)');
+
+        if (!empty($arrivalStatusesFilter)) {
+            $queryBuilder
+                ->andWhere('arrivage.statut IN (:arrivalStatuses)')
+                ->setParameter('arrivalStatuses', $arrivalStatusesFilter);
+        }
+
+        if (!empty($arrivalTypesFilter)) {
+            $queryBuilder
+                ->andWhere('arrivage.type IN (:arrivalTypes)')
+                ->setParameter('arrivalTypes', $arrivalTypesFilter);
+        }
+
+        return $queryBuilder
             ->getQuery()
             ->getSingleScalarResult();
     }

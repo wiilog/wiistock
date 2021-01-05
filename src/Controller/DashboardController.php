@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Utilisateur;
 use App\Service\DashboardSettingsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,9 +20,12 @@ class DashboardController extends AbstractController {
      * @param EntityManagerInterface $manager
      * @return Response
      */
-    public function dashboards(DashboardSettingsService $dashboardSettingsService, EntityManagerInterface $manager): Response {
+    public function dashboards(DashboardSettingsService $dashboardSettingsService,
+                               EntityManagerInterface $manager): Response {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
         return $this->render("dashboard/dashboards.html.twig", [
-            "dashboards" => $dashboardSettingsService->serialize($manager),
+            "dashboards" => $dashboardSettingsService->serialize($manager, $loggedUser),
         ]);
     }
 
@@ -32,8 +36,10 @@ class DashboardController extends AbstractController {
      * @return Response
      */
     public function fetch(DashboardSettingsService $dashboardSettingsService, EntityManagerInterface $manager): Response {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
         return $this->json([
-            "dashboards" => $dashboardSettingsService->serialize($manager),
+            "dashboards" => $dashboardSettingsService->serialize($manager, $loggedUser),
         ]);
     }
 

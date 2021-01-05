@@ -33,22 +33,52 @@ class PackRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @return Arrivage[]|null
+     * @param bool $groupByNature
+     * @param array $arrivalStatusesFilter
+     * @param array $arrivalTypesFilter
+     * @return int|array
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function countByDates(DateTime $dateMin, DateTime $dateMax)
+    public function countByDates(DateTime $dateMin,
+                                 DateTime $dateMax,
+                                 bool $groupByNature = false,
+                                 array $arrivalStatusesFilter = [],
+                                 array $arrivalTypesFilter = [])
     {
-        return $this->createQueryBuilder('colis')
-            ->join('colis.arrivage', 'arrivage')
-            ->where('arrivage.date BETWEEN :dateMin AND :dateMax')
+        $queryBuilder = $this->createQueryBuilder('pack')
+            ->select('COUNT(pack) AS count')
+            ->join('pack.arrivage', 'arrival')
+            ->where('arrival.date BETWEEN :dateMin AND :dateMax')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
-            ])
-            ->select('COUNT(arrivage)')
-            ->getQuery()
-            ->getSingleScalarResult();
+            ]);
+
+        if ($groupByNature) {
+            $queryBuilder = $queryBuilder
+                ->addSelect('nature.id AS natureId')
+                ->leftJoin('pack.nature', 'nature')
+                ->groupBy('nature.id');
+        }
+
+        if (!empty($arrivalStatusesFilter)) {
+            $queryBuilder
+                ->andWhere('arrival.statut IN (:arrivalStatuses)')
+                ->setParameter('arrivalStatuses', $arrivalStatusesFilter);
+        }
+
+        if (!empty($arrivalTypesFilter)) {
+            $queryBuilder
+                ->andWhere('arrival.type IN (:arrivalTypes)')
+                ->setParameter('arrivalTypes', $arrivalTypesFilter);
+        }
+
+        $query = $queryBuilder->getQuery();
+
+        return $groupByNature
+            ? $query->getScalarResult()
+            : $query->getSingleScalarResult();
     }
 
     /**
