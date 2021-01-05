@@ -1027,6 +1027,51 @@ class DashboardService
             ->setSubtitle($calculatedData['subtitle'] ?? null);
     }
 
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @throws Exception
+     */
+    public function persistDroppedPacks(EntityManagerInterface $entityManager,
+                                        Dashboard\Component $component): void {
+        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+        $locationClusterMeterRepository = $entityManager->getRepository(LocationClusterMeter::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
+        $config = $component->getConfig();
+        $locationCluster = $component->getLocationCluster();
+        if (!$locationCluster) {
+            $locationCluster = new LocationCluster();
+            $locationCluster->setComponent($component);
+            $entityManager->persist($locationCluster);
+        }
+        $entityManager->flush();
+
+        if($config['locations']) {
+            $locations = $locationRepository->findBy(["id" => $config['locations']]);
+            foreach($locations as $location) {
+                $locationCluster->addLocation($location);
+            }
+        }
+
+        $packsCountByDays = $this->getDailyObjectsStatistics(function (DateTime $date) use ($locationClusterMeterRepository, $locationCluster) {
+            return $locationClusterMeterRepository->countByDate(
+                $date,
+                $locationCluster
+            );
+        }, $workFreeDays);
+
+        $chart = $component->getMeter();
+        if (!isset($chart)) {
+            $chart = new Dashboard\Meter\Chart();
+            $chart->setComponent($component);
+            $entityManager->persist($chart);
+        }
+
+        $chart->setData($packsCountByDays);
+    }
+
     private function getDaysWorked(EntityManagerInterface $entityManager): array {
         $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
         if (!isset($this->cacheDaysWorked)) {

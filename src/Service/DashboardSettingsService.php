@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\Emplacement;
+use App\Entity\LocationCluster;
 use App\Entity\Menu;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
@@ -65,7 +66,7 @@ class DashboardSettingsService {
                                         "template" => $type->getTemplate(),
                                         "config" => $component->getConfig(),
                                         "meterKey" => $type->getMeterKey(),
-                                        "initData" => $this->serializeValues($entityManager, $component->getType(), $component->getConfig(), $mode === self::MODE_EDIT),
+                                        "initData" => $this->serializeValues($entityManager, $component->getType(), $component->getConfig(), $mode === self::MODE_EDIT, $component->getMeter()),
                                     ];
                                 })
                                 ->toArray(),
@@ -83,13 +84,15 @@ class DashboardSettingsService {
      * @param Dashboard\ComponentType $componentType
      * @param array $config
      * @param bool $example
+     * @param Dashboard\Meter\Chart|null $chart
      * @return array
      * @throws Exception
      */
     public function serializeValues(EntityManagerInterface $entityManager,
                                     Dashboard\ComponentType $componentType,
                                     array $config,
-                                    bool $example = false): array {
+                                    bool $example = false,
+                                    ?Dashboard\Meter\Chart $chart = null): array {
         $values = [];
         $meterKey = $componentType->getMeterKey();
 
@@ -108,6 +111,8 @@ class DashboardSettingsService {
             $values += $this->serializeDailyReceptions($componentType, $config, $example);
         } else if ($meterKey === Dashboard\ComponentType::DAILY_ARRIVALS) {
             $values += $this->serializeDailyArrivals($componentType, $config, $example);
+        } else if ($meterKey === Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS) {
+            $values += $this->serializeDroppedPacks($entityManager, $componentType, $config, $example, $chart);
         } else {
             //TODO:remove
             $values += $componentType->getExampleValues();
@@ -133,7 +138,7 @@ class DashboardSettingsService {
                 isset($config['beforeAfter']) ? $config['beforeAfter'] : 'now'
             );
             $chartData = Stream::from($chartValues['data'])
-                ->map(function (array $value) {
+                ->map(function(array $value) {
                     return $value['count'];
                 })->toArray();
             $values['chartData'] = $chartData;
@@ -152,24 +157,24 @@ class DashboardSettingsService {
         $shouldShowLocationLabels = isset($config['withLocationLabels']) && $config['withLocationLabels'];
 
 //      if($example) {
-            $values = $componentType->getExampleValues();
+        $values = $componentType->getExampleValues();
 
-            if(!$shouldShowTreatmentDelay) {
-                unset($values['delay']);
-            }
+        if (!$shouldShowTreatmentDelay) {
+            unset($values['delay']);
+        }
 
-            if(!$shouldShowLocationLabels || empty($config['locations'])) {
+        if (!$shouldShowLocationLabels || empty($config['locations'])) {
+            unset($values['subtitle']);
+        } else if (!empty($config['locations'])) {
+            $locationRepository = $manager->getRepository(Emplacement::class);
+            $locations = $locationRepository->findBy(['id' => $config['locations']]);
+
+            if (empty($locations)) {
                 unset($values['subtitle']);
-            } else if(!empty($config['locations'])) {
-                $locationRepository = $manager->getRepository(Emplacement::class);
-                $locations = $locationRepository->findBy(['id' => $config['locations']]);
-
-                if(empty($locations)) {
-                    unset($values['subtitle']);
-                } else {
-                    $values['subtitle'] = FormatHelper::locations($locations);
-                }
+            } else {
+                $values['subtitle'] = FormatHelper::locations($locations);
             }
+        }
 //      } else {
 //          TODO: get real values
 //      }
@@ -186,7 +191,7 @@ class DashboardSettingsService {
         if (isset($config["carriers"])) {
             $carrierRepository = $manager->getRepository(Transporteur::class);
 
-            if($example) {
+            if ($example) {
                 $carriers = $carrierRepository->findByIds($config['carriers']);
             } else {
                 $carriers = $carrierRepository->getDailyArrivalCarriersLabel($config['carriers']);
@@ -198,6 +203,19 @@ class DashboardSettingsService {
         }
 
         return $values;
+    }
+
+    private function serializeDroppedPacks(EntityManagerInterface $entityManager,
+                                           Dashboard\ComponentType $componentType,
+                                           array $config,
+                                           bool $example = false,
+                                           ?Dashboard\Meter\Chart $chart = null): array {
+
+        if (!$example) {
+            return ["chartData" => $chart->getData()];
+        } else {
+            return $componentType->getExampleValues();
+        }
     }
 
     private function serializeDailyReceptions(Dashboard\ComponentType $componentType,
@@ -227,13 +245,14 @@ class DashboardSettingsService {
         $pagesToDelete = $this->byId($pageRepository->findAll());
         $pageRowsToDelete = $this->byId($pageRowRepository->findAll());
         $componentsToDelete = $this->byId($componentRepository->findAll());
-        foreach($jsonDashboard as $jsonPage) {
+
+        foreach ($jsonDashboard as $jsonPage) {
             [$updatePage, $page] = $this->getEntity($entityManager, Dashboard\Page::class, $jsonPage);
             if ($page) {
                 if ($updatePage) {
                     $page->setName($jsonPage["name"]);
 
-                    foreach($jsonPage["rows"] as $jsonRow) {
+                    foreach ($jsonPage["rows"] as $jsonRow) {
                         [$updateRow, $row] = $this->getEntity($entityManager, Dashboard\PageRow::class, $jsonRow);
                         if ($row) {
                             if ($updateRow) {
@@ -258,18 +277,16 @@ class DashboardSettingsService {
                                         unset($componentsToDelete[$jsonComponent["id"]]);
                                     }
                                 }
-                            }
-                            else {
+                            } else {
                                 $this->ignoreRow($row, $componentsToDelete);
                             }
                         }
 
-                        if(isset($jsonRow["id"], $pageRowsToDelete[$jsonRow["id"]])) {
+                        if (isset($jsonRow["id"], $pageRowsToDelete[$jsonRow["id"]])) {
                             unset($pageRowsToDelete[$jsonRow["id"]]);
                         }
                     }
-                }
-                else {
+                } else {
                     $this->ignorePage($page, $pageRowsToDelete, $componentsToDelete);
                 }
             }
@@ -294,18 +311,18 @@ class DashboardSettingsService {
                                string $class,
                                ?array $json): array {
         $set = $json["updated"] ?? false;
-        if(!$json) {
+        if (!$json) {
             return [false, null];
         }
 
-        if(isset($json["id"])) {
+        if (isset($json["id"])) {
             $entity = $entityManager->find($class, $json["id"]);
         }
 
         if (!isset($entity)) {
             $set = true;
             $entity = new $class();
-            if($entity instanceof Dashboard\Page) {
+            if ($entity instanceof Dashboard\Page) {
                 $menu = $entityManager->getRepository(Menu::class)
                     ->findOneBy(["label" => Menu::DASHBOARDS]);
 
@@ -351,4 +368,5 @@ class DashboardSettingsService {
             }
         }
     }
+
 }
