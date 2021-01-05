@@ -335,7 +335,6 @@ function onDashboardSaved() {
     const content = {
         dashboards: JSON.stringify(dashboards)
     };
-    console.log($.deepCopy(dashboards));
 
     return $.post(Routing.generate(`save_dashboard_settings`), content)
         .then(function(data) {
@@ -581,7 +580,6 @@ function onComponentSaved($modal) {
 
 function editComponent(rowIndex, componentIndex, {config, type, meterKey, template = null}) {
     const currentRow = getCurrentDashboardRow(rowIndex);
-
     if(currentRow && componentIndex < currentRow.size) {
         current.updated = true;
         currentRow.updated = true;
@@ -589,9 +587,8 @@ function editComponent(rowIndex, componentIndex, {config, type, meterKey, templa
         let currentComponent = getRowComponent(currentRow, componentIndex);
         if(!currentComponent) {
             currentComponent = {index: componentIndex};
-            currentRow.components[componentIndex] = currentComponent;
+            currentRow.components.push(currentComponent);
         }
-
         currentComponent.updated = true;
         currentComponent.config = config;
         currentComponent.type = type;

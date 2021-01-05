@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class DashboardController extends AbstractController {
 
     /**
-     * @Route("/accueil", name="dashboards")
+     * @Route("/accueil", name="accueil")
      */
     public function dashboards(DashboardSettingsService $dashboardSettingsService, EntityManagerInterface $manager): Response {
         return $this->render("dashboard/dashboards.html.twig", [

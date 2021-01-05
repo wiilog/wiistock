@@ -137,9 +137,8 @@ class ReferenceArticleController extends AbstractController
             ->filter(function ($column) {
                 return !isset($column['hiddenColumn']) || !$column['hiddenColumn'];
             })
-            ->toArray();
-
-        return $this->json($fields);
+            ->values();
+        return $this->json(($fields));
     }
 
     /**

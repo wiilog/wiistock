@@ -101,6 +101,7 @@ class DashboardSettingsController extends AbstractController {
                 throw $exception;
             }
         }
+
         $entityManager->flush();
         return $this->json([
             "success" => true,
