@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
@@ -129,19 +130,11 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/", name="arrivage_index")
-     * @param EntityManagerInterface $entityManager
-     * @param ArrivageDataService $arrivageDataService
-     *
-     * @return RedirectResponse|Response
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI})
      */
     public function index(EntityManagerInterface $entityManager,
                           ArrivageDataService $arrivageDataService)
     {
-        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -191,19 +184,11 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/api", name="arrivage_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI})
      */
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $canSeeAll = $this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL);
             $userId = $canSeeAll ? null : ($this->getUser() ? $this->getUser()->getId() : null);
             $data = $this->arrivageDataService->getDataForDatatable($request->request, $userId);
@@ -215,21 +200,7 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/creer", name="arrivage_new", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param AttachmentService $attachmentService
-     * @param UserService $userService
-     * @param ArrivageDataService $arrivageDataService
-     * @param FreeFieldService $champLibreService
-     * @param PackService $colisService
-     * @param TranslatorInterface $translator
-     * @return Response
-     * @throws LoaderError
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws Exception
+     * @HasPermission({Menu::TRACA, Action::CREATE})
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
@@ -241,10 +212,6 @@ class ArrivageController extends AbstractController
                         TranslatorInterface $translator): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $data = $request->request->all();
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -394,17 +361,12 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI})
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
-                return $this->redirectToRoute('access_denied');
-            }
             if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 $arrivageRepository = $entityManager->getRepository(Arrivage::class);
                 $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -458,18 +420,6 @@ class ArrivageController extends AbstractController
      *     condition="request.isXmlHttpRequest() && '%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_ED')"
      * )
      * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
-     *
-     * @param Arrivage $arrival
-     * @param Request $request
-     * @param ArrivageDataService $arrivageDataService
-     * @param EntityManagerInterface $entityManager
-     *
-     * @return Response
-     *
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws Exception
      */
     public function patchUrgentArrival(Arrivage $arrival,
                                        Request $request,
@@ -555,18 +505,7 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/modifier", name="arrivage_edit", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param ArrivageDataService $arrivageDataService
-     * @param FreeFieldService $champLibreService
-     * @param EntityManagerInterface $entityManager
-     *
-     * @return Response
-     *
-     * @throws LoaderError
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @HasPermission({Menu::TRACA, Action::EDIT})
      */
     public function edit(Request $request,
                          ArrivageDataService $arrivageDataService,
@@ -574,9 +513,6 @@ class ArrivageController extends AbstractController
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
@@ -666,6 +602,7 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/supprimer", name="arrivage_delete", options={"expose"=true},methods={"GET","POST"})
+     * @HasPermission({Menu::TRACA, Action::DELETE_ARRI})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -680,10 +617,6 @@ class ArrivageController extends AbstractController
 
             /** @var Arrivage $arrivage */
             $arrivage = $arrivageRepository->find($data['arrivage']);
-
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
             $canBeDeleted = ($arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0);
 
@@ -727,9 +660,6 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/ajoute-commentaire", name="add_comment",  options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function addComment(Request $request,
                                EntityManagerInterface $entityManager): Response
@@ -752,9 +682,6 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/lister-colis", name="arrivage_list_colis_api", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
      */
     public function listColisByArrivage(Request $request,
                                         EntityManagerInterface $entityManager)
@@ -776,11 +703,6 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param CSVExportService $csvService
-     * @param FreeFieldService $freeFieldService
-     * @return Response
      */
     public function exportArrivals(Request $request,
                                    EntityManagerInterface $entityManager,
@@ -889,6 +811,7 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
+     * @HasPermission({Menu::TRACA, Action::LIST_ALL})
      *
      * @param EntityManagerInterface $entityManager
      * @param ArrivageDataService $arrivageDataService
@@ -909,9 +832,8 @@ class ArrivageController extends AbstractController
                          bool $printColis = false,
                          bool $printArrivage = false): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL)
-            && !in_array($this->getUser(), $arrivage->getAcheteurs()->toArray())) {
-            return $this->redirectToRoute('access_denied');
+        if (!in_array($this->getUser(), $arrivage->getAcheteurs()->toArray())) {
+            return $this->render('securite/access_denied.html.twig');
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -953,16 +875,7 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/creer-litige", name="litige_new", options={"expose"=true}, methods={"POST"})
-     * @param Request $request
-     * @param ArrivageDataService $arrivageDataService
-     * @param LitigeService $litigeService
-     * @param EntityManagerInterface $entityManager
-     * @param UniqueNumberService $uniqueNumberService
-     * @param TranslatorInterface $translator
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     * @throws Exception
+     * @HasPermission({Menu::TRACA, Action::CREATE})
      */
     public function newLitige(Request $request,
                               ArrivageDataService $arrivageDataService,
@@ -972,10 +885,6 @@ class ArrivageController extends AbstractController
                               TranslatorInterface $translator): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $post = $request->request;
 
             $statutRepository = $entityManager->getRepository(Statut::class);
@@ -1066,6 +975,7 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/supprimer-litige", name="litige_delete_arrivage", options={"expose"=true}, methods="GET|POST")
+     * @HasPermission({Menu::QUALI, Action::DELETE})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -1074,10 +984,6 @@ class ArrivageController extends AbstractController
                                  EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $litigeRepository = $entityManager->getRepository(Litige::class);
             $litige = $litigeRepository->find($data['litige']);
 
@@ -1091,6 +997,7 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/ajouter-colis", name="arrivage_add_colis", options={"expose"=true}, methods={"GET", "POST"})
+     * @HasPermission({Menu::TRACA, Action::EDIT})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param PackService $colisService
@@ -1220,6 +1127,7 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/modifier-litige", name="litige_edit_arrivage",  options={"expose"=true}, methods="GET|POST")
+     * @HasPermission({Menu::QUALI, Action::EDIT})
      * @param Request $request
      * @param ArrivageDataService $arrivageDataService
      * @param EntityManagerInterface $entityManager
@@ -1236,9 +1144,6 @@ class ArrivageController extends AbstractController
                                Twig_Environment $templating): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $post = $request->request;
 
             $statutRepository = $entityManager->getRepository(Statut::class);
@@ -1714,6 +1619,7 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/colonne-visible", name="save_column_visible_for_arrivage", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -1721,9 +1627,6 @@ class ArrivageController extends AbstractController
     public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $data = json_decode($request->getContent(), true);
 
             $champs = array_keys($data);
@@ -1746,14 +1649,10 @@ class ArrivageController extends AbstractController
      *     methods="GET",
      *     condition="request.isXmlHttpRequest()"
      * )
-     * @return Response
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI})
      */
     public function getColumnVisible(): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
@@ -1762,6 +1661,7 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/api-columns", name="arrival_api_columns", options={"expose"=true}, methods="GET|POST")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI})
      * @param Request $request
      * @param ArrivageDataService $arrivageDataService
      * @param EntityManagerInterface $entityManager
@@ -1772,10 +1672,6 @@ class ArrivageController extends AbstractController
                                EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
             $columns = $arrivageDataService->getColumnVisibleConfig($entityManager, $currentUser);
