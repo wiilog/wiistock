@@ -141,10 +141,7 @@ function renderRefreshDate(date) {
 function renderCurrentDashboard() {
     $dashboard.empty();
     if(currentDashboard) {
-        if (!Array.isArray(currentDashboard.rows)) {
-            currentDashboard.rows = Object.values(currentDashboard.rows);
-        }
-        currentDashboard.rows
+        Object.values(currentDashboard.rows)
             .map(renderRow)
             .forEach(row => $dashboard.append(row));
     }
@@ -204,12 +201,12 @@ function renderConfigComponent(component, init = false) {
                         <div class="component-toolbox dropdown">
                             <i class="fas fa-cog" data-toggle="dropdown"></i>
                             <div class="dropdown-menu dropdown-menu-right pointer">
-                                <a class="dropdown-item edit-component ${!component.template ? 'd-none' : ''}" role="button">
+                                <div class="dropdown-item edit-component pointer ${!component.template ? 'd-none' : ''}" role="button">
                                     <i class="fa fa-pen mr-2"></i> Modifier
-                                </a>
-                                <a class="dropdown-item delete-component" role="button">
+                                </div>
+                                <div class="dropdown-item delete-component pointer" role="button">
                                     <i class="fa fa-trash mr-2"></i> Supprimer
-                                </a>
+                                </div>
                             </div>
                         </div>
                     `));
@@ -689,13 +686,11 @@ function renderFormComponentExample() {
 }
 
 function renderComponentExample($container, componentType, meterKey, formData = null, initData = null) {
-    const componentLink = initData ? (initData.componentLink || null) : null;
     let exampleValuesPromise;
     if(initData) {
         exampleValuesPromise = new Promise((resolve) => {
             resolve({
-                exampleValues: initData,
-                componentLink
+                exampleValues: initData
             });
         });
     } else {
@@ -707,7 +702,8 @@ function renderComponentExample($container, componentType, meterKey, formData = 
 
     return exampleValuesPromise
         .then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues))
-        .catch(() => {
+        .catch((error) => {
+            console.error(error);
         });
 }
 

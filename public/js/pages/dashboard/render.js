@@ -74,12 +74,8 @@ function renderComponent(meterKey, $container, data) {
         console.error(`No creator function for ${meterKey} key.`);
         return false;
     } else {
-        const componentLink = data.componentLink || undefined
         const {callback, arguments} = creators[meterKey];
-        const $element = callback(data, {
-            ...(arguments || {}),
-            componentLink
-        });
+        const $element = callback(data, arguments);
 
         if($element) {
             $container.html($element);
@@ -260,7 +256,6 @@ function createCarrierTrackingElement(data) {
 
 /**
  * @param {*} data
- * @param {string} componentLink
  * @return {boolean|jQuery}
  */
 function createIndicatorElement(data) {
@@ -269,8 +264,7 @@ function createIndicatorElement(data) {
         return false;
     }
 
-    const componentLink = data.componentLink;
-    const {title, subtitle, tooltip, count, delay} = data;
+    const {title, subtitle, tooltip, count, delay, componentLink} = data;
     const element = componentLink ? '<a/>' : '<div/>';
     const customAttributes = componentLink
         ? {
@@ -278,7 +272,7 @@ function createIndicatorElement(data) {
             target: '_blank'
         }
         : {};
-    const clickableClass = componentLink ? 'clickable' : '';
+    const clickableClass = componentLink ? 'pointer' : '';
     return $(element, {
         class: 'dashboard-box text-center justify-content-around dashboard-stats-container h-100',
         html: [
@@ -298,12 +292,12 @@ function createIndicatorElement(data) {
             count !== undefined
                 ? $('<div/>', {
                     class: 'align-items-center',
-                    html: `<div class="dashboard-stats dashboard-stats-counter ${clickableClass}">${count ? count : '-'}</div>`
+                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter">${count ? count : '-'}</div>`
                 })
                 : undefined,
             delay
                 ? $('<div/>', {
-                    class: `text-center title dashboard-stats-delay-title ${clickableClass} ${delay < 0 ? 'red' : ''}`,
+                    class: `text-center title dashboard-stats-delay-title ${delay < 0 ? 'red' : ''}`,
                     text: delay < 0
                         ? 'Retard : '
                         : 'A traiter sous :'
@@ -311,7 +305,7 @@ function createIndicatorElement(data) {
                 : undefined,
             delay
                 ? $('<div/>', {
-                    class: `dashboard-stats dashboard-stats-delay ${clickableClass} ${delay < 0 ? 'red' : ''}`,
+                    class: `${clickableClass} dashboard-stats dashboard-stats-delay ${delay < 0 ? 'red' : ''}`,
                     text: renderMillisecondsToDelay(Math.abs(delay), 'display')
                 })
                 : undefined,

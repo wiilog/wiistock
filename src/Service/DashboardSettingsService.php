@@ -103,6 +103,12 @@ class DashboardSettingsService {
         $values['title'] = !empty($config['title']) ? $config['title'] : $componentType->getName();
         $values['tooltip'] = !empty($config['tooltip']) ? $config['tooltip'] : $componentType->getHint();
 
+        $redirect = $config['redirect'] ?? false;
+        dump($redirect);
+        if (!$example && $redirect) {
+            $values['componentLink'] = $this->getComponentLink($componentType, $config);
+        }
+
         if ($meterKey === Dashboard\ComponentType::ONGOING_PACKS) {
             $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example, $meter);
         }
@@ -198,7 +204,6 @@ class DashboardSettingsService {
                 'subtitle' => $meter->getSubtitle(),
                 'delay' => $meter->getDelay(),
                 'count' => $meter->getCount(),
-                'componentLink' => $this->getComponentLink($componentType, $config)
             ];
         }
         return $values;
