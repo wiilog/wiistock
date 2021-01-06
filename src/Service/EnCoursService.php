@@ -137,7 +137,10 @@ class EnCoursService
                 ($maxTimeMinutes * 60 * 1000)      // minutes in milliseconds
             );
             $information['countDownLateTimespan'] = ($maxTimespan - $ageTimespan);
+        } else {
+            $information['countDownLateTimespan'] = null;
         }
+
         return $information;
     }
 
