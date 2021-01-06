@@ -296,7 +296,7 @@ class HandlingRepository extends EntityRepository
         ];
     }
 
-    public function findRequestToTreatByUser(Utilisateur $requester) {
+    public function findRequestToTreatByUser(Utilisateur $requester, int $limit) {
         return $this->createQueryBuilder("h")
             ->select("h")
             ->innerJoin("h.status", "s")
@@ -306,6 +306,7 @@ class HandlingRepository extends EntityRepository
             ->setParameter("requester", $requester)
             ->addOrderBy('s.state', 'ASC')
             ->addOrderBy("DATE_ADD(h.creationDate, art.average, 'second')", 'ASC')
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }
