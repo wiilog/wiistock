@@ -5,7 +5,8 @@
 {% block page_filter %}
     {% include 'filters/filtersEncours.html.twig' with {
         page: 'PAGE_ENCOURS',
-        callback: 'loadPage'
+        callback: 'loadPage',
+        locationsFilter: locationsFilter
     } %}
 {% endblock %}
 {% block page_content %}

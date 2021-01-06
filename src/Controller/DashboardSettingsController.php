@@ -3,13 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\Nature;
-use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
@@ -235,7 +233,7 @@ class DashboardSettingsController extends AbstractController {
 
         return $this->json([
             'success' => true,
-            'exampleValues' => $dashboardSettingsService->serializeValues($entityManager, $componentType, $values, true)
+            'exampleValues' => $dashboardSettingsService->serializeValues($entityManager, $componentType, $values, true),
         ]);
     }
 

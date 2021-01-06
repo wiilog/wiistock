@@ -7,7 +7,6 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use DateTimeInterface;
-use Traversable;
 
 class FormatHelper {
 
