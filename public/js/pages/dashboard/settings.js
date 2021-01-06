@@ -186,7 +186,8 @@ function renderConfigComponent(component, init = false) {
             component.type,
             component.meterKey,
             component.config || {},
-            init ? component.initData : undefined
+            init ? component.initData : undefined,
+            init ? component.componentLink : undefined
         )
             .then(() => {
                 $componentContainer.popLoader();
@@ -194,22 +195,22 @@ function renderConfigComponent(component, init = false) {
                     $componentContainer.append($('<div/>', {
                         class: 'text-danger d-flex flex-fill align-items-center justify-content-center',
                         html: `<i class="fas fa-exclamation-triangle mr-2"></i>Erreur lors de l'affichage du composant`
-                    }))
+                    }));
                 }
                 if(mode === MODE_EDIT) {
                     $componentContainer.append($(`
-                    <div class="component-toolbox dropdown">
-                        <i class="fas fa-cog" data-toggle="dropdown"></i>
-                        <div class="dropdown-menu dropdown-menu-right pointer">
-                            <a class="dropdown-item edit-component ${!component.template ? 'd-none' : ''}" role="button">
-                                <i class="fa fa-pen mr-2"></i> Modifier
-                            </a>
-                            <a class="dropdown-item delete-component" role="button">
-                                <i class="fa fa-trash mr-2"></i> Supprimer
-                            </a>
+                        <div class="component-toolbox dropdown">
+                            <i class="fas fa-cog" data-toggle="dropdown"></i>
+                            <div class="dropdown-menu dropdown-menu-right pointer">
+                                <a class="dropdown-item edit-component ${!component.template ? 'd-none' : ''}" role="button">
+                                    <i class="fa fa-pen mr-2"></i> Modifier
+                                </a>
+                                <a class="dropdown-item delete-component" role="button">
+                                    <i class="fa fa-trash mr-2"></i> Supprimer
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                `));
+                    `));
                 }
             });
     } else {
@@ -685,11 +686,14 @@ function renderFormComponentExample() {
         });
 }
 
-function renderComponentExample($container, componentType, meterKey, formData = null, initData = null) {
+function renderComponentExample($container, componentType, meterKey, formData = null, initData = null, componentLink = null) {
     let exampleValuesPromise;
     if(initData) {
         exampleValuesPromise = new Promise((resolve) => {
-            resolve({exampleValues: initData});
+            resolve({
+                exampleValues: initData,
+                componentLink
+            });
         });
     } else {
         exampleValuesPromise = $.post(
@@ -699,7 +703,7 @@ function renderComponentExample($container, componentType, meterKey, formData = 
     }
 
     return exampleValuesPromise
-        .then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues))
+        .then(({exampleValues, componentLink}) => renderComponent(meterKey, $container, exampleValues, componentLink))
         .catch(() => {
         });
 }

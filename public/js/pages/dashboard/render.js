@@ -25,16 +25,39 @@ $(function() {
 });
 
 const creators = {
-    [ONGOING_PACK]: [createOngoingPackElement],
-    [CARRIER_TRACKING]: [createCarrierTrackingElement],
-    [DAILY_ARRIVALS]: [createSimpleChart, {route: `get_arrival_um_statistics`}],
-    [LATE_PACKS]: [createLatePacksElement],
-    [DAILY_ARRIVALS_AND_PACKS]: [createSimpleChart],
-    [RECEIPT_ASSOCIATION]: [createSimpleChart, {route: `get_asso_recep_statistics`}],
-    [WEEKLY_ARRIVALS_AND_PACKS]: [createSimpleChart],
-    [ENTRIES_TO_HANDLE]: [createEntriesToTreatElement],
-    [PACK_TO_TREAT_FROM]: [createSimpleChart, {cssClass: 'multiple'}],
-    [DROP_OFF_DISTRIBUTED_PACKS]: [createSimpleChart],
+    [ONGOING_PACK]: {
+        callback: createIndicatorElement
+    },
+    [CARRIER_TRACKING]: {
+        callback: createCarrierTrackingElement
+    },
+    [DAILY_ARRIVALS]: {
+        callback: createSimpleChart,
+        arguments: {route: `get_arrival_um_statistics`}
+    },
+    [LATE_PACKS]: {
+        callback: createLatePacksElement
+    },
+    [DAILY_ARRIVALS_AND_PACKS]: {
+        callback: createSimpleChart
+    },
+    [RECEIPT_ASSOCIATION]: {
+        callback: createSimpleChart,
+        arguments: {route: `get_asso_recep_statistics`}
+    },
+    [WEEKLY_ARRIVALS_AND_PACKS]: {
+        callback: createSimpleChart
+    },
+    [ENTRIES_TO_HANDLE]: {
+        callback: createEntriesToTreatElement
+    },
+    [PACK_TO_TREAT_FROM]: {
+        callback: createSimpleChart,
+        arguments: {cssClass: 'multiple'}
+    },
+    [DROP_OFF_DISTRIBUTED_PACKS]: {
+        callback: createSimpleChart
+    },
 };
 
 /**
@@ -42,17 +65,21 @@ const creators = {
  * @param {jQuery} $container
  * @param {string} meterKey
  * @param {*} data
+ * @param {string|undefined} componentLink
  * @return {boolean}
  */
-function renderComponent(meterKey, $container, data) {
+function renderComponent(meterKey, $container, data, componentLink = undefined) {
     $container.empty();
 
     if(!creators[meterKey]) {
         console.error(`No creator function for ${meterKey} key.`);
         return false;
     } else {
-        const [callback, ...arguments] = creators[meterKey];
-        const $element = callback(data, ...arguments);
+        const {callback, arguments} = creators[meterKey];
+        const $element = callback(data, {
+            ...(arguments || {}),
+            componentLink
+        });
 
         if($element) {
             $container.html($element);
@@ -105,12 +132,12 @@ function createEntriesToTreatElement(data) {
         delete data.chartData[initialKey];
     });
     const $graph = createSimpleChart(data, {route: null, variable: null, cssClass: 'multiple'})[0].outerHTML;
-    const $firstComponent = createOngoingPackElement({
+    const $firstComponent = createIndicatorElement({
         title: 'Nombres de lignes à traiter',
         tooltip: data.linesCountTooltip,
         count: data.count
     })[0].outerHTML;
-    const $secondComponent = createOngoingPackElement({
+    const $secondComponent = createIndicatorElement({
         title: 'Prochain emplacement à traiter',
         tooltip: data.nextLocationTooltip,
         count: data.nextLocation
@@ -215,7 +242,7 @@ function createCarrierTrackingElement(data) {
         return false;
     }
 
-    const carriers = Array.isArray(data.carriers) ? data.carriers.join() : data.carriers;
+    const carriers = Array.isArray(data.carriers) ? data.carriers.join(', ') : data.carriers;
     const title = data.title || "";
 
     return $(`
@@ -231,52 +258,62 @@ function createCarrierTrackingElement(data) {
 
 /**
  * @param {*} data
+ * @param {string} componentLink
  * @return {boolean|jQuery}
  */
-function createOngoingPackElement(data) {
+function createIndicatorElement(data, {componentLink}) {
     if(!data || data.count === undefined) {
         console.error(`Invalid data for ongoing pack element.`);
         return false;
     }
 
-    return $('<div/>', {
+    const {title, subtitle, tooltip, count, delay} = data;
+    const element = componentLink ? '<a/>' : '<div/>';
+    const customAttributes = componentLink
+        ? {
+            href: componentLink,
+            target: '_blank'
+        }
+        : {};
+
+    return $(element, {
         class: 'dashboard-box text-center justify-content-around dashboard-stats-container h-100',
         html: [
-            createTooltip(data.tooltip),
-            data.title
+            createTooltip(tooltip),
+            title
                 ? $('<div/>', {
                     class: 'text-center title ellipsis',
-                    text: data.title
+                    text: title
                 })
                 : undefined,
-            data.subtitle
+            subtitle
                 ? $('<div/>', {
                     class: 'location-label ellipsis small',
-                    text: data.subtitle
+                    text: subtitle
                 })
                 : undefined,
-            data.count !== undefined
+            count !== undefined
                 ? $('<div/>', {
                     class: 'align-items-center',
-                    html: `<div class="dashboard-stats dashboard-stats-counter">${data.count ? data.count : '-'}</div>`
+                    html: `<div class="dashboard-stats dashboard-stats-counter">${count ? count : '-'}</div>`
                 })
                 : undefined,
-            data.delay
+            delay
                 ? $('<div/>', {
-                    class: `text-center title dashboard-stats-delay-title ${data.delay < 0 ? 'red' : ''}`,
-                    text: data.delay < 0
+                    class: `text-center title dashboard-stats-delay-title ${delay < 0 ? 'red' : ''}`,
+                    text: delay < 0
                         ? 'Retard : '
                         : 'A traiter sous :'
                 })
                 : undefined,
-            data.delay
+            delay
                 ? $('<div/>', {
-                    class: `dashboard-stats dashboard-stats-delay ${data.delay < 0 ? 'red' : ''}`,
-                    text: renderMillisecondsToDelay(Math.abs(data.delay), 'display')
+                    class: `dashboard-stats dashboard-stats-delay ${delay < 0 ? 'red' : ''}`,
+                    text: renderMillisecondsToDelay(Math.abs(delay), 'display')
                 })
                 : undefined,
-
-        ].filter(Boolean)
+        ].filter(Boolean),
+        ...customAttributes
     });
 }
 

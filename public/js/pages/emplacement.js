@@ -73,7 +73,7 @@ function printLocationsBarCodes($button, event) {
         window.location.href = Routing.generate('print_locations_bar_codes', {
             listEmplacements: $("#listEmplacementIdToPrint").val(),
             length: tableEmplacement.page.info().length,
-            start: tableEmplacement.page.info().start
+            start: 0
         }, true);
     }
     else {
