@@ -177,15 +177,12 @@ function printArticlesBarCodes($button, event) {
         let listArticles = $('.article-row-id')
             .map((_, element) => $(element).val())
             .toArray();
-        const length = tableArticle.page.info().length;
 
         if (length > 0) {
             window.location.href = Routing.generate(
                 'article_print_bar_codes',
                 {
-                    length,
                     listArticles: listArticles,
-                    start: tableArticle.page.info().start
                 },
                 true
             );
