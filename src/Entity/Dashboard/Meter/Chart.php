@@ -53,11 +53,7 @@ class Chart
 
     public function getData(): ?array
     {
-        $this->data = $this->decodeData($this->data);
-        if (array_key_exists("chartData", $this->data)) {
-            $this->data['chartData'] = $this->decodeData($this->data['chartData']);
-        }
-        return $this->data;
+        return $this->decodeData($this->data);
     }
 
     private function decodeData(array $data) {
@@ -80,9 +76,6 @@ class Chart
 
     public function setData(array $data): self
     {
-        if (array_key_exists("chartData", $data)) {
-            $data['chartData'] = $this->encodeData($data['chartData']);
-        }
         $this->data = $this->encodeData($data);
 
         return $this;

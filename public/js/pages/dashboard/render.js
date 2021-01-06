@@ -32,31 +32,31 @@ const creators = {
         callback: createCarrierTrackingElement
     },
     [DAILY_ARRIVALS]: {
-        callback: createSimpleChart,
+        callback: createChart,
         arguments: {route: `get_arrival_um_statistics`}
     },
     [LATE_PACKS]: {
         callback: createLatePacksElement
     },
     [DAILY_ARRIVALS_AND_PACKS]: {
-        callback: createSimpleChart
+        callback: createChart
     },
     [RECEIPT_ASSOCIATION]: {
-        callback: createSimpleChart,
+        callback: createChart,
         arguments: {route: `get_asso_recep_statistics`}
     },
     [WEEKLY_ARRIVALS_AND_PACKS]: {
-        callback: createSimpleChart
+        callback: createChart
     },
     [ENTRIES_TO_HANDLE]: {
-        callback: createEntriesToTreatElement
+        callback: createEntriesToHandleElement
     },
     [PACK_TO_TREAT_FROM]: {
-        callback: createSimpleChart,
+        callback: createChart,
         arguments: {cssClass: 'multiple'}
     },
     [DROP_OFF_DISTRIBUTED_PACKS]: {
-        callback: createSimpleChart
+        callback: createChart
     },
 };
 
@@ -117,19 +117,14 @@ function createTooltip(text) {
     }
 }
 
-function createEntriesToTreatElement(data) {
+function createEntriesToHandleElement(data) {
     if(!data) {
         console.error(`Invalid data for entries element.`);
         return false;
     }
-    data.chartData.forEach((arrayToUnfold, initialKey) => {
-        const key = Object.keys(arrayToUnfold)[0];
-        data.chartData[key] = arrayToUnfold[key];
-        delete data.chartData[initialKey];
-    });
-    const $graph = createSimpleChart(data, {route: null, variable: null, cssClass: 'multiple'})[0].outerHTML;
+    const graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'})[0].outerHTML;
     const $firstComponent = createIndicatorElement({
-        title: 'Nombres de lignes à traiter',
+        title: 'Nombre de lignes à traiter',
         tooltip: data.linesCountTooltip,
         count: data.count,
         componentLink: data.componentLink
@@ -143,7 +138,7 @@ function createEntriesToTreatElement(data) {
     return $(`
         <div class="row">
             <div class="col-8 pr-1">
-                ${$graph}
+                ${graph}
             </div>
             <div class="col-4 pl-1">
                 <div class="row h-100">
@@ -152,9 +147,7 @@ function createEntriesToTreatElement(data) {
                 </div>
             </div>
         </div>
-    `)
-
-
+    `);
 }
 
 /**
@@ -191,7 +184,7 @@ function calculateChartsFontSize() {
  * @param {{route: string|null, variable: string|null}} pagination
  * @return {boolean|jQuery}
  */
-function createSimpleChart(data, {route, cssClass} = {route: null, cssClass: null}) {
+function createChart(data, {route, cssClass} = {route: null, cssClass: null}) {
     if (!data) {
         console.error(`Invalid data for "${data.title}"`);
         return false;

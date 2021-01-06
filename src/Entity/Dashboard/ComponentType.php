@@ -2,6 +2,7 @@
 
 namespace App\Entity\Dashboard;
 
+use App\Helper\Stream;
 use App\Repository\Dashboard as DashboardRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -131,11 +132,21 @@ class ComponentType
 
     public function getExampleValues(): ?array
     {
-        return $this->exampleValues;
+
+        $exampleValues = $this->exampleValues;
+        if (isset($exampleValues['chartData'])) {
+            $exampleValues['chartData'] = $this->decodeData($exampleValues['chartData']);
+        }
+
+        return $exampleValues;
     }
 
     public function setExampleValues(array $exampleValues): self
     {
+        if (isset($exampleValues['chartData'])) {
+            $exampleValues['chartData'] = $this->encodeData($exampleValues['chartData']);
+        }
+
         $this->exampleValues = $exampleValues;
 
         return $this;
@@ -178,5 +189,25 @@ class ComponentType
     public function setMeterKey(?string $meterKey): self {
         $this->meterKey = $meterKey;
         return $this;
+    }
+
+
+
+    private function decodeData(array $data): array {
+        return Stream::from($data)
+            ->keymap(function ($value) {
+                return [$value['dataKey'], $value['data']];
+            })->toArray();
+    }
+
+    private function encodeData(array $data): array {
+        $savedData = [];
+        foreach ($data as $key => $datum) {
+            $savedData[] = [
+                'dataKey' => $key,
+                'data' => $datum
+            ];
+        }
+        return $savedData;
     }
 }

@@ -228,6 +228,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'hint' => 'Nombre de colis par natures paramétrées présents sur la durée paramétrée sur l\'ensemble des emplacements paramétrés',
             'exampleValues' => [
                 'count' => 72,
+                'segments' => ['4', '8', '12', '16'],
                 'nextLocation' => 'EMP1',
                 'chartColors' => [
                     'Nature 1' => '#a3d1ff',
@@ -235,36 +236,36 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     'Nature 3' => '#aaafdf',
                 ],
                 'chartData' => [
-                    ['Retard' => [
+                    'Retard' => [
                         'Nature 1' => 25,
                         'Nature 2' => 25,
                         'Nature 3' => 12,
-                    ]],
-                    ['Moins d\'1h' => [
+                    ],
+                    'Moins d\'1h' => [
                         'Nature 1' => 15,
                         'Nature 2' => 2,
                         'Nature 3' => 12,
-                    ]],
-                    ['1h-4h' => [
+                    ],
+                    '1h-4h' => [
                         'Nature 1' => 15,
                         'Nature 2' => 2,
                         'Nature 3' => 12,
-                    ]],
-                    ['4h-12h' => [
+                    ],
+                    '4h-12h' => [
                         'Nature 1' => 15,
                         'Nature 2' => 2,
                         'Nature 3' => 12,
-                    ]],
-                    ['12h-24h' => [
+                    ],
+                    '12h-24h' => [
                         'Nature 1' => 15,
                         'Nature 2' => 2,
                         'Nature 3' => 12,
-                    ]],
-                    ['24h-48h' => [
+                    ],
+                    '24h-48h' => [
                         'Nature 1' => 0,
                         'Nature 2' => 0,
                         'Nature 3' => 0,
-                    ]],
+                    ],
                 ],
             ],
             'category' => Dashboard\ComponentType::ORDERS,

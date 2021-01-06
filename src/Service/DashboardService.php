@@ -401,20 +401,26 @@ class DashboardService {
     }
 
     /**
+     * @param array $steps
      * @param callable $getObject
      * @return array
      */
-    public function getObjectForTimeSpan(callable $getObject): array {
+    public function getObjectForTimeSpan(array $steps, callable $getObject): array {
         $timeSpanToObject = [];
+
         $timeSpans = [
             -1 => -1,
-            0 => 1,
-            1 => 6,
-            6 => 12,
-            12 => 24,
-            24 => 36,
-            36 => 48,
+            0 => 1
         ];
+        $lastKey = 1;
+        $timeSpans += Stream::from($steps)
+            ->reduce(function(array $carry, $step) use (&$lastKey) {
+                $numberStep = (int) $step;
+                $carry[$lastKey] = $numberStep;
+                $lastKey = $numberStep;
+                return $carry;
+            }, []);
+
         foreach ($timeSpans as $timeBegin => $timeEnd) {
             $key = $timeBegin === -1
                 ? "Retard"
@@ -761,7 +767,6 @@ class DashboardService {
     public function persistEntriesToHandle(EntityManagerInterface $entityManager, Dashboard\Component $component)
     {
         $config = $component->getConfig();
-        $adminDelay = '48:00'; // TODO ajouter la dernière heure paramétrée
 
         $natureRepository = $entityManager->getRepository(Nature::class);
         $locationClusterRepository = $entityManager->getRepository(LocationCluster::class);
@@ -790,8 +795,8 @@ class DashboardService {
             'packDateTime' => null
         ];
 
-        if (!empty($naturesForGraph)) {
-            $packsOnCluster = $locationClusterRepository->getPacksOnCluster($locationCluster, $naturesForGraph);
+        if (!empty($naturesFilter)) {
+            $packsOnCluster = $locationClusterRepository->getPacksOnCluster($locationCluster, $naturesFilter);
             $packsOnClusterVerif = Stream::from(
                 $packsRepository->getCurrentPackOnLocations(
                     $locationCluster->getLocations()->toArray(),
@@ -807,24 +812,29 @@ class DashboardService {
                 return $carry;
             }, []);
             $countByNatureBase = [];
-            foreach ($naturesForGraph as $wantedNature) {
+            foreach ($naturesFilter as $wantedNature) {
                 $countByNatureBase[$wantedNature->getLabel()] = 0;
             }
-
+            $segments = $config['segments'];
             $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-            $graphData = $this->getObjectForTimeSpan(function (int $beginSpan, int $endSpan)
-            use (
-                $workFreeDays,
-                $daysWorked,
-                $workFreeDaysRepository,
-                $countByNatureBase,
-                $naturesForGraph,
-                &$packsOnCluster,
-                $adminDelay,
-                $packsOnClusterVerif,
-                &$locationCounters,
-                &$olderPackLocation,
-                &$globalCounter) {
+
+            $lastSegmentKey = count($segments);
+            $lastSegment = $segments[$lastSegmentKey - 1];
+            $adminDelay = "$lastSegment:00";
+
+            $graphData = $this->getObjectForTimeSpan($segments, function (int $beginSpan, int $endSpan)
+                                                                use (
+                                                                    $workFreeDays,
+                                                                    $daysWorked,
+                                                                    $workFreeDaysRepository,
+                                                                    $countByNatureBase,
+                                                                    $naturesFilter,
+                                                                    &$packsOnCluster,
+                                                                    $adminDelay,
+                                                                    $packsOnClusterVerif,
+                                                                    &$locationCounters,
+                                                                    &$olderPackLocation,
+                                                                    &$globalCounter) {
                 $countByNature = array_merge($countByNatureBase);
                 $packUntreated = [];
                 foreach ($packsOnCluster as $pack) {

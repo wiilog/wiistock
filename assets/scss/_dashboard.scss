@@ -181,6 +181,7 @@ $minimumWidth: 1300px;
 
             &.dashboard-stats-counter {
                 font-size: 2vw;
+                word-wrap: break-word;
 
                 .dashboard-ext & {
                     font-size: 8vh;

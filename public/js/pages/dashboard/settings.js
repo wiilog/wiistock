@@ -638,9 +638,9 @@ function initSecondStep(html) {
     $submitButton.on('click', () => onComponentSaved($modalComponentTypeSecondStep));
 
     renderFormComponentExample();
-    const $formInputs = $modalComponentTypeSecondStep.find('select.data, input.data, input.checkbox');
-    $formInputs.off('change.secondStepComponentType');
-    $formInputs.on('change.secondStepComponentType', () => renderFormComponentExample());
+
+    $modalComponentTypeSecondStep.off('change.secondStepComponentType');
+    $modalComponentTypeSecondStep.on('change.secondStepComponentType', 'select.data, input.data, input.data-array, input.checkbox', () => renderFormComponentExample())
 
     const $segmentsList = $modalComponentTypeSecondStepContent.find('.segments-list');
 
@@ -693,7 +693,7 @@ function renderFormComponentExample() {
     const $exampleContainerParent = $exampleContainer.parent();
 
     const componentType = $exampleContainer.data('component-type');
-    const {data: formData} = ProcessForm($modalComponentTypeSecondStep);
+    const {data: formData} = processSecondModalForm($modalComponentTypeSecondStep);
 
     return renderComponentExample($exampleContainer, componentType, $exampleContainer.data('meter-key'), formData)
         .then((renderingSuccess) => {

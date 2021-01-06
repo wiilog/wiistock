@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
+use App\Entity\Nature;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -111,20 +112,16 @@ class DashboardSettingsService {
 
         if ($meterKey === Dashboard\ComponentType::ONGOING_PACKS) {
             $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example, $meter);
-        }
-        else if ($meterKey === Dashboard\ComponentType::CARRIER_TRACKING) {
+        } else if ($meterKey === Dashboard\ComponentType::CARRIER_TRACKING) {
             $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
         } else if ($meterKey === Dashboard\ComponentType::ENTRIES_TO_HANDLE) {
-            $values['linesCountTooltip'] = !empty($config['linesCountTooltip']) ? $config['linesCountTooltip'] : '';
-            $values['nextLocationTooltip'] = !empty($config['nextLocationTooltip']) ? $config['linesCountTooltip'] : '';
-            $values += $componentType->getExampleValues();
+            $values += $this->serializeEntriesToHandle($entityManager, $componentType, $config, $example, $meter);
         } else if ($meterKey === Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS
             || $meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS) {
             $values += $this->serializeArrivalsAndPacks($componentType, $config, $example, $meter);
         } else if ($meterKey === Dashboard\ComponentType::RECEIPT_ASSOCIATION) {
             $values += $this->serializeDailyReceptions($componentType, $config, $example);
-        }
-        else if ($meterKey === Dashboard\ComponentType::DAILY_ARRIVALS) {
+        } else if ($meterKey === Dashboard\ComponentType::DAILY_ARRIVALS) {
             $values += $this->serializeDailyArrivals($componentType, $config, $example);
         } else if ($meterKey === Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS) {
             $values += $this->serializeDroppedPacks($entityManager, $componentType, $config, $example, $meter);
@@ -135,6 +132,91 @@ class DashboardSettingsService {
             $values += $componentType->getExampleValues();
         }
 
+        return $values;
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\ComponentType $componentType
+     * @param array $config
+     * @param bool $example
+     * @param DashboardMeter\Chart|null $meterChart
+     * @return array
+     */
+    private function serializeEntriesToHandle(EntityManagerInterface $entityManager,
+                                              Dashboard\ComponentType $componentType,
+                                              array $config,
+                                              bool $example = false,
+                                              DashboardMeter\Chart $meterChart = null): array {
+
+        if ($example) {
+            $values = $componentType->getExampleValues();
+            $values['linesCountTooltip'] = !empty($config['linesCountTooltip']) ? $config['linesCountTooltip'] : '';
+            $values['nextLocationTooltip'] = !empty($config['nextLocationTooltip']) ? $config['linesCountTooltip'] : '';
+
+            if (!empty($config['natures'])) {
+                $natureRepository = $entityManager->getRepository(Nature::class);
+                $natures = $natureRepository->findBy(['id' => $config['natures']]);
+                $generated = Stream::from($natures)
+                    ->reduce(function (array $carry, Nature $nature) {
+                        $carry['chartColors'][$nature->getLabel()] = $nature->getColor();
+                        $carry['defaultCounters'][$nature->getLabel()] =random_int(0, 30);
+                        return $carry;
+                    }, ['chartColors' => [], 'defaultCounters' => []]);
+
+                $values['chartColors'] = $generated['chartColors'];
+                $defaultCounters = $generated['defaultCounters'];
+            }
+            else {
+                $defaultCounters = [
+                    'Standard' => 15,
+                    'Consommable' => 2,
+                    'Congelé' => 12
+                ];
+            }
+
+            $segments = $config['segments'] ?? [];
+            $segmentsLabels = [
+                'Retard',
+                'Moins d\'1h'
+            ];
+            if (!empty($segments)) {
+                $lastKey = "1";
+                foreach ($segments as $segment) {
+                    $segmentsLabels[] = "${lastKey}h - ${segment}h";
+                    $lastKey = $segment;
+                }
+            }
+            else {
+                $segmentsLabels[] = '1h-4h';
+                $segmentsLabels[] = '4h-12h';
+                $segmentsLabels[] = '12h-24h';
+                $segmentsLabels[] = '24h-48h';
+            }
+
+            $values['chartData'] = Stream::from($segmentsLabels)
+                ->reduce(function (array $carry, string $segmentLabel) use ($defaultCounters) {
+                    $carry[$segmentLabel] = $defaultCounters;
+                    return $carry;
+                }, []);
+
+        } else if (isset($meterChart)){
+            $values = [
+                'chartData' => $meterChart->getData(),
+                'nextLocation' => $meterChart->getLocation(),
+                'count' => $meterChart->getTotal(),
+                'chartColors' => $meterChart->getChartColors(),
+                'linesCountTooltip' => $config['linesCountTooltip'] ?? '',
+                'nextLocationTooltip' => $config['nextLocationTooltip'] ?? ''
+            ];
+        } else {
+            $values = [
+                'chartData' => [],
+                'nextLocation' => '-',
+                'count' => '-',
+                'chartColors' => []
+            ];
+        }
         return $values;
     }
 
