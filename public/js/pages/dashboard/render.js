@@ -150,7 +150,7 @@ function createLatePacksElement(data) {
                 ${title}
             </div>
             ${createTooltip(data.tooltip)}
-            <table class="table retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
+            <table class="table display retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
             </table>
         </div>
     `);
@@ -538,8 +538,8 @@ function loadLatePacks($table, data) {
             needsMinimalDomOverride: true
         },
         paging: false,
+        scrollY: `20vh`,
         scrollCollapse: true,
-        scrollY: '22vh',
         processing: true,
         order: [[2, 'desc']],
         columns: [
