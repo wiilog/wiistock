@@ -294,7 +294,11 @@ class DashboardSettingsService {
                                            ?Dashboard\Meter\Chart $chart = null): array {
 
         if (!$example) {
-            return $chart->getData();
+            if($chart) {
+                return $chart->getData();
+            } else {
+                return [];
+            }
         } else {
             return $componentType->getExampleValues();
         }
