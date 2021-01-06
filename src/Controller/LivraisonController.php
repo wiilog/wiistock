@@ -370,25 +370,17 @@ class LivraisonController extends AbstractController
 
             return $CSVExportService->streamResponse(
 
-                function ($output) use ($entityManager, $dateTimeMin, $dateTimeMax, $logger, $CSVExportService) {
+                function ($output) use ($entityManager, $dateTimeMin, $dateTimeMax, $CSVExportService) {
                     $livraisonRepository = $entityManager->getRepository(Livraison::class);
                     $livraisons = $livraisonRepository->getByDates($dateTimeMin, $dateTimeMax);
-                    $logger->critical(json_encode($livraisons));
+
                     foreach ($livraisons as $livraison) {
 
-                        $logger->critical(json_encode($livraison));
-                        $logger->critical(get_class($livraison));
                         $this->putLivraisonLine($output, $CSVExportService, $livraison);
                     }
                 }, 'export_Ordres_Livraison.csv',
                 $csvHeader
             );
-
-            $data = [];
-            $data[] = $headers;
-            foreach ($livraisons as $livraison) {
-                $this->buildInfos($livraison, $data);
-            }
         }
     }
 

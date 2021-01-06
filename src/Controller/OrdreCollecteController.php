@@ -17,6 +17,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Service\ArticleDataService;
+use App\Service\CSVExportService;
 use App\Service\OrdreCollecteService;
 use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
@@ -424,21 +425,25 @@ class OrdreCollecteController extends AbstractController
      * @Route("/infos", name="get_ordres_collecte_for_csv", options={"expose"=true}, methods={"GET","POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $CSVExportService
      * @return Response
      */
-    public function getOrdreCollecteIntels(Request $request, EntityManagerInterface $entityManager): Response
+    public function getOrdreCollecteIntels(Request $request,
+                                           EntityManagerInterface $entityManager,
+                                           CSVExportService $CSVExportService): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
 
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
-            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
-            $collectes = $ordreCollecteRepository->findByDates($dateTimeMin, $dateTimeMax);
 
-            $headers = [
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (Throwable $throwable) {
+        }
+        if (isset($dateTimeMin) && isset($dateTimeMax)) {
+            $CSVheader = [
                 'numéro',
                 'statut',
                 'date création',
@@ -451,21 +456,26 @@ class OrdreCollecteController extends AbstractController
                 'code-barre',
                 'destination'
             ];
+            return $CSVExportService->streamResponse(
 
-            $data = [];
-            $data[] = $headers;
+                function ($output)use ($entityManager, $dateTimeMin, $dateTimeMax, $CSVExportService) {
+                    $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
+                    $collectes = $ordreCollecteRepository->findByDates($dateTimeMin, $dateTimeMax);
 
-            foreach ($collectes as $collecte) {
-                $this->buildInfos($collecte, $data);
-            }
-            return new JsonResponse($data);
-        } else {
-            throw new BadRequestHttpException();
+                    foreach ($collectes as $collecte) {
+                        $this->putCollecteLine($output, $CSVExportService, $collecte);
+                    }
+                },'Export_Ordres_Collectes.csv',
+                $CSVheader
+            );
+
         }
     }
 
 
-    private function buildInfos(OrdreCollecte $ordreCollecte, &$data)
+    private function putCollecteLine($handle,
+                                     CSVExportService $csvService,
+                                     OrdreCollecte $ordreCollecte)
     {
         $collecte = $ordreCollecte->getDemandeCollecte();
 
@@ -481,13 +491,14 @@ class OrdreCollecteController extends AbstractController
         foreach ($ordreCollecte->getOrdreCollecteReferences() as $ordreCollecteReference) {
             $referenceArticle = $ordreCollecteReference->getReferenceArticle();
 
-            $data[] = array_merge($dataCollecte, [
+            $data = array_merge($dataCollecte, [
                 $referenceArticle->getReference() ?? '',
                 $referenceArticle->getLibelle() ?? '',
                 $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
                 $ordreCollecteReference->getQuantite() ?? 0,
-                $referenceArticle->getBarCode()
+                $referenceArticle->getBarCode(),
             ]);
+            $csvService->putLine($handle, $data);
         }
 
         foreach ($ordreCollecte->getArticles() as $article) {
@@ -495,7 +506,7 @@ class OrdreCollecteController extends AbstractController
             $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
             $reference = $referenceArticle ? $referenceArticle->getReference() : '';
 
-            $data[] = array_merge($dataCollecte, [
+            $data = array_merge($dataCollecte, [
                 $reference,
                 $article->getLabel() ?? '',
                 $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
@@ -503,6 +514,7 @@ class OrdreCollecteController extends AbstractController
                 $article->getBarCode(),
                 $collecte->isStock() ? 'Mise en stock' : 'Destruction'
             ]);
+            $csvService->putLine($handle, $data);
         }
     }
 
