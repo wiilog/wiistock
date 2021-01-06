@@ -632,7 +632,7 @@ class ArticleDataService
         $articleReceptionRecipientDropzoneLabel = ($articleReceptionRecipientDropzone && $wantsRecipientDropzone) ? $articleReceptionRecipientDropzone->getLabel() : '';
 
         $articleLinkedToTransferRequestToTreat = $article->getTransferRequests()->map(function (TransferRequest $transferRequest) use ($reception) {
-            if ($transferRequest->getStatus()->getNom() === TransferOrder::TO_TREAT) {
+            if ($reception && $transferRequest->getStatus()->getNom() === TransferOrder::TO_TREAT) {
                 $transferRequestLocation = $reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : '';
             } else {
                 $transferRequestLocation = '';
