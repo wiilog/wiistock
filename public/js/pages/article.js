@@ -178,7 +178,7 @@ function printArticlesBarCodes($button, event) {
             .map((_, element) => $(element).val())
             .toArray();
 
-        if (length > 0) {
+        if (tableArticle.page.info().length > 0) {
             window.location.href = Routing.generate(
                 'article_print_bar_codes',
                 {
