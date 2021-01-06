@@ -393,17 +393,14 @@ class EmplacementController extends AbstractController
                                            EntityManagerInterface $entityManager,
                                            PDFGeneratorService $PDFGeneratorService): PdfResponse {
         $listEmplacements = explode(',', $request->query->get('listEmplacements') ?? '');
-        $start = $request->query->get('start');
-        $length = $request->query->get('length');
-
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
-        if (!empty($listEmplacements) && isset($start) && isset($length)) {
+        if (!empty($listEmplacements)) {
             $barCodeConfigs = array_map(
                 function (Emplacement $location) {
                     return ['code' => $location->getLabel()];
                 },
-                array_slice($emplacementRepository->findByIds($listEmplacements), $start, $length)
+                $emplacementRepository->findByIds($listEmplacements)
             );
 
             $fileName = $PDFGeneratorService->getBarcodeFileName($barCodeConfigs, 'emplacements');

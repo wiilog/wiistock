@@ -114,6 +114,8 @@ class DashboardSettingsService {
             $values += $this->serializeDailyArrivals($componentType, $config, $example);
         } else if ($meterKey === Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS) {
             $values += $this->serializeDroppedPacks($entityManager, $componentType, $config, $example, $meter);
+        } else if ($meterKey === Dashboard\ComponentType::PACK_TO_TREAT_FROM) {
+            $values += $this->serializePacksToTreatFrom($entityManager, $componentType, $config, $example, $meter);
         } else {
             //TODO:remove
             $values += $componentType->getExampleValues();
@@ -277,6 +279,23 @@ class DashboardSettingsService {
 
         if (!$example) {
             return ["chartData" => $chart->getData()];
+        } else {
+            return $componentType->getExampleValues();
+        }
+    }
+
+    private function serializePacksToTreatFrom(EntityManagerInterface $entityManager,
+                                           Dashboard\ComponentType $componentType,
+                                           array $config,
+                                           bool $example = false,
+                                           ?Dashboard\Meter\Chart $chart = null): array {
+
+        if (!$example) {
+            if($chart) {
+                return $chart->getData();
+            } else {
+                return [];
+            }
         } else {
             return $componentType->getExampleValues();
         }
