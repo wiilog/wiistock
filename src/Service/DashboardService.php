@@ -411,172 +411,6 @@ class DashboardService {
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param string $clusterCode
-     * @throws NonUniqueResultException
-     * @throws Exception
-     * @deprecated
-     */
-    public function getAndSetGraphDataForAdmin(EntityManagerInterface $entityManager, string $clusterCode) {
-        if (!in_array($clusterCode, [LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1, LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2])) {
-            throw new Exception('Cluster code in not supported');
-        }
-
-        $adminDelay = '48:00';
-
-        $natureRepository = $entityManager->getRepository(Nature::class);
-        $locationClusterRepository = $entityManager->getRepository(LocationCluster::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
-        $packsRepository = $entityManager->getRepository(Pack::class);
-        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-        $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
-
-        $naturesFilterParam = ($clusterCode === LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1)
-            ? ParametrageGlobal::DASHBOARD_NATURE_COLIS
-            : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
-
-        // on récupère les natures paramétrées
-        $paramNatureForGraph = $parametrageGlobalRepository->getOneParamByLabel($naturesFilterParam);
-        $naturesIdForGraph = !empty($paramNatureForGraph) ? explode(',', $paramNatureForGraph) : [];
-        $naturesForGraph = !empty($naturesIdForGraph)
-            ? $natureRepository->findBy(['id' => $naturesIdForGraph])
-            : [];
-
-        $locationCounters = [];
-
-        $globalCounter = 0;
-
-        $olderPackLocation = [
-            'locationLabel' => null,
-            'locationId' => null,
-            'packDateTime' => null
-        ];
-
-        if (!empty($naturesForGraph)) {
-            $cluster = $locationClusterRepository->findOneBy([
-                'code' => $clusterCode
-            ]);
-            $packsOnCluster = $locationClusterRepository->getPacksOnCluster($clusterCode, $naturesForGraph);
-            $packsOnClusterVerif = Stream::from(
-                $packsRepository->getCurrentPackOnLocations(
-                    $cluster->getLocations()->toArray(),
-                    $naturesIdForGraph,
-                    false,
-                    'colis.id, emplacement.label'
-                )
-            )->reduce(function(array $carry, array $pack) {
-                if (!isset($carry[$pack['label']])) {
-                    $carry[$pack['label']] = [];
-                }
-                $carry[$pack['label']][] = $pack['id'];
-                return $carry;
-            }, []);
-            $countByNatureBase = [];
-            foreach ($naturesForGraph as $wantedNature) {
-                $countByNatureBase[$wantedNature->getLabel()] = 0;
-            }
-
-            $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-            $graphData = $this->getObjectForTimeSpan(function(int $beginSpan, int $endSpan)
-            use (
-                $workFreeDays,
-                $daysWorked,
-                $workFreeDaysRepository,
-                $countByNatureBase,
-                $naturesForGraph,
-                &$packsOnCluster,
-                $adminDelay,
-                $packsOnClusterVerif,
-                &$locationCounters,
-                &$olderPackLocation,
-                &$globalCounter
-            ) {
-                $countByNature = array_merge($countByNatureBase);
-                $packUntreated = [];
-                foreach ($packsOnCluster as $pack) {
-                    if (isset($packsOnClusterVerif[$pack['currentLocationLabel']]) && in_array(intval($pack['packId']), $packsOnClusterVerif[$pack['currentLocationLabel']])) {
-                        $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $pack['firstTrackingDateTime'], $workFreeDays);
-                        $timeInformation = $this->enCoursService->getTimeInformation($date, $adminDelay);
-                        $countDownHours = isset($timeInformation['countDownLateTimespan'])
-                            ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
-                            : null;
-
-                        if (isset($countDownHours)
-                            && (
-                                ($countDownHours < 0 && $beginSpan === -1) // count colis en retard
-                                || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
-                            )) {
-
-                            $countByNature[$pack['natureLabel']]++;
-
-                            $currentLocationLabel = $pack['currentLocationLabel'];
-                            $currentLocationId = $pack['currentLocationId'];
-                            $lastTrackingDateTime = $pack['lastTrackingDateTime'];
-
-                            // get older pack
-                            if ((
-                                    empty($olderPackLocation['locationLabel'])
-                                    || empty($olderPackLocation['locationId'])
-                                    || empty($olderPackLocation['packDateTime'])
-                                )
-                                || ($olderPackLocation['packDateTime'] > $lastTrackingDateTime)) {
-                                $olderPackLocation['locationLabel'] = $currentLocationLabel;
-                                $olderPackLocation['locationId'] = $currentLocationId;
-                                $olderPackLocation['packDateTime'] = $lastTrackingDateTime;
-                            }
-
-                            // increment counters
-                            if (empty($locationCounters[$currentLocationId])) {
-                                $locationCounters[$currentLocationId] = 0;
-                            }
-
-                            $locationCounters[$currentLocationId]++;
-                            $globalCounter++;
-                        } else {
-                            $packUntreated[] = $pack;
-                        }
-                    }
-                }
-                $packsOnCluster = $packUntreated;
-                return $countByNature;
-            });
-        }
-
-        if (empty($graphData)) {
-            $graphData = $this->getObjectForTimeSpan(function() {
-                return 0;
-            });
-        }
-
-        $totalToDisplay = !empty($olderPackLocation['locationId'])
-            ? $globalCounter
-            : null;
-
-        $locationToDisplay = !empty($olderPackLocation['locationLabel'])
-            ? $olderPackLocation['locationLabel']
-            : null;
-        $dashboardData = [
-            'dashboard' => self::DASHBOARD_ADMIN,
-            'chartColors' => array_reduce(
-                $naturesForGraph,
-                function(array $carry, Nature $nature) {
-                    $color = $nature->getColor();
-                    if (!empty($color)) {
-                        $carry[$nature->getLabel()] = $color;
-                    }
-                    return $carry;
-                },
-                []),
-            'key' => $clusterCode,
-            'data' => $graphData,
-            'location' => (!empty($locationToDisplay) ? $locationToDisplay : '-'),
-            'total' => (!empty($totalToDisplay) ? $totalToDisplay : '-'),
-        ];
-        $this->updateOrPersistDashboardGraphMeter($entityManager, $dashboardData);
-    }
-
-    /**
-     * @param EntityManagerInterface $entityManager
      * @param string $dashboard
      * @param string $id
      * @return mixed
@@ -628,7 +462,7 @@ class DashboardService {
      * @param bool $includeLocationLabels
      * @return array|null
      * @throws NonUniqueResultException
-     * @throws \Doctrine\ORM\NoResultException
+     * @throws NoResultException
      */
     public function getDashboardCounter(EntityManagerInterface $entityManager,
                                         array $locationIds,
@@ -934,40 +768,86 @@ class DashboardService {
      * @param Dashboard\Component $component
      * @throws Exception
      */
+    public function persistPackToTreatFrom(EntityManagerInterface $entityManager,
+                                           Dashboard\Component $component): void
+    {
+
+        $locationClusterMeterRepository = $this->entityManager->getRepository(LocationClusterMeter::class);
+        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+
+        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
+
+        $config = $component->getConfig();
+
+        $legend1 = $config['originCaption'];
+        $legend2 = $config['destinationCaption'];
+        $clusterKeys = ['firstOriginLocation', 'secondOriginLocation', 'firstDestinationLocation', 'secondDestinationLocation'];
+        foreach ($clusterKeys as $key) {
+            $this->updateComponentLocationCluster($entityManager, $component, $key);
+        }
+
+        $entityManager->flush();
+        $needsFirstOriginFilter = $component->getLocationCluster('firstOriginLocation')
+            && $component->getLocationCluster('firstOriginLocation')->getLocations()->count() > 0;
+        $data = [
+            'chartColors' => [
+                $legend1 => '#a3d1ff',
+                $legend2 => '#a3efdf'
+            ],
+            'chartData' => $this->getDailyObjectsStatistics($entityManager, DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE, function (DateTime $date) use (
+                $legend1,
+                $legend2,
+                $locationClusterMeterRepository,
+                $component,
+                $needsFirstOriginFilter
+            ) {
+                return [
+                    $legend1 => $locationClusterMeterRepository->countByDate(
+                        $date,
+                        $component->getLocationCluster('firstDestinationLocation'),
+                        $needsFirstOriginFilter ? $component->getLocationCluster('firstOriginLocation') : null
+                    ),
+                    $legend2 => $locationClusterMeterRepository->countByDate(
+                        $date,
+                        $component->getLocationCluster('secondDestinationLocation'),
+                        $component->getLocationCluster('secondOriginLocation')
+                    )
+                ];
+            }, $workFreeDays)
+        ];
+
+        $chart = $component->getMeter();
+        if (!isset($chart)) {
+            $chart = new Dashboard\Meter\Chart();
+            $chart->setComponent($component);
+            $entityManager->persist($chart);
+        }
+        $chart->setData($data);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @throws Exception
+     */
     public function persistDroppedPacks(EntityManagerInterface $entityManager,
                                         Dashboard\Component $component): void {
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $locationClusterMeterRepository = $entityManager->getRepository(LocationClusterMeter::class);
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-        $config = $component->getConfig();
-        $locationCluster = $component->getLocationCluster();
-        if (!$locationCluster) {
-            $locationCluster = new LocationCluster();
-            $locationCluster->setComponent($component);
-            $entityManager->persist($locationCluster);
-        }
+        $clusterKey = 'locations';
+        $this->updateComponentLocationCluster($entityManager, $component, $clusterKey);
+
+        $locationCluster = $component->getLocationCluster($clusterKey);
         $entityManager->flush();
-
-        if ($config['locations']) {
-            $locations = $locationRepository->findBy(["id" => $config['locations']]);
-            foreach ($locations as $location) {
-                $locationCluster->addLocation($location);
-            }
-        }
-
-        $packsCountByDays = $this->getDailyObjectsStatistics(
-            $entityManager,
-            DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE,
-            function(DateTime $date) use ($locationClusterMeterRepository, $locationCluster) {
-                return $locationClusterMeterRepository->countByDate(
-                    $date,
-                    $locationCluster
-                );
-            },
-            $workFreeDays
-        );
+        $packsCountByDays = $this->getDailyObjectsStatistics($entityManager, DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE,
+            function (DateTime $date) use ($locationClusterMeterRepository, $locationCluster) {
+            return $locationClusterMeterRepository->countByDate(
+                $date,
+                $locationCluster
+            );
+        }, $workFreeDays);
 
         $chart = $component->getMeter();
         if (!isset($chart)) {
@@ -1055,6 +935,36 @@ class DashboardService {
         return $this->cacheDaysWorked;
     }
 
+    private function updateComponentLocationCluster(EntityManagerInterface $entityManager,
+                                                    Dashboard\Component $component,
+                                                    string $fieldName): void {
+
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $config = $component->getConfig();
+        $locationCluster = $component->getLocationCluster($fieldName);
+
+        if (!$locationCluster) {
+            $locationCluster = new LocationCluster();
+            $locationCluster
+                ->setComponent($component)
+                ->setClusterKey($fieldName);
+            $entityManager->persist($locationCluster);
+        }
+
+        foreach ($locationCluster->getLocations() as $location) {
+            $locationCluster->removeLocation($location);
+        }
+
+        if(!empty($config[$fieldName])) {
+            $locations = $locationRepository->findBy([
+                'id' => $config[$fieldName]
+            ]);
+
+            foreach ($locations as $location) {
+                $locationCluster->addLocation($location);
+            }
+        }
+    }
     /**
      * Make assoc array. Assoc a date like "d/m" to a counter returned by given function
      * If table DaysWorked is no filled then the returned array is empty
@@ -1214,5 +1124,4 @@ class DashboardService {
 
         return array_values($naturesStack);
     }
-
 }

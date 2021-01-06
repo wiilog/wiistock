@@ -166,7 +166,7 @@ function calculateChartsFontSize() {
  * @param {{route: string|null, variable: string|null}} pagination
  * @return {boolean|jQuery}
  */
-function createSimpleChart(data, {route, variable, cssClass} = {route: null, cssClass: null}) {
+function createSimpleChart(data, {route, cssClass} = {route: null, cssClass: null}) {
     if (!data) {
         console.error(`Invalid data for "${data.title}"`);
         return false;
@@ -175,7 +175,7 @@ function createSimpleChart(data, {route, variable, cssClass} = {route: null, css
     const title = data.title || "";
 
     let pagination = ``;
-    if(route !== null && variable !== null) {
+    if(route) {
         pagination = `
             <div class="range-buttons ${mode === MODE_EDIT ? 'd-none' : ''}">
                 <div class="arrow-chart"
@@ -192,12 +192,12 @@ function createSimpleChart(data, {route, variable, cssClass} = {route: null, css
         `;
     }
     return $(`
-        <div class="dashboard-box dashboard-stats-container">
+        <div class="dashboard-box dashboard-stats-container h-100">
             <div class="title">
                 ${title}
             </div>
             ${createTooltip(data.tooltip)}
-            <div>
+            <div class="h-100">
                 <canvas class="${cssClass || ''}"></canvas>
             </div>
             ${pagination}
@@ -240,7 +240,7 @@ function createOngoingPackElement(data) {
     }
 
     return $('<div/>', {
-        class: 'dashboard-box text-center justify-content-around dashboard-stats-container',
+        class: 'dashboard-box text-center justify-content-around dashboard-stats-container h-100',
         html: [
             createTooltip(data.tooltip),
             data.title
