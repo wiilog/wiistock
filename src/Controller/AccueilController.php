@@ -195,7 +195,7 @@ class AccueilController extends AbstractController
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
             if ($userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR, $loggedUser)) {
-                $pendingDeliveries = Stream::from($demandeRepository->findRequestToTreatByUser($loggedUser))
+                $pendingDeliveries = Stream::from($demandeRepository->findRequestToTreatByUser($loggedUser, 50))
                     ->map(function (Demande $demande) use ($demandeLivraisonService, $dateService, $averageRequestTimesByType) {
                         return $demandeLivraisonService->parseRequestForCard($demande, $dateService, $averageRequestTimesByType);
                     })
@@ -204,7 +204,7 @@ class AccueilController extends AbstractController
                 $pendingDeliveries = [];
             }
             if ($userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL, $loggedUser)) {
-                $pendingCollects = Stream::from($collecteRepository->findRequestToTreatByUser($loggedUser))
+                $pendingCollects = Stream::from($collecteRepository->findRequestToTreatByUser($loggedUser, 50))
                     ->map(function (Collecte $collecte) use ($demandeCollecteService, $dateService, $averageRequestTimesByType) {
                         return $demandeCollecteService->parseRequestForCard($collecte, $dateService, $averageRequestTimesByType);
                     })
@@ -213,7 +213,7 @@ class AccueilController extends AbstractController
                 $pendingCollects = [];
             }
             if ($userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND, $loggedUser)) {
-                $pendingHandlings = Stream::from($handlingRepository->findRequestToTreatByUser($loggedUser))
+                $pendingHandlings = Stream::from($handlingRepository->findRequestToTreatByUser($loggedUser, 50))
                     ->map(function (Handling $handling) use ($handlingService, $dateService, $averageRequestTimesByType) {
                         return $handlingService->parseRequestForCard($handling, $dateService, $averageRequestTimesByType);
                     })
