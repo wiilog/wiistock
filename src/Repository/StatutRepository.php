@@ -440,7 +440,7 @@ class StatutRepository extends EntityRepository {
 
         if ($type) {
             $qb
-                ->andWhere("status.type = :type")
+                ->andWhere("status.type = :type OR status.type IS NULL")
                 ->setParameter("type", $type);
         }
 
