@@ -72,7 +72,6 @@ class DashboardSettingsService {
                                         "config" => $config,
                                         "meterKey" => $meterKey,
                                         "initData" => $this->serializeValues($entityManager, $type, $config, $mode === self::MODE_EDIT, $meter),
-                                        "componentLink" => $this->getComponentLink($type, $config)
                                     ];
                                 })
                                 ->toArray(),
@@ -105,7 +104,7 @@ class DashboardSettingsService {
         $values['tooltip'] = !empty($config['tooltip']) ? $config['tooltip'] : $componentType->getHint();
 
         if ($meterKey === Dashboard\ComponentType::ONGOING_PACKS) {
-            $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example);
+            $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example, $meter);
         }
         else if ($meterKey === Dashboard\ComponentType::CARRIER_TRACKING) {
             $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
@@ -170,7 +169,6 @@ class DashboardSettingsService {
                                           DashboardMeter\Indicator $meter = null): array {
         $shouldShowTreatmentDelay = isset($config['withTreatmentDelay']) && $config['withTreatmentDelay'];
         $shouldShowLocationLabels = isset($config['withLocationLabels']) && $config['withLocationLabels'];
-
         if ($example || !$meter) {
             $values = $componentType->getExampleValues();
 
@@ -199,10 +197,10 @@ class DashboardSettingsService {
             $values = [
                 'subtitle' => $meter->getSubtitle(),
                 'delay' => $meter->getDelay(),
-                'count' => $meter->getCount()
+                'count' => $meter->getCount(),
+                'componentLink' => $this->getComponentLink($componentType, $config)
             ];
         }
-
         return $values;
     }
 

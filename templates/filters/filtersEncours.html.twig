@@ -4,7 +4,7 @@
     {% set isPreFilled = locationsFilter is defined and locationsFilter is not empty %}
     <input name="isPreFilledFilter" value="{{ isPreFilled ? 1 : 0 }}" type="hidden"/>
     {% include 'filters/filter_item/filterLocation.html.twig' with {
-        isPreFilled,
+        isPreFilled: isPreFilled,
         locationsFilter: locationsFilter
     } %}
     {% include 'filters/filter_item/filterNatureColis.html.twig' with {disabled: isPreFilled ? 'disabled'} %}

@@ -141,6 +141,9 @@ function renderRefreshDate(date) {
 function renderCurrentDashboard() {
     $dashboard.empty();
     if(currentDashboard) {
+        if (!Array.isArray(currentDashboard.rows)) {
+            currentDashboard.rows = Object.values(currentDashboard.rows);
+        }
         currentDashboard.rows
             .map(renderRow)
             .forEach(row => $dashboard.append(row));
@@ -186,8 +189,7 @@ function renderConfigComponent(component, init = false) {
             component.type,
             component.meterKey,
             component.config || {},
-            init ? component.initData : undefined,
-            init ? component.componentLink : undefined
+            init ? component.initData : undefined
         )
             .then(() => {
                 $componentContainer.popLoader();
@@ -686,7 +688,8 @@ function renderFormComponentExample() {
         });
 }
 
-function renderComponentExample($container, componentType, meterKey, formData = null, initData = null, componentLink = null) {
+function renderComponentExample($container, componentType, meterKey, formData = null, initData = null) {
+    const componentLink = initData ? (initData.componentLink || null) : null;
     let exampleValuesPromise;
     if(initData) {
         exampleValuesPromise = new Promise((resolve) => {
@@ -703,7 +706,7 @@ function renderComponentExample($container, componentType, meterKey, formData = 
     }
 
     return exampleValuesPromise
-        .then(({exampleValues, componentLink}) => renderComponent(meterKey, $container, exampleValues, componentLink))
+        .then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues))
         .catch(() => {
         });
 }

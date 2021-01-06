@@ -169,6 +169,10 @@ $minimumWidth: 1300px;
             font-size: 2.6vw;
             line-height: 0.8;
 
+            &.clickable {
+                cursor: pointer;
+            }
+
             &.dashboard-stats-delay {
                 font-size: 2.5vh;
             }

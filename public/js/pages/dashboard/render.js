@@ -65,16 +65,16 @@ const creators = {
  * @param {jQuery} $container
  * @param {string} meterKey
  * @param {*} data
- * @param {string|undefined} componentLink
  * @return {boolean}
  */
-function renderComponent(meterKey, $container, data, componentLink = undefined) {
+function renderComponent(meterKey, $container, data) {
     $container.empty();
 
     if(!creators[meterKey]) {
         console.error(`No creator function for ${meterKey} key.`);
         return false;
     } else {
+        const componentLink = data.componentLink || undefined
         const {callback, arguments} = creators[meterKey];
         const $element = callback(data, {
             ...(arguments || {}),
@@ -135,12 +135,14 @@ function createEntriesToTreatElement(data) {
     const $firstComponent = createIndicatorElement({
         title: 'Nombres de lignes à traiter',
         tooltip: data.linesCountTooltip,
-        count: data.count
+        count: data.count,
+        componentLink: data.componentLink
     })[0].outerHTML;
     const $secondComponent = createIndicatorElement({
         title: 'Prochain emplacement à traiter',
         tooltip: data.nextLocationTooltip,
-        count: data.nextLocation
+        count: data.nextLocation,
+        componentLink: data.componentLink
     })[0].outerHTML;
     return $(`
         <div class="row">
@@ -261,12 +263,13 @@ function createCarrierTrackingElement(data) {
  * @param {string} componentLink
  * @return {boolean|jQuery}
  */
-function createIndicatorElement(data, {componentLink}) {
+function createIndicatorElement(data) {
     if(!data || data.count === undefined) {
         console.error(`Invalid data for ongoing pack element.`);
         return false;
     }
 
+    const componentLink = data.componentLink;
     const {title, subtitle, tooltip, count, delay} = data;
     const element = componentLink ? '<a/>' : '<div/>';
     const customAttributes = componentLink
@@ -275,7 +278,7 @@ function createIndicatorElement(data, {componentLink}) {
             target: '_blank'
         }
         : {};
-
+    const clickableClass = componentLink ? 'clickable' : '';
     return $(element, {
         class: 'dashboard-box text-center justify-content-around dashboard-stats-container h-100',
         html: [
@@ -295,12 +298,12 @@ function createIndicatorElement(data, {componentLink}) {
             count !== undefined
                 ? $('<div/>', {
                     class: 'align-items-center',
-                    html: `<div class="dashboard-stats dashboard-stats-counter">${count ? count : '-'}</div>`
+                    html: `<div class="dashboard-stats dashboard-stats-counter ${clickableClass}">${count ? count : '-'}</div>`
                 })
                 : undefined,
             delay
                 ? $('<div/>', {
-                    class: `text-center title dashboard-stats-delay-title ${delay < 0 ? 'red' : ''}`,
+                    class: `text-center title dashboard-stats-delay-title ${clickableClass} ${delay < 0 ? 'red' : ''}`,
                     text: delay < 0
                         ? 'Retard : '
                         : 'A traiter sous :'
@@ -308,7 +311,7 @@ function createIndicatorElement(data, {componentLink}) {
                 : undefined,
             delay
                 ? $('<div/>', {
-                    class: `dashboard-stats dashboard-stats-delay ${delay < 0 ? 'red' : ''}`,
+                    class: `dashboard-stats dashboard-stats-delay ${clickableClass} ${delay < 0 ? 'red' : ''}`,
                     text: renderMillisecondsToDelay(Math.abs(delay), 'display')
                 })
                 : undefined,
