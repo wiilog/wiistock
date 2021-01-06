@@ -1,7 +1,11 @@
 <div class="col-auto mb-2 select-filter pr-0">
     <div class="select2-overflow">
         <div class="input-group w-100">
-            <select class="form-control data minw-200px cursor-default filter-select2" name="natures" id="natures" multiple="multiple">
+            <select class="form-control data minw-200px cursor-default filter-select2"
+                    name="natures"
+                    id="natures"
+                    multiple="multiple"
+                    {{ disabled is defined ? disabled }}>
                 {% for nature in natures %}
                     <option class="d-none" value="{{ nature.id }}">{{ nature.label }}</option>
                 {% endfor %}

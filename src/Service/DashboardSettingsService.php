@@ -14,6 +14,7 @@ use App\Entity\Dashboard as Dashboard;
 use App\Entity\Dashboard\Meter as DashboardMeter;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
+use Symfony\Component\Routing\RouterInterface;
 
 class DashboardSettingsService {
 
@@ -25,10 +26,14 @@ class DashboardSettingsService {
 
     private $enCoursService;
     private $dashboardService;
+    private $router;
 
-    public function __construct(EnCoursService $enCoursService, DashboardService $dashboardService) {
+    public function __construct(EnCoursService $enCoursService,
+                                DashboardService $dashboardService,
+                                RouterInterface $router) {
         $this->enCoursService = $enCoursService;
         $this->dashboardService = $dashboardService;
+        $this->router = $router;
     }
 
     public function serialize(EntityManagerInterface $entityManager, ?Utilisateur $user, int $mode): string {
@@ -53,17 +58,20 @@ class DashboardSettingsService {
                             "id" => $row->getId(),
                             "size" => $row->getSize(),
                             "index" => $rowIndex++,
-                            "components" => Stream::from($row->getComponents())
+                            "components" => $row->getComponents()
                                 ->map(function(Dashboard\Component $component) use ($entityManager, $mode) {
                                     $type = $component->getType();
+                                    $config = $component->getConfig();
+                                    $meter = $component->getMeter();
+                                    $meterKey = $type->getMeterKey();
                                     return [
                                         "id" => $component->getId(),
-                                        "type" => $component->getType()->getId(),
+                                        "type" => $type->getId(),
                                         "index" => $component->getColumnIndex(),
                                         "template" => $type->getTemplate(),
-                                        "config" => $component->getConfig(),
-                                        "meterKey" => $type->getMeterKey(),
-                                        "initData" => $this->serializeValues($entityManager, $component->getType(), $component->getConfig(), $mode === self::MODE_EDIT, $component->getMeter()),
+                                        "config" => $config,
+                                        "meterKey" => $meterKey,
+                                        "initData" => $this->serializeValues($entityManager, $type, $config, $mode === self::MODE_EDIT, $meter),
                                     ];
                                 })
                                 ->toArray(),
@@ -95,8 +103,14 @@ class DashboardSettingsService {
         $values['title'] = !empty($config['title']) ? $config['title'] : $componentType->getName();
         $values['tooltip'] = !empty($config['tooltip']) ? $config['tooltip'] : $componentType->getHint();
 
+        $redirect = $config['redirect'] ?? false;
+        dump($redirect);
+        if (!$example && $redirect) {
+            $values['componentLink'] = $this->getComponentLink($componentType, $config);
+        }
+
         if ($meterKey === Dashboard\ComponentType::ONGOING_PACKS) {
-            $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example);
+            $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example, $meter);
         }
         else if ($meterKey === Dashboard\ComponentType::CARRIER_TRACKING) {
             $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
@@ -161,7 +175,6 @@ class DashboardSettingsService {
                                           DashboardMeter\Indicator $meter = null): array {
         $shouldShowTreatmentDelay = isset($config['withTreatmentDelay']) && $config['withTreatmentDelay'];
         $shouldShowLocationLabels = isset($config['withLocationLabels']) && $config['withLocationLabels'];
-
         if ($example || !$meter) {
             $values = $componentType->getExampleValues();
 
@@ -190,10 +203,9 @@ class DashboardSettingsService {
             $values = [
                 'subtitle' => $meter->getSubtitle(),
                 'delay' => $meter->getDelay(),
-                'count' => $meter->getCount()
+                'count' => $meter->getCount(),
             ];
         }
-
         return $values;
     }
 
@@ -457,4 +469,23 @@ class DashboardSettingsService {
         }
     }
 
+    public function getComponentLink(Dashboard\ComponentType $componentType,
+                                     array $config) {
+        $meterKey = $componentType->getMeterKey();
+
+        switch ($meterKey) {
+            case Dashboard\ComponentType::ONGOING_PACKS:
+                $locations = $config['locations'] ?? [];
+                $redirect = $config['redirect'] ?? false;
+                $link = !empty($locations) && $redirect
+                    ? $this->router->generate('en_cours', ['locations' => implode(',', $locations)])
+                    : null;
+                break;
+            default:
+                $link = null;
+                break;
+        }
+
+        return $link;
+    }
 }
