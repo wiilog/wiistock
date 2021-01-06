@@ -105,7 +105,7 @@ class DashboardSettingsService {
         $values['tooltip'] = !empty($config['tooltip']) ? $config['tooltip'] : $componentType->getHint();
 
         $redirect = $config['redirect'] ?? false;
-        dump($redirect);
+
         if (!$example && $redirect) {
             $values['componentLink'] = $this->getComponentLink($componentType, $config);
         }
@@ -205,9 +205,7 @@ class DashboardSettingsService {
                 'chartData' => $meterChart->getData(),
                 'nextLocation' => $meterChart->getLocation(),
                 'count' => $meterChart->getTotal(),
-                'chartColors' => $meterChart->getChartColors(),
-                'linesCountTooltip' => $config['linesCountTooltip'] ?? '',
-                'nextLocationTooltip' => $config['nextLocationTooltip'] ?? ''
+                'chartColors' => $meterChart->getChartColors()
             ];
         } else {
             $values = [
@@ -217,6 +215,10 @@ class DashboardSettingsService {
                 'chartColors' => []
             ];
         }
+
+        $values['linesCountTooltip'] = $config['linesCountTooltip'] ?? '';
+        $values['nextLocationTooltip'] = $config['nextLocationTooltip'] ?? '';
+
         return $values;
     }
 

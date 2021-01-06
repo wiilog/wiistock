@@ -166,7 +166,7 @@ function renderRow(row) {
 
     for(let componentIndex = 0; componentIndex < row.size; ++componentIndex) {
         const component = getRowComponent(row, componentIndex);
-        $rowWrapper.append(renderConfigComponent($.deepCopy(component) || componentIndex, true));
+        $rowWrapper.append(renderCardComponent($.deepCopy(component) || componentIndex, true));
     }
 
     if(mode === MODE_EDIT) {
@@ -178,7 +178,7 @@ function renderRow(row) {
     return $row;
 }
 
-function renderConfigComponent(component, init = false) {
+function renderCardComponent(component, init = false) {
     let $componentContainer;
     if(component && typeof component === 'object') {
         $componentContainer = $('<div/>', {
@@ -186,7 +186,7 @@ function renderConfigComponent(component, init = false) {
             'data-component': component.index
         });
         $componentContainer.pushLoader('black', 'normal');
-        renderComponentExample(
+        renderComponentWithData(
             $componentContainer,
             component.type,
             component.meterKey,
@@ -490,7 +490,7 @@ function onComponentDeleted() {
         row.components.splice(indexOfComponentToDelete, 1);
     }
 
-    $component.replaceWith(renderConfigComponent(componentIndex));
+    $component.replaceWith(renderCardComponent(componentIndex));
 }
 
 function getComponentFromTooltipButton($button) {
@@ -620,7 +620,7 @@ function editComponent(rowIndex, componentIndex, {config, type, meterKey, templa
         const $currentComponent = $dashboard
             .find(`.dashboard-row[data-row="${rowIndex}"]`)
             .find(`.dashboard-component[data-component="${componentIndex}"]`);
-        $currentComponent.replaceWith(renderConfigComponent(currentComponent));
+        $currentComponent.replaceWith(renderCardComponent(currentComponent));
     }
 }
 
@@ -629,7 +629,7 @@ function initSecondStep(html) {
     $modalComponentTypeSecondStepContent.html('');
     $modalComponentTypeSecondStepContent.html(html);
 
-    $(`.select2`).select2();
+    $modalComponentTypeSecondStep.find(`.select2`).select2();
     Select2.location($modalComponentTypeSecondStep.find('.ajax-autocomplete-location'));
     Select2.carrier($modalComponentTypeSecondStep.find('.ajax-autocomplete-carrier'));
 
@@ -695,7 +695,7 @@ function renderFormComponentExample() {
     const componentType = $exampleContainer.data('component-type');
     const {data: formData} = processSecondModalForm($modalComponentTypeSecondStep);
 
-    return renderComponentExample($exampleContainer, componentType, $exampleContainer.data('meter-key'), formData)
+    return renderComponentWithData($exampleContainer, componentType, $exampleContainer.data('meter-key'), formData)
         .then((renderingSuccess) => {
             if(renderingSuccess) {
                 $exampleContainerParent.removeClass('d-none');
@@ -708,7 +708,7 @@ function renderFormComponentExample() {
         });
 }
 
-function renderComponentExample($container, componentType, meterKey, formData = null, initData = null) {
+function renderComponentWithData($container, componentType, meterKey, formData = null, initData = null) {
     let exampleValuesPromise;
     if(initData) {
         exampleValuesPromise = new Promise((resolve) => {
@@ -741,8 +741,8 @@ function initializeEntryTimeIntervals(segments) {
 function addEntryTimeInterval($button, time = null) {
     const current = $button.data(`current`);
 
-    const $segmentInput = $(`
-        <div class="container interval">
+    const $newSegmentInput = $(`
+        <div class="segment-container interval">
             <div class="form-group row align-items-center">
                 <label class="col-3">Segment <span class="segment-value">0</span></label>
                 <div class="input-group col-7">
@@ -774,17 +774,17 @@ function addEntryTimeInterval($button, time = null) {
 
     $button.data("current", current + 1);
     const $lastSegmentValues = $button.closest('.modal').find('.segment-value');
-    const $currentSegmentValue = $segmentInput.find('.segment-value');
+    const $currentSegmentValue = $newSegmentInput.find('.segment-value');
     const $lastSegmentValue = $lastSegmentValues.last();
     const lastSegmentValue = parseInt($lastSegmentValue.text() || '0');
     $currentSegmentValue.text(lastSegmentValue + 1);
 
-    $segmentInput.insertBefore($button);
+    $newSegmentInput.insertBefore($button);
     recalculateIntervals();
 }
 
 function deleteEntryTimeInterval($button) {
-    $button.parent().parent().parent().remove();
+    $button.closest('.segment-container').remove();
     recalculateIntervals();
 }
 

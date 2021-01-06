@@ -34,13 +34,13 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'hint' => 'Nombre d\'arrivages créés par jour',
             'exampleValues' => [
                 'chartData' => [
-                    'j1' => 5,
-                    'j2' => 12,
-                    'j3' => 8,
-                    'j4' => 1,
-                    'j5' => 0,
-                    'j6' => 9,
-                    'j7' => 7,
+                    '04' => 5,
+                    '05' => 12,
+                    '06' => 8,
+                    '07' => 1,
+                    '08' => 0,
+                    '09' => 9,
+                    '10' => 7,
                 ],
             ],
             'category' => Dashboard\ComponentType::TRACKING,
@@ -115,13 +115,13 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'hint' => 'Nombre de réceptions de traçabilité par jour',
             'exampleValues' => [
                 'chartData' => [
-                    'j1' => 4,
-                    'j2' => 8,
-                    'j3' => 6,
-                    'j4' => 2,
-                    'j5' => 8,
-                    'j6' => 0,
-                    'j7' => 13
+                    '04' => 4,
+                    '05' => 8,
+                    '06' => 6,
+                    '07' => 2,
+                    '08' => 8,
+                    '09' => 0,
+                    '10' => 13
                 ]
             ],
             'category' => Dashboard\ComponentType::TRACKING,
@@ -173,31 +173,31 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     'Legende2' => '#a3efdf'
                 ],
                 'chartData' => [
-                    'j1' => [
+                    '04/01' => [
                         'Legende1' => 25,
                         'Legende2' => 12,
                     ],
-                    'j2' => [
+                    '05/01' => [
                         'Legende1' => 50,
                         'Legende2' => 5,
                     ],
-                    'j3' => [
+                    '06/01' => [
                         'Legende1' => 45,
                         'Legende2' => 36,
                     ],
-                    'j4' => [
+                    '07/01' => [
                         'Legende1' => 89,
                         'Legende2' => 102,
                     ],
-                    'j5' => [
+                    '08/01' => [
                         'Legende1' => 70,
                         'Legende2' => 74,
                     ],
-                    'j6' => [
+                    '09/01' => [
                         'Legende1' => 65,
                         'Legende2' => 52,
                     ],
-                    'j7' => [
+                    '10/01' => [
                         'Legende1' => 23,
                         'Legende2' => 47,
                     ]
@@ -211,13 +211,13 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'hint' => 'Nombre de colis présents sur les emplacements de dépose paramétrés',
             'exampleValues' => [
                 'chartData' => [
-                    'j1' => 6,
-                    'j2' => 5,
-                    'j3' => 2,
-                    'j4' => 9,
-                    'j5' => 11,
-                    'j6' => 12,
-                    'j7' => 3,
+                    '04/01' => 6,
+                    '05/01' => 5,
+                    '06/01' => 2,
+                    '07/01' => 9,
+                    '08/01' => 11,
+                    '09/01' => 12,
+                    '10/01' => 3,
                 ],
             ],
             'category' => Dashboard\ComponentType::TRACKING,
@@ -231,40 +231,40 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'segments' => ['4', '8', '12', '16'],
                 'nextLocation' => 'EMP1',
                 'chartColors' => [
-                    'Nature 1' => '#a3d1ff',
-                    'Nature 2' => '#a3efdf',
-                    'Nature 3' => '#aaafdf',
+                    'Standard' => '#a3d1ff',
+                    'Congelé' => '#a3efdf',
+                    'Consommable' => '#aaafdf',
                 ],
                 'chartData' => [
                     'Retard' => [
-                        'Nature 1' => 25,
-                        'Nature 2' => 25,
-                        'Nature 3' => 12,
+                        'Standard' => 25,
+                        'Congelé' => 25,
+                        'Consommable' => 12,
                     ],
                     'Moins d\'1h' => [
-                        'Nature 1' => 15,
-                        'Nature 2' => 2,
-                        'Nature 3' => 12,
+                        'Standard' => 15,
+                        'Congelé' => 2,
+                        'Consommable' => 12,
                     ],
                     '1h-4h' => [
-                        'Nature 1' => 15,
-                        'Nature 2' => 2,
-                        'Nature 3' => 12,
+                        'Standard' => 15,
+                        'Congelé' => 2,
+                        'Consommable' => 12,
                     ],
                     '4h-12h' => [
-                        'Nature 1' => 15,
-                        'Nature 2' => 2,
-                        'Nature 3' => 12,
+                        'Standard' => 15,
+                        'Congelé' => 2,
+                        'Consommable' => 12,
                     ],
                     '12h-24h' => [
-                        'Nature 1' => 15,
-                        'Nature 2' => 2,
-                        'Nature 3' => 12,
+                        'Standard' => 15,
+                        'Congelé' => 2,
+                        'Consommable' => 12,
                     ],
                     '24h-48h' => [
-                        'Nature 1' => 0,
-                        'Nature 2' => 0,
-                        'Nature 3' => 0,
+                        'Standard' => 0,
+                        'Congelé' => 0,
+                        'Consommable' => 0,
                     ],
                 ],
             ],

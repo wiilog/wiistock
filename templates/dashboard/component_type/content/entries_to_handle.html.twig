@@ -72,7 +72,7 @@
             <label>Rediriger vers la page Encours au clic</label>
         </div>
     </div>
-    <div class="col-md-6 col-12 segments-list" data-segments="{{ (values.segments ?? []) | json_encode }}">
+    <div class="col-md-6 col-12 segments-list" data-segments="{{ (values.segments ?? ['6', '12', '24', '36', '48']) | json_encode }}">
         <div>
             <label>Segments horaires</label>
         </div>

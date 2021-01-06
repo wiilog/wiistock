@@ -106,11 +106,12 @@ function renderComponent(meterKey, $container, data) {
 }
 
 function createTooltip(text) {
-    if(mode === MODE_EDIT) {
+    const trimmedText = (text || "").trim();
+    if(mode === MODE_EDIT || !trimmedText) {
         return ``;
     } else {
         return `
-            <div class="points has-tooltip" title="${text || ""}">
+            <div class="points has-tooltip" title="${trimmedText}">
                 <i class="fa fa-question ml-1"></i>
             </div>
         `;
@@ -122,6 +123,7 @@ function createEntriesToHandleElement(data) {
         console.error(`Invalid data for entries element.`);
         return false;
     }
+
     const graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'})[0].outerHTML;
     const $firstComponent = createIndicatorElement({
         title: 'Nombre de lignes à traiter',
