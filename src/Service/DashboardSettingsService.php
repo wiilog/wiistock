@@ -75,10 +75,10 @@ class DashboardSettingsService {
                                         "initData" => $this->serializeValues($entityManager, $type, $config, $mode === self::MODE_EDIT, $meter),
                                     ];
                                 })
-                                ->toArray(),
+                                ->getValues(),
                         ];
                     })
-                    ->toArray(),
+                    ->getValues(),
             ];
         })->toArray();
 
