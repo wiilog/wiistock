@@ -4,28 +4,42 @@
     <div class="row">
         <div class="form-group col-6">
             <label>Type(s) d'arrivage*</label>
-            <select class="data form-control w-100 needed select2"
-                    name="arrivalTypes"
-                    multiple
-                    title="Type(s) d'arrivage">
-                {% for arrivalType in arrivalTypes %}
-                    <option value="{{ arrivalType.id }}" {{ arrivalType in values.arrivalTypes ? 'selected' }}>{{ arrivalType.label }}</option>
-                {% endfor %}
-            </select>
+            <div class="input-group">
+                <div class="flex-fill">
+                    <select class="data form-control h-100 w-100 needed select2"
+                            name="arrivalTypes"
+                            multiple
+                            title="Type(s) d'arrivage">
+                        {% for arrivalType in arrivalTypes %}
+                            <option value="{{ arrivalType.id }}" {{ arrivalType in values.arrivalTypes ? 'selected' }}>{{ arrivalType.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group-append" style="width:150px">
+                    <button class="btn btn-primary select-all-arrival-types w-100" type="button">Tous les type</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="row">
-        <div class="form-group col-6">
+        <div class="col-6">
             <label>Statut(s)*</label>
-            <select class="data form-control w-100 needed select2"
-                    name="arrivalStatuses"
-                    multiple
-                    title="Statut(s)">
-                {% for arrivalStatus in arrivalStatuses %}
-                    <option value="{{ arrivalStatus.id }}" {{ arrivalStatus in values.arrivalStatuses ? 'selected' }}>{{ arrivalStatus.nom }}</option>
-                {% endfor %}
-            </select>
+            <div class="input-group flex-nowrap">
+                <div class="flex-fill">
+                    <select class="data form-control h-100 w-100 needed select2"
+                            name="arrivalStatuses"
+                            multiple
+                            title="Statut(s)">
+                        {% for arrivalStatus in arrivalStatuses %}
+                            <option value="{{ arrivalStatus.id }}" {{ arrivalStatus in values.arrivalStatuses ? 'selected' }}>{{ arrivalStatus.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group-append" style="width:150px">
+                    <button class="btn btn-primary select-all-arrival-statuses w-100" type="button">Tous les statuts</button>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -55,6 +55,8 @@ function loadDashboards(m) {
 
     $dashboard.on(`click`, `.edit-component`, onComponentEdited);
     $dashboard.on(`click`, `.delete-component`, onComponentDeleted);
+    $modalComponentTypeSecondStep.on(`click`, `.select-all-arrival-types`, onSelectAll);
+    $modalComponentTypeSecondStep.on(`click`, `.select-all-arrival-statuses`, onSelectAll);
 
     $('button.add-dashboard-modal-submit').on('click', onPageAdded);
     $pagination.on(`click`, `.delete-dashboard`, onPageDeleted);
@@ -78,6 +80,17 @@ function loadDashboards(m) {
         .arrive(".segments-list .segment-hour", function() {
             onSegmentInputChange($(this), true);
         });
+}
+
+function onSelectAll() {
+    console.log("fuck");
+    const $select = $(this).closest(`.input-group`).find(`select`);
+
+    $select.find(`option`).each(function() {
+        $(this).attr(`selected`, true);
+    });
+
+    $select.trigger(`change`);
 }
 
 $(`.download-trace`).click(function() {
