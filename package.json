@@ -1,11 +1,10 @@
 {
     "devDependencies": {
-        "@symfony/webpack-encore": "^0.28.2",
-        "core-js": "^3.0.0",
-        "node-sass": "^4.13.1",
-        "regenerator-runtime": "^0.13.2",
-        "sass-loader": "7.0.1",
-        "webpack-notifier": "^1.6.0"
+        "@symfony/webpack-encore": "^0.33",
+        "core-js": "^3.8.1",
+        "node-sass": "^5.0.0",
+        "regenerator-runtime": "^0.13.7",
+        "sass-loader": "^10.1.0"
     },
     "license": "UNLICENSED",
     "private": true,
@@ -15,23 +14,25 @@
         "dev-server": "yarn generate-routes && yarn generate-custom-font && encore dev-server",
         "build:dev": "yarn generate-routes && yarn generate-custom-font && yarn build:only:dev",
         "build:dev:watch": "yarn build:dev --watch",
+        "watch": "yarn build:dev --watch",
         "build": "yarn generate-routes && yarn generate-custom-font && yarn build:only:production",
         "build:only:dev": "encore dev",
         "build:only:production": "encore production"
     },
     "dependencies": {
-        "@babel/plugin-proposal-class-properties": "^7.10.4",
-        "@fortawesome/fontawesome-free": "^5.15.0",
-        "@fortawesome/free-solid-svg-icons": "^5.15.0",
-        "bootstrap": "^4.5.2",
-        "chart.js": "^2.9.3",
+        "@babel/plugin-proposal-class-properties": "^7.12.1",
+        "@fortawesome/fontawesome-free": "^5.15.1",
+        "@fortawesome/free-solid-svg-icons": "^5.15.1",
+        "arrive": "^2.4.1",
+        "bootstrap": "^4.5.3",
+        "chart.js": "^2.9.4",
         "datatables.net": "^1.10.22",
         "datatables.net-buttons": "^1.6.4",
         "datatables.net-buttons-dt": "^1.6.4",
         "datatables.net-dt": "^1.10.22",
         "datatables.net-responsive": "^2.2.6",
         "jquery": "^3.5.1",
-        "moment": "^2.29.0",
+        "moment": "^2.29.1",
         "popper.js": "^1.16.1",
         "quill": "^1.3.7",
         "select2": "^4.0.13"

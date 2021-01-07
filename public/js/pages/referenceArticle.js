@@ -190,7 +190,6 @@ function displayNewFilter(data) {
     $('#noFilters').addClass('d-none');
     $printTag.removeClass('has-tooltip');
     $printTag.tooltip('dispose');
-    initTooltips($('.has-tooltip'));
 }
 
 function removeFilter($button, filterId) {

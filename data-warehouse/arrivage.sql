@@ -1,7 +1,7 @@
 SELECT
     arrivage.id,
     arrivage.numero_arrivage AS no_arrivage,
-    DATE_FORMAT(arrivage.date, '%d/%m/%Y %H:%i:%s') AS date,
+    arrivage.date,
     (SELECT COUNT(pack_count.id)
      FROM arrivage AS sub_arrivage
               LEFT JOIN pack

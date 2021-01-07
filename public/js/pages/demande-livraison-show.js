@@ -4,8 +4,10 @@ $(function () {
     $('.select2').select2();
     initDateTimePicker();
     Select2.init($('#statut'), 'Statuts');
-    Select2.articleReference($('.ajax-autocomplete'));
     Select2.user('Utilisateurs');
+    Select2.articleReference($('.ajax-autocomplete'), {
+        minQuantity: 0,
+    });
 
     tableArticle = initPageDatatable();
     initPageModals(tableArticle);

@@ -323,26 +323,6 @@ function ajaxEncodage() {
     });
 }
 
-function editDashboardParams() {
-    let path = Routing.generate('edit_dashboard_params', true);
-    let data = $('#paramDashboard').find('.data');
-
-    let param = {};
-    data.each(function () {
-        let val = $(this).val();
-        let name = $(this).attr("id");
-        param[name] = val;
-    });
-
-    $.post(path, param, (resp) => {
-        if (resp) {
-            showBSAlert("La configuration des tableaux de bord a bien été mise à jour.", 'success');
-        } else {
-            showBSAlert("Une erreur est survenue lors de la mise à jour de la configuration des tableaux de bord.", 'danger');
-        }
-    });
-}
-
 function editAppearance() {
     let path = Routing.generate('edit_appearance', true);
 

@@ -14,7 +14,7 @@ $(function (){
 /**
  *
  * @param {string} message
- * @param {'danger'|'success'} color
+ * @param {'danger'|'success'|'warning'} color
  * @param {boolean = true} remove
  */
 function showBSAlert(message, color, remove = true) {

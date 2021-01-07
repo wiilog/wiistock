@@ -2,57 +2,39 @@
 
 {% block title %}Paramétrage | Dashboards{% endblock %}
 
-{% block pageContainerClass 'full-page' %}
+{% block pageContainerClass 'dashboard-container' %}
 
 {% block page_content %}
-    <div class="m-4 wii-page-card">
-        <div class="row wii-page-card-header">
-            <div class="col-auto">
-                <button class="btn btn-primary btn-ripple" data-toggle="modal" data-target="#add-row-modal">
-                    <i class="fas fa-plus mr-2"></i> Ajouter une ligne<br>
-                    <small style="display:block;font-size:0.8rem;margin-top:-5px;">(6 lignes max)</small>
-                </button>
-            </div>
-            <div class="col-auto ml-auto d-flex">
-                <div class="dropdown mr-2">
-                    <button class="btn btn-primary btn-ripple" data-toggle="dropdown">
-                        Affichage externe <i class="fas fa-caret-down ml-1"></i>
-                    </button>
-
-                    <div class="external-dashboards dropdown-menu dropdown-menu-right dropdown-follow-gt pointer">
-                        <a class="dropdown-item">
-                            <i class="fas fa-external-link-alt"></i> Dashboard "Nom de dashboard"
-                        </a>
-                        <a class="dropdown-item">
-                            <i class="fas fa-external-link-alt"></i> Dashboard "Nom de dashboard"
-                        </a>
-                        <a class="dropdown-item">
-                            <i class="fas fa-external-link-alt"></i> Dashboard "Nom de dashboard"
-                        </a>
-                        <a class="dropdown-item">
-                            <i class="fas fa-external-link-alt"></i> Dashboard "Nom de dashboard"
-                        </a>
-                    </div>
-                </div>
-                <button class="btn btn-primary btn-ripple">
-                    <span class="fa fa-check mr-2"></span> Enregistrer
-                </button>
-            </div>
-        </div>
-        <div class="dashboard"></div>
-        <div class="dashboard-pagination">
-            <button class="btn btn-primary btn-ripple" data-toggle="modal" data-target="#add-dashboard-modal">
-                <span class="fa fa-plus mr-2"></span> Ajouter un dashboard
-            </button>
-        </div>
+    <div class="dashboard"></div>
+    <div class="dashboard-bottom-bar">
+        <button class="btn btn-primary btn-ripple" data-toggle="modal" data-target="#add-row-modal">
+            <i class="fas fa-plus mr-2"></i> Ajouter une ligne<br>
+            <small style="display:block;font-size:0.8rem;margin-top:-5px;">(6 lignes max)</small>
+        </button>
+        <div class="dashboard-pagination"></div>
+        <button class="btn btn-primary btn-ripple save-dashboards" style="margin-right: 22px">
+            <span class="fa fa-check mr-2"></span> Enregistrer
+        </button>
     </div>
 
+    <input type="hidden" class="dashboards-data" value="{{ dashboards }}">
+    <input type="hidden" class="dashboards-token" value="{{ token }}">
+
+    {% include 'dashboard/component_type/first_step.html.twig' with componentTypeConfig %}
+    {% include 'dashboard/component_type/second_step.html.twig' %}
     {% include 'dashboard/modals/add_dashboard.html.twig' %}
+    {% include 'dashboard/modals/delete_dashboard.html.twig' %}
     {% include 'dashboard/modals/rename_dashboard.html.twig' %}
     {% include 'dashboard/modals/add_row.html.twig' %}
+    {% include 'dashboard/modals/error.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="{{ asset('js/pages/dashboard/render.js') }}?{{ app_last_cache_clear }}"></script>
     <script src="{{ asset('js/pages/dashboard/settings.js') }}?{{ app_last_cache_clear }}"></script>
+
+    <script>
+        $(document).ready(() => loadDashboards(MODE_EDIT));
+    </script>
 {% endblock %}

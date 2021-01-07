@@ -2,16 +2,16 @@
 
 namespace App\Entity\Dashboard;
 
+use App\Entity\LocationCluster;
 use App\Repository\Dashboard as DashboardRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Dashboard\Meter as DashboardMeter;
 
 /**
  * @ORM\Entity(repositoryClass=DashboardRepository\ComponentRepository::class)
- * @ORM\Table(name="dashboard_component",
- *    uniqueConstraints={
- *        @ORM\UniqueConstraint(name="video_unique", columns={"column_index", "row_id"})
- *    }
- * )
+ * @ORM\Table(name="dashboard_component")
  */
 class Component
 {
@@ -24,8 +24,15 @@ class Component
 
     /**
      * @ORM\ManyToOne(targetEntity=ComponentType::class, inversedBy="componentsUsing")
+     * @ORM\JoinColumn(nullable=false)
      */
     private $type;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=PageRow::class, inversedBy="components")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $row;
 
     /**
      * @ORM\Column(type="integer")
@@ -33,19 +40,35 @@ class Component
     private $columnIndex;
 
     /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $title;
-
-    /**
      * @ORM\Column(type="json")
      */
     private $config = [];
 
     /**
-     * @ORM\ManyToOne(targetEntity=PageRow::class, inversedBy="components")
+     * @var null|DashboardMeter\Indicator;
+     * @ORM\OneToOne (targetEntity=DashboardMeter\Indicator::class, mappedBy="component", cascade={"remove"})
      */
-    private $row;
+    private $indicatorMeter;
+
+    /**
+     * @var null|DashboardMeter\Chart;
+     * @ORM\OneToOne(targetEntity=DashboardMeter\Chart::class, mappedBy="component", cascade={"remove"})
+     */
+    private $chartMeter;
+
+    /**
+     * @var Collection;
+     * @ORM\OneToMany(targetEntity=LocationCluster::class, mappedBy="component", cascade={"remove"})
+     */
+    private $locationClusters;
+
+    /**
+     * Component constructor.
+     */
+    public function __construct()
+    {
+        $this->locationClusters = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -76,18 +99,6 @@ class Component
         return $this;
     }
 
-    public function getTitle(): ?string
-    {
-        return $this->title;
-    }
-
-    public function setTitle(?string $title): self
-    {
-        $this->title = $title;
-
-        return $this;
-    }
-
     public function getConfig(): ?array
     {
         return $this->config;
@@ -107,8 +118,64 @@ class Component
 
     public function setRow(?PageRow $row): self
     {
+        $row->addComponent($this);
         $this->row = $row;
 
         return $this;
     }
+
+    /**
+     * @return DashboardMeter\Indicator|DashboardMeter\Chart|null
+     */
+    public function getMeter()
+    {
+        return isset($this->indicatorMeter)
+            ? $this->indicatorMeter
+            : $this->chartMeter;
+    }
+
+    /**
+     * @param DashboardMeter\Indicator|DashboardMeter\Chart|null $meter
+     * @return Component
+     */
+    public function setMeter($meter): self
+    {
+        if ($meter instanceof DashboardMeter\Indicator) {
+            $this->indicatorMeter = $meter;
+        } else if ($meter instanceof DashboardMeter\Chart) {
+            $this->chartMeter = $meter;
+        } else if (!isset($meter)) {
+            $this->indicatorMeter = null;
+            $this->chartMeter = null;
+        }
+        return $this;
+    }
+
+    public function getLocationClusters(): Collection {
+        return $this->locationClusters;
+    }
+
+    public function getLocationCluster(string $clusterKey): ?LocationCluster {
+        $filteredClusters = $this->locationClusters->filter(function (LocationCluster $locationCluster) use ($clusterKey) {
+            return $locationCluster->getClusterKey() === $clusterKey;
+        });
+        return !$filteredClusters->isEmpty() ? $filteredClusters->first() : null;
+    }
+
+    public function addLocationCluster(LocationCluster $locationCluster): self {
+        if (!$this->locationClusters->contains($locationCluster)) {
+            $this->locationClusters[] = $locationCluster;
+        }
+
+        return $this;
+    }
+
+    public function removeLocationCluster(LocationCluster $locationCluster): self
+    {
+        if ($this->locationClusters->contains($locationCluster)) {
+            $this->locationClusters->removeElement($locationCluster);
+        }
+        return $this;
+    }
+
 }

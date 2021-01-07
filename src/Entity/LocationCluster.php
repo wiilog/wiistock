@@ -31,33 +31,38 @@ class LocationCluster {
     private $id;
 
     /**
-     * @var string
-     * @ORM\Column(type="string", length=255, unique=true)
-     */
-    private $code;
-
-    /**
      * @var Collection
      * @ORM\ManyToMany(targetEntity="App\Entity\Emplacement", inversedBy="clusters")
      */
     private $locations;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="locationCluster")
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="locationCluster", cascade={"remove"})
      */
     private $locationClusterRecords;
 
     /**
      * @var Collection
-     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterMeter", mappedBy="locationClusterFrom")
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterMeter", mappedBy="locationClusterFrom", cascade={"remove"})
      */
     private $metersFrom;
 
     /**
      * @var Collection
-     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterMeter", mappedBy="locationClusterInto")
+     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterMeter", mappedBy="locationClusterInto", cascade={"remove"})
      */
     private $metersInto;
+
+    /**
+     * @var Dashboard\Component
+     * @ORM\ManyToOne(targetEntity=Dashboard\Component::class, inversedBy="locationClusters")
+     */
+    private $component;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=false)
+     */
+    private $clusterKey;
 
     public function __construct() {
         $this->locations = new ArrayCollection();
@@ -68,22 +73,6 @@ class LocationCluster {
 
     public function getId(): ?int {
         return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCode(): string {
-        return $this->code;
-    }
-
-    /**
-     * @param string $code
-     * @return self
-     */
-    public function setCode(string $code): self {
-        $this->code = $code;
-        return $this;
     }
 
     /**
@@ -236,6 +225,44 @@ class LocationCluster {
                 $meter->setLocationClusterInto(null);
             }
         }
+        return $this;
+    }
+
+    /**
+     * @return Dashboard\Component|null
+     */
+    public function getComponent(): ?Dashboard\Component {
+        return $this->component;
+    }
+
+    /**
+     * @param Dashboard\Component|null $component
+     * @return self
+     */
+    public function setComponent(?Dashboard\Component $component): self {
+
+        if ($this->component) {
+            $this->component->removeLocationCluster($this);
+        }
+
+        $this->component = $component;
+
+        if ($this->component) {
+            $this->component->addLocationCluster($this);
+        }
+
+        return $this;
+    }
+
+    public function getClusterKey(): ?string
+    {
+        return $this->clusterKey;
+    }
+
+    public function setClusterKey(?string $clusterKey): self
+    {
+        $this->clusterKey = $clusterKey;
+
         return $this;
     }
 }

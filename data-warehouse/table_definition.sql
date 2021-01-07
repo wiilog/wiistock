@@ -114,8 +114,8 @@ create table dw_reference_article
     emplacement                varchar(255),
     seuil_securite             integer,
     seuil_alerte               integer,
-    date_securite_stock        varchar(255),
-    date_alerte_stock          varchar(255),
+    date_securite_stock        timestamp(0),
+    date_alerte_stock          timestamp(0),
     prix_unitaire              integer,
     code_barre                 varchar(255),
     categorie_inventaire       varchar(255),
@@ -125,7 +125,7 @@ create table dw_reference_article
     id                         integer not null
         constraint reference_article_pk
         primary key,
-    date_dernier_inventaire    varchar(255),
+    date_dernier_inventaire    timestamp(0),
     synchronisation_inventaire varchar(255)
 );
 
@@ -212,7 +212,7 @@ create table dw_arrivage
         constraint arrivage_pk
         primary key,
     no_arrivage            varchar(255),
-    date                   varchar(255),
+    date                   timestamp(0),
     nb_colis               integer,
     destinataire           varchar(255),
     fournisseur            varchar(255),

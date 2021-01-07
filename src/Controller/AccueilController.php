@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\AverageRequestTime;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
+use App\Entity\Dashboard\ComponentType;
 use App\Entity\Demande;
 use App\Entity\FiabilityByReference;
 use App\Entity\Handling;
@@ -20,12 +21,12 @@ use App\Entity\Utilisateur;
 use App\Entity\Wiilock;
 use App\Helper\Stream;
 use App\Repository\AverageRequestTimeRepository;
+use App\Service\DashboardSettingsService;
 use App\Service\DateService;
 use App\Service\DashboardService;
 use App\Service\DemandeCollecteService;
 use App\Service\DemandeLivraisonService;
 use App\Service\HandlingService;
-use App\Service\RoleService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -40,222 +41,6 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AccueilController extends AbstractController
 {
-
-    /**
-     * @Route("/accueil", name="accueil", methods={"GET"})
-     * @param EntityManagerInterface $entityManager
-     * @param AverageRequestTimeRepository $averageRequestTimeRepository
-     * @param DateService $dateService
-     * @param DemandeCollecteService $demandeCollecteService
-     * @param HandlingService $handlingService
-     * @param UserService $userService
-     * @param DemandeLivraisonService $demandeLivraisonService
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function index(EntityManagerInterface $entityManager,
-                          AverageRequestTimeRepository $averageRequestTimeRepository,
-                          DateService $dateService,
-                          DemandeCollecteService $demandeCollecteService,
-                          HandlingService $handlingService,
-                          UserService $userService,
-                          DemandeLivraisonService $demandeLivraisonService): Response
-    {
-        $data = $this->getDashboardData(
-            $entityManager,
-            false,
-            $demandeLivraisonService,
-            $handlingService,
-            $demandeCollecteService,
-            $averageRequestTimeRepository,
-            $dateService,
-            $userService
-        );
-        return $this->render('accueil/index.html.twig', $data);
-    }
-
-    /**
-     * @Route(
-     *     "/dashboard-externe/{token}/{page}",
-     *     name="dashboard_ext",
-     *     methods={"GET"},
-     *     requirements={"page" = "(quai)|(admin)|(emballage)"}
-     * )
-     * @param EntityManagerInterface $entityManager
-     * @param DashboardService $dashboardService
-     * @param string $token
-     * @param string $page
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function dashboardExt(EntityManagerInterface $entityManager,
-                                 DashboardService $dashboardService,
-                                 string $token,
-                                 string $page): Response {
-        if($token != $_SERVER["APP_DASHBOARD_TOKEN"]) {
-            return $this->redirectToRoute("access_denied");
-        }
-
-        $data = $this->getDashboardData($entityManager, true);
-        $data['page'] = $page;
-        $data['pageData'] = ($page === 'emballage')
-            ? $dashboardService->getSimplifiedDataForPackagingDashboard($entityManager)
-            : [];
-        $data['refreshDate'] = $dashboardService->getLastRefresh(Wiilock::DASHBOARD_FED_KEY);
-        return $this->render('accueil/dashboardExt.html.twig', $data);
-    }
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param bool $isDashboardExt
-     * @param DemandeLivraisonService|null $demandeLivraisonService
-     * @param HandlingService|null $handlingService
-     * @param DemandeCollecteService|null $demandeCollecteService
-     * @param AverageRequestTimeRepository|null $averageRequestTimeRepository
-     * @param DateService|null $dateService
-     * @param UserService|null $userService
-     * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    private function getDashboardData(EntityManagerInterface $entityManager,
-                                      bool $isDashboardExt,
-                                      DemandeLivraisonService $demandeLivraisonService = null,
-                                      HandlingService $handlingService = null,
-                                      DemandeCollecteService $demandeCollecteService = null,
-                                      AverageRequestTimeRepository $averageRequestTimeRepository = null,
-                                      DateService $dateService = null,
-                                      UserService $userService = null)
-    {
-        $statutRepository = $entityManager->getRepository(Statut::class);
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $articleRepository = $entityManager->getRepository(Article::class);
-        $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
-        $collecteRepository = $entityManager->getRepository(Collecte::class);
-        $demandeRepository = $entityManager->getRepository(Demande::class);
-        $handlingRepository = $entityManager->getRepository(Handling::class);
-        $alertRepository = $entityManager->getRepository(Alert::class);
-
-        $nbAlerts = $alertRepository->countAll();
-
-        $types = [
-            MouvementStock::TYPE_INVENTAIRE_ENTREE,
-            MouvementStock::TYPE_INVENTAIRE_SORTIE
-        ];
-        $nbStockInventoryMouvements = $mouvementStockRepository->countByTypes($types);
-        $nbActiveRefAndArt = $referenceArticleRepository->countActiveTypeRefRef() + $articleRepository->countActiveArticles();
-        $nbrFiabiliteReference = $nbActiveRefAndArt == 0 ? 0 : (1 - ($nbStockInventoryMouvements / $nbActiveRefAndArt)) * 100;
-
-        $firstDayOfThisMonth = date("Y-m-d", strtotime("first day of this month"));
-
-        $nbStockInventoryMouvementsOfThisMonth = $mouvementStockRepository->countByTypes($types, $firstDayOfThisMonth);
-        $nbActiveRefAndArtOfThisMonth = $referenceArticleRepository->countActiveTypeRefRef() + $articleRepository->countActiveArticles();
-        $nbrFiabiliteReferenceOfThisMonth = $nbActiveRefAndArtOfThisMonth == 0 ? 0 :
-            (1 - ($nbStockInventoryMouvementsOfThisMonth / $nbActiveRefAndArtOfThisMonth)) * 100;
-
-        $totalEntryRefArticleCurrent = $mouvementStockRepository->countTotalEntryPriceRefArticle();
-        $totalExitRefArticleCurrent = $mouvementStockRepository->countTotalExitPriceRefArticle();
-        $totalRefArticleCurrent = $totalEntryRefArticleCurrent - $totalExitRefArticleCurrent;
-        $totalEntryArticleCurrent = $mouvementStockRepository->countTotalEntryPriceArticle();
-        $totalExitArticleCurrent = $mouvementStockRepository->countTotalExitPriceArticle();
-        $totalArticleCurrent = $totalEntryArticleCurrent - $totalExitArticleCurrent;
-        $nbrFiabiliteMonetaire = $totalRefArticleCurrent + $totalArticleCurrent;
-
-        $firstDayOfCurrentMonth = date("Y-m-d", strtotime("first day of this month"));
-        $totalEntryRefArticleOfThisMonth = $mouvementStockRepository->countTotalEntryPriceRefArticle($firstDayOfCurrentMonth);
-        $totalExitRefArticleOfThisMonth = $mouvementStockRepository->countTotalExitPriceRefArticle($firstDayOfCurrentMonth);
-        $totalRefArticleOfThisMonth = $totalEntryRefArticleOfThisMonth - $totalExitRefArticleOfThisMonth;
-        $totalEntryArticleOfThisMonth = $mouvementStockRepository->countTotalEntryPriceArticle($firstDayOfCurrentMonth);
-        $totalExitArticleOfThisMonth = $mouvementStockRepository->countTotalExitPriceArticle($firstDayOfCurrentMonth);
-        $totalArticleOfThisMonth = $totalEntryArticleOfThisMonth - $totalExitArticleOfThisMonth;
-        $nbrFiabiliteMonetaireOfThisMonth = $totalRefArticleOfThisMonth + $totalArticleOfThisMonth;
-
-        $statutCollecte = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER);
-        $nbrDemandeCollecte = $collecteRepository->countByStatut($statutCollecte);
-
-        $statutDemandeAT = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-        $nbrDemandeLivraisonAT = $demandeRepository->countByStatut($statutDemandeAT);
-
-        $listStatutDemandeP = $statutRepository->getIdByCategorieNameAndStatusesNames(Demande::CATEGORIE, [Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE]);
-        $nbrDemandeLivraisonP = $demandeRepository->countByStatusesId($listStatutDemandeP);
-
-
-        if ($demandeLivraisonService) {
-            $averageRequestTimesByType = Stream::from($averageRequestTimeRepository->findAll())
-                ->reduce(function (array $carry, AverageRequestTime $averageRequestTime) {
-                    $typeId = $averageRequestTime->getType() ? $averageRequestTime->getType()->getId() : null;
-                    if ($typeId) {
-                        $carry[$typeId] = $averageRequestTime;
-                    }
-                    return $carry;
-                }, []);
-
-            /** @var Utilisateur $loggedUser */
-            $loggedUser = $this->getUser();
-            if ($userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR, $loggedUser)) {
-                $pendingDeliveries = Stream::from($demandeRepository->findRequestToTreatByUser($loggedUser))
-                    ->map(function (Demande $demande) use ($demandeLivraisonService, $dateService, $averageRequestTimesByType) {
-                        return $demandeLivraisonService->parseRequestForCard($demande, $dateService, $averageRequestTimesByType);
-                    })
-                    ->toArray();
-            } else {
-                $pendingDeliveries = [];
-            }
-            if ($userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL, $loggedUser)) {
-                $pendingCollects = Stream::from($collecteRepository->findRequestToTreatByUser($loggedUser))
-                    ->map(function (Collecte $collecte) use ($demandeCollecteService, $dateService, $averageRequestTimesByType) {
-                        return $demandeCollecteService->parseRequestForCard($collecte, $dateService, $averageRequestTimesByType);
-                    })
-                    ->toArray();
-            } else {
-                $pendingCollects = [];
-            }
-            if ($userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND, $loggedUser)) {
-                $pendingHandlings = Stream::from($handlingRepository->findRequestToTreatByUser($loggedUser))
-                    ->map(function (Handling $handling) use ($handlingService, $dateService, $averageRequestTimesByType) {
-                        return $handlingService->parseRequestForCard($handling, $dateService, $averageRequestTimesByType);
-                    })
-                    ->toArray();
-            } else {
-                $pendingHandlings = [];
-            }
-        } else {
-            $pendingDeliveries = [];
-            $pendingHandlings = [];
-            $pendingCollects = [];
-        }
-
-        $handlingCounterToTreat = $handlingRepository->countHandlingToTreat();
-
-        return [
-            'nbAlerts' => $nbAlerts,
-            'visibleDashboards' => $isDashboardExt
-                ? []
-                : $this->getUser()->getRole()->getDashboardsVisible(),
-            'nbDemandeCollecte' => $nbrDemandeCollecte,
-            'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
-            'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,
-            'nbDemandeHandlingAT' => $handlingCounterToTreat,
-            'nbrFiabiliteReference' => $nbrFiabiliteReference,
-            'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
-            'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,
-            'nbrFiabiliteReferenceOfThisMonth' => $nbrFiabiliteReferenceOfThisMonth,
-            'pendingDeliveries' => $pendingDeliveries,
-            'pendingHandlings' => $pendingHandlings,
-            'pendingCollects' => $pendingCollects,
-            'status' => [
-                'DLtoTreat' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_A_TRAITER),
-                'DLincomplete' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_INCOMPLETE),
-                'DLprepared' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_PREPARE),
-                'DCToTreat' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_A_TRAITER),
-                'handlingToTreat' => implode(', ', $statutRepository->getIdNotTreatedByCategory(CategorieStatut::HANDLING))
-            ],
-            'firstDayOfWeek' => date("d/m/Y", strtotime('monday this week')),
-            'lastDayOfWeek' => date("d/m/Y", strtotime('sunday this week'))
-        ];
-    }
 
     /**
      * @Route(
@@ -530,18 +315,19 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param Request $request
-     * @param DashboardService $dashboardService
+     * @param EntityManagerInterface $entityManager
+     * @param DashboardSettingsService $dashboardSettingsService
      * @return Response
      */
     public function getAssoRecepStatistics(Request $request,
-                                           DashboardService $dashboardService): Response
+                                           EntityManagerInterface $entityManager,
+                                           DashboardSettingsService $dashboardSettingsService): Response
     {
-        $query = $request->query;
-        $data = $dashboardService->getWeekAssoc(
-            $query->get('firstDay'),
-            $query->get('lastDay'),
-            $query->get('beforeAfter')
-        );
+        $componentTypeRepository = $entityManager->getRepository(ComponentType::class);
+        $componentType = $componentTypeRepository->findOneBy([
+            'meterKey' => ComponentType::RECEIPT_ASSOCIATION
+        ]);
+        $data = $dashboardSettingsService->serializeValues($entityManager, $componentType, $request->query->all());
         return new JsonResponse($data);
     }
 
@@ -554,18 +340,20 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param Request $request
-     * @param DashboardService $dashboardService
+     * @param EntityManagerInterface $entityManager
+     * @param DashboardSettingsService $dashboardSettingsService
      * @return Response
+     * @throws Exception
      */
     public function getArrivalUmStatistics(Request $request,
-                                           DashboardService $dashboardService): Response
+                                           EntityManagerInterface $entityManager,
+                                           DashboardSettingsService $dashboardSettingsService): Response
     {
-        $query = $request->query;
-        $data = $dashboardService->getWeekArrival(
-            $query->get('firstDay'),
-            $query->get('lastDay'),
-            $query->get('beforeAfter')
-        );
+        $componentTypeRepository = $entityManager->getRepository(ComponentType::class);
+        $componentType = $componentTypeRepository->findOneBy([
+            'meterKey' => ComponentType::DAILY_ARRIVALS
+        ]);
+        $data = $dashboardSettingsService->serializeValues($entityManager, $componentType, $request->query->all());
         return new JsonResponse($data);
     }
 

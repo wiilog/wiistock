@@ -6,7 +6,6 @@ use App\Entity\Arrivage;
 use App\Entity\Pack;
 use DateTime;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -34,22 +33,52 @@ class PackRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @return Arrivage[]|null
+     * @param bool $groupByNature
+     * @param array $arrivalStatusesFilter
+     * @param array $arrivalTypesFilter
+     * @return int|array
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function countByDates(DateTime $dateMin, DateTime $dateMax)
+    public function countByDates(DateTime $dateMin,
+                                 DateTime $dateMax,
+                                 bool $groupByNature = false,
+                                 array $arrivalStatusesFilter = [],
+                                 array $arrivalTypesFilter = [])
     {
-        return $this->createQueryBuilder('colis')
-            ->join('colis.arrivage', 'arrivage')
-            ->where('arrivage.date BETWEEN :dateMin AND :dateMax')
+        $queryBuilder = $this->createQueryBuilder('pack')
+            ->select('COUNT(pack) AS count')
+            ->join('pack.arrivage', 'arrival')
+            ->where('arrival.date BETWEEN :dateMin AND :dateMax')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
-            ])
-            ->select('COUNT(arrivage)')
-            ->getQuery()
-            ->getSingleScalarResult();
+            ]);
+
+        if ($groupByNature) {
+            $queryBuilder = $queryBuilder
+                ->addSelect('nature.id AS natureId')
+                ->leftJoin('pack.nature', 'nature')
+                ->groupBy('nature.id');
+        }
+
+        if (!empty($arrivalStatusesFilter)) {
+            $queryBuilder
+                ->andWhere('arrival.statut IN (:arrivalStatuses)')
+                ->setParameter('arrivalStatuses', $arrivalStatusesFilter);
+        }
+
+        if (!empty($arrivalTypesFilter)) {
+            $queryBuilder
+                ->andWhere('arrival.type IN (:arrivalTypes)')
+                ->setParameter('arrivalTypes', $arrivalTypesFilter);
+        }
+
+        $query = $queryBuilder->getQuery();
+
+        return $groupByNature
+            ? $query->getScalarResult()
+            : $query->getSingleScalarResult();
     }
 
     /**
@@ -233,70 +262,23 @@ class PackRepository extends EntityRepository
         ];
     }
 
-    public function getIdsByCode(string $code)
-    {
-        $queryBuilder = $this->createQueryBuilder('colis');
-        $queryBuilderExpr = $queryBuilder->expr();
-        return $queryBuilder
-            ->select('colis.id')
-            ->where(
-                $queryBuilderExpr->like('colis.code', "'" . $code . "'")
-            )
-            ->getQuery()
-            ->execute();
-    }
-
-    /**
-     * @param array $mvt
-     * @throws DBALException
-     */
-    public function createFromMvt(array $mvt)
-    {
-        $code = $mvt['colis'];
-        $id = $mvt['id'];
-        $sqlQuery = "
-            INSERT INTO pack (code, last_drop_id) VALUES ('${code}', '${id}')
-        ";
-        $connection = $this->getEntityManager()->getConnection();
-        $connection->executeQuery($sqlQuery, []);
-    }
-
-    public function updateByIds(array $ids, int $mvtId)
-    {
-        $arrayColisId = implode(',', array_map(function(array $idsSub) {
-            return $idsSub['id'];
-        }, $ids));
-        $sqlQuery = "
-            UPDATE pack SET last_drop_id = ${mvtId} WHERE id IN (${arrayColisId})
-        ";
-        $connection = $this->getEntityManager()->getConnection();
-        $connection->executeQuery($sqlQuery, []);
-    }
-
     /**
      * @param array $locations
-     * @param array $natures
-     * @param array $dateBracket
-     * @param bool $isCount
-     * @param string $field
-     * @param int|null $limit
-     * @param int|null $start
-     * @param string $order
-     * @param bool $onlyLate
+     * @param array $options ['natures' => array, 'isCount' => bool, 'field' => string, 'limit' => int, 'start' => int, 'order' => string, 'onlyLate' => bool]
      * @return int|mixed|string
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function getCurrentPackOnLocations(array $locations,
-                                              array $natures,
-                                              array $dateBracket,
-                                              bool $isCount = true,
-                                              string $field = 'colis.id',
-                                              ?int $limit = null,
-                                              ?int $start = null,
-                                              string $order = 'desc',
-                                              bool $onlyLate = false)
+    public function getCurrentPackOnLocations(array $locations, array $options = [])
     {
+        $natures = $options['natures'] ?? [];
+        $isCount = $options['isCount'] ?? true;
+        $field = $options['field'] ?? 'colis.id';
+        $start = $options['start'] ?? null;
+        $limit = $options['limit'] ?? null;
+        $order = $options['order'] ?? 'desc';
+        $onlyLate = $options['onlyLate'] ?? false;
+
         $queryBuilder = $this->createQueryBuilder('colis');
         $queryBuilderExpr = $queryBuilder->expr();
         $queryBuilder
@@ -304,6 +286,7 @@ class PackRepository extends EntityRepository
             ->leftJoin('colis.nature', 'nature')
             ->join('colis.lastDrop', 'lastDrop')
             ->join('lastDrop.emplacement', 'emplacement');
+
         if (!empty($locations)) {
             $queryBuilder
                 ->andWhere(
@@ -326,14 +309,17 @@ class PackRepository extends EntityRepository
                 )
                 ->setParameter('natures', $natures);
         }
+
         $queryBuilder
             ->orderBy('lastDrop.datetime', $order);
+
         if ($onlyLate) {
             $queryBuilder
                 ->andWhere(
                     $queryBuilderExpr->isNotNull('emplacement.dateMaxTime')
                 );
         }
+
         if ($start) {
             $queryBuilder
                 ->setFirstResult($start);

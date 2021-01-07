@@ -6,7 +6,6 @@ use App\Entity\ReceptionTraca;
 use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\Query;
 
 /**
  * @method ReceptionTraca|null find($id, $lockMode = null, $lockVersion = null)

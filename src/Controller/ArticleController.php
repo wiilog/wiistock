@@ -834,15 +834,11 @@ class ArticleController extends AbstractController
                                           ArticleDataService $articleDataService): Response {
         $articleRepository = $entityManager->getRepository(Article::class);
         $listArticles = $request->query->get('listArticles') ?: [];
-        $barcodeConfigs = array_slice(
-            array_map(
-                function (Article $article) use ($articleDataService) {
-                    return $articleDataService->getBarcodeConfig($article);
-                },
-                $articleRepository->findByIds($listArticles)
-            ),
-            $request->query->get('start'),
-            $request->query->get('length')
+        $barcodeConfigs = array_map(
+            function (Article $article) use ($articleDataService) {
+                return $articleDataService->getBarcodeConfig($article);
+            },
+            $articleRepository->findByIds($listArticles)
         );
         $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
 

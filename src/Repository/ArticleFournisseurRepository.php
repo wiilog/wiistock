@@ -162,7 +162,7 @@ class ArticleFournisseurRepository extends EntityRepository
                     $qb
                         ->leftJoin('af.fournisseur', 'f2')
                         ->leftJoin('af.referenceArticle', 'ra2')
-                        ->andWhere('f2.nom LIKE :value OR af.reference LIKE :value OR ra2.libelle LIKE :value OR af.label LIKE :value')
+                        ->andWhere('f2.nom LIKE :value OR af.reference LIKE :value OR ra2.libelle LIKE :value OR af.label LIKE :value OR ra2.reference LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }

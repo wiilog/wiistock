@@ -23,10 +23,11 @@ class PageRow
     /**
      * @ORM\Column(type="integer")
      */
-    private $rowSize;
+    private $size;
 
     /**
      * @ORM\ManyToOne(targetEntity=Page::class, inversedBy="rows")
+     * @ORM\JoinColumn(nullable=false)
      */
     private $page;
 
@@ -45,14 +46,14 @@ class PageRow
         return $this->id;
     }
 
-    public function getRowSize(): ?int
+    public function getSize(): ?int
     {
-        return $this->rowSize;
+        return $this->size;
     }
 
-    public function setRowSize(?int $rowSize): self
+    public function setSize(?int $size): self
     {
-        $this->rowSize = $rowSize;
+        $this->size = $size;
 
         return $this;
     }
@@ -64,6 +65,7 @@ class PageRow
 
     public function setPage(?Page $page): self
     {
+        $page->addRow($this);
         $this->page = $page;
 
         return $this;

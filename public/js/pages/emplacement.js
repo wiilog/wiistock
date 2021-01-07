@@ -71,9 +71,7 @@ function checkAndDeleteRowEmplacement(icon) {
 function printLocationsBarCodes($button, event) {
     if (!$button.hasClass('disabled')) {
         window.location.href = Routing.generate('print_locations_bar_codes', {
-            listEmplacements: $("#listEmplacementIdToPrint").val(),
-            length: tableEmplacement.page.info().length,
-            start: tableEmplacement.page.info().start
+            listEmplacements: $("#listEmplacementIdToPrint").val()
         }, true);
     }
     else {

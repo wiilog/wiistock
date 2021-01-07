@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\Article;
-use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -21,7 +20,6 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Helper\Stream;
 use DateTime;
 use Exception;
 use Symfony\Component\Security\Core\Security;

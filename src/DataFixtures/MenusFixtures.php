@@ -10,8 +10,21 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-class MenusFixtures extends Fixture implements FixtureGroupInterface
-{
+class MenusFixtures extends Fixture implements FixtureGroupInterface {
+
+    const MENUS = [
+        Menu::ACCUEIL,
+        Menu::DASHBOARDS,
+        Menu::TRACA,
+        Menu::QUALI,
+        Menu::DEM,
+        Menu::ORDRE,
+        Menu::STOCK,
+        Menu::REFERENTIEL,
+        Menu::PARAM,
+        Menu::NOMADE
+    ];
+
     private $encoder;
 
     /**
@@ -19,45 +32,32 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface
      */
     private $menuRepository;
 
-    public function __construct(MenuRepository $menuRepository, UserPasswordEncoderInterface $encoder)
-    {
+    public function __construct(MenuRepository $menuRepository, UserPasswordEncoderInterface $encoder) {
         $this->encoder = $encoder;
         $this->menuRepository = $menuRepository;
     }
 
-    public function load(ObjectManager $manager)
-    {
+    public function load(ObjectManager $manager) {
         $output = new ConsoleOutput();
 
-		$menuLabels = [
-			Menu::ACCUEIL,
-			Menu::TRACA,
-			Menu::QUALI,
-			Menu::DEM,
-			Menu::ORDRE,
-			Menu::STOCK,
-			Menu::REFERENTIEL,
-			Menu::PARAM,
-            Menu::NOMADE
-		];
+        foreach(self::MENUS as $label) {
+            $menu = $this->menuRepository->findOneBy(["label" => $label]);
 
-		foreach ($menuLabels as $menuLabel) {
-			$menu = $this->menuRepository->findOneBy(['label' => $menuLabel]);
+            if(empty($menu)) {
+                $menu = new Menu();
+                $menu->setLabel($label);
+                $manager->persist($menu);
+                $output->writeln("Created menu \"$label\"");
+            }
 
-			if (empty($menu)) {
-				$menu = new Menu();
-				$menu->setLabel($menuLabel);
-				$manager->persist($menu);
-				$output->writeln('Création du menu "' . $menuLabel . '"');
-			}
-			$this->addReference('menu-' . $menuLabel, $menu);
-		}
+            $this->addReference("menu-$label", $menu);
+        }
 
         $manager->flush();
     }
 
-    public static function getGroups(): array
-    {
+    public static function getGroups(): array {
         return ['fixtures', 'patch-menus'];
     }
+
 }

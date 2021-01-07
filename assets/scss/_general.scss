@@ -137,11 +137,11 @@ a {
 }
 
 .pointer {
-    cursor: pointer;
+    cursor: pointer !important;
 }
 
 .cursor-default {
-    cursor: default;
+    cursor: default !important;
 }
 
 .select2-container {
@@ -373,18 +373,32 @@ label.required:after {
     max-width: 100%;
 }
 
-.full-page {
-    height: 100%;
-    display: flex;
-}
-
-.full-page .wii-page-card {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-}
-
 .square-sm {
     width: 20px;
     height: 20px;
+}
+
+.wii-loading {
+    position: relative;
+
+    /* slightly transparent fallback */
+    .spinner-border-wrapper {
+        background-color: rgba(0, 0, 0, 0.5);
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* if backdrop support: very transparent and blurred */
+@supports ((-webkit-backdrop-filter: blur(2px)) or (backdrop-filter: blur(2px))) {
+    .wii-loading .spinner-border-wrapper {
+        backdrop-filter: blur(2px);
+        background-color: initial;
+    }
 }

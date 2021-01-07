@@ -196,10 +196,15 @@ class EmplacementRepository extends EntityRepository
     }
 
     public function findByIds(array $ids): array {
-	    return $this->createQueryBuilder('location')
-            ->where('location.id IN (:ids)')
-            ->setParameter('ids', $ids, Connection::PARAM_STR_ARRAY)
-            ->getQuery()
-            ->getResult();
+        if (!empty($ids)) {
+            return $this->createQueryBuilder('location')
+                ->where('location.id IN (:ids)')
+                ->setParameter('ids', $ids, Connection::PARAM_STR_ARRAY)
+                ->getQuery()
+                ->getResult();
+        }
+        else {
+            return [];
+        }
 	}
 }

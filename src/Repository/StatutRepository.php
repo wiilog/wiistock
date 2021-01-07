@@ -440,7 +440,7 @@ class StatutRepository extends EntityRepository {
 
         if ($type) {
             $qb
-                ->andWhere("status.type = :type")
+                ->andWhere("status.type = :type OR status.type IS NULL")
                 ->setParameter("type", $type);
         }
 
@@ -505,5 +505,17 @@ class StatutRepository extends EntityRepository {
                 ->getQuery()
                 ->getResult()
         );
+    }
+
+    /**
+     * @param array $ids
+     * @return array
+     */
+    public function findByIds(array $ids): array {
+        return $this->createQueryBuilder('type')
+            ->where('type.id IN (:ids)')
+            ->setParameter('ids', $ids, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->getResult();
     }
 }

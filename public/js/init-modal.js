@@ -32,10 +32,9 @@ function InitModal($modal, $submit, path, options = {}) {
 
     $submit
         .click(function () {
-            if ($submit.find('.spinner-border').length > 0) {
-                showBSAlert('L\'opération est en cours de traitement', 'success');
-            }
-            else {
+            if ($submit.hasClass(LOADING_CLASS)) {
+                showBSAlert('L\'opération est en cours de traitement', 'warning');
+            } else {
                 SubmitAction(
                     $modal,
                     $submit,
@@ -101,23 +100,14 @@ function processSubmitAction($modal,
                              path,
                              {tables, keepModal, keepForm, validator} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
-    const {success, errorMessages, $isInvalidElements, data} = processForm($modal, isAttachmentForm, validator);
+    const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
     if (success) {
         const smartData = isAttachmentForm
             ? createFormData(data)
             : JSON.stringify(data);
 
-        // spinner on submit button
-        const $spinner = $('<div/>', {
-            class: 'spinner-border spinner-border-sm mr-2',
-            role: 'status',
-            html: $('<span/>', {
-                class: 'sr-only',
-                text: 'Chargement...'
-            })
-        });
+        $submit.pushLoader('white');
 
-        $submit.prepend($spinner);
         // launch ajax request
         return $
             .ajax({
@@ -130,7 +120,7 @@ function processSubmitAction($modal,
                 dataType: 'json',
             })
             .then((data) => {
-                $submit.find('.spinner-border').remove();
+                $submit.popLoader();
 
                 if (data.success === false) {
                     displayFormErrors($modal, {
@@ -148,9 +138,9 @@ function processSubmitAction($modal,
                 return data;
             })
             .catch((err) => {
-                $submit.find('.spinner-border').remove();
+                $submit.popLoader();
                 throw err;
-            })
+            });
     }
     else {
         displayFormErrors($modal, {
@@ -219,11 +209,11 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
 /**
  *
  * @param {jQuery} $modal jQuery modal
- * @param {boolean} isAttachmentForm
- * @param {undefined|function} validator
+ * @param {boolean} [isAttachmentForm]
+ * @param {function} [validator]
  * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
  */
-function processForm($modal, isAttachmentForm, validator) {
+function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined) {
     const data = {};
 
     const dataArrayForm = processDataArrayForm($modal, data);
@@ -543,6 +533,9 @@ function processFilesForm($modal, data) {
  */
 function processDataArrayForm($modal, data) {
     const $inputsArray = $modal.find(".data-array");
+
+    const noStringify = $modal.find(".data-array[data-no-stringify]").length > 0;
+
     const dataArray = {};
     const dataArrayNeedPositive = {};
     const $isInvalidElements = [];
@@ -595,7 +588,7 @@ function processDataArrayForm($modal, data) {
     }
 
     for(const currentName in dataArray) {
-        data[currentName] = JSON.stringify(dataArray[currentName]);
+        data[currentName] = !noStringify ? JSON.stringify(dataArray[currentName]) : dataArray[currentName];
     }
 
     return {
@@ -809,4 +802,4 @@ function saveData($input, data, name, val, isAttachmentForm) {
             data[name] = val;
         }
     }
-};
+}

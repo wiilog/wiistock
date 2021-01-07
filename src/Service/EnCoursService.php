@@ -137,7 +137,10 @@ class EnCoursService
                 ($maxTimeMinutes * 60 * 1000)      // minutes in milliseconds
             );
             $information['countDownLateTimespan'] = ($maxTimespan - $ageTimespan);
+        } else {
+            $information['countDownLateTimespan'] = null;
         }
+
         return $information;
     }
 
@@ -173,14 +176,15 @@ class EnCoursService
                 $oldestDrops = [];
                 $oldestDrops[] = $packRepository->getCurrentPackOnLocations(
                     $locations,
-                    $natures,
-                    [],
-                    false,
-                    'colis.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label',
-                    $maxQueryResultLength,
-                    $dropsCounter,
-                    'asc',
-                    true
+                    [
+                        'natures' => $natures,
+                        'isCount' => false,
+                        'field' => 'colis.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label',
+                        'limit' => $maxQueryResultLength,
+                        'start' => $dropsCounter,
+                        'order' => 'asc',
+                        'onlyLate' => true
+                    ]
                 );
                 $oldestDrops = $oldestDrops[0];
                 if (empty($oldestDrops)) {
@@ -209,12 +213,14 @@ class EnCoursService
                 $dropsCounter += $maxQueryResultLength;
             }
         } else {
+
             $oldestDrops[] = $packRepository->getCurrentPackOnLocations(
                 $locations,
-                $natures,
-                [],
-                false,
-                'colis.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label'
+                [
+                    'natures' => $natures,
+                    'isCount' => false,
+                    'field' => 'colis.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label'
+                ]
             );
             $oldestDrops = $oldestDrops[0];
             foreach ($oldestDrops as $oldestDrop) {
