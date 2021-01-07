@@ -259,37 +259,45 @@ class DashboardSettingsService {
                                           DashboardMeter\Indicator $meter = null): array {
         $shouldShowTreatmentDelay = isset($config['withTreatmentDelay']) && $config['withTreatmentDelay'];
         $shouldShowLocationLabels = isset($config['withLocationLabels']) && $config['withLocationLabels'];
-        if ($example || !$meter) {
+        if ($example) {
             $values = $componentType->getExampleValues();
 
-            if (!$shouldShowTreatmentDelay) {
-                unset($values['delay']);
-            }
-
-            if (!$shouldShowLocationLabels || empty($config['locations'])) {
-                unset($values['subtitle']);
-            }
-            else {
-                if (!empty($config['locations'])) {
-                    $locationRepository = $manager->getRepository(Emplacement::class);
-                    $locations = $locationRepository->findBy(['id' => $config['locations']]);
-
-                    if (empty($locations)) {
-                        unset($values['subtitle']);
-                    }
-                    else {
-                        $values['subtitle'] = FormatHelper::locations($locations);
-                    }
-                }
+            if ($shouldShowLocationLabels && !empty($config['locations'])) {
+                $locationRepository = $manager->getRepository(Emplacement::class);
+                $locations = $locationRepository->findBy(['id' => $config['locations']]);
+                $values['subtitle'] = FormatHelper::locations($locations);
             }
         }
         else {
-            $values = [
-                'subtitle' => $meter->getSubtitle(),
-                'delay' => $meter->getDelay(),
-                'count' => $meter->getCount(),
-            ];
+            if ($meter) {
+                $values = [
+                    'subtitle' => $meter->getSubtitle(),
+                    'delay' => $meter->getDelay(),
+                    'count' => $meter->getCount(),
+                ];
+            } else {
+                $values = [
+                    'subtitle' => '-',
+                    'delay' => '-',
+                    'count' => '-',
+                ];
+            }
         }
+
+        if (!$shouldShowLocationLabels) {
+            unset($values['subtitle']);
+        }
+        else if (empty($values['subtitle'])) {
+            $values['subtitle'] = '-';
+        }
+
+        if (!$shouldShowTreatmentDelay) {
+            unset($values['delay']);
+        }
+        else if (empty($values['delay'])) {
+            $values['delay'] = '-';
+        }
+
         return $values;
     }
 
@@ -387,9 +395,9 @@ class DashboardSettingsService {
 
         if (!$example) {
             if($chart) {
-                ["chartData" => $chart->getData()];
+                return ["chartData" => $chart->getData()];
             } else {
-                return [];
+                return ["chartData" => []];
             }
         } else {
             return $componentType->getExampleValues();
