@@ -42,7 +42,7 @@ class FormatHelper {
     }
 
     public static function carriers($carriers) {
-        return self::entity($carriers, "username");
+        return self::entity($carriers, "label");
     }
 
     public static function locations($locations) {
