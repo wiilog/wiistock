@@ -622,39 +622,15 @@ class ReferenceArticleController extends AbstractController
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $activeOnly = $request->query->getBoolean('activeOnly', false);
-            $typeQuantity = $request->query->get('typeQuantity', -1);
+            $minQuantity = $request->query->getInt('minQuantity');
+            $typeQuantity = $request->query->get('typeQuantity');
             $field = $request->query->get('field', 'reference');
-            $locationFilter = $request->query->get('locationFilter', null);
-            $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity, $field, $locationFilter);
+            $locationFilter = $request->query->get('locationFilter');
+            $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $minQuantity, $typeQuantity, $field, $locationFilter);
             return new JsonResponse(['results' => $refArticles]);
         }
         throw new BadRequestHttpException();
     }
-
-    /**
-     * @Route("/autocomplete-ref-and-article/{activeOnly}", name="get_ref_and_articles", options={"expose"=true}, methods="GET|POST")
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param bool $activeOnly
-     * @return JsonResponse
-     */
-	public function getRefAndArticles(Request $request, EntityManagerInterface $entityManager, $activeOnly = false)
-	{
-		if ($request->isXmlHttpRequest()) {
-			$search = $request->query->get('term');
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $articleRepository = $entityManager->getRepository(Article::class);
-
-			$refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly);
-			$articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly);
-
-			return new JsonResponse([
-			    'results' => array_merge($articles, $refArticles)
-            ]);
-		}
-		throw new BadRequestHttpException();
-	}
 
     /**
      * @Route("/plus-demande", name="plus_demande", options={"expose"=true}, methods="GET|POST")
