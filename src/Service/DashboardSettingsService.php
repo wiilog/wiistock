@@ -384,9 +384,9 @@ class DashboardSettingsService {
 
         if (!$example) {
             if($chart) {
-                ["chartData" => $chart->getData()];
+                return ["chartData" => $chart->getData()];
             } else {
-                return [];
+                return ["chartData" => []];
             }
         } else {
             return $componentType->getExampleValues();

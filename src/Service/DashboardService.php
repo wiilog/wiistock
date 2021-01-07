@@ -657,8 +657,8 @@ class DashboardService {
         }
 
         $meter
-            ->setCount($calculatedData['count'])
-            ->setDelay($calculatedData['delay'])
+            ->setCount($calculatedData ? $calculatedData['count'] : 0)
+            ->setDelay($calculatedData ? $calculatedData['delay'] : 0)
             ->setSubtitle($calculatedData['subtitle'] ?? null);
     }
 
