@@ -617,10 +617,32 @@ function onComponentSaved($modal) {
 }
 
 function processSecondModalForm($modal) {
-    const {data, ...remaining} = ProcessForm($modal);
-    if(data.segments) {
+    const meterKey = $modal.find(`input[name="meterKey"]`).val();
+
+    const {data, ...remaining} = ProcessForm($modal, null, () => {
+        if(meterKey === ENTRIES_TO_HANDLE) {
+            const success = $modal
+                .find(`.segment-hour`)
+                .toArray()
+                .every(elem => elem.value);
+
+            const $invalidElements = $modal.find(`.segment-hour`)
+                .toArray()
+                .map(elem => $(elem))
+                .filter($elem => $elem.val());
+
+            return {
+                success,
+                errorMessages: [`Le segment ne peut pas être vide`],
+                $isInvalidElements: $invalidElements,
+            };
+        }
+    });
+
+    if(meterKey === ENTRIES_TO_HANDLE && data.segments) {
         data.segments = data.segments.map(clearSegmentHourValues);
     }
+
     return {data, ...remaining};
 }
 
@@ -771,12 +793,14 @@ function addEntryTimeInterval($button, time = null, notEmptySegment = false) {
         return false;
     }
 
+    console.log(notEmptySegment);
     if(notEmptySegment) {
-        const $segmentHour = $('.segment-hour');
-        const lastSegmentHourEndValue = $segmentHour.last().val();
+        const lastSegmentHourEndValue = $('.segment-hour').last().val();
         const lastSegmentLabel = $('.segment-container label').last().text();
+        console.log("good");
 
         if(!lastSegmentHourEndValue) {
+            console.log("fuck");
             showBSAlert('Le <strong>' + lastSegmentLabel.toLowerCase() + '</strong> doit contenir une valeur de fin' , 'danger');
             return false;
         }
@@ -804,7 +828,7 @@ function addEntryTimeInterval($button, time = null, notEmptySegment = false) {
                            style="border: none; background-color: #e9ecef;"
                            ${time !== null ? 'value="' + time + '"' : ''}
                            onkeyup="onSegmentInputChange($(this), false)"
-                           onchange="onSegmentInputChange($(this), true)" />
+                           onfocusout="onSegmentInputChange($(this), true)" />
                 </div>
                 <div class="col-2">
                     <button class="btn d-block" onclick="deleteEntryTimeInterval($(this))"><i class="far fa-trash-alt"></i></button>
