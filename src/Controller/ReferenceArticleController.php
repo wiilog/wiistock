@@ -598,7 +598,7 @@ class ReferenceArticleController extends AbstractController
 
             if ($refArticle) {
 				if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-					$quantity = $refArticle->getQuantiteStock();
+					$quantity = $refArticle->getQuantiteDisponible();
 				}
 			}
 
