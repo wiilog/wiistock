@@ -184,7 +184,7 @@ class ReferenceArticleRepository extends EntityRepository {
      * @param null $locationFilter
      * @return mixed
      */
-    public function getIdAndRefBySearch($search, $activeOnly = false, $typeQuantity = -1, $field = 'reference', $locationFilter = null)
+    public function getIdAndRefBySearch($search, $activeOnly = false, $minQuantity = null, $typeQuantity = null, $field = 'reference', $locationFilter = null)
     {
         $queryBuilder = $this->createQueryBuilder('r')
             ->select('r.id')
@@ -201,13 +201,19 @@ class ReferenceArticleRepository extends EntityRepository {
             ->where("r.${field} LIKE :search")
             ->setParameter('search', '%' . $search . '%');
 
-        if ($activeOnly) {
+        if ($activeOnly !== null) {
             $queryBuilder
                 ->andWhere('s.nom = :activeStatus')
                 ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF);
         }
 
-        if ($typeQuantity !== -1) {
+        if($minQuantity !== null) {
+            $queryBuilder
+                ->andWhere('r.quantiteDisponible > :minQuantity')
+                ->setParameter('minQuantity', $minQuantity);
+        }
+
+        if ($typeQuantity) {
             $queryBuilder
                 ->andWhere('r.typeQuantite = :type')
                 ->setParameter('type', $typeQuantity);

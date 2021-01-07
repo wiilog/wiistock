@@ -172,24 +172,20 @@ $minimumWidth: 1300px;
             color: $blueNeon;
             cursor: default;
             text-align: center;
-            font-size: 2.6vw;
+            font-size: 1.5rem;
             line-height: 0.8;
 
             &.dashboard-stats-delay {
-                font-size: 2.5vh;
+                font-size: 1.5rem;
             }
 
             &.dashboard-stats-counter {
-                font-size: 2vw;
+                font-size: 2rem;
                 word-wrap: break-word;
-
-                .dashboard-ext & {
-                    font-size: 8vh;
-                }
             }
 
             &.dashboard-stats-label {
-                font-size: 2vw;
+                font-size: 1.5rem;
             }
         }
     }
