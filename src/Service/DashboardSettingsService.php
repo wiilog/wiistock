@@ -256,7 +256,7 @@ class DashboardSettingsService {
                                           DashboardMeter\Indicator $meter = null): array {
         $shouldShowTreatmentDelay = isset($config['withTreatmentDelay']) && $config['withTreatmentDelay'];
         $shouldShowLocationLabels = isset($config['withLocationLabels']) && $config['withLocationLabels'];
-        if ($example || !$meter) {
+        if ($example) {
             $values = $componentType->getExampleValues();
 
             if (!$shouldShowTreatmentDelay) {
@@ -281,11 +281,19 @@ class DashboardSettingsService {
             }
         }
         else {
-            $values = [
-                'subtitle' => $meter->getSubtitle(),
-                'delay' => $meter->getDelay(),
-                'count' => $meter->getCount(),
-            ];
+            if ($meter) {
+                $values = [
+                    'subtitle' => $meter->getSubtitle(),
+                    'delay' => $meter->getDelay(),
+                    'count' => $meter->getCount(),
+                ];
+            } else {
+                $values = [
+                    'subtitle' => '-',
+                    'delay' => '-',
+                    'count' => '-',
+                ];
+            }
         }
         return $values;
     }
@@ -384,9 +392,9 @@ class DashboardSettingsService {
 
         if (!$example) {
             if($chart) {
-                ["chartData" => $chart->getData()];
+                return ["chartData" => $chart->getData()];
             } else {
-                return [];
+                return ["chartData" => []];
             }
         } else {
             return $componentType->getExampleValues();

@@ -364,7 +364,7 @@ class DashboardService {
         $packRepository = $entityManager->getRepository(Pack::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
 
-        if ($includeLocationLabels && !empty($locationIds)) {
+        if (!empty($locationIds)) {
             $locationRepository = $entityManager->getRepository(Emplacement::class);
             $locations = $locationRepository->findByIds($locationIds);
         } else {
@@ -657,8 +657,8 @@ class DashboardService {
         }
 
         $meter
-            ->setCount($calculatedData['count'])
-            ->setDelay($calculatedData['delay'])
+            ->setCount($calculatedData ? $calculatedData['count'] : 0)
+            ->setDelay($calculatedData ? $calculatedData['delay'] : 0)
             ->setSubtitle($calculatedData['subtitle'] ?? null);
     }
 
