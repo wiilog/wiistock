@@ -349,7 +349,7 @@ function onDashboardSaved() {
     return $.post(Routing.generate(`save_dashboard_settings`), content)
         .then(function(data) {
             if(data.success) {
-                showBSAlert("Dashboards enregistrés avec succès", "success");
+                showBSAlert("Modifications enregistrés avec succès", "success");
                 dashboards = JSON.parse(data.dashboards);
                 loadCurrentDashboard(false);
             }
