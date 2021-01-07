@@ -364,7 +364,7 @@ class DashboardService {
         $packRepository = $entityManager->getRepository(Pack::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
 
-        if ($includeLocationLabels && !empty($locationIds)) {
+        if (!empty($locationIds)) {
             $locationRepository = $entityManager->getRepository(Emplacement::class);
             $locations = $locationRepository->findByIds($locationIds);
         } else {
