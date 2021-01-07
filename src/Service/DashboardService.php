@@ -364,7 +364,7 @@ class DashboardService {
         $packRepository = $entityManager->getRepository(Pack::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
 
-        if ($includeLocationLabels && !empty($locationIds)) {
+        if (!empty($locationIds)) {
             $locationRepository = $entityManager->getRepository(Emplacement::class);
             $locations = $locationRepository->findByIds($locationIds);
         } else {
@@ -375,7 +375,16 @@ class DashboardService {
             $response = [];
             $response['delay'] = null;
             if ($includeDelay) {
-                $lastEnCours = $packRepository->getCurrentPackOnLocations($locationIds, [], false, 'lastDrop.datetime, emplacement.dateMaxTime', 1);
+                $lastEnCours = $packRepository->getCurrentPackOnLocations(
+                    $locationIds,
+                    [
+                        'isCount' => false,
+                        'field' => 'lastDrop.datetime, emplacement.dateMaxTime',
+                        'limit' => 1,
+                        'onlyLate' => true,
+                        'order' => 'asc'
+                    ]
+                );
                 if (!empty($lastEnCours[0]) && $lastEnCours[0]['dateMaxTime']) {
                     $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
                     $lastEnCoursDateTime = $lastEnCours[0]['datetime'];
@@ -393,7 +402,7 @@ class DashboardService {
                     ''
                 )
                 : null;
-            $response['count'] = $packRepository->getCurrentPackOnLocations($locationIds, []);
+            $response['count'] = $packRepository->getCurrentPackOnLocations($locationIds);
         } else {
             $response = null;
         }
@@ -657,8 +666,8 @@ class DashboardService {
         }
 
         $meter
-            ->setCount($calculatedData['count'])
-            ->setDelay($calculatedData['delay'])
+            ->setCount($calculatedData ? $calculatedData['count'] : 0)
+            ->setDelay($calculatedData ? $calculatedData['delay'] : 0)
             ->setSubtitle($calculatedData['subtitle'] ?? null);
     }
 
@@ -801,9 +810,11 @@ class DashboardService {
             $packsOnClusterVerif = Stream::from(
                 $packsRepository->getCurrentPackOnLocations(
                     $locationCluster->getLocations()->toArray(),
-                    $naturesFilter,
-                    false,
-                    'colis.id, emplacement.label'
+                    [
+                        'natures' => $naturesFilter,
+                        'isCount' => false,
+                        'field' => 'colis.id, emplacement.label'
+                    ]
                 )
             )->reduce(function(array $carry, array $pack) {
                 if (!isset($carry[$pack['label']])) {
