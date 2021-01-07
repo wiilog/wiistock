@@ -98,8 +98,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
             'template' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
         ],
-        'Suivi des transporteur' => [
-            'hint' => 'Transporteur ayant effectué un arrivage dans la journée',
+        'Suivi des transporteurs' => [
+            'hint' => 'Transporteurs ayant effectué un arrivage dans la journée',
             'exampleValues' => [
                 'carriers' => [
                     'TRANS1',

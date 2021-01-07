@@ -205,7 +205,10 @@ class DashboardSettingsService {
                 'chartData' => $meterChart->getData(),
                 'nextLocation' => $meterChart->getLocation(),
                 'count' => $meterChart->getTotal(),
-                'chartColors' => $meterChart->getChartColors()
+                'chartColors' => $meterChart->getChartColors(),
+                'linesCountTooltip' => $config['linesCountTooltip'] ?? '',
+                'nextLocationTooltip' => $config['nextLocationTooltip'] ?? '',
+                'componentLink' => (bool) $config['redirectOngoing'] ? 'encours' : ''
             ];
         } else {
             $values = [
