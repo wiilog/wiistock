@@ -763,8 +763,24 @@ function initializeEntryTimeIntervals(segments) {
     }
 }
 
-function addEntryTimeInterval($button, time = null) {
+function addEntryTimeInterval($button, time = null, notEmptySegment = false) {
     const current = $button.data(`current`);
+
+    if($('.segment-container').length === 5) {
+        showBSAlert('Il n\'est pas possible d\'ajouter plus de 5 segments à ce composant', 'danger');
+        return false;
+    }
+
+    if(notEmptySegment) {
+        const $segmentHour = $('.segment-hour');
+        const lastSegmentHourEndValue = $segmentHour.last().val();
+        const lastSegmentLabel = $('.segment-container label').last().text();
+
+        if(!lastSegmentHourEndValue) {
+            showBSAlert('Le <strong>' + lastSegmentLabel.toLowerCase() + '</strong> doit contenir une valeur de fin' , 'danger');
+            return false;
+        }
+    }
 
     const $newSegmentInput = $(`
         <div class="segment-container interval">
@@ -775,7 +791,7 @@ function addEntryTimeInterval($button, time = null) {
                            class="data needed form-control text-center display-previous segment-hour"
                            ${current === 0 ? 'value="1h"' : ''}
                            title="Heure de début du segment"
-                           style="border: none; background-color: #e9ecef;"
+                           style="border: none; background-color: #e9ecef; color: #b1b1b1"
                            disabled />
                     <div class="input-group-append input-group-prepend">
                         <span class="input-group-text" style="border: none;">à</span>
@@ -809,7 +825,23 @@ function addEntryTimeInterval($button, time = null) {
 }
 
 function deleteEntryTimeInterval($button) {
-    $button.closest('.segment-container').remove();
+    const $segmentContainer = $('.segment-container');
+
+    if($segmentContainer.length === 1) {
+        showBSAlert('Au moins un segment doit être renseigné', 'danger');
+        event.preventDefault();
+        return false;
+    }
+
+    const $currentSegmentContainer = $button.closest('.segment-container');
+    const $nextsegmentContainers = $currentSegmentContainer.nextAll().not('button');
+
+    $nextsegmentContainers.each(function() {
+        const $currentSegment = $(this);
+        const $segmentValue = $currentSegment.find('.segment-value');
+        $segmentValue.text(parseInt($segmentValue.text()) - 1);
+    });
+    $currentSegmentContainer.remove();
     recalculateIntervals();
 }
 
