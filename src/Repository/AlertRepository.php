@@ -9,6 +9,7 @@ use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
+use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Alert|null find($id, $lockMode = null, $lockVersion = null)
@@ -94,7 +95,12 @@ class AlertRepository extends EntityRepository {
                 $search = $params->get('search')['value'];
                 if(!empty($search)) {
                     $qb
-                        ->andWhere('reference.reference LIKE :value OR reference.libelle LIKE :value')
+                        ->andWhere($qb->expr()->orX(
+                            'reference.reference LIKE :value',
+                            'reference.libelle LIKE :value',
+                            'article.reference LIKE :value',
+                            'article.label LIKE :value'
+                        ))
                         ->setParameter('value', '%' . str_replace('_', '\_', $search) . '%');
                 }
             }

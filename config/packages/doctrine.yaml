@@ -37,3 +37,4 @@ doctrine:
                 DATE_FORMAT: DoctrineExtensions\Query\Mysql\DateFormat
                 UNIX_TIMESTAMP: DoctrineExtensions\Query\Mysql\UnixTimestamp
                 FIELD: DoctrineExtensions\Query\Mysql\Field
+                GROUP_CONCAT: DoctrineExtensions\Query\Mysql\GroupConcat
