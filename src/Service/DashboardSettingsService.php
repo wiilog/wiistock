@@ -176,11 +176,11 @@ class DashboardSettingsService {
             }
 
             $segments = $config['segments'] ?? [];
-            $segmentsLabels = [
-                'Retard',
-                'Moins d\'1h'
-            ];
             if (!empty($segments)) {
+                $segmentsLabels = [
+                    'Retard',
+                    'Moins d\'1h'
+                ];
                 $lastKey = "1";
                 foreach ($segments as $segment) {
                     $segmentsLabels[] = "${lastKey}h - ${segment}h";
@@ -188,10 +188,7 @@ class DashboardSettingsService {
                 }
             }
             else {
-                $segmentsLabels[] = '1h-4h';
-                $segmentsLabels[] = '4h-12h';
-                $segmentsLabels[] = '12h-24h';
-                $segmentsLabels[] = '24h-48h';
+                $segmentsLabels = array_keys($values['chartData'] ?? []);
             }
 
             $values['chartData'] = Stream::from($segmentsLabels)
