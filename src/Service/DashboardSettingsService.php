@@ -205,7 +205,6 @@ class DashboardSettingsService {
                 'chartColors' => $meterChart->getChartColors(),
                 'linesCountTooltip' => $config['linesCountTooltip'] ?? '',
                 'nextLocationTooltip' => $config['nextLocationTooltip'] ?? '',
-                'componentLink' => (bool) $config['redirectOngoing'] ? 'encours' : ''
             ];
         } else {
             $values = [
@@ -600,6 +599,7 @@ class DashboardSettingsService {
         $meterKey = $componentType->getMeterKey();
 
         switch ($meterKey) {
+            case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
             case Dashboard\ComponentType::ONGOING_PACKS:
                 $locations = $config['locations'] ?? [];
                 $redirect = $config['redirect'] ?? false;
