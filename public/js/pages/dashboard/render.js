@@ -301,7 +301,7 @@ function createIndicatorElement(data) {
             delay
                 ? $('<div/>', {
                     class: `${clickableClass} dashboard-stats dashboard-stats-delay ${delay < 0 ? 'red' : ''}`,
-                    text: renderMillisecondsToDelay(Math.abs(delay), 'display')
+                    text: !isNaN(Math.abs(delay)) ? renderMillisecondsToDelay(Math.abs(delay), 'display') : delay
                 })
                 : undefined,
         ].filter(Boolean),
