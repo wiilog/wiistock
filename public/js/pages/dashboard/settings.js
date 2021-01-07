@@ -83,11 +83,10 @@ function loadDashboards(m) {
 }
 
 function onSelectAll() {
-    console.log("fuck");
     const $select = $(this).closest(`.input-group`).find(`select`);
 
     $select.find(`option`).each(function() {
-        $(this).attr(`selected`, true);
+        $(this).prop(`selected`, true);
     });
 
     $select.trigger(`change`);
