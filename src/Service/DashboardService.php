@@ -381,7 +381,8 @@ class DashboardService {
                         'isCount' => false,
                         'field' => 'lastDrop.datetime, emplacement.dateMaxTime',
                         'limit' => 1,
-                        'onlyLate' => true
+                        'onlyLate' => true,
+                        'order' => 'asc'
                     ]
                 );
                 if (!empty($lastEnCours[0]) && $lastEnCours[0]['dateMaxTime']) {
