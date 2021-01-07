@@ -261,7 +261,12 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                         'Congelé' => 2,
                         'Consommable' => 12,
                     ],
-                    '24h-48h' => [
+                    '24h-36h' => [
+                        'Standard' => 0,
+                        'Congelé' => 0,
+                        'Consommable' => 0,
+                    ],
+                    '36h-48h' => [
                         'Standard' => 0,
                         'Congelé' => 0,
                         'Consommable' => 0,
