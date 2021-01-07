@@ -68,7 +68,7 @@ class ComponentType
     private $meterKey;
 
     /**
-     * @ORM\OneToMany(targetEntity=Component::class, mappedBy="type")
+     * @ORM\OneToMany(targetEntity=Component::class, mappedBy="type", cascade={"delete"})
      */
     private $componentsUsing;
 
