@@ -222,7 +222,7 @@ function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined
     const dataSwitchesForm = processSwitchesForm($modal, data, isAttachmentForm);
     const dataFilesForm = processFilesForm($modal, data);
     const dataValidator = validator
-        ? validator($modal)
+        ? (validator($modal) || {success: true, errorMessages: [], $isInvalidElements: []})
         : {success: true, errorMessages: [], $isInvalidElements: []};
 
     return {
