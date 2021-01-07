@@ -406,7 +406,17 @@ function onPageAdded() {
 }
 
 function onPageDeleted() {
+    const $modal = $(`#delete-dashboard-modal`);
     const dashboard = Number($(this).data(`dashboard`));
+
+    $modal.find(`.delete-dashboard-index`).val(dashboard);
+    $modal.find(`.delete-dashboard-name`).text(dashboards[dashboard].name);
+    $modal.modal(`show`);
+}
+
+function onConfirmPageDeleted() {
+    const $modal = $(`#delete-dashboard-modal`);
+    const dashboard = Number($modal.find(`.delete-dashboard-index`).val());
 
     dashboards.splice(dashboard, 1);
     recalculateIndexes();
@@ -421,6 +431,8 @@ function onPageDeleted() {
     renderCurrentDashboard();
     renderDashboardPagination();
     updateAddRowButton();
+
+    $modal.modal(`hide`);
 }
 
 function onRowAdded() {
