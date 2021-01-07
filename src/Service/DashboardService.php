@@ -27,6 +27,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
+use phpDocumentor\Reflection\Types\Integer;
 use Throwable;
 
 class DashboardService {
@@ -974,10 +975,9 @@ class DashboardService {
             },
             $workFreeDays
         );
-
         // packs column
-        if ($displayPackNatures && $scale) {
-            $natureData = $this->getArrivalPacksData($entityManager, $getObjectsStatisticsCallable, $scale, $arrivalStatusesFilter, $arrivalTypesFilter, $workFreeDays);
+        if ($scale) {
+            $natureData = $this->getArrivalPacksData($entityManager, $getObjectsStatisticsCallable, $scale, $arrivalStatusesFilter, $arrivalTypesFilter, $workFreeDays, $displayPackNatures);
 
             if ($natureData) {
                 $chartData['stack'] = $natureData;
@@ -1131,6 +1131,7 @@ class DashboardService {
      * @param array $arrivalStatusesFilter
      * @param array $arrivalTypesFilter
      * @param array|null $workFreeDays
+     * @param bool $displayPackNatures
      * @return array
      * @throws NoResultException
      * @throws NonUniqueResultException
@@ -1140,7 +1141,8 @@ class DashboardService {
                                          int $scale,
                                          array $arrivalStatusesFilter,
                                          array $arrivalTypesFilter,
-                                         array $workFreeDays = null): array {
+                                         array $workFreeDays = null,
+                                         bool $displayPackNatures = false): array {
 
         $packRepository = $entityManager->getRepository(Pack::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -1148,51 +1150,61 @@ class DashboardService {
         $packCountByDay = $this->{$getObjectsStatisticsCallable}(
             $entityManager,
             $scale,
-            function(DateTime $dateMin, DateTime $dateMax) use ($packRepository, $arrivalStatusesFilter, $arrivalTypesFilter) {
-                return $packRepository->countByDates($dateMin, $dateMax, true, $arrivalStatusesFilter, $arrivalTypesFilter);
+            function(DateTime $dateMin, DateTime $dateMax) use ($packRepository, $arrivalStatusesFilter, $arrivalTypesFilter, $displayPackNatures) {
+                return $packRepository->countByDates($dateMin, $dateMax, $displayPackNatures, $arrivalStatusesFilter, $arrivalTypesFilter);
             },
             $workFreeDays
         );
-
-        $natures = $natureRepository->findAll();
         $naturesStack = [];
-        foreach ($natures as $nature) {
-            $natureId = $nature->getId();
-            if (!isset($naturesStack[$natureId])) {
-                $naturesStack[$natureId] = [
-                    'label' => $nature->getLabel(),
-                    'backgroundColor' => $nature->getColor(),
-                    'stack' => 'stack',
-                    'data' => []
-                ];
-            }
-            foreach ($packCountByDay as $countersGroupByNature) {
-                $found = false;
-                if (!empty($countersGroupByNature)) {
-                    foreach ($countersGroupByNature as $natureCount) {
-                        $currentNatureId = (int)$natureCount['natureId'];
-                        if ($natureId === $currentNatureId) {
-                            $naturesStack[$natureId]['data'][] = (int)$natureCount['count'];
-                            $found = true;
-                            break;
+        if ($displayPackNatures) {
+            $natures = $natureRepository->findAll();
+            foreach ($natures as $nature) {
+                $natureId = $nature->getId();
+                if (!isset($naturesStack[$natureId])) {
+                    $naturesStack[$natureId] = [
+                        'label' => $nature->getLabel(),
+                        'backgroundColor' => $nature->getColor(),
+                        'stack' => 'stack',
+                        'data' => []
+                    ];
+                }
+                foreach ($packCountByDay as $countersGroupByNature) {
+                    $found = false;
+                    if (!empty($countersGroupByNature)) {
+                        foreach ($countersGroupByNature as $natureCount) {
+                            $currentNatureId = (int)$natureCount['natureId'];
+                            if ($natureId === $currentNatureId) {
+                                $naturesStack[$natureId]['data'][] = (int)$natureCount['count'];
+                                $found = true;
+                                break;
+                            }
                         }
                     }
-                }
 
-                if (!$found) {
-                    $naturesStack[$nature->getId()]['data'][] = 0;
+                    if (!$found) {
+                        $naturesStack[$nature->getId()]['data'][] = 0;
+                    }
+                }
+                $total = Stream::from($naturesStack[$nature->getId()]['data'])
+                    ->reduce(function ($counter, $current) {
+                        return $counter + $current;
+                    }, 0);
+
+                if ($total === 0) {
+                    unset($naturesStack[$nature->getId()]);
                 }
             }
-            $total = Stream::from($naturesStack[$nature->getId()]['data'])
-                ->reduce(function($counter, $current) {
-                    return $counter + $current;
-                }, 0);
-
-            if ($total === 0) {
-                unset($naturesStack[$nature->getId()]);
+        } else {
+            $naturesStack[] = [
+                'label' => 'Colis',
+                'backgroundColor' => '#E5E1E1',
+                'stack' => 'stack',
+                'data' => []
+            ];
+            foreach ($packCountByDay as $packCount) {
+                $naturesStack[0]['data'][] = $packCount;
             }
         }
-
         return array_values($naturesStack);
     }
 }

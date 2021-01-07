@@ -351,8 +351,17 @@ class DashboardSettingsService {
                 }, []);
 
             // packs column
-            if(isset($chartData['stack'])) {
-                if ($displayPackNatures && $scale) {
+            if (isset($chartData['stack'])) {
+                if ($scale) {
+                    if (!$displayPackNatures) {
+                        $chartData['stack'] =  array_slice($chartData['stack'], 0, 1);
+                        $chartData['stack'][0] = [
+                            'label' => 'Colis',
+                            'backgroundColor' => '#E5E1E1',
+                            'stack' => 'stack',
+                            'data' => $chartData['stack'][0]['data']
+                        ];
+                    }
                     foreach ($chartData['stack'] as $natureData) {
                         $natureData['data'] = array_slice($natureData['data'], 0, $scale);
                     }
@@ -374,7 +383,11 @@ class DashboardSettingsService {
                                            ?Dashboard\Meter\Chart $chart = null): array {
 
         if (!$example) {
-            return ["chartData" => $chart->getData()];
+            if($chart) {
+                ["chartData" => $chart->getData()];
+            } else {
+                return [];
+            }
         } else {
             return $componentType->getExampleValues();
         }

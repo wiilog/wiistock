@@ -52,13 +52,11 @@ class DashboardFeedCommand extends Command {
             $output->writeln("Dashboards are being fed, aborting");
             return 0;
         }
-
         $this->wiilockService->toggleFeedingDashboard($entityManager, true);
         $entityManager->flush();
 
         $dashboardComponentRepository = $entityManager->getRepository(Dashboard\Component::class);
         $components = $dashboardComponentRepository->findAll();
-
         foreach ($components as $component) {
             $componentType = $component->getType();
             switch ($componentType->getMeterKey()) {

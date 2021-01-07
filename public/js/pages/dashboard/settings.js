@@ -688,13 +688,14 @@ function hasEditDashboard() {
             pageUpdated
             || (
                 rows
-                && rows.some(({updated: rowUpdated, components}) => (
-                    rowUpdated
+                && rows.some(({updated: rowUpdated, components}) => {
+                    components = Object.values(components);
+                    return rowUpdated
                     || (
                         components
                         && components.some(({updated: componentUpdated}) => componentUpdated)
                     )
-                ))
+                })
             )
         ))
         || undefined;
