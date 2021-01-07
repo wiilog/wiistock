@@ -12,7 +12,10 @@ $(function () {
 
     initSearchDate(tableEntries);
     Select2.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
-    Select2.articleReference($('.ajax-autocomplete-inv-entries'), null, 'reference', 'Référence article', 0);
+    Select2.articleReference($('.ajax-autocomplete-inv-entries'), {
+        placeholder: `Référence article`,
+        activeOnly: 1,
+    });
 });
 
 let mission = $('#missionId').val();
