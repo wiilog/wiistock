@@ -272,6 +272,7 @@ $minimumWidth: 1300px;
     margin: 0 10px;
     padding: 0 10px;
     width: 25%;
+    flex-grow: 1;
 
     .component-selector {
         position: relative;
