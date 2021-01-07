@@ -298,7 +298,7 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="article_edit", options={"expose"=true},  methods="GET|POST")
-     * @HasPermission({Menu::STOCK, Action::EDIT, mode=HasPermission::IN_JSON})
+     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @return Response
      */
