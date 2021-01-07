@@ -262,25 +262,10 @@ class DashboardSettingsService {
         if ($example) {
             $values = $componentType->getExampleValues();
 
-            if (!$shouldShowTreatmentDelay) {
-                unset($values['delay']);
-            }
-
-            if (!$shouldShowLocationLabels || empty($config['locations'])) {
-                unset($values['subtitle']);
-            }
-            else {
-                if (!empty($config['locations'])) {
-                    $locationRepository = $manager->getRepository(Emplacement::class);
-                    $locations = $locationRepository->findBy(['id' => $config['locations']]);
-
-                    if (empty($locations)) {
-                        unset($values['subtitle']);
-                    }
-                    else {
-                        $values['subtitle'] = FormatHelper::locations($locations);
-                    }
-                }
+            if ($shouldShowLocationLabels && !empty($config['locations'])) {
+                $locationRepository = $manager->getRepository(Emplacement::class);
+                $locations = $locationRepository->findBy(['id' => $config['locations']]);
+                $values['subtitle'] = FormatHelper::locations($locations);
             }
         }
         else {
@@ -298,6 +283,21 @@ class DashboardSettingsService {
                 ];
             }
         }
+
+        if (!$shouldShowLocationLabels) {
+            unset($values['subtitle']);
+        }
+        else if (empty($values['subtitle'])) {
+            $values['subtitle'] = '-';
+        }
+
+        if (!$shouldShowTreatmentDelay) {
+            unset($values['delay']);
+        }
+        else if (empty($values['delay'])) {
+            $values['delay'] = '-';
+        }
+
         return $values;
     }
 

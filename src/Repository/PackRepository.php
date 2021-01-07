@@ -264,26 +264,21 @@ class PackRepository extends EntityRepository
 
     /**
      * @param array $locations
-     * @param array $natures
-     * @param bool $isCount
-     * @param string $field
-     * @param int|null $limit
-     * @param int|null $start
-     * @param string $order
-     * @param bool $onlyLate
+     * @param array $options ['natures' => array, 'isCount' => bool, 'field' => string, 'limit' => int, 'start' => int, 'order' => string, 'onlyLate' => bool]
      * @return int|mixed|string
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function getCurrentPackOnLocations(array $locations,
-                                              array $natures,
-                                              bool $isCount = true,
-                                              string $field = 'colis.id',
-                                              ?int $limit = null,
-                                              ?int $start = null,
-                                              string $order = 'desc',
-                                              bool $onlyLate = false)
+    public function getCurrentPackOnLocations(array $locations, array $options = [])
     {
+        $natures = $options['natures'] ?? [];
+        $isCount = $options['isCount'] ?? true;
+        $field = $options['field'] ?? 'colis.id';
+        $start = $options['start'] ?? null;
+        $limit = $options['limit'] ?? null;
+        $order = $options['order'] ?? 'desc';
+        $onlyLate = $options['onlyLate'] ?? false;
+
         $queryBuilder = $this->createQueryBuilder('colis');
         $queryBuilderExpr = $queryBuilder->expr();
         $queryBuilder
@@ -314,14 +309,17 @@ class PackRepository extends EntityRepository
                 )
                 ->setParameter('natures', $natures);
         }
+
         $queryBuilder
             ->orderBy('lastDrop.datetime', $order);
+
         if ($onlyLate) {
             $queryBuilder
                 ->andWhere(
                     $queryBuilderExpr->isNotNull('emplacement.dateMaxTime')
                 );
         }
+
         if ($start) {
             $queryBuilder
                 ->setFirstResult($start);
