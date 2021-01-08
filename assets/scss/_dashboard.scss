@@ -127,6 +127,10 @@ $minimumWidth: 1300px;
         padding: 0;
         color: $blackDashboard;
 
+        @media all and (max-width: $minimumWidth) {
+            font-size: 0.9rem;
+        }
+
         .dashboard-ext & {
             font-weight: bold;
         }

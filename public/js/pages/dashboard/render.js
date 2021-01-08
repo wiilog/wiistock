@@ -177,7 +177,7 @@ function createLatePacksElement(data) {
 }
 
 function calculateChartsFontSize() {
-    let width = document.body.clientWidth;
+    let width = Math.max(document.body.clientWidth, 1500);
     return Math.floor(width / 120);
 }
 
@@ -218,7 +218,7 @@ function createChart(data, {route, cssClass} = {route: null, cssClass: null}) {
             </div>
             ${createTooltip(data.tooltip)}
             <div class="h-100">
-                <canvas class="${cssClass || ''}"></canvas>
+                <canvas style="min-height:200px;" class="${cssClass || ''}"></canvas>
             </div>
             ${pagination}
         </div>
