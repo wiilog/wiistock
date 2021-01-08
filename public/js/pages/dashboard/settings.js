@@ -621,10 +621,23 @@ function processSecondModalForm($modal) {
 
     const {data, ...remaining} = ProcessForm($modal, null, () => {
         if(meterKey === ENTRIES_TO_HANDLE) {
-            const success = $modal
-                .find(`.segment-hour`)
+            let previous = null;
+            const allFilled = $modal
+                .find(`.segment-hour:not(.display-previous)`)
                 .toArray()
                 .every(elem => elem.value);
+
+            const correctOrder = $modal
+                .find(`.segment-hour:not(.display-previous)`)
+                .toArray()
+                .every(elem => {
+                    let valid = previous
+                        ? elem.value && clearSegmentHourValues(previous.value) < clearSegmentHourValues(elem.value)
+                        : elem.value;
+
+                    previous = elem;
+                    return valid;
+                });
 
             const $invalidElements = $modal.find(`.segment-hour`)
                 .toArray()
@@ -632,8 +645,11 @@ function processSecondModalForm($modal) {
                 .filter($elem => $elem.val());
 
             return {
-                success,
-                errorMessages: [`Le segment ne peut pas être vide`],
+                success: correctOrder && allFilled,
+                errorMessages: [
+                    !allFilled ? `Les segments ne peuvent pas être vides` : undefined,
+                    allFilled && !correctOrder ? `L'ordre des segments n'est pas valide` : undefined,
+                ],
                 $isInvalidElements: $invalidElements,
             };
         }
@@ -891,5 +907,6 @@ function onSegmentInputChange($input, isChanged = false) {
 }
 
 function clearSegmentHourValues(value) {
-    return (value || '').replace(/[^\d]/g, '');
+    const cleared = (value || ``).replace(/[^\d]/g, ``);
+    return cleared ? parseInt(cleared) : ``;
 }
