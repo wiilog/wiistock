@@ -74,7 +74,7 @@
         table.packs thead th, table.packs thead td table.packs tbody th, table.packs tbody td {
             border: 2px solid black;
             text-align: center;
-            padding: 3mm;
+            padding: 5mm;
         }
 
         tr, td, th, tbody, thead, tfoot {
@@ -85,9 +85,6 @@
             display: table-header-group;
         }
 
-        .grow {
-            width: 25%;
-        }
         .header td {
             padding: 2mm;
         }
@@ -152,11 +149,11 @@
     <table class="packs">
         <thead>
         <tr>
-            <th>PN</th>
-            <th>Qté demandée</th>
-            <th>Qté livrée</th>
-            <th class="grow">Emplacement</th>
-            <th class="grow">N°lot/Cure date</th>
+            <th style="width: 15%;">PN</th>
+            <th style="width: 10%;">Qté demandée</th>
+            <th style="width: 10%;">Qté livrée</th>
+            <th style="width: 20%;">Emplacement</th>
+            <th style="width: 50%">N° lot / Cure date / <span style="color: #2B7BE8">N°EASA si besoin / Commentaire</span></th>
         </tr>
         </thead>
         {% for pack in dispatch.dispatchPacks %}
