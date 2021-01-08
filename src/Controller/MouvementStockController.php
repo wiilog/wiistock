@@ -9,12 +9,12 @@ use App\Entity\Emplacement;
 use App\Entity\Menu;
 
 use App\Entity\MouvementStock;
-use App\Entity\OrdreCollecte;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\MouvementStockService;
 use App\Service\TrackingMovementService;
@@ -283,11 +283,8 @@ class MouvementStockController extends AbstractController
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
-        try {
-            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
-            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch (Throwable $throwable) {
-        }
+        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
 
         $headers = [
             'date',
@@ -306,7 +303,7 @@ class MouvementStockController extends AbstractController
 
             function ($output) use ($entityManager, $dateTimeMin, $dateTimeMax, $CSVExportService) {
                 $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
-                $mouvements = $mouvementStockRepository->findByDates($dateTimeMin, $dateTimeMax);
+                $mouvements = $mouvementStockRepository->getByDates($dateTimeMin, $dateTimeMax);
 
                 foreach ($mouvements as $mouvement) {
                     $this->putMouvementLine($output, $CSVExportService, $mouvement);
@@ -318,38 +315,29 @@ class MouvementStockController extends AbstractController
 
     private function putMouvementLine($handle,
                                       CSVExportService $CSVExportService,
-                                      MouvementStock $mouvement)
+                                      array $mouvement)
     {
-        $article = $mouvement->getArticle() ? $mouvement->getArticle() : null;
-        $reference = $mouvement->getRefArticle() ? $mouvement->getRefArticle() : null;
-        $barCodeArticle = $article ? $article->getBarCode() : null;
-        $articleArticleFournisseur = $article ? $article->getArticleFournisseur() : null;
-        $articleRefArticle = $articleArticleFournisseur ? $articleArticleFournisseur->getReferenceArticle() : null;
-        $barCodeReference = $articleRefArticle
-            ? $articleRefArticle->getBarCode()
-            : ($reference ? $reference->getBarCode() : null);
-        $orderNo = null;
-        if ($mouvement->getPreparationOrder()) {
-            $orderNo = $mouvement->getPreparationOrder()->getNumero();
-        } else if ($mouvement->getLivraisonOrder()) {
-            $orderNo = $mouvement->getLivraisonOrder()->getNumero();
-        } else if ($mouvement->getCollecteOrder()) {
-            $orderNo = $mouvement->getCollecteOrder()->getNumero();
-        } else if ($mouvement->getReceptionOrder()) {
-            $orderNo = $mouvement->getReceptionOrder()->getNumeroReception();
-        }
+        $reference = $mouvement['articleRef']
+            ?? $mouvement['refArticleRef']
+            ?? null;
+
+        $orderNo = $mouvement['preparationOrder']
+            ?? $mouvement['livraisonOrder']
+            ?? $mouvement['collecteOrder']
+            ?? $mouvement['receptionOrder']
+            ?? null;
 
         $data = [
-            $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '',
-            $orderNo ? ' ' . $orderNo : '',
-            isset($article) ? $article->getReference() : $reference->getReference(),
-            $mouvement->getQuantity(),
-            $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '',
-            $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : '',
-            $mouvement->getType(),
-            $mouvement->getUser() ? $mouvement->getUser()->getUsername() : '',
-            isset($barCodeReference) ? $barCodeReference : '',
-            isset($barCodeArticle) ? $barCodeArticle : '',
+            FormatHelper::datetime($mouvement['date']),
+            $orderNo,
+            $reference,
+            $mouvement['quantity'],
+            $mouvement['originEmpl'],
+            $mouvement['destinationEmpl'],
+            $mouvement['type'],
+            $mouvement['operator'],
+            !empty($mouvement['refArticleBarCode']) ? $mouvement['refArticleBarCode']: '',
+            !empty($mouvement['articleBarCode']) ? $mouvement['articleBarCode'] : '',
         ];
         $CSVExportService->putLine($handle, $data);
     }
