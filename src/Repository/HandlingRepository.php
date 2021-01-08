@@ -223,22 +223,22 @@ class HandlingRepository extends EntityRepository
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
 					$qb
-                        ->leftJoin('handling.type', 'search_type')
-                        ->leftJoin('handling.requester', 'search_requester')
-                        ->leftJoin('handling.status', 'search_status')
-                        ->leftJoin('handling.treatedByHandling', 'search_treatedBy')
-						->andWhere('(
+                        ->leftJoin("handling.type", 'search_type')
+                        ->leftJoin("handling.requester", 'search_requester')
+                        ->leftJoin("handling.status", 'search_status')
+                        ->leftJoin("handling.treatedByHandling", 'search_treatedBy')
+						->andWhere("(
                             handling.number LIKE :search_value
-                            OR handling.creationDate LIKE :search_value
+                            OR DATE_FORMAT(handling.creationDate, '%d/%m/%Y') LIKE :search_value
                             OR search_type.label LIKE :search_value
                             OR search_requester.username LIKE :search_value
                             OR handling.subject LIKE :search_value
-                            OR handling.desiredDate LIKE :search_value
-                            OR handling.validationDate LIKE :search_value
+                            OR DATE_FORMAT(handling.desiredDate, '%d/%m/%Y') LIKE :search_value
+                            OR DATE_FORMAT(handling.validationDate, '%d/%m/%Y') LIKE :search_value
                             OR search_status.nom LIKE :search_value
                             OR search_treatedBy.username LIKE :search_value
                             OR handling.carriedOutOperationCount LIKE :search_value
-						)')
+						)")
 						->setParameter('search_value', '%' . $search . '%');
 				}
 			}
