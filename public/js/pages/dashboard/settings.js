@@ -162,6 +162,10 @@ function renderCurrentDashboard() {
             .map(renderRow)
             .forEach(row => $dashboard.append(row));
     }
+
+    if(mode === MODE_EXTERNAL) {
+        $(`.header-title`).html(`<span class="bold">${currentDashboard.name}</span>`);
+    }
 }
 
 function updateAddRowButton() {

@@ -6,6 +6,7 @@ use App\Entity\Utilisateur;
 use App\Service\DashboardService;
 use App\Service\DashboardSettingsService;
 use Doctrine\ORM\EntityManagerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -41,7 +42,7 @@ class DashboardController extends AbstractController {
         }
 
         return $this->render("dashboard/external.html.twig", [
-            "title" => "Dashboard externe",
+            "title" => "Dashboard externe", //ne s'affiche normalement jamais
             "dashboards" => $dashboardSettingsService->serialize($manager, null, DashboardSettingsService::MODE_EXTERNAL),
             "refreshed" => $dashboardService->refreshDate($manager),
         ]);
