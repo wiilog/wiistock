@@ -271,12 +271,13 @@
                         </div>
                     {% endif %}
 
+                    {% set checked = (autoPrint ? 'checked' : '') %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PRINT_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group col-2">
                             <label title="arrivage">Imprimer {{ 'arrivage.arrivage'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
-                                <input class="checkbox" type="checkbox" name="printArrivage">
+                                <input class="checkbox no-clear" type="checkbox" name="printArrivage"  {{ checked }}>
                                 <span class="slider round"></span>
                             </label>
                         </div>
@@ -286,7 +287,6 @@
                         <div class="form-group col-2">
                             <label title="colis">Imprimer {{ 'arrivage.colis'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
-                                {% set checked = (autoPrint ? 'checked' : '') %}
                                 <input class="checkbox no-clear" type="checkbox" name="printColis"
                                        id="printColis" {{ checked }}>
                                 <span class="slider round"></span>
