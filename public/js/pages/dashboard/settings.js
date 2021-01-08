@@ -289,7 +289,8 @@ function createDashboardSelectorItem(dashboard) {
     let $editable = ``;
     if(mode === MODE_EDIT) {
         const externalRoute = Routing.generate('dashboards_external', {
-            token: $(`.dashboards-token`).val(),
+            title: dashboard.name,
+            token: $(`.dashboards-token`).val()
         });
 
         $editable = `
