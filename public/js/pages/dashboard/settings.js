@@ -162,6 +162,10 @@ function renderCurrentDashboard() {
             .map(renderRow)
             .forEach(row => $dashboard.append(row));
     }
+
+    if(mode === MODE_EXTERNAL) {
+        $(`.header-title`).html(`<span class="bold">${currentDashboard.name}</span>`);
+    }
 }
 
 function updateAddRowButton() {
@@ -289,8 +293,7 @@ function createDashboardSelectorItem(dashboard) {
     let $editable = ``;
     if(mode === MODE_EDIT) {
         const externalRoute = Routing.generate('dashboards_external', {
-            title: dashboard.name,
-            token: $(`.dashboards-token`).val()
+            token: $(`.dashboards-token`).val(),
         });
 
         $editable = `

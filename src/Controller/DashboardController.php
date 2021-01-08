@@ -31,19 +31,18 @@ class DashboardController extends AbstractController {
     }
 
     /**
-     * @Route("/dashboard/{title}/{token}", name="dashboards_external", options={"expose"=true})
+     * @Route("/dashboard/{token}", name="dashboards_external", options={"expose"=true})
      */
     public function external(DashboardService $dashboardService,
                              DashboardSettingsService $dashboardSettingsService,
                              EntityManagerInterface $manager,
-                             string $token,
-                             string $title): Response {
+                             string $token): Response {
         if ($token != $_SERVER["APP_DASHBOARD_TOKEN"]) {
             return $this->redirectToRoute("access_denied");
         }
 
         return $this->render("dashboard/external.html.twig", [
-            "title" => $title ?? 'Dashboard externe',
+            "title" => "Dashboard externe", //ne s'affiche normalement jamais
             "dashboards" => $dashboardSettingsService->serialize($manager, null, DashboardSettingsService::MODE_EXTERNAL),
             "refreshed" => $dashboardService->refreshDate($manager),
         ]);
