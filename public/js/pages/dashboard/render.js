@@ -138,11 +138,11 @@ function createEntriesToHandleElement(data) {
         componentLink: data.componentLink
     })[0].outerHTML;
     return $(`
-        <div class="row">
-            <div class="col-8 pr-1">
+        <div class="d-flex justify-content-around w-100">
+            <div style="width: 65.5%">
                 ${graph}
             </div>
-            <div class="col-4 pl-1">
+            <div style="width: 33%">
                 <div class="row h-100">
                     <div class="col-12 mb-2">${$firstComponent}</div>
                     <div class="col-12">${$secondComponent}</div>
