@@ -1,7 +1,11 @@
+{% set fromNb = (receptionNb is defined ? receptionNb : (arrivalNb ?? null)) %}
+{% set fromId = (receptionId is defined ? receptionId : (arrivalId ?? null)) %}
+{% set pathStr = (receptionId is defined ? 'reception_show' : 'arrivage_show') %}
+
 <div class="d-flex">
-    {% if receptionNb is not null and receptionId is not null %}
-        <a href="{{ path('reception_show', {'id': receptionId }) }}">
-            <i class='fas fa-share-square mr-2'></i>{{ receptionNb }}
+    {% if fromNb is not null and fromId is not null %}
+        <a href="{{ path(pathStr, {'id': fromId }) }}" target="_blank">
+            <i class='fas fa-share-square mr-2'></i>{{ fromNb }}
         </a>
     {% endif %}
 </div>

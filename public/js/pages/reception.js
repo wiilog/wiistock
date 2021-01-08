@@ -30,12 +30,12 @@ $(function () {
         columns: [
             {"data": 'Actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'Date', 'name': 'date', 'title': 'Date création'},
+            {"data": 'number', 'name': 'number', 'title': 'réception.n° de réception', translated: true},
             {"data": 'dateAttendue', 'name': 'dateAttendue', 'title': 'Date attendue'},
             {"data": 'DateFin', 'name': 'dateFin', 'title': 'Date fin'},
             {"data": 'orderNumber', 'name': 'orderNumber', 'title': 'Numéro commande'},
             {"data": 'receiver', 'name': 'receiver', 'title': 'Destinataire(s)', orderable: false},
             {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
-            {"data": 'number', 'name': 'number', 'title': 'réception.n° de réception', translated: true},
             {"data": 'Statut', 'name': 'statut', 'title': 'Statut'},
             {"data": 'storageLocation', 'name': 'storageLocation', 'title': 'Emplacement de stockage'},
             {"data": 'Commentaire', 'name': 'commentaire', 'title': 'Commentaire'},

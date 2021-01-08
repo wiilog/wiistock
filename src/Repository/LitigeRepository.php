@@ -236,7 +236,7 @@ class LitigeRepository extends EntityRepository
 			// litiges sur arrivage
             ->addSelect('declarant.username as declarantUsername')
             ->addSelect('buyers.username as achUsername')
-            ->addSelect('a.numeroArrivage')
+            ->addSelect('a.numeroArrivage AS arrivalNumber')
             ->addSelect('a.id as arrivageId')
             ->leftJoin('litige.packs', 'c')
             ->leftJoin('c.arrivage', 'a')
@@ -246,7 +246,7 @@ class LitigeRepository extends EntityRepository
             ->leftJoin('litige.declarant', 'declarant')
 			->leftJoin('a.fournisseur', 'aFourn')
 			// litiges sur réceptions
-            ->addSelect('r.number')
+            ->addSelect('r.number AS receptionNumber')
             ->addSelect('r.orderNumber')
             ->addSelect('r.id as receptionId')
             ->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
