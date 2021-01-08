@@ -263,7 +263,7 @@ class ArticleRepository extends EntityRepository {
             ->addSelect("article.${field} AS text")
             ->addSelect('location.label AS locationLabel')
             ->addSelect('article.quantite AS quantity')
-            ->join('article.emplacement', 'location')
+            ->leftJoin('article.emplacement', 'location')
             ->where("article.${field} LIKE :search")
             ->setParameter('search', '%' . $search . '%');
 

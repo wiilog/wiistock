@@ -183,7 +183,7 @@ function renderRow(row) {
 
     if(mode === MODE_EDIT) {
         $row.append(`
-                <div class="delete-row-container"><i class="fa fa-trash ml-1 delete-row pointer"></i></div>
+            <div class="delete-row-container"><i class="fa fa-trash ml-1 delete-row pointer"></i></div>
         `);
     }
 
@@ -421,14 +421,14 @@ function onPageDeleted() {
     const $modal = $(`#delete-dashboard-modal`);
     const dashboard = Number($(this).data(`dashboard`));
 
-    $modal.find(`.delete-dashboard-index`).val(dashboard);
+    $modal.find(`[name="delete-dashboard-index"]`).val(dashboard);
     $modal.find(`.delete-dashboard-name`).text(dashboards[dashboard].name);
     $modal.modal(`show`);
 }
 
 function onConfirmPageDeleted() {
     const $modal = $(`#delete-dashboard-modal`);
-    const dashboard = Number($modal.find(`.delete-dashboard-index`).val());
+    const dashboard = Number($modal.find(`[name="delete-dashboard-index"]`).val());
 
     dashboards.splice(dashboard, 1);
     recalculateIndexes();
@@ -793,14 +793,11 @@ function addEntryTimeInterval($button, time = null, notEmptySegment = false) {
         return false;
     }
 
-    console.log(notEmptySegment);
     if(notEmptySegment) {
         const lastSegmentHourEndValue = $('.segment-hour').last().val();
         const lastSegmentLabel = $('.segment-container label').last().text();
-        console.log("good");
 
         if(!lastSegmentHourEndValue) {
-            console.log("fuck");
             showBSAlert('Le <strong>' + lastSegmentLabel.toLowerCase() + '</strong> doit contenir une valeur de fin' , 'danger');
             return false;
         }

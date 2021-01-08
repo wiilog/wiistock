@@ -3,7 +3,7 @@
     <div class="row">
         <div class="form-group col-6">
             <label>Type(s) d'arrivage*</label>
-            <div class="input-group flex-nowrap">
+            <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
                     <select class="data form-control h-100 w-100 needed select2"
                             name="arrivalTypes"
@@ -14,8 +14,8 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="input-group-append" style="width:150px">
-                    <button class="btn btn-primary select-all-arrival-types w-100" type="button">Tous les type</button>
+                <div class="input-group-append col-4">
+                    <button class="btn btn-primary select-all-arrival-types w-100" type="button">Tous les types</button>
                 </div>
             </div>
         </div>
@@ -24,7 +24,7 @@
     <div class="row">
         <div class="form-group col-6">
             <label>Statut(s)*</label>
-            <div class="input-group flex-nowrap">
+            <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
                     <select class="data form-control h-100 w-100 needed select2"
                             name="arrivalStatuses"
@@ -35,7 +35,7 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="input-group-append" style="width:150px">
+                <div class="input-group-append col-4">
                     <button class="btn btn-primary select-all-arrival-statuses w-100" type="button">Tous les statuts</button>
                 </div>
             </div>
