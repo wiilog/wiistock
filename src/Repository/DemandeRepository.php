@@ -280,13 +280,13 @@ class DemandeRepository extends EntityRepository
 						->join('d.statut', 's2')
 						->join('d.type', 't2')
 						->join('d.utilisateur', 'u2')
-                        ->andWhere('(
-                            d.date LIKE :value
+                        ->andWhere("(
+                            DATE_FORMAT(d.date, '%d/%m/%Y') LIKE :value
                             OR u2.username LIKE :value
                             OR d.numero LIKE :value
                             OR s2.nom LIKE :value
                             OR t2.label LIKE :value
-                        )')
+                        )")
                         ->setParameter('value', '%' . $search . '%');
                 }
             }

@@ -473,10 +473,8 @@ class ReferenceArticleRepository extends EntityRepository {
                             } else if (property_exists(ReferenceArticle::class, $searchField)) {
                                 if ($date) {
                                     $query[] = "ra.$searchField BETWEEN :dateMin AND :dateMax";
-                                    $qb->setParameters([
-                                        'dateMin' => $date . ' 00:00:00',
-                                        'dateMax' => $date . ' 23:59:59'
-                                    ]);
+                                    $qb->setParameter("dateMin", "$date 00:00:00");
+                                    $qb->setParameter("dateMax", "$date 23:59:59");
                                 } else {
                                     $query[] = "ra.$searchField LIKE :search";
                                     $qb->setParameter('search', $search);
@@ -501,6 +499,8 @@ class ReferenceArticleRepository extends EntityRepository {
                     // false condition because search is corresponding to 0 ra.id
                     $qb->andWhere('ra.id = 0');
                 }
+
+                dump($query);
             }
         }
 
