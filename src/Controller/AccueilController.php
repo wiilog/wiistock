@@ -138,7 +138,7 @@ class AccueilController extends AbstractController
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $alertRepository = $entityManager->getRepository(Alert::class);
 
-        $nbAlerts = $alertRepository->countAll();
+        $nbAlerts = $alertRepository->countAllActive();
 
         $types = [
             MouvementStock::TYPE_INVENTAIRE_ENTREE,

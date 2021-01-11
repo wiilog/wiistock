@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Alert;
 use App\Entity\Article;
+use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
 use DateTime;
 use DateTimeZone;
@@ -160,6 +161,17 @@ class AlertRepository extends EntityRepository {
     public function countAll(): int {
         return $this->createQueryBuilder("a")
             ->select("COUNT(a)")
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countAllActive(): int {
+        return $this->createQueryBuilder("a")
+            ->select("COUNT(a)")
+            ->leftJoin('a.reference','reference')
+            ->innerJoin('reference.statut','refStatus')
+            ->where('refStatus.nom = :activ')
+            ->setParameter("activ", ReferenceArticle::STATUT_ACTIF)
             ->getQuery()
             ->getSingleScalarResult();
     }
