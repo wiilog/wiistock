@@ -216,6 +216,7 @@ class PDFGeneratorService {
         $header = $this->templating->render("prints/overconsumption-template-header.html.twig", [
             "app_logo" => $appLogo ? $appLogo : '',
             "overconsumption_logo" => $overconsumptionLogo ? $overconsumptionLogo : '',
+            "commandNumber" => $dispatch->getCommandNumber() ?? ''
         ]);
 
         $footer = $this->templating->render("prints/overconsumption-template-footer.html.twig");
