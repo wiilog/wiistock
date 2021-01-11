@@ -281,6 +281,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('join_receiver.username AS receiver')
             ->addSelect('join_locationFrom.label AS locationFrom')
             ->addSelect('join_locationTo.label AS locationTo')
+            ->addSelect('join_dispatchPack.quantity AS nbPacks')
             ->addSelect('join_dispatchPack_pack.code AS packCode')
             ->addSelect('join_dispatchPack_nature.label AS packNatureLabel')
             ->addSelect('join_dispatchPack_pack.quantity AS packQuantity')
