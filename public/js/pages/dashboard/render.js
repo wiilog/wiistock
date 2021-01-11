@@ -15,6 +15,7 @@ const WEEKLY_ARRIVALS_AND_PACKS = 'weekly_arrivals_and_packs';
 const ENTRIES_TO_HANDLE = 'entries_to_handle';
 const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
 const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
+const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
 
 $(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -58,6 +59,9 @@ const creators = {
     [DROP_OFF_DISTRIBUTED_PACKS]: {
         callback: createChart
     },
+    [DAILY_ARRIVALS_EMERGENCIES]: {
+        callback: createIndicatorElement
+    },
 };
 
 /**
@@ -75,7 +79,7 @@ function renderComponent(meterKey, $container, data) {
         return false;
     } else {
         const {callback, arguments} = creators[meterKey];
-        const $element = callback(data, arguments);
+        const $element = callback(data, {...arguments, meterKey});
 
         if($element) {
             $container.html($element);
@@ -251,11 +255,12 @@ function createCarrierTrackingElement(data) {
 
 /**
  * @param {*} data
+ * @param component
  * @return {boolean|jQuery}
  */
-function createIndicatorElement(data) {
+function createIndicatorElement(data, {meterKey}) {
     if(!data || data.count === undefined) {
-        console.error(`Invalid data for ongoing pack element.`);
+        console.error('Invalid data for ' + meterKey.replaceAll('_', ' ') + ' element.');
         return false;
     }
 
@@ -287,7 +292,7 @@ function createIndicatorElement(data) {
             count !== undefined
                 ? $('<div/>', {
                     class: 'align-items-center',
-                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter">${count ? count : '-'}</div>`
+                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter">${count || count === 0 ? count : '-'}</div>`
                 })
                 : undefined,
             delay
