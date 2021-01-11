@@ -15,6 +15,7 @@ const WEEKLY_ARRIVALS_AND_PACKS = 'weekly_arrivals_and_packs';
 const ENTRIES_TO_HANDLE = 'entries_to_handle';
 const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
 const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
+const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 
 $(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -58,6 +59,9 @@ const creators = {
     [DROP_OFF_DISTRIBUTED_PACKS]: {
         callback: createChart
     },
+    [ARRIVALS_EMERGENCIES_TO_RECEIVE]: {
+        callback: createIndicatorElement
+    }
 };
 
 /**

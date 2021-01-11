@@ -277,6 +277,15 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
             'meterKey' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
         ],
+        'Arrivages urgents à recevoir' => [
+            'hint' => 'Nombre d\'urgences sur arrivage encore non réceptionnées',
+            'category' => Dashboard\ComponentType::TRACKING,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE,
+            'exampleValues' => [
+                'count' => 7
+            ],
+        ]
     ];
 
     public function __construct(UserPasswordEncoderInterface $encoder,

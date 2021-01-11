@@ -24,6 +24,7 @@ class ComponentType
     public const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
     public const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
     public const ENTRIES_TO_HANDLE = 'entries_to_handle';
+    public const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 
     public const TRACKING = "Traçabilité";
     public const REQUESTS = "Demandes";

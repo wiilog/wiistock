@@ -1008,6 +1008,29 @@ class DashboardService {
             ->setData($chartData);
     }
 
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @throws Exception
+     */
+    public function persistArrivalsEmergenciesToReceive(EntityManagerInterface $entityManager,
+                                                        Dashboard\Component $component): void {
+        $emergencyRepository = $entityManager->getRepository(Urgence::class);
+
+        /** @var DashboardMeter\Indicator|null $meter */
+        $meter = $component->getMeter();
+
+        if (!isset($meter)) {
+            $meter = new DashboardMeter\Indicator();
+            $meter->setComponent($component);
+            $entityManager->persist($meter);
+        }
+
+        $unsolvedEmergencies = $emergencyRepository->countUnsolved();
+        $meter
+            ->setCount($unsolvedEmergencies ?? 0);
+    }
+
     private function getDaysWorked(EntityManagerInterface $entityManager): array {
         $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
         if (!isset($this->cacheDaysWorked)) {
