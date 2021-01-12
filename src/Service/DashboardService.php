@@ -677,7 +677,7 @@ class DashboardService {
      * @throws Exception
      */
     public function persistDailyArrivalsEmergencies(EntityManagerInterface $entityManager,
-                                       Dashboard\Component $component): void {
+                                                    Dashboard\Component $component): void {
         $emergencyRepository = $entityManager->getRepository(Urgence::class);
 
         /** @var DashboardMeter\Indicator|null $meter */

@@ -79,7 +79,8 @@ function renderComponent(meterKey, $container, data) {
         return false;
     } else {
         const {callback, arguments} = creators[meterKey];
-        const $element = callback(data, {...arguments, meterKey});
+        console.log({...(arguments || {}), meterKey})
+        const $element = callback(data, {...(arguments || {}), meterKey});
 
         if($element) {
             $container.html($element);
@@ -122,38 +123,56 @@ function createTooltip(text) {
     }
 }
 
-function createEntriesToHandleElement(data) {
+function createEntriesToHandleElement(data, {meterKey}) {
     if(!data) {
         console.error(`Invalid data for entries element.`);
         return false;
     }
 
-    const graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'})[0].outerHTML;
-    const $firstComponent = createIndicatorElement({
-        title: 'Nombre de lignes à traiter',
-        tooltip: data.linesCountTooltip,
-        count: data.count,
-        componentLink: data.componentLink
-    })[0].outerHTML;
-    const $secondComponent = createIndicatorElement({
-        title: 'Prochain emplacement à traiter',
-        tooltip: data.nextLocationTooltip,
-        count: data.nextLocation,
-        componentLink: data.componentLink
-    })[0].outerHTML;
-    return $(`
-        <div class="d-flex justify-content-around w-100">
-            <div style="width: 65.5%">
-                ${graph}
-            </div>
-            <div style="width: 33%">
-                <div class="row h-100">
-                    <div class="col-12 mb-2">${$firstComponent}</div>
-                    <div class="col-12">${$secondComponent}</div>
-                </div>
-            </div>
-        </div>
-    `);
+    const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'});
+    const $firstComponent = $('<div/>', {
+        class: 'col-12 mb-2',
+        html: createIndicatorElement(
+            {
+                title: 'Nombre de lignes à traiter',
+                tooltip: data.linesCountTooltip,
+                count: data.count,
+                componentLink: data.componentLink
+            }, {meterKey}
+        )
+    });
+    const $secondComponent = $('<div/>', {
+        class: 'col-12',
+        html: createIndicatorElement(
+            {
+                title: 'Prochain emplacement à traiter',
+                tooltip: data.nextLocationTooltip,
+                count: data.nextLocation,
+                componentLink: data.componentLink
+            },
+            {meterKey}
+        )
+    });
+
+    return $('<div/>', {
+        class: 'd-flex justify-content-around w-100',
+        html: [
+            $('<div/>', {
+                style: 'width: 65.5%',
+                html: $graph
+            }),
+            $('<div/>', {
+                style: 'width: 33%',
+                html: $('<div/>', {
+                    class: 'row h-100',
+                    html: [
+                        $firstComponent,
+                        $secondComponent
+                    ]
+                })
+            })
+        ]
+    });
 }
 
 /**
@@ -292,7 +311,7 @@ function createIndicatorElement(data, {meterKey}) {
             count !== undefined
                 ? $('<div/>', {
                     class: 'align-items-center',
-                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter">${count || count === 0 ? count : '-'}</div>`
+                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter">${count || '-'}</div>`
                 })
                 : undefined,
             delay

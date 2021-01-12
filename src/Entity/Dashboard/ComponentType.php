@@ -26,10 +26,10 @@ class ComponentType
     public const ENTRIES_TO_HANDLE = 'entries_to_handle';
     public const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies';
 
-    public const TRACKING = "Traçabilité";
+    public const CATEGORY_TRACKING = "Traçabilité";
     public const REQUESTS = "Demandes";
-    public const ORDERS = "Ordres";
-    public const STOCK = "Stock";
+    public const CATEGORY_ORDERS = "Ordres";
+    public const CATEGORY_STOCK = "Stock";
 
     /**
      * @ORM\Id
