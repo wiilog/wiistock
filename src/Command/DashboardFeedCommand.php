@@ -79,6 +79,9 @@ class DashboardFeedCommand extends Command {
                 case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
                     $this->dashboardService->persistArrivalsEmergenciesToReceive($entityManager, $component);
                     break;
+                case Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES:
+                    $this->dashboardService->persistDailyArrivalsEmergencies($entityManager, $component);
+                    break;
                 default:
                     break;
             }

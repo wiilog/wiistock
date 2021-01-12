@@ -1059,6 +1059,7 @@ class DispatchController extends AbstractController {
         if(isset($dateTimeMin) && isset($dateTimeMax)) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax);
+            $nbPacksByDispatch = $dispatchRepository->getNbPacksByDates($dateTimeMin, $dateTimeMax);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
 
@@ -1077,6 +1078,7 @@ class DispatchController extends AbstractController {
                     'Urgence',
                     $translator->trans('natures.nature'),
                     'Code',
+                    'Quantité ' . $translator->trans('colis.colis'),
                     $translator->trans('acheminement.Quantité à acheminer'),
                     'Poids',
                     'Date dernier mouvement',
@@ -1091,9 +1093,11 @@ class DispatchController extends AbstractController {
                 'export_acheminements.csv',
                 $dispatches,
                 $csvHeader,
-                function($dispatch) use ($freeFieldsConfig, $freeFieldService) {
+                function($dispatch) use ($freeFieldsConfig, $freeFieldService, $nbPacksByDispatch) {
+                    $number = $dispatch['number'] ?? '';
+
                     $row = [];
-                    $row[] = $dispatch['number'] ?? '';
+                    $row[] = $number;
                     $row[] = $dispatch['creationDate'] ? $dispatch['creationDate']->format('d/m/Y H:i:s') : '';
                     $row[] = $dispatch['validationDate'] ? $dispatch['validationDate']->format('d/m/Y H:i:s') : '';
                     $row[] = $dispatch['type'] ?? '';
@@ -1101,12 +1105,13 @@ class DispatchController extends AbstractController {
                     $row[] = $dispatch['receiver'] ?? '';
                     $row[] = $dispatch['locationFrom'] ?? '';
                     $row[] = $dispatch['locationTo'] ?? '';
-                    $row[] = $dispatch['nbPacks'] ?? '';
+                    $row[] = $nbPacksByDispatch[$number] ?? '';
                     $row[] = $dispatch['status'] ?? '';
                     $row[] = $dispatch['emergency'] ?? '';
                     $row[] = $dispatch['packNatureLabel'] ?? '';
                     $row[] = $dispatch['packCode'] ?? '';
                     $row[] = $dispatch['packQuantity'] ?? '';
+                    $row[] = $dispatch['dispatchQuantity'] ?? '';
                     $row[] = $dispatch['weight'] ?? '';
                     $row[] = $dispatch['lastMovement'] ? $dispatch['lastMovement']->format('Y/m/d H:i') : '';
                     $row[] = $dispatch['lastLocation'] ?? '';

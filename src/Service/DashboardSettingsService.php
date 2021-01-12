@@ -127,6 +127,8 @@ class DashboardSettingsService {
             $values += $this->serializeDroppedPacks($entityManager, $componentType, $config, $example, $meter);
         } else if ($meterKey === Dashboard\ComponentType::PACK_TO_TREAT_FROM) {
             $values += $this->serializePacksToTreatFrom($entityManager, $componentType, $config, $example, $meter);
+        } else if ($meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES) {
+            $values += $this->serializeDailyArrivalsEmergencies($entityManager, $componentType, $config, $example, $meter);
         } else if ($meterKey === Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE) {
             $values += $this->serializeArrivalsEmergenciesToReceive($entityManager, $componentType, $config, $example, $meter);
         } else {
@@ -460,6 +462,29 @@ class DashboardSettingsService {
 
         return $values;
     }
+
+    public function serializeDailyArrivalsEmergencies(EntityManagerInterface $manager,
+                                                      Dashboard\ComponentType $componentType,
+                                                      array $config,
+                                                      bool $example = false,
+                                                      DashboardMeter\Indicator $meter = null) {
+        if ($example) {
+            $values = $componentType->getExampleValues();
+        } else {
+            if ($meter) {
+                $values = [
+                    'count' => $meter->getCount(),
+                ];
+            } else {
+                $values = [
+                    'count' => '-'
+                ];
+            }
+        }
+
+        return $values;
+    }
+
 
     public function save(EntityManagerInterface $entityManager, array $jsonDashboard) {
         $componentTypeRepository = $entityManager->getRepository(Dashboard\ComponentType::class);
