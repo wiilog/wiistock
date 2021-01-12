@@ -166,9 +166,9 @@ class AlertRepository extends EntityRepository {
     }
 
     public function countAllActive(): int {
-        return $this->createQueryBuilder("a")
-            ->select("COUNT(a)")
-            ->leftJoin('a.reference','reference')
+        return $this->createQueryBuilder("alert")
+            ->select("COUNT(alert)")
+            ->leftJoin('alert.reference','reference')
             ->innerJoin('reference.statut','refStatus')
             ->where('refStatus.nom = :activ')
             ->setParameter("activ", ReferenceArticle::STATUT_ACTIF)
