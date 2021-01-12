@@ -279,7 +279,7 @@ function createCarrierTrackingElement(data) {
  */
 function createIndicatorElement(data, {meterKey}) {
     if(!data || data.count === undefined) {
-        console.error('Invalid data for ' + meterKey.replaceAll('_', ' ') + ' element.');
+        console.error('Invalid data for ' + (meterKey || '-').replaceAll('_', ' ') + ' element.');
         return false;
     }
 
