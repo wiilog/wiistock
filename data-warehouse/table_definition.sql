@@ -164,7 +164,7 @@ create table dw_service_champs_libres
 
 create table dw_tracabilite
 (
-    date_mouvement              date,
+    date_mouvement              timestamp(0),
     code_colis                  varchar(255),
     type_mouvement              varchar(255),
     quantite_mouvement          integer,
