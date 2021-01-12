@@ -6,6 +6,7 @@ use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\Stream;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -281,7 +282,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('join_receiver.username AS receiver')
             ->addSelect('join_locationFrom.label AS locationFrom')
             ->addSelect('join_locationTo.label AS locationTo')
-            ->addSelect('join_dispatchPack.quantity AS nbPacks')
+            ->addSelect('join_dispatchPack.quantity AS dispatchQuantity')
             ->addSelect('join_dispatchPack_pack.code AS packCode')
             ->addSelect('join_dispatchPack_nature.label AS packNatureLabel')
             ->addSelect('join_dispatchPack_pack.quantity AS packQuantity')
@@ -319,6 +320,43 @@ class DispatchRepository extends EntityRepository
         return $queryBuilder
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Assoc array [dispatch number => nb packs]
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return array [dispatch number => nb packs]
+     */
+    public function getNbPacksByDates(DateTime $dateMin,
+                                      DateTime $dateMax): array {
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+
+        $queryBuilder = $this->createQueryBuilder('dispatch')
+            ->addSelect('dispatch.number AS number')
+            ->addSelect('COUNT(join_dispatchPack.id) AS nbPacks')
+
+            ->leftJoin('dispatch.dispatchPacks', 'join_dispatchPack')
+
+            ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
+
+            ->groupBy('dispatch.number')
+
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        $res = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
+        return Stream::from($res)
+            ->reduce(function (array $carry, array $row) {
+                $carry[$row['number']] = $row['nbPacks'];
+                return $carry;
+            }, []);
     }
 
     public function getDispatchNumbers($search) {
