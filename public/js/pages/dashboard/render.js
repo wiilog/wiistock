@@ -311,7 +311,7 @@ function createIndicatorElement(data, {meterKey}) {
             count !== undefined
                 ? $('<div/>', {
                     class: 'align-items-center',
-                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter">${count || '-'}</div>`
+                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter">${(count || count === '0' || count === 0) ? count : '-'}</div>`
                 })
                 : undefined,
             delay
