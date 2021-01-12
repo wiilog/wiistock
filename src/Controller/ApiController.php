@@ -1698,18 +1698,25 @@ class ApiController extends AbstractFOSRestController {
     }
 
     /**
-     * @Rest\Get("/api/packs/{code}/nature", name="api_pack_nature", condition="request.isXmlHttpRequest()")
+     * @Rest\Get("/api/packs/nature", name="api_pack_nature", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      *
+     * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param NatureService $natureService
-     * @param string $code
      * @return JsonResponse
      */
-    public function getPackNature(EntityManagerInterface $entityManager, NatureService $natureService, string $code): Response {
+    public function getPackNature(Request $request,
+                                  EntityManagerInterface $entityManager,
+                                  NatureService $natureService): Response {
+        $code = $request->query->get('code');
+
         $packRepository = $entityManager->getRepository(Pack::class);
-        $packs = $packRepository->findBy(['code' => $code]);
+
+        $packs = !empty($code)
+            ? $packRepository->findBy(['code' => $code])
+            : [];
 
         if(!empty($packs)) {
             $pack = $packs[0];
