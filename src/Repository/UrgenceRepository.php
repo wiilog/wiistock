@@ -11,6 +11,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Exception;
 
 /**
  * @method Urgence|null find($id, $lockMode = null, $lockVersion = null)
@@ -126,10 +127,11 @@ class UrgenceRepository extends EntityRepository
     }
 
     /**
+     * @param bool $daily
      * @return mixed
      * @throws NoResultException
      * @throws NonUniqueResultException
-     * @throws \Exception
+     * @throws Exception
      */
     public function countUnsolved(bool $daily = false)
     {

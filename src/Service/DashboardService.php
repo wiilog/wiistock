@@ -676,6 +676,29 @@ class DashboardService {
      * @param Dashboard\Component $component
      * @throws Exception
      */
+    public function persistDailyArrivalsEmergencies(EntityManagerInterface $entityManager,
+                                                    Dashboard\Component $component): void {
+        $emergencyRepository = $entityManager->getRepository(Urgence::class);
+
+        /** @var DashboardMeter\Indicator|null $meter */
+        $meter = $component->getMeter();
+
+        if (!isset($meter)) {
+            $meter = new DashboardMeter\Indicator();
+            $meter->setComponent($component);
+            $entityManager->persist($meter);
+        }
+
+        $unsolvedEmergencies = $emergencyRepository->countUnsolved(true);
+        $meter
+            ->setCount($unsolvedEmergencies ?? 0);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @throws Exception
+     */
     public function persistPackToTreatFrom(EntityManagerInterface $entityManager,
                                            Dashboard\Component $component): void
     {

@@ -26,7 +26,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'subtitle' => 'Litige',
                 'delay' => 20634860
             ],
-            'category' => Dashboard\ComponentType::STOCK,
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
             'template' => Dashboard\ComponentType::ONGOING_PACKS,
             'meterKey' => Dashboard\ComponentType::ONGOING_PACKS
         ],
@@ -43,7 +43,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     '10' => 7,
                 ],
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
         ],
@@ -55,7 +55,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ['pack' => 'COLIS2', 'date' => '06/08/2020 20:57:89', 'delay' => '10000', 'location' => "EMP2"],
                 ],
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::LATE_PACKS,
         ],
@@ -94,7 +94,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ]
                 ]
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
             'template' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
         ],
@@ -107,7 +107,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     'TRANS3',
                 ]
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::CARRIER_TRACKING,
             'meterKey' => Dashboard\ComponentType::CARRIER_TRACKING,
         ],
@@ -124,7 +124,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     '10' => 13
                 ]
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::RECEIPT_ASSOCIATION,
         ],
@@ -161,7 +161,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ]
                 ]
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
             'meterKey' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
         ],
@@ -203,7 +203,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ]
                 ],
             ],
-            'category' => Dashboard\ComponentType::ORDERS,
+            'category' => Dashboard\ComponentType::CATEGORY_ORDERS,
             'meterKey' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
             'template' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
         ],
@@ -220,7 +220,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     '10/01' => 3,
                 ],
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS,
             'meterKey' => Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS,
         ],
@@ -273,10 +273,19 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ],
                 ],
             ],
-            'category' => Dashboard\ComponentType::ORDERS,
+            'category' => Dashboard\ComponentType::CATEGORY_ORDERS,
             'template' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
             'meterKey' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
         ],
+        'Arrivages urgents du jour' => [
+            'hint' => 'Nombre d\'urgences sur arrivage devant être réceptionnées dans la journée',
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES,
+            'exampleValues' => [
+                'count' => 3
+            ],
+        ]
     ];
 
     public function __construct(UserPasswordEncoderInterface $encoder,
