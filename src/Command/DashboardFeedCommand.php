@@ -59,7 +59,8 @@ class DashboardFeedCommand extends Command {
         $components = $dashboardComponentRepository->findAll();
         foreach ($components as $component) {
             $componentType = $component->getType();
-            switch ($componentType->getMeterKey()) {
+            $meterKey = $componentType->getMeterKey();
+            switch ($meterKey) {
                 case Dashboard\ComponentType::ONGOING_PACKS:
                     $this->dashboardService->persistOngoingPack($entityManager, $component);
                     break;
@@ -77,10 +78,12 @@ class DashboardFeedCommand extends Command {
                     $this->dashboardService->persistPackToTreatFrom($entityManager, $component);
                     break;
                 case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
-                    $this->dashboardService->persistArrivalsEmergenciesToReceive($entityManager, $component);
-                    break;
                 case Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES:
-                    $this->dashboardService->persistDailyArrivalsEmergencies($entityManager, $component);
+                    $this->dashboardService->persistArrivalsEmergencies(
+                        $entityManager,
+                        $component,
+                        $meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES
+                    );
                     break;
                 default:
                     break;

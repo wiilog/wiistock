@@ -110,30 +110,40 @@ class DashboardSettingsService {
             $values['componentLink'] = $this->getComponentLink($componentType, $config);
         }
 
-        if ($meterKey === Dashboard\ComponentType::ONGOING_PACKS) {
-            $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example, $meter);
-        } else if ($meterKey === Dashboard\ComponentType::CARRIER_TRACKING) {
-            $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
-        } else if ($meterKey === Dashboard\ComponentType::ENTRIES_TO_HANDLE) {
-            $values += $this->serializeEntriesToHandle($entityManager, $componentType, $config, $example, $meter);
-        } else if ($meterKey === Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS
-            || $meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS) {
-            $values += $this->serializeArrivalsAndPacks($componentType, $config, $example, $meter);
-        } else if ($meterKey === Dashboard\ComponentType::RECEIPT_ASSOCIATION) {
-            $values += $this->serializeDailyReceptions($componentType, $config, $example);
-        } else if ($meterKey === Dashboard\ComponentType::DAILY_ARRIVALS) {
-            $values += $this->serializeDailyArrivals($componentType, $config, $example);
-        } else if ($meterKey === Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS) {
-            $values += $this->serializeDroppedPacks($entityManager, $componentType, $config, $example, $meter);
-        } else if ($meterKey === Dashboard\ComponentType::PACK_TO_TREAT_FROM) {
-            $values += $this->serializePacksToTreatFrom($entityManager, $componentType, $config, $example, $meter);
-        } else if ($meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES) {
-            $values += $this->serializeDailyArrivalsEmergencies($entityManager, $componentType, $config, $example, $meter);
-        } else if ($meterKey === Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE) {
-            $values += $this->serializeArrivalsEmergenciesToReceive($entityManager, $componentType, $config, $example, $meter);
-        } else {
-            //TODO:remove
-            $values += $componentType->getExampleValues();
+        switch ($meterKey) {
+            case Dashboard\ComponentType::ONGOING_PACKS:
+                $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example, $meter);
+                break;
+            case Dashboard\ComponentType::CARRIER_TRACKING:
+                $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
+                break;
+            case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
+                $values += $this->serializeEntriesToHandle($entityManager, $componentType, $config, $example, $meter);
+                break;
+            case Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS:
+            case Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS:
+                $values += $this->serializeArrivalsAndPacks($componentType, $config, $example, $meter);
+                break;
+            case Dashboard\ComponentType::RECEIPT_ASSOCIATION:
+                $values += $this->serializeDailyReceptions($componentType, $config, $example);
+                break;
+            case Dashboard\ComponentType::DAILY_ARRIVALS:
+                $values += $this->serializeDailyArrivals($componentType, $config, $example);
+                break;
+            case Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS:
+                $values += $this->serializeDroppedPacks($entityManager, $componentType, $config, $example, $meter);
+                break;
+            case Dashboard\ComponentType::PACK_TO_TREAT_FROM:
+                $values += $this->serializePacksToTreatFrom($componentType, $example, $meter);
+                break;
+            case Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES:
+            case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
+                $values += $this->serializeArrivalsEmergencies($componentType, $example, $meter);
+                break;
+            default:
+                //TODO:remove
+                $values += $componentType->getExampleValues();
+                break;
         }
 
         return $values;
@@ -404,11 +414,9 @@ class DashboardSettingsService {
         }
     }
 
-    private function serializePacksToTreatFrom(EntityManagerInterface $entityManager,
-                                           Dashboard\ComponentType $componentType,
-                                           array $config,
-                                           bool $example = false,
-                                           ?Dashboard\Meter\Chart $chart = null): array {
+    private function serializePacksToTreatFrom(Dashboard\ComponentType $componentType,
+                                               bool $example = false,
+                                               ?Dashboard\Meter\Chart $chart = null): array {
 
         if (!$example) {
             if($chart) {
@@ -463,11 +471,9 @@ class DashboardSettingsService {
         return $values;
     }
 
-    public function serializeDailyArrivalsEmergencies(EntityManagerInterface $manager,
-                                                      Dashboard\ComponentType $componentType,
-                                                      array $config,
-                                                      bool $example = false,
-                                                      DashboardMeter\Indicator $meter = null) {
+    public function serializeArrivalsEmergencies(Dashboard\ComponentType $componentType,
+                                                 bool $example = false,
+                                                 DashboardMeter\Indicator $meter = null) {
         if ($example) {
             $values = $componentType->getExampleValues();
         } else {

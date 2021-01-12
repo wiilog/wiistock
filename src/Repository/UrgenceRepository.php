@@ -140,6 +140,7 @@ class UrgenceRepository extends EntityRepository
             ->where('urgence.dateStart < :now')
             ->andWhere('urgence.lastArrival IS NULL')
             ->setParameter('now', new DateTime('now', new DateTimeZone('Europe/Paris')));
+
         if ($daily) {
             $todayEvening = new DateTime('now', new DateTimeZone('Europe/Paris'));
             $todayEvening->setTime(23, 59, 59, 59);
@@ -151,6 +152,7 @@ class UrgenceRepository extends EntityRepository
                 ->setParameter('todayEvening', $todayEvening)
                 ->setParameter('todayMorning', $todayMorning);
         }
+
         return $queryBuilder
             ->getQuery()
             ->getSingleScalarResult();
