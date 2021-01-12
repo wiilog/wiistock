@@ -294,6 +294,15 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'exampleValues' => [
                 'count' => 3
             ],
+        ],
+        'Alertes' => [
+            'hint' => 'Nombre d\'alerte en cours',
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS,
+            'exampleValues' => [
+                'count' => 11
+            ],
         ]
     ];
 

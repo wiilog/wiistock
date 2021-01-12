@@ -85,6 +85,9 @@ class DashboardFeedCommand extends Command {
                         $meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES
                     );
                     break;
+                case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
+                    $this->dashboardService->persistActiveReferenceAlerts($entityManager, $component);
+                    break;
                 default:
                     break;
             }

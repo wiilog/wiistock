@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Alert;
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
 use App\Entity\Dashboard;
@@ -592,7 +593,6 @@ class DashboardService {
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
         $chartData = $this->getDailyObjectsStatistics(function(DateTime $date)
         use ($dsqrLabel, $gtLabel, $locationClusterMeterRepository) {
-
             return [
                 $dsqrLabel => $locationClusterMeterRepository->countByDate($date, LocationCluster::CLUSTER_CODE_PACKAGING_DSQR),
                 $gtLabel => $locationClusterMeterRepository->countByDate($date, LocationCluster::CLUSTER_CODE_PACKAGING_GT_TARGET, LocationCluster::CLUSTER_CODE_PACKAGING_GT_ORIGIN),
@@ -656,14 +656,7 @@ class DashboardService {
             (bool)$config['withLocationLabels']
         );
 
-        /** @var DashboardMeter\Indicator|null $meter */
-        $meter = $component->getMeter();
-
-        if (!isset($meter)) {
-            $meter = new DashboardMeter\Indicator();
-            $meter->setComponent($component);
-            $entityManager->persist($meter);
-        }
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
 
         $meter
             ->setCount($calculatedData ? $calculatedData['count'] : 0)
@@ -681,20 +674,49 @@ class DashboardService {
     public function persistArrivalsEmergencies(EntityManagerInterface $entityManager,
                                                Dashboard\Component $component,
                                                bool $daily): void {
-        $emergencyRepository = $entityManager->getRepository(Urgence::class);
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
 
-        /** @var DashboardMeter\Indicator|null $meter */
+        $emergencyRepository = $entityManager->getRepository(Urgence::class);
+        $unsolvedEmergencies = $emergencyRepository->countUnsolved($daily);
+        $meter
+            ->setCount($unsolvedEmergencies ?? 0);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     */
+    public function persistActiveReferenceAlerts(EntityManagerInterface $entityManager,
+                                                 Dashboard\Component $component): void {
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
+
+        $alertRepository = $entityManager->getRepository(Alert::class);
+        $count = $alertRepository->countAllActive();
+
+        $meter
+            ->setCount($count ?? 0);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @param string $class
+     * @return DashboardMeter\Indicator|DashboardMeter\Chart
+     */
+    private function persistDashboardMeter(EntityManagerInterface $entityManager,
+                                           Dashboard\Component $component,
+                                           string $class) {
+
+        /** @var DashboardMeter\Indicator|DashboardMeter\Chart|null $meter */
         $meter = $component->getMeter();
 
         if (!isset($meter)) {
-            $meter = new DashboardMeter\Indicator();
+            $meter = new $class();
             $meter->setComponent($component);
             $entityManager->persist($meter);
         }
 
-        $unsolvedEmergencies = $emergencyRepository->countUnsolved($daily);
-        $meter
-            ->setCount($unsolvedEmergencies ?? 0);
+        return $meter;
     }
 
     /**
@@ -750,13 +772,8 @@ class DashboardService {
             }, $workFreeDays)
         ];
 
-        $chart = $component->getMeter();
-        if (!isset($chart)) {
-            $chart = new Dashboard\Meter\Chart();
-            $chart->setComponent($component);
-            $entityManager->persist($chart);
-        }
-        $chart->setData($data);
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
+        $meter->setData($data);
     }
 
     /**
@@ -782,14 +799,8 @@ class DashboardService {
             );
         }, $workFreeDays);
 
-        $chart = $component->getMeter();
-        if (!isset($chart)) {
-            $chart = new Dashboard\Meter\Chart();
-            $chart->setComponent($component);
-            $entityManager->persist($chart);
-        }
-
-        $chart->setData($packsCountByDays);
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
+        $meter->setData($packsCountByDays);
     }
 
 
@@ -938,16 +949,9 @@ class DashboardService {
             ? $olderPackLocation['locationLabel']
             : null;
 
-        /** @var DashboardMeter\Chart $meterChart */
-        $meterChart = $component->getMeter();
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
 
-        if (!isset($meterChart)) {
-            $meterChart = new Dashboard\Meter\Chart();
-            $meterChart->setComponent($component);
-            $entityManager->persist($meterChart);
-        }
-
-        $meterChart
+        $meter
             ->setChartColors(
                 array_reduce(
                     $naturesFilter,
@@ -1021,14 +1025,7 @@ class DashboardService {
             }
         }
 
-        /** @var DashboardMeter\Chart|null $meter */
-        $meter = $component->getMeter();
-
-        if (!isset($meter)) {
-            $meter = new DashboardMeter\Chart();
-            $meter->setComponent($component);
-            $entityManager->persist($meter);
-        }
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
 
         $meter
             ->setData($chartData);
