@@ -811,7 +811,6 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
-     * @HasPermission({Menu::TRACA, Action::LIST_ALL})
      *
      * @param EntityManagerInterface $entityManager
      * @param ArrivageDataService $arrivageDataService
@@ -832,7 +831,9 @@ class ArrivageController extends AbstractController
                          bool $printColis = false,
                          bool $printArrivage = false): Response
     {
-        if (!in_array($this->getUser(), $arrivage->getAcheteurs()->toArray())) {
+        // HasPermission annotation impossible
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL)
+            && !in_array($this->getUser(), $arrivage->getAcheteurs()->toArray())) {
             return $this->render('securite/access_denied.html.twig');
         }
 

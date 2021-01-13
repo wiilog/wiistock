@@ -17,6 +17,10 @@ class DashboardController extends AbstractController {
 
     /**
      * @Route("/accueil", name="accueil")
+     * @param DashboardService $dashboardService
+     * @param DashboardSettingsService $dashboardSettingsService
+     * @param EntityManagerInterface $manager
+     * @return Response
      */
     public function dashboards(DashboardService $dashboardService,
                                DashboardSettingsService $dashboardSettingsService,
