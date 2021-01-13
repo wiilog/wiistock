@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
-use App\Entity\MouvementStock;
 use App\Entity\Nature;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
@@ -133,15 +132,13 @@ class DashboardSettingsService {
                 break;
             case Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS:
             case Dashboard\ComponentType::PACK_TO_TREAT_FROM:
+            case Dashboard\ComponentType::MONETARY_RELIABILITY:
                 $values += $this->serializeSimpleChart($componentType, $example, $meter);
                 break;
             case Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES:
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
             case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
                 $values += $this->serializeSimpleCounter($componentType, $example, $meter);
-                break;
-            case Dashboard\ComponentType::MONETARY_RELIABILITY:
-                $values += $this->serializeMonetaryReliability($entityManager, $componentType, $config, $example, $meter);
                 break;
             default:
                 //TODO:remove
@@ -445,24 +442,6 @@ class DashboardSettingsService {
                 'count' => $meter
                     ? $meter->getCount()
                     : '-'
-            ];
-        }
-
-        return $values;
-    }
-
-    private function serializeMonetaryReliability(EntityManagerInterface $entityManager,
-                                                  Dashboard\ComponentType $componentType,
-                                                  array $config,
-                                                  bool $example = false,
-                                                  ?Dashboard\Meter\Chart $chart = null): array {
-        if ($example) {
-            $values = $componentType->getExampleValues();
-        } else {
-            $values = [
-                'chartData' => $chart
-                    ? $chart->getData()
-                    : []
             ];
         }
 

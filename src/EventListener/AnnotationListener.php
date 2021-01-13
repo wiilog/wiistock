@@ -18,7 +18,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ControllerArgumentsEvent;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Composer\Semver\Semver;
-use Symfony\Component\Security\Core\Security;
 use Twig\Environment;
 
 class AnnotationListener {

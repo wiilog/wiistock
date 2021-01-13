@@ -6,7 +6,6 @@ use App\Entity\Utilisateur;
 use App\Service\DashboardService;
 use App\Service\DashboardSettingsService;
 use Doctrine\ORM\EntityManagerInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -50,6 +49,11 @@ class DashboardController extends AbstractController {
 
     /**
      * @Route("/dashboard/actualiser/{mode}", name="dashboards_fetch", options={"expose"=true})
+     * @param DashboardService $dashboardService
+     * @param DashboardSettingsService $dashboardSettingsService
+     * @param EntityManagerInterface $manager
+     * @param int $mode
+     * @return Response
      */
     public function fetch(DashboardService $dashboardService,
                           DashboardSettingsService $dashboardSettingsService,

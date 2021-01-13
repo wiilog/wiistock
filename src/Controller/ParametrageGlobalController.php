@@ -14,7 +14,6 @@ use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
-use App\Entity\Nature;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Statut;
 use App\Entity\Translation;

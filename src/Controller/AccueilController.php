@@ -2,35 +2,14 @@
 
 namespace App\Controller;
 
-use App\Entity\Action;
-use App\Entity\Alert;
-use App\Entity\Article;
-use App\Entity\AverageRequestTime;
-use App\Entity\CategorieStatut;
-use App\Entity\Collecte;
 use App\Entity\Dashboard\ComponentType;
-use App\Entity\Demande;
 use App\Entity\FiabilityByReference;
-use App\Entity\Handling;
 use App\Entity\LocationCluster;
-use App\Entity\Menu;
-use App\Entity\MouvementStock;
-use App\Entity\ReferenceArticle;
-use App\Entity\Statut;
-use App\Entity\Utilisateur;
 use App\Entity\Wiilock;
-use App\Helper\Stream;
-use App\Repository\AverageRequestTimeRepository;
 use App\Service\DashboardSettingsService;
-use App\Service\DateService;
 use App\Service\DashboardService;
-use App\Service\DemandeCollecteService;
-use App\Service\DemandeLivraisonService;
-use App\Service\HandlingService;
-use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -41,33 +20,6 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AccueilController extends AbstractController
 {
-
-    /**
-     * @Route(
-     *     "/statistiques/fiabilite-monetaire",
-     *     name="get_monetary_fiability_statistics",
-     *     options={"expose"=true},
-     *     methods="GET",
-     *     condition="request.isXmlHttpRequest()"
-     * )
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param DashboardSettingsService $dashboardSettingsService
-     * @return Response
-     */
-    public function getMonetaryFiabilityStatistics(Request $request,
-                                                   EntityManagerInterface $entityManager,
-                                                   DashboardSettingsService $dashboardSettingsService): Response
-    {
-
-        $componentTypeRepository = $entityManager->getRepository(ComponentType::class);
-        $componentType = $componentTypeRepository->findOneBy([
-            'meterKey' => ComponentType::MONETARY_RELIABILITY
-        ]);
-
-        $data = $dashboardSettingsService->serializeValues($entityManager, $componentType, $request->query->all());
-        return new JsonResponse($data);
-    }
 
     /**
      * @Route("/statistiques/graphique-reference", name="graph_ref", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
@@ -262,7 +214,6 @@ class AccueilController extends AbstractController
      * @param DashboardService $dashboardService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function getIndicatorsMonitoringPackaging(DashboardService $dashboardService, EntityManagerInterface $entityManager): Response
@@ -350,7 +301,6 @@ class AccueilController extends AbstractController
      * @param DashboardService $dashboardService
      * @return Response
      *
-     * @throws NonUniqueResultException
      */
     public function getDailyCarriersStatistics(DashboardService $dashboardService): Response
     {

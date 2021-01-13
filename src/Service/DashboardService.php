@@ -29,7 +29,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
-use phpDocumentor\Reflection\Types\Integer;
 use Throwable;
 
 class DashboardService {
@@ -57,14 +56,12 @@ class DashboardService {
     }
 
     public function refreshDate(EntityManagerInterface $manager): string {
-        $lock = $manager->getRepository(Wiilock::class)
-            ->findOneBy(["lockKey" => Wiilock::DASHBOARD_FED_KEY]);
+        $wiilockRepository = $manager->getRepository(Wiilock::class);
+        $lock = $wiilockRepository->findOneBy(["lockKey" => Wiilock::DASHBOARD_FED_KEY]);
 
-        if($lock) {
-            return FormatHelper::datetime($lock->getUpdateDate());
-        } else {
-            return "(date inconnue)";
-        }
+        return $lock
+            ? FormatHelper::datetime($lock->getUpdateDate())
+            : "(date inconnue)";
     }
 
     public function getWeekAssoc($firstDay, $lastDay, $beforeAfter) {

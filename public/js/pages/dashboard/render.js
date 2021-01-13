@@ -74,7 +74,6 @@ const creators = {
     [MONETARY_RELIABILITY]: {
         callback: createChart,
         arguments: {
-            route: `get_monetary_fiability_statistics`,
             hideRange: true
         }
     },
