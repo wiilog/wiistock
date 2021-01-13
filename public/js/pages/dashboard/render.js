@@ -17,6 +17,7 @@ const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
 const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
 const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
+const MONETARY_RELIABILITY = 'monetary_reliability';
 
 $(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -66,6 +67,14 @@ const creators = {
     [DAILY_ARRIVALS_EMERGENCIES]: {
         callback: createIndicatorElement
     },
+    [MONETARY_RELIABILITY]: {
+        callback: createChart,
+        arguments: {
+            route: `get_monetary_fiability_statistics`,
+            hideRange: true
+        }
+    },
+
 };
 
 /**
@@ -212,7 +221,7 @@ function calculateChartsFontSize() {
  * @param {{route: string|null, variable: string|null}} pagination
  * @return {boolean|jQuery}
  */
-function createChart(data, {route, cssClass} = {route: null, cssClass: null}) {
+function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass: null, hideRange: false}) {
     if (!data) {
         console.error(`Invalid data for "${data.title}"`);
         return false;
@@ -221,9 +230,9 @@ function createChart(data, {route, cssClass} = {route: null, cssClass: null}) {
     const title = data.title || "";
 
     let pagination = ``;
-    if(route) {
+    if(route && !hideRange && mode !== MODE_EDIT) {
         pagination = `
-            <div class="range-buttons ${mode === MODE_EDIT ? 'd-none' : ''}">
+            <div class="range-buttons">
                 <div class="arrow-chart"
                      onclick="drawChartWithHisto($(this), '${route}', 'before')">
                     <i class="fas fa-chevron-left pointer"></i>

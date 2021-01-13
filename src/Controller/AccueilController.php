@@ -50,42 +50,23 @@ class AccueilController extends AbstractController
      *     methods="GET",
      *     condition="request.isXmlHttpRequest()"
      * )
+     * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param DashboardSettingsService $dashboardSettingsService
      * @return Response
      */
-    public function getMonetaryFiabilityStatistics(EntityManagerInterface $entityManager): Response
+    public function getMonetaryFiabilityStatistics(Request $request,
+                                                   EntityManagerInterface $entityManager,
+                                                   DashboardSettingsService $dashboardSettingsService): Response
     {
-        $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
-        $firstDayOfCurrentMonth = date("Y-m-d", strtotime("first day of this month"));
-        $lastDayOfCurrentMonth = date("Y-m-d", strtotime("last day of this month", strtotime($firstDayOfCurrentMonth)));
-        $precedentMonthFirst = $firstDayOfCurrentMonth;
-        $precedentMonthLast = $lastDayOfCurrentMonth;
-        $idx = 0;
-        $value = [];
-        $value['data'] = [];
-        while ($idx !== 6) {
-            $month = date("m", strtotime($precedentMonthFirst));
-            $month = date("F", mktime(0, 0, 0, $month, 10));
-            $totalEntryRefArticleOfPrecedentMonth = $mouvementStockRepository->countTotalEntryPriceRefArticle($precedentMonthFirst, $precedentMonthLast);
-            $totalExitRefArticleOfPrecedentMonth = $mouvementStockRepository->countTotalExitPriceRefArticle($precedentMonthFirst, $precedentMonthLast);
-            $totalRefArticleOfPrecedentMonth = $totalEntryRefArticleOfPrecedentMonth - $totalExitRefArticleOfPrecedentMonth;
-            $totalEntryArticleOfPrecedentMonth = $mouvementStockRepository->countTotalEntryPriceArticle($precedentMonthFirst, $precedentMonthLast);
-            $totalExitArticleOfPrecedentMonth = $mouvementStockRepository->countTotalExitPriceArticle($precedentMonthFirst, $precedentMonthLast);
-            $totalArticleOfPrecedentMonth = $totalEntryArticleOfPrecedentMonth - $totalExitArticleOfPrecedentMonth;
 
-            $nbrFiabiliteMonetaireOfPrecedentMonth = $totalRefArticleOfPrecedentMonth + $totalArticleOfPrecedentMonth;
-            $month = str_replace(
-                array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'),
-                array('Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'),
-                $month
-            );
-            $value['data'][$month] = $nbrFiabiliteMonetaireOfPrecedentMonth;
-            $precedentMonthFirst = date("Y-m-d", strtotime("-1 month", strtotime($precedentMonthFirst)));
-            $precedentMonthLast = date("Y-m-d", strtotime("last day of -1 month", strtotime($precedentMonthLast)));
-            $idx += 1;
-        }
-        $value = array_reverse($value['data']);
-        return new JsonResponse($value);
+        $componentTypeRepository = $entityManager->getRepository(ComponentType::class);
+        $componentType = $componentTypeRepository->findOneBy([
+            'meterKey' => ComponentType::MONETARY_RELIABILITY
+        ]);
+
+        $data = $dashboardSettingsService->serializeValues($entityManager, $componentType, $request->query->all());
+        return new JsonResponse($data);
     }
 
     /**

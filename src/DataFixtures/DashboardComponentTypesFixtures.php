@@ -294,6 +294,22 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'exampleValues' => [
                 'count' => 3
             ],
+        ],
+        'Fiabilité monétaire' => [
+            'hint' => 'Somme des quantités corrigées suite à un inventaire',
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY,
+            'exampleValues' => [
+                'chartData' => [
+                    'Août' => 243,
+                    'Septembre' => 145,
+                    'Octobre' => 312,
+                    'Novembre' => -177,
+                    'Décembre' => -67,
+                    'Janvier' => 198
+                ]
+            ],
         ]
     ];
 

@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
+use App\Entity\MouvementStock;
 use App\Entity\Nature;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
@@ -139,6 +140,9 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES:
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
                 $values += $this->serializeArrivalsEmergencies($componentType, $example, $meter);
+                break;
+            case Dashboard\ComponentType::MONETARY_RELIABILITY:
+                $values += $this->serializeMonetaryReliability($entityManager, $componentType, $config, $example, $meter);
                 break;
             default:
                 //TODO:remove
@@ -491,6 +495,48 @@ class DashboardSettingsService {
         return $values;
     }
 
+    private function serializeMonetaryReliability(EntityManagerInterface $entityManager,
+                                                  Dashboard\ComponentType $componentType,
+                                                  array $config,
+                                                  bool $example = false,
+                                                  ?Dashboard\Meter\Chart $chart = null): array {
+        if (!$example) {
+            $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
+
+            $firstDayOfCurrentMonth = date("Y-m-d", strtotime("first day of this month"));
+            $lastDayOfCurrentMonth = date("Y-m-d", strtotime("last day of this month", strtotime($firstDayOfCurrentMonth)));
+            $precedentMonthFirst = $firstDayOfCurrentMonth;
+            $precedentMonthLast = $lastDayOfCurrentMonth;
+            $idx = 0;
+            $value = [];
+            $value['data'] = [];
+            while ($idx !== 6) {
+                $month = date("m", strtotime($precedentMonthFirst));
+                $month = date("F", mktime(0, 0, 0, $month, 10));
+                $totalEntryRefArticleOfPrecedentMonth = $mouvementStockRepository->countTotalEntryPriceRefArticle($precedentMonthFirst, $precedentMonthLast);
+                $totalExitRefArticleOfPrecedentMonth = $mouvementStockRepository->countTotalExitPriceRefArticle($precedentMonthFirst, $precedentMonthLast);
+                $totalRefArticleOfPrecedentMonth = $totalEntryRefArticleOfPrecedentMonth - $totalExitRefArticleOfPrecedentMonth;
+                $totalEntryArticleOfPrecedentMonth = $mouvementStockRepository->countTotalEntryPriceArticle($precedentMonthFirst, $precedentMonthLast);
+                $totalExitArticleOfPrecedentMonth = $mouvementStockRepository->countTotalExitPriceArticle($precedentMonthFirst, $precedentMonthLast);
+                $totalArticleOfPrecedentMonth = $totalEntryArticleOfPrecedentMonth - $totalExitArticleOfPrecedentMonth;
+
+                $nbrFiabiliteMonetaireOfPrecedentMonth = $totalRefArticleOfPrecedentMonth + $totalArticleOfPrecedentMonth;
+                $month = str_replace(
+                    array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'),
+                    array('Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'),
+                    $month
+                );
+                $value['data'][$month] = $nbrFiabiliteMonetaireOfPrecedentMonth;
+                $precedentMonthFirst = date("Y-m-d", strtotime("-1 month", strtotime($precedentMonthFirst)));
+                $precedentMonthLast = date("Y-m-d", strtotime("last day of -1 month", strtotime($precedentMonthLast)));
+                $idx += 1;
+            }
+            $values = ["chartData" => array_reverse($value['data'])];
+        } else {
+            $values = $componentType->getExampleValues();
+        }
+        return $values;
+    }
 
     public function save(EntityManagerInterface $entityManager, array $jsonDashboard) {
         $componentTypeRepository = $entityManager->getRepository(Dashboard\ComponentType::class);
