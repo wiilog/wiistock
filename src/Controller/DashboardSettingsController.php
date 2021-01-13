@@ -49,22 +49,27 @@ class DashboardSettingsController extends AbstractController {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
+
+
+        $orderedComponentTypes = Stream::from($componentTypes)
+            ->reduce(function(array $carry, Dashboard\ComponentType $componentType) {
+                $category = $componentType->getCategory();
+                if(!isset($carry[$category])) {
+                    $carry[$category] = [];
+                }
+
+                $carry[$category][] = $componentType;
+
+                return $carry;
+            }, []);
+
+
         return $this->render("dashboard/settings.html.twig", [
             "dashboards" => $dashboardSettingsService->serialize($entityManager, $loggedUser, DashboardSettingsService::MODE_EDIT),
             "token" => $_SERVER["APP_DASHBOARD_TOKEN"],
             "componentTypeConfig" => [
                 // component types group by category
-                "componentTypes" => Stream::from($componentTypes)
-                    ->reduce(function(array $carry, Dashboard\ComponentType $componentType) {
-                        $category = $componentType->getCategory();
-                        if(!isset($carry[$category])) {
-                            $carry[$category] = [];
-                        }
-
-                        $carry[$category][] = $componentType;
-
-                        return $carry;
-                    }, [])
+                "componentTypes" => array_merge(array_flip(Dashboard\ComponentType::ORDERED_COMPONENT_CATEGORIES), $orderedComponentTypes)
             ]
         ]);
     }

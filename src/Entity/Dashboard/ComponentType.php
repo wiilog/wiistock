@@ -33,6 +33,13 @@ class ComponentType
     public const CATEGORY_ORDERS = "Ordres";
     public const CATEGORY_STOCK = "Stock";
 
+    public const ORDERED_COMPONENT_CATEGORIES = [
+        self::CATEGORY_TRACKING,
+        self::CATEGORY_ORDERS,
+        self::CATEGORY_STOCK,
+        self::REQUESTS
+    ];
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
