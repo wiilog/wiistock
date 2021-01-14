@@ -62,7 +62,7 @@ create table dw_mouvement_stock
     quantite_livree      integer,
     operateur            varchar(255),
     code_barre_reference varchar(255),
-    date                 date,
+    date                 timestamp(0),
     emplacement_stock    varchar(255),
     emplacement_transfert    varchar(255),
     id                   integer not null
