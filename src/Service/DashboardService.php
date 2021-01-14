@@ -6,6 +6,7 @@ use App\Entity\Alert;
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
 use App\Entity\Dashboard;
+use App\Entity\Handling;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
 use App\Entity\MouvementStock;
@@ -1069,6 +1070,39 @@ class DashboardService {
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
 
+        $meter
+            ->setData($chartData);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @throws Exception
+     */
+    public function persistDailyHandling(EntityManagerInterface $entityManager,
+                                         Dashboard\Component $component): void {
+        $config = $component->getConfig();
+
+        $handlingStatusesFilter = $config['handlingStatuses'] ?? [];
+        $handlingTypesFilter = $config['handlingTypes'] ?? [];
+        $scale = $config['daysNumber'] ?? self::DEFAULT_DAILY_REQUESTS_SCALE;
+
+        $handlingRepository = $entityManager->getRepository(Handling::class);
+
+        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
+        $getObjectsStatisticsCallable = 'getDailyObjectsStatistics';
+
+        $chartData = $this->{$getObjectsStatisticsCallable}(
+            $entityManager,
+            $scale,
+            function(DateTime $dateMin, DateTime $dateMax) use ($handlingRepository, $handlingStatusesFilter, $handlingTypesFilter) {
+                return $handlingRepository->countByDates($dateMin, $dateMax, $handlingStatusesFilter, $handlingTypesFilter);
+            },
+            $workFreeDays
+        );
+
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter
             ->setData($chartData);
     }

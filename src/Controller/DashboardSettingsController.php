@@ -153,7 +153,9 @@ class DashboardSettingsController extends AbstractController {
             "secondDestinationLocation" => [],
             "carriers" => [],
             "arrivalTypes" => [],
+            "handlingTypes" => [],
             "arrivalStatuses" => [],
+            "handlingStatuses" => [],
             "natures" => [],
             'tooltip' => $componentType->getHint()
         ];
@@ -174,8 +176,16 @@ class DashboardSettingsController extends AbstractController {
             $values['arrivalTypes'] = $typeRepository->findByIds($values['arrivalTypes']);
         }
 
+        if(!empty($values['handlingTypes'])) {
+            $values['handlingTypes'] = $typeRepository->findByIds($values['handlingTypes']);
+        }
+
         if(!empty($values['arrivalStatuses'])) {
             $values['arrivalStatuses'] = $statusRepository->findByIds($values['arrivalStatuses']);
+        }
+
+        if(!empty($values['handlingStatuses'])) {
+            $values['handlingStatuses'] = $statusRepository->findByIds($values['handlingStatuses']);
         }
 
         if(!empty($values['natures'])) {
@@ -184,6 +194,8 @@ class DashboardSettingsController extends AbstractController {
 
         $arrivalTypes = $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]);
         $arrivalStatuses = $statusRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
+        $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+        $handlingStatuses = $statusRepository->findByCategorieName(CategorieStatut::HANDLING);
         $natures = $natureRepository->findAll();
 
         if($templateName) {
@@ -195,7 +207,9 @@ class DashboardSettingsController extends AbstractController {
                     'rowIndex' => $request->request->get('rowIndex'),
                     'componentIndex' => $request->request->get('componentIndex'),
                     'arrivalTypes' => $arrivalTypes,
+                    'handlingTypes' => $handlingTypes,
                     'arrivalStatuses' => $arrivalStatuses,
+                    'handlingStatuses' => $handlingStatuses,
                     'natures' => $natures,
                     'values' => $values
                 ])

@@ -319,6 +319,23 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'exampleValues' => [
                 'count' => 11
             ],
+        ],
+        'Nombre de services quotidiens' => [
+            'hint' => 'Nombre de services ayant leur date attendue sur les jours présentés',
+            'exampleValues' => [
+                'chartData' => [
+                    '04/01' => 6,
+                    '05/01' => 8,
+                    '06/01' => 4,
+                    '07/01' => 5,
+                    '08/01' => 1,
+                    '09/01' => 3,
+                    '10/01' => 2,
+                ],
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
+            'template' => Dashboard\ComponentType::DAILY_HANDLING,
+            'meterKey' => Dashboard\ComponentType::DAILY_HANDLING,
         ]
     ];
 

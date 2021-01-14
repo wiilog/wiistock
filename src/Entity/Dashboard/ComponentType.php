@@ -28,6 +28,7 @@ class ComponentType
     public const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
     public const MONETARY_RELIABILITY = 'monetary_reliability';
     public const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
+    public const DAILY_HANDLING = 'daily_handling';
 
     public const CATEGORY_TRACKING = "Traçabilité";
     public const CATEGORY_REQUESTS = "Demandes";

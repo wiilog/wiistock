@@ -19,6 +19,7 @@ const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
 const MONETARY_RELIABILITY = 'monetary_reliability';
 const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts'
+const DAILY_HANDLING = 'daily_handling';
 
 $(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -77,7 +78,9 @@ const creators = {
             hideRange: true
         }
     },
-
+    [DAILY_HANDLING]: {
+        callback: createChart
+    }
 };
 
 /**

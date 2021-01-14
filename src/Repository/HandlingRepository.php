@@ -341,4 +341,43 @@ class HandlingRepository extends EntityRepository
             ->execute();
         return $result ? $result[0]['number'] : null;
     }
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @param array $handlingStatusesFilter
+     * @param array $handlingTypesFilter
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByDates(DateTime $dateMin,
+                                 DateTime $dateMax,
+                                 array $handlingStatusesFilter = [],
+                                 array $handlingTypesFilter = []): int
+    {
+        $qb = $this->createQueryBuilder('handling')
+            ->select('COUNT(handling)')
+            ->where('handling.desiredDate BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        if (!empty($handlingStatusesFilter)) {
+            $qb
+                ->andWhere('handling.status IN (:handlingStatuses)')
+                ->setParameter('handlingStatuses', $handlingStatusesFilter);
+        }
+
+        if (!empty($handlingTypesFilter)) {
+            $qb
+                ->andWhere('handling.type IN (:handlingTypes)')
+                ->setParameter('handlingTypes', $handlingTypesFilter);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
