@@ -699,8 +699,8 @@ class DashboardService {
      * @param EntityManagerInterface $entityManager
      * @param Dashboard\Component $component
      */
-    public function persistMonetaryReliability(EntityManagerInterface $entityManager,
-                                               Dashboard\Component $component): void {
+    public function persistMonetaryReliabilityGraph(EntityManagerInterface $entityManager,
+                                                    Dashboard\Component $component): void {
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
 
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
@@ -1071,6 +1071,29 @@ class DashboardService {
 
         $meter
             ->setData($chartData);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     */
+    public function persistMonetaryReliabilityIndicator(EntityManagerInterface $entityManager,
+                                                        Dashboard\Component $component): void {
+
+        $stockMovementRepository = $entityManager->getRepository(MouvementStock::class);
+
+        $firstDayOfCurrentMonth = date("Y-m-d", strtotime("first day of this month"));
+        $totalEntryRefArticleOfThisMonth = $stockMovementRepository->countTotalEntryPriceRefArticle($firstDayOfCurrentMonth);
+        $totalExitRefArticleOfThisMonth = $stockMovementRepository->countTotalExitPriceRefArticle($firstDayOfCurrentMonth);
+        $totalRefArticleOfThisMonth = $totalEntryRefArticleOfThisMonth - $totalExitRefArticleOfThisMonth;
+        $totalEntryArticleOfThisMonth = $stockMovementRepository->countTotalEntryPriceArticle($firstDayOfCurrentMonth);
+        $totalExitArticleOfThisMonth = $stockMovementRepository->countTotalExitPriceArticle($firstDayOfCurrentMonth);
+        $totalArticleOfThisMonth = $totalEntryArticleOfThisMonth - $totalExitArticleOfThisMonth;
+        $count = $totalRefArticleOfThisMonth + $totalArticleOfThisMonth;
+
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
+        $meter
+            ->setCount($count ?? 0);
     }
 
     private function getDaysWorked(EntityManagerInterface $entityManager): array {

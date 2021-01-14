@@ -295,11 +295,11 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'count' => 3
             ],
         ],
-        'Fiabilité monétaire' => [
+        'Fiabilité monétaire (graphique)'  => [
             'hint' => 'Somme des quantités corrigées suite à un inventaire',
             'category' => Dashboard\ComponentType::CATEGORY_STOCK,
             'template' => null,
-            'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY,
+            'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY_GRAPH,
             'exampleValues' => [
                 'chartData' => [
                     'Août' => 243,
@@ -318,6 +318,15 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'meterKey' => Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS,
             'exampleValues' => [
                 'count' => 11
+            ],
+        ],
+        'Fiabilité monétaire (indicateur)' => [
+            'hint' => 'A définir',
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR,
+            'exampleValues' => [
+                'count' => 84
             ],
         ]
     ];

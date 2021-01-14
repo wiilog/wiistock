@@ -17,7 +17,8 @@ const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
 const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
 const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
-const MONETARY_RELIABILITY = 'monetary_reliability';
+const MONETARY_RELIABILITY_GRAPH = 'monetary_reliability_graph';
+const MONETARY_RELIABILITY_INDICATOR = 'monetary_reliability_indicator';
 const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts'
 
 $(function() {
@@ -71,13 +72,15 @@ const creators = {
     [ACTIVE_REFERENCE_ALERTS]: {
         callback: createIndicatorElement
     },
-    [MONETARY_RELIABILITY]: {
+    [MONETARY_RELIABILITY_GRAPH]: {
         callback: createChart,
         arguments: {
             hideRange: true
         }
     },
-
+    [MONETARY_RELIABILITY_INDICATOR]: {
+        callback: createIndicatorElement
+    }
 };
 
 /**
@@ -252,7 +255,7 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
     return $(`
         <div class="dashboard-box dashboard-stats-container h-100">
             <div class="title">
-                ${title}
+                ${title.split('(')[0]}
             </div>
             ${createTooltip(data.tooltip)}
             <div class="h-100">
@@ -314,7 +317,7 @@ function createIndicatorElement(data, {meterKey}) {
             title
                 ? $('<div/>', {
                     class: 'text-center title ellipsis',
-                    text: title
+                    text: title.split('(')[0]
                 })
                 : undefined,
             subtitle

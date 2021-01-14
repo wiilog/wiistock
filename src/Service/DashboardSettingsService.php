@@ -132,12 +132,13 @@ class DashboardSettingsService {
                 break;
             case Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS:
             case Dashboard\ComponentType::PACK_TO_TREAT_FROM:
-            case Dashboard\ComponentType::MONETARY_RELIABILITY:
+            case Dashboard\ComponentType::MONETARY_RELIABILITY_GRAPH:
                 $values += $this->serializeSimpleChart($componentType, $example, $meter);
                 break;
             case Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES:
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
             case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
+            case Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR:
                 $values += $this->serializeSimpleCounter($componentType, $example, $meter);
                 break;
             default:
