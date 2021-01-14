@@ -43,7 +43,7 @@ class ExceptionLoggerService {
     }
 
     public function sendLog(Throwable $throwable, Request $request) {
-        if ($throwable instanceof NotFoundHttpException || $throwable instanceof AccessDeniedHttpException) {
+        if ($_SERVER["APP_ENV"] === "dev" || $throwable instanceof NotFoundHttpException || $throwable instanceof AccessDeniedHttpException) {
             return;
         }
 
@@ -62,7 +62,7 @@ class ExceptionLoggerService {
         foreach ($exceptions as $throwable) {
             $stacktrace = $throwable->getTrace();
             foreach ($stacktrace as &$trace) {
-                $file = file($trace["file"]);
+                $file = $trace["file"] ? file($trace["file"]) : null;
                 array_unshift($file, "");
                 $from = max($trace["line"] - 5, 0);
                 $to = min($trace["line"] + 5, count($file) - 1);
