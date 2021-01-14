@@ -40,6 +40,9 @@ class DashboardSettingsController extends AbstractController {
     /**
      * @Route("/", name="dashboard_settings", methods={"GET"})
      * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS})
+     * @param DashboardSettingsService $dashboardSettingsService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
     public function settings(DashboardSettingsService $dashboardSettingsService,
                              EntityManagerInterface $entityManager): Response {
@@ -49,9 +52,14 @@ class DashboardSettingsController extends AbstractController {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
+        $orderedComponentCategories = [
+            Dashboard\ComponentType::CATEGORY_TRACKING,
+            Dashboard\ComponentType::CATEGORY_ORDERS,
+            Dashboard\ComponentType::CATEGORY_STOCK,
+            Dashboard\ComponentType::CATEGORY_REQUESTS
+        ];
 
-
-        $orderedComponentTypes = Stream::from($componentTypes)
+        $componentTypes = Stream::from($componentTypes)
             ->reduce(function(array $carry, Dashboard\ComponentType $componentType) {
                 $category = $componentType->getCategory();
                 if(!isset($carry[$category])) {
@@ -63,13 +71,12 @@ class DashboardSettingsController extends AbstractController {
                 return $carry;
             }, []);
 
-
         return $this->render("dashboard/settings.html.twig", [
             "dashboards" => $dashboardSettingsService->serialize($entityManager, $loggedUser, DashboardSettingsService::MODE_EDIT),
             "token" => $_SERVER["APP_DASHBOARD_TOKEN"],
             "componentTypeConfig" => [
                 // component types group by category
-                "componentTypes" => array_merge(array_flip(Dashboard\ComponentType::ORDERED_COMPONENT_CATEGORIES), $orderedComponentTypes)
+                "componentTypes" => array_merge(array_flip($orderedComponentCategories), $componentTypes)
             ]
         ]);
     }

@@ -29,16 +29,9 @@ class ComponentType
     public const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
 
     public const CATEGORY_TRACKING = "Traçabilité";
-    public const REQUESTS = "Demandes";
+    public const CATEGORY_REQUESTS = "Demandes";
     public const CATEGORY_ORDERS = "Ordres";
     public const CATEGORY_STOCK = "Stock";
-
-    public const ORDERED_COMPONENT_CATEGORIES = [
-        self::CATEGORY_TRACKING,
-        self::CATEGORY_ORDERS,
-        self::CATEGORY_STOCK,
-        self::REQUESTS
-    ];
 
     /**
      * @ORM\Id
