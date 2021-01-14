@@ -1,3 +1,4 @@
+{% set isClientSafranED = isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
 <form method="" class="modal fade" id="modalNewArrivage" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
@@ -307,7 +308,8 @@
                                         <label class="ellipsis">
                                             {{ nature.label | capitalize }}
                                         </label>
-                                        <input type="number" class="form-control input-sm data-array needed-positiv needs-default"
+                                        <input type="number"
+                                               class="form-control input-sm data-array needed-positiv needs-default {{ isClientSafranED ? "no-clear" }}"
                                                name="colis"
                                                data-id="{{ nature.id }}"
                                                min="0"

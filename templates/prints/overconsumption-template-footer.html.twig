@@ -37,8 +37,29 @@
                 text-transform: uppercase;
             }
         </style>
+        <script>
+            function subst() {
+                var vars = {};
+                var queryStringsFromUrl = document.location.search.substring(1).split('&');
+                for (var queryString in queryStringsFromUrl) {
+                    if (queryStringsFromUrl.hasOwnProperty(queryString)) {
+                        var tempVar = queryStringsFromUrl[queryString].split('=', 2);
+                        vars[tempVar[0]] = decodeURI(tempVar[1]);
+                    }
+                }
+                var cssSelectorClasses = ['page', 'topage'];
+                for (var cssClass in cssSelectorClasses) {
+                    if (cssSelectorClasses.hasOwnProperty(cssClass)) {
+                        var element = document.getElementsByClassName(cssSelectorClasses[cssClass]);
+                        for (var j = 0; j < element.length; ++j) {
+                            element[j].textContent = vars[cssSelectorClasses[cssClass]];
+                        }
+                    }
+                }
+            }
+        </script>
     </head>
-    <body>
+    <body onload="subst()">
         <div class="footer">
             <div class="left-footer">
                 <span class="warning">Document à ne pas dissocier de l'OF</span><br/><br/>
@@ -53,4 +74,7 @@
             </div>
         </div>
     </body>
+    <div style="position: absolute; right: 0;">
+        <span class="page"></span>/<span class="topage"></span>
+    </div>
 </html>

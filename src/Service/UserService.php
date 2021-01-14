@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Annotation\HasPermission;
 use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\Arrivage;
@@ -19,8 +18,6 @@ use App\Entity\Role;
 use App\Entity\Utilisateur;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 use Twig\Environment as Twig_Environment;
 use Symfony\Component\Security\Core\Security;
 use Twig\Error\LoaderError;

@@ -110,26 +110,40 @@ class DashboardSettingsService {
             $values['componentLink'] = $this->getComponentLink($componentType, $config);
         }
 
-        if ($meterKey === Dashboard\ComponentType::ONGOING_PACKS) {
-            $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example, $meter);
-        } else if ($meterKey === Dashboard\ComponentType::CARRIER_TRACKING) {
-            $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
-        } else if ($meterKey === Dashboard\ComponentType::ENTRIES_TO_HANDLE) {
-            $values += $this->serializeEntriesToHandle($entityManager, $componentType, $config, $example, $meter);
-        } else if ($meterKey === Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS
-            || $meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS) {
-            $values += $this->serializeArrivalsAndPacks($componentType, $config, $example, $meter);
-        } else if ($meterKey === Dashboard\ComponentType::RECEIPT_ASSOCIATION) {
-            $values += $this->serializeDailyReceptions($componentType, $config, $example);
-        } else if ($meterKey === Dashboard\ComponentType::DAILY_ARRIVALS) {
-            $values += $this->serializeDailyArrivals($componentType, $config, $example);
-        } else if ($meterKey === Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS) {
-            $values += $this->serializeDroppedPacks($entityManager, $componentType, $config, $example, $meter);
-        } else if ($meterKey === Dashboard\ComponentType::PACK_TO_TREAT_FROM) {
-            $values += $this->serializePacksToTreatFrom($entityManager, $componentType, $config, $example, $meter);
-        } else {
-            //TODO:remove
-            $values += $componentType->getExampleValues();
+        switch ($meterKey) {
+            case Dashboard\ComponentType::ONGOING_PACKS:
+                $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example, $meter);
+                break;
+            case Dashboard\ComponentType::CARRIER_TRACKING:
+                $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
+                break;
+            case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
+                $values += $this->serializeEntriesToHandle($entityManager, $componentType, $config, $example, $meter);
+                break;
+            case Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS:
+            case Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS:
+                $values += $this->serializeArrivalsAndPacks($componentType, $config, $example, $meter);
+                break;
+            case Dashboard\ComponentType::RECEIPT_ASSOCIATION:
+                $values += $this->serializeDailyReceptions($componentType, $config, $example);
+                break;
+            case Dashboard\ComponentType::DAILY_ARRIVALS:
+                $values += $this->serializeDailyArrivals($componentType, $config, $example);
+                break;
+            case Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS:
+            case Dashboard\ComponentType::PACK_TO_TREAT_FROM:
+            case Dashboard\ComponentType::MONETARY_RELIABILITY:
+                $values += $this->serializeSimpleChart($componentType, $example, $meter);
+                break;
+            case Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES:
+            case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
+            case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
+                $values += $this->serializeSimpleCounter($componentType, $example, $meter);
+                break;
+            default:
+                //TODO:remove
+                $values += $componentType->getExampleValues();
+                break;
         }
 
         return $values;
@@ -383,34 +397,15 @@ class DashboardSettingsService {
         return $values;
     }
 
-    private function serializeDroppedPacks(EntityManagerInterface $entityManager,
-                                           Dashboard\ComponentType $componentType,
-                                           array $config,
-                                           bool $example = false,
-                                           ?Dashboard\Meter\Chart $chart = null): array {
+    private function serializeSimpleChart(Dashboard\ComponentType $componentType,
+                                          bool $example = false,
+                                          ?DashboardMeter\Chart $chart = null): array {
 
         if (!$example) {
             if($chart) {
                 return ["chartData" => $chart->getData()];
             } else {
                 return ["chartData" => []];
-            }
-        } else {
-            return $componentType->getExampleValues();
-        }
-    }
-
-    private function serializePacksToTreatFrom(EntityManagerInterface $entityManager,
-                                           Dashboard\ComponentType $componentType,
-                                           array $config,
-                                           bool $example = false,
-                                           ?Dashboard\Meter\Chart $chart = null): array {
-
-        if (!$example) {
-            if($chart) {
-                return $chart->getData();
-            } else {
-                return [];
             }
         } else {
             return $componentType->getExampleValues();
@@ -434,6 +429,22 @@ class DashboardSettingsService {
             unset($chartValues['data']);
             $values += $chartValues;
         }
+        return $values;
+    }
+
+    public function serializeSimpleCounter(Dashboard\ComponentType $componentType,
+                                           bool $example = false,
+                                           DashboardMeter\Indicator $meter = null) {
+        if ($example) {
+            $values = $componentType->getExampleValues();
+        } else {
+            $values = [
+                'count' => $meter
+                    ? $meter->getCount()
+                    : '-'
+            ];
+        }
+
         return $values;
     }
 

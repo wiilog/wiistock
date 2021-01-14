@@ -2,11 +2,13 @@
 
 namespace App\Service;
 
+use App\Entity\Alert;
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
 use App\Entity\Dashboard;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
+use App\Entity\MouvementStock;
 use App\Entity\Pack;
 use App\Entity\Dashboard\Meter as DashboardMeter;
 use App\Entity\DaysWorked;
@@ -27,7 +29,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
-use phpDocumentor\Reflection\Types\Integer;
 use Throwable;
 
 class DashboardService {
@@ -55,14 +56,12 @@ class DashboardService {
     }
 
     public function refreshDate(EntityManagerInterface $manager): string {
-        $lock = $manager->getRepository(Wiilock::class)
-            ->findOneBy(["lockKey" => Wiilock::DASHBOARD_FED_KEY]);
+        $wiilockRepository = $manager->getRepository(Wiilock::class);
+        $lock = $wiilockRepository->findOneBy(["lockKey" => Wiilock::DASHBOARD_FED_KEY]);
 
-        if($lock) {
-            return FormatHelper::datetime($lock->getUpdateDate());
-        } else {
-            return "(date inconnue)";
-        }
+        return $lock
+            ? FormatHelper::datetime($lock->getUpdateDate())
+            : "(date inconnue)";
     }
 
     public function getWeekAssoc($firstDay, $lastDay, $beforeAfter) {
@@ -592,7 +591,6 @@ class DashboardService {
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
         $chartData = $this->getDailyObjectsStatistics(function(DateTime $date)
         use ($dsqrLabel, $gtLabel, $locationClusterMeterRepository) {
-
             return [
                 $dsqrLabel => $locationClusterMeterRepository->countByDate($date, LocationCluster::CLUSTER_CODE_PACKAGING_DSQR),
                 $gtLabel => $locationClusterMeterRepository->countByDate($date, LocationCluster::CLUSTER_CODE_PACKAGING_GT_TARGET, LocationCluster::CLUSTER_CODE_PACKAGING_GT_ORIGIN),
@@ -656,19 +654,111 @@ class DashboardService {
             (bool)$config['withLocationLabels']
         );
 
-        /** @var DashboardMeter\Indicator|null $meter */
-        $meter = $component->getMeter();
-
-        if (!isset($meter)) {
-            $meter = new DashboardMeter\Indicator();
-            $meter->setComponent($component);
-            $entityManager->persist($meter);
-        }
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
 
         $meter
             ->setCount($calculatedData ? $calculatedData['count'] : 0)
             ->setDelay($calculatedData ? $calculatedData['delay'] : 0)
             ->setSubtitle($calculatedData['subtitle'] ?? null);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @param bool $daily
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function persistArrivalsEmergencies(EntityManagerInterface $entityManager,
+                                               Dashboard\Component $component,
+                                               bool $daily): void {
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
+
+        $emergencyRepository = $entityManager->getRepository(Urgence::class);
+        $unsolvedEmergencies = $emergencyRepository->countUnsolved($daily);
+        $meter
+            ->setCount($unsolvedEmergencies ?? 0);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     */
+    public function persistActiveReferenceAlerts(EntityManagerInterface $entityManager,
+                                                 Dashboard\Component $component): void {
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
+
+        $alertRepository = $entityManager->getRepository(Alert::class);
+        $count = $alertRepository->countAllActive();
+
+        $meter
+            ->setCount($count ?? 0);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     */
+    public function persistMonetaryReliability(EntityManagerInterface $entityManager,
+                                               Dashboard\Component $component): void {
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
+
+        $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
+
+        $firstDayOfCurrentMonth = date("Y-m-d", strtotime("first day of this month"));
+        $lastDayOfCurrentMonth = date("Y-m-d", strtotime("last day of this month", strtotime($firstDayOfCurrentMonth)));
+        $precedentMonthFirst = $firstDayOfCurrentMonth;
+        $precedentMonthLast = $lastDayOfCurrentMonth;
+        $idx = 0;
+        $value = [];
+        $value['data'] = [];
+        while ($idx !== 6) {
+            $month = date("m", strtotime($precedentMonthFirst));
+            $month = date("F", mktime(0, 0, 0, $month, 10));
+            $totalEntryRefArticleOfPrecedentMonth = $mouvementStockRepository->countTotalEntryPriceRefArticle($precedentMonthFirst, $precedentMonthLast);
+            $totalExitRefArticleOfPrecedentMonth = $mouvementStockRepository->countTotalExitPriceRefArticle($precedentMonthFirst, $precedentMonthLast);
+            $totalRefArticleOfPrecedentMonth = $totalEntryRefArticleOfPrecedentMonth - $totalExitRefArticleOfPrecedentMonth;
+            $totalEntryArticleOfPrecedentMonth = $mouvementStockRepository->countTotalEntryPriceArticle($precedentMonthFirst, $precedentMonthLast);
+            $totalExitArticleOfPrecedentMonth = $mouvementStockRepository->countTotalExitPriceArticle($precedentMonthFirst, $precedentMonthLast);
+            $totalArticleOfPrecedentMonth = $totalEntryArticleOfPrecedentMonth - $totalExitArticleOfPrecedentMonth;
+
+            $nbrFiabiliteMonetaireOfPrecedentMonth = $totalRefArticleOfPrecedentMonth + $totalArticleOfPrecedentMonth;
+            $month = str_replace(
+                array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'),
+                array('Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'),
+                $month
+            );
+            $value['data'][$month] = $nbrFiabiliteMonetaireOfPrecedentMonth;
+            $precedentMonthFirst = date("Y-m-d", strtotime("-1 month", strtotime($precedentMonthFirst)));
+            $precedentMonthLast = date("Y-m-d", strtotime("last day of -1 month", strtotime($precedentMonthLast)));
+            $idx += 1;
+        }
+        $values = array_reverse($value['data']);
+
+        $meter
+            ->setData($values);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @param string $class
+     * @return DashboardMeter\Indicator|DashboardMeter\Chart
+     */
+    private function persistDashboardMeter(EntityManagerInterface $entityManager,
+                                           Dashboard\Component $component,
+                                           string $class) {
+
+        /** @var DashboardMeter\Indicator|DashboardMeter\Chart|null $meter */
+        $meter = $component->getMeter();
+
+        if (!isset($meter)) {
+            $meter = new $class();
+            $meter->setComponent($component);
+            $entityManager->persist($meter);
+        }
+
+        return $meter;
     }
 
     /**
@@ -724,13 +814,8 @@ class DashboardService {
             }, $workFreeDays)
         ];
 
-        $chart = $component->getMeter();
-        if (!isset($chart)) {
-            $chart = new Dashboard\Meter\Chart();
-            $chart->setComponent($component);
-            $entityManager->persist($chart);
-        }
-        $chart->setData($data);
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
+        $meter->setData($data);
     }
 
     /**
@@ -756,14 +841,8 @@ class DashboardService {
             );
         }, $workFreeDays);
 
-        $chart = $component->getMeter();
-        if (!isset($chart)) {
-            $chart = new Dashboard\Meter\Chart();
-            $chart->setComponent($component);
-            $entityManager->persist($chart);
-        }
-
-        $chart->setData($packsCountByDays);
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
+        $meter->setData($packsCountByDays);
     }
 
 
@@ -912,16 +991,9 @@ class DashboardService {
             ? $olderPackLocation['locationLabel']
             : null;
 
-        /** @var DashboardMeter\Chart $meterChart */
-        $meterChart = $component->getMeter();
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
 
-        if (!isset($meterChart)) {
-            $meterChart = new Dashboard\Meter\Chart();
-            $meterChart->setComponent($component);
-            $entityManager->persist($meterChart);
-        }
-
-        $meterChart
+        $meter
             ->setChartColors(
                 array_reduce(
                     $naturesFilter,
@@ -995,14 +1067,7 @@ class DashboardService {
             }
         }
 
-        /** @var DashboardMeter\Chart|null $meter */
-        $meter = $component->getMeter();
-
-        if (!isset($meter)) {
-            $meter = new DashboardMeter\Chart();
-            $meter->setComponent($component);
-            $entityManager->persist($meter);
-        }
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
 
         $meter
             ->setData($chartData);

@@ -398,7 +398,7 @@ class MouvementStockRepository extends EntityRepository
                         ->leftJoin('m.emplacementFrom', 'ef3')
                         ->leftJoin('m.emplacementTo', 'et3')
                         ->leftJoin('m.user', 'u3')
-                        ->andWhere('(
+                        ->andWhere("(
 						ra3.reference LIKE :value OR
 						ra4.reference LIKE :value OR
 						ef3.label LIKE :value OR
@@ -406,8 +406,9 @@ class MouvementStockRepository extends EntityRepository
 						a3.barCode LIKE :value OR
 						et3.label LIKE :value OR
 						m.type LIKE :value OR
-						u3.username LIKE :value
-						)')
+						u3.username LIKE :value OR
+						DATE_FORMAT(m.date, '%d/%m/%Y') LIKE :value
+						)")
                         ->setParameter('value', '%' . $search . '%');
                 }
             }

@@ -64,6 +64,7 @@ function loadDashboards(m) {
     $(window).bind('beforeunload', hasEditDashboard);
 
     if(mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
+        // all 5 min
         setInterval(function() {
             $.get(Routing.generate("dashboards_fetch", {mode}), function(response) {
                 dashboards = JSON.parse(response.dashboards);
