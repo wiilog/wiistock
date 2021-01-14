@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Alert;
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
+use App\Entity\Article;
 use App\Entity\Dashboard;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
@@ -17,6 +18,7 @@ use App\Entity\LatePack;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReceptionTraca;
+use App\Entity\ReferenceArticle;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
@@ -1071,6 +1073,32 @@ class DashboardService {
 
         $meter
             ->setData($chartData);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function persistReferenceReliability(EntityManagerInterface $entityManager,
+                                                Dashboard\Component $component): void {
+
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $stockMovementRepository = $entityManager->getRepository(MouvementStock::class);
+
+        $types = [
+            MouvementStock::TYPE_INVENTAIRE_ENTREE,
+            MouvementStock::TYPE_INVENTAIRE_SORTIE
+        ];
+        $nbStockInventoryMovements = $stockMovementRepository->countByTypes($types);
+        $nbActiveRefAndArt = $referenceArticleRepository->countActiveTypeRefRef() + $articleRepository->countActiveArticles();
+        $count = $nbActiveRefAndArt == 0 ? 0 : (1 - ($nbStockInventoryMovements / $nbActiveRefAndArt)) * 100;
+
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
+        $meter
+            ->setCount($count ?? 0);
     }
 
     private function getDaysWorked(EntityManagerInterface $entityManager): array {

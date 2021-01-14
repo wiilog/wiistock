@@ -18,7 +18,8 @@ const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
 const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
 const MONETARY_RELIABILITY = 'monetary_reliability';
-const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts'
+const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
+const REFERENCE_RELIABILITY = 'reference_reliability';
 
 $(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -77,7 +78,9 @@ const creators = {
             hideRange: true
         }
     },
-
+    [REFERENCE_RELIABILITY]: {
+        callback: createIndicatorElement
+    }
 };
 
 /**

@@ -88,6 +88,9 @@ class DashboardFeedCommand extends Command {
                 case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
                     $this->dashboardService->persistActiveReferenceAlerts($entityManager, $component);
                     break;
+                case Dashboard\ComponentType::REFERENCE_RELIABILITY:
+                    $this->dashboardService->persistReferenceReliability($entityManager, $component);
+                    break;
                 case Dashboard\ComponentType::MONETARY_RELIABILITY:
                     $this->dashboardService->persistMonetaryReliability($entityManager, $component);
                     break;

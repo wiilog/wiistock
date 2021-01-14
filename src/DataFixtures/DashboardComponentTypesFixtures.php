@@ -319,6 +319,15 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'exampleValues' => [
                 'count' => 11
             ],
+        ],
+        'Fiabilité par référence' => [
+            'hint' => 'A définir',
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::REFERENCE_RELIABILITY,
+            'exampleValues' => [
+                'count' => 25
+            ]
         ]
     ];
 

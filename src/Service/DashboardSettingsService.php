@@ -138,6 +138,7 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES:
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
             case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
+            case Dashboard\ComponentType::REFERENCE_RELIABILITY:
                 $values += $this->serializeSimpleCounter($componentType, $example, $meter);
                 break;
             default:
