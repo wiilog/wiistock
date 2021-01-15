@@ -19,6 +19,7 @@ const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
 const MONETARY_RELIABILITY = 'monetary_reliability';
 const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts'
+const DAILY_DISPATCHES = 'daily_dispatches';
 
 $(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -36,8 +37,7 @@ const creators = {
         callback: createCarrierTrackingElement
     },
     [DAILY_ARRIVALS]: {
-        callback: createChart,
-        arguments: {route: `get_arrival_um_statistics`}
+        callback: createChart
     },
     [LATE_PACKS]: {
         callback: createLatePacksElement
@@ -60,6 +60,9 @@ const creators = {
         arguments: {cssClass: 'multiple'}
     },
     [DROP_OFF_DISTRIBUTED_PACKS]: {
+        callback: createChart
+    },
+    [DAILY_DISPATCHES]: {
         callback: createChart
     },
     [ARRIVALS_EMERGENCIES_TO_RECEIVE]: {

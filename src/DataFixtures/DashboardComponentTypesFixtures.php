@@ -319,6 +319,23 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'exampleValues' => [
                 'count' => 11
             ],
+        ],
+        'Nombre d\'acheminements quotidiens' => [
+            'hint' => 'Nombre d\'acheminements ayant leurs dates d\'échéances sur les jours présentés',
+            'exampleValues' => [
+                'chartData' => [
+                    '04/01' => 2,
+                    '05/01' => 6,
+                    '06/01' => 4,
+                    '07/01' => 0,
+                    '08/01' => 10,
+                    '09/01' => 8,
+                    '10/01' => 5,
+                ],
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
+            'template' => Dashboard\ComponentType::DAILY_DISPATCHES,
+            'meterKey' => Dashboard\ComponentType::DAILY_DISPATCHES,
         ]
     ];
 

@@ -6,6 +6,7 @@ use App\Entity\Alert;
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
 use App\Entity\Dashboard;
+use App\Entity\Dispatch;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
 use App\Entity\MouvementStock;
@@ -29,6 +30,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
+use InvalidArgumentException;
 use Throwable;
 
 class DashboardService {
@@ -40,6 +42,9 @@ class DashboardService {
 
     public const DEFAULT_DAILY_REQUESTS_SCALE = 5;
     public const DEFAULT_WEEKLY_REQUESTS_SCALE = 7;
+
+    public const DAILY_PERIOD_NEXT_DAYS = 'nextDays';
+    public const DAILY_PERIOD_PREVIOUS_DAYS = 'previousDays';
 
     private $enCoursService;
     private $entityManager;
@@ -365,7 +370,7 @@ class DashboardService {
 
         if (!empty($locationIds)) {
             $locationRepository = $entityManager->getRepository(Emplacement::class);
-            $locations = $locationRepository->findByIds($locationIds);
+            $locations = $locationRepository->findBy(['id' => $locationIds]);
         } else {
             $locations = [];
         }
@@ -1026,7 +1031,7 @@ class DashboardService {
         $dailyRequest = ($type->getMeterKey() === Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS);
 
         if (!$dailyRequest && !$weeklyRequest) {
-            throw new \InvalidArgumentException('Invalid component type');
+            throw new InvalidArgumentException('Invalid component type');
         }
 
         $displayPackNatures = $config['displayPackNatures'] ?? false;
@@ -1069,6 +1074,41 @@ class DashboardService {
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
 
+        $meter
+            ->setData($chartData);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @throws Exception
+     */
+    public function persistDailyDispatches(EntityManagerInterface $entityManager,
+                                           Dashboard\Component $component): void
+    {
+        $config = $component->getConfig();
+
+        $dispatchStatusesFilter = $config['handlingStatuses'] ?? [];
+        $dispatchTypesFilter = $config['handlingTypes'] ?? [];
+        $scale = $config['scale'] ?? self::DEFAULT_DAILY_REQUESTS_SCALE;
+        $period = $config['period'] ?? self::DAILY_PERIOD_PREVIOUS_DAYS;
+
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+
+        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
+
+        $chartData = $this->getDailyObjectsStatistics(
+            $entityManager,
+            $scale,
+            function(DateTime $dateMin, DateTime $dateMax) use ($dispatchRepository, $dispatchStatusesFilter, $dispatchTypesFilter) {
+                return $dispatchRepository->countByDates($dateMin, $dateMax, $dispatchStatusesFilter, $dispatchTypesFilter);
+            },
+            $workFreeDays,
+            $period
+        );
+
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter
             ->setData($chartData);
     }
@@ -1120,13 +1160,20 @@ class DashboardService {
      * @param int $nbDaysToReturn
      * @param callable $getCounter (DateTime $dateMin, DateTime $dateMax) => integer
      * @param array $workFreeDays Days we have to ignore
+     * @param string $period
      * @return array ['d/m' => $getCounter return]
      * @throws Exception
      */
     private function getDailyObjectsStatistics(EntityManagerInterface $entityManager,
                                                int $nbDaysToReturn,
                                                callable $getCounter,
-                                               array $workFreeDays = []): array {
+                                               array $workFreeDays = [],
+                                               string $period = self::DAILY_PERIOD_PREVIOUS_DAYS): array {
+
+        if (!in_array($period, [self::DAILY_PERIOD_PREVIOUS_DAYS, self::DAILY_PERIOD_NEXT_DAYS])) {
+            throw new InvalidArgumentException();
+        }
+
         $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
 
         $daysToReturn = [];
@@ -1136,13 +1183,19 @@ class DashboardService {
 
         if (!empty($workedDaysLabels)) {
             while (count($daysToReturn) < $nbDaysToReturn) {
-                $dateToCheck = new DateTime("now - $dayIndex days", new DateTimeZone('Europe/Paris'));
+                $operator = $period === self::DAILY_PERIOD_PREVIOUS_DAYS ? '-' : '+';
+                $dateToCheck = new DateTime("now " . $operator . " $dayIndex days", new DateTimeZone('Europe/Paris'));
 
                 if (!$this->enCoursService->isDayInArray($dateToCheck, $workFreeDays)) {
                     $dateDayLabel = strtolower($dateToCheck->format('l'));
 
                     if (in_array($dateDayLabel, $workedDaysLabels)) {
-                        $daysToReturn[] = $dateToCheck;
+                        if ($period === self::DAILY_PERIOD_PREVIOUS_DAYS) {
+                            array_unshift($daysToReturn, $dateToCheck);
+                        }
+                        else {
+                            $daysToReturn[] = $dateToCheck;
+                        }
                     }
                 }
 
@@ -1151,7 +1204,7 @@ class DashboardService {
         }
 
         return array_reduce(
-            array_reverse($daysToReturn),
+            $daysToReturn,
             function(array $carry, DateTime $dateToCheck) use ($getCounter) {
                 $dateMin = clone $dateToCheck;
                 $dateMin->setTime(0, 0, 0);

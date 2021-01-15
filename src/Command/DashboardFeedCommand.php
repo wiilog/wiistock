@@ -91,6 +91,9 @@ class DashboardFeedCommand extends Command {
                 case Dashboard\ComponentType::MONETARY_RELIABILITY:
                     $this->dashboardService->persistMonetaryReliability($entityManager, $component);
                     break;
+                case Dashboard\ComponentType::DAILY_DISPATCHES:
+                    $this->dashboardService->persistDailyDispatches($entityManager, $component);
+                    break;
                 default:
                     break;
             }
