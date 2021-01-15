@@ -162,7 +162,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ],
             ParametrageGlobal::OVERCONSUMPTION_LOGO => [],
             ParametrageGlobal::WEBSITE_LOGO => [
-                'default' => "img/followGTwhite.svg"
+                'default' => ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE
             ],
             ParametrageGlobal::EMAIL_LOGO => [
                 'default' => "img/gtlogistics.jpg"

@@ -141,6 +141,7 @@ class ParametrageGlobal
         'label'=> '1252 Europe de l\'ouest Windows'
     ];
 
+    const DEFAULT_LOGO_VALUE = "img/followGTwhite.svg";
 
 
 	/**

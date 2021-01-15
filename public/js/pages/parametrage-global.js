@@ -1,5 +1,9 @@
 const maxSizeFileAllowed = 10000000;
-let allowedLogoExtensions = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg'];
+const protocol = window.location.protocol;
+const link = window.location.hostname;
+let defaultLogo = "/img/followGTwhite.svg";
+let linkDefaultLogo = protocol+"//"+link+defaultLogo;
+let allowedLogoExtensions = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg','svg'];
 let pathDays = Routing.generate('days_param_api', true);
 let disabledDates = [];
 let tableDaysConfig = {
@@ -29,6 +33,13 @@ let modalEditDays = $('#modalEditDays');
 let submitEditDays = $('#submitEditDays');
 let urlEditDays = Routing.generate('days_edit', true);
 InitModal(modalEditDays, submitEditDays, urlEditDays, {tables: [tableDays]});
+
+const resetLogos = {
+    website: false,
+    mailLogo: false,
+    nomadeAccueil: false,
+    nomadeHeader: false,
+}
 
 $(function () {
     Select2.init($('#locationArrivageDest'));
@@ -74,6 +85,26 @@ $(function () {
 
     $('#locationDemandeLivraison').on('change', function() {
         editParamLocations($(this), $('#locationDemandeLivraisonValue'));
+    });
+
+    $('#upload-website-default-logo').on('click', function() {
+        $('#preview-website-logo').attr( "src", linkDefaultLogo)
+        resetLogos.website = true;
+    });
+
+    $('#upload-email-default-logo').on('click', function() {
+        $('#preview-email-logo').attr( "src", linkDefaultLogo);
+        resetLogos.mailLogo = true;
+    });
+
+    $('#upload-mobile-login-default-logo').on('click', function() {
+        $('#preview-mobile-logo-login').attr( "src", linkDefaultLogo);
+        resetLogos.nomadeAccueil = true;
+    });
+
+    $('#upload-mobile-header-default-logo').on('click', function() {
+        $('#preview-mobile-logo-header').attr( "src", linkDefaultLogo);
+        resetLogos.nomadeHeader = true;
     });
     // config tableau de bord : transporteurs
 
@@ -348,7 +379,7 @@ function editAppearance() {
     });
 
     showBSAlert("Mise à jour de l'apparence. Veuillez patienter.", 'success', false);
-
+    data.append('reset-logos', JSON.stringify(resetLogos));
     $.ajax(path, {
         data: data,
         type: 'POST',
@@ -420,7 +451,7 @@ function updateImagePreview(preview, upload) {
 
                         reader.readAsDataURL($upload.files[0]);
                     } else {
-                        showBSAlert('Veuillez choisir une image valide (png, jpeg, jpg).', 'danger')
+                        showBSAlert('Veuillez choisir une image valide (png, jpeg, jpg, svg).', 'danger')
                     }
                 } else {
                     showBSAlert('La taille du fichier est supérieure à 10 mo.', 'danger')
