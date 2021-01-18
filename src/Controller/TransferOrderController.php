@@ -116,14 +116,43 @@ class TransferOrderController extends AbstractController {
                 ReferenceArticle::STATUT_INACTIF
             );
 
+            $inTransit = [];
+
             foreach ($transferRequest->getReferences() as $reference) {
+                if($reference->getStatut()->getCode() === Article::STATUT_EN_TRANSIT) {
+                    $inTransit["reference"][] = $reference->getReference();
+                }
+
                 $reference->setStatut($transitStatusForRefs);
             }
 
             foreach ($transferRequest->getArticles() as $article) {
+                if($article->getStatut()->getCode() === Article::STATUT_EN_TRANSIT) {
+                    $inTransit["article"][] = $article->getBarCode();
+                }
+
                 $article
                     ->setStatut($transitStatusForArticles)
                     ->setQuantiteAPrelever($article->getQuantite());
+            }
+
+            if(!empty($inTransit)) {
+                $output = [];
+
+                if(isset($inTransit["reference"])) {
+                    $references = implode(", ", $inTransit["reference"]);
+                    $output[] = "Les références $references sont en transit.";
+                }
+
+                if(isset($inTransit["article"])) {
+                    $articles = implode(", ", $inTransit["article"]);
+                    $output[] = "Les articles $articles sont en transit.";
+                }
+
+                return new JsonResponse([
+                    "success" => false,
+                    "msg" => implode(" ", $output)
+                ]);
             }
 
             $transferRequest->setStatus($toTreatRequest);
