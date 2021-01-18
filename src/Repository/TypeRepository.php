@@ -208,16 +208,4 @@ class TypeRepository extends EntityRepository
 
 		return $query->getOneOrNullResult();
 	}
-
-    /**
-     * @param array $ids
-     * @return array
-     */
-    public function findByIds(array $ids): array {
-        return $this->createQueryBuilder('type')
-            ->where('type.id IN (:ids)')
-            ->setParameter('ids', $ids, Connection::PARAM_STR_ARRAY)
-            ->getQuery()
-            ->getResult();
-    }
 }

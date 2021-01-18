@@ -810,7 +810,7 @@ class ArticleController extends AbstractController
             function (Article $article) use ($articleDataService) {
                 return $articleDataService->getBarcodeConfig($article);
             },
-            $articleRepository->findByIds($listArticles)
+            $articleRepository->findBy(['id' => $listArticles])
         );
         $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
 

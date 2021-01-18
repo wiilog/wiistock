@@ -19,7 +19,10 @@ const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
 const MONETARY_RELIABILITY_GRAPH = 'monetary_reliability_graph';
 const MONETARY_RELIABILITY_INDICATOR = 'monetary_reliability_indicator';
-const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts'
+const MONETARY_RELIABILITY = 'monetary_reliability';
+const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
+const REFERENCE_RELIABILITY = 'reference_reliability';
+const DAILY_DISPATCHES = 'daily_dispatches';
 
 $(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -63,6 +66,9 @@ const creators = {
     [DROP_OFF_DISTRIBUTED_PACKS]: {
         callback: createChart
     },
+    [DAILY_DISPATCHES]: {
+        callback: createChart
+    },
     [ARRIVALS_EMERGENCIES_TO_RECEIVE]: {
         callback: createIndicatorElement
     },
@@ -79,6 +85,9 @@ const creators = {
         }
     },
     [MONETARY_RELIABILITY_INDICATOR]: {
+        callback: createIndicatorElement
+    },
+    [REFERENCE_RELIABILITY]: {
         callback: createIndicatorElement
     }
 };

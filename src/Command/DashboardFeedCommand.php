@@ -93,6 +93,14 @@ class DashboardFeedCommand extends Command {
                     break;
                 case Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR:
                     $this->dashboardService->persistMonetaryReliabilityIndicator($entityManager, $component);
+                case Dashboard\ComponentType::REFERENCE_RELIABILITY:
+                    $this->dashboardService->persistReferenceReliability($entityManager, $component);
+                    break;
+                case Dashboard\ComponentType::MONETARY_RELIABILITY:
+                    $this->dashboardService->persistMonetaryReliability($entityManager, $component);
+                    break;
+                case Dashboard\ComponentType::DAILY_DISPATCHES:
+                    $this->dashboardService->persistDailyDispatches($entityManager, $component);
                     break;
                 default:
                     break;

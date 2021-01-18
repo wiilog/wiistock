@@ -139,7 +139,11 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
             case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
             case Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR:
+            case Dashboard\ComponentType::REFERENCE_RELIABILITY:
                 $values += $this->serializeSimpleCounter($componentType, $example, $meter);
+                break;
+            case Dashboard\ComponentType::DAILY_DISPATCHES:
+                $values += $this->serializeDailyDispatches($componentType, $config, $example, $meter);
                 break;
             default:
                 //TODO:remove
@@ -322,7 +326,7 @@ class DashboardSettingsService {
             $carrierRepository = $manager->getRepository(Transporteur::class);
 
             if ($example) {
-                $carriers = $carrierRepository->findByIds($config['carriers']);
+                $carriers = $carrierRepository->findBy(['id' => $config['carriers']]);
             } else {
                 $carriers = $carrierRepository->getDailyArrivalCarriersLabel($config['carriers']);
             }
@@ -446,6 +450,44 @@ class DashboardSettingsService {
             ];
         }
 
+        return $values;
+    }
+
+    /**
+     * @param Dashboard\ComponentType $componentType
+     * @param array $config
+     * @param bool $example
+     * @param DashboardMeter\Chart|null $chart
+     * @return array
+     */
+    private function serializeDailyDispatches(Dashboard\ComponentType $componentType,
+                                              array $config,
+                                              bool $example = false,
+                                              DashboardMeter\Chart $chart = null): array {
+
+        if (!$example) {
+            if ($chart) {
+                $values = ["chartData" => $chart->getData()];
+            } else {
+                $values = ["chartData" => []];
+            }
+        } else {
+            $values = $componentType->getExampleValues();
+
+            $scale = $config['scale'] ?? DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE;
+
+            $chartData = $values['chartData'] ?? [];
+            $keysToKeep = array_slice(array_keys($chartData), 0, $scale);
+            $chartData = Stream::from($keysToKeep)
+                ->reduce(function (array $carry, string $key) use ($chartData) {
+                    if (isset($chartData[$key])) {
+                        $carry[$key] = $chartData[$key];
+                    }
+                    return $carry;
+                }, []);
+
+            $values['chartData'] = $chartData;
+        }
         return $values;
     }
 
