@@ -137,6 +137,7 @@ class ApiController extends AbstractFOSRestController {
     /**
      * @Rest\Get("/api/ping", condition="request.isXmlHttpRequest()")
      * @Rest\View()
+     * @Wii\RestVersionChecked()
      * @return Response
      */
     public function ping() {

@@ -38,6 +38,9 @@ class DashboardSettingsController extends AbstractController {
     /**
      * @Route("/", name="dashboard_settings", methods={"GET"})
      * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS})
+     * @param DashboardSettingsService $dashboardSettingsService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
     public function settings(DashboardSettingsService $dashboardSettingsService,
                              EntityManagerInterface $entityManager): Response {
@@ -47,22 +50,31 @@ class DashboardSettingsController extends AbstractController {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
+        $orderedComponentCategories = [
+            Dashboard\ComponentType::CATEGORY_TRACKING,
+            Dashboard\ComponentType::CATEGORY_ORDERS,
+            Dashboard\ComponentType::CATEGORY_STOCK,
+            Dashboard\ComponentType::CATEGORY_REQUESTS
+        ];
+
+        $componentTypes = Stream::from($componentTypes)
+            ->reduce(function(array $carry, Dashboard\ComponentType $componentType) {
+                $category = $componentType->getCategory();
+                if(!isset($carry[$category])) {
+                    $carry[$category] = [];
+                }
+
+                $carry[$category][] = $componentType;
+
+                return $carry;
+            }, []);
+
         return $this->render("dashboard/settings.html.twig", [
             "dashboards" => $dashboardSettingsService->serialize($entityManager, $loggedUser, DashboardSettingsService::MODE_EDIT),
             "token" => $_SERVER["APP_DASHBOARD_TOKEN"],
             "componentTypeConfig" => [
                 // component types group by category
-                "componentTypes" => Stream::from($componentTypes)
-                    ->reduce(function(array $carry, Dashboard\ComponentType $componentType) {
-                        $category = $componentType->getCategory();
-                        if(!isset($carry[$category])) {
-                            $carry[$category] = [];
-                        }
-
-                        $carry[$category][] = $componentType;
-
-                        return $carry;
-                    }, [])
+                "componentTypes" => array_merge(array_flip($orderedComponentCategories), $componentTypes)
             ]
         ]);
     }
@@ -70,6 +82,10 @@ class DashboardSettingsController extends AbstractController {
     /**
      * @Route("/save", name="save_dashboard_settings", options={"expose"=true}, methods={"POST"})
      * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS}, mode=HasPermission::IN_JSON)
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param DashboardSettingsService $dashboardSettingsService
+     * @return Response
      */
     public function save(Request $request,
                          EntityManagerInterface $entityManager,
@@ -114,6 +130,10 @@ class DashboardSettingsController extends AbstractController {
     /**
      * @Route("/api-component-type/{componentType}", name="dashboard_component_type_form", methods={"POST"}, options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS}, mode=HasPermission::IN_JSON)
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\ComponentType $componentType
+     * @return Response
      */
     public function apiComponentTypeForm(Request $request,
                                          EntityManagerInterface $entityManager,
@@ -204,6 +224,11 @@ class DashboardSettingsController extends AbstractController {
     /**
      * @Route("/api-component-type/{componentType}/example-values", name="dashboard_component_type_example_values", methods={"POST"}, options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS}, mode=HasPermission::IN_JSON)
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param DashboardSettingsService $dashboardSettingsService
+     * @param Dashboard\ComponentType $componentType
+     * @return Response
      */
     public function apiComponentTypeExample(Request $request,
                                             EntityManagerInterface $entityManager,

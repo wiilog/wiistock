@@ -184,18 +184,15 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="article_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @return Response
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            $data = $this->articleDataService->getDataForDatatable($request->request, $this->getUser());
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        $data = $this->articleDataService->getDataForDatatable($request->request, $this->getUser());
+        return new JsonResponse($data);
     }
 
     /**
@@ -257,9 +254,7 @@ class ArticleController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param MouvementStockService $mouvementStockService
      * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @throws NonUniqueResultException
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
@@ -351,10 +346,6 @@ class ArticleController extends AbstractController
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $articleRepository = $entityManager->getRepository(Article::class);
 
             /** @var Article $article */
@@ -603,7 +594,7 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/colonne-visible", name="save_column_visible_for_article", options={"expose"=true}, methods="GET|POST")
+     * @Route("/colonne-visible", name="save_column_visible_for_article", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -611,19 +602,16 @@ class ArticleController extends AbstractController
      */
     public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            $data = json_decode($request->getContent(), true);
-            $champs = array_keys($data);
-            $user = $this->getUser();
-            /** @var $user Utilisateur */
-            $user->setColumnsVisibleForArticle($champs);
-            $entityManager->flush();
+        $data = json_decode($request->getContent(), true);
+        $champs = array_keys($data);
+        $user = $this->getUser();
+        /** @var $user Utilisateur */
+        $user->setColumnsVisibleForArticle($champs);
+        $entityManager->flush();
 
-            return $this->json([
-                "success" => true
-            ]);
-        }
-        throw new BadRequestHttpException();
+        return $this->json([
+            "success" => true
+        ]);
     }
 
     /**

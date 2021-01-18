@@ -31,7 +31,7 @@ class ComponentType
     public const DAILY_DISPATCHES = 'daily_dispatches';
 
     public const CATEGORY_TRACKING = "Traçabilité";
-    public const REQUESTS = "Demandes";
+    public const CATEGORY_REQUESTS = "Demandes";
     public const CATEGORY_ORDERS = "Ordres";
     public const CATEGORY_STOCK = "Stock";
 
