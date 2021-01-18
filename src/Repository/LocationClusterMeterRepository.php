@@ -11,7 +11,7 @@ use Doctrine\ORM\EntityRepository;
 class LocationClusterMeterRepository extends EntityRepository {
     public function countByDate(DateTime $date,
                                 LocationCluster $locationClusterCodeInto,
-                                string $locationClusterCodeFrom = null): int {
+                                ?LocationCluster $locationClusterCodeFrom = null): int {
         $queryBuilder = $this->createQueryBuilder('meter');
 
         $queryBuilder
@@ -25,8 +25,8 @@ class LocationClusterMeterRepository extends EntityRepository {
 
         if (!empty($locationClusterCodeFrom)) {
             $queryBuilder
-                ->andWhere('locationClusterFrom.code = :fromCode')
-                ->setParameter('fromCode', $locationClusterCodeFrom);
+                ->andWhere('locationClusterFrom = :from')
+                ->setParameter('from', $locationClusterCodeFrom);
         }
         else {
             $queryBuilder

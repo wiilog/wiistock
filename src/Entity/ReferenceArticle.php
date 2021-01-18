@@ -205,7 +205,7 @@ class ReferenceArticle extends FreeFieldEntity
     private $managers;
 
     /**
-     * @ORM\OneToMany(targetEntity=Alert::class, mappedBy="reference")
+     * @ORM\OneToMany(targetEntity=Alert::class, mappedBy="reference", cascade={"remove"})
      */
     private $alerts;
 

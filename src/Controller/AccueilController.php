@@ -2,35 +2,14 @@
 
 namespace App\Controller;
 
-use App\Entity\Action;
-use App\Entity\Alert;
-use App\Entity\Article;
-use App\Entity\AverageRequestTime;
-use App\Entity\CategorieStatut;
-use App\Entity\Collecte;
 use App\Entity\Dashboard\ComponentType;
-use App\Entity\Demande;
 use App\Entity\FiabilityByReference;
-use App\Entity\Handling;
 use App\Entity\LocationCluster;
-use App\Entity\Menu;
-use App\Entity\MouvementStock;
-use App\Entity\ReferenceArticle;
-use App\Entity\Statut;
-use App\Entity\Utilisateur;
 use App\Entity\Wiilock;
-use App\Helper\Stream;
-use App\Repository\AverageRequestTimeRepository;
 use App\Service\DashboardSettingsService;
-use App\Service\DateService;
 use App\Service\DashboardService;
-use App\Service\DemandeCollecteService;
-use App\Service\DemandeLivraisonService;
-use App\Service\HandlingService;
-use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -41,52 +20,6 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AccueilController extends AbstractController
 {
-
-    /**
-     * @Route(
-     *     "/statistiques/fiabilite-monetaire",
-     *     name="get_monetary_fiability_statistics",
-     *     options={"expose"=true},
-     *     methods="GET",
-     *     condition="request.isXmlHttpRequest()"
-     * )
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function getMonetaryFiabilityStatistics(EntityManagerInterface $entityManager): Response
-    {
-        $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
-        $firstDayOfCurrentMonth = date("Y-m-d", strtotime("first day of this month"));
-        $lastDayOfCurrentMonth = date("Y-m-d", strtotime("last day of this month", strtotime($firstDayOfCurrentMonth)));
-        $precedentMonthFirst = $firstDayOfCurrentMonth;
-        $precedentMonthLast = $lastDayOfCurrentMonth;
-        $idx = 0;
-        $value = [];
-        $value['data'] = [];
-        while ($idx !== 6) {
-            $month = date("m", strtotime($precedentMonthFirst));
-            $month = date("F", mktime(0, 0, 0, $month, 10));
-            $totalEntryRefArticleOfPrecedentMonth = $mouvementStockRepository->countTotalEntryPriceRefArticle($precedentMonthFirst, $precedentMonthLast);
-            $totalExitRefArticleOfPrecedentMonth = $mouvementStockRepository->countTotalExitPriceRefArticle($precedentMonthFirst, $precedentMonthLast);
-            $totalRefArticleOfPrecedentMonth = $totalEntryRefArticleOfPrecedentMonth - $totalExitRefArticleOfPrecedentMonth;
-            $totalEntryArticleOfPrecedentMonth = $mouvementStockRepository->countTotalEntryPriceArticle($precedentMonthFirst, $precedentMonthLast);
-            $totalExitArticleOfPrecedentMonth = $mouvementStockRepository->countTotalExitPriceArticle($precedentMonthFirst, $precedentMonthLast);
-            $totalArticleOfPrecedentMonth = $totalEntryArticleOfPrecedentMonth - $totalExitArticleOfPrecedentMonth;
-
-            $nbrFiabiliteMonetaireOfPrecedentMonth = $totalRefArticleOfPrecedentMonth + $totalArticleOfPrecedentMonth;
-            $month = str_replace(
-                array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'),
-                array('Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'),
-                $month
-            );
-            $value['data'][$month] = $nbrFiabiliteMonetaireOfPrecedentMonth;
-            $precedentMonthFirst = date("Y-m-d", strtotime("-1 month", strtotime($precedentMonthFirst)));
-            $precedentMonthLast = date("Y-m-d", strtotime("last day of -1 month", strtotime($precedentMonthLast)));
-            $idx += 1;
-        }
-        $value = array_reverse($value['data']);
-        return new JsonResponse($value);
-    }
 
     /**
      * @Route("/statistiques/graphique-reference", name="graph_ref", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
@@ -281,7 +214,6 @@ class AccueilController extends AbstractController
      * @param DashboardService $dashboardService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function getIndicatorsMonitoringPackaging(DashboardService $dashboardService, EntityManagerInterface $entityManager): Response
@@ -369,7 +301,6 @@ class AccueilController extends AbstractController
      * @param DashboardService $dashboardService
      * @return Response
      *
-     * @throws NonUniqueResultException
      */
     public function getDailyCarriersStatistics(DashboardService $dashboardService): Response
     {

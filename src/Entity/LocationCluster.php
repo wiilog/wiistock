@@ -3,7 +3,6 @@
 
 namespace App\Entity;
 
-use App\Entity\Dashboard\Component;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
@@ -56,9 +55,14 @@ class LocationCluster {
 
     /**
      * @var Dashboard\Component
-     * @ORM\OneToOne(targetEntity=Dashboard\Component::class, inversedBy="locationCluster")
+     * @ORM\ManyToOne(targetEntity=Dashboard\Component::class, inversedBy="locationClusters")
      */
     private $component;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=false)
+     */
+    private $clusterKey;
 
     public function __construct() {
         $this->locations = new ArrayCollection();
@@ -238,14 +242,26 @@ class LocationCluster {
     public function setComponent(?Dashboard\Component $component): self {
 
         if ($this->component) {
-            $this->component->setLocationCluster(null);
+            $this->component->removeLocationCluster($this);
         }
 
         $this->component = $component;
 
         if ($this->component) {
-            $this->component->setLocationCluster($this);
+            $this->component->addLocationCluster($this);
         }
+
+        return $this;
+    }
+
+    public function getClusterKey(): ?string
+    {
+        return $this->clusterKey;
+    }
+
+    public function setClusterKey(?string $clusterKey): self
+    {
+        $this->clusterKey = $clusterKey;
 
         return $this;
     }

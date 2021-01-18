@@ -22,6 +22,8 @@ class ArticleQuantityNotifier {
     private $entityManager;
     private $expiryDelay;
 
+    private static $treatedReferenceArticle = [];
+
     public function __construct(RefArticleDataService $refArticleDataService,
                                 AlertService $alertService,
                                 EntityManagerInterface $entityManager) {
@@ -69,11 +71,15 @@ class ArticleQuantityNotifier {
         $articleFournisseur = $article->getArticleFournisseur();
         if(isset($articleFournisseur)) {
             $referenceArticle = $articleFournisseur->getReferenceArticle();
-            $this->refArticleService->updateRefArticleQuantities($referenceArticle);
-            $entityManager->flush();
-            $this->refArticleService->treatAlert($referenceArticle);
-            $this->treatAlert($article);
-            $entityManager->flush();
+            $referenceArticleId = $referenceArticle->getId();
+            if (!in_array($referenceArticleId, self::$treatedReferenceArticle)) {
+                self::$treatedReferenceArticle[] = $referenceArticle->getId();
+                $this->refArticleService->updateRefArticleQuantities($referenceArticle);
+                $entityManager->flush();
+                $this->refArticleService->treatAlert($referenceArticle);
+                $this->treatAlert($article);
+                $entityManager->flush();
+            }
         }
     }
 

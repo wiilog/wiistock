@@ -11,7 +11,7 @@ function initTooltips($elements) {
 function renderMillisecondsToDelay(milliseconds, type) {
     let res;
 
-    if (type === 'display') {
+    if (!isNaN(milliseconds) && type === 'display') {
         const hours = Math.floor(milliseconds / 1000 / 60 / 60);
         const minutes = Math.floor(milliseconds / 1000 / 60) % 60;
         res = (

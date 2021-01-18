@@ -42,7 +42,7 @@ class DemandeRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findRequestToTreatByUser(Utilisateur $requester) {
+    public function findRequestToTreatByUser(Utilisateur $requester, int $limit) {
         $statuses = [
             Demande::STATUT_BROUILLON,
             Demande::STATUT_A_TRAITER,
@@ -69,6 +69,7 @@ class DemandeRepository extends EntityRepository
             ])
             ->addOrderBy(sprintf("FIELD(status.nom, '%s', '%s', '%s', '%s', '%s')", ...$statuses), 'DESC')
             ->addOrderBy("DATE_ADD(demande.date, art.average, 'second')", 'ASC')
+            ->setMaxResults($limit)
             ->getQuery()
             ->execute();
     }
@@ -279,13 +280,13 @@ class DemandeRepository extends EntityRepository
 						->join('d.statut', 's2')
 						->join('d.type', 't2')
 						->join('d.utilisateur', 'u2')
-                        ->andWhere('(
-                            d.date LIKE :value
+                        ->andWhere("(
+                            DATE_FORMAT(d.date, '%d/%m/%Y') LIKE :value
                             OR u2.username LIKE :value
                             OR d.numero LIKE :value
                             OR s2.nom LIKE :value
                             OR t2.label LIKE :value
-                        )')
+                        )")
                         ->setParameter('value', '%' . $search . '%');
                 }
             }

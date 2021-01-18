@@ -15,14 +15,6 @@ use Doctrine\ORM\EntityRepository;
 class NatureRepository extends EntityRepository
 {
 
-    public function findByIds(array $ids): array {
-        return $this->createQueryBuilder('nature')
-            ->where('nature.id IN (:ids)')
-            ->setParameter("ids", $ids, Connection::PARAM_STR_ARRAY)
-            ->getQuery()
-            ->getResult();
-    }
-
     public function getAllowedNaturesIdByLocation() {
         return $this->createQueryBuilder('nature')
             ->select('nature.id AS nature_id')

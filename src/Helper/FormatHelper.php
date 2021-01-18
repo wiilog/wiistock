@@ -7,7 +7,6 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use DateTimeInterface;
-use Traversable;
 
 class FormatHelper {
 
@@ -43,7 +42,7 @@ class FormatHelper {
     }
 
     public static function carriers($carriers) {
-        return self::entity($carriers, "username");
+        return self::entity($carriers, "label");
     }
 
     public static function locations($locations) {

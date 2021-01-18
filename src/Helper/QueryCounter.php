@@ -20,6 +20,7 @@ class QueryCounter {
 
         return $countQuery
             ->resetDQLPart('orderBy')
+            ->resetDQLPart('groupBy')
             ->select("COUNT(DISTINCT $alias) AS __query_count")
             ->getQuery()
             ->getSingleResult()["__query_count"];

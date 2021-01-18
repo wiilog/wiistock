@@ -223,22 +223,22 @@ class HandlingRepository extends EntityRepository
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
 					$qb
-                        ->leftJoin('handling.type', 'search_type')
-                        ->leftJoin('handling.requester', 'search_requester')
-                        ->leftJoin('handling.status', 'search_status')
-                        ->leftJoin('handling.treatedByHandling', 'search_treatedBy')
-						->andWhere('(
+                        ->leftJoin("handling.type", 'search_type')
+                        ->leftJoin("handling.requester", 'search_requester')
+                        ->leftJoin("handling.status", 'search_status')
+                        ->leftJoin("handling.treatedByHandling", 'search_treatedBy')
+						->andWhere("(
                             handling.number LIKE :search_value
-                            OR handling.creationDate LIKE :search_value
+                            OR DATE_FORMAT(handling.creationDate, '%d/%m/%Y') LIKE :search_value
                             OR search_type.label LIKE :search_value
                             OR search_requester.username LIKE :search_value
                             OR handling.subject LIKE :search_value
-                            OR handling.desiredDate LIKE :search_value
-                            OR handling.validationDate LIKE :search_value
+                            OR DATE_FORMAT(handling.desiredDate, '%d/%m/%Y') LIKE :search_value
+                            OR DATE_FORMAT(handling.validationDate, '%d/%m/%Y') LIKE :search_value
                             OR search_status.nom LIKE :search_value
                             OR search_treatedBy.username LIKE :search_value
                             OR handling.carriedOutOperationCount LIKE :search_value
-						)')
+						)")
 						->setParameter('search_value', '%' . $search . '%');
 				}
 			}
@@ -296,7 +296,7 @@ class HandlingRepository extends EntityRepository
         ];
     }
 
-    public function findRequestToTreatByUser(Utilisateur $requester) {
+    public function findRequestToTreatByUser(Utilisateur $requester, int $limit) {
         return $this->createQueryBuilder("h")
             ->select("h")
             ->innerJoin("h.status", "s")
@@ -306,6 +306,7 @@ class HandlingRepository extends EntityRepository
             ->setParameter("requester", $requester)
             ->addOrderBy('s.state', 'ASC')
             ->addOrderBy("DATE_ADD(h.creationDate, art.average, 'second')", 'ASC')
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }
@@ -339,5 +340,44 @@ class HandlingRepository extends EntityRepository
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;
+    }
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @param array $handlingStatusesFilter
+     * @param array $handlingTypesFilter
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByDates(DateTime $dateMin,
+                                 DateTime $dateMax,
+                                 array $handlingStatusesFilter = [],
+                                 array $handlingTypesFilter = []): int
+    {
+        $qb = $this->createQueryBuilder('handling')
+            ->select('COUNT(handling)')
+            ->where('handling.desiredDate BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        if (!empty($handlingStatusesFilter)) {
+            $qb
+                ->andWhere('handling.status IN (:handlingStatuses)')
+                ->setParameter('handlingStatuses', $handlingStatusesFilter);
+        }
+
+        if (!empty($handlingTypesFilter)) {
+            $qb
+                ->andWhere('handling.type IN (:handlingTypes)')
+                ->setParameter('handlingTypes', $handlingTypesFilter);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

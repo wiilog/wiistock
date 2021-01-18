@@ -243,7 +243,7 @@ class CollecteRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findRequestToTreatByUser(Utilisateur $requester) {
+    public function findRequestToTreatByUser(Utilisateur $requester, int $limit) {
         $statuses = [
             Collecte::STATUT_BROUILLON,
             Collecte::STATUT_A_TRAITER,
@@ -267,6 +267,7 @@ class CollecteRepository extends EntityRepository
             ])
             ->addOrderBy(sprintf("FIELD(status.nom, '%s', '%s', '%s')", ...$statuses), 'DESC')
             ->addOrderBy("DATE_ADD(request.validationDate, art.average, 'second')", 'ASC')
+            ->setMaxResults($limit)
             ->getQuery()
             ->execute();
     }

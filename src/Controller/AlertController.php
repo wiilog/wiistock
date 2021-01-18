@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Alert;
 use App\Entity\CategoryType;
@@ -41,15 +42,10 @@ class AlertController extends AbstractController
 
     /**
      * @Route("/liste", name="alerte_index", methods="GET|POST", options={"expose"=true})
-     * @param UserService $userService
-     * @return Response
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_ALER})
      */
-    public function index(UserService $userService): Response
+    public function index(): Response
     {
-        if (!$userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ALER)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $typeRepository = $this->getDoctrine()->getRepository(Type::class);
         return $this->render('alerte_reference/index.html.twig', [
             "types" => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]),
@@ -62,29 +58,22 @@ class AlertController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="alerte_ref_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="alerte_ref_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_ALER}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param RefArticleDataService $refArticleDataService
-     * @param UserService $userService
      * @return Response
      */
     public function api(Request $request,
-                        RefArticleDataService $refArticleDataService,
-                        UserService $userService): Response
+                        RefArticleDataService $refArticleDataService): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ALER)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $data = $refArticleDataService->getAlerteDataByParams($request->request, $this->getUser());
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        $data = $refArticleDataService->getAlerteDataByParams($request->request, $this->getUser());
+        return new JsonResponse($data);
     }
 
     /**
      * @Route("/csv", name="alert_export",options={"expose"=true}, methods="GET|POST" )
+     * @HasPermission({Menu::STOCK, Action::EXPORT_ALER})
      * @param Request $request
      * @param AlertService $alertService
      * @param SpecificService $specificService

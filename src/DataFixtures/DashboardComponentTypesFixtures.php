@@ -26,7 +26,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'subtitle' => 'Litige',
                 'delay' => 20634860
             ],
-            'category' => Dashboard\ComponentType::STOCK,
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
             'template' => Dashboard\ComponentType::ONGOING_PACKS,
             'meterKey' => Dashboard\ComponentType::ONGOING_PACKS
         ],
@@ -34,16 +34,16 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'hint' => 'Nombre d\'arrivages créés par jour',
             'exampleValues' => [
                 'chartData' => [
-                    'j1' => 5,
-                    'j2' => 12,
-                    'j3' => 8,
-                    'j4' => 1,
-                    'j5' => 0,
-                    'j6' => 9,
-                    'j7' => 7,
+                    '04' => 5,
+                    '05' => 12,
+                    '06' => 8,
+                    '07' => 1,
+                    '08' => 0,
+                    '09' => 9,
+                    '10' => 7,
                 ],
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
         ],
@@ -55,7 +55,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ['pack' => 'COLIS2', 'date' => '06/08/2020 20:57:89', 'delay' => '10000', 'location' => "EMP2"],
                 ],
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::LATE_PACKS,
         ],
@@ -94,12 +94,12 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ]
                 ]
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
             'template' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
         ],
-        'Suivi des transporteur' => [
-            'hint' => 'Transporteur ayant effectué un arrivage dans la journée',
+        'Suivi des transporteurs' => [
+            'hint' => 'Transporteurs ayant effectué un arrivage dans la journée',
             'exampleValues' => [
                 'carriers' => [
                     'TRANS1',
@@ -107,7 +107,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     'TRANS3',
                 ]
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::CARRIER_TRACKING,
             'meterKey' => Dashboard\ComponentType::CARRIER_TRACKING,
         ],
@@ -115,16 +115,16 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'hint' => 'Nombre de réceptions de traçabilité par jour',
             'exampleValues' => [
                 'chartData' => [
-                    'j1' => 4,
-                    'j2' => 8,
-                    'j3' => 6,
-                    'j4' => 2,
-                    'j5' => 8,
-                    'j6' => 0,
-                    'j7' => 13
+                    '04' => 4,
+                    '05' => 8,
+                    '06' => 6,
+                    '07' => 2,
+                    '08' => 8,
+                    '09' => 0,
+                    '10' => 13
                 ]
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::RECEIPT_ASSOCIATION,
         ],
@@ -161,7 +161,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ]
                 ]
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
             'meterKey' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
         ],
@@ -173,37 +173,37 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     'Legende2' => '#a3efdf'
                 ],
                 'chartData' => [
-                    'j1' => [
+                    '04/01' => [
                         'Legende1' => 25,
                         'Legende2' => 12,
                     ],
-                    'j2' => [
+                    '05/01' => [
                         'Legende1' => 50,
                         'Legende2' => 5,
                     ],
-                    'j3' => [
+                    '06/01' => [
                         'Legende1' => 45,
                         'Legende2' => 36,
                     ],
-                    'j4' => [
+                    '07/01' => [
                         'Legende1' => 89,
                         'Legende2' => 102,
                     ],
-                    'j5' => [
+                    '08/01' => [
                         'Legende1' => 70,
                         'Legende2' => 74,
                     ],
-                    'j6' => [
+                    '09/01' => [
                         'Legende1' => 65,
                         'Legende2' => 52,
                     ],
-                    'j7' => [
+                    '10/01' => [
                         'Legende1' => 23,
                         'Legende2' => 47,
                     ]
                 ],
             ],
-            'category' => Dashboard\ComponentType::ORDERS,
+            'category' => Dashboard\ComponentType::CATEGORY_ORDERS,
             'meterKey' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
             'template' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
         ],
@@ -211,16 +211,16 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'hint' => 'Nombre de colis présents sur les emplacements de dépose paramétrés',
             'exampleValues' => [
                 'chartData' => [
-                    'j1' => 6,
-                    'j2' => 5,
-                    'j3' => 2,
-                    'j4' => 9,
-                    'j5' => 11,
-                    'j6' => 12,
-                    'j7' => 3,
+                    '04/01' => 6,
+                    '05/01' => 5,
+                    '06/01' => 2,
+                    '07/01' => 9,
+                    '08/01' => 11,
+                    '09/01' => 12,
+                    '10/01' => 3,
                 ],
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS,
             'meterKey' => Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS,
         ],
@@ -228,49 +228,150 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'hint' => 'Nombre de colis par natures paramétrées présents sur la durée paramétrée sur l\'ensemble des emplacements paramétrés',
             'exampleValues' => [
                 'count' => 72,
+                'segments' => ['4', '8', '12', '16'],
                 'nextLocation' => 'EMP1',
                 'chartColors' => [
-                    'Nature 1' => '#a3d1ff',
-                    'Nature 2' => '#a3efdf',
-                    'Nature 3' => '#aaafdf',
+                    'Standard' => '#a3d1ff',
+                    'Congelé' => '#a3efdf',
+                    'Consommable' => '#aaafdf',
                 ],
                 'chartData' => [
-                    ['Retard' => [
-                        'Nature 1' => 25,
-                        'Nature 2' => 25,
-                        'Nature 3' => 12,
-                    ]],
-                    ['Moins d\'1h' => [
-                        'Nature 1' => 15,
-                        'Nature 2' => 2,
-                        'Nature 3' => 12,
-                    ]],
-                    ['1h-4h' => [
-                        'Nature 1' => 15,
-                        'Nature 2' => 2,
-                        'Nature 3' => 12,
-                    ]],
-                    ['4h-12h' => [
-                        'Nature 1' => 15,
-                        'Nature 2' => 2,
-                        'Nature 3' => 12,
-                    ]],
-                    ['12h-24h' => [
-                        'Nature 1' => 15,
-                        'Nature 2' => 2,
-                        'Nature 3' => 12,
-                    ]],
-                    ['24h-48h' => [
-                        'Nature 1' => 0,
-                        'Nature 2' => 0,
-                        'Nature 3' => 0,
-                    ]],
+                    'Retard' => [
+                        'Standard' => 25,
+                        'Congelé' => 25,
+                        'Consommable' => 12,
+                    ],
+                    'Moins d\'1h' => [
+                        'Standard' => 15,
+                        'Congelé' => 2,
+                        'Consommable' => 12,
+                    ],
+                    '1h-4h' => [
+                        'Standard' => 15,
+                        'Congelé' => 2,
+                        'Consommable' => 12,
+                    ],
+                    '4h-12h' => [
+                        'Standard' => 15,
+                        'Congelé' => 2,
+                        'Consommable' => 12,
+                    ],
+                    '12h-24h' => [
+                        'Standard' => 15,
+                        'Congelé' => 2,
+                        'Consommable' => 12,
+                    ],
+                    '24h-36h' => [
+                        'Standard' => 0,
+                        'Congelé' => 0,
+                        'Consommable' => 0,
+                    ],
+                    '36h-48h' => [
+                        'Standard' => 0,
+                        'Congelé' => 0,
+                        'Consommable' => 0,
+                    ],
                 ],
             ],
-            'category' => Dashboard\ComponentType::ORDERS,
+            'category' => Dashboard\ComponentType::CATEGORY_ORDERS,
             'template' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
             'meterKey' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
         ],
+        'Arrivages urgents à recevoir' => [
+            'hint' => 'Nombre d\'urgences sur arrivage encore non réceptionnées',
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE,
+            'exampleValues' => [
+                'count' => 7
+            ],
+        ],
+        'Arrivages urgents du jour' => [
+            'hint' => 'Nombre d\'urgences sur arrivage devant être réceptionnées dans la journée',
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES,
+            'exampleValues' => [
+                'count' => 3
+            ],
+        ],
+        'Fiabilité monétaire (graphique)'  => [
+            'hint' => 'Somme des quantités corrigées suite à un inventaire',
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY_GRAPH,
+            'exampleValues' => [
+                'chartData' => [
+                    'Août' => 243,
+                    'Septembre' => 145,
+                    'Octobre' => 312,
+                    'Novembre' => -177,
+                    'Décembre' => -67,
+                    'Janvier' => 198
+                ]
+            ],
+        ],
+        'Alertes de stock' => [
+            'hint' => 'Nombre d\'alertes de péremption, seuil de sécurité et alerte en cours',
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS,
+            'exampleValues' => [
+                'count' => 11
+            ],
+        ],
+        'Nombre de services quotidiens' => [
+            'hint' => 'Nombre de services ayant leur date attendue sur les jours présentés',
+            'exampleValues' => [
+                'chartData' => [
+                    '04/01' => 6,
+                    '05/01' => 8,
+                    '06/01' => 4,
+                    '07/01' => 5,
+                    '08/01' => 1,
+                    '09/01' => 3,
+                    '10/01' => 2,
+                ],
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
+            'template' => Dashboard\ComponentType::DAILY_HANDLING,
+            'meterKey' => Dashboard\ComponentType::DAILY_HANDLING,
+        ],
+        'Fiabilité monétaire (indicateur)' => [
+            'hint' => 'A définir',
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR,
+            'exampleValues' => [
+                'count' => 84
+            ],
+        ],
+        'Nombre d\'acheminements quotidiens' => [
+            'hint' => 'Nombre d\'acheminements ayant leurs dates d\'échéances sur les jours présentés',
+            'exampleValues' => [
+                'chartData' => [
+                    '04/01' => 2,
+                    '05/01' => 6,
+                    '06/01' => 4,
+                    '07/01' => 0,
+                    '08/01' => 10,
+                    '09/01' => 8,
+                    '10/01' => 5,
+                ],
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
+            'template' => Dashboard\ComponentType::DAILY_DISPATCHES,
+            'meterKey' => Dashboard\ComponentType::DAILY_DISPATCHES,
+        ],
+        'Fiabilité par référence' => [
+            'hint' => 'A définir',
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::REFERENCE_RELIABILITY,
+            'exampleValues' => [
+                'count' => 25
+            ]
+        ]
     ];
 
     public function __construct(UserPasswordEncoderInterface $encoder,

@@ -55,6 +55,8 @@ function loadDashboards(m) {
 
     $dashboard.on(`click`, `.edit-component`, onComponentEdited);
     $dashboard.on(`click`, `.delete-component`, onComponentDeleted);
+    $modalComponentTypeSecondStep.on(`click`, `.select-all-arrival-types`, onSelectAll);
+    $modalComponentTypeSecondStep.on(`click`, `.select-all-arrival-statuses`, onSelectAll);
 
     $('button.add-dashboard-modal-submit').on('click', onPageAdded);
     $pagination.on(`click`, `.delete-dashboard`, onPageDeleted);
@@ -62,6 +64,7 @@ function loadDashboards(m) {
     $(window).bind('beforeunload', hasEditDashboard);
 
     if(mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
+        // all 5 min
         setInterval(function() {
             $.get(Routing.generate("dashboards_fetch", {mode}), function(response) {
                 dashboards = JSON.parse(response.dashboards);
@@ -73,6 +76,21 @@ function loadDashboards(m) {
             })
         }, 5 * 60 * 1000);
     }
+
+    $(document)
+        .arrive(".segments-list .segment-hour", function() {
+            onSegmentInputChange($(this), true);
+        });
+}
+
+function onSelectAll() {
+    const $select = $(this).closest(`.input-group`).find(`select`);
+
+    $select.find(`option`).each(function() {
+        $(this).prop(`selected`, true);
+    });
+
+    $select.trigger(`change`);
 }
 
 $(`.download-trace`).click(function() {
@@ -141,9 +159,13 @@ function renderRefreshDate(date) {
 function renderCurrentDashboard() {
     $dashboard.empty();
     if(currentDashboard) {
-        currentDashboard.rows
+        Object.values(currentDashboard.rows)
             .map(renderRow)
             .forEach(row => $dashboard.append(row));
+    }
+
+    if(mode === MODE_EXTERNAL) {
+        $(`.header-title`).html(`<span class="bold">${currentDashboard.name}</span>`);
     }
 }
 
@@ -161,19 +183,19 @@ function renderRow(row) {
 
     for(let componentIndex = 0; componentIndex < row.size; ++componentIndex) {
         const component = getRowComponent(row, componentIndex);
-        $rowWrapper.append(renderConfigComponent($.deepCopy(component) || componentIndex, true));
+        $rowWrapper.append(renderCardComponent($.deepCopy(component) || componentIndex, true));
     }
 
     if(mode === MODE_EDIT) {
         $row.append(`
-                <div class="delete-row-container"><i class="fa fa-trash ml-1 delete-row pointer"></i></div>
+            <div class="delete-row-container"><i class="fa fa-trash ml-1 delete-row pointer"></i></div>
         `);
     }
 
     return $row;
 }
 
-function renderConfigComponent(component, init = false) {
+function renderCardComponent(component, init = false) {
     let $componentContainer;
     if(component && typeof component === 'object') {
         $componentContainer = $('<div/>', {
@@ -181,7 +203,7 @@ function renderConfigComponent(component, init = false) {
             'data-component': component.index
         });
         $componentContainer.pushLoader('black', 'normal');
-        renderComponentExample(
+        renderComponentWithData(
             $componentContainer,
             component.type,
             component.meterKey,
@@ -194,22 +216,22 @@ function renderConfigComponent(component, init = false) {
                     $componentContainer.append($('<div/>', {
                         class: 'text-danger d-flex flex-fill align-items-center justify-content-center',
                         html: `<i class="fas fa-exclamation-triangle mr-2"></i>Erreur lors de l'affichage du composant`
-                    }))
+                    }));
                 }
                 if(mode === MODE_EDIT) {
                     $componentContainer.append($(`
-                    <div class="component-toolbox dropdown">
-                        <i class="fas fa-cog" data-toggle="dropdown"></i>
-                        <div class="dropdown-menu dropdown-menu-right pointer">
-                            <a class="dropdown-item edit-component ${!component.template ? 'd-none' : ''}" role="button">
-                                <i class="fa fa-pen mr-2"></i> Modifier
-                            </a>
-                            <a class="dropdown-item delete-component" role="button">
-                                <i class="fa fa-trash mr-2"></i> Supprimer
-                            </a>
+                        <div class="component-toolbox dropdown">
+                            <i class="fas fa-cog" data-toggle="dropdown"></i>
+                            <div class="dropdown-menu dropdown-menu-right pointer">
+                                <div class="dropdown-item edit-component pointer ${!component.template ? 'd-none' : ''}" role="button">
+                                    <i class="fa fa-pen mr-2"></i> Modifier
+                                </div>
+                                <div class="dropdown-item delete-component pointer" role="button">
+                                    <i class="fa fa-trash mr-2"></i> Supprimer
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                `));
+                    `));
                 }
             });
     } else {
@@ -344,10 +366,14 @@ function onDashboardSaved() {
     return $.post(Routing.generate(`save_dashboard_settings`), content)
         .then(function(data) {
             if(data.success) {
-                showBSAlert("Dashboards enregistrés avec succès", "success");
+                showBSAlert("Modifications enregistrés avec succès", "success");
                 dashboards = JSON.parse(data.dashboards);
                 loadCurrentDashboard(false);
-            } else {
+            }
+            else if(data.msg) {
+                showBSAlert(data.msg, "danger");
+            }
+            else {
                 throw data;
             }
         })
@@ -397,7 +423,17 @@ function onPageAdded() {
 }
 
 function onPageDeleted() {
+    const $modal = $(`#delete-dashboard-modal`);
     const dashboard = Number($(this).data(`dashboard`));
+
+    $modal.find(`[name="delete-dashboard-index"]`).val(dashboard);
+    $modal.find(`.delete-dashboard-name`).text(dashboards[dashboard].name);
+    $modal.modal(`show`);
+}
+
+function onConfirmPageDeleted() {
+    const $modal = $(`#delete-dashboard-modal`);
+    const dashboard = Number($modal.find(`[name="delete-dashboard-index"]`).val());
 
     dashboards.splice(dashboard, 1);
     recalculateIndexes();
@@ -412,6 +448,8 @@ function onPageDeleted() {
     renderCurrentDashboard();
     renderDashboardPagination();
     updateAddRowButton();
+
+    $modal.modal(`hide`);
 }
 
 function onRowAdded() {
@@ -481,7 +519,7 @@ function onComponentDeleted() {
         row.components.splice(indexOfComponentToDelete, 1);
     }
 
-    $component.replaceWith(renderConfigComponent(componentIndex));
+    $component.replaceWith(renderCardComponent(componentIndex));
 }
 
 function getComponentFromTooltipButton($button) {
@@ -564,7 +602,7 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
 
 function onComponentSaved($modal) {
     clearFormErrors($modal);
-    const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal);
+    const {success, errorMessages, $isInvalidElements, data} = processSecondModalForm($modal);
     if(success) {
         const {rowIndex, componentIndex, meterKey, template, componentType, ...config} = data;
         editComponent(Number(rowIndex), Number(componentIndex), {
@@ -581,6 +619,52 @@ function onComponentSaved($modal) {
             errorMessages
         });
     }
+}
+
+function processSecondModalForm($modal) {
+    const meterKey = $modal.find(`input[name="meterKey"]`).val();
+
+    const {data, ...remaining} = ProcessForm($modal, null, () => {
+        if(meterKey === ENTRIES_TO_HANDLE) {
+            let previous = null;
+            const allFilled = $modal
+                .find(`.segment-hour:not(.display-previous)`)
+                .toArray()
+                .every(elem => elem.value);
+
+            const correctOrder = $modal
+                .find(`.segment-hour:not(.display-previous)`)
+                .toArray()
+                .every(elem => {
+                    let valid = previous
+                        ? elem.value && clearSegmentHourValues(previous.value) < clearSegmentHourValues(elem.value)
+                        : elem.value;
+
+                    previous = elem;
+                    return valid;
+                });
+
+            const $invalidElements = $modal.find(`.segment-hour`)
+                .toArray()
+                .map(elem => $(elem))
+                .filter($elem => $elem.val());
+
+            return {
+                success: correctOrder && allFilled,
+                errorMessages: [
+                    !allFilled ? `Les segments ne peuvent pas être vides` : undefined,
+                    allFilled && !correctOrder ? `L'ordre des segments n'est pas valide` : undefined,
+                ],
+                $isInvalidElements: $invalidElements,
+            };
+        }
+    });
+
+    if(meterKey === ENTRIES_TO_HANDLE && data.segments) {
+        data.segments = data.segments.map(clearSegmentHourValues);
+    }
+
+    return {data, ...remaining};
 }
 
 function editComponent(rowIndex, componentIndex, {config, type, meterKey, template = null}) {
@@ -603,7 +687,7 @@ function editComponent(rowIndex, componentIndex, {config, type, meterKey, templa
         const $currentComponent = $dashboard
             .find(`.dashboard-row[data-row="${rowIndex}"]`)
             .find(`.dashboard-component[data-component="${componentIndex}"]`);
-        $currentComponent.replaceWith(renderConfigComponent(currentComponent));
+        $currentComponent.replaceWith(renderCardComponent(currentComponent));
     }
 }
 
@@ -612,7 +696,7 @@ function initSecondStep(html) {
     $modalComponentTypeSecondStepContent.html('');
     $modalComponentTypeSecondStepContent.html(html);
 
-    $(`.select2`).select2();
+    $modalComponentTypeSecondStep.find(`.select2`).select2();
     Select2.location($modalComponentTypeSecondStep.find('.ajax-autocomplete-location'));
     Select2.carrier($modalComponentTypeSecondStep.find('.ajax-autocomplete-carrier'));
 
@@ -621,13 +705,19 @@ function initSecondStep(html) {
     $submitButton.on('click', () => onComponentSaved($modalComponentTypeSecondStep));
 
     renderFormComponentExample();
-    const $formInputs = $modalComponentTypeSecondStep.find('select.data, input.data, input.checkbox');
-    $formInputs.off('change.secondStepComponentType');
-    $formInputs.on('change.secondStepComponentType', () => renderFormComponentExample());
 
-    if($modalComponentTypeSecondStep.find('.segments-list').length > 0) {
-        const segments = $modalComponentTypeSecondStep.find(`.segments-list`).data(`segments`);
-        initializeEntryTimeIntervals(segments);
+    $modalComponentTypeSecondStep.off('change.secondStepComponentType');
+    $modalComponentTypeSecondStep.on('change.secondStepComponentType', 'select.data, input.data, input.data-array, input.checkbox', () => renderFormComponentExample())
+
+    const $segmentsList = $modalComponentTypeSecondStepContent.find('.segments-list');
+
+    if($segmentsList.length > 0) {
+        const segments = $segmentsList.data(`segments`);
+        if(segments.length > 0) {
+            initializeEntryTimeIntervals(segments);
+        } else {
+            addEntryTimeInterval($segmentsList.find('.add-time-interval'));
+        }
     }
 }
 
@@ -653,13 +743,14 @@ function hasEditDashboard() {
             pageUpdated
             || (
                 rows
-                && rows.some(({updated: rowUpdated, components}) => (
-                    rowUpdated
+                && rows.some(({updated: rowUpdated, components}) => {
+                    components = Object.values(components);
+                    return rowUpdated
                     || (
                         components
                         && components.some(({updated: componentUpdated}) => componentUpdated)
                     )
-                ))
+                })
             )
         ))
         || undefined;
@@ -670,9 +761,9 @@ function renderFormComponentExample() {
     const $exampleContainerParent = $exampleContainer.parent();
 
     const componentType = $exampleContainer.data('component-type');
-    const {data: formData} = ProcessForm($modalComponentTypeSecondStep);
+    const {data: formData} = processSecondModalForm($modalComponentTypeSecondStep);
 
-    return renderComponentExample($exampleContainer, componentType, $exampleContainer.data('meter-key'), formData)
+    return renderComponentWithData($exampleContainer, componentType, $exampleContainer.data('meter-key'), formData)
         .then((renderingSuccess) => {
             if(renderingSuccess) {
                 $exampleContainerParent.removeClass('d-none');
@@ -685,11 +776,13 @@ function renderFormComponentExample() {
         });
 }
 
-function renderComponentExample($container, componentType, meterKey, formData = null, initData = null) {
+function renderComponentWithData($container, componentType, meterKey, formData = null, initData = null) {
     let exampleValuesPromise;
     if(initData) {
         exampleValuesPromise = new Promise((resolve) => {
-            resolve({exampleValues: initData});
+            resolve({
+                exampleValues: initData
+            });
         });
     } else {
         exampleValuesPromise = $.post(
@@ -700,7 +793,8 @@ function renderComponentExample($container, componentType, meterKey, formData = 
 
     return exampleValuesPromise
         .then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues))
-        .catch(() => {
+        .catch((error) => {
+            console.error(error);
         });
 }
 
@@ -712,42 +806,84 @@ function initializeEntryTimeIntervals(segments) {
     }
 }
 
-function addEntryTimeInterval($button, time = null) {
+function addEntryTimeInterval($button, time = null, notEmptySegment = false) {
     const current = $button.data(`current`);
 
-    $(`
-        <div class="row mt-2 interval">
-            <div class="col-5">
-                <label>Heure 1</label>
-                <input class="data form-control w-100 needed display-previous"
-                       type="text"
-                       disabled
-                       ${current === 0 ? 'value="1"' : ''}
-                       title="Heure de début du segment"/>
-            </div>
-            <div class="col-5">
-                <label>Heure 2</label>
-                <input class="data-array form-control w-100 needed"
-                       name="segments"
-                       data-no-stringify
-                       type="text"
-                       title="Heure de fin du segment"
-                       ${time !== null ? 'value="' + time + '"' : ''}
-                       onkeyup="recalculateIntervals()"/>
-            </div>
-            <div class="col-2">
-                <label></label>
-                <button class="btn btn-danger d-block" onclick="deleteEntryTimeInterval($(this))"><i class="fa fa-trash"></i></button>
+    if($('.segment-container').length === 5) {
+        showBSAlert('Il n\'est pas possible d\'ajouter plus de 5 segments à ce composant', 'danger');
+        return false;
+    }
+
+    if(notEmptySegment) {
+        const lastSegmentHourEndValue = $('.segment-hour').last().val();
+        const lastSegmentLabel = $('.segment-container label').last().text();
+
+        if(!lastSegmentHourEndValue) {
+            showBSAlert('Le <strong>' + lastSegmentLabel.toLowerCase() + '</strong> doit contenir une valeur de fin' , 'danger');
+            return false;
+        }
+    }
+
+    const $newSegmentInput = $(`
+        <div class="segment-container interval">
+            <div class="form-group row align-items-center">
+                <label class="col-3">Segment <span class="segment-value">0</span></label>
+                <div class="input-group col-7">
+                    <input type="text"
+                           class="data needed form-control text-center display-previous segment-hour"
+                           ${current === 0 ? 'value="1h"' : ''}
+                           title="Heure de début du segment"
+                           style="border: none; background-color: #e9ecef; color: #b1b1b1"
+                           disabled />
+                    <div class="input-group-append input-group-prepend">
+                        <span class="input-group-text" style="border: none;">à</span>
+                    </div>
+                    <input type="text"
+                           class="data-array form-control needed text-center segment-hour"
+                           name="segments"
+                           data-no-stringify
+                           title="Heure de fin du segment"
+                           style="border: none; background-color: #e9ecef;"
+                           ${time !== null ? 'value="' + time + '"' : ''}
+                           onkeyup="onSegmentInputChange($(this), false)"
+                           onfocusout="onSegmentInputChange($(this), true)" />
+                </div>
+                <div class="col-2">
+                    <button class="btn d-block" onclick="deleteEntryTimeInterval($(this))"><i class="far fa-trash-alt"></i></button>
+                </div>
             </div>
         </div>
-        `).insertBefore($button);
+    `);
 
-    $button.data(`current`, current + 1);
+    $button.data("current", current + 1);
+    const $lastSegmentValues = $button.closest('.modal').find('.segment-value');
+    const $currentSegmentValue = $newSegmentInput.find('.segment-value');
+    const $lastSegmentValue = $lastSegmentValues.last();
+    const lastSegmentValue = parseInt($lastSegmentValue.text() || '0');
+    $currentSegmentValue.text(lastSegmentValue + 1);
+
+    $newSegmentInput.insertBefore($button);
     recalculateIntervals();
 }
 
 function deleteEntryTimeInterval($button) {
-    $button.parent().parent().remove();
+    const $segmentContainer = $('.segment-container');
+
+    if($segmentContainer.length === 1) {
+        showBSAlert('Au moins un segment doit être renseigné', 'danger');
+        event.preventDefault();
+        return false;
+    }
+
+    const $currentSegmentContainer = $button.closest('.segment-container');
+    const $nextsegmentContainers = $currentSegmentContainer.nextAll().not('button');
+
+    $nextsegmentContainers.each(function() {
+        const $currentSegment = $(this);
+        const $segmentValue = $currentSegment.find('.segment-value');
+        $segmentValue.text(parseInt($segmentValue.text()) - 1);
+    });
+    $currentSegmentContainer.remove();
     recalculateIntervals();
 }
 
@@ -761,4 +897,21 @@ function recalculateIntervals() {
 
         previous = $(this).find(`input[name="segments"]`).val();
     });
+}
+
+function onSegmentInputChange($input, isChanged = false) {
+    const value = $input.val();
+    const smartValue = clearSegmentHourValues(value);
+    const newVal = smartValue && (parseInt(smartValue) + (isChanged ? 'h' : ''));
+
+    $input.val(newVal);
+
+    if(isChanged) {
+        recalculateIntervals();
+    }
+}
+
+function clearSegmentHourValues(value) {
+    const cleared = (value || ``).replace(/[^\d]/g, ``);
+    return cleared ? parseInt(cleared) : ``;
 }

@@ -1,3 +1,4 @@
+{% set isClientSafranED = isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
 <form method="" class="modal fade" id="modalNewArrivage" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
@@ -271,12 +272,13 @@
                         </div>
                     {% endif %}
 
+                    {% set checked = (autoPrint ? 'checked' : '') %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PRINT_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group col-2">
                             <label title="arrivage">Imprimer {{ 'arrivage.arrivage'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
-                                <input class="checkbox" type="checkbox" name="printArrivage">
+                                <input class="checkbox no-clear" type="checkbox" name="printArrivage"  {{ checked }}>
                                 <span class="slider round"></span>
                             </label>
                         </div>
@@ -286,7 +288,6 @@
                         <div class="form-group col-2">
                             <label title="colis">Imprimer {{ 'arrivage.colis'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
-                                {% set checked = (autoPrint ? 'checked' : '') %}
                                 <input class="checkbox no-clear" type="checkbox" name="printColis"
                                        id="printColis" {{ checked }}>
                                 <span class="slider round"></span>
@@ -307,7 +308,8 @@
                                         <label class="ellipsis">
                                             {{ nature.label | capitalize }}
                                         </label>
-                                        <input type="number" class="form-control input-sm data-array needed-positiv needs-default"
+                                        <input type="number"
+                                               class="form-control input-sm data-array needed-positiv needs-default {{ isClientSafranED ? "no-clear" }}"
                                                name="colis"
                                                data-id="{{ nature.id }}"
                                                min="0"

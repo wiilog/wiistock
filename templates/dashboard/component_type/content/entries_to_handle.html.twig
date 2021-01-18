@@ -31,7 +31,7 @@
 
         <div class="row form-group">
             <div class="col-12">
-                <label>Natures de colis</label>
+                <label>Natures de colis*</label>
             </div>
             <div class="col-12">
                 <select class="data form-control w-100 needed select2"
@@ -65,18 +65,18 @@
             <label class="switch">
                 <input class="checkbox data needs-default"
                        type="checkbox"
-                       name="redirectOngoing"
-                    {{ values.redirectOngoing ?? false ? 'checked' }}>
+                       name="redirect"
+                    {{ values.redirect ?? false ? 'checked' }}>
                 <span class="slider round"></span>
             </label>
             <label>Rediriger vers la page Encours au clic</label>
         </div>
     </div>
-    <div class="col-md-6 col-12 segments-list" data-segments="{{ (values.segments ?? []) | json_encode }}">
+    <div class="col-md-6 col-12 segments-list" data-segments="{{ (values.segments ?? ['6', '12', '24', '36', '48']) | json_encode }}">
         <div>
-            <label>Segments (en heures)</label>
+            <label>Segments horaires</label>
         </div>
-        <button class="btn btn-primary add-time-interval d-block mt-3" onclick="addEntryTimeInterval($(this))" data-current="0" type="button">
+        <button class="btn btn-primary add-time-interval d-block mt-3" onclick="addEntryTimeInterval($(this), null, true)" data-current="0" type="button">
             <i class="fa fa-plus"></i>
         </button>
     </div>

@@ -2,6 +2,8 @@ $(function () {
     Select2.location($('.ajax-autocomplete-emplacements'), {}, "Emplacements", 3);
     Select2.init($('.filter-select2[name="natures"]'), 'Natures');
 
+    const isPreFilledFilter = $('.filters-container [name="isPreFilledFilter"]').val() === '1';
+
     $.post(Routing.generate('check_time_worked_is_defined', true), (data) => {
         if (data === false) {
             showBSAlert('Veuillez définir les horaires travaillés dans Paramétrage/Paramétrage global.', 'danger');
@@ -11,7 +13,9 @@ $(function () {
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_ENCOURS);
         $.post(path, params, function (data) {
-            displayFiltersSup(data);
+            if (!isPreFilledFilter) {
+                displayFiltersSup(data);
+            }
             loadPage();
         }, 'json');
     });

@@ -3,15 +3,15 @@
 {% block content %}
     <div class="row">
         <div class="form-group col-6">
-            <label>Type(s) d'arrivage*</label>
+            <label>Type(s) de services*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
                     <select class="data form-control h-100 w-100 needed select2"
-                            name="arrivalTypes"
+                            name="handlingTypes"
                             multiple
-                            title="Type(s) d'arrivage">
-                        {% for arrivalType in arrivalTypes %}
-                            <option value="{{ arrivalType.id }}" {{ arrivalType in values.arrivalTypes ? 'selected' }}>{{ arrivalType.label }}</option>
+                            title="Type(s) de services">
+                        {% for handlingType in handlingTypes %}
+                            <option value="{{ handlingType.id }}" {{ handlingType in values.handlingTypes ? 'selected' }}>{{ handlingType.label }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -28,11 +28,11 @@
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
                     <select class="data form-control h-100 w-100 needed select2"
-                            name="arrivalStatuses"
+                            name="handlingStatuses"
                             multiple
                             title="Statut(s)">
-                        {% for arrivalStatus in arrivalStatuses %}
-                            <option value="{{ arrivalStatus.id }}" {{ arrivalStatus in values.arrivalStatuses ? 'selected' }}>{{ arrivalStatus.nom }}</option>
+                        {% for handlingStatus in handlingStatuses %}
+                            <option value="{{ handlingStatus.id }}" {{ handlingStatus in values.handlingStatuses ? 'selected' }}>{{ handlingStatus.nom }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -43,18 +43,7 @@
         </div>
     </div>
 
-    <div class="form-group">
-        <label class="switch">
-            <input class="checkbox data needs-default"
-                   type="checkbox"
-                   name="displayPackNatures"
-                {{ values.displayPackNatures ?? false ? 'checked' }}>
-            <span class="slider round"></span>
-        </label>
-        <label>Montrer les natures de colis</label>
-    </div>
-
-    <div class="form-group d-flex align-items-center">
+    <div class="form-group d-flex align-items-center mt-2">
         <label>Voir sur les</label>
         <input class="form-control data mx-3 needed"
                name="daysNumber"
@@ -64,7 +53,10 @@
                max=7
                step="1"
                style="width: 70px">
-        <label>derniers jours</label>
+        <select class="form-control data w-25" name="period">
+            <option value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_PREVIOUS_DAYS') }}" selected>dernier jours</option>
+            <option value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_NEXT_DAYS') }}">prochains jours</option>
+        </select>
     </div>
     <label class="d-block mb-3" style="margin-top: -15px;font-size:0.9rem">
         (7 jours maximum. Le jour en cours est compté dans le nombre de jours)

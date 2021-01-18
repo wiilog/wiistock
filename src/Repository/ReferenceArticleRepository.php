@@ -43,6 +43,11 @@ class ReferenceArticleRepository extends EntityRepository {
         'comment' => 'commentaire',
     ];
 
+    private const FIELDS_TYPE_DATE = [
+        "dateLastInventory"
+    ];
+
+
     public function getIdAndLibelle() {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -184,7 +189,7 @@ class ReferenceArticleRepository extends EntityRepository {
      * @param null $locationFilter
      * @return mixed
      */
-    public function getIdAndRefBySearch($search, $activeOnly = false, $typeQuantity = -1, $field = 'reference', $locationFilter = null)
+    public function getIdAndRefBySearch($search, $activeOnly = false, $minQuantity = null, $typeQuantity = null, $field = 'reference', $locationFilter = null)
     {
         $queryBuilder = $this->createQueryBuilder('r')
             ->select('r.id')
@@ -201,13 +206,19 @@ class ReferenceArticleRepository extends EntityRepository {
             ->where("r.${field} LIKE :search")
             ->setParameter('search', '%' . $search . '%');
 
-        if ($activeOnly) {
+        if ($activeOnly !== null) {
             $queryBuilder
                 ->andWhere('s.nom = :activeStatus')
                 ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF);
         }
 
-        if ($typeQuantity !== -1) {
+        if($minQuantity !== null) {
+            $queryBuilder
+                ->andWhere('r.quantiteDisponible > :minQuantity')
+                ->setParameter('minQuantity', $minQuantity);
+        }
+
+        if ($typeQuantity) {
             $queryBuilder
                 ->andWhere('r.typeQuantite = :type')
                 ->setParameter('type', $typeQuantity);
@@ -460,19 +471,19 @@ class ReferenceArticleRepository extends EntityRepository {
                             }
                             break;
                         default:
-                            $freeFieldId = VisibleColumnService::extractFreeFieldId($searchField);
+                            $field = self::DtToDbLabels[$searchField] ?? $searchField;
+                            $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
                             if(is_numeric($freeFieldId)) {
                                 $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                 $qb->setParameter("search", $date ?: $search);
-                            } else if (property_exists(ReferenceArticle::class, $searchField)) {
-                                if ($date) {
-                                    $query[] = "ra.$searchField BETWEEN :dateMin AND :dateMax";
-                                    $qb->setParameters([
-                                        'dateMin' => $date . ' 00:00:00',
-                                        'dateMax' => $date . ' 23:59:59'
-                                    ]);
+                            } else if (property_exists(ReferenceArticle::class, $field)) {
+                                if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
+                                    $query[] = "ra.$field BETWEEN :dateMin AND :dateMax";
+                                    $qb
+                                        ->setParameter("dateMin", "$date 00:00:00")
+                                        ->setParameter("dateMax", "$date 23:59:59");
                                 } else {
-                                    $query[] = "ra.$searchField LIKE :search";
+                                    $query[] = "ra.$field LIKE :search";
                                     $qb->setParameter('search', $search);
                                 }
                             }

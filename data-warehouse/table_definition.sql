@@ -62,7 +62,7 @@ create table dw_mouvement_stock
     quantite_livree      integer,
     operateur            varchar(255),
     code_barre_reference varchar(255),
-    date                 date,
+    date                 timestamp(0),
     emplacement_stock    varchar(255),
     emplacement_transfert    varchar(255),
     id                   integer not null
@@ -80,7 +80,7 @@ create table dw_reception
     no_commande              varchar(255),
     statut                   varchar(255),
     commentaire              text,
-    date                     date,
+    date                     timestamp(0),
     numero                   varchar(255),
     fournisseur              varchar(255),
     reference                varchar(255),
@@ -141,9 +141,9 @@ create table dw_service
     type               varchar(255),
     objet              text,
     demandeur          varchar(255),
-    date_creation      date,
-    date_attendue      date,
-    date_realisation   date,
+    date_creation      timestamp(0),
+    date_attendue      timestamp(0),
+    date_realisation   timestamp(0),
     operateur          varchar(255),
     emplacement_prise  varchar(255),
     emplacement_depose varchar(255),
@@ -164,15 +164,15 @@ create table dw_service_champs_libres
 
 create table dw_tracabilite
 (
-    date_mouvement              date,
+    date_mouvement              timestamp(0),
     code_colis                  varchar(255),
     type_mouvement              varchar(255),
     quantite_mouvement          integer,
     emplacement_mouvement       varchar(255),
     operateur                   varchar(255),
     no_acheminement             varchar(255),
-    date_creation               date,
-    date_traitement             date,
+    date_creation               timestamp(0),
+    date_traitement             timestamp(0),
     type_acheminement           varchar(255),
     demandeur_acheminement      varchar(255),
     destinataire_acheminement   varchar(255),
@@ -197,9 +197,9 @@ create table dw_urgence
     fournisseur            varchar(255),
     transporteur           varchar(255),
     no_tracking            varchar(255),
-    date_arrivage          date,
+    date_arrivage          timestamp(0),
     numero_arrivage        varchar(255),
-    date_creation          date,
+    date_creation          timestamp(0),
     id                     integer not null
         constraint urgence_pk
         primary key

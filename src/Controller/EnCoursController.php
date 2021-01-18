@@ -32,6 +32,7 @@ class EnCoursController extends AbstractController
 	 * @return Response
 	 */
     public function index(UserService $userService,
+                          Request $request,
                           EntityManagerInterface $entityManager): Response {
 		if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ENCO)) {
 			return $this->redirectToRoute('access_denied');
@@ -43,8 +44,20 @@ class EnCoursController extends AbstractController
         $minLocationFilter = 1;
         $maxLocationFilter = 10;
 
+        $locationsFilterStr = $request->query->get('locations', '');
+        if (!empty($locationsFilterStr)) {
+            $locationsFilterId = explode(',', $locationsFilterStr);
+            $locationsFilter = !empty($locationsFilterId)
+                ? $emplacementRepository->findBy(['id' => $locationsFilterId])
+                : [];
+        }
+        else {
+            $locationsFilter = [];
+        }
+
         return $this->render('en_cours/index.html.twig', [
             'emplacements' => $emplacementRepository->findWhereArticleIs(),
+			'locationsFilter' => $locationsFilter,
 			'natures' => $natureRepository->findAll(),
             'minLocationFilter' => $minLocationFilter,
             'maxLocationFilter' => $maxLocationFilter,
