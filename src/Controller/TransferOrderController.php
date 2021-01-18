@@ -232,7 +232,7 @@ class TransferOrderController extends AbstractController {
             throw new BadRequestHttpException();
         }
 
-        if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
+        if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -275,8 +275,9 @@ class TransferOrderController extends AbstractController {
             $draftRequest = $statutRepository
                 ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::DRAFT);
 
-            $transferOrder->getRequest()->setStatus($draftRequest);
-            $transferOrder->getRequest()->setValidationDate(null);
+            $transferRequest = $transferOrder->getRequest();
+            $transferRequest->setStatus($draftRequest);
+            $transferRequest->setValidationDate(null);
 
             $locationsRepository = $entityManager->getRepository(Emplacement::class);
 
@@ -296,7 +297,7 @@ class TransferOrderController extends AbstractController {
             }
             $entityManager->flush();
 
-            $requestId = $transferOrder->getRequest()->getId();
+            $requestId = $transferRequest->getId();
 
             $entityManager->remove($transferOrder);
             $entityManager->flush();
