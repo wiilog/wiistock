@@ -1093,6 +1093,7 @@ class DashboardService {
         $handlingStatusesFilter = $config['handlingStatuses'] ?? [];
         $handlingTypesFilter = $config['handlingTypes'] ?? [];
         $scale = $config['daysNumber'] ?? self::DEFAULT_DAILY_REQUESTS_SCALE;
+        $period = $config['period'] ?? self::DAILY_PERIOD_PREVIOUS_DAYS;
 
         $handlingRepository = $entityManager->getRepository(Handling::class);
 
@@ -1106,7 +1107,8 @@ class DashboardService {
             function(DateTime $dateMin, DateTime $dateMax) use ($handlingRepository, $handlingStatusesFilter, $handlingTypesFilter) {
                 return $handlingRepository->countByDates($dateMin, $dateMax, $handlingStatusesFilter, $handlingTypesFilter);
             },
-            $workFreeDays
+            $workFreeDays,
+            $period
         );
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);

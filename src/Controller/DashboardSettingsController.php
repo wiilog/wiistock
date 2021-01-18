@@ -183,7 +183,7 @@ class DashboardSettingsController extends AbstractController {
         }
 
         if(!empty($values['handlingTypes'])) {
-            $values['handlingTypes'] = $typeRepository->findByIds($values['handlingTypes']);
+            $values['handlingTypes'] = $typeRepository->findBy(['id' => $values['handlingTypes']]);
         }
 
         if(!empty($values['arrivalStatuses'])) {
@@ -195,7 +195,7 @@ class DashboardSettingsController extends AbstractController {
         }
 
         if(!empty($values['handlingStatuses'])) {
-            $values['handlingStatuses'] = $statusRepository->findByIds($values['handlingStatuses']);
+            $values['handlingStatuses'] = $statusRepository->findBy(['id' => $values['handlingStatuses']]);
         }
 
         if(!empty($values['natures'])) {

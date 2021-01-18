@@ -43,7 +43,7 @@
         </div>
     </div>
 
-    <div class="form-group d-flex align-items-center">
+    <div class="form-group d-flex align-items-center mt-2">
         <label>Voir sur les</label>
         <input class="form-control data mx-3 needed"
                name="daysNumber"
@@ -53,7 +53,10 @@
                max=7
                step="1"
                style="width: 70px">
-        <label>dernier jours</label>
+        <select class="form-control data w-25" name="period">
+            <option value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_PREVIOUS_DAYS') }}" selected>dernier jours</option>
+            <option value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_NEXT_DAYS') }}">prochains jours</option>
+        </select>
     </div>
     <label class="d-block mb-3" style="margin-top: -15px;font-size:0.9rem">
         (7 jours maximum. Le jour en cours est compté dans le nombre de jours)
