@@ -20,6 +20,7 @@ use App\Repository\StatutRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -565,19 +566,22 @@ class PreparationsManagerService
     /**
      * @param Preparation $preparation
      * @param EntityManagerInterface|null $entityManager
+     * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     public function updateRefArticlesQuantities(Preparation $preparation,
                                                 EntityManagerInterface $entityManager = null) {
-        foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
-            $refArticle = $ligneArticle->getReference();
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                $this->refArticleDataService->updateRefArticleQuantities($refArticle);
-            }
-            // On ne touche pas aux références gérées par article : décrémentation du stock à la fin de la livraison
-        }
 
         if (!isset($entityManager)) {
             $entityManager = $this->entityManager;
+        }
+
+        foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
+            $refArticle = $ligneArticle->getReference();
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticle);
+            }
+            // On ne touche pas aux références gérées par article : décrémentation du stock à la fin de la livraison
         }
 
         $entityManager->flush();
