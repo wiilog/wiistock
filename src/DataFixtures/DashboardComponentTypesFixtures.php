@@ -295,11 +295,11 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'count' => 3
             ],
         ],
-        'Fiabilité monétaire' => [
+        'Fiabilité monétaire (graphique)'  => [
             'hint' => 'Somme des quantités corrigées suite à un inventaire',
             'category' => Dashboard\ComponentType::CATEGORY_STOCK,
             'template' => null,
-            'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY,
+            'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY_GRAPH,
             'exampleValues' => [
                 'chartData' => [
                     'Août' => 243,
@@ -336,6 +336,41 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
             'template' => Dashboard\ComponentType::DAILY_HANDLING,
             'meterKey' => Dashboard\ComponentType::DAILY_HANDLING,
+        ],
+        'Fiabilité monétaire (indicateur)' => [
+            'hint' => 'A définir',
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR,
+            'exampleValues' => [
+                'count' => 84
+            ],
+        ],
+        'Nombre d\'acheminements quotidiens' => [
+            'hint' => 'Nombre d\'acheminements ayant leurs dates d\'échéances sur les jours présentés',
+            'exampleValues' => [
+                'chartData' => [
+                    '04/01' => 2,
+                    '05/01' => 6,
+                    '06/01' => 4,
+                    '07/01' => 0,
+                    '08/01' => 10,
+                    '09/01' => 8,
+                    '10/01' => 5,
+                ],
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
+            'template' => Dashboard\ComponentType::DAILY_DISPATCHES,
+            'meterKey' => Dashboard\ComponentType::DAILY_DISPATCHES,
+        ],
+        'Fiabilité par référence' => [
+            'hint' => 'A définir',
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::REFERENCE_RELIABILITY,
+            'exampleValues' => [
+                'count' => 25
+            ]
         ]
     ];
 

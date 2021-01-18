@@ -18,8 +18,12 @@ const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
 const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
 const MONETARY_RELIABILITY = 'monetary_reliability';
-const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts'
 const DAILY_HANDLING = 'daily_handling';
+const MONETARY_RELIABILITY_GRAPH = 'monetary_reliability_graph';
+const MONETARY_RELIABILITY_INDICATOR = 'monetary_reliability_indicator';
+const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
+const REFERENCE_RELIABILITY = 'reference_reliability';
+const DAILY_DISPATCHES = 'daily_dispatches';
 
 $(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -63,6 +67,9 @@ const creators = {
     [DROP_OFF_DISTRIBUTED_PACKS]: {
         callback: createChart
     },
+    [DAILY_DISPATCHES]: {
+        callback: createChart
+    },
     [ARRIVALS_EMERGENCIES_TO_RECEIVE]: {
         callback: createIndicatorElement
     },
@@ -72,7 +79,7 @@ const creators = {
     [ACTIVE_REFERENCE_ALERTS]: {
         callback: createIndicatorElement
     },
-    [MONETARY_RELIABILITY]: {
+    [MONETARY_RELIABILITY_GRAPH]: {
         callback: createChart,
         arguments: {
             hideRange: true
@@ -80,6 +87,12 @@ const creators = {
     },
     [DAILY_HANDLING]: {
         callback: createChart
+    },
+    [MONETARY_RELIABILITY_INDICATOR]: {
+        callback: createIndicatorElement
+    },
+    [REFERENCE_RELIABILITY]: {
+        callback: createIndicatorElement
     }
 };
 
@@ -255,7 +268,7 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
     return $(`
         <div class="dashboard-box dashboard-stats-container h-100">
             <div class="title">
-                ${title}
+                ${title.split('(')[0]}
             </div>
             ${createTooltip(data.tooltip)}
             <div class="h-100">
@@ -317,7 +330,7 @@ function createIndicatorElement(data, {meterKey}) {
             title
                 ? $('<div/>', {
                     class: 'text-center title ellipsis',
-                    text: title
+                    text: title.split('(')[0]
                 })
                 : undefined,
             subtitle

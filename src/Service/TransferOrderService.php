@@ -130,10 +130,14 @@ class TransferOrderService {
         $context = [$locationTo, $utilisateur, $entityManager, $availableArticle, $availableRef, $order, $isFinish];
         $request = $order->getRequest();
 
+        $transferArticles = Stream::from($request->getReferences(), $request->getArticles());
         /** @var Article|ReferenceArticle $item */
-        foreach(Stream::from($request->getReferences(), $request->getArticles()) as $item) {
+        foreach($transferArticles as $item) {
             $this->createMovements($context, $item);
             $item->setEmplacement($locationTo);
+            if ($item instanceof Article) {
+                $item->setQuantiteAPrelever(null);
+            }
         }
     }
 

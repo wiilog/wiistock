@@ -1138,14 +1138,6 @@ class ArticleRepository extends EntityRepository {
         return $queryBuilder;
     }
 
-    public function findByIds(array $ids): array {
-        return $this->createQueryBuilder('article')
-            ->where('article.id IN (:ids)')
-            ->setParameter("ids", $ids, Connection::PARAM_STR_ARRAY)
-            ->getQuery()
-            ->getResult();
-    }
-
     public function findActiveOrDisputeForReference($reference, Emplacement $emplacement) {
         return $this->createQueryBuilder("a")
             ->join("a.articleFournisseur", "af")
