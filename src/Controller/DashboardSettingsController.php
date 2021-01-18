@@ -50,22 +50,31 @@ class DashboardSettingsController extends AbstractController {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
+        $orderedComponentCategories = [
+            Dashboard\ComponentType::CATEGORY_TRACKING,
+            Dashboard\ComponentType::CATEGORY_ORDERS,
+            Dashboard\ComponentType::CATEGORY_STOCK,
+            Dashboard\ComponentType::CATEGORY_REQUESTS
+        ];
+
+        $componentTypes = Stream::from($componentTypes)
+            ->reduce(function(array $carry, Dashboard\ComponentType $componentType) {
+                $category = $componentType->getCategory();
+                if(!isset($carry[$category])) {
+                    $carry[$category] = [];
+                }
+
+                $carry[$category][] = $componentType;
+
+                return $carry;
+            }, []);
+
         return $this->render("dashboard/settings.html.twig", [
             "dashboards" => $dashboardSettingsService->serialize($entityManager, $loggedUser, DashboardSettingsService::MODE_EDIT),
             "token" => $_SERVER["APP_DASHBOARD_TOKEN"],
             "componentTypeConfig" => [
                 // component types group by category
-                "componentTypes" => Stream::from($componentTypes)
-                    ->reduce(function(array $carry, Dashboard\ComponentType $componentType) {
-                        $category = $componentType->getCategory();
-                        if(!isset($carry[$category])) {
-                            $carry[$category] = [];
-                        }
-
-                        $carry[$category][] = $componentType;
-
-                        return $carry;
-                    }, [])
+                "componentTypes" => array_merge(array_flip($orderedComponentCategories), $componentTypes)
             ]
         ]);
     }
@@ -144,7 +153,9 @@ class DashboardSettingsController extends AbstractController {
             "secondDestinationLocation" => [],
             "carriers" => [],
             "arrivalTypes" => [],
+            "dispatchTypes" => [],
             "arrivalStatuses" => [],
+            "dispatchStatuses" => [],
             "natures" => [],
             'tooltip' => $componentType->getHint()
         ];
@@ -152,29 +163,39 @@ class DashboardSettingsController extends AbstractController {
         foreach(["locations", "firstOriginLocation", "secondOriginLocation", "firstDestinationLocation", "secondDestinationLocation"] as $field) {
             if(!empty($values[$field])) {
                 $locationRepository = $entityManager->getRepository(Emplacement::class);
-                $values[$field] = $locationRepository->findByIds($values[$field]);
+                $values[$field] = $locationRepository->findBy(['id' => $values[$field]]);
             }
         }
 
         if(!empty($values['carriers'])) {
             $carrierRepository = $entityManager->getRepository(Transporteur::class);
-            $values['carriers'] = $carrierRepository->findByIds($values['carriers']);
+            $values['carriers'] = $carrierRepository->findBy(['id' => $values['carriers']]);
         }
 
         if(!empty($values['arrivalTypes'])) {
-            $values['arrivalTypes'] = $typeRepository->findByIds($values['arrivalTypes']);
+            $values['arrivalTypes'] = $typeRepository->findBy(['id' => $values['arrivalTypes']]);
+        }
+
+        if(!empty($values['dispatchTypes'])) {
+            $values['dispatchTypes'] = $typeRepository->findBy(['id' => $values['dispatchTypes']]);
         }
 
         if(!empty($values['arrivalStatuses'])) {
-            $values['arrivalStatuses'] = $statusRepository->findByIds($values['arrivalStatuses']);
+            $values['arrivalStatuses'] = $statusRepository->findBy(['id' => $values['arrivalStatuses']]);
+        }
+
+        if(!empty($values['dispatchStatuses'])) {
+            $values['dispatchStatuses'] = $statusRepository->findBy(['id' => $values['dispatchStatuses']]);
         }
 
         if(!empty($values['natures'])) {
-            $values['natures'] = $natureRepository->findByIds($values['natures']);
+            $values['natures'] = $natureRepository->findBy(['id' => $values['natures']]);
         }
 
         $arrivalTypes = $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]);
+        $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
         $arrivalStatuses = $statusRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
+        $dispatchStatuses = $statusRepository->findByCategorieName(CategorieStatut::DISPATCH);
         $natures = $natureRepository->findAll();
 
         if($templateName) {
@@ -186,7 +207,9 @@ class DashboardSettingsController extends AbstractController {
                     'rowIndex' => $request->request->get('rowIndex'),
                     'componentIndex' => $request->request->get('componentIndex'),
                     'arrivalTypes' => $arrivalTypes,
+                    'dispatchTypes' => $dispatchTypes,
                     'arrivalStatuses' => $arrivalStatuses,
+                    'dispatchStatuses' => $dispatchStatuses,
                     'natures' => $natures,
                     'values' => $values
                 ])

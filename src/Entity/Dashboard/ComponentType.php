@@ -29,9 +29,10 @@ class ComponentType
     public const MONETARY_RELIABILITY = 'monetary_reliability';
     public const REFERENCE_RELIABILITY = 'reference_reliability';
     public const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
+    public const DAILY_DISPATCHES = 'daily_dispatches';
 
     public const CATEGORY_TRACKING = "Traçabilité";
-    public const REQUESTS = "Demandes";
+    public const CATEGORY_REQUESTS = "Demandes";
     public const CATEGORY_ORDERS = "Ordres";
     public const CATEGORY_STOCK = "Stock";
 

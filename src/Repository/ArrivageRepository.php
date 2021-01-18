@@ -393,7 +393,7 @@ class ArrivageRepository extends EntityRepository
                             OR search_type.label LIKE :value
                             OR a.businessUnit LIKE :value
                             OR a.projectNumber LIKE :value
-                            OR DATE_FORMAT(a.date, '%e/%m/%Y') LIKE :value
+                            OR DATE_FORMAT(a.date, '%d/%m/%Y') LIKE :value
                             OR JSON_SEARCH(a.freeFields, 'one', '$searchValue') IS NOT NULL
                         )")
                         ->setParameter('value', $searchValue);

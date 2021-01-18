@@ -543,7 +543,8 @@ class ArticleRepository extends EntityRepository {
                                 } else if (property_exists(Article::class, $field)) {
                                     if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
                                         $query[] = "a.$field BETWEEN :dateMin AND :dateMax";
-                                        $qb->setParameter('dateMin' , $date . ' 00:00:00')
+                                        $qb
+                                            ->setParameter('dateMin' , $date . ' 00:00:00')
                                             ->setParameter('dateMax' , $date . ' 23:59:59');
                                     } else {
                                         $query[] = "a.$field LIKE :search";
@@ -1135,14 +1136,6 @@ class ArticleRepository extends EntityRepository {
             ->setParameter('statusDisputeName', Article::STATUT_EN_LITIGE);
 
         return $queryBuilder;
-    }
-
-    public function findByIds(array $ids): array {
-        return $this->createQueryBuilder('article')
-            ->where('article.id IN (:ids)')
-            ->setParameter("ids", $ids, Connection::PARAM_STR_ARRAY)
-            ->getQuery()
-            ->getResult();
     }
 
     public function findActiveOrDisputeForReference($reference, Emplacement $emplacement) {

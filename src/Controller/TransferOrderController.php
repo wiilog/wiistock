@@ -121,7 +121,9 @@ class TransferOrderController extends AbstractController {
             }
 
             foreach ($transferRequest->getArticles() as $article) {
-                $article->setStatut($transitStatusForArticles);
+                $article
+                    ->setStatut($transitStatusForArticles)
+                    ->setQuantiteAPrelever($article->getQuantite());
             }
 
             $transferRequest->setStatus($toTreatRequest);
