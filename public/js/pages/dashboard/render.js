@@ -37,7 +37,8 @@ const creators = {
         callback: createCarrierTrackingElement
     },
     [DAILY_ARRIVALS]: {
-        callback: createChart
+        callback: createChart,
+        arguments: {route: `get_arrival_um_statistics`}
     },
     [LATE_PACKS]: {
         callback: createLatePacksElement
