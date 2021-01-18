@@ -26,18 +26,6 @@ class CSVExportService {
     }
 
     /**
-     * TODO delete
-     * @deprecated à supprimer quand il n'y aura plu d'export en JS
-     * @param $cell
-     * @return string
-     */
-    public function escapeCSV($cell) {
-        return !empty($cell)
-            ? ('"' . str_replace('"', '""', $cell) . '"')
-            : '';
-    }
-
-    /**
      * @deprecated Use CSVExportService::stream instead
      * @param array $data
      * @param array|null $csvHeader
