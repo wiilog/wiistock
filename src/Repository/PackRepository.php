@@ -90,8 +90,7 @@ class PackRepository extends EntityRepository
     public function getByDates(DateTime $dateMin, DateTime $dateMax)
     {
         $iterator =  $this->createQueryBuilder('pack')
-            ->select('pack')
-            ->addSelect('pack.code as code')
+            ->select('pack.code as code')
             ->addSelect('n.label as nature')
             ->addSelect('m.datetime as lastMvtDate')
             ->addSelect('m.id as fromTo')

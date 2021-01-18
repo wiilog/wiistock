@@ -123,11 +123,11 @@ class PackController extends AbstractController
                 $translator->trans('natures.Nature de colis'),
                 'Date du dernier mouvement',
                 'Issu de',
+                'Issu de (numéro)',
                 'Emplacement',
             ];
 
             return $CSVExportService->streamResponse(
-
                 function ($output) use ($CSVExportService, $translator, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
                     $packRepository = $entityManager->getRepository(Pack::class);
                     $packs = $packRepository->getByDates($dateTimeMin, $dateTimeMax);
@@ -136,10 +136,11 @@ class PackController extends AbstractController
                     foreach ($packs as $pack) {
                         $trackingMouvment = $trackingMouvementRepository->find($pack['fromTo']);
                         $mvtData = $trackingMovementService->getFromColumnData($trackingMouvment);
-                        $pack['fromTo'] = $translator->trans($mvtData['fromLabel']) . '-' . $mvtData['from'];
+                        $pack['fromLabel'] = $translator->trans($mvtData['fromLabel']);
+                        $pack['fromTo'] = $mvtData['from'];
                         $this->putPackLine($output, $CSVExportService, $pack);
                     }
-                }, 'export_packs.csv',
+                }, 'export_colis.csv',
                 $csvHeader
             );
         }
@@ -324,6 +325,7 @@ class PackController extends AbstractController
             $pack['code'],
             $pack['nature'],
             FormatHelper::datetime($pack['lastMvtDate']),
+            $pack['fromLabel'],
             $pack['fromTo'],
             $pack['location']
         ];
