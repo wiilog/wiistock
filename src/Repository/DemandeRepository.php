@@ -42,7 +42,7 @@ class DemandeRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findRequestToTreatByUser(Utilisateur $requester, int $limit) {
+    public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
         $statuses = [
             Demande::STATUT_BROUILLON,
             Demande::STATUT_A_TRAITER,
@@ -52,21 +52,18 @@ class DemandeRepository extends EntityRepository
         ];
 
         $queryBuilder = $this->createQueryBuilder('demande');
+        if($requester) {
+            $queryBuilder->andWhere("demande.utilisateur = :requester")
+                ->setParameter("requester", $requester);
+        }
+
         $queryBuilderExpr = $queryBuilder->expr();
         return $queryBuilder
             ->select('demande')
             ->innerJoin('demande.statut', 'status')
             ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = demande.type')
-            ->where(
-                $queryBuilderExpr->andX(
-                    $queryBuilderExpr->in('status.nom', ':statusNames'),
-                    $queryBuilderExpr->eq('demande.utilisateur', ':requester')
-                )
-            )
-            ->setParameters([
-                'statusNames' => $statuses,
-                'requester' => $requester,
-            ])
+            ->andWhere($queryBuilderExpr->in('status.nom', ':statusNames'))
+            ->setParameter('statusNames', $statuses)
             ->addOrderBy(sprintf("FIELD(status.nom, '%s', '%s', '%s', '%s', '%s')", ...$statuses), 'DESC')
             ->addOrderBy("DATE_ADD(demande.date, art.average, 'second')", 'ASC')
             ->setMaxResults($limit)

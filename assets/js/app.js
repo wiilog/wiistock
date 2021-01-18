@@ -68,6 +68,11 @@ jQuery.deepCopy = function(object) {
     return object !== undefined ? JSON.parse(JSON.stringify(object)) : object;
 };
 
+jQuery.capitalize = function(string) {
+    if (typeof string !== `string`) return ``;
+    return string.charAt(0).toUpperCase() + string.slice(1);
+};
+
 $(document).ready(() => {
     if (!BrowserSupport.input("datetime-local")) {
         const observer = new MutationObserver(function () {
