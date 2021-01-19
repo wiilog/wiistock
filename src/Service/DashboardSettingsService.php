@@ -10,6 +10,7 @@ use App\Entity\Emplacement;
 use App\Entity\Handling;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -35,6 +36,7 @@ class DashboardSettingsService {
     private $demandeLivraisonService;
     private $demandeCollecteService;
     private $handlingService;
+    private $transferRequestService;
     private $userService;
     private $router;
 
@@ -44,6 +46,7 @@ class DashboardSettingsService {
                                 DemandeLivraisonService $demandeLivraisonService,
                                 DemandeCollecteService $demandeCollecteService,
                                 HandlingService $handlingService,
+                                TransferRequestService $transferRequestService,
                                 UserService $userService,
                                 RouterInterface $router) {
         $this->enCoursService = $enCoursService;
@@ -52,6 +55,7 @@ class DashboardSettingsService {
         $this->demandeLivraisonService = $demandeLivraisonService;
         $this->demandeCollecteService = $demandeCollecteService;
         $this->handlingService = $handlingService;
+        $this->transferRequestService = $transferRequestService;
         $this->userService = $userService;
         $this->router = $router;
     }
@@ -224,8 +228,18 @@ class DashboardSettingsService {
                     })
                     ->toArray();
             }
+dump("a");
+            if ($config["kind"] == "transfer" && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)) {
+                $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
+                dump($transferRequestRepository->findRequestToTreatByUser($loggedUser, 50));
+                $pendingTransfers = Stream::from($transferRequestRepository->findRequestToTreatByUser($loggedUser, 50))
+                    ->map(function(TransferRequest $transfer) use ($averageRequestTimesByType) {
+                        return $this->transferRequestService->parseRequestForCard($transfer, $this->dateService, $averageRequestTimesByType);
+                    })
+                    ->toArray();
+            }
 
-            $values["requests"] = array_merge($pendingDeliveries ?? [], $pendingCollects ?? [], $pendingHandlings ?? []);
+            $values["requests"] = array_merge($pendingDeliveries ?? [], $pendingCollects ?? [], $pendingHandlings ?? [], $pendingTransfers ?? []);
         }
 
         return $values;
