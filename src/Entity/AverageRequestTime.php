@@ -8,8 +8,8 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=AverageRequestTimeRepository::class)
  */
-class AverageRequestTime
-{
+class AverageRequestTime {
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -28,49 +28,28 @@ class AverageRequestTime
      */
     private $average;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private $total;
-
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getType(): ?Type
-    {
+    public function getType(): ?Type {
         return $this->type;
     }
 
-    public function setType(Type $type): self
-    {
+    public function setType(Type $type): self {
         $this->type = $type;
 
         return $this;
     }
 
-    public function getAverage(): ?int
-    {
+    public function getAverage(): ?int {
         return $this->average;
     }
 
-    public function setAverage(?int $average): self
-    {
+    public function setAverage(?int $average): self {
         $this->average = $average;
 
         return $this;
     }
 
-    public function getTotal(): ?int
-    {
-        return $this->total;
-    }
-
-    public function setTotal(?int $total): self
-    {
-        $this->total = $total;
-
-        return $this;
-    }
 }

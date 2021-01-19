@@ -242,7 +242,7 @@ class DemandeLivraisonService
             'requestNumber' => $demande->getNumero(),
             'requestDate' => $requestDateStr,
             'requestUser' => $demande->getUtilisateur() ? $demande->getUtilisateur()->getUsername() : 'Non défini',
-            'cardColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'lightGrey' : 'white',
+            'cardColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'lightGrey' : 'darkWhite',
             'bodyColor' => $requestStatus === Demande::STATUT_BROUILLON ? 'white' : 'lightGrey',
             'topRightIcon' => 'livreur.svg',
             'progress' => $statusesToProgress[$requestStatus] ?? 0,
