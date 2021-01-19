@@ -2032,8 +2032,16 @@ class ReceptionController extends AbstractController {
                 }
 
                 $noCommande = isset($article['noCommande']) ? $article['noCommande'] : null;
+                if ($request) {
+                    $article['statut'] = Article::STATUT_EN_TRANSIT;
+                }
+
                 $article = $this->articleDataService->newArticle($article, $entityManager, $demande);
-                if ($request) $request->addArticle($article);
+                if ($request) {
+                    $request->addArticle($article);
+                    $article->setQuantiteAPrelever($article->getQuantite());
+                }
+
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
                 $rra = $receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $ref->getId());
                 $article->setReceptionReferenceArticle($rra);

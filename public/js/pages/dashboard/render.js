@@ -12,6 +12,7 @@ const CARRIER_TRACKING = 'carrier_tracking';
 const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
 const RECEIPT_ASSOCIATION = 'receipt_association';
 const WEEKLY_ARRIVALS_AND_PACKS = 'weekly_arrivals_and_packs';
+const PENDING_REQUESTS = 'pending_requests';
 const ENTRIES_TO_HANDLE = 'entries_to_handle';
 const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
 const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
@@ -57,6 +58,9 @@ const creators = {
     [WEEKLY_ARRIVALS_AND_PACKS]: {
         callback: createChart
     },
+    [PENDING_REQUESTS]: {
+        callback: createPendingRequests
+    },
     [ENTRIES_TO_HANDLE]: {
         callback: createEntriesToHandleElement
     },
@@ -93,7 +97,7 @@ const creators = {
     },
     [REFERENCE_RELIABILITY]: {
         callback: createIndicatorElement
-    }
+    },
 };
 
 /**
@@ -152,6 +156,110 @@ function createTooltip(text) {
             </div>
         `;
     }
+}
+
+function createPendingRequests(data) {
+    const title = data.title || "";
+
+    if(mode === MODE_EXTERNAL && data.shown === `self`) {
+        return $('<div/>', {
+            class: 'text-danger d-flex flex-fill align-items-center justify-content-center',
+            html: `<i class="fas fa-exclamation-triangle mr-2"></i>Ce composant ne peut pas être utilisé sur un dashboard externe`
+        });
+    } else {
+        let content = ``;
+        for(let request of data.requests) {
+            content += renderRequest(request);
+        }
+
+        return $(`
+            <div class="dashboard-box dashboard-stats-container">
+                <div class="title">
+                    ${title}
+                </div>
+                ${createTooltip(data.tooltip)}
+                <div class="d-flex flex-row h-100 overflow-auto">
+                    ${content}
+                </div>
+            </div>
+        `);
+    }
+}
+
+function renderRequest(request) {
+    let onCardClick = ``;
+    if(!request.href && request.errorMessage) {
+        onCardClick = `showBSAlert('${request.errorMessage}', 'danger'); event.preventDefault()`;
+    }
+
+    let topRightIcon;
+    if(request.topRightIcon === ``) {
+        topRightIcon = `<i class="wii-card-icon fa fa-exclamation-triangle red"></i>`
+    } else {
+        topRightIcon = `<img alt="" src="/svg/${request.topRightIcon}" class="wii-card-icon"/>`;
+    }
+
+    const requestUserFirstLetter = request.requestUser.charAt(0).toUpperCase();
+
+    return `
+        <div class="d-flex col-12 col-lg-4 col-xl-3">
+            <a class="card wii-card pointer p-3 my-2 shadow-sm bg-${request.cardColor}"
+                href="${request.href}" onclick="${onCardClick}">
+                <div class="wii-card-header">
+                    <div class="row">
+                        <div class="col-10 mb-2">
+                            <p class="mb-2 small">${request.estimatedFinishTimeLabel}</p>
+                            <strong>${request.estimatedFinishTime}</strong>
+                        </div>
+                        <div class="col-2 d-flex justify-content-end align-items-start">
+                            ${request.emergencyText} ${topRightIcon}
+                        </div>
+                        <div class="col-12 mb-2">
+                            <div class="progress bg-${request.progressBarBGColor}" style="height: 7px;">
+                                <div class="progress-bar"
+                                     role="progressbar"
+                                     style="width: ${request.progress}%; background-color: ${request.progressBarColor};"
+                                     aria-valuenow="${request.progress}"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <p>${$.capitalize(request.requestStatus)}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="wii-card-body p-2 bg-{{ bodyColor }}">
+                    <div class="row">
+                        <div class="col-12 card-title text-center">
+                            <strong>${request.requestBodyTitle}</strong>
+                        </div>
+                        <div class="col-12">
+                            <div class="w-100 d-inline-flex justify-content-center">
+                                <strong class="card-title m-0 mr-2">
+                                    <i class="fa fa-map-marker-alt "></i>
+                                </strong>
+                                <strong class="ellipsis">${request.requestLocation}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="wii-card-footer">
+                    <div class="row align-items-end">
+                        <div class="col-6 text-left ellipsis">
+                            <span class="bold">${request.requestNumber}</span><br/>
+                            <span class="text-secondary">${request.requestDate}</span>
+                        </div>
+                        <div class="col-6 text-right ellipsis">
+                            <div class="profile-picture" style="background-color: #EEE">${requestUserFirstLetter}</div>
+                            <span class="bold">${request.requestUser}</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    `;
 }
 
 function createEntriesToHandleElement(data, {meterKey}) {
@@ -241,7 +349,7 @@ function calculateChartsFontSize() {
  * @return {boolean|jQuery}
  */
 function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass: null, hideRange: false}) {
-    if (!data) {
+    if(!data) {
         console.error(`Invalid data for "${data.title}"`);
         return false;
     }
@@ -408,7 +516,7 @@ function drawChartWithHisto($button, path, beforeAfter = 'now') {
         'lastDay': $lastDay.data('day'),
         'beforeAfter': beforeAfter
     };
-    $.get(Routing.generate(path), params, function (data) {
+    $.get(Routing.generate(path), params, function(data) {
         $firstDay.text(data.firstDay);
         $firstDay.data('day', data.firstDayData);
         $lastDay.text(data.lastDay);
@@ -436,7 +544,7 @@ function updateSimpleChartData(chart, data, label, stack = false,
         chart.data.datasets[0].backgroundColor.fill('#A3D1FF');
     }
 
-    if (subData) {
+    if(subData) {
         const subColor = '#999';
         chart.data.datasets.push({
             label: lineChartLabel,

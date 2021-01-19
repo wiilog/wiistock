@@ -1237,9 +1237,9 @@ class ReferenceArticleController extends AbstractController
                                    ReferenceArticle $referenceArticle,
                                    RefArticleDataService $refArticleDataService) {
 
-        $refArticleDataService->updateRefArticleQuantities($referenceArticle, true);
+        $refArticleDataService->updateRefArticleQuantities($entityManager, $referenceArticle, true);
         $entityManager->flush();
-        $refArticleDataService->treatAlert($referenceArticle);
+        $refArticleDataService->treatAlert($entityManager, $referenceArticle);
         $entityManager->flush();
 
         return new JsonResponse(['success' => true]);

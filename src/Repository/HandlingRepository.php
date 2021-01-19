@@ -296,14 +296,18 @@ class HandlingRepository extends EntityRepository
         ];
     }
 
-    public function findRequestToTreatByUser(Utilisateur $requester, int $limit) {
-        return $this->createQueryBuilder("h")
-            ->select("h")
+    public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
+        $qb = $this->createQueryBuilder("h");
+
+        if($requester) {
+            $qb->andWhere("h.requester = :requester")
+                ->setParameter("requester", $requester);
+        }
+
+        return $qb->select("h")
             ->innerJoin("h.status", "s")
             ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = h.type')
-            ->where("s.state = " . Statut::NOT_TREATED)
-            ->andWhere("h.requester = :requester")
-            ->setParameter("requester", $requester)
+            ->andWhere("s.state = " . Statut::NOT_TREATED)
             ->addOrderBy('s.state', 'ASC')
             ->addOrderBy("DATE_ADD(h.creationDate, art.average, 'second')", 'ASC')
             ->setMaxResults($limit)

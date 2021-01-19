@@ -16,6 +16,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DateService;
@@ -319,7 +320,7 @@ class HandlingController extends AbstractController
 
         $date = (new DateTime('now', new DateTimeZone('Europe/Paris')));
         $desiredDateStr = $post->get('desired-date');
-        $desiredDate = $desiredDateStr ? new DateTime($desiredDateStr) : null;
+        $desiredDate = $desiredDateStr ? FormatHelper::parseDatetime($desiredDateStr) : null;
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 

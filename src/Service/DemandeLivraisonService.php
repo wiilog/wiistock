@@ -514,7 +514,7 @@ class DemandeLivraisonService
         }
 
         foreach ($refArticleToUpdateQuantities as $refArticle) {
-            $this->refArticleDataService->updateRefArticleQuantities($refArticle);
+            $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticle);
         }
 
         if (!$simpleValidation && $demande->getType()->getSendMail()) {

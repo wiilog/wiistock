@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\Dispatch;
 use App\Entity\Action;
-use App\Entity\Arrivage;
 use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Livraison;
@@ -58,6 +57,10 @@ class UserService
             $randomString .= $characters[rand(0, $charactersLength - 1)];
         }
         return $randomString;
+    }
+
+    public function getUser(): ?Utilisateur {
+        return $this->user;
     }
 
     public function getUserRole($user = null)

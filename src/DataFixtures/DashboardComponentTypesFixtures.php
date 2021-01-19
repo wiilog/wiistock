@@ -10,8 +10,7 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInterface
-{
+class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInterface {
 
     private $encoder;
     private $specificService;
@@ -224,8 +223,54 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS,
             'meterKey' => Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS,
         ],
+        'Demandes en cours' => [
+            'hint' => "Liste des demandes de l'entité sélectionnée en cours",
+            'exampleValues' => [
+                'requests' => [
+                    [
+                        'href' => '/demande/voir/439',
+                        'errorMessage' => 'Exemple',
+                        'estimatedFinishTime' => '16:54',
+                        'estimatedFinishTimeLabel' => 'Heure de livraison estimée',
+                        'requestStatus' => 'à traiter',
+                        'requestBodyTitle' => '0 article - LIV - BCO',
+                        'requestLocation' => 'MAG 0003 - EXPEDITION',
+                        'requestNumber' => 'DL21010005',
+                        'requestDate' => '18 Janv. (12h01)',
+                        'requestUser' => 'mbenoukaiss',
+                        'cardColor' => 'lightGrey',
+                        'bodyColor' => 'white',
+                        'topRightIcon' => 'livreur.svg',
+                        'progress' => 0,
+                        'progressBarColor' => '#2ec2ab',
+                        'emergencyText' => '',
+                        'progressBarBGColor' => 'white',
+                    ], [
+                        'errorMessage' => 'Exemple',
+                        'estimatedFinishTime' => 'Non estimée',
+                        'estimatedFinishTimeLabel' => 'Date de livraison non estimée',
+                        'requestStatus' => 'à traiter',
+                        'requestBodyTitle' => '1 article - standard',
+                        'requestLocation' => 'MAG 0003 - EXPEDITION',
+                        'requestNumber' => 'DL21010001',
+                        'requestDate' => '07 Janv. (12h55)',
+                        'requestUser' => 'mbenoukaiss',
+                        'cardColor' => 'lightGrey',
+                        'bodyColor' => 'white',
+                        'topRightIcon' => 'livreur.svg',
+                        'progress' => 0,
+                        'progressBarColor' => '#2ec2ab',
+                        'emergencyText' => '',
+                        'progressBarBGColor' => 'white',
+                    ],
+                ]
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
+            'template' => Dashboard\ComponentType::PENDING_REQUESTS,
+            'meterKey' => Dashboard\ComponentType::PENDING_REQUESTS,
+        ],
         'Entrées à effectuer' => [
-            'hint' => 'Nombre de colis par natures paramétrées présents sur la durée paramétrée sur l\'ensemble des emplacements paramétrés',
+            'hint' => "Nombre de colis par natures paramétrées présents sur la durée paramétrée sur l'ensemble des emplacements paramétrés",
             'exampleValues' => [
                 'count' => 72,
                 'segments' => ['4', '8', '12', '16'],
@@ -295,7 +340,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'count' => 3
             ],
         ],
-        'Fiabilité monétaire (graphique)'  => [
+        'Fiabilité monétaire (graphique)' => [
             'hint' => 'Somme des quantités corrigées suite à un inventaire',
             'category' => Dashboard\ComponentType::CATEGORY_STOCK,
             'template' => null,
@@ -375,15 +420,13 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
     ];
 
     public function __construct(UserPasswordEncoderInterface $encoder,
-                                SpecificService $specificService)
-    {
+                                SpecificService $specificService) {
         $this->encoder = $encoder;
         $this->specificService = $specificService;
         $this->output = new ConsoleOutput();
     }
 
-    public function load(ObjectManager $manager)
-    {
+    public function load(ObjectManager $manager) {
         $componentTypeRepository = $manager->getRepository(Dashboard\ComponentType::class);
         $alreadyExisting = $componentTypeRepository->findAll();
         $alreadyExistingName = [];
@@ -422,8 +465,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         $manager->flush();
     }
 
-    public static function getGroups(): array
-    {
+    public static function getGroups(): array {
         return ['fixtures'];
     }
 

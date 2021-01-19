@@ -25,6 +25,7 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -346,6 +347,8 @@ class PreparationController extends AbstractController
      * @param PreparationsManagerService $preparationsManagerService
      * @param RefArticleDataService $refArticleDataService
      * @return Response
+     * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     public function delete(Preparation $preparation,
                            EntityManagerInterface $entityManager,
@@ -365,7 +368,7 @@ class PreparationController extends AbstractController
         $entityManager->flush();
 
         foreach ($refToUpdate as $reference) {
-            $refArticleDataService->updateRefArticleQuantities($reference);
+            $refArticleDataService->updateRefArticleQuantities($entityManager, $reference);
         }
 
         $entityManager->flush();
