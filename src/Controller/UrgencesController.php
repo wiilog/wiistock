@@ -13,6 +13,7 @@ use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -261,14 +262,14 @@ class UrgencesController extends AbstractController
 	}
 
     /**
-     * @Route("/urgences-infos", name="get_urgence_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_emergencies_csv", options={"expose"=true}, methods={"GET"})
      * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @param CSVExportService $CSVExportService
      * @return Response
      * @throws Exception
      */
-    public function getUrgencesIntels(EntityManagerInterface $entityManager,
+    public function getEmergenciesCSV(EntityManagerInterface $entityManager,
                                       Request $request,
                                       CSVExportService $CSVExportService): Response
     {
@@ -284,7 +285,7 @@ class UrgencesController extends AbstractController
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
 
             $urgenceRepositoty = $entityManager->getRepository(Urgence::class);
-            $urgences = $urgenceRepositoty->findByDates($dateTimeMin, $dateTimeMax);
+            $urgenceIterator = $urgenceRepositoty->iterateByDates($dateTimeMin, $dateTimeMax);
 
             $csvheader = [
                 'Debut delais livraison',
@@ -302,8 +303,8 @@ class UrgencesController extends AbstractController
             $nowStr = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 
             return $CSVExportService->streamResponse(
-                function ($output) use ($urgences, $CSVExportService) {
-                    foreach ($urgences as $urgence) {
+                function ($output) use ($urgenceIterator, $CSVExportService) {
+                    foreach ($urgenceIterator as $urgence) {
                         $CSVExportService->putLine($output, $urgence->serialize());
                     }
                 },

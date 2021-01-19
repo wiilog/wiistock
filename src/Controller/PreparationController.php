@@ -25,6 +25,7 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -562,14 +563,18 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/infos", name="get_ordres_prepa_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_preparations_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
+     * @param PreparationsManagerService $preparationsManager
+     * @param CSVExportService $CSVExportService
      * @param EntityManagerInterface $entityManager
      * @return Response
+     * @throws Exception
      */
-    public function getOrdrePrepaIntels(Request $request,
-                                        CSVExportService $CSVExportService,
-                                        EntityManagerInterface $entityManager): Response
+    public function getPreparationCSV(Request $request,
+                                      PreparationsManagerService $preparationsManager,
+                                      CSVExportService $CSVExportService,
+                                      EntityManagerInterface $entityManager): Response
     {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -581,9 +586,8 @@ class PreparationController extends AbstractController
         }
 
         if(isset($dateTimeMin) && isset($dateTimeMax)) {
-
             $preparationRepository = $entityManager->getRepository(Preparation::class);
-            $preparations = $preparationRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $preparationIterator = $preparationRepository->iterateByDates($dateTimeMin, $dateTimeMax);
 
             $csvHeader = [
                 'numéro',
@@ -599,86 +603,17 @@ class PreparationController extends AbstractController
             ];
             $nowStr = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 
-            return $CSVExportService->createBinaryResponseFromData(
+            return $CSVExportService->streamResponse(
+                function ($output) use ($preparationIterator, $CSVExportService, $preparationsManager) {
+                    foreach ($preparationIterator as $preparation) {
+                        $preparationsManager->putPreparationLines($output, $preparation);
+                    }
+                },
                 "Export-Ordre-Preparation-" . $nowStr->format('d_m_Y') . ".csv",
-                $preparations,
-                $csvHeader,
-
-                function (Preparation $preparation) {
-                    $preparationBaseData = $preparation->serialize();
-                    $preparationData = [];
-
-                    foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
-                        $referenceArticle = $ligneArticle->getReference();
-                        $preparationData[] = array_merge($preparationBaseData, [
-                            $referenceArticle->getReference() ?? '',
-                            $referenceArticle->getLibelle() ?? '',
-                            $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
-                            $ligneArticle->getQuantite() ?? 0,
-                            $referenceArticle->getBarCode()
-                        ]);
-                    }
-
-                    foreach ($preparation->getArticles() as $article) {
-                        $articleFournisseur = $article->getArticleFournisseur();
-                        $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
-                        $reference = $referenceArticle ? $referenceArticle->getReference() : '';
-                        $preparationData[] = array_merge($preparationBaseData, [
-                            $reference,
-                            $article->getLabel() ?? '',
-                            $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-                            $article->getQuantite() ?? 0,
-                            $article->getBarCode()
-                        ]);
-                    }
-                    return $preparationData;
-                });
+                $csvHeader
+            );
         } else {
             throw new NotFoundHttpException('404');
-        }
-    }
-
-
-    private function buildInfos(Preparation $preparation, &$data)
-    {
-        $demande = $preparation->getDemande();
-        $dataPrepa =
-            [
-                $preparation->getNumero() ?? '',
-                $preparation->getStatut() ? $preparation->getStatut()->getNom() : '',
-                $preparation->getDate() ? $preparation->getDate()->format('d/m/Y H:i') : '',
-                $preparation->getUtilisateur() ? $preparation->getUtilisateur()->getUsername() : '',
-                $demande->getType() ? $demande->getType()->getLabel() : '',
-            ];
-
-        foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
-            $referenceArticle = $ligneArticle->getReference();
-
-            if ($ligneArticle->getQuantite() > 0) {
-                $data[] = array_merge($dataPrepa, [
-                    $referenceArticle->getReference() ?? '',
-                    $referenceArticle->getLibelle() ?? '',
-                    $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
-                    $ligneArticle->getQuantite() ?? 0,
-                    $referenceArticle->getBarCode(),
-                ]);
-            }
-        }
-
-        foreach ($preparation->getArticles() as $article) {
-            $articleFournisseur = $article->getArticleFournisseur();
-            $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
-            $reference = $referenceArticle ? $referenceArticle->getReference() : '';
-
-            if ($article->getQuantite() > 0) {
-                $data[] = array_merge($dataPrepa, [
-                    $reference,
-                    $article->getLabel() ?? '',
-                    $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-                    $article->getQuantite() ?? 0,
-                    $article->getBarCode(),
-                ]);
-            }
         }
     }
 

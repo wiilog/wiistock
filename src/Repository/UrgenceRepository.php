@@ -261,7 +261,7 @@ class UrgenceRepository extends EntityRepository
      * @param DateTime $dateMin
      * @param DateTime $dateMax
      */
-    public function findByDates($dateMin, $dateMax)
+    public function iterateByDates($dateMin, $dateMax)
     {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');

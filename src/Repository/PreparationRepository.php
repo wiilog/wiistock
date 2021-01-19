@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
+use Generator;
 
 /**
  * @method Preparation|null find($id, $lockMode = null, $lockVersion = null)
@@ -223,26 +224,28 @@ class PreparationRepository extends EntityRepository
 		];
 	}
 
-	/**
-	 * @param DateTime $dateMin
-	 * @param DateTime $dateMax
-	 * @return Preparation[]|null
-	 */
-	public function findByDates($dateMin, $dateMax)
-	{
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return Generator
+     */
+	public function iterateByDates($dateMin, $dateMax): Generator {
 		$dateMax = $dateMax->format('Y-m-d H:i:s');
 		$dateMin = $dateMin->format('Y-m-d H:i:s');
 
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			'SELECT p
-            FROM App\Entity\Preparation p
-            WHERE p.date BETWEEN :dateMin AND :dateMax'
-		)->setParameters([
-			'dateMin' => $dateMin,
-			'dateMax' => $dateMax
-		]);
-		return $query->execute();
+        $iterator = $this->createQueryBuilder('preparation')
+            ->where('preparation.date BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ])
+            ->getQuery()
+            ->iterate();
+
+        foreach($iterator as $item) {
+            // $item [index => preparation]
+            yield array_pop($item);
+        }
 	}
 
     public function getFirstDatePreparationGroupByDemande (array $demandes)

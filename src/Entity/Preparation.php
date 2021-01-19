@@ -315,6 +315,7 @@ class Preparation
         $this->endLocation = $endLocation;
         return $this;
     }
+
     public function serialize()
     {
         $request = $this->getDemande();
@@ -324,7 +325,7 @@ class Preparation
             'statut' => $this->getStatut() ?? '',
             'date' => $this->getDate()->format('d/m/Y H:i:s') ?? '',
             'user' => $this->getUtilisateur() ? $this->getUtilisateur()->getUsername() : '',
-            'type' => $this->getDemande()->getType() ? $this->getDemande()->getType()->getLabel() : '',
+            'type' => $type ? $type->getLabel() : '',
         ];
     }
 }
