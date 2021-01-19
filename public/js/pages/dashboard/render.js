@@ -202,8 +202,8 @@ function renderRequest(request) {
     const requestUserFirstLetter = request.requestUser.charAt(0).toUpperCase();
 
     return `
-        <div class="d-flex col-12 col-lg-4 col-xl-3">
-            <a class="card wii-card pointer p-3 my-2 shadow-sm bg-${request.cardColor}"
+        <div class="d-flex col-12 col-lg-4 col-xl-3 p-1">
+            <a class="card wii-card pointer p-3 my-2 shadow-sm flex-grow-1 bg-${request.cardColor}"
                 href="${request.href}" onclick="${onCardClick}">
                 <div class="wii-card-header">
                     <div class="row">

@@ -10,6 +10,7 @@ use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Handling;
+use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Service\DateService;
 use DateTime;
@@ -49,6 +50,7 @@ class AverageRequestTimeCommand extends Command
         $demandeRepository = $this->entityManager->getRepository(Demande::class);
         $collecteRepository = $this->entityManager->getRepository(Collecte::class);
         $handlingRepository = $this->entityManager->getRepository(Handling::class);
+        $transferRequestRepository = $this->entityManager->getRepository(TransferRequest::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
 
         $requests = array_merge(
@@ -56,6 +58,8 @@ class AverageRequestTimeCommand extends Command
             $handlingRepository->getTreatingTimesWithType(),
             $collecteRepository->getTreatingTimesWithType()
         );
+
+        $transferRequestTimes = $transferRequestRepository->getProcessingTime();
 
         $typeMeters = [];
         foreach ($requests as $request) {
@@ -82,6 +86,13 @@ class AverageRequestTimeCommand extends Command
             $typeMeters[$typeId]['count']++;
         }
 
+        foreach($transferRequestTimes as $trTime) {
+            $typeMeters[$trTime["type"]] = [
+                "total" => $trTime["total"],
+                "count" => $trTime["count"],
+            ];
+        }
+
         $typeIdToTypeEntity = [];
 
         foreach ($typeMeters as $typeId => $total) {
@@ -93,14 +104,11 @@ class AverageRequestTimeCommand extends Command
 
             if (!$averageTime) {
                 $averageTime = new AverageRequestTime();
-                $averageTime
-                    ->setType($type);
+                $averageTime->setType($type);
                 $this->entityManager->persist($averageTime);
             }
 
-            $averageTime
-                ->setAverage($average)
-                ->setTotal($total['count']);
+            $averageTime->setAverage($average);
         }
 
         $this->entityManager->flush();

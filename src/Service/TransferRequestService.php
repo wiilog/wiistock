@@ -2,10 +2,14 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
+use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\TransferRequest;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
@@ -116,11 +120,13 @@ class TransferRequestService {
                                           ?Emplacement $destination,
                                           ?Utilisateur $requester,
                                           ?string $comment = null): TransferRequest {
+        $type = $entityManager->getRepository(Type::class)->findOneByCategoryLabel(CategoryType::TRANSFER_REQUEST);
         $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
         $transferRequestNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, TransferRequest::NUMBER_PREFIX, TransferRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
         $transfer = new TransferRequest();
         $transfer
+            ->setType($type)
             ->setStatus($status)
             ->setCreationDate($now)
             ->setNumber($transferRequestNumber)
@@ -130,6 +136,87 @@ class TransferRequestService {
             ->setComment($comment);
 
         return $transfer;
+    }
+
+    /**
+     * @param TransferRequest $request
+     * @param DateService $dateService
+     * @param array $averageRequestTimesByType
+     * @return array
+     * @throws Exception
+     */
+    public function parseRequestForCard(TransferRequest $request,
+                                        DateService $dateService,
+                                        array $averageRequestTimesByType) {
+        $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ);
+        $hasRightToSeeOrder = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS);
+
+        $requestStatus = $request->getStatus() ? $request->getStatus()->getNom() : '';
+
+        if ($requestStatus !== TransferRequest::DRAFT && $hasRightToSeeOrder && $request->getOrder()) {
+            $href = $this->router->generate('transfer_order_show', ['id' => $request->getOrder()->getId()]);
+        } else if ($hasRightToSeeRequest) {
+            $href = $this->router->generate('transfer_request_show', ['id' => $request->getId()]);
+        }
+
+        $articlesCounter = ($request->getArticles()->count() + $request->getReferences()->count());
+        $articlePlural = $articlesCounter > 1 ? 's' : '';
+        $bodyTitle = $articlesCounter . ' article' . $articlePlural;
+
+        $typeId = $request->getType() ? $request->getType()->getId() : null;
+        $averageTime = $averageRequestTimesByType[$typeId] ?? null;
+
+        $deliveryDateEstimated = 'Non estimée';
+        $estimatedFinishTimeLabel = 'Date de transfert non estimée';
+        $today = new DateTime();
+
+        if (isset($averageTime) && $request->getValidationDate()) {
+            $expectedDate = (clone $request->getValidationDate())
+                ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
+            if ($expectedDate >= $today) {
+                $estimatedFinishTimeLabel = 'Date et heure de transfert prévue';
+                $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
+                if ($expectedDate->format('d/m/Y') === $today->format('d/m/Y')) {
+                    $estimatedFinishTimeLabel = 'Heure de transfert estimée';
+                    $deliveryDateEstimated = $expectedDate->format('H:i');
+                }
+            }
+        }
+
+        $requestDate = $request->getCreationDate();
+        $requestDateStr = $requestDate
+            ? (
+                $requestDate->format('d ')
+                . DateService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
+                . $requestDate->format(' (H\hi)')
+            )
+            : 'Non défini';
+
+        $statusesToProgress = [
+            TransferRequest::DRAFT => 33,
+            TransferRequest::TO_TREAT => 66,
+            TransferRequest::TREATED => 100,
+        ];
+
+        return [
+            'href' => $href ?? null,
+            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page d\'état actuel de la demande de transfert',
+            'estimatedFinishTime' => $deliveryDateEstimated,
+            'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
+            'requestStatus' => $requestStatus,
+            'requestBodyTitle' => $bodyTitle,
+            'requestLocation' => $request->getDestination() ? $request->getDestination()->getLabel() : 'Non défini',
+            'requestNumber' => $request->getNumber(),
+            'requestDate' => $requestDateStr,
+            'requestUser' => $request->getRequester() ? $request->getRequester()->getUsername() : 'Non défini',
+            'cardColor' => $requestStatus === TransferRequest::DRAFT ? 'lightGrey' : 'darkWhite',
+            'bodyColor' => $requestStatus === TransferRequest::DRAFT ? 'white' : 'lightGrey',
+            'topRightIcon' => 'transfer.svg',
+            'progress' => $statusesToProgress[$requestStatus] ?? 0,
+            'progressBarColor' => '#2ec2ab',
+            'emergencyText' => '',
+            'progressBarBGColor' => $requestStatus === TransferRequest::DRAFT ? 'white' : 'lightGrey',
+        ];
     }
 
 }

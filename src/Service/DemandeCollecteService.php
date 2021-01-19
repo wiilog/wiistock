@@ -345,7 +345,7 @@ class DemandeCollecteService
             'requestNumber' => $request->getNumero(),
             'requestDate' => $requestDateStr,
             'requestUser' => $request->getDemandeur() ? $request->getDemandeur()->getUsername() : 'Non défini',
-            'cardColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'lightGrey' : 'white',
+            'cardColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'lightGrey' : 'darkWhite',
             'bodyColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'white' : 'lightGrey',
             'topRightIcon' => 'livreur.svg',
             'emergencyText' => '',

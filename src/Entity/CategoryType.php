@@ -20,6 +20,7 @@ class CategoryType
     const DEMANDE_HANDLING = 'services';
     const ARRIVAGE = 'arrivage';
     const MOUVEMENT_TRACA = 'mouvement traca';
+    const TRANSFER_REQUEST = 'demande transfert';
 
     /**
      * @ORM\Id()
