@@ -6,10 +6,21 @@ use App\Entity\Emplacement;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use DateTime;
 use DateTimeInterface;
 use Traversable;
 
 class FormatHelper {
+
+    public static function parseDatetime(?string $date, array $expectedFormats = ["Y-m-d H:i:s", "d/m/Y H:i:s", "Y-m-d H:i", "d/m/Y H:i"]): ?DateTimeInterface {
+        foreach($expectedFormats as $format) {
+            if($out = DateTime::createFromFormat($format, $date)) {
+                return $out;
+            }
+        }
+
+        return new DateTime($date) ?: null;
+    }
 
     public static function type(?Type $type, $else = "") {
         return $type ? $type->getLabel() : $else;
