@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
 use App\Entity\Demande;
+use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\Handling;
 use App\Entity\Menu;
@@ -35,6 +36,7 @@ class DashboardSettingsService {
     private $demandeLivraisonService;
     private $demandeCollecteService;
     private $handlingService;
+    private $dispatchService;
     private $userService;
     private $router;
 
@@ -45,6 +47,7 @@ class DashboardSettingsService {
                                 DemandeCollecteService $demandeCollecteService,
                                 HandlingService $handlingService,
                                 UserService $userService,
+                                DispatchService $dispatchService,
                                 RouterInterface $router) {
         $this->enCoursService = $enCoursService;
         $this->dashboardService = $dashboardService;
@@ -54,6 +57,7 @@ class DashboardSettingsService {
         $this->handlingService = $handlingService;
         $this->userService = $userService;
         $this->router = $router;
+        $this->dispatchService = $dispatchService;
     }
 
     public function serialize(EntityManagerInterface $entityManager, ?Utilisateur $user, int $mode): string {
@@ -224,8 +228,16 @@ class DashboardSettingsService {
                     })
                     ->toArray();
             }
+            if ($config["kind"] == "dispatch" && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
+                $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+                $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUser($loggedUser, 50))
+                    ->map(function(Dispatch $dispatch) use ($averageRequestTimesByType) {
+                        return $this->dispatchService->parseRequestForCard($dispatch, $this->dateService, $averageRequestTimesByType);
+                    })
+                    ->toArray();
+            }
 
-            $values["requests"] = array_merge($pendingDeliveries ?? [], $pendingCollects ?? [], $pendingHandlings ?? []);
+            $values["requests"] = array_merge($pendingDeliveries ?? [], $pendingCollects ?? [], $pendingHandlings ?? [], $pendingDispatches ?? []);
         }
 
         return $values;

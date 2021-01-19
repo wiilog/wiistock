@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use App\Entity\AverageRequestTime;
+use App\Entity\Collecte;
 use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
@@ -12,6 +14,7 @@ use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Join;
 
 
 /**
@@ -260,6 +263,25 @@ class DispatchRepository extends EntityRepository
             ->getResult();
     }
 
+    public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
+        $qb = $this->createQueryBuilder("d");
+
+        if($requester) {
+            $qb->andWhere("d.requester = :requester")
+                ->setParameter("requester", $requester);
+        }
+
+        return $qb->select("d")
+            ->innerJoin("d.statut", "s")
+            ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = d.type')
+            ->andWhere("s.state != " . Statut::TREATED)
+            ->addOrderBy('s.state', 'ASC')
+            ->addOrderBy("DATE_ADD(d.creationDate, art.average, 'second')", 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
@@ -403,5 +425,28 @@ class DispatchRepository extends EntityRepository
         return $qb
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function getTreatingTimesWithType() {
+        $nowDate = new DateTime();
+        $datePrior3Months = (clone $nowDate)->modify('-3 month');
+        $queryBuilder = $this->createQueryBuilder('dispatch');
+        $queryBuilderExpr = $queryBuilder->expr();
+        $query = $queryBuilder
+            ->select('type.id AS typeId')
+            ->addSelect($queryBuilderExpr->min('dispatch.validationDate') . ' AS validationDate')
+            ->addSelect($queryBuilderExpr->max('dispatch.treatmentDate') . ' AS treatingDate')
+            ->join('dispatch.statut', 'status')
+            ->join('dispatch.type', 'type')
+            ->where('status.state LIKE :treatedStatus')
+            ->andHaving($queryBuilderExpr->min('dispatch.validationDate') . ' BETWEEN :start AND :end')
+            ->groupBy('dispatch.id')
+            ->setParameters([
+                'start' => $datePrior3Months,
+                'end' => $nowDate,
+                'treatedStatus' => Statut::TREATED
+            ])
+            ->getQuery();
+        return $query->execute();
     }
 }
