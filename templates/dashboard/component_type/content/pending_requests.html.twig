@@ -5,9 +5,9 @@
         <div class="form-group col-6">
             <label>Demande*</label>
             <select class="data form-control w-100 needed" name="kind">
-                <option value="delivery" {{ values.kind == 'delivery' ? 'selected' }}>Livraison</option>
-                <option value="collect" {{ values.kind == 'collect' ? 'selected' }}>Collecte</option>
-                <option value="handling" {{ values.kind == 'handling' ? 'selected' }}>Service</option>
+                <option value="delivery" {{ values.kind is defined and values.kind == 'delivery' ? 'selected' }}>Livraison</option>
+                <option value="collect" {{ values.kind is defined and values.kind == 'collect' ? 'selected' }}>Collecte</option>
+                <option value="handling" {{ values.kind is defined and values.kind == 'handling' ? 'selected' }}>Service</option>
             </select>
         </div>
     </div>
@@ -15,8 +15,8 @@
         <div class="form-group col-6">
             <label class="d-inline-block">Afficher</label>
             <select class="data form-control w-100 needed d-inline-block" name="shown">
-                <option value="self" {{ values.shown == 'self' ? 'selected' }}>seulement mes demandes</option>
-                <option value="everyone" {{ values.shown == 'everyone' ? 'selected' }}>toutes les demandes</option>
+                <option value="self" {{ values.shown is defined and values.shown == 'self' ? 'selected' }}>seulement mes demandes</option>
+                <option value="everyone" {{ values.shown is defined and values.shown == 'everyone' ? 'selected' }}>toutes les demandes</option>
             </select>
         </div>
     </div>
