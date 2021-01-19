@@ -260,22 +260,25 @@ class UrgenceRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @return Urgence[]|null
      */
     public function findByDates($dateMin, $dateMax)
     {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
-        $qb = $this->createQueryBuilder('u')
+        $iterator = $this->createQueryBuilder('u')
             ->where('u.dateEnd >= :dateMin')
             ->andWhere('u.dateStart <= :dateMax')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
-            ]);
-        return $qb
+            ])
             ->getQuery()
-            ->getResult();
+            ->iterate();
+
+        foreach($iterator as $item) {
+            // $item [index => urgence]
+            yield array_pop($item);
+        }
     }
 }

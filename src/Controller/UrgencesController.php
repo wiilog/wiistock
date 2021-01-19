@@ -276,8 +276,8 @@ class UrgencesController extends AbstractController
         $dateMax = $request->query->get('dateMax');
 
         try {
-        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
-        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
         } catch (\Throwable $throwable) {
 
         }
@@ -301,14 +301,14 @@ class UrgencesController extends AbstractController
             ];
             $nowStr = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 
-            return $CSVExportService->createBinaryResponseFromData(
+            return $CSVExportService->streamResponse(
+                function ($output) use ($urgences, $CSVExportService) {
+                    foreach ($urgences as $urgence) {
+                        $CSVExportService->putLine($output, $urgence->serialize());
+                    }
+                },
                 "Export-Urgence-" . $nowStr->format('d_m_y') . ".csv",
-                $urgences,
-                $csvheader,
-
-                function (Urgence $urgence) {
-                    return [$urgence->serialize()];
-                }
+                $csvheader
             );
         } else {
             throw new NotFoundHttpException('404');
