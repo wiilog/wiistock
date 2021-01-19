@@ -9,6 +9,12 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class ParametrageGlobal
 {
+
+    const DEFAULT_WEBSITE_LOGO_VALUE = '/img/followGTwhite.svg';
+    const DEFAULT_EMAIL_LOGO_VALUE = '/img/gtlogistics.jpg';
+    const DEFAULT_MOBILE_LOGO_LOGIN_VALUE = '/img/mobile_logo_login.svg';
+    const DEFAULT_MOBILE_LOGO_HEADER_VALUE = '/img/mobile_logo_header.svg';
+
 	// arrivages
     const REDIRECT_AFTER_NEW_ARRIVAL = 'REDIRECT AFTER NEW ARRIVAL';
     const SEND_MAIL_AFTER_NEW_ARRIVAL = 'SEND MAIL AFTER NEW ARRIVAL';
@@ -140,8 +146,6 @@ class ParametrageGlobal
         'value'=> false,
         'label'=> '1252 Europe de l\'ouest Windows'
     ];
-
-    const DEFAULT_LOGO_VALUE = "img/followGTwhite.svg";
 
 
 	/**

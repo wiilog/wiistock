@@ -167,10 +167,10 @@ class ParametrageGlobalController extends AbstractController {
                 'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
                 'fonts' => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
                 'fontFamily' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FONT_FAMILY) ?? ParametrageGlobal::DEFAULT_FONT_FAMILY,
-                'website_logo' => ($websiteLogo && file_exists(getcwd() . "/" . $websiteLogo) ? $websiteLogo : null),
-                'email_logo' => ($emailLogo && file_exists(getcwd() . "/" . $emailLogo) ? $emailLogo : null),
-                'mobile_logo_header' => ($mobileLogoHeader && file_exists(getcwd() . "/" . $mobileLogoHeader) ? $mobileLogoHeader : null),
-                'mobile_logo_login' => ($mobileLogoLogin && file_exists(getcwd() . "/" . $mobileLogoLogin) ? $mobileLogoLogin : null),
+                'website_logo' => ($websiteLogo && file_exists(getcwd() . "/" . $websiteLogo) ? $websiteLogo : ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE),
+                'email_logo' => ($emailLogo && file_exists(getcwd() . "/" . $emailLogo) ? $emailLogo : ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE),
+                'mobile_logo_header' => ($mobileLogoHeader && file_exists(getcwd() . "/" . $mobileLogoHeader) ? $mobileLogoHeader : ParametrageGlobal::DEFAULT_MOBILE_LOGO_HEADER_VALUE),
+                'mobile_logo_login' => ($mobileLogoLogin && file_exists(getcwd() . "/" . $mobileLogoLogin) ? $mobileLogoLogin : ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE),
                 'redirectMvtTraca' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT),
                 'workFreeDays' => $workFreeDays,
                 'wantsRecipient' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL),
@@ -882,7 +882,7 @@ class ParametrageGlobalController extends AbstractController {
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         } else if(!($request->files->has("website-logo")) && ($resetLogos['website'] ?? false)) {
             $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::WEBSITE_LOGO);
-            $setting->setValue(ParametrageGlobal::DEFAULT_LOGO_VALUE);
+            $setting->setValue(ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE);
         }
 
         if($request->files->has("email-logo")) {
@@ -899,7 +899,7 @@ class ParametrageGlobalController extends AbstractController {
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         } else if(!($request->files->has("email-logo")) && ($resetLogos['mailLogo'] ?? false)) {
             $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::EMAIL_LOGO);
-            $setting->setValue(ParametrageGlobal::DEFAULT_LOGO_VALUE);
+            $setting->setValue(ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE);
         }
 
         if($request->files->has("mobile-logo-login")) {
@@ -916,7 +916,7 @@ class ParametrageGlobalController extends AbstractController {
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         } else if(!($request->files->has("mobile-logo-login")) && ($resetLogos['nomadeAccueil'] ?? false)) {
             $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
-            $setting->setValue(ParametrageGlobal::DEFAULT_LOGO_VALUE);
+            $setting->setValue(ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE);
         }
 
         if($request->files->has("mobile-logo-header")) {
@@ -933,7 +933,7 @@ class ParametrageGlobalController extends AbstractController {
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         } else if(!($request->files->has("mobile-logo-header")) && ($resetLogos['nomadeHeader'] ?? false)) {
             $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
-            $setting->setValue(ParametrageGlobal::DEFAULT_LOGO_VALUE);
+            $setting->setValue(ParametrageGlobal::DEFAULT_MOBILE_LOGO_HEADER_VALUE);
         }
 
         if($request->request->has("font-family")) {

@@ -165,13 +165,13 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE
             ],
             ParametrageGlobal::EMAIL_LOGO => [
-                'default' => "img/gtlogistics.jpg"
+                'default' => ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE
             ],
             ParametrageGlobal::MOBILE_LOGO_LOGIN => [
-                'default' => "img/mobile_logo_login.svg"
+                'default' => ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE
             ],
             ParametrageGlobal::MOBILE_LOGO_HEADER => [
-                'default' => "img/mobile_logo_header.svg"
+                'default' => ParametrageGlobal::DEFAULT_MOBILE_LOGO_HEADER_VALUE
             ],
             ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [],
             ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON => [],

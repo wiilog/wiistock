@@ -1,8 +1,4 @@
 const maxSizeFileAllowed = 10000000;
-const protocol = window.location.protocol;
-const link = window.location.hostname;
-let defaultLogo = "/img/followGTwhite.svg";
-let linkDefaultLogo = protocol+"//"+link+defaultLogo;
 let allowedLogoExtensions = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg','svg'];
 let pathDays = Routing.generate('days_param_api', true);
 let disabledDates = [];
@@ -85,26 +81,6 @@ $(function () {
 
     $('#locationDemandeLivraison').on('change', function() {
         editParamLocations($(this), $('#locationDemandeLivraisonValue'));
-    });
-
-    $('#upload-website-default-logo').on('click', function() {
-        $('#preview-website-logo').attr( "src", linkDefaultLogo)
-        resetLogos.website = true;
-    });
-
-    $('#upload-email-default-logo').on('click', function() {
-        $('#preview-email-logo').attr( "src", linkDefaultLogo);
-        resetLogos.mailLogo = true;
-    });
-
-    $('#upload-mobile-login-default-logo').on('click', function() {
-        $('#preview-mobile-logo-login').attr( "src", linkDefaultLogo);
-        resetLogos.nomadeAccueil = true;
-    });
-
-    $('#upload-mobile-header-default-logo').on('click', function() {
-        $('#preview-mobile-logo-header').attr( "src", linkDefaultLogo);
-        resetLogos.nomadeHeader = true;
     });
     // config tableau de bord : transporteurs
 
@@ -551,4 +527,17 @@ function toggleRecipient($checkbox) {
         && $checkbox.prop('checked')) {
         $('.checkbox[name="param-add-destination-location-article-label"]').prop('checked', false);
     }
+}
+
+function onResetLogoClicked($button) {
+    const $defaultValue = $button.siblings('.default-value');
+    const $logoImg = $button.siblings('.logo');
+    const $inputFile = $button.siblings('[type="file"]');
+    const defaultValue = $defaultValue.val();
+
+    $inputFile.val('');
+    $logoImg.attr('src', defaultValue);
+    const name = $button.data('name');
+    resetLogos[name] = true;
+
 }

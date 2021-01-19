@@ -11,13 +11,19 @@
     <div class="form-group w-fit-content">
         <label for="param-type-encodage">Choix du logo</label>
         <div class="form-group d-flex">
-            <img src="{{ website_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ website_logo : '' }}"
-                 id="preview-website-logo" alt="Logo choisi" height="50px" class="{{ not website_logo ? 'd-none' }}"/>
-
+            <div class="stripped-blue-background d-flex p-1 mr-2">
+                <img src="{{ website_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ website_logo : '' }}"
+                     id="preview-website-logo"
+                     alt="Logo choisi"
+                     height="50px"
+                     class="logo {{ not website_logo ? 'd-none' }}"/>
+            </div>
+            <input type="hidden" class="default-value" value="{{ constant('App\\Entity\\ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE') }}"/>
             <button class="btn btn-primary" onclick="$('#upload-website-logo').click();">{{ website_logo ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo'}}</button>
 
-            <button class="btn btn-primary ml-3"
-                    id="upload-website-default-logo">
+            <button class="btn btn-primary ml-2"
+                    data-name="website"
+                    onclick="onResetLogoClicked($(this))">
                 <i class="fas fa-undo"></i>
             </button>
 
@@ -30,13 +36,19 @@
     <div class="form-group w-fit-content">
         <label for="param-type-encodage">Logo sur les emails</label>
         <div class="form-group d-flex">
-            <img src="{{ email_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ email_logo : '' }}"
-                 id="preview-email-logo" alt="Logo choisi" height="50px" class="{{ not email_logo ? 'd-none' }}"/>
-
+            <div class="stripped-blue-background d-flex p-1 mr-2">
+                <img src="{{ email_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ email_logo : '' }}"
+                     id="preview-email-logo"
+                     alt="Logo choisi"
+                     height="50px"
+                     class="logo {{ not email_logo ? 'd-none' }}"/>
+            </div>
             <button class="btn btn-primary" onclick="$('#upload-email-logo').click();">{{ email_logo ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo'}}</button>
+            <input type="hidden" class="default-value" value="{{ constant('App\\Entity\\ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE') }}"/>
 
-            <button class="btn btn-primary ml-3"
-                    id="upload-email-default-logo">
+            <button class="btn btn-primary ml-2"
+                    data-name="mailLogo"
+                    onclick="onResetLogoClicked($(this))">
                 <i class="fas fa-undo"></i>
             </button>
 
@@ -50,16 +62,22 @@
     <div class="form-group w-fit-content">
         <label for="param-type-encodage">Logo nomade page connexion</label>
         <div class="form-group d-flex">
-            <img src="{{ mobile_logo_login ? app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ mobile_logo_login : '' }}"
-                 id="preview-mobile-logo-login" alt="Logo choisi" height="50px" class="{{ not mobile_logo_login ? 'd-none' }}"/>
-
+            <div class="stripped-blue-background d-flex p-1 mr-2">
+                <img src="{{ mobile_logo_login ? app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ mobile_logo_login : '' }}"
+                     id="preview-mobile-logo-login"
+                     alt="Logo choisi"
+                     height="50px"
+                     class="logo {{ not mobile_logo_login ? 'd-none' }}"/>
+            </div>
             <button class="btn btn-primary"
                     onclick="$('#upload-mobile-logo-login').click();">
                 {{ mobile_logo_login ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo'}}
             </button>
+            <input type="hidden" class="default-value" value="{{ constant('App\\Entity\\ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE') }}"/>
 
-            <button class="btn btn-primary ml-3"
-                    id="upload-mobile-login-default-logo">
+            <button class="btn btn-primary ml-2"
+                    data-name="nomadeAccueil"
+                    onclick="onResetLogoClicked($(this))">
                 <i class="fas fa-undo"></i>
             </button>
 
@@ -74,16 +92,22 @@
     <div class="form-group w-fit-content">
         <label for="param-type-encodage">Logo nomade entête</label>
         <div class="form-group d-flex">
-            <img src="{{ mobile_logo_header ? app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ mobile_logo_header : '' }}"
-                 id="preview-mobile-logo-header" alt="Logo choisi" height="50px" class="{{ not mobile_logo_header ? 'd-none' }}"/>
-
+            <div class="stripped-blue-background d-flex p-1 mr-2">
+                <img src="{{ mobile_logo_header ? app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ mobile_logo_header : '' }}"
+                     id="preview-mobile-logo-header"
+                     alt="Logo choisi"
+                     height="50px"
+                     class="logo {{ not mobile_logo_header ? 'd-none' }}"/>
+            </div>
             <button class="btn btn-primary"
                     onclick="$('#upload-mobile-logo-header').click();">
                 {{ mobile_logo_header ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo'}}
             </button>
+            <input type="hidden" class="default-value" value="{{ constant('App\\Entity\\ParametrageGlobal::DEFAULT_MOBILE_LOGO_HEADER_VALUE') }}"/>
 
-            <button class="btn btn-primary ml-3"
-                    id="upload-mobile-header-default-logo">
+            <button class="btn btn-primary ml-2"
+                    data-name="nomadeHeader"
+                    onclick="onResetLogoClicked($(this))">
                 <i class="fas fa-undo"></i>
             </button>
 
