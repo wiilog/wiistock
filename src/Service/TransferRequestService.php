@@ -209,7 +209,7 @@ class TransferRequestService {
             'requestNumber' => $request->getNumber(),
             'requestDate' => $requestDateStr,
             'requestUser' => $request->getRequester() ? $request->getRequester()->getUsername() : 'Non défini',
-            'cardColor' => $requestStatus === TransferRequest::DRAFT ? 'lightGrey' : 'white',
+            'cardColor' => $requestStatus === TransferRequest::DRAFT ? 'lightGrey' : 'darkWhite',
             'bodyColor' => $requestStatus === TransferRequest::DRAFT ? 'white' : 'lightGrey',
             'topRightIcon' => 'transfer.svg',
             'progress' => $statusesToProgress[$requestStatus] ?? 0,
