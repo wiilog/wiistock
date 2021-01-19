@@ -4,7 +4,6 @@ const MODE_EXTERNAL = 2;
 
 const MAX_NUMBER_ROWS = 6;
 const MAX_NUMBER_PAGES = 8;
-
 /**
  * @type {{
  *     index: int
@@ -34,6 +33,13 @@ const $pagination = $('.dashboard-pagination');
 const $dashboardRowSelector = $('.dashboard-row-selector');
 const $modalComponentTypeFirstStep = $('#modalComponentTypeFistStep');
 const $modalComponentTypeSecondStep = $('#modalComponentTypeSecondStep');
+
+$(window).resize(function () {
+    clearTimeout(window.resizedFinished);
+    window.resizedFinished = setTimeout(function(){
+        renderCurrentDashboard();
+    }, 100);
+});
 
 function loadDashboards(m) {
     mode = m;

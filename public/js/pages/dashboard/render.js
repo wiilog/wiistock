@@ -270,7 +270,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
 
     const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'});
     const $firstComponent = $('<div/>', {
-        class: 'col-12 mb-2',
+        class: `col-12 ${$.mobile() ? 'px-0' : ''}`,
         html: createIndicatorElement(
             {
                 title: 'Nombre de lignes à traiter',
@@ -281,7 +281,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
         )
     });
     const $secondComponent = $('<div/>', {
-        class: 'col-12',
+        class: `col-12 mt-2 ${$.mobile() ? 'px-0' : ''}`,
         html: createIndicatorElement(
             {
                 title: 'Prochain emplacement à traiter',
@@ -294,14 +294,14 @@ function createEntriesToHandleElement(data, {meterKey}) {
     });
 
     return $('<div/>', {
-        class: 'd-flex justify-content-around w-100',
+        class: 'row',
         html: [
             $('<div/>', {
-                style: 'width: 65.5%',
+                class: 'col-12 col-md-8',
                 html: $graph
             }),
             $('<div/>', {
-                style: 'width: 33%',
+                class: 'col-12 col-md-4 mt-2 mt-md-0',
                 html: $('<div/>', {
                     class: 'row h-100',
                     html: [
@@ -601,6 +601,7 @@ function newChart($canvasId, redForLastData = false, disableAnimation = false) {
                 },
                 tooltips: false,
                 responsive: true,
+                maintainAspectRatio: false,
                 legend: {
                     position: 'bottom',
                     labels: {
