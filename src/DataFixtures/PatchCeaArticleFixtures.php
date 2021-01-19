@@ -14,7 +14,9 @@ use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ObjectManager;
 
 
@@ -23,25 +25,29 @@ class PatchCeaArticleFixtures extends Fixture implements FixtureGroupInterface
 
     private $specificService;
     private $refArticleService;
+    private $entityManager;
 
-    public function __construct(SpecificService $specificService, RefArticleDataService $refArticleDataService)
+    public function __construct(SpecificService $specificService,
+                                EntityManagerInterface $entityManager,
+                                RefArticleDataService $refArticleDataService)
     {
         $this->specificService = $specificService;
         $this->refArticleService = $refArticleDataService;
+        $this->entityManager = $entityManager;
     }
 
     /**
      * @param ObjectManager $manager
+     * @throws NoResultException
      * @throws NonUniqueResultException
-     * @throws \Exception
      */
     public function load(ObjectManager $manager)
     {
         $isCEA = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI);
 
         if ($isCEA) {
-            $articleRepository = $manager->getRepository(Article::class);
-            $statutRepository = $manager->getRepository(Statut::class);
+            $articleRepository = $this->entityManager->getRepository(Article::class);
+            $statutRepository = $this->entityManager->getRepository(Statut::class);
             $statutConsomme = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
             $refsToUpdate = [];
             $articleFournIdToRefArticle = [];
@@ -77,29 +83,28 @@ class PatchCeaArticleFixtures extends Fixture implements FixtureGroupInterface
 
                 if (($cpt % 100) === 0) {
                     dump('Flush (' . $cpt . '/' . $articleCount . ') articles');
-                    $manager->flush();
+                    $this->entityManager->flush();
                 }
             }
 
             dump('Flush (' . $articleCount . '/' . $articleCount . ') articles');
-            $manager->flush();
-
+            $this->entityManager->flush();
 
             $cpt = 0;
             $refsToUpdateCount = count($refsToUpdate);
             dump('Total des réferences : ' . $refsToUpdateCount);
             foreach ($refsToUpdate as $refToUpdate) {
-                $this->refArticleService->updateRefArticleQuantities($refToUpdate);
-                $this->refArticleService->treatAlert($refToUpdate);
+                $this->refArticleService->updateRefArticleQuantities($this->entityManager, $refToUpdate);
+                $this->refArticleService->treatAlert($this->entityManager, $refToUpdate);
 
                 $cpt++;
                 if (($cpt % 100) === 0) {
                     dump('Flush (' . $cpt . '/' . $refsToUpdateCount . ') références');
-                    $manager->flush();
+                    $this->entityManager->flush();
                 }
             }
             dump('Flush (' . $refsToUpdateCount . '/' . $refsToUpdateCount . ') références');
-            $manager->flush();
+            $this->entityManager->flush();
         }
     }
 

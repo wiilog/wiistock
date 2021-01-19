@@ -58,9 +58,9 @@ class UpdateRefQuantitiesCommand extends Command
             ->writeln('..........Mise à jour..........');
         $output
             ->writeln('');
-        $this->refArticleService->updateRefArticleQuantities($referenceArticleToUpdate, true);
+        $this->refArticleService->updateRefArticleQuantities($this->em, $referenceArticleToUpdate, true);
         $this->em->flush();
-        $this->refArticleService->treatAlert($referenceArticleToUpdate);
+        $this->refArticleService->treatAlert($this->em, $referenceArticleToUpdate);
         $this->em->flush();
         $output
             ->writeln('Quantité disponible après mise à jour : ' . $referenceArticleToUpdate->getQuantiteDisponible() ?? 0);
