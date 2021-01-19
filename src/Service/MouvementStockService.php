@@ -10,6 +10,7 @@ use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use DateTime;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
@@ -225,5 +226,30 @@ class MouvementStockService
         foreach ($trackingMovementRepository->findBy(['mouvementStock' => $mouvementStock]) as $mvtTraca) {
             $entityManager->remove($mvtTraca);
         }
+    }
+
+    public function putMovementLine($handle,
+                                    CSVExportService $CSVExportService,
+                                    array $mouvement)
+    {
+        $orderNo = $mouvement['preparationOrder']
+            ?? $mouvement['livraisonOrder']
+            ?? $mouvement['collecteOrder']
+            ?? $mouvement['receptionOrder']
+            ?? null;
+
+        $data = [
+            FormatHelper::datetime($mouvement['date']),
+            $orderNo,
+            $mouvement['refArticleRef'],
+            !empty($mouvement['refArticleBarCode']) ? $mouvement['refArticleBarCode']: '',
+            !empty($mouvement['articleBarCode']) ? $mouvement['articleBarCode'] : '',
+            $mouvement['quantity'],
+            $mouvement['originEmpl'],
+            $mouvement['destinationEmpl'],
+            $mouvement['type'],
+            $mouvement['operator']
+        ];
+        $CSVExportService->putLine($handle, $data);
     }
 }

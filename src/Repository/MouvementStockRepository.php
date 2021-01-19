@@ -13,6 +13,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query;
 use Exception;
+use Generator;
 
 /**
  * @method MouvementStock|null find($id, $lockMode = null, $lockVersion = null)
@@ -95,10 +96,9 @@ class MouvementStockRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @return MouvementStock[]
-     * @throws Exception
+     * @return Generator
      */
-    public function getByDates(DateTime $dateMin,DateTime $dateMax)
+    public function iterateByDates(DateTime $dateMin, DateTime $dateMax): Generator
     {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
@@ -110,9 +110,8 @@ class MouvementStockRepository extends EntityRepository
             ->addSelect('collecte.numero as collectOrder')
             ->addSelect('reception.orderNumber as receptionOrder')
             ->addSelect('article.barCode as articleBarCode')
-            ->addSelect('article.reference as articleRef')
-            ->addSelect('refArticle.barCode as refArticleBarCode')
-            ->addSelect('refArticle.reference as refArticleRef')
+            ->addSelect('(CASE WHEN refArticle.id IS NOT NULL THEN refArticle.reference ELSE article_referenceArticle.reference END) as refArticleRef')
+            ->addSelect('(CASE WHEN refArticle.id IS NOT NULL THEN refArticle.barCode ELSE article_referenceArticle.barCode END) as refArticleBarCode')
             ->addSelect('mouvementStock.quantity as quantity')
             ->addSelect('emplacementFrom.label as originEmpl')
             ->addSelect('destination.label as destinationEmpl')
@@ -124,6 +123,8 @@ class MouvementStockRepository extends EntityRepository
             ->leftJoin('mouvementStock.receptionOrder','reception')
             ->leftJoin('mouvementStock.article','article')
             ->leftJoin('mouvementStock.refArticle','refArticle')
+            ->leftJoin('article.articleFournisseur','article_articleFournisseur')
+            ->leftJoin('article_articleFournisseur.referenceArticle','article_referenceArticle')
             ->leftJoin('mouvementStock.emplacementFrom','emplacementFrom')
             ->leftJoin('mouvementStock.emplacementTo','destination')
             ->leftJoin('mouvementStock.user','user')
@@ -134,7 +135,7 @@ class MouvementStockRepository extends EntityRepository
             ->iterate(null, Query::HYDRATE_ARRAY);
 
         foreach($iterator as $item) {
-            // $item [index => reference array]
+            // $item [index => movement]
             yield array_pop($item);
         }
 

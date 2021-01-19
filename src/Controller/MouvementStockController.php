@@ -270,15 +270,18 @@ class MouvementStockController extends AbstractController
     }
 
     /**
-     * @Route("/mouvement-stock-infos", name="get_mouvements_stock_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_stock_movements_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
+     * @param MouvementStockService $mouvementStockService
      * @param EntityManagerInterface $entityManager
      * @param CSVExportService $CSVExportService
      * @return StreamedResponse
+     * @throws Exception
      */
-    public function getMouvementIntels(Request $request,
-                                       EntityManagerInterface $entityManager,
-                                       CSVExportService $CSVExportService): StreamedResponse
+    public function getStockMovementsCSV(Request $request,
+                                         MouvementStockService $mouvementStockService,
+                                         EntityManagerInterface $entityManager,
+                                         CSVExportService $CSVExportService): StreamedResponse
     {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -290,55 +293,25 @@ class MouvementStockController extends AbstractController
             'date',
             'ordre',
             'référence article',
+            'code barre référence article',
+            'code barre article',
             'quantité',
             'origine',
             'destination',
             'type',
-            'opérateur',
-            'code barre référence article',
-            'code barre article',
+            'opérateur'
         ];
 
+        $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
+        $movementIterator = $mouvementStockRepository->iterateByDates($dateTimeMin, $dateTimeMax);
+
         return $CSVExportService->streamResponse(
-
-            function ($output) use ($entityManager, $dateTimeMin, $dateTimeMax, $CSVExportService) {
-                $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
-                $mouvements = $mouvementStockRepository->getByDates($dateTimeMin, $dateTimeMax);
-
-                foreach ($mouvements as $mouvement) {
-                    $this->putMouvementLine($output, $CSVExportService, $mouvement);
+            function ($output) use ($movementIterator, $mouvementStockService, $CSVExportService) {
+                foreach ($movementIterator as $movement) {
+                    $mouvementStockService->putMovementLine($output, $CSVExportService, $movement);
                 }
             }, 'Export_mouvement_Stock.csv',
             $headers
         );
-    }
-
-    private function putMouvementLine($handle,
-                                      CSVExportService $CSVExportService,
-                                      array $mouvement)
-    {
-        $reference = $mouvement['articleRef']
-            ?? $mouvement['refArticleRef']
-            ?? null;
-
-        $orderNo = $mouvement['preparationOrder']
-            ?? $mouvement['livraisonOrder']
-            ?? $mouvement['collecteOrder']
-            ?? $mouvement['receptionOrder']
-            ?? null;
-
-        $data = [
-            FormatHelper::datetime($mouvement['date']),
-            $orderNo,
-            $reference,
-            $mouvement['quantity'],
-            $mouvement['originEmpl'],
-            $mouvement['destinationEmpl'],
-            $mouvement['type'],
-            $mouvement['operator'],
-            !empty($mouvement['refArticleBarCode']) ? $mouvement['refArticleBarCode']: '',
-            !empty($mouvement['articleBarCode']) ? $mouvement['articleBarCode'] : '',
-        ];
-        $CSVExportService->putLine($handle, $data);
     }
 }
