@@ -31,6 +31,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Throwable;
 use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
@@ -328,17 +329,17 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/infos", name="get_ordres_livraison_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_delivery_order_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
      * @param CSVExportService $CSVExportService
      * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $logger
+     * @param LivraisonService $livraisonService
      * @return Response
      */
-    public function getOrdreLivraisonIntels(Request $request,
-                                            CSVExportService $CSVExportService,
-                                            EntityManagerInterface $entityManager,
-                                            LoggerInterface $logger): Response
+    public function getDeliveryOrderCSV(Request $request,
+                                        CSVExportService $CSVExportService,
+                                        EntityManagerInterface $entityManager,
+                                        LivraisonService $livraisonService): Response
     {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -369,70 +370,16 @@ class LivraisonController extends AbstractController
             ];
 
             return $CSVExportService->streamResponse(
-                function ($output) use ($entityManager, $dateTimeMin, $dateTimeMax, $CSVExportService) {
+                function ($output) use ($entityManager, $dateTimeMin, $dateTimeMax, $CSVExportService, $livraisonService) {
                     $livraisonRepository = $entityManager->getRepository(Livraison::class);
-                    $livraisons = $livraisonRepository->getByDates($dateTimeMin, $dateTimeMax);
+                    $deliveryIterator = $livraisonRepository->iterateByDates($dateTimeMin, $dateTimeMax);
 
-                    foreach ($livraisons as $livraison) {
-                        $this->putLivraisonLine($output, $CSVExportService, $livraison);
+                    foreach ($deliveryIterator as $delivery) {
+                        $livraisonService->putLivraisonLine($output, $CSVExportService, $delivery);
                     }
                 }, 'export_Ordres_Livraison.csv',
                 $csvHeader
             );
-        }
-    }
-
-    private function putLivraisonLine($handle,
-                                      CSVExportService $csvService,
-                                      Livraison $livraison)
-    {
-        $demande = $livraison->getDemande();
-        $preparation = $livraison->getPreparation();
-        if (isset($demande) && isset($preparation)) {
-            $dataLivraison = [
-                $livraison->getNumero() ?? '',
-                $livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
-                $livraison->getDate() ? $livraison->getDate()->format('d/m/Y H:i') : '',
-                $livraison->getDateFin() ? $livraison->getDateFin()->format('d/m/Y H:i') : '',
-                $demande->getValidationDate() ? FormatHelper::date($demande->getValidationDate()) : '',
-                $demande->getUtilisateur() ? FormatHelper::user($demande->getUtilisateur()) : '',
-                $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
-                $demande ? ($demande->getType() ? $demande->getType()->getLabel() : '') : '',
-                $demande->getCommentaire() ? strip_tags($demande->getCommentaire()) : ''
-            ];
-
-            foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
-                if ($ligneArticle->getQuantitePrelevee() > 0) {
-                    $referenceArticle = $ligneArticle->getReference();
-                    $line = array_merge($dataLivraison, [
-                        $referenceArticle->getReference() ?? '',
-                        $referenceArticle->getLibelle() ?? '',
-                        $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
-                        $ligneArticle->getQuantite() ?? 0,
-                        $referenceArticle->getQuantiteStock() ?? 0,
-                        $referenceArticle->getBarCode(),
-                    ]);
-                    $csvService->putLine($handle, $line);
-                }
-            }
-
-            foreach ($preparation->getArticles() as $article) {
-                if ($article->getQuantite() > 0) {
-                    $articleFournisseur = $article->getArticleFournisseur();
-                    $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
-                    $reference = $referenceArticle ? $referenceArticle->getReference() : '';
-
-                    $line = array_merge($dataLivraison, [
-                        $reference,
-                        $article->getLabel() ?? '',
-                        $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
-                        $article->getQuantiteAPrelever() ?? 0,
-                        $article->getQuantite() ?? 0,
-                        $article->getBarCode(),
-                    ]);
-                    $csvService->putLine($handle, $line);
-                }
-            }
         }
     }
 }

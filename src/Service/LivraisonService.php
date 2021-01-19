@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
 
+use App\Helper\FormatHelper;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -110,5 +111,59 @@ class LivraisonService
 			'Type' => $demande && $demande->getType() ? $demande->getType()->getLabel() : '',
 			'Actions' => $this->templating->render('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
 		];
+    }
+
+    public function putLivraisonLine($handle,
+                                      CSVExportService $csvService,
+                                      Livraison $livraison)
+    {
+        $demande = $livraison->getDemande();
+        $preparation = $livraison->getPreparation();
+        if (isset($demande) && isset($preparation)) {
+            $dataLivraison = [
+                $livraison->getNumero() ?? '',
+                $livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
+                $livraison->getDate() ? $livraison->getDate()->format('d/m/Y H:i') : '',
+                $livraison->getDateFin() ? $livraison->getDateFin()->format('d/m/Y H:i') : '',
+                $demande->getValidationDate() ? FormatHelper::date($demande->getValidationDate()) : '',
+                $demande->getUtilisateur() ? FormatHelper::user($demande->getUtilisateur()) : '',
+                $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
+                $demande ? ($demande->getType() ? $demande->getType()->getLabel() : '') : '',
+                $demande->getCommentaire() ? strip_tags($demande->getCommentaire()) : ''
+            ];
+
+            foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
+                if ($ligneArticle->getQuantitePrelevee() > 0) {
+                    $referenceArticle = $ligneArticle->getReference();
+                    $line = array_merge($dataLivraison, [
+                        $referenceArticle->getReference() ?? '',
+                        $referenceArticle->getLibelle() ?? '',
+                        $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
+                        $ligneArticle->getQuantite() ?? 0,
+                        $referenceArticle->getQuantiteStock() ?? 0,
+                        $referenceArticle->getBarCode(),
+                    ]);
+                    $csvService->putLine($handle, $line);
+                }
+            }
+
+            foreach ($preparation->getArticles() as $article) {
+                if ($article->getQuantite() > 0) {
+                    $articleFournisseur = $article->getArticleFournisseur();
+                    $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+                    $reference = $referenceArticle ? $referenceArticle->getReference() : '';
+
+                    $line = array_merge($dataLivraison, [
+                        $reference,
+                        $article->getLabel() ?? '',
+                        $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
+                        $article->getQuantiteAPrelever() ?? 0,
+                        $article->getQuantite() ?? 0,
+                        $article->getBarCode(),
+                    ]);
+                    $csvService->putLine($handle, $line);
+                }
+            }
+        }
     }
 }

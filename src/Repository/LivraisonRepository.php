@@ -217,7 +217,7 @@ class LivraisonRepository extends EntityRepository
 	 * @param DateTime $dateMax
 	 * @return Livraison[]|null
 	 */
-	public function getByDates($dateMin, $dateMax)
+	public function iterateByDates($dateMin, $dateMax)
 	{
 		$iterator = $this->createQueryBuilder('livraison')
             ->where('livraison.date BETWEEN :dateMin AND :dateMax')
