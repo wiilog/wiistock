@@ -423,18 +423,17 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     * @Route("/infos", name="get_ordres_collecte_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_collect_orders_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
+     * @param OrdreCollecteService $ordreCollecteService
      * @param EntityManagerInterface $entityManager
      * @param CSVExportService $CSVExportService
      * @return Response
      */
-    public function getOrdreCollecteIntels(Request $request,
-                                           EntityManagerInterface $entityManager,
-                                           CSVExportService $CSVExportService): Response
-    {
-
-
+    public function getCollectOrdersCSV(Request $request,
+                                        OrdreCollecteService $ordreCollecteService,
+                                        EntityManagerInterface $entityManager,
+                                        CSVExportService $CSVExportService): Response {
 
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -457,65 +456,21 @@ class OrdreCollecteController extends AbstractController
                 'code-barre',
                 'destination'
             ];
+
+            $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
+            $collecteIterator = $ordreCollecteRepository->iterateByDates($dateTimeMin, $dateTimeMax);
+
             return $CSVExportService->streamResponse(
-
-                function ($output)use ($entityManager, $dateTimeMin, $dateTimeMax, $CSVExportService) {
-                    $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
-                    $collectes = $ordreCollecteRepository->findByDates($dateTimeMin, $dateTimeMax);
-
-                    foreach ($collectes as $collecte) {
-                        $this->putCollecteLine($output, $CSVExportService, $collecte);
+                function ($output) use ($collecteIterator, $CSVExportService, $ordreCollecteService) {
+                    foreach ($collecteIterator as $collectOrder) {
+                        $ordreCollecteService->putCollecteLine($output, $CSVExportService, $collectOrder);
                     }
                 },'Export_Ordres_Collectes.csv',
                 $CSVheader
             );
-
         }
-    }
-
-
-    private function putCollecteLine($handle,
-                                     CSVExportService $csvService,
-                                     OrdreCollecte $ordreCollecte)
-    {
-        $collecte = $ordreCollecte->getDemandeCollecte();
-
-        $dataCollecte =
-            [
-                $ordreCollecte->getNumero() ?? '',
-                $ordreCollecte->getStatut() ? $ordreCollecte->getStatut()->getNom() : '',
-                $ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y') : '',
-                $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '',
-                $collecte->getType() ? $collecte->getType()->getLabel() : ''
-            ];
-
-        foreach ($ordreCollecte->getOrdreCollecteReferences() as $ordreCollecteReference) {
-            $referenceArticle = $ordreCollecteReference->getReferenceArticle();
-
-            $data = array_merge($dataCollecte, [
-                $referenceArticle->getReference() ?? '',
-                $referenceArticle->getLibelle() ?? '',
-                $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
-                $ordreCollecteReference->getQuantite() ?? 0,
-                $referenceArticle->getBarCode(),
-            ]);
-            $csvService->putLine($handle, $data);
-        }
-
-        foreach ($ordreCollecte->getArticles() as $article) {
-            $articleFournisseur = $article->getArticleFournisseur();
-            $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
-            $reference = $referenceArticle ? $referenceArticle->getReference() : '';
-
-            $data = array_merge($dataCollecte, [
-                $reference,
-                $article->getLabel() ?? '',
-                $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-                $article->getQuantite() ?? 0,
-                $article->getBarCode(),
-                $collecte->isStock() ? 'Mise en stock' : 'Destruction'
-            ]);
-            $csvService->putLine($handle, $data);
+        else {
+            throw new NotFoundHttpException('404');
         }
     }
 
