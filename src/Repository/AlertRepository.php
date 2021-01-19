@@ -222,8 +222,8 @@ class AlertRepository extends EntityRepository {
         $exprBuilder = $qb->expr();
         $iterator = $this->createQueryBuilder('alert')
             ->where($exprBuilder->between('alert.date',':start',':end'))
-            ->setParameter('start',$start)
-            ->setParameter('end',$end)
+            ->setParameter('start', $start)
+            ->setParameter('end', $end)
             ->getQuery()
             ->iterate();
         foreach($iterator as $item) {

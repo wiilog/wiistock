@@ -332,7 +332,7 @@ class ImportService
 
             // mise à jour des quantités sur références par article
             foreach ($refToUpdate as $ref) {
-                $this->refArticleDataService->updateRefArticleQuantities($ref);
+                $this->refArticleDataService->updateRefArticleQuantities($this->em, $ref);
             }
 
             // flush update quantities

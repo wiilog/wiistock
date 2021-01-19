@@ -17,6 +17,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Service\ArticleDataService;
+use App\Service\CSVExportService;
 use App\Service\OrdreCollecteService;
 use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
@@ -37,6 +38,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -421,24 +423,27 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     * @Route("/infos", name="get_ordres_collecte_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_collect_orders_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
+     * @param OrdreCollecteService $ordreCollecteService
      * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $CSVExportService
      * @return Response
      */
-    public function getOrdreCollecteIntels(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    public function getCollectOrdersCSV(Request $request,
+                                        OrdreCollecteService $ordreCollecteService,
+                                        EntityManagerInterface $entityManager,
+                                        CSVExportService $CSVExportService): Response {
 
-            $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
-
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
-            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
-            $collectes = $ordreCollecteRepository->findByDates($dateTimeMin, $dateTimeMax);
-
-            $headers = [
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (Throwable $throwable) {
+        }
+        if (isset($dateTimeMin) && isset($dateTimeMax)) {
+            $CSVheader = [
                 'numéro',
                 'statut',
                 'date création',
@@ -452,57 +457,20 @@ class OrdreCollecteController extends AbstractController
                 'destination'
             ];
 
-            $data = [];
-            $data[] = $headers;
+            $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
+            $collecteIterator = $ordreCollecteRepository->iterateByDates($dateTimeMin, $dateTimeMax);
 
-            foreach ($collectes as $collecte) {
-                $this->buildInfos($collecte, $data);
-            }
-            return new JsonResponse($data);
-        } else {
-            throw new BadRequestHttpException();
+            return $CSVExportService->streamResponse(
+                function ($output) use ($collecteIterator, $CSVExportService, $ordreCollecteService) {
+                    foreach ($collecteIterator as $collectOrder) {
+                        $ordreCollecteService->putCollecteLine($output, $CSVExportService, $collectOrder);
+                    }
+                },'Export_Ordres_Collectes.csv',
+                $CSVheader
+            );
         }
-    }
-
-
-    private function buildInfos(OrdreCollecte $ordreCollecte, &$data)
-    {
-        $collecte = $ordreCollecte->getDemandeCollecte();
-
-        $dataCollecte =
-            [
-                $ordreCollecte->getNumero() ?? '',
-                $ordreCollecte->getStatut() ? $ordreCollecte->getStatut()->getNom() : '',
-                $ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y') : '',
-                $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '',
-                $collecte->getType() ? $collecte->getType()->getLabel() : ''
-            ];
-
-        foreach ($ordreCollecte->getOrdreCollecteReferences() as $ordreCollecteReference) {
-            $referenceArticle = $ordreCollecteReference->getReferenceArticle();
-
-            $data[] = array_merge($dataCollecte, [
-                $referenceArticle->getReference() ?? '',
-                $referenceArticle->getLibelle() ?? '',
-                $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
-                $ordreCollecteReference->getQuantite() ?? 0,
-                $referenceArticle->getBarCode()
-            ]);
-        }
-
-        foreach ($ordreCollecte->getArticles() as $article) {
-            $articleFournisseur = $article->getArticleFournisseur();
-            $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
-            $reference = $referenceArticle ? $referenceArticle->getReference() : '';
-
-            $data[] = array_merge($dataCollecte, [
-                $reference,
-                $article->getLabel() ?? '',
-                $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-                $article->getQuantite() ?? 0,
-                $article->getBarCode(),
-                $collecte->isStock() ? 'Mise en stock' : 'Destruction'
-            ]);
+        else {
+            throw new NotFoundHttpException('404');
         }
     }
 

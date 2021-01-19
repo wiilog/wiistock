@@ -361,8 +361,11 @@ class ArticleDataService
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
-        $statusLabel = (!isset($data['statut']) || ($data['statut'] === Article::STATUT_ACTIF)) ? Article::STATUT_ACTIF : Article::STATUT_INACTIF;
+        $statusLabel = $data['statut'] ?? Article::STATUT_ACTIF;
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $statusLabel);
+        if (!isset($statut)) {
+            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
+        }
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
 

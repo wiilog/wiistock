@@ -20,6 +20,7 @@ use App\Repository\StatutRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -58,8 +59,10 @@ class PreparationsManagerService
      * @var Security
      */
     private $security;
+    private $CSVExportService;
 
     public function __construct(Security $security,
+                                CSVExportService $CSVExportService,
                                 RouterInterface $router,
                                 Twig_Environment $templating,
                                 ArticleDataService $articleDataService,
@@ -72,6 +75,7 @@ class PreparationsManagerService
         $this->entityManager = $entityManager;
         $this->articleDataService = $articleDataService;
         $this->refArticleDataService = $refArticleDataService;
+        $this->CSVExportService = $CSVExportService;
         $this->refMouvementsToRemove = [];
     }
 
@@ -565,19 +569,22 @@ class PreparationsManagerService
     /**
      * @param Preparation $preparation
      * @param EntityManagerInterface|null $entityManager
+     * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     public function updateRefArticlesQuantities(Preparation $preparation,
                                                 EntityManagerInterface $entityManager = null) {
-        foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
-            $refArticle = $ligneArticle->getReference();
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                $this->refArticleDataService->updateRefArticleQuantities($refArticle);
-            }
-            // On ne touche pas aux références gérées par article : décrémentation du stock à la fin de la livraison
-        }
 
         if (!isset($entityManager)) {
             $entityManager = $this->entityManager;
+        }
+
+        foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
+            $refArticle = $ligneArticle->getReference();
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticle);
+            }
+            // On ne touche pas aux références gérées par article : décrémentation du stock à la fin de la livraison
         }
 
         $entityManager->flush();
@@ -693,5 +700,35 @@ class PreparationsManagerService
             $entityManager->remove($ligneArticlePreparation);
         }
         return $refToUpdate;
+    }
+
+    public function putPreparationLines($handle, Preparation $preparation): void {
+        $preparationBaseData = $preparation->serialize();
+
+        foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
+            $referenceArticle = $ligneArticle->getReference();
+
+            $this->CSVExportService->putLine($handle, array_merge($preparationBaseData, [
+                $referenceArticle->getReference() ?? '',
+                $referenceArticle->getLibelle() ?? '',
+                $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
+                $ligneArticle->getQuantite() ?? 0,
+                $referenceArticle->getBarCode()
+            ]));
+        }
+
+        foreach ($preparation->getArticles() as $article) {
+            $articleFournisseur = $article->getArticleFournisseur();
+            $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+            $reference = $referenceArticle ? $referenceArticle->getReference() : '';
+
+            $this->CSVExportService->putLine($handle, array_merge($preparationBaseData, [
+                $reference,
+                $article->getLabel() ?? '',
+                $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                $article->getQuantite() ?? 0,
+                $article->getBarCode()
+            ]));
+        }
     }
 }

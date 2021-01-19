@@ -368,4 +368,40 @@ class DispatchRepository extends EntityRepository
             ->getResult();
     }
 
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @param array $dispatchStatusesFilter
+     * @param array $dispatchTypesFilter
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByDates(DateTime $dateMin,
+                                 DateTime $dateMax,
+                                 array $dispatchStatusesFilter = [],
+                                 array $dispatchTypesFilter = []): int
+    {
+        $qb = $this->createQueryBuilder('dispatch')
+            ->select('COUNT(dispatch) AS count')
+            ->where('dispatch.endDate BETWEEN :dateMin AND :dateMax')
+            ->setParameter('dateMin', $dateMin)
+            ->setParameter('dateMax', $dateMax);
+
+        if (!empty($dispatchStatusesFilter)) {
+            $qb
+                ->andWhere('dispatch.statut IN (:dispatchStatuses)')
+                ->setParameter('dispatchStatuses', $dispatchStatusesFilter);
+        }
+
+        if (!empty($dispatchTypesFilter)) {
+            $qb
+                ->andWhere('dispatch.type IN (:dispatchTypes)')
+                ->setParameter('dispatchTypes', $dispatchTypesFilter);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

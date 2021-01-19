@@ -11,7 +11,9 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query;
 use Exception;
+use Generator;
 
 /**
  * @method MouvementStock|null find($id, $lockMode = null, $lockVersion = null)
@@ -94,24 +96,49 @@ class MouvementStockRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @return MouvementStock[]
-     * @throws Exception
+     * @return Generator
      */
-    public function findByDates($dateMin, $dateMax)
+    public function iterateByDates(DateTime $dateMin, DateTime $dateMax): Generator
     {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT m
-            FROM App\Entity\MouvementStock m
-            WHERE m.date BETWEEN :dateMin AND :dateMax'
-        )->setParameters([
-            'dateMin' => $dateMin,
-            'dateMax' => $dateMax
-        ]);
-        return $query->execute();
+        $iterator = $this->createQueryBuilder('mouvementStock')
+            ->select('mouvementStock.date as date')
+            ->addSelect('preparation.numero as preparationOrder')
+            ->addSelect('livraison.numero as livraisonOrder')
+            ->addSelect('collecte.numero as collectOrder')
+            ->addSelect('reception.orderNumber as receptionOrder')
+            ->addSelect('article.barCode as articleBarCode')
+            ->addSelect('(CASE WHEN refArticle.id IS NOT NULL THEN refArticle.reference ELSE article_referenceArticle.reference END) as refArticleRef')
+            ->addSelect('(CASE WHEN refArticle.id IS NOT NULL THEN refArticle.barCode ELSE article_referenceArticle.barCode END) as refArticleBarCode')
+            ->addSelect('mouvementStock.quantity as quantity')
+            ->addSelect('emplacementFrom.label as originEmpl')
+            ->addSelect('destination.label as destinationEmpl')
+            ->addSelect('mouvementStock.type as type')
+            ->addSelect('user.username as operator')
+            ->leftJoin('mouvementStock.preparationOrder','preparation')
+            ->leftJoin('mouvementStock.livraisonOrder','livraison')
+            ->leftJoin('mouvementStock.collecteOrder','collecte')
+            ->leftJoin('mouvementStock.receptionOrder','reception')
+            ->leftJoin('mouvementStock.article','article')
+            ->leftJoin('mouvementStock.refArticle','refArticle')
+            ->leftJoin('article.articleFournisseur','article_articleFournisseur')
+            ->leftJoin('article_articleFournisseur.referenceArticle','article_referenceArticle')
+            ->leftJoin('mouvementStock.emplacementFrom','emplacementFrom')
+            ->leftJoin('mouvementStock.emplacementTo','destination')
+            ->leftJoin('mouvementStock.user','user')
+            ->where('mouvementStock.date BETWEEN :dateMin AND :dateMax')
+            ->setParameter('dateMin' , $dateMin)
+            ->setParameter('dateMax' , $dateMax)
+            ->getQuery()
+            ->iterate(null, Query::HYDRATE_ARRAY);
+
+        foreach($iterator as $item) {
+            // $item [index => movement]
+            yield array_pop($item);
+        }
+
     }
 
     /**

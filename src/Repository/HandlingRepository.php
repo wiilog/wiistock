@@ -296,14 +296,18 @@ class HandlingRepository extends EntityRepository
         ];
     }
 
-    public function findRequestToTreatByUser(Utilisateur $requester, int $limit) {
-        return $this->createQueryBuilder("h")
-            ->select("h")
+    public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
+        $qb = $this->createQueryBuilder("h");
+
+        if($requester) {
+            $qb->andWhere("h.requester = :requester")
+                ->setParameter("requester", $requester);
+        }
+
+        return $qb->select("h")
             ->innerJoin("h.status", "s")
             ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = h.type')
-            ->where("s.state = " . Statut::NOT_TREATED)
-            ->andWhere("h.requester = :requester")
-            ->setParameter("requester", $requester)
+            ->andWhere("s.state = " . Statut::NOT_TREATED)
             ->addOrderBy('s.state', 'ASC')
             ->addOrderBy("DATE_ADD(h.creationDate, art.average, 'second')", 'ASC')
             ->setMaxResults($limit)
@@ -340,5 +344,44 @@ class HandlingRepository extends EntityRepository
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;
+    }
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @param array $handlingStatusesFilter
+     * @param array $handlingTypesFilter
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByDates(DateTime $dateMin,
+                                 DateTime $dateMax,
+                                 array $handlingStatusesFilter = [],
+                                 array $handlingTypesFilter = []): int
+    {
+        $qb = $this->createQueryBuilder('handling')
+            ->select('COUNT(handling)')
+            ->where('handling.desiredDate BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        if (!empty($handlingStatusesFilter)) {
+            $qb
+                ->andWhere('handling.status IN (:handlingStatuses)')
+                ->setParameter('handlingStatuses', $handlingStatusesFilter);
+        }
+
+        if (!empty($handlingTypesFilter)) {
+            $qb
+                ->andWhere('handling.type IN (:handlingTypes)')
+                ->setParameter('handlingTypes', $handlingTypesFilter);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

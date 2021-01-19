@@ -477,4 +477,49 @@ class OrdreCollecteService
                 ->setStatut($statutCollecte);
         }
     }
+
+    public function putCollecteLine($handle,
+                                    CSVExportService $csvService,
+                                    OrdreCollecte $ordreCollecte)
+    {
+        $collecte = $ordreCollecte->getDemandeCollecte();
+
+        $dataCollecte =
+            [
+                $ordreCollecte->getNumero() ?? '',
+                $ordreCollecte->getStatut() ? $ordreCollecte->getStatut()->getNom() : '',
+                $ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y') : '',
+                $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '',
+                $collecte->getType() ? $collecte->getType()->getLabel() : ''
+            ];
+
+        foreach ($ordreCollecte->getOrdreCollecteReferences() as $ordreCollecteReference) {
+            $referenceArticle = $ordreCollecteReference->getReferenceArticle();
+
+            $data = array_merge($dataCollecte, [
+                $referenceArticle->getReference() ?? '',
+                $referenceArticle->getLibelle() ?? '',
+                $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
+                $ordreCollecteReference->getQuantite() ?? 0,
+                $referenceArticle->getBarCode(),
+            ]);
+            $csvService->putLine($handle, $data);
+        }
+
+        foreach ($ordreCollecte->getArticles() as $article) {
+            $articleFournisseur = $article->getArticleFournisseur();
+            $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+            $reference = $referenceArticle ? $referenceArticle->getReference() : '';
+
+            $data = array_merge($dataCollecte, [
+                $reference,
+                $article->getLabel() ?? '',
+                $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                $article->getQuantite() ?? 0,
+                $article->getBarCode(),
+                $collecte->isStock() ? 'Mise en stock' : 'Destruction'
+            ]);
+            $csvService->putLine($handle, $data);
+        }
+    }
 }

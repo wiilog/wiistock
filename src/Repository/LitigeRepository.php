@@ -7,8 +7,10 @@ use App\Entity\LitigeHistoric;
 use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use Exception;
+use Generator;
 
 /**
  * @method Litige|null find($id, $lockMode = null, $lockVersion = null)
@@ -133,16 +135,19 @@ class LitigeRepository extends EntityRepository
 	/**
 	 * @param DateTime $dateMin
 	 * @param DateTime $dateMax
-	 * @return Litige[]|null
 	 */
-	public function findArrivalsLitigeByDates(DateTime $dateMin, DateTime $dateMax)
-	{
-		$query = $this
+	public function iterateArrivalsLitigeByDates(DateTime $dateMin, DateTime $dateMax): Generator {
+        $iterator = $this
             ->createQueryBuilderByDates($dateMin, $dateMax)
             ->join('litige.packs', 'pack')
             ->join('pack.arrivage', 'arrivage')
-            ->getQuery();
-		return $query->execute();
+            ->getQuery()
+            ->iterate();
+
+        foreach($iterator as $item) {
+            // $item [index => reference array]
+            yield array_pop($item);
+        }
 	}
 
 	/**
@@ -150,15 +155,20 @@ class LitigeRepository extends EntityRepository
 	 * @param DateTime $dateMax
 	 * @return Litige[]|null
 	 */
-	public function findReceptionLitigeByDates(DateTime $dateMin, DateTime $dateMax)
+	public function iterateReceptionLitigeByDates(DateTime $dateMin, DateTime $dateMax)
 	{
-		$query = $this
+        $iterator = $this
             ->createQueryBuilderByDates($dateMin, $dateMax)
             ->join('litige.articles', 'article')
             ->join('article.receptionReferenceArticle', 'receptionReferenceArticle')
             ->join('receptionReferenceArticle.reception', 'reception')
-            ->getQuery();
-		return $query->execute();
+            ->getQuery()
+            ->iterate();
+
+        foreach($iterator as $item) {
+            // $item [index => reference array]
+            yield array_pop($item);
+        }
 	}
 
     /**

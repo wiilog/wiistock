@@ -31,6 +31,7 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -337,6 +338,8 @@ class ArticleController extends AbstractController
      * @param RefArticleDataService $refArticleDataService
      * @param EntityManagerInterface $entityManager
      * @return Response
+     * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     public function delete(Request $request,
                            MouvementStockService $mouvementStockService,
@@ -399,7 +402,7 @@ class ArticleController extends AbstractController
                     $entityManager->flush();
 
                     foreach ($refToUpdate as $reference) {
-                        $refArticleDataService->updateRefArticleQuantities($reference);
+                        $refArticleDataService->updateRefArticleQuantities($entityManager, $reference);
                     }
 
                     $entityManager->flush();
@@ -810,7 +813,7 @@ class ArticleController extends AbstractController
             function (Article $article) use ($articleDataService) {
                 return $articleDataService->getBarcodeConfig($article);
             },
-            $articleRepository->findByIds($listArticles)
+            $articleRepository->findBy(['id' => $listArticles])
         );
         $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
 
