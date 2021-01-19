@@ -55,8 +55,8 @@ function loadDashboards(m) {
 
     $dashboard.on(`click`, `.edit-component`, onComponentEdited);
     $dashboard.on(`click`, `.delete-component`, onComponentDeleted);
-    $modalComponentTypeSecondStep.on(`click`, `.select-all-arrival-types`, onSelectAll);
-    $modalComponentTypeSecondStep.on(`click`, `.select-all-arrival-statuses`, onSelectAll);
+    $modalComponentTypeSecondStep.on(`click`, `.select-all-types`, onSelectAll);
+    $modalComponentTypeSecondStep.on(`click`, `.select-all-statuses`, onSelectAll);
 
     $('button.add-dashboard-modal-submit').on('click', onPageAdded);
     $pagination.on(`click`, `.delete-dashboard`, onPageDeleted);
@@ -86,7 +86,7 @@ function loadDashboards(m) {
 function onSelectAll() {
     const $select = $(this).closest(`.input-group`).find(`select`);
 
-    $select.find(`option`).each(function() {
+    $select.find(`option:not([disabled])`).each(function() {
         $(this).prop(`selected`, true);
     });
 
@@ -914,4 +914,59 @@ function onSegmentInputChange($input, isChanged = false) {
 function clearSegmentHourValues(value) {
     const cleared = (value || ``).replace(/[^\d]/g, ``);
     return cleared ? parseInt(cleared) : ``;
+}
+
+function onEntityChange($select) {
+    const $modal = $select.closest('.modal');
+    const category =  $select.val();
+    const $selectAllAvailableTypes = $modal.find('.select-all-types');
+    const $selectAllAvailableStatuses = $modal.find('.select-all-statuses');
+
+    const $selectType = $modal.find('select[name="requestTypes"]');
+    const $selectStatus = $modal.find('select[name="requestStatuses"]');
+    $selectType.find('option[data-category-label!="' + category + '"]').prop('disabled', true);
+    $selectStatus.find('option[data-category-label!="' + category + '"]').prop('disabled', true);
+    $selectType.val(null).trigger('change');
+    $selectStatus.val(null).trigger('change');
+
+    if(!category) {
+        $selectType.prop('disabled', true);
+        $selectStatus.prop('disabled', true);
+        $selectAllAvailableTypes.prop('disabled', true);
+        $selectAllAvailableStatuses.prop('disabled', true);
+    } else {
+        const $correspondingTypes = $selectType.find('option[data-category-label="' + category + '"]');
+        const $correspondingStatuses = $selectStatus.find('option[data-category-label="' + category + '"]');
+
+        $selectType.removeAttr('disabled');
+        $selectStatus.removeAttr('disabled');
+        $correspondingTypes.prop('disabled', false);
+        $correspondingStatuses.prop('disabled', false);
+        $selectAllAvailableTypes.removeAttr('disabled');
+        $selectAllAvailableStatuses.removeAttr('disabled');
+
+        if ($correspondingTypes.length > 1) {
+            $selectType.prop('disabled', false);
+            $selectStatus.prop('disabled', false);
+            if ($correspondingTypes.length === 1) {
+                $selectType.val($correspondingTypes[0].value);
+                $selectStatus.val($correspondingStatuses[0].value);
+            } else {
+                $selectType.removeAttr('disabled');
+                $selectStatus.removeAttr('disabled');
+                $modal.find('.select-all-types').removeAttr('disabled');
+            }
+        }
+    }
+}
+
+function toggleTreatmentDelay($checkbox) {
+    const $modal = $checkbox.closest('.modal');
+    const $treatmentDelay = $modal.find('[name=treatmentDelay]');
+    $treatmentDelay.val('');
+    if(!$checkbox.prop('checked')) {
+        $treatmentDelay.prop('disabled', true);
+    } else {
+        $treatmentDelay.prop('disabled', false);
+    }
 }

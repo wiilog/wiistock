@@ -30,6 +30,7 @@ class ComponentType
     public const MONETARY_RELIABILITY_INDICATOR = 'monetary_reliability_indicator';
     public const REFERENCE_RELIABILITY = 'reference_reliability';
     public const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
+    public const REQUESTS_TO_TREAT = 'requests_to_treat';
     public const DAILY_DISPATCHES = 'daily_dispatches';
     public const DAILY_HANDLING = 'daily_handling';
     public const PENDING_REQUESTS = 'pending_requests';

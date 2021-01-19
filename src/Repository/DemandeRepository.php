@@ -344,4 +344,30 @@ class DemandeRepository extends EntityRepository
             ->getQuery()
             ->execute();
     }
+
+    /**
+     * @param array|null $types
+     * @param array|null $statuses
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByTypesAndStatuses(?array $types, ?array $statuses): ?int {
+
+        $qb = $this->createQueryBuilder('deliveryRequest');
+
+        $qb->select('COUNT(deliveryRequest)')
+            ->leftJoin('deliveryRequest.type', 'type')
+            ->leftJoin('deliveryRequest.statut', 'status')
+            ->where('type IN (:types)')
+            ->andWhere('status IN (:statuses)')
+            ->setParameters([
+                'types' => $types,
+                'statuses' => $statuses
+            ]);
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

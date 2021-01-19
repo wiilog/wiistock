@@ -18,7 +18,7 @@ const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
 const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
 const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
-const MONETARY_RELIABILITY = 'monetary_reliability';
+const REQUESTS_TO_TREAT = 'requests_to_treat';
 const DAILY_HANDLING = 'daily_handling';
 const MONETARY_RELIABILITY_GRAPH = 'monetary_reliability_graph';
 const MONETARY_RELIABILITY_INDICATOR = 'monetary_reliability_indicator';
@@ -88,6 +88,9 @@ const creators = {
         arguments: {
             hideRange: true
         }
+    },
+    [REQUESTS_TO_TREAT]: {
+        callback: createIndicatorElement
     },
     [DAILY_HANDLING]: {
         callback: createChart

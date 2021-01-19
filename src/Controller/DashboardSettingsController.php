@@ -158,8 +158,20 @@ class DashboardSettingsController extends AbstractController {
             "arrivalStatuses" => [],
             "handlingStatuses" => [],
             "dispatchStatuses" => [],
+            "requestTypes" => [],
+            "requestStatuses" => [],
+            "requestEntity" => '',
+            "treatmentDelay" => null,
             "natures" => [],
             'tooltip' => $componentType->getHint()
+        ];
+
+        $requestEntities = [
+            'Service' => CategoryType::DEMANDE_HANDLING,
+            'Collecte' => CategoryType::DEMANDE_COLLECTE,
+            'Livraison' => CategoryType::DEMANDE_LIVRAISON,
+            'Acheminement' => CategoryType::DEMANDE_DISPATCH,
+            'Transfert' => CategoryType::TRANSFER_REQUEST
         ];
 
         foreach(["locations", "firstOriginLocation", "secondOriginLocation", "firstDestinationLocation", "secondDestinationLocation"] as $field) {
@@ -202,14 +214,31 @@ class DashboardSettingsController extends AbstractController {
             $values['natures'] = $natureRepository->findBy(['id' => $values['natures']]);
         }
 
+        if(!empty($values['requestTypes'])) {
+            $values['requestTypes'] = $typeRepository->findBy(['id' => $values['requestTypes']]);
+        }
+
+        if(!empty($values['requestStatuses'])) {
+            $values['requestStatuses'] = $statusRepository->findBy(['id' => $values['requestStatuses']]);
+        }
+
         $arrivalTypes = $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]);
         $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
         $arrivalStatuses = $statusRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
         $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
         $handlingStatuses = $statusRepository->findByCategorieName(CategorieStatut::HANDLING);
         $dispatchStatuses = $statusRepository->findByCategorieName(CategorieStatut::DISPATCH);
-        $natures = $natureRepository->findAll();
+        $requestTypes = $typeRepository->findByCategoryLabels(array_values($requestEntities));
 
+        $requestStatuses = $statusRepository->findByCategorieNames([
+            CategorieStatut::HANDLING,
+            CategorieStatut::DEM_COLLECTE,
+            CategorieStatut::DEM_LIVRAISON,
+            CategorieStatut::DISPATCH,
+            CategorieStatut::TRANSFER_REQUEST
+        ], true, [Statut::NOT_TREATED, Statut::TREATED, Statut::PARTIAL]);
+
+        $natures = $natureRepository->findAll();
         if($templateName) {
             return $this->json([
                 'success' => true,
@@ -224,6 +253,9 @@ class DashboardSettingsController extends AbstractController {
                     'arrivalStatuses' => $arrivalStatuses,
                     'handlingStatuses' => $handlingStatuses,
                     'dispatchStatuses' => $dispatchStatuses,
+                    'requestEntities' => $requestEntities,
+                    'requestTypes' => $requestTypes,
+                    'requestStatuses' => $requestStatuses,
                     'natures' => $natures,
                     'values' => $values
                 ])

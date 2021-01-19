@@ -1,0 +1,90 @@
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
+{% block content %}
+    <div class="row">
+        <div class="form-group col-6">
+            <label>Demande*</label>
+            <div class="input-group flex-nowrap no-gutters">
+                <div class="flex-fill">
+                    <select class="data form-control h-100 w-100 needed"
+                            name="requestEntity"
+                            title="Demande"
+                            onchange="onEntityChange($(this))">
+                            <option value="">Sélectionner une entité...</option>
+                        {% for label, category in requestEntities %}
+                            <option value="{{ category }}" {{ category == values.requestEntity ? 'selected' }}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="form-group col-6">
+            <label>Type(s) de la demande*</label>
+            <div class="input-group flex-nowrap no-gutters">
+                <div class="flex-fill">
+                    <select class="data form-control h-100 w-100 needed select2"
+                            name="requestTypes"
+                            multiple
+                            title="Type(s) de la demande"
+                            disabled>
+                        {% for type in requestTypes %}
+                            <option value="{{ type.id }}"
+                                    data-category-label="{{ type.category.label }}"
+                                {{ type in values.requestTypes ? 'selected' }}>{{ type.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group-append col-4">
+                    <button class="btn btn-primary select-all-types w-100" type="button" disabled>Tous les types</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="form-group col-6">
+            <label>Statut(s) de la demande*</label>
+            <div class="input-group flex-nowrap no-gutters">
+                <div class="flex-fill">
+                    <select class="data form-control h-100 w-100 needed select2"
+                            name="requestStatuses"
+                            multiple
+                            title="Statut(s)"
+                            disabled>
+                        {% for status in requestStatuses %}
+                            <option value="{{ status.id }}"
+                                    data-category-label="{{ status.type ? status.type.category.label : '' }}"
+                                {{ status in values.requestStatuses ? 'selected' }}>{{ status.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group-append col-4">
+                    <button class="btn btn-primary select-all-statuses w-100" type="button" disabled>Tous les statuts</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="switch">
+            <input class="checkbox data needs-default"
+                   type="checkbox"
+                   onchange="toggleTreatmentDelay($(this))"
+                {{ values.treatmentDelay ? 'checked' }}>
+            <span class="slider round"></span>
+        </label>
+        <label>Délai de traitement à respecter après validation de la demande (au format hh:mm)</label>
+    </div>
+
+    <div class="row">
+        <div class="form-group col-6">
+            <input class="data form-control h-100 w-100 needed"
+                   name="treatmentDelay"
+                   type="text"
+                {{ values.treatmentDelay ?: 'disabled' }}
+                   value="{{ values.treatmentDelay }}">
+        </div>
+    </div>
+{% endblock %}

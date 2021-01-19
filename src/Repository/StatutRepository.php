@@ -132,11 +132,12 @@ class StatutRepository extends EntityRepository {
     }
 
     /**
-     * @param array $categorieNames
+     * @param array|null $categorieNames
      * @param bool $ordered
+     * @param array|null $states
      * @return Statut[]
      */
-    public function findByCategorieNames($categorieNames, $ordered = false) {
+    public function findByCategorieNames(?array $categorieNames, $ordered = false, ?array $states = []) {
         $queryBuilder = $this->createQueryBuilder('status')
             ->join('status.categorie', 'categorie')
             ->andWhere('categorie.nom IN (:categorieNames)')
@@ -144,6 +145,12 @@ class StatutRepository extends EntityRepository {
 
         if ($ordered) {
             $queryBuilder->orderBy('status.displayOrder', 'ASC');
+        }
+
+        if (!empty($states)) {
+            $queryBuilder
+                ->andWhere('status.state IN (:states)')
+                ->setParameter('states', $states);
         }
 
         return $queryBuilder->getQuery()->execute();

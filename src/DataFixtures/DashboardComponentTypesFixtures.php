@@ -365,6 +365,17 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'count' => 11
             ],
         ],
+        'Demandes à traiter' => [
+            'hint' => 'Nombre de demandes pour l\'entité, le(s) type(s) et statut(s) sélectionnés',
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
+            'template' => Dashboard\ComponentType::REQUESTS_TO_TREAT,
+            'meterKey' => Dashboard\ComponentType::REQUESTS_TO_TREAT,
+            'exampleValues' => [
+                'title' => 'Services à traiter',
+                'count' => 5,
+                'delay' => 51025698
+            ]
+        ],
         'Nombre de services quotidiens' => [
             'hint' => 'Nombre de services ayant leur date attendue sur les jours présentés',
             'exampleValues' => [

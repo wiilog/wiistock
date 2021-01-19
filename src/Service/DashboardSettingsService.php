@@ -174,6 +174,9 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::DAILY_HANDLING:
                 $values += $this->serializeDailyHandling($componentType, $config, $example, $meter);
                 break;
+            case Dashboard\ComponentType::REQUESTS_TO_TREAT:
+                $values += $this->serializeRequestsToTreat($componentType, $example, $meter, $config);
+                break;
             default:
                 //TODO:remove
                 $values += $componentType->getExampleValues();
@@ -607,6 +610,30 @@ dump("a");
                 }, []);
 
             $values['chartData'] = $chartData;
+        }
+        return $values;
+    }
+
+    public function serializeRequestsToTreat(Dashboard\ComponentType $componentType,
+                                             bool $example = false,
+                                             DashboardMeter\Indicator $meter = null,
+                                             $config): array {
+        if ($example) {
+            $values = $componentType->getExampleValues();
+
+            $convertedDelay = null;
+            if(isset($config['treatmentDelay'])
+                && preg_match('/^([01]?[0-9]|2[0-3])\:+[0-5][0-9]$/', $config['treatmentDelay'])) {
+                $treatmentDelay = explode(':', $config['treatmentDelay']);
+                $convertedDelay = ($treatmentDelay[0] * 60 * 60 * 1000) + ($treatmentDelay[1] * 60 * 1000);
+            }
+
+            $values['delay'] = $convertedDelay;
+        } else {
+            $values = [
+                'count' => $meter ? $meter->getCount() : '-',
+                'delay' => $meter ? $meter->getDelay() : '-'
+            ];
         }
         return $values;
     }

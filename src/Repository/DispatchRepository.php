@@ -404,4 +404,30 @@ class DispatchRepository extends EntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * @param array|null $types
+     * @param array|null $statuses
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByTypesAndStatuses(?array $types, ?array $statuses): ?int {
+
+        $qb = $this->createQueryBuilder('dispatch');
+
+        $qb->select('COUNT(dispatch)')
+            ->leftJoin('dispatch.type', 'type')
+            ->leftJoin('dispatch.statut', 'status')
+            ->where('type IN (:types)')
+            ->andWhere('status IN (:statuses)')
+            ->setParameters([
+                'types' => $types,
+                'statuses' => $statuses
+            ]);
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

@@ -6,7 +6,10 @@ use App\Entity\Alert;
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
 use App\Entity\Article;
+use App\Entity\CategoryType;
+use App\Entity\Collecte;
 use App\Entity\Dashboard;
+use App\Entity\Demande;
 use App\Entity\Handling;
 use App\Entity\Dispatch;
 use App\Entity\LocationCluster;
@@ -21,6 +24,7 @@ use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReceptionTraca;
 use App\Entity\ReferenceArticle;
+use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
@@ -1198,6 +1202,53 @@ class DashboardService {
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter
             ->setData($chartData);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @throws Exception
+     */
+    public function persistRequestsToTreat(EntityManagerInterface $entityManager,
+                                           Dashboard\Component $component): void {
+        $config = $component->getConfig();
+        $requestTypes = $config['requestTypes'];
+        $requestStatuses = $config['requestStatuses'];
+        $treatmentDelay = $config['treatmentDelay'];
+
+        $convertedDelay = null;
+        if(preg_match('/^([01]?[0-9]|2[0-3])\:+[0-5][0-9]$/', $treatmentDelay)) {
+            $treatmentDelay = explode(':', $treatmentDelay);
+            $convertedDelay = ($treatmentDelay[0] * 60 * 60 * 1000) + ($treatmentDelay[1] * 60 * 1000);
+        }
+
+        switch($config['requestEntity']) {
+            case CategoryType::DEMANDE_HANDLING:
+                $handlingRepository = $entityManager->getRepository(Handling::class);
+                $count = $handlingRepository->countByTypesAndStatuses($requestTypes, $requestStatuses);
+                break;
+            case CategoryType::DEMANDE_LIVRAISON:
+                $deliveryRequest = $entityManager->getRepository(Demande::class);
+                $count = $deliveryRequest->countByTypesAndStatuses($requestTypes, $requestStatuses);
+                break;
+            case CategoryType::DEMANDE_DISPATCH:
+                $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+                $count = $dispatchRepository->countByTypesAndStatuses($requestTypes, $requestStatuses);
+                break;
+            case CategoryType::DEMANDE_COLLECTE:
+                $collectRequestRepository = $entityManager->getRepository(Collecte::class);
+                $count = $collectRequestRepository->countByTypesAndStatuses($requestTypes, $requestStatuses);
+                break;
+            case CategoryType::TRANSFER_REQUEST:
+                $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
+                $count = $transferRequestRepository->countByTypesAndStatuses($requestStatuses);
+                break;
+        }
+
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
+        $meter
+            ->setCount($count ?? 0)
+            ->setDelay($convertedDelay);
     }
 
     private function getDaysWorked(EntityManagerInterface $entityManager): array {
