@@ -30,6 +30,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 
@@ -289,29 +290,34 @@ class MouvementStockController extends AbstractController
         $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
         $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
 
-        $headers = [
-            'date',
-            'ordre',
-            'référence article',
-            'code barre référence article',
-            'code barre article',
-            'quantité',
-            'origine',
-            'destination',
-            'type',
-            'opérateur'
-        ];
+        if (!empty($dateTimeMin) && !empty($dateTimeMax) {
+            $headers = [
+                'date',
+                'ordre',
+                'référence article',
+                'code barre référence article',
+                'code barre article',
+                'quantité',
+                'origine',
+                'destination',
+                'type',
+                'opérateur'
+            ];
 
-        $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
-        $movementIterator = $mouvementStockRepository->iterateByDates($dateTimeMin, $dateTimeMax);
+            $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
+            $movementIterator = $mouvementStockRepository->iterateByDates($dateTimeMin, $dateTimeMax);
 
-        return $CSVExportService->streamResponse(
-            function ($output) use ($movementIterator, $mouvementStockService, $CSVExportService) {
-                foreach ($movementIterator as $movement) {
-                    $mouvementStockService->putMovementLine($output, $CSVExportService, $movement);
-                }
-            }, 'Export_mouvement_Stock.csv',
-            $headers
-        );
+            return $CSVExportService->streamResponse(
+                function ($output) use ($movementIterator, $mouvementStockService, $CSVExportService) {
+                    foreach ($movementIterator as $movement) {
+                        $mouvementStockService->putMovementLine($output, $CSVExportService, $movement);
+                    }
+                }, 'Export_mouvement_Stock.csv',
+                $headers
+            );
+        }
+        else {
+            throw new NotFoundHttpException('404');
+        }
     }
 }
