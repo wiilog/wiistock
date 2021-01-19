@@ -290,7 +290,7 @@ class MouvementStockController extends AbstractController
         $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
         $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
 
-        if (!empty($dateTimeMin) && !empty($dateTimeMax) {
+        if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $headers = [
                 'date',
                 'ordre',
