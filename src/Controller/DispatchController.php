@@ -386,7 +386,10 @@ class DispatchController extends AbstractController {
                 $dispatchService->sendEmailsAccordingToStatus($dispatch, false);
             }
 
-            $showArguments = ['id' => $dispatch->getId()];
+            $showArguments = [
+                "id" => $dispatch->getId(),
+                "fromCreation" => true,
+            ];
 
             if($printDeliveryNote) {
                 $showArguments['print-delivery-note'] = "1";
@@ -402,7 +405,7 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/voir/{id}/{printBL}", name="dispatch_show", options={"expose"=true}, methods="GET|POST", defaults={"printBL"=0})
+     * @Route("/voir/{id}/{printBL}/{fromCreation}", name="dispatch_show", options={"expose"=true}, methods="GET|POST", defaults={"printBL"=0,"fromCreation"=0})
      * @param Dispatch $dispatch
      * @param EntityManagerInterface $entityManager
      * @param bool $printBL
@@ -411,8 +414,9 @@ class DispatchController extends AbstractController {
      */
     public function show(Dispatch $dispatch,
                          EntityManagerInterface $entityManager,
+                         DispatchService $dispatchService,
                          bool $printBL,
-                         DispatchService $dispatchService) {
+                         bool $fromCreation) {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -426,6 +430,7 @@ class DispatchController extends AbstractController {
         return $this->render('dispatch/show.html.twig', [
             'dispatch' => $dispatch,
             'keep_pack_modal_open' => $paramRepository->getOneParamByLabel(ParametrageGlobal::KEEP_DISPATCH_PACK_MODAL_OPEN),
+            'open_pack_modal' => $fromCreation && $paramRepository->getOneParamByLabel(ParametrageGlobal::OPEN_DISPATCH_ADD_PACK_MODAL_ON_CREATION),
             'detailsConfig' => $dispatchService->createHeaderDetailsConfig($dispatch),
             'modifiable' => !$dispatchStatus || $dispatchStatus->isDraft(),
             'newPackConfig' => [

@@ -99,6 +99,11 @@ $(function () {
         SetRequestQuery(queryParams);
         $('#generateDeliveryNoteButton').click();
     }
+
+    const openModal = $(`#openPackModal`).val();
+    if(openModal) {
+        openNewPackModal();
+    }
 });
 
 function generateOverconsumptionBill(dispatchId) {
