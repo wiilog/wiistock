@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
 use App\Entity\Demande;
+use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\Handling;
 use App\Entity\Menu;
@@ -36,6 +37,7 @@ class DashboardSettingsService {
     private $demandeLivraisonService;
     private $demandeCollecteService;
     private $handlingService;
+    private $dispatchService;
     private $transferRequestService;
     private $userService;
     private $router;
@@ -48,6 +50,7 @@ class DashboardSettingsService {
                                 HandlingService $handlingService,
                                 TransferRequestService $transferRequestService,
                                 UserService $userService,
+                                DispatchService $dispatchService,
                                 RouterInterface $router) {
         $this->enCoursService = $enCoursService;
         $this->dashboardService = $dashboardService;
@@ -58,6 +61,7 @@ class DashboardSettingsService {
         $this->transferRequestService = $transferRequestService;
         $this->userService = $userService;
         $this->router = $router;
+        $this->dispatchService = $dispatchService;
     }
 
     public function serialize(EntityManagerInterface $entityManager, ?Utilisateur $user, int $mode): string {
@@ -232,18 +236,25 @@ class DashboardSettingsService {
                     })
                     ->toArray();
             }
-            
+
             if ($config["kind"] == "transfer" && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)) {
                 $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
-                dump($transferRequestRepository->findRequestToTreatByUser($loggedUser, 50));
                 $pendingTransfers = Stream::from($transferRequestRepository->findRequestToTreatByUser($loggedUser, 50))
                     ->map(function(TransferRequest $transfer) use ($averageRequestTimesByType) {
                         return $this->transferRequestService->parseRequestForCard($transfer, $this->dateService, $averageRequestTimesByType);
                     })
                     ->toArray();
             }
+            if ($config["kind"] == "dispatch" && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
+                $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+                $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUser($loggedUser, 50))
+                    ->map(function(Dispatch $dispatch) use ($averageRequestTimesByType) {
+                        return $this->dispatchService->parseRequestForCard($dispatch, $this->dateService, $averageRequestTimesByType);
+                    })
+                    ->toArray();
+            }
 
-            $values["requests"] = array_merge($pendingDeliveries ?? [], $pendingCollects ?? [], $pendingHandlings ?? [], $pendingTransfers ?? []);
+            $values["requests"] = array_merge($pendingDeliveries ?? [], $pendingCollects ?? [], $pendingHandlings ?? [], $pendingTransfers ?? [], $pendingDispatches ?? []);
         }
 
         return $values;

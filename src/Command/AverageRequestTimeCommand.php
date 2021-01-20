@@ -9,6 +9,7 @@ namespace App\Command;
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
 use App\Entity\Demande;
+use App\Entity\Dispatch;
 use App\Entity\Handling;
 use App\Entity\TransferRequest;
 use App\Entity\Type;
@@ -50,13 +51,15 @@ class AverageRequestTimeCommand extends Command
         $demandeRepository = $this->entityManager->getRepository(Demande::class);
         $collecteRepository = $this->entityManager->getRepository(Collecte::class);
         $handlingRepository = $this->entityManager->getRepository(Handling::class);
+        $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
         $transferRequestRepository = $this->entityManager->getRepository(TransferRequest::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
 
         $requests = array_merge(
             $demandeRepository->getTreatingTimesWithType(),
             $handlingRepository->getTreatingTimesWithType(),
-            $collecteRepository->getTreatingTimesWithType()
+            $collecteRepository->getTreatingTimesWithType(),
+            $dispatchRepository->getTreatingTimesWithType()
         );
 
         $transferRequestTimes = $transferRequestRepository->getProcessingTime();

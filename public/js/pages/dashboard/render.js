@@ -122,7 +122,11 @@ function renderComponent(meterKey, $container, data) {
         return false;
     } else {
         const {callback, arguments} = creators[meterKey];
-        const $element = callback(data, {...(arguments || {}), meterKey});
+        const $element = callback(data, {
+            ...(arguments || {}),
+            meterKey,
+            rowSize: $container.closest('.dashboard-row').data('size')
+        });
 
         if($element) {
             $container.html($element);
@@ -165,7 +169,7 @@ function createTooltip(text) {
     }
 }
 
-function createPendingRequests(data) {
+function createPendingRequests(data, {rowSize}) {
     const title = data.title || "";
 
     if(mode === MODE_EXTERNAL && data.shown === `self`) {
@@ -176,7 +180,7 @@ function createPendingRequests(data) {
     } else {
         let content = ``;
         for(let request of data.requests) {
-            content += renderRequest(request);
+            content += renderRequest(request, rowSize);
         }
 
         return $(`
@@ -185,7 +189,7 @@ function createPendingRequests(data) {
                     ${title}
                 </div>
                 ${createTooltip(data.tooltip)}
-                <div class="d-flex flex-row h-100 overflow-auto">
+                <div class="d-flex flex-row h-100 overflow-auto overflow-y-hidden">
                     ${content}
                 </div>
             </div>
@@ -193,7 +197,7 @@ function createPendingRequests(data) {
     }
 }
 
-function renderRequest(request) {
+function renderRequest(request, rowSize) {
     let onCardClick = ``;
     if(!request.href && request.errorMessage) {
         onCardClick = `showBSAlert('${request.errorMessage}', 'danger'); event.preventDefault()`;
@@ -208,8 +212,17 @@ function renderRequest(request) {
 
     const requestUserFirstLetter = request.requestUser.charAt(0).toUpperCase();
 
+    const defaultCardSize = 'col-12';
+    const cardSizeRowSizeMatching = {
+        1: 'col-12 col-lg-4 col-xl-3',
+        2: 'col-12 col-lg-5',
+        3: 'col-12 col-lg-7',
+        4: 'col-12 col-lg-10'
+    }
+    const cardSize = cardSizeRowSizeMatching[rowSize] || defaultCardSize;
+
     return `
-        <div class="d-flex col-12 col-lg-4 col-xl-3 p-1">
+        <div class="d-flex ${cardSize} p-1">
             <a class="card wii-card pointer p-3 my-2 shadow-sm flex-grow-1 bg-${request.cardColor}"
                 href="${request.href}" onclick="${onCardClick}">
                 <div class="wii-card-header">
@@ -237,7 +250,7 @@ function renderRequest(request) {
                         </div>
                     </div>
                 </div>
-                <div class="wii-card-body p-2 bg-{{ bodyColor }}">
+                <div class="wii-card-body p-2">
                     <div class="row">
                         <div class="col-12 card-title text-center">
                             <strong>${request.requestBodyTitle}</strong>
@@ -277,7 +290,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
 
     const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'});
     const $firstComponent = $('<div/>', {
-        class: 'col-12 mb-2',
+        class: `col-12`,
         html: createIndicatorElement(
             {
                 title: 'Nombre de lignes à traiter',
@@ -288,7 +301,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
         )
     });
     const $secondComponent = $('<div/>', {
-        class: 'col-12',
+        class: `col-12 mt-2`,
         html: createIndicatorElement(
             {
                 title: 'Prochain emplacement à traiter',
@@ -301,14 +314,14 @@ function createEntriesToHandleElement(data, {meterKey}) {
     });
 
     return $('<div/>', {
-        class: 'd-flex justify-content-around w-100',
+        class: 'row',
         html: [
             $('<div/>', {
-                style: 'width: 65.5%',
+                class: 'col-12 col-md-8 pr-3 pr-md-2',
                 html: $graph
             }),
             $('<div/>', {
-                style: 'width: 33%',
+                class: 'col-12 col-md-4 mt-2 mt-md-0 pl-3 pl-md-2',
                 html: $('<div/>', {
                     class: 'row h-100',
                     html: [
@@ -608,6 +621,7 @@ function newChart($canvasId, redForLastData = false, disableAnimation = false) {
                 },
                 tooltips: false,
                 responsive: true,
+                maintainAspectRatio: false,
                 legend: {
                     position: 'bottom',
                     labels: {

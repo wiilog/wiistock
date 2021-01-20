@@ -32,11 +32,14 @@ class InventoryEntryService
 
     private $entityManager;
 
+    private $CSVExportService;
+
     public function __construct(UserService $userService,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                Security $security)
+                                Security $security,
+                                CSVExportService $CSVExportService)
     {
 
         $this->templating = $templating;
@@ -44,6 +47,7 @@ class InventoryEntryService
         $this->router = $router;
         $this->userService = $userService;
         $this->security = $security;
+        $this->CSVExportService = $CSVExportService;
     }
 
 	/**
@@ -77,7 +81,7 @@ class InventoryEntryService
 	 * @param InventoryEntry $entry
 	 * @return array
 	 */
-    public function dataRowInvEntry($entry)
+    public function dataRowInvEntry(InventoryEntry $entry): array
     {
         $article = $entry->getArticle();
         $refArticle = $entry->getRefArticle();
@@ -99,14 +103,48 @@ class InventoryEntryService
             $barCode = '';
 		}
 
-		return [
-			'Ref' => $ref,
-			'Label' => $label,
-			'barCode' => $barCode,
-			'Operator' => $entry->getOperator() ? $entry->getOperator()->getUsername() : '',
-			'Location' => $entry->getLocation() ? $entry->getLocation()->getLabel() : '',
-			'Date' => $entry->getDate() ? $entry->getDate()->format('d/m/Y') : '',
-			'Quantity' => $entry->getQuantity(),
-		];
+        return [
+            'Ref' => $ref,
+            'Label' => $label,
+            'barCode' => $barCode,
+            'Operator' => $entry->getOperator() ? $entry->getOperator()->getUsername() : '',
+            'Location' => $entry->getLocation() ? $entry->getLocation()->getLabel() : '',
+            'Date' => $entry->getDate() ? $entry->getDate()->format('d/m/Y') : '',
+            'Quantity' => $entry->getQuantity(),
+        ];
+    }
+
+    /**
+     * @param InventoryEntry $entry
+     * @param $handle
+     */
+    public function putEntryLine(InventoryEntry $entry,
+                                 $handle)
+    {
+        $article = $entry->getArticle();
+        $referenceArticle = $entry->getRefArticle();
+
+        if (!empty($referenceArticle)) {
+            $dataEntry = [
+                $referenceArticle->getLibelle() ?? '',
+                $referenceArticle->getReference() ?? '',
+                $referenceArticle->getBarCode() ?? '',
+            ];
+        }
+        else if (!empty($article)) {
+            $articleFournisseur = $article->getArticleFournisseur();
+            $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+
+            $dataEntry = [
+                $article->getLabel() ?? '',
+                $referenceArticle ? $referenceArticle->getReference() : '',
+                $article->getBarCode() ?? '',
+            ];
+        }
+
+        if (isset($dataEntry)) {
+            $data = array_merge($dataEntry, $entry->serialize());
+            $this->CSVExportService->putLine($handle, $data);
+        }
     }
 }
