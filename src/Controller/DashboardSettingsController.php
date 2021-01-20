@@ -167,42 +167,84 @@ class DashboardSettingsController extends AbstractController {
         ];
 
         $entities = [];
-        $entitiesStatuses = [];
-        if($componentType->getCategory() === Dashboard\ComponentType::CATEGORY_REQUESTS) {
-            $entities = [
-                'Service' => CategoryType::DEMANDE_HANDLING,
-                'Collecte' => CategoryType::DEMANDE_COLLECTE,
-                'Livraison' => CategoryType::DEMANDE_LIVRAISON,
-                'Acheminement' => CategoryType::DEMANDE_DISPATCH,
-                'Transfert' => CategoryType::TRANSFER_REQUEST
-            ];
+        $entityTypes = [];
+        $entityStatuses = [];
 
-            $entitiesStatuses = [
-                CategorieStatut::HANDLING,
-                CategorieStatut::DEM_COLLECTE,
-                CategorieStatut::DEM_LIVRAISON,
-                CategorieStatut::DISPATCH,
-                CategorieStatut::TRANSFER_REQUEST
-            ];
-        } else if($componentType->getCategory() === Dashboard\ComponentType::CATEGORY_ORDERS) {
-            $entities = [
-                'Collecte' => CategoryType::COLLECT_ORDER,
-                'Livraison' => CategoryType::DELIVERY_ORDER,
-                'Préparation' => CategoryType::PREPARATION_ORDER,
-                'Transfert' => CategoryType::TRANSFER_ORDER
-            ];
+        if ($componentType->getMeterKey() === Dashboard\ComponentType::REQUESTS_TO_TREAT
+            || $componentType->getMeterKey() === Dashboard\ComponentType::ORDERS_TO_TREAT) {
+            if ($componentType->getMeterKey() === Dashboard\ComponentType::REQUESTS_TO_TREAT) {
+                $entities = [
+                    'Service' => [
+                        'categoryType' => CategoryType::DEMANDE_HANDLING,
+                        'categoryStatus' => CategorieStatut::HANDLING,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_HANDLING
+                    ],
+                    'Collecte' => [
+                        'categoryType' => CategoryType::DEMANDE_COLLECTE,
+                        'categoryStatus' => CategorieStatut::DEM_COLLECTE,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_COLLECT
+                    ],
+                    'Livraison' => [
+                        'categoryType' => CategoryType::DEMANDE_LIVRAISON,
+                        'categoryStatus' => CategorieStatut::DEM_LIVRAISON,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_DELIVERY
+                    ],
+                    'Acheminement' => [
+                        'categoryType' => CategoryType::DEMANDE_DISPATCH,
+                        'categoryStatus' => CategorieStatut::DISPATCH,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_DISPATCH
+                    ],
+                    'Transfert' => [
+                        'categoryType' => CategoryType::TRANSFER_REQUEST,
+                        'categoryStatus' => CategorieStatut::TRANSFER_REQUEST,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER
+                    ]
+                ];
+            }
+            else {
+                $entities = [
+                    'Collecte' => [
+                        'categoryType' => CategoryType::DEMANDE_COLLECTE,
+                        'categoryStatus' => CategorieStatut::ORDRE_COLLECTE,
+                        'key' => Dashboard\ComponentType::ORDERS_TO_TREAT_COLLECT
+                    ],
+                    'Livraison' => [
+                        'categoryType' => CategoryType::DEMANDE_LIVRAISON,
+                        'categoryStatus' => CategorieStatut::ORDRE_LIVRAISON,
+                        'key' => Dashboard\ComponentType::ORDERS_TO_TREAT_DELIVERY
+                    ],
+                    'Préparation' => [
+                        'categoryType' => CategoryType::DEMANDE_LIVRAISON,
+                        'categoryStatus' => CategorieStatut::PREPARATION,
+                        'key' => Dashboard\ComponentType::ORDERS_TO_TREAT_PREPARATION
+                    ],
+                    'Transfert' => [
+                        'categoryType' => CategoryType::TRANSFER_REQUEST,
+                        'categoryStatus' => CategorieStatut::TRANSFER_ORDER,
+                        'key' => Dashboard\ComponentType::ORDERS_TO_TREAT_TRANSFER
+                    ]
+                ];
+            }
 
-            $entitiesStatuses = [
-                CategorieStatut::ORDRE_COLLECTE,
-                CategorieStatut::ORDRE_LIVRAISON,
-                CategorieStatut::PREPARATION,
-                CategorieStatut::TRANSFER_ORDER
-            ];
+            $categoryTypes = array_values(Stream::from($entities)
+                ->map(function (array $entityConfig) {
+                    return $entityConfig['categoryType'];
+                })
+                ->toArray());
+
+            $entitiesStatuses = array_values(Stream::from($entities)
+                ->map(function (array $entityConfig) {
+                    return $entityConfig['categoryStatus'];
+                })
+                ->toArray());
+
+            $entityTypes = $typeRepository->findByCategoryLabels($categoryTypes);
+            $entityStatuses = $statusRepository->findByCategorieNames($entitiesStatuses, true, [Statut::NOT_TREATED, Statut::TREATED, Statut::PARTIAL]);
         }
 
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
         foreach(["locations", "firstOriginLocation", "secondOriginLocation", "firstDestinationLocation", "secondDestinationLocation"] as $field) {
             if(!empty($values[$field])) {
-                $locationRepository = $entityManager->getRepository(Emplacement::class);
                 $values[$field] = $locationRepository->findBy(['id' => $values[$field]]);
             }
         }
@@ -240,23 +282,12 @@ class DashboardSettingsController extends AbstractController {
             $values['natures'] = $natureRepository->findBy(['id' => $values['natures']]);
         }
 
-        if(!empty($values['entityTypes'])) {
-            $values['entityTypes'] = $typeRepository->findBy(['id' => $values['entityTypes']]);
-        }
-
-        if(!empty($values['entityStatuses'])) {
-            $values['entityStatuses'] = $statusRepository->findBy(['id' => $values['entityStatuses']]);
-        }
-
         $arrivalTypes = $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]);
         $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
         $arrivalStatuses = $statusRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
         $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
         $handlingStatuses = $statusRepository->findByCategorieName(CategorieStatut::HANDLING);
         $dispatchStatuses = $statusRepository->findByCategorieName(CategorieStatut::DISPATCH);
-        $entityTypes = $typeRepository->findByCategoryLabels(array_values($entities));
-
-        $entityStatuses = $statusRepository->findByCategorieNames($entitiesStatuses, true, [Statut::NOT_TREATED, Statut::TREATED, Statut::PARTIAL]);
 
         $natures = $natureRepository->findAll();
         if($templateName) {

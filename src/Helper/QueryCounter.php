@@ -41,33 +41,29 @@ class QueryCounter
      */
     public static function countByStatusesAndTypes(EntityManagerInterface $entityManager,
                                                    string $entity,
-                                                   array $statuses = [],
-                                                   array $types = [])
+                                                   array $types = [],
+                                                   array $statuses = [])
     {
-        $qb = $entityManager->createQueryBuilder();
-
-        $qb
-            ->select("COUNT(${entity})")
-            ->from("'App\Entity\'" . "'${entity}'", 'entity');
-
-        if (!empty($statuses)) {
+        if (!empty($statuses) && !empty($types)) {
+            $qb = $entityManager->createQueryBuilder();
             $statusProperty = property_exists($entity, 'status') ? 'status' : 'statut';
+
             $qb
+                ->select("COUNT(entity)")
+                ->from($entity, 'entity')
                 ->leftJoin("entity.${statusProperty}", 'status')
-                ->andWhere('status IN (:statuses)')
-                ->setParameter('statuses', $statuses);
-        }
-
-        if (!empty($statuses)) {
-            $qb
                 ->leftJoin("entity.type", 'type')
+                ->andWhere('status IN (:statuses)')
                 ->andWhere('type IN (:types)')
-                ->setParameter('types', $types);
+                ->setParameter('types', $types)
+                ->setParameter('statuses', $statuses);
+
+            return $qb
+                ->getQuery()
+                ->getSingleScalarResult();
         }
-
-        return $qb
-            ->getQuery()
-            ->getSingleScalarResult();
-
+        else {
+            return [];
+        }
     }
 }

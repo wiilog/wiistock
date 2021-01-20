@@ -703,6 +703,11 @@ function initSecondStep(html) {
     $modalComponentTypeSecondStepContent.html('');
     $modalComponentTypeSecondStepContent.html(html);
 
+    const $entitySelect = $modalComponentTypeSecondStepContent.find('select[name="entity"].init-entity-change');
+    if ($entitySelect.length > 0) {
+        onEntityChange($entitySelect, true);
+    }
+
     $modalComponentTypeSecondStep.find(`.select2`).select2();
     Select2.location($modalComponentTypeSecondStep.find('.ajax-autocomplete-location'));
     Select2.carrier($modalComponentTypeSecondStep.find('.ajax-autocomplete-carrier'));
@@ -716,8 +721,8 @@ function initSecondStep(html) {
     $modalComponentTypeSecondStep.off('change.secondStepComponentType');
     $modalComponentTypeSecondStep.on('change.secondStepComponentType', 'select.data, input.data, input.data-array, input.checkbox', () => renderFormComponentExample())
 
-    const $segmentsList = $modalComponentTypeSecondStepContent.find('.segments-list');
 
+    const $segmentsList = $modalComponentTypeSecondStepContent.find('.segments-list');
     if($segmentsList.length > 0) {
         const segments = $segmentsList.data(`segments`);
         if(segments.length > 0) {
@@ -923,49 +928,55 @@ function clearSegmentHourValues(value) {
     return cleared ? parseInt(cleared) : ``;
 }
 
-function onEntityChange($select) {
+function onEntityChange($select, onInit = false) {
     const $modal = $select.closest('.modal');
-    const category =  $select.val();
+
+    const $selectedOption = $select.find(`option[value="${$select.val()}"]`);
+    const categoryType = $selectedOption.data('category-type');
+    const categoryStatus = $selectedOption.data('category-status');
     const $selectAllAvailableTypes = $modal.find('.select-all-types');
     const $selectAllAvailableStatuses = $modal.find('.select-all-statuses');
     const $selectType = $modal.find('select[name="entityTypes"]');
     const $selectStatus = $modal.find('select[name="entityStatuses"]');
 
-    $selectType.find('option[data-category-label!="' + category + '"]').prop('disabled', true);
-    $selectStatus.find('option[data-category-label!="' + category + '"]').prop('disabled', true);
-    $selectType.val(null).trigger('change');
-    $selectStatus.val(null).trigger('change');
+    const $correspondingTypes = $selectType.find(`option[data-category-label="${categoryType}"]`);
+    const $correspondingStatuses = $selectStatus.find(`option[data-category-label="${categoryStatus}"]`);
+    const $otherTypes = $selectType.find(`option[data-category-label!="${categoryType}"]`);
+    const $otherStatuses = $selectStatus.find(`option[data-category-label!="${categoryStatus}"]`);
 
-    if(!category) {
-        $selectType.prop('disabled', true);
-        $selectStatus.prop('disabled', true);
-        $selectAllAvailableTypes.prop('disabled', true);
-        $selectAllAvailableStatuses.prop('disabled', true);
-    } else {
-        const $correspondingTypes = $selectType.find('option[data-category-label="' + category + '"]');
-        const $correspondingStatuses = $selectStatus.find('option[data-category-label="' + category + '"]');
+    const disabledSelect = (
+        !categoryType
+        || !categoryStatus
+        || $correspondingTypes.length === 0
+        || $correspondingStatuses.length === 0
+    );
 
-        $selectType.removeAttr('disabled');
-        $selectStatus.removeAttr('disabled');
-        $correspondingTypes.prop('disabled', false);
-        $correspondingStatuses.prop('disabled', false);
-        $selectAllAvailableTypes.removeAttr('disabled');
-        $selectAllAvailableStatuses.removeAttr('disabled');
+    $selectType.prop('disabled', disabledSelect);
+    $selectStatus.prop('disabled', disabledSelect);
+    $selectAllAvailableTypes.prop('disabled', disabledSelect);
+    $selectAllAvailableStatuses.prop('disabled', disabledSelect);
+    $otherTypes.prop('disabled', true);
+    $otherStatuses.prop('disabled', true);
 
-        if ($correspondingTypes.length > 1) {
-            $selectType.prop('disabled', false);
-            $selectStatus.prop('disabled', false);
+    if (!onInit) {
+        $selectType.val(null);
+        $selectStatus.val(null);
+
+        if (!disabledSelect) {
+            $correspondingTypes.prop('disabled', false);
+            $correspondingStatuses.prop('disabled', false);
+
             if ($correspondingTypes.length === 1) {
                 $selectType.val($correspondingTypes[0].value);
+            }
+            if ($correspondingStatuses.length === 1) {
                 $selectStatus.val($correspondingStatuses[0].value);
-            } else {
-                $selectType.removeAttr('disabled');
-                $selectStatus.removeAttr('disabled');
-                $selectAllAvailableTypes.removeAttr('disabled');
-                $selectAllAvailableStatuses.removeAttr('disabled');
             }
         }
     }
+
+    $selectType.trigger('change');
+    $selectStatus.trigger('change');
 }
 
 function toggleTreatmentDelay($checkbox) {

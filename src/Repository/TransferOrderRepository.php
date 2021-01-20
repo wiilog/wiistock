@@ -204,25 +204,33 @@ class TransferOrderRepository extends EntityRepository {
             ->getResult();
     }
 
+
     /**
+     * @param array|null $types
      * @param array|null $statuses
      * @return int|mixed|string
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function countByStatuses(?array $statuses): ?int {
+    public function countByTypesAndStatuses(?array $types, ?array $statuses): ?int {
+        if (!empty($types) && !empty($statuses)) {
+            $qb = $this->createQueryBuilder('transferOrder')
+                ->select('COUNT(transferOrder)')
+                ->leftJoin('transferOrder.status', 'status')
+                ->leftJoin('transferOrder.request', 'request')
+                ->leftJoin('request.type', 'type')
+                ->where('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types);
 
-        $qb = $this->createQueryBuilder('transferOrder');
-
-        $qb->select('COUNT(transferOrder)')
-            ->leftJoin('transferOrder.status', 'status')
-            ->where('status IN (:statuses)')
-            ->andWhere('status IN (:statuses)')
-            ->setParameter('statuses', $statuses);
-
-        return $qb
-            ->getQuery()
-            ->getSingleScalarResult();
+            return $qb
+                ->getQuery()
+                ->getSingleScalarResult();
+        }
+        else {
+            return [];
+        }
     }
 
 }

@@ -626,16 +626,23 @@ class DashboardSettingsService {
         return $values;
     }
 
+    /**
+     * @param Dashboard\ComponentType $componentType
+     * @param bool $example
+     * @param DashboardMeter\Indicator|null $meter
+     * @param $config
+     * @return array
+     */
     public function serializeEntitiesToTreat(Dashboard\ComponentType $componentType,
                                              bool $example = false,
                                              DashboardMeter\Indicator $meter = null,
-                                             $config): array {
+                                             $config = []): array {
         if ($example) {
             $values = $componentType->getExampleValues();
 
             $convertedDelay = null;
             if(isset($config['treatmentDelay'])
-                && preg_match('/^([01]?[0-9]|2[0-3])\:+[0-5][0-9]$/', $config['treatmentDelay'])) {
+                && preg_match(Dashboard\ComponentType::ENTITY_TO_TREAT_REGEX_TREATMENT_DELAY, $config['treatmentDelay'])) {
                 $treatmentDelay = explode(':', $config['treatmentDelay']);
                 $convertedDelay = ($treatmentDelay[0] * 60 * 60 * 1000) + ($treatmentDelay[1] * 60 * 1000);
             }

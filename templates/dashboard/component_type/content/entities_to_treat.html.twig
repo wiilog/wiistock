@@ -1,19 +1,23 @@
 {% extends 'dashboard/component_type/content/base_form.html.twig' %}
 {% block content %}
-
     {% set category = componentType.category == constant('App\\Entity\\Dashboard\\ComponentType::CATEGORY_REQUESTS') %}
     <div class="row">
         <div class="form-group col-6">
             <label>{{ category ? 'Demande' : 'Ordre' }}*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
-                    <select class="data form-control h-100 w-100 needed"
+                    <select class="data form-control h-100 w-100 needed init-entity-change"
                             name="entity"
-                            title="Demande"
+                            title="{{ category ? 'Demande' : 'Ordre' }}"
                             onchange="onEntityChange($(this))">
                             <option value="">Sélectionner une entité...</option>
-                        {% for label, category in entities %}
-                            <option value="{{ category }}" {{ category == values.entity ? 'selected' }}>{{ label }}</option>
+                        {% for label, config in entities %}
+                            <option value="{{ config.key }}"
+                                    data-category-type="{{ config.categoryType }}"
+                                    data-category-status="{{ config.categoryStatus }}"
+                                    {{ config.key == values.entity ? 'selected' }}>
+                                {{ label }}
+                            </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -34,7 +38,7 @@
                         {% for type in entityTypes %}
                             <option value="{{ type.id }}"
                                     data-category-label="{{ type.category.label }}"
-                                {{ type in values.entityTypes ? 'selected' }}>{{ type.label }}</option>
+                                    {{ type.id in values.entityTypes ? 'selected' }}>{{ type.label }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -53,12 +57,11 @@
                     <select class="data form-control h-100 w-100 needed select2"
                             name="entityStatuses"
                             multiple
-                            title="Statut(s) de {{ category ? 'la demande' : 'l\'ordre' }}"
-                            disabled>
+                            title="Statut(s) de {{ category ? 'la demande' : 'l\'ordre' }}">
                         {% for status in entityStatuses %}
                             <option value="{{ status.id }}"
-                                    data-category-label="{{ status.type ? status.type.category.label : '' }}"
-                                {{ status in values.entityStatuses ? 'selected' }}>{{ status.nom }}</option>
+                                    data-category-label="{{ status.categorie ? status.categorie.nom : '' }}"
+                                    {{ status.id in values.entityStatuses ? 'selected' }}>{{ status.nom }}</option>
                         {% endfor %}
                     </select>
                 </div>

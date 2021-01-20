@@ -203,27 +203,6 @@ class TransferRequestRepository extends EntityRepository {
             ->getResult();
     }
 
-    /**
-     * @param array|null $statuses
-     * @return int|mixed|string
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function countByTypesAndStatuses(?array $statuses): ?int {
-
-        $qb = $this->createQueryBuilder('transferRequest');
-
-        $qb->select('COUNT(transferRequest)')
-            ->leftJoin('transferRequest.status', 'status')
-            ->where('status IN (:statuses)')
-            ->andWhere('status IN (:statuses)')
-            ->setParameter('statuses', $statuses);
-
-        return $qb
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
     public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
         $qb = $this->createQueryBuilder("transfer_request");
 

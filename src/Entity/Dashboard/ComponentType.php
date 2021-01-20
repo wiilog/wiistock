@@ -30,11 +30,24 @@ class ComponentType
     public const MONETARY_RELIABILITY_INDICATOR = 'monetary_reliability_indicator';
     public const REFERENCE_RELIABILITY = 'reference_reliability';
     public const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
-    public const REQUESTS_TO_TREAT = 'entities_to_treat';
     public const DAILY_DISPATCHES = 'daily_dispatches';
     public const DAILY_HANDLING = 'daily_handling';
     public const PENDING_REQUESTS = 'pending_requests';
-    public const ORDERS_TO_TREAT = 'entities_to_treat';
+
+    public const ORDERS_TO_TREAT = 'orders_to_treat';
+    public const ORDERS_TO_TREAT_COLLECT = 'orders_to_treat_collect';
+    public const ORDERS_TO_TREAT_DELIVERY = 'orders_to_treat_delivery';
+    public const ORDERS_TO_TREAT_PREPARATION = 'orders_to_treat_preparation';
+    public const ORDERS_TO_TREAT_TRANSFER = 'orders_to_treat_transfer';
+
+    public const REQUESTS_TO_TREAT = 'requests_to_treat';
+    public const REQUESTS_TO_TREAT_COLLECT = 'requests_to_treat_collect';
+    public const REQUESTS_TO_TREAT_HANDLING = 'requests_to_treat_handling';
+    public const REQUESTS_TO_TREAT_DELIVERY = 'requests_to_treat_delivery';
+    public const REQUESTS_TO_TREAT_DISPATCH = 'requests_to_treat_dispatch';
+    public const REQUESTS_TO_TREAT_TRANSFER = 'requests_to_treat_transfer';
+
+    public const ENTITY_TO_TREAT_REGEX_TREATMENT_DELAY = '/^(([01]?[0-9])|(2[0-3])):[0-5][0-9]$/';
 
     public const CATEGORY_TRACKING = "Traçabilité";
     public const CATEGORY_REQUESTS = "Demandes";
