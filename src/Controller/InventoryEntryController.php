@@ -90,15 +90,17 @@ class InventoryEntryController extends AbstractController
 	}
 
     /**
-     * @Route("/saisies-infos", name="get_entries_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_entries_csv", options={"expose"=true}, methods={"GET","POST"})
      * @param Request $request
-     * @param CSVExportService $CSVExportService
+     * @param InventoryEntryService $inventoryEntryService
      * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $CSVExportService
      * @return Response
      */
-    public function getEntriesIntels(Request $request,
-                                     CSVExportService $CSVExportService,
-                                     EntityManagerInterface $entityManager): Response
+    public function getEntriesCSV(Request $request,
+                                     InventoryEntryService $inventoryEntryService,
+                                     EntityManagerInterface $entityManager,
+                                     CSVExportService $CSVExportService): Response
     {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -118,60 +120,27 @@ class InventoryEntryController extends AbstractController
             'Quantité'
         ];
 
-        $entriesRepository = $entityManager->getRepository(InventoryEntry::class);
-        $entries = $entriesRepository->findByDates($dateTimeMin, $dateTimeMax);
- // TODO if !empty($dateTimeMin) && !empty($dateTimeMax)
+        if ((isset($dateTimeMin)) && (isset($dateTimeMax))) {
 
-        return $CSVExportService->streamResponse(
+            $entriesRepository = $entityManager->getRepository(InventoryEntry::class);
+            $entries = $entriesRepository->findByDates($dateTimeMin, $dateTimeMax);
 
-            function ($output) use ($entries, $CSVExportService) {
-                foreach ($entries as $entry) {
-                    $article = $entry->getArticle();
-                    $referenceArticle = $entry->getRefArticle();
+            return $CSVExportService->streamResponse(
 
-                    if (!empty($referenceArticle)) {
-                        $this->putReferenceArticleLine($output, $CSVExportService, $entry);
-                    } else if (!empty($article)) {
-                        $this->putArticleLine($output, $CSVExportService, $entry);
+                function ($output) use ($entries, $CSVExportService, $inventoryEntryService) {
+
+                    foreach ($entries as $entry) {
+                        $inventoryEntryService->putEntryLine($entry, $output);
                     }
-                }
-            },
-            'Export_Saisies_Inventaire.csv',
-            $headers
-        );
-        // TODO else
-        //            throw new NotFoundHttpException('404');
+                },
+                'Export_Saisies_Inventaire.csv',
+                $headers
+            );
+
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+
     }
 
-    private function putReferenceArticleLine($handle,
-                                             CSVExportService $CSVExportService,
-                                             InventoryEntry $entry)
-    {
-        $referenceArticle = $referenceArticle = $entry->getRefArticle();
-        $dataEntry = [
-            $referenceArticle->getLibelle() ?? '',
-            $referenceArticle->getReference() ?? '',
-            $referenceArticle->getBarCode() ?? '',
-        ];
-
-        $data = array_merge($dataEntry, $entry->serialize());
-        $CSVExportService->putLine($handle, $data);
-    }
-
-    private function putArticleLine($handle,
-                                    CSVExportService $CSVExportService,
-                                    InventoryEntry $entry) {
-
-        $article = $entry->getArticle();
-        $articleFournisseur = $article->getArticleFournisseur();
-        $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
-        $dataEntry = [
-            $article->getLabel(),
-            $referenceArticle ? $referenceArticle->getReference() : '',
-            $article->getBarCode(),
-        ];
-
-        $data = array_merge($dataEntry, $entry->serialize());
-        $CSVExportService->putLine($handle, $data);
-    }
 }
