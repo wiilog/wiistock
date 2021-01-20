@@ -125,18 +125,13 @@ class InventoryEntryService
         $referenceArticle = $entry->getRefArticle();
 
         if (!empty($referenceArticle)) {
-            {
-                $dataEntry = [
-                    $referenceArticle->getLibelle() ?? '',
-                    $referenceArticle->getReference() ?? '',
-                    $referenceArticle->getBarCode() ?? '',
-                ];
-
-                $data = array_merge($dataEntry, $entry->serialize());
-                $this->CSVExportService->putLine($handle, $data);
-            }
-        } else if (!empty($article)) {
-
+            $dataEntry = [
+                $referenceArticle->getLibelle() ?? '',
+                $referenceArticle->getReference() ?? '',
+                $referenceArticle->getBarCode() ?? '',
+            ];
+        }
+        else if (!empty($article)) {
             $articleFournisseur = $article->getArticleFournisseur();
             $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
 
@@ -145,7 +140,9 @@ class InventoryEntryService
                 $referenceArticle ? $referenceArticle->getReference() : '',
                 $article->getBarCode() ?? '',
             ];
+        }
 
+        if (isset($dataEntry)) {
             $data = array_merge($dataEntry, $entry->serialize());
             $this->CSVExportService->putLine($handle, $data);
         }

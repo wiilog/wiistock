@@ -24,6 +24,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use App\Service\UserService;
+use Throwable;
 
 
 /**
@@ -90,7 +91,7 @@ class InventoryEntryController extends AbstractController
 	}
 
     /**
-     * @Route("/csv", name="get_entries_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_entries_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
      * @param InventoryEntryService $inventoryEntryService
      * @param EntityManagerInterface $entityManager
@@ -98,9 +99,9 @@ class InventoryEntryController extends AbstractController
      * @return Response
      */
     public function getEntriesCSV(Request $request,
-                                     InventoryEntryService $inventoryEntryService,
-                                     EntityManagerInterface $entityManager,
-                                     CSVExportService $CSVExportService): Response
+                                  InventoryEntryService $inventoryEntryService,
+                                  EntityManagerInterface $entityManager,
+                                  CSVExportService $CSVExportService): Response
     {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -120,15 +121,12 @@ class InventoryEntryController extends AbstractController
             'Quantité'
         ];
 
-        if ((isset($dateTimeMin)) && (isset($dateTimeMax))) {
-
+        if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $entriesRepository = $entityManager->getRepository(InventoryEntry::class);
             $entries = $entriesRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             return $CSVExportService->streamResponse(
-
                 function ($output) use ($entries, $CSVExportService, $inventoryEntryService) {
-
                     foreach ($entries as $entry) {
                         $inventoryEntryService->putEntryLine($entry, $output);
                     }
@@ -136,11 +134,9 @@ class InventoryEntryController extends AbstractController
                 'Export_Saisies_Inventaire.csv',
                 $headers
             );
-
         } else {
             throw new NotFoundHttpException('404');
         }
-
     }
 
 }
