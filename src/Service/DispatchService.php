@@ -6,7 +6,6 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
-use App\Entity\Collecte;
 use App\Entity\DispatchPack;
 use App\Entity\FreeField;
 use App\Entity\Dispatch;
@@ -15,7 +14,6 @@ use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
-use App\Entity\OrdreCollecte;
 use App\Entity\TrackingMovement;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -27,7 +25,6 @@ use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use http\Client\Curl\User;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -99,21 +96,10 @@ class DispatchService {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
-        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->user);
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, $categorieCL);
 
-        $queryResult = $dispatchRepository->findByParamAndFilters(
-            $params,
-            $filters,
-            array_reduce($freeFields, function (array $accumulator, array $freeField) {
-                $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
-                return $accumulator;
-            }, [])
-        );
+        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters);
 
         $dispatchesArray = $queryResult['data'];
 

@@ -264,19 +264,20 @@ class DispatchRepository extends EntityRepository
     }
 
     public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
-        $qb = $this->createQueryBuilder("d");
+        $qb = $this->createQueryBuilder("dispatch");
 
         if($requester) {
-            $qb->andWhere("d.requester = :requester")
+            $qb
+                ->andWhere("dispatch.requester = :requester")
                 ->setParameter("requester", $requester);
         }
 
-        return $qb->select("d")
-            ->innerJoin("d.statut", "s")
-            ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = d.type')
-            ->andWhere("s.state != " . Statut::TREATED)
-            ->addOrderBy('s.state', 'ASC')
-            ->addOrderBy("DATE_ADD(d.creationDate, art.average, 'second')", 'ASC')
+        return $qb
+            ->innerJoin("dispatch.statut", "status")
+            ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = dispatch.type')
+            ->andWhere("status.state != " . Statut::TREATED)
+            ->addOrderBy('status.state', 'ASC')
+            ->addOrderBy("DATE_ADD(dispatch.creationDate, art.average, 'second')", 'ASC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();

@@ -115,7 +115,11 @@ function renderComponent(meterKey, $container, data) {
         return false;
     } else {
         const {callback, arguments} = creators[meterKey];
-        const $element = callback(data, {...(arguments || {}), meterKey});
+        const $element = callback(data, {
+            ...(arguments || {}),
+            meterKey,
+            rowSize: $container.closest('.dashboard-row').data('size')
+        });
 
         if($element) {
             $container.html($element);
@@ -158,7 +162,7 @@ function createTooltip(text) {
     }
 }
 
-function createPendingRequests(data) {
+function createPendingRequests(data, {rowSize}) {
     const title = data.title || "";
 
     if(mode === MODE_EXTERNAL && data.shown === `self`) {
@@ -169,7 +173,7 @@ function createPendingRequests(data) {
     } else {
         let content = ``;
         for(let request of data.requests) {
-            content += renderRequest(request);
+            content += renderRequest(request, rowSize);
         }
 
         return $(`
@@ -178,7 +182,7 @@ function createPendingRequests(data) {
                     ${title}
                 </div>
                 ${createTooltip(data.tooltip)}
-                <div class="d-flex flex-row h-100 overflow-auto">
+                <div class="d-flex flex-row h-100 overflow-auto overflow-y-hidden">
                     ${content}
                 </div>
             </div>
@@ -186,7 +190,7 @@ function createPendingRequests(data) {
     }
 }
 
-function renderRequest(request) {
+function renderRequest(request, rowSize) {
     let onCardClick = ``;
     if(!request.href && request.errorMessage) {
         onCardClick = `showBSAlert('${request.errorMessage}', 'danger'); event.preventDefault()`;
@@ -201,8 +205,17 @@ function renderRequest(request) {
 
     const requestUserFirstLetter = request.requestUser.charAt(0).toUpperCase();
 
+    const defaultCardSize = 'col-12';
+    const cardSizeRowSizeMatching = {
+        1: 'col-12 col-lg-4 col-xl-3',
+        2: 'col-12 col-lg-5',
+        3: 'col-12 col-lg-7',
+        4: 'col-12 col-lg-10'
+    }
+    const cardSize = cardSizeRowSizeMatching[rowSize] || defaultCardSize;
+
     return `
-        <div class="d-flex col-12 col-lg-4 col-xl-3 p-1">
+        <div class="d-flex ${cardSize} p-1">
             <a class="card wii-card pointer p-3 my-2 shadow-sm flex-grow-1 bg-${request.cardColor}"
                 href="${request.href}" onclick="${onCardClick}">
                 <div class="wii-card-header">
@@ -230,7 +243,7 @@ function renderRequest(request) {
                         </div>
                     </div>
                 </div>
-                <div class="wii-card-body p-2 bg-{{ bodyColor }}">
+                <div class="wii-card-body p-2">
                     <div class="row">
                         <div class="col-12 card-title text-center">
                             <strong>${request.requestBodyTitle}</strong>

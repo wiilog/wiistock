@@ -232,10 +232,9 @@ class DashboardSettingsService {
                     })
                     ->toArray();
             }
-dump("a");
+
             if ($config["kind"] == "transfer" && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)) {
                 $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
-                dump($transferRequestRepository->findRequestToTreatByUser($loggedUser, 50));
                 $pendingTransfers = Stream::from($transferRequestRepository->findRequestToTreatByUser($loggedUser, 50))
                     ->map(function(TransferRequest $transfer) use ($averageRequestTimesByType) {
                         return $this->transferRequestService->parseRequestForCard($transfer, $this->dateService, $averageRequestTimesByType);

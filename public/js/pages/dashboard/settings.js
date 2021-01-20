@@ -178,6 +178,7 @@ function renderRow(row) {
     const $row = $(`<div/>`, {
         class: `dashboard-row dashboard-row-size-${row.size}`,
         'data-row': `${row.index}`,
+        'data-size': `${row.size}`,
         html: $rowWrapper
     });
 
