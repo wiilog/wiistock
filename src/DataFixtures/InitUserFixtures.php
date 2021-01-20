@@ -37,20 +37,25 @@ class InitUserFixtures extends Fixture implements FixtureGroupInterface
     {
         $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($this->entityManager);
         $roleRepository = $manager->getRepository(Role::class);
+        $userRepository = $manager->getRepository(Utilisateur::class);
         $adminRole = $roleRepository->findByLabel(Role::SUPER_ADMIN);
+        $adminEmail = 'admin@wiilog.fr';
 
-        $user = new Utilisateur();
-        $password = $this->userPasswordEncoder->encodePassword($user, "Admin1234");
-        $user
-            ->setUsername('admin@wiilog.fr')
-            ->setEmail('admin@wiilog.fr')
-            ->setRole($adminRole)
-            ->setStatus(true)
-            ->setPassword($password)
-            ->setMobileLoginKey($uniqueMobileKey);
-        $manager->persist($user);
-        $manager->flush();
-        $this->output->writeln('admin@wiilog.fr user created !');
+        $existing = $userRepository->findBy(['username' => $adminEmail]);
+        if (empty($existing)) {
+            $user = new Utilisateur();
+            $password = $this->userPasswordEncoder->encodePassword($user, "Admin1234");
+            $user
+                ->setUsername($adminEmail)
+                ->setEmail($adminEmail)
+                ->setRole($adminRole)
+                ->setStatus(true)
+                ->setPassword($password)
+                ->setMobileLoginKey($uniqueMobileKey);
+            $manager->persist($user);
+            $manager->flush();
+            $this->output->writeln('admin@wiilog.fr user created');
+        }
     }
 
     public static function getGroups(): array {

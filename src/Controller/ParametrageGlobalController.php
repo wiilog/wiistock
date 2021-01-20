@@ -167,10 +167,10 @@ class ParametrageGlobalController extends AbstractController {
                 'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
                 'fonts' => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
                 'fontFamily' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FONT_FAMILY) ?? ParametrageGlobal::DEFAULT_FONT_FAMILY,
-                'website_logo' => ($websiteLogo && file_exists(getcwd() . "/" . $websiteLogo) ? $websiteLogo : null),
-                'email_logo' => ($emailLogo && file_exists(getcwd() . "/" . $emailLogo) ? $emailLogo : null),
-                'mobile_logo_header' => ($mobileLogoHeader && file_exists(getcwd() . "/" . $mobileLogoHeader) ? $mobileLogoHeader : null),
-                'mobile_logo_login' => ($mobileLogoLogin && file_exists(getcwd() . "/" . $mobileLogoLogin) ? $mobileLogoLogin : null),
+                'website_logo' => ($websiteLogo && file_exists(getcwd() . "/" . $websiteLogo) ? $websiteLogo : ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE),
+                'email_logo' => ($emailLogo && file_exists(getcwd() . "/" . $emailLogo) ? $emailLogo : ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE),
+                'mobile_logo_header' => ($mobileLogoHeader && file_exists(getcwd() . "/" . $mobileLogoHeader) ? $mobileLogoHeader : ParametrageGlobal::DEFAULT_MOBILE_LOGO_HEADER_VALUE),
+                'mobile_logo_login' => ($mobileLogoLogin && file_exists(getcwd() . "/" . $mobileLogoLogin) ? $mobileLogoLogin : ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE),
                 'redirectMvtTraca' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT),
                 'workFreeDays' => $workFreeDays,
                 'wantsRecipient' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL),
@@ -854,80 +854,94 @@ class ParametrageGlobalController extends AbstractController {
     /**
      * @Route("/appearance", name="edit_appearance", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
-     * @param ParametrageGlobalRepository $pgr
+     * @param EntityManagerInterface $entityManager
      * @param AttachmentService $attachmentService
      * @param GlobalParamService $globalParamService
      * @return Response
      * @throws NonUniqueResultException
      */
     public function editAppearance(Request $request,
-                                   ParametrageGlobalRepository $pgr,
+                                   EntityManagerInterface $entityManager,
                                    AttachmentService $attachmentService,
                                    GlobalParamService $globalParamService): Response {
-        $em = $this->getDoctrine()->getManager();
+
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $resetLogos = json_decode($request->request->get('reset-logos', '[]'), true);
 
         if($request->files->has("website-logo")) {
             $logo = $request->files->get("website-logo");
 
             $fileName = $attachmentService->saveFile($logo, AttachmentService::WEBSITE_LOGO);
-            $setting = $pgr->findOneByLabel(ParametrageGlobal::WEBSITE_LOGO);
+            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::WEBSITE_LOGO);
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::WEBSITE_LOGO);
-                $em->persist($setting);
+                $entityManager->persist($setting);
             }
 
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
+        } else if(!($request->files->has("website-logo")) && ($resetLogos['website'] ?? false)) {
+            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::WEBSITE_LOGO);
+            $setting->setValue(ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE);
         }
 
         if($request->files->has("email-logo")) {
             $logo = $request->files->get("email-logo");
 
             $fileName = $attachmentService->saveFile($logo, AttachmentService::EMAIL_LOGO);
-            $setting = $pgr->findOneByLabel(ParametrageGlobal::EMAIL_LOGO);
+            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::EMAIL_LOGO);
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::EMAIL_LOGO);
-                $em->persist($setting);
+                $entityManager->persist($setting);
             }
 
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
+        } else if(!($request->files->has("email-logo")) && ($resetLogos['mailLogo'] ?? false)) {
+            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::EMAIL_LOGO);
+            $setting->setValue(ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE);
         }
 
         if($request->files->has("mobile-logo-login")) {
             $logo = $request->files->get("mobile-logo-login");
 
             $fileName = $attachmentService->saveFile($logo, AttachmentService::MOBILE_LOGO_LOGIN);
-            $setting = $pgr->findOneByLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
+            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
-                $em->persist($setting);
+                $entityManager->persist($setting);
             }
 
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
+        } else if(!($request->files->has("mobile-logo-login")) && ($resetLogos['nomadeAccueil'] ?? false)) {
+            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
+            $setting->setValue(ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE);
         }
 
         if($request->files->has("mobile-logo-header")) {
             $logo = $request->files->get("mobile-logo-header");
 
             $fileName = $attachmentService->saveFile($logo, AttachmentService::MOBILE_LOGO_HEADER);
-            $setting = $pgr->findOneByLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
+            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
-                $em->persist($setting);
+                $entityManager->persist($setting);
             }
 
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
+        } else if(!($request->files->has("mobile-logo-header")) && ($resetLogos['nomadeHeader'] ?? false)) {
+            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
+            $setting->setValue(ParametrageGlobal::DEFAULT_MOBILE_LOGO_HEADER_VALUE);
         }
 
         if($request->request->has("font-family")) {
-            $parametrageGlobal = $pgr->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
+            $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
             if(!$parametrageGlobal) {
                 $parametrageGlobal = new ParametrageGlobal();
                 $parametrageGlobal->setLabel(ParametrageGlobal::FONT_FAMILY);
-                $em->persist($parametrageGlobal);
+                $entityManager->persist($parametrageGlobal);
             } else {
                 $originalValue = $parametrageGlobal->getValue();
             }
@@ -943,7 +957,7 @@ class ParametrageGlobalController extends AbstractController {
             }
         }
 
-        $em->flush();
+        $entityManager->flush();
 
         return $this->json([
             "success" => true

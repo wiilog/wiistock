@@ -3,6 +3,7 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\DispatchPack;
@@ -12,6 +13,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
+use App\Entity\Menu;
 use App\Entity\TrackingMovement;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -57,6 +59,7 @@ class DispatchService {
     private $trackingMovementService;
     private $fieldsParamService;
     private $visibleColumnService;
+    private $userService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
@@ -67,6 +70,7 @@ class DispatchService {
                                 TrackingMovementService $trackingMovementService,
                                 MailerService $mailerService,
                                 VisibleColumnService $visibleColumnService,
+                                UserService $userService,
                                 FieldsParamService $fieldsParamService) {
         $this->templating = $templating;
         $this->trackingMovementService = $trackingMovementService;
@@ -78,6 +82,7 @@ class DispatchService {
         $this->mailerService = $mailerService;
         $this->fieldsParamService = $fieldsParamService;
         $this->visibleColumnService = $visibleColumnService;
+        $this->userService = $userService;
     }
 
     /**
@@ -91,21 +96,10 @@ class DispatchService {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
-        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->user);
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, $categorieCL);
 
-        $queryResult = $dispatchRepository->findByParamAndFilters(
-            $params,
-            $filters,
-            array_reduce($freeFields, function (array $accumulator, array $freeField) {
-                $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
-                return $accumulator;
-            }, [])
-        );
+        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters);
 
         $dispatchesArray = $queryResult['data'];
 
@@ -542,5 +536,80 @@ class DispatchService {
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+    }
+
+    /**
+     * @param Dispatch $request
+     * @param DateService $dateService
+     * @param array $averageRequestTimesByType
+     * @return array
+     */
+    public function parseRequestForCard(Dispatch $request,
+                                        DateService $dateService,
+                                        array $averageRequestTimesByType) {
+        $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE);
+
+        $requestStatus = $request->getStatut() ? $request->getStatut()->getNom() : '';
+        $requestType = $request->getType() ? $request->getType()->getLabel() : '';
+        $typeId = $request->getType() ? $request->getType()->getId() : null;
+        $requestState = $request->getStatut() ? $request->getStatut()->getState() : null;
+
+        $averageTime = $averageRequestTimesByType[$typeId] ?? null;
+
+        $deliveryDateEstimated = 'Non estimée';
+        $estimatedFinishTimeLabel = 'Date d\'acheminement non estimée';
+        $today = new DateTime();
+
+        if (isset($averageTime)) {
+            $expectedDate = (clone $request->getCreationDate())
+                ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
+            if ($expectedDate >= $today) {
+                $estimatedFinishTimeLabel = 'Date et heure d\'acheminement prévue';
+                $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
+                if ($expectedDate->format('d/m/Y') === $today->format('d/m/Y')) {
+                    $estimatedFinishTimeLabel = 'Heure d\'acheminement estimée';
+                    $deliveryDateEstimated = $expectedDate->format('H:i');
+                }
+            }
+        }
+        if ($hasRightToSeeRequest) {
+            $href = $this->router->generate('dispatch_show', ['id' => $request->getId()]);
+        }
+        $bodyTitle = $request->getDispatchPacks()->count() . ' colis' . ' - ' . $requestType;
+        $requestDate = $request->getCreationDate();
+        $requestDateStr = $requestDate
+            ? (
+                $requestDate->format('d ')
+                . DateService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
+                . $requestDate->format(' (H\hi)')
+            )
+            : 'Non défini';
+
+        $statusesToProgress = [
+            Statut::TREATED => 100,
+            Statut::DRAFT => 0,
+            Statut::NOT_TREATED => 50,
+            Statut::PARTIAL => 75,
+            Statut::DISPUTE => 50,
+        ];
+        return [
+            'href' => $href ?? null,
+            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page de la demande d\'acheminement',
+            'estimatedFinishTime' => $deliveryDateEstimated,
+            'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
+            'requestStatus' => $requestStatus,
+            'requestBodyTitle' => $bodyTitle,
+            'requestLocation' => $request->getLocationTo() ? $request->getLocationTo()->getLabel() : 'Non défini',
+            'requestNumber' => $request->getNumber(),
+            'requestDate' => $requestDateStr,
+            'requestUser' => $request->getRequester() ? $request->getRequester()->getUsername() : 'Non défini',
+            'cardColor' => $requestState === Statut::DRAFT ? 'lightGrey' : 'white',
+            'bodyColor' => $requestState === Statut::DRAFT ? 'white' : 'lightGrey',
+            'topRightIcon' => 'livreur.svg',
+            'emergencyText' => '',
+            'progress' => $statusesToProgress[$requestState] ?? 0,
+            'progressBarColor' => '#2ec2ab',
+            'progressBarBGColor' => $requestState === Statut::DRAFT ? 'white' : 'lightGrey',
+        ];
     }
 }
