@@ -2,9 +2,12 @@
 
 namespace App\Service;
 
+use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\FiltreSup;
 use App\Entity\InventoryEntry;
+use App\Entity\ReferenceArticle;
+use App\Helper\FormatHelper;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -144,6 +147,50 @@ class InventoryEntryService
 
         if (isset($dataEntry)) {
             $data = array_merge($dataEntry, $entry->serialize());
+            $this->CSVExportService->putLine($handle, $data);
+        }
+    }
+    /**
+     * @param Article|ReferenceArticle $entity
+     * @param InventoryEntry|null $entry
+     * @param $handle
+     */
+    public function putMissionEntryLine($entity,
+                                        ?InventoryEntry $entry,
+                                        $handle): void {
+
+        if ($entity instanceof ReferenceArticle) {
+            $dataEntry = [
+                $entity->getLibelle() ?? '',
+                $entity->getReference() ?? '',
+                $entity->getBarCode() ?? '',
+                $entity->getQuantiteStock() ?? '',
+                FormatHelper::location($entity->getEmplacement())
+            ];
+        }
+        else if ($entity instanceof Article) {
+            $articleFournisseur = $entity->getArticleFournisseur();
+            $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+
+            $dataEntry = [
+                $entity->getLabel() ?? '',
+                $referenceArticle ? $referenceArticle->getReference() : '',
+                $entity->getBarCode() ?? '',
+                $entity->getQuantite() ?? '',
+                FormatHelper::location($entity->getEmplacement())
+            ];
+        }
+
+        if (isset($dataEntry)) {
+            $data = array_merge(
+                $dataEntry,
+                $entry
+                    ? [
+                        FormatHelper::date($entry->getDate()),
+                        FormatHelper::bool($entry->getAnomaly())
+                    ]
+                    : []
+            );
             $this->CSVExportService->putLine($handle, $data);
         }
     }

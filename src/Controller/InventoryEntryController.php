@@ -91,17 +91,17 @@ class InventoryEntryController extends AbstractController
 	}
 
     /**
-     * @Route("/csv", name="get_entries_csv", options={"expose"=true}, methods={"GET"})
+     * @Route("/csv", name="get_inventory_entries_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
      * @param InventoryEntryService $inventoryEntryService
      * @param EntityManagerInterface $entityManager
      * @param CSVExportService $CSVExportService
      * @return Response
      */
-    public function getEntriesCSV(Request $request,
-                                  InventoryEntryService $inventoryEntryService,
-                                  EntityManagerInterface $entityManager,
-                                  CSVExportService $CSVExportService): Response
+    public function getInventoryEntriesCSV(Request $request,
+                                           InventoryEntryService $inventoryEntryService,
+                                           EntityManagerInterface $entityManager,
+                                           CSVExportService $CSVExportService): Response
     {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
