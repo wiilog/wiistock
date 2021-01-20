@@ -158,13 +158,93 @@ class DashboardSettingsController extends AbstractController {
             "arrivalStatuses" => [],
             "handlingStatuses" => [],
             "dispatchStatuses" => [],
+            "entityTypes" => [],
+            "entityStatuses" => [],
+            "entity" => '',
+            "treatmentDelay" => null,
             "natures" => [],
             'tooltip' => $componentType->getHint()
         ];
 
+        $entities = [];
+        $entityTypes = [];
+        $entityStatuses = [];
+
+        if ($componentType->getMeterKey() === Dashboard\ComponentType::REQUESTS_TO_TREAT
+            || $componentType->getMeterKey() === Dashboard\ComponentType::ORDERS_TO_TREAT) {
+            if ($componentType->getMeterKey() === Dashboard\ComponentType::REQUESTS_TO_TREAT) {
+                $entities = [
+                    'Service' => [
+                        'categoryType' => CategoryType::DEMANDE_HANDLING,
+                        'categoryStatus' => CategorieStatut::HANDLING,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_HANDLING
+                    ],
+                    'Collecte' => [
+                        'categoryType' => CategoryType::DEMANDE_COLLECTE,
+                        'categoryStatus' => CategorieStatut::DEM_COLLECTE,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_COLLECT
+                    ],
+                    'Livraison' => [
+                        'categoryType' => CategoryType::DEMANDE_LIVRAISON,
+                        'categoryStatus' => CategorieStatut::DEM_LIVRAISON,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_DELIVERY
+                    ],
+                    'Acheminement' => [
+                        'categoryType' => CategoryType::DEMANDE_DISPATCH,
+                        'categoryStatus' => CategorieStatut::DISPATCH,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_DISPATCH
+                    ],
+                    'Transfert' => [
+                        'categoryType' => CategoryType::TRANSFER_REQUEST,
+                        'categoryStatus' => CategorieStatut::TRANSFER_REQUEST,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER
+                    ]
+                ];
+            }
+            else {
+                $entities = [
+                    'Collecte' => [
+                        'categoryType' => CategoryType::DEMANDE_COLLECTE,
+                        'categoryStatus' => CategorieStatut::ORDRE_COLLECTE,
+                        'key' => Dashboard\ComponentType::ORDERS_TO_TREAT_COLLECT
+                    ],
+                    'Livraison' => [
+                        'categoryType' => CategoryType::DEMANDE_LIVRAISON,
+                        'categoryStatus' => CategorieStatut::ORDRE_LIVRAISON,
+                        'key' => Dashboard\ComponentType::ORDERS_TO_TREAT_DELIVERY
+                    ],
+                    'Préparation' => [
+                        'categoryType' => CategoryType::DEMANDE_LIVRAISON,
+                        'categoryStatus' => CategorieStatut::PREPARATION,
+                        'key' => Dashboard\ComponentType::ORDERS_TO_TREAT_PREPARATION
+                    ],
+                    'Transfert' => [
+                        'categoryType' => CategoryType::TRANSFER_REQUEST,
+                        'categoryStatus' => CategorieStatut::TRANSFER_ORDER,
+                        'key' => Dashboard\ComponentType::ORDERS_TO_TREAT_TRANSFER
+                    ]
+                ];
+            }
+
+            $categoryTypes = array_values(Stream::from($entities)
+                ->map(function (array $entityConfig) {
+                    return $entityConfig['categoryType'];
+                })
+                ->toArray());
+
+            $entitiesStatuses = array_values(Stream::from($entities)
+                ->map(function (array $entityConfig) {
+                    return $entityConfig['categoryStatus'];
+                })
+                ->toArray());
+
+            $entityTypes = $typeRepository->findByCategoryLabels($categoryTypes);
+            $entityStatuses = $statusRepository->findByCategorieNames($entitiesStatuses, true, [Statut::NOT_TREATED, Statut::TREATED, Statut::PARTIAL]);
+        }
+
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
         foreach(["locations", "firstOriginLocation", "secondOriginLocation", "firstDestinationLocation", "secondDestinationLocation"] as $field) {
             if(!empty($values[$field])) {
-                $locationRepository = $entityManager->getRepository(Emplacement::class);
                 $values[$field] = $locationRepository->findBy(['id' => $values[$field]]);
             }
         }
@@ -208,8 +288,8 @@ class DashboardSettingsController extends AbstractController {
         $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
         $handlingStatuses = $statusRepository->findByCategorieName(CategorieStatut::HANDLING);
         $dispatchStatuses = $statusRepository->findByCategorieName(CategorieStatut::DISPATCH);
-        $natures = $natureRepository->findAll();
 
+        $natures = $natureRepository->findAll();
         if($templateName) {
             return $this->json([
                 'success' => true,
@@ -224,6 +304,9 @@ class DashboardSettingsController extends AbstractController {
                     'arrivalStatuses' => $arrivalStatuses,
                     'handlingStatuses' => $handlingStatuses,
                     'dispatchStatuses' => $dispatchStatuses,
+                    'entities' => $entities,
+                    'entityTypes' => $entityTypes,
+                    'entityStatuses' => $entityStatuses,
                     'natures' => $natures,
                     'values' => $values
                 ])

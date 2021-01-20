@@ -21,6 +21,10 @@ class CategoryType
     const ARRIVAGE = 'arrivage';
     const MOUVEMENT_TRACA = 'mouvement traca';
     const TRANSFER_REQUEST = 'demande transfert';
+    const COLLECT_ORDER = 'ordre collecte';
+    const DELIVERY_ORDER = 'ordre livraison';
+    const PREPARATION_ORDER = 'ordre preparation';
+    const TRANSFER_ORDER = 'ordre transfert';
 
     /**
      * @ORM\Id()
