@@ -63,8 +63,8 @@ class DashboardService {
         $this->wiilockService = $wiilockService;
     }
 
-    public function refreshDate(EntityManagerInterface $manager): string {
-        $wiilockRepository = $manager->getRepository(Wiilock::class);
+    public function refreshDate(EntityManagerInterface $entityManager): string {
+        $wiilockRepository = $entityManager->getRepository(Wiilock::class);
         $lock = $wiilockRepository->findOneBy(["lockKey" => Wiilock::DASHBOARD_FED_KEY]);
 
         return $lock

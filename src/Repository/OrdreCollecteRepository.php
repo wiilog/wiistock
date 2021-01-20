@@ -6,9 +6,11 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Internal\Hydration\IterableResult;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
+use Generator;
 
 /**
  * @method OrdreCollecte|null find($id, $lockMode = null, $lockVersion = null)
@@ -229,25 +231,23 @@ class OrdreCollecteRepository extends EntityRepository
 		];
 	}
 
-	/**
-	 * @param DateTime $dateMin
-	 * @param DateTime $dateMax
-	 * @return OrdreCollecte[]|null
-	 */
-	public function findByDates($dateMin, $dateMax)
-	{
-		$dateMax = $dateMax->format('Y-m-d H:i:s');
-		$dateMin = $dateMin->format('Y-m-d H:i:s');
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return Generator
+     */
+	public function iterateByDates($dateMin, $dateMax): Generator {
+		$iterator = $this->createQueryBuilder('collect_order')
+            ->where('collect_order.date BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ])
+            ->getQuery()
+            ->iterate();
 
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			'SELECT oc
-            FROM App\Entity\OrdreCollecte oc
-            WHERE oc.date BETWEEN :dateMin AND :dateMax'
-		)->setParameters([
-			'dateMin' => $dateMin,
-			'dateMax' => $dateMax
-		]);
-		return $query->execute();
+        foreach($iterator as $item) {
+            yield array_pop($item);
+        }
 	}
 }

@@ -14,6 +14,8 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
+use App\Service\CSVExportService;
 use App\Service\MouvementStockService;
 use App\Service\TrackingMovementService;
 use App\Service\UserService;
@@ -26,7 +28,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 
@@ -267,87 +271,53 @@ class MouvementStockController extends AbstractController
     }
 
     /**
-     * @Route("/mouvement-stock-infos", name="get_mouvements_stock_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_stock_movements_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
+     * @param MouvementStockService $mouvementStockService
      * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @param CSVExportService $CSVExportService
+     * @return StreamedResponse
      * @throws Exception
      */
-    public function getMouvementIntels(Request $request,
-                                       EntityManagerInterface $entityManager): Response
+    public function getStockMovementsCSV(Request $request,
+                                         MouvementStockService $mouvementStockService,
+                                         EntityManagerInterface $entityManager,
+                                         CSVExportService $CSVExportService): StreamedResponse
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
 
-            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
 
-            $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
-
-            $mouvements = $mouvementStockRepository->findByDates($dateTimeMin, $dateTimeMax);
-            foreach ($mouvements as $mouvement) {
-                if ($dateTimeMin > $mouvement->getDate() || $dateTimeMax < $mouvement->getDate()) {
-                    array_splice($mouvements, array_search($mouvement, $mouvements), 1);
-                }
-            }
-
+        if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $headers = [
                 'date',
                 'ordre',
                 'référence article',
+                'code barre référence article',
+                'code barre article',
                 'quantité',
                 'origine',
                 'destination',
                 'type',
-                'opérateur',
-                'code barre référence article',
-                'code barre article',
+                'opérateur'
             ];
 
-            $data = [];
-            $data[] = $headers;
+            $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
+            $movementIterator = $mouvementStockRepository->iterateByDates($dateTimeMin, $dateTimeMax);
 
-            foreach ($mouvements as $mouvement) {
-                $article = $mouvement->getArticle() ? $mouvement->getArticle() : null;
-                $reference = $mouvement->getRefArticle() ? $mouvement->getRefArticle() : null;
-                if ((isset($article) || isset($reference))) {
-                    $mouvementData = [];
-
-                    $barCodeArticle = $article ? $article->getBarCode() : null;
-                    $articleArticleFournisseur = $article ? $article->getArticleFournisseur() : null;
-                    $articleRefArticle = $articleArticleFournisseur ? $articleArticleFournisseur->getReferenceArticle() : null;
-                    $barCodeReference = $articleRefArticle
-                        ? $articleRefArticle->getBarCode()
-                        : ($reference ? $reference->getBarCode() : null);
-
-                    $orderNo = null;
-                    if ($mouvement->getPreparationOrder()) {
-                        $orderNo = $mouvement->getPreparationOrder()->getNumero();
-                    } else if ($mouvement->getLivraisonOrder()) {
-                        $orderNo = $mouvement->getLivraisonOrder()->getNumero();
-                    } else if ($mouvement->getCollecteOrder()) {
-                        $orderNo = $mouvement->getCollecteOrder()->getNumero();
-                    } else if ($mouvement->getReceptionOrder()) {
-                        $orderNo = $mouvement->getReceptionOrder()->getNumeroReception();
+            return $CSVExportService->streamResponse(
+                function ($output) use ($movementIterator, $mouvementStockService, $CSVExportService) {
+                    foreach ($movementIterator as $movement) {
+                        $mouvementStockService->putMovementLine($output, $CSVExportService, $movement);
                     }
-                    $mouvementData[] = $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '';
-                    $mouvementData[] = $orderNo ? ' ' . $orderNo : '';
-                    $mouvementData[] = isset($article) ? $article->getReference() : $reference->getReference();
-                    $mouvementData[] = $mouvement->getQuantity();
-                    $mouvementData[] = $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '';
-                    $mouvementData[] = $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : '';
-                    $mouvementData[] = $mouvement->getType();
-                    $mouvementData[] = $mouvement->getUser() ? $mouvement->getUser()->getUsername() : '';
-                    $mouvementData[] = isset($barCodeReference) ? $barCodeReference : '';
-                    $mouvementData[] = isset($barCodeArticle) ? $barCodeArticle : '';
-
-                    $data[] = $mouvementData;
-                }
-            }
-            return new JsonResponse($data);
-        } else {
-            throw new BadRequestHttpException();
+                }, 'Export_mouvement_Stock.csv',
+                $headers
+            );
+        }
+        else {
+            throw new NotFoundHttpException('404');
         }
     }
 }

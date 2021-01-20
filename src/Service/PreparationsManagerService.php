@@ -59,8 +59,10 @@ class PreparationsManagerService
      * @var Security
      */
     private $security;
+    private $CSVExportService;
 
     public function __construct(Security $security,
+                                CSVExportService $CSVExportService,
                                 RouterInterface $router,
                                 Twig_Environment $templating,
                                 ArticleDataService $articleDataService,
@@ -73,6 +75,7 @@ class PreparationsManagerService
         $this->entityManager = $entityManager;
         $this->articleDataService = $articleDataService;
         $this->refArticleDataService = $refArticleDataService;
+        $this->CSVExportService = $CSVExportService;
         $this->refMouvementsToRemove = [];
     }
 
@@ -697,5 +700,35 @@ class PreparationsManagerService
             $entityManager->remove($ligneArticlePreparation);
         }
         return $refToUpdate;
+    }
+
+    public function putPreparationLines($handle, Preparation $preparation): void {
+        $preparationBaseData = $preparation->serialize();
+
+        foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
+            $referenceArticle = $ligneArticle->getReference();
+
+            $this->CSVExportService->putLine($handle, array_merge($preparationBaseData, [
+                $referenceArticle->getReference() ?? '',
+                $referenceArticle->getLibelle() ?? '',
+                $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
+                $ligneArticle->getQuantite() ?? 0,
+                $referenceArticle->getBarCode()
+            ]));
+        }
+
+        foreach ($preparation->getArticles() as $article) {
+            $articleFournisseur = $article->getArticleFournisseur();
+            $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+            $reference = $referenceArticle ? $referenceArticle->getReference() : '';
+
+            $this->CSVExportService->putLine($handle, array_merge($preparationBaseData, [
+                $reference,
+                $article->getLabel() ?? '',
+                $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                $article->getQuantite() ?? 0,
+                $article->getBarCode()
+            ]));
+        }
     }
 }

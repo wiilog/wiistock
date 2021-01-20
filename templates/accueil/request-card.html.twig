@@ -1,7 +1,7 @@
 {% set href = href is defined ? href %}
 {% set errorMessage = errorMessage is defined ? errorMessage %}
 
-<a class="card wii-card pointer p-3 my-2 shadow-sm bg-{{ cardColor }}"
+<a class="card wii-card pointer p-3 my-2 shadow-lg bg-{{ cardColor }}"
    href="{{ href }}"
    {% if not href and errorMessage %}onclick="showBSAlert('{{errorMessage | escape('js')}}', 'danger'); event.preventDefault()"{% endif %}>
     <div class="wii-card-header">

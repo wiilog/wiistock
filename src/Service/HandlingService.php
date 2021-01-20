@@ -261,7 +261,7 @@ class HandlingService
             'requestNumber' => $handling->getNumber(),
             'requestDate' => $requestDateStr,
             'requestUser' => $handling->getRequester() ? $handling->getRequester()->getUsername() : 'Non défini',
-            'cardColor' => 'white',
+            'cardColor' => 'darkWhite',
             'bodyColor' => 'lightGrey',
             'topRightIcon' => $handling->getEmergency() ? 'fa-exclamation-triangle red' : 'livreur.svg',
             'emergencyText' => $handling->getEmergency() ?? '',
