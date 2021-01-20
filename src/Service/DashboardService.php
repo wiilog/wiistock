@@ -12,9 +12,11 @@ use App\Entity\Dashboard;
 use App\Entity\Demande;
 use App\Entity\Handling;
 use App\Entity\Dispatch;
+use App\Entity\Livraison;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
 use App\Entity\MouvementStock;
+use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\Dashboard\Meter as DashboardMeter;
 use App\Entity\DaysWorked;
@@ -22,8 +24,10 @@ use App\Entity\Emplacement;
 use App\Entity\LatePack;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
+use App\Entity\Preparation;
 use App\Entity\ReceptionTraca;
 use App\Entity\ReferenceArticle;
+use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
@@ -1209,11 +1213,11 @@ class DashboardService {
      * @param Dashboard\Component $component
      * @throws Exception
      */
-    public function persistRequestsToTreat(EntityManagerInterface $entityManager,
+    public function persistEntitiesToTreat(EntityManagerInterface $entityManager,
                                            Dashboard\Component $component): void {
         $config = $component->getConfig();
-        $requestTypes = $config['requestTypes'];
-        $requestStatuses = $config['requestStatuses'];
+        $entityTypes = $config['entityTypes'];
+        $entityStatuses = $config['entityStatuses'];
         $treatmentDelay = $config['treatmentDelay'];
 
         $convertedDelay = null;
@@ -1222,26 +1226,42 @@ class DashboardService {
             $convertedDelay = ($treatmentDelay[0] * 60 * 60 * 1000) + ($treatmentDelay[1] * 60 * 1000);
         }
 
-        switch($config['requestEntity']) {
+        switch($config['entity']) {
             case CategoryType::DEMANDE_HANDLING:
                 $handlingRepository = $entityManager->getRepository(Handling::class);
-                $count = $handlingRepository->countByTypesAndStatuses($requestTypes, $requestStatuses);
+                $count = $handlingRepository->countByTypesAndStatuses($entityTypes, $entityStatuses);
                 break;
             case CategoryType::DEMANDE_LIVRAISON:
                 $deliveryRequest = $entityManager->getRepository(Demande::class);
-                $count = $deliveryRequest->countByTypesAndStatuses($requestTypes, $requestStatuses);
+                $count = $deliveryRequest->countByTypesAndStatuses($entityTypes, $entityStatuses);
                 break;
             case CategoryType::DEMANDE_DISPATCH:
                 $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-                $count = $dispatchRepository->countByTypesAndStatuses($requestTypes, $requestStatuses);
+                $count = $dispatchRepository->countByTypesAndStatuses($entityTypes, $entityStatuses);
                 break;
             case CategoryType::DEMANDE_COLLECTE:
                 $collectRequestRepository = $entityManager->getRepository(Collecte::class);
-                $count = $collectRequestRepository->countByTypesAndStatuses($requestTypes, $requestStatuses);
+                $count = $collectRequestRepository->countByTypesAndStatuses($entityTypes, $entityStatuses);
                 break;
             case CategoryType::TRANSFER_REQUEST:
                 $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
-                $count = $transferRequestRepository->countByTypesAndStatuses($requestStatuses);
+                $count = $transferRequestRepository->countByTypesAndStatuses($entityStatuses);
+                break;
+            case CategoryType::COLLECT_ORDER:
+                $collectOrderRepository = $entityManager->getRepository(OrdreCollecte::class);
+                $count = $collectOrderRepository->countByStatuses($entityStatuses);
+                break;
+            case CategoryType::DELIVERY_ORDER:
+                $deliveryOrderRepository = $entityManager->getRepository(Livraison::class);
+                $count = $deliveryOrderRepository->countByStatuses($entityStatuses);
+                break;
+            case CategoryType::PREPARATION_ORDER:
+                $preparationOrderRepository = $entityManager->getRepository(Preparation::class);
+                $count = $preparationOrderRepository->countByStatuses($entityStatuses);
+                break;
+            case CategoryType::TRANSFER_ORDER:
+                $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
+                $count = $transferOrderRepository->countByStatuses($entityStatuses);
                 break;
         }
 

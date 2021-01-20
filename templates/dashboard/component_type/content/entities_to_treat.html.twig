@@ -1,17 +1,19 @@
 {% extends 'dashboard/component_type/content/base_form.html.twig' %}
 {% block content %}
+
+    {% set category = componentType.category == constant('App\\Entity\\Dashboard\\ComponentType::CATEGORY_REQUESTS') %}
     <div class="row">
         <div class="form-group col-6">
-            <label>Demande*</label>
+            <label>{{ category ? 'Demande' : 'Ordre' }}*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
                     <select class="data form-control h-100 w-100 needed"
-                            name="requestEntity"
+                            name="entity"
                             title="Demande"
                             onchange="onEntityChange($(this))">
                             <option value="">Sélectionner une entité...</option>
-                        {% for label, category in requestEntities %}
-                            <option value="{{ category }}" {{ category == values.requestEntity ? 'selected' }}>{{ label }}</option>
+                        {% for label, category in entities %}
+                            <option value="{{ category }}" {{ category == values.entity ? 'selected' }}>{{ label }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -21,18 +23,18 @@
 
     <div class="row">
         <div class="form-group col-6">
-            <label>Type(s) de la demande*</label>
+            <label>Type(s) de {{ category ? 'la demande' : 'l\'ordre' }}*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
                     <select class="data form-control h-100 w-100 needed select2"
-                            name="requestTypes"
+                            name="entityTypes"
                             multiple
-                            title="Type(s) de la demande"
+                            title="Type(s) de {{ category ? 'la demande' : 'l\'ordre' }}"
                             disabled>
-                        {% for type in requestTypes %}
+                        {% for type in entityTypes %}
                             <option value="{{ type.id }}"
                                     data-category-label="{{ type.category.label }}"
-                                {{ type in values.requestTypes ? 'selected' }}>{{ type.label }}</option>
+                                {{ type in values.entityTypes ? 'selected' }}>{{ type.label }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -45,18 +47,18 @@
 
     <div class="row">
         <div class="form-group col-6">
-            <label>Statut(s) de la demande*</label>
+            <label>Statut(s) de {{ category ? 'la demande' : 'l\'ordre' }}*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
                     <select class="data form-control h-100 w-100 needed select2"
-                            name="requestStatuses"
+                            name="entityStatuses"
                             multiple
-                            title="Statut(s)"
+                            title="Statut(s) de {{ category ? 'la demande' : 'l\'ordre' }}"
                             disabled>
-                        {% for status in requestStatuses %}
+                        {% for status in entityStatuses %}
                             <option value="{{ status.id }}"
                                     data-category-label="{{ status.type ? status.type.category.label : '' }}"
-                                {{ status in values.requestStatuses ? 'selected' }}>{{ status.nom }}</option>
+                                {{ status in values.entityStatuses ? 'selected' }}>{{ status.nom }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -75,7 +77,7 @@
                 {{ values.treatmentDelay ? 'checked' }}>
             <span class="slider round"></span>
         </label>
-        <label>Délai de traitement à respecter après validation de la demande (au format hh:mm)</label>
+        <label>Délai de traitement à respecter après validation de {{ category ? 'la demande' : 'l\'ordre' }} (au format hh:mm)</label>
     </div>
 
     <div class="row">

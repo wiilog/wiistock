@@ -250,4 +250,25 @@ class OrdreCollecteRepository extends EntityRepository
             yield array_pop($item);
         }
 	}
+
+    /**
+     * @param array|null $statuses
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByStatuses(?array $statuses): ?int {
+
+        $qb = $this->createQueryBuilder('collectOrdre');
+
+        $qb->select('COUNT(collectOrdre)')
+            ->leftJoin('collectOrdre.statut', 'status')
+            ->where('status IN (:statuses)')
+            ->andWhere('status IN (:statuses)')
+            ->setParameter('statuses', $statuses);
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

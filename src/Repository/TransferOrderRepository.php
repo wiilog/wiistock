@@ -6,6 +6,8 @@ use App\Entity\TransferOrder;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 
 /**
  * @method TransferOrder|null find($id, $lockMode = null, $lockVersion = null)
@@ -200,6 +202,27 @@ class TransferOrderRepository extends EntityRepository {
             ])
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @param array|null $statuses
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByStatuses(?array $statuses): ?int {
+
+        $qb = $this->createQueryBuilder('transferOrder');
+
+        $qb->select('COUNT(transferOrder)')
+            ->leftJoin('transferOrder.status', 'status')
+            ->where('status IN (:statuses)')
+            ->andWhere('status IN (:statuses)')
+            ->setParameter('statuses', $statuses);
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
 }

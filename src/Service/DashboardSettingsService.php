@@ -175,7 +175,8 @@ class DashboardSettingsService {
                 $values += $this->serializeDailyHandling($componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::REQUESTS_TO_TREAT:
-                $values += $this->serializeRequestsToTreat($componentType, $example, $meter, $config);
+            case Dashboard\ComponentType::ORDERS_TO_TREAT:
+                $values += $this->serializeEntitiesToTreat($componentType, $example, $meter, $config);
                 break;
             default:
                 //TODO:remove
@@ -231,7 +232,7 @@ class DashboardSettingsService {
                     })
                     ->toArray();
             }
-dump("a");
+            
             if ($config["kind"] == "transfer" && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)) {
                 $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
                 dump($transferRequestRepository->findRequestToTreatByUser($loggedUser, 50));
@@ -614,7 +615,7 @@ dump("a");
         return $values;
     }
 
-    public function serializeRequestsToTreat(Dashboard\ComponentType $componentType,
+    public function serializeEntitiesToTreat(Dashboard\ComponentType $componentType,
                                              bool $example = false,
                                              DashboardMeter\Indicator $meter = null,
                                              $config): array {

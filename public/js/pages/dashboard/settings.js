@@ -921,9 +921,9 @@ function onEntityChange($select) {
     const category =  $select.val();
     const $selectAllAvailableTypes = $modal.find('.select-all-types');
     const $selectAllAvailableStatuses = $modal.find('.select-all-statuses');
+    const $selectType = $modal.find('select[name="entityTypes"]');
+    const $selectStatus = $modal.find('select[name="entityStatuses"]');
 
-    const $selectType = $modal.find('select[name="requestTypes"]');
-    const $selectStatus = $modal.find('select[name="requestStatuses"]');
     $selectType.find('option[data-category-label!="' + category + '"]').prop('disabled', true);
     $selectStatus.find('option[data-category-label!="' + category + '"]').prop('disabled', true);
     $selectType.val(null).trigger('change');
@@ -954,7 +954,8 @@ function onEntityChange($select) {
             } else {
                 $selectType.removeAttr('disabled');
                 $selectStatus.removeAttr('disabled');
-                $modal.find('.select-all-types').removeAttr('disabled');
+                $selectAllAvailableTypes.removeAttr('disabled');
+                $selectAllAvailableStatuses.removeAttr('disabled');
             }
         }
     }
