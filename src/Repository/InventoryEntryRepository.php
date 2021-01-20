@@ -359,6 +359,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
 			'dateMin' => $dateMin,
 			'dateMax' => $dateMax
 		]);
+		// TODO iterate
 		return $query->execute();
 	}
 
