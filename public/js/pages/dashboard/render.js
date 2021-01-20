@@ -283,7 +283,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
 
     const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'});
     const $firstComponent = $('<div/>', {
-        class: `col-12 ${$.mobile() ? 'px-0' : ''}`,
+        class: `col-12`,
         html: createIndicatorElement(
             {
                 title: 'Nombre de lignes à traiter',
@@ -294,7 +294,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
         )
     });
     const $secondComponent = $('<div/>', {
-        class: `col-12 mt-2 ${$.mobile() ? 'px-0' : ''}`,
+        class: `col-12 mt-2`,
         html: createIndicatorElement(
             {
                 title: 'Prochain emplacement à traiter',
@@ -310,11 +310,11 @@ function createEntriesToHandleElement(data, {meterKey}) {
         class: 'row',
         html: [
             $('<div/>', {
-                class: 'col-12 col-md-8',
+                class: 'col-12 col-md-8 pr-3 pr-md-2',
                 html: $graph
             }),
             $('<div/>', {
-                class: 'col-12 col-md-4 mt-2 mt-md-0',
+                class: 'col-12 col-md-4 mt-2 mt-md-0 pl-3 pl-md-2',
                 html: $('<div/>', {
                     class: 'row h-100',
                     html: [
