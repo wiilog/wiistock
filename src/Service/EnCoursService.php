@@ -323,7 +323,8 @@ class EnCoursService
                 },
                 new DateInterval('P0Y')
             );
-        } else {
+        }
+        else {
             // age null
             $age = new DateInterval('P0Y');
         }

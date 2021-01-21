@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
@@ -263,5 +264,36 @@ class CollecteRepository extends EntityRepository
             ->setMaxResults($limit)
             ->getQuery()
             ->execute();
+    }
+
+    /**
+     * @param array $types
+     * @param array $statuses
+     * @return DateTime|null
+     * @throws NonUniqueResultException
+     */
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($types) && !empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('collect')
+                ->select('collect.validationDate AS date')
+                ->innerJoin('collect.statut', 'status')
+                ->innerJoin('collect.type', 'type')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->andWhere('status.state IN (:treatedStates)')
+                ->addOrderBy('collect.validationDate', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types)
+                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED])
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+            return $res['date'] ?? null;
+        }
+        else {
+            return null;
+        }
     }
 }

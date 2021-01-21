@@ -7,6 +7,8 @@
 // */1 6-18 * * 1-6
 namespace App\Command;
 
+use App\Entity\DaysWorked;
+use App\Entity\WorkFreeDay;
 use App\Service\DashboardService;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManager;
@@ -42,7 +44,7 @@ class DashboardFeedCommand extends Command {
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
-     * @return int|void
+     * @return int
      * @throws ORMException
      * @throws Throwable
      */
@@ -56,7 +58,13 @@ class DashboardFeedCommand extends Command {
         $entityManager->flush();
 
         $dashboardComponentRepository = $entityManager->getRepository(Dashboard\Component::class);
+        $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
+        $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
+
         $components = $dashboardComponentRepository->findAll();
+        $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
+        $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
+
         foreach ($components as $component) {
             $componentType = $component->getType();
             $meterKey = $componentType->getMeterKey();
@@ -105,7 +113,7 @@ class DashboardFeedCommand extends Command {
                     break;
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT:
                 case Dashboard\ComponentType::ORDERS_TO_TREAT:
-                    $this->dashboardService->persistEntitiesToTreat($entityManager, $component);
+                    $this->dashboardService->persistEntitiesToTreat($entityManager, $component, $daysWorked, $freeWorkDays);
                     break;
                 default:
                     break;
@@ -116,6 +124,8 @@ class DashboardFeedCommand extends Command {
 
         $this->wiilockService->toggleFeedingDashboard($entityManager, false);
         $entityManager->flush();
+
+        return 0;
     }
 
     /**

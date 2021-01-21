@@ -2,7 +2,10 @@
 
 namespace App\Helper;
 
+use App\Entity\Demande;
+use App\Entity\Dispatch;
 use App\Entity\TransferOrder;
+use App\Entity\TransferRequest;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -51,8 +54,8 @@ class QueryCounter
             $qb
                 ->select("COUNT(entity)")
                 ->from($entity, 'entity')
-                ->leftJoin("entity.${statusProperty}", 'status')
-                ->leftJoin("entity.type", 'type')
+                ->innerJoin("entity.${statusProperty}", 'status')
+                ->innerJoin("entity.type", 'type')
                 ->andWhere('status IN (:statuses)')
                 ->andWhere('type IN (:types)')
                 ->setParameter('types', $types)

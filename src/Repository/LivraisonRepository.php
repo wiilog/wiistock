@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
@@ -297,6 +298,40 @@ class LivraisonRepository extends EntityRepository
         }
         else {
             return [];
+        }
+    }
+
+    /**
+     * @param array $types
+     * @param array $statuses
+     * @return DateTime|null
+     * @throws NonUniqueResultException
+     */
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('deliveryOrder')
+                ->select('deliveryOrder.date AS date')
+                ->innerJoin('deliveryOrder.statut', 'status')
+                ->innerJoin('deliveryOrder.preparation', 'preparation')
+                ->innerJoin('preparation.demande', 'deliveryRequest')
+                ->innerJoin('deliveryRequest.type', 'type')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->andWhere('status.state IN (:treatedStates)')
+                ->addOrderBy('deliveryOrder.date', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types)
+                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED])
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            return $res['date'] ?? null;
+        }
+        else {
+            return null;
         }
     }
 }

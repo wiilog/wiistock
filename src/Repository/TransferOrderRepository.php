@@ -2,9 +2,12 @@
 
 namespace App\Repository;
 
+use App\Entity\Statut;
 use App\Entity\TransferOrder;
+use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -230,6 +233,40 @@ class TransferOrderRepository extends EntityRepository {
         }
         else {
             return [];
+        }
+    }
+
+    /**
+     * @param array $types
+     * @param array $statuses
+     * @return DateTime|null
+     * @throws NonUniqueResultException
+     */
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('transfer_order')
+                ->select('transfer_request.validationDate AS date')
+                ->innerJoin('transfer_order.status', 'status')
+                ->innerJoin('transfer_order.request', 'transfer_request')
+                ->innerJoin('transfer_request.type', 'type')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->andWhere('status.state IN (:treatedStates)')
+                ->addOrderBy('transfer_request.validationDate', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types)
+                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED])
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+
+            return $res['date'] ?? null;
+        }
+        else {
+            return null;
         }
     }
 

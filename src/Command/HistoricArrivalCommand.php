@@ -58,5 +58,6 @@ class HistoricArrivalCommand extends Command
             $this->entityManager->persist($todayHistory);
         }
         $this->entityManager->flush();
+        return 0;
     }
 }

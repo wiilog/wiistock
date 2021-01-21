@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\OrdreCollecte;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -277,6 +278,38 @@ class OrdreCollecteRepository extends EntityRepository
         }
         else {
             return [];
+        }
+    }
+
+    /**
+     * @param array $types
+     * @param array $statuses
+     * @return DateTime|null
+     * @throws NonUniqueResultException
+     */
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($types) && !empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('collectOrder')
+                ->select('collectRequest.validationDate AS date')
+                ->innerJoin('collectOrder.demandeCollecte', 'collectRequest')
+                ->innerJoin('collectOrder.statut', 'status')
+                ->innerJoin('collectRequest.type', 'type')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->andWhere('status.state IN (:treatedStates)')
+                ->addOrderBy('collectRequest.validationDate', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types)
+                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED])
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+            return $res['date'] ?? null;
+        }
+        else {
+            return null;
         }
     }
 }

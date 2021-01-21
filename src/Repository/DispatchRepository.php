@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
+use App\Entity\Demande;
 use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
@@ -445,5 +446,36 @@ class DispatchRepository extends EntityRepository
             ->setParameter("treated", Statut::TREATED)
             ->getQuery()
             ->getArrayResult();
+    }
+
+    /**
+     * @param array $statuses
+     * @return DateTime|null
+     * @throws NonUniqueResultException
+     */
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($types) && !empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('dispatch')
+                ->select('dispatch.validationDate AS date')
+                ->innerJoin('dispatch.statut', 'status')
+                ->innerJoin('dispatch.type', 'type')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->andWhere('status.state IN (:treatedStates)')
+                ->addOrderBy('dispatch.creationDate', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types)
+                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED])
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            return $res['date'] ?? null;
+        }
+        else {
+            return null;
+        }
     }
 }

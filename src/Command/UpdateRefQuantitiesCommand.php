@@ -114,5 +114,6 @@ class UpdateRefQuantitiesCommand extends Command
         }
         $output
             ->writeln('');
+        return 0;
     }
 }

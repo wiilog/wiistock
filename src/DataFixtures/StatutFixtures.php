@@ -75,16 +75,16 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Collecte::STATUT_INCOMPLETE => Statut::PARTIAL
 			],
 			CategorieStatut::ORDRE_COLLECTE => [
-				OrdreCollecte::STATUT_A_TRAITER => Statut::PARTIAL,
+				OrdreCollecte::STATUT_A_TRAITER => Statut::NOT_TREATED,
 				OrdreCollecte::STATUT_TRAITE => Statut::TREATED
 			],
 			CategorieStatut::DEM_LIVRAISON => [
 				Demande::STATUT_BROUILLON => Statut::DRAFT,
 				Demande::STATUT_A_TRAITER => Statut::NOT_TREATED,
-				Demande::STATUT_PREPARE => Statut::NOT_TREATED,
-				Demande::STATUT_LIVRE => Statut::TREATED,
-				Demande::STATUT_INCOMPLETE => Statut::TREATED,
-                Demande::STATUT_LIVRE_INCOMPLETE => Statut::TREATED
+				Demande::STATUT_PREPARE => Statut::PARTIAL,
+                Demande::STATUT_INCOMPLETE => Statut::PARTIAL,
+                Demande::STATUT_LIVRE_INCOMPLETE => Statut::PARTIAL,
+                Demande::STATUT_LIVRE => Statut::TREATED
 			],
 			CategorieStatut::ORDRE_LIVRAISON => [
 				Livraison::STATUT_A_TRAITER => Statut::NOT_TREATED,

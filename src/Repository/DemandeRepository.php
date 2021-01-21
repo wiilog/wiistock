@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Demande;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
@@ -12,6 +13,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
+use DoctrineExtensions\Query\Mysql\Date;
 
 /**
  * @method Demande|null find($id, $lockMode = null, $lockVersion = null)
@@ -339,6 +341,41 @@ class DemandeRepository extends EntityRepository
             ->setParameter('search', '%' . $search . '%')
             ->getQuery()
             ->execute();
+    }
+
+
+
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($statuses)) {
+            $statusesStr = implode(',', $statuses);
+            $typesStr = implode(',', $types);
+            $query = $this->getEntityManager()
+                ->getConnection()
+                ->executeQuery("
+                    SELECT preparation_date.date
+                    FROM demande
+                    INNER JOIN (
+                        SELECT sub_demande.id AS demande_id,
+                               MAX(preparation.date) AS date
+                        FROM demande AS sub_demande
+                        INNER JOIN preparation ON preparation.demande_id = sub_demande.id
+                        WHERE sub_demande.type_id IN (${typesStr})
+                          AND sub_demande.statut_id IN (${statusesStr})
+                        GROUP BY sub_demande.id
+                    ) AS preparation_date ON preparation_date.demande_id = demande.id
+                    ORDER BY preparation_date.date ASC
+                    LIMIT 1
+                ");
+
+            $res = $query->fetchColumn();
+            return $res
+                ? (DateTime::createFromFormat('Y-m-d H:i:s', $res) ?: null)
+                : null;
+        }
+        else {
+            return null;
+        }
     }
 
 }
