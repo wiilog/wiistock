@@ -411,9 +411,11 @@ class DispatchController extends AbstractController {
      * @Route("/voir/{id}/{printBL}", name="dispatch_show", options={"expose"=true}, methods="GET|POST", defaults={"printBL"=0,"fromCreation"=0})
      * @param Dispatch $dispatch
      * @param EntityManagerInterface $entityManager
-     * @param bool $printBL
      * @param DispatchService $dispatchService
+     * @param RedirectService $redirectService
+     * @param bool $printBL
      * @return RedirectResponse|Response
+     * @throws NonUniqueResultException
      */
     public function show(Dispatch $dispatch,
                          EntityManagerInterface $entityManager,
