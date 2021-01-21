@@ -208,12 +208,14 @@ function renderRequest(request, rowSize) {
 
     const requestUserFirstLetter = request.requestUser.charAt(0).toUpperCase();
 
-    const defaultCardSize = 'col-12';
+    const defaultCardSize = 'col-12 col-lg-4 col-xl-3';
     const cardSizeRowSizeMatching = {
         1: 'col-12 col-lg-4 col-xl-3',
         2: 'col-12 col-lg-5',
         3: 'col-12 col-lg-7',
-        4: 'col-12 col-lg-10'
+        4: 'col-12 col-lg-10',
+        5: 'col-12',
+        6: 'col-12',
     }
     const cardSize = cardSizeRowSizeMatching[rowSize] || defaultCardSize;
 

@@ -228,7 +228,6 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'exampleValues' => [
                 'requests' => [
                     [
-                        'href' => '/demande/voir/439',
                         'errorMessage' => 'Exemple',
                         'estimatedFinishTime' => '16:54',
                         'estimatedFinishTimeLabel' => 'Heure de livraison estimée',
