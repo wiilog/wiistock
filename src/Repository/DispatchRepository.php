@@ -428,26 +428,22 @@ class DispatchRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function getTreatingTimesWithType() {
-        $nowDate = new DateTime();
-        $datePrior3Months = (clone $nowDate)->modify('-3 month');
-        $queryBuilder = $this->createQueryBuilder('dispatch');
-        $queryBuilderExpr = $queryBuilder->expr();
-        $query = $queryBuilder
-            ->select('type.id AS typeId')
-            ->addSelect($queryBuilderExpr->min('dispatch.validationDate') . ' AS validationDate')
-            ->addSelect($queryBuilderExpr->max('dispatch.treatmentDate') . ' AS treatingDate')
-            ->join('dispatch.statut', 'status')
-            ->join('dispatch.type', 'type')
-            ->where('status.state LIKE :treatedStatus')
-            ->andHaving($queryBuilderExpr->min('dispatch.validationDate') . ' BETWEEN :start AND :end')
-            ->groupBy('dispatch.id')
-            ->setParameters([
-                'start' => $datePrior3Months,
-                'end' => $nowDate,
-                'treatedStatus' => Statut::TREATED
-            ])
-            ->getQuery();
-        return $query->execute();
+    public function getProcessingTime() {
+        $threeMonthsAgo = new DateTime("-3 month");
+
+        return $this->createQueryBuilder("dispatch")
+            ->select("dispatch_type.id AS type")
+            ->addSelect("SUM(UNIX_TIMESTAMP(dispatch.treatmentDate) - UNIX_TIMESTAMP(dispatch.validationDate)) AS total")
+            ->addSelect("COUNT(dispatch) AS count")
+            ->join("dispatch.type", "dispatch_type")
+            ->join("dispatch.statut", "status")
+            ->where("status.nom = :treated")
+            ->andWhere("dispatch.validationDate >= :from")
+            ->andWhere("dispatch.validationDate IS NOT NULL AND dispatch.treatmentDate IS NOT NULL")
+            ->groupBy("dispatch.type")
+            ->setParameter("from", $threeMonthsAgo)
+            ->setParameter("treated", Statut::TREATED)
+            ->getQuery()
+            ->getArrayResult();
     }
 }
