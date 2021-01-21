@@ -1,7 +1,3 @@
-function todo() { //TODO: remove todo
-    console.error("To do");
-}
-
 let currentChartsFontSize;
 let fontSizeYAxes;
 
@@ -18,7 +14,8 @@ const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
 const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
 const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
-const MONETARY_RELIABILITY = 'monetary_reliability';
+const REQUESTS_TO_TREAT = 'requests_to_treat';
+const ORDERS_TO_TREAT = 'orders_to_treat';
 const DAILY_HANDLING = 'daily_handling';
 const MONETARY_RELIABILITY_GRAPH = 'monetary_reliability_graph';
 const MONETARY_RELIABILITY_INDICATOR = 'monetary_reliability_indicator';
@@ -88,6 +85,12 @@ const creators = {
         arguments: {
             hideRange: true
         }
+    },
+    [REQUESTS_TO_TREAT]: {
+        callback: createIndicatorElement
+    },
+    [ORDERS_TO_TREAT]: {
+        callback: createIndicatorElement
     },
     [DAILY_HANDLING]: {
         callback: createChart
@@ -307,23 +310,28 @@ function createEntriesToHandleElement(data, {meterKey}) {
     });
 
     return $('<div/>', {
-        class: 'row',
+        class: 'dashboard-box',
         html: [
             $('<div/>', {
-                class: 'col-12 col-md-8 pr-3 pr-md-2',
-                html: $graph
-            }),
-            $('<div/>', {
-                class: 'col-12 col-md-4 mt-2 mt-md-0 pl-3 pl-md-2',
-                html: $('<div/>', {
-                    class: 'row h-100',
-                    html: [
-                        $firstComponent,
-                        $secondComponent
-                    ]
-                })
+                class: 'row h-100',
+                html: [
+                    $('<div/>', {
+                        class: 'col-12 col-md-8 pr-3 pr-md-2',
+                        html: $graph
+                    }),
+                    $('<div/>', {
+                        class: 'col-12 col-md-4 mt-2 mt-md-0 pl-3 pl-md-2',
+                        html: $('<div/>', {
+                            class: 'row h-100',
+                            html: [
+                                $firstComponent,
+                                $secondComponent
+                            ]
+                        })
+                    })
+                ]
             })
-        ]
+        ],
     });
 }
 

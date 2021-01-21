@@ -2,11 +2,14 @@
 
 namespace App\Helper;
 
+use App\Entity\TransferOrder;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
 
-class QueryCounter {
+class QueryCounter
+{
 
     /**
      * @param QueryBuilder $query
@@ -15,7 +18,8 @@ class QueryCounter {
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public static function count(QueryBuilder $query, string $alias): int {
+    public static function count(QueryBuilder $query, string $alias): int
+    {
         $countQuery = clone $query;
 
         return $countQuery
@@ -26,4 +30,40 @@ class QueryCounter {
             ->getSingleResult()["__query_count"];
     }
 
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param string $entity
+     * @param array $statuses
+     * @param array $types
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public static function countByStatusesAndTypes(EntityManagerInterface $entityManager,
+                                                   string $entity,
+                                                   array $types = [],
+                                                   array $statuses = [])
+    {
+        if (!empty($statuses) && !empty($types)) {
+            $qb = $entityManager->createQueryBuilder();
+            $statusProperty = property_exists($entity, 'status') ? 'status' : 'statut';
+
+            $qb
+                ->select("COUNT(entity)")
+                ->from($entity, 'entity')
+                ->leftJoin("entity.${statusProperty}", 'status')
+                ->leftJoin("entity.type", 'type')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->setParameter('types', $types)
+                ->setParameter('statuses', $statuses);
+
+            return $qb
+                ->getQuery()
+                ->getSingleScalarResult();
+        }
+        else {
+            return [];
+        }
+    }
 }

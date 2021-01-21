@@ -732,7 +732,7 @@ class Statut
     /**
      * @return mixed
      */
-    public function getState(): int {
+    public function getState(): ?int {
         return $this->state;
     }
 
@@ -740,7 +740,7 @@ class Statut
      * @param mixed $state
      * @return self
      */
-    public function setState(int $state): self {
+    public function setState(?int $state): self {
         $this->state = $state;
         return $this;
     }

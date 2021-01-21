@@ -250,4 +250,33 @@ class OrdreCollecteRepository extends EntityRepository
             yield array_pop($item);
         }
 	}
+
+    /**
+     * @param array|null $types
+     * @param array|null $statuses
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByTypesAndStatuses(?array $types, ?array $statuses): ?int {
+        if (!empty($types) && !empty($statuses)) {
+            $qb = $this->createQueryBuilder('collectOrdre')
+                ->select('COUNT(collectOrdre)')
+                ->leftJoin('collectOrdre.statut', 'status')
+                ->leftJoin('collectOrdre.demandeCollecte', 'request')
+                ->leftJoin('request.type', 'type')
+                ->where('status IN (:statuses)')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types);
+
+            return $qb
+                ->getQuery()
+                ->getSingleScalarResult();
+        }
+        else {
+            return [];
+        }
+    }
 }

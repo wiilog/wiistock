@@ -3,12 +3,13 @@
 namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
-use App\Entity\Statut;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
 
 /**

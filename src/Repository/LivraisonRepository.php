@@ -271,4 +271,32 @@ class LivraisonRepository extends EntityRepository
             return $carry;
         }, []);
     }
+
+    /**
+     * @param array|null $statuses
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByTypesAndStatuses(?array $types, ?array $statuses): ?int {
+        if (!empty($types) && !empty($statuses)) {
+            $qb = $this->createQueryBuilder('deliveryOrder')
+                ->select('COUNT(deliveryOrder)')
+                ->leftJoin('deliveryOrder.statut', 'status')
+                ->leftJoin('deliveryOrder.preparation', 'preparation')
+                ->leftJoin('preparation.demande', 'request')
+                ->leftJoin('request.type', 'type')
+                ->where('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types);
+
+            return $qb
+                ->getQuery()
+                ->getSingleScalarResult();
+        }
+        else {
+            return [];
+        }
+    }
 }

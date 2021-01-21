@@ -416,6 +416,28 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'exampleValues' => [
                 'count' => 25
             ]
+        ],
+        'Demandes à traiter' => [
+            'hint' => 'Nombre de demandes pour l\'entité, le(s) type(s) et statut(s) sélectionnés',
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
+            'template' => 'entities_to_treat',
+            'meterKey' => Dashboard\ComponentType::REQUESTS_TO_TREAT,
+            'exampleValues' => [
+                'title' => 'Services à traiter',
+                'count' => 5,
+                'delay' => 51025698
+            ]
+        ],
+        'Ordres à traiter' => [
+            'hint' => 'Nombre d\'ordres pour l\'entité, le(s) type(s) et statut(s) sélectionnés',
+            'category' => Dashboard\ComponentType::CATEGORY_ORDERS,
+            'template' => 'entities_to_treat',
+            'meterKey' => Dashboard\ComponentType::ORDERS_TO_TREAT,
+            'exampleValues' => [
+                'title' => 'Ordre de collecte à traiter',
+                'count' => 3,
+                'delay' => 42622697
+            ]
         ]
     ];
 

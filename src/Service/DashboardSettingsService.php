@@ -178,6 +178,10 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::DAILY_HANDLING:
                 $values += $this->serializeDailyHandling($componentType, $config, $example, $meter);
                 break;
+            case Dashboard\ComponentType::REQUESTS_TO_TREAT:
+            case Dashboard\ComponentType::ORDERS_TO_TREAT:
+                $values += $this->serializeEntitiesToTreat($componentType, $example, $meter, $config);
+                break;
             default:
                 //TODO:remove
                 $values += $componentType->getExampleValues();
@@ -501,7 +505,10 @@ class DashboardSettingsService {
 
         if (!$example) {
             if ($chart) {
-                return ["chartData" => $chart->getData()];
+                return [
+                    "chartData" => $chart->getData(),
+                    "chartColors" => $chart->getChartColors()
+                ];
             } else {
                 return ["chartData" => []];
             }
@@ -618,6 +625,37 @@ class DashboardSettingsService {
                 }, []);
 
             $values['chartData'] = $chartData;
+        }
+        return $values;
+    }
+
+    /**
+     * @param Dashboard\ComponentType $componentType
+     * @param bool $example
+     * @param DashboardMeter\Indicator|null $meter
+     * @param $config
+     * @return array
+     */
+    public function serializeEntitiesToTreat(Dashboard\ComponentType $componentType,
+                                             bool $example = false,
+                                             DashboardMeter\Indicator $meter = null,
+                                             $config = []): array {
+        if ($example) {
+            $values = $componentType->getExampleValues();
+
+            $convertedDelay = null;
+            if(isset($config['treatmentDelay'])
+                && preg_match(Dashboard\ComponentType::ENTITY_TO_TREAT_REGEX_TREATMENT_DELAY, $config['treatmentDelay'])) {
+                $treatmentDelay = explode(':', $config['treatmentDelay']);
+                $convertedDelay = ($treatmentDelay[0] * 60 * 60 * 1000) + ($treatmentDelay[1] * 60 * 1000);
+            }
+
+            $values['delay'] = $convertedDelay;
+        } else {
+            $values = [
+                'count' => $meter ? $meter->getCount() : '-',
+                'delay' => $meter ? $meter->getDelay() : '-'
+            ];
         }
         return $values;
     }

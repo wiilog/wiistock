@@ -6,12 +6,17 @@ use App\Entity\Alert;
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
 use App\Entity\Article;
+use App\Entity\CategoryType;
+use App\Entity\Collecte;
 use App\Entity\Dashboard;
+use App\Entity\Demande;
 use App\Entity\Handling;
 use App\Entity\Dispatch;
+use App\Entity\Livraison;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
 use App\Entity\MouvementStock;
+use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\Dashboard\Meter as DashboardMeter;
 use App\Entity\DaysWorked;
@@ -19,13 +24,17 @@ use App\Entity\Emplacement;
 use App\Entity\LatePack;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
+use App\Entity\Preparation;
 use App\Entity\ReceptionTraca;
 use App\Entity\ReferenceArticle;
+use App\Entity\TransferOrder;
+use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
 use App\Entity\Wiilock;
 use App\Helper\FormatHelper;
+use App\Helper\QueryCounter;
 use App\Helper\Stream;
 use DateTime;
 use DateTimeZone;
@@ -823,7 +832,8 @@ class DashboardService {
         ];
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
-        $meter->setData($data);
+        $meter->setData($data['chartData']);
+        $meter->setChartColors($data['chartColors']);
     }
 
     /**
@@ -1198,6 +1208,63 @@ class DashboardService {
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter
             ->setData($chartData);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @throws Exception
+     */
+    public function persistEntitiesToTreat(EntityManagerInterface $entityManager,
+                                           Dashboard\Component $component): void {
+        $config = $component->getConfig();
+        $entityTypes = $config['entityTypes'];
+        $entityStatuses = $config['entityStatuses'];
+        $treatmentDelay = $config['treatmentDelay'];
+
+        $convertedDelay = null;
+        if(preg_match(Dashboard\ComponentType::ENTITY_TO_TREAT_REGEX_TREATMENT_DELAY, $treatmentDelay)) {
+            $treatmentDelay = explode(':', $treatmentDelay);
+            $convertedDelay = ($treatmentDelay[0] * 60 * 60 * 1000) + ($treatmentDelay[1] * 60 * 1000);
+        }
+
+        $entityToClass = [
+            Dashboard\ComponentType::REQUESTS_TO_TREAT_HANDLING => Handling::class,
+            Dashboard\ComponentType::REQUESTS_TO_TREAT_DELIVERY => Demande::class,
+            Dashboard\ComponentType::REQUESTS_TO_TREAT_DISPATCH => Dispatch::class,
+            Dashboard\ComponentType::REQUESTS_TO_TREAT_COLLECT => Collecte::class,
+            Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER => TransferRequest::class,
+            Dashboard\ComponentType::ORDERS_TO_TREAT_COLLECT => OrdreCollecte::class,
+            Dashboard\ComponentType::ORDERS_TO_TREAT_DELIVERY => Livraison::class,
+            Dashboard\ComponentType::ORDERS_TO_TREAT_PREPARATION => Preparation::class,
+            Dashboard\ComponentType::ORDERS_TO_TREAT_TRANSFER => TransferOrder::class,
+        ];
+
+        if (isset($entityToClass[$config['entity']])) {
+            switch ($config['entity']) {
+                case Dashboard\ComponentType::REQUESTS_TO_TREAT_HANDLING:
+                case Dashboard\ComponentType::REQUESTS_TO_TREAT_DELIVERY:
+                case Dashboard\ComponentType::REQUESTS_TO_TREAT_DISPATCH:
+                case Dashboard\ComponentType::REQUESTS_TO_TREAT_COLLECT:
+                case Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER:
+                    $count = QueryCounter::countByStatusesAndTypes($entityManager, $entityToClass[$config['entity']], $entityTypes, $entityStatuses);
+                    break;
+                case Dashboard\ComponentType::ORDERS_TO_TREAT_COLLECT:
+                case Dashboard\ComponentType::ORDERS_TO_TREAT_DELIVERY:
+                case Dashboard\ComponentType::ORDERS_TO_TREAT_PREPARATION:
+                case Dashboard\ComponentType::ORDERS_TO_TREAT_TRANSFER:
+                    $repository = $entityManager->getRepository($entityToClass[$config['entity']]);
+                    $count = $repository->countByTypesAndStatuses($entityTypes, $entityStatuses);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
+        $meter
+            ->setCount($count ?? 0)
+            ->setDelay($convertedDelay);
     }
 
     private function getDaysWorked(EntityManagerInterface $entityManager): array {
