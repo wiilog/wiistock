@@ -165,7 +165,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'meterKey' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
         ],
         'Colis à traiter en provenance' => [
-            'hint' => 'A définir',
+            'hint' => 'Nombre de colis à traiter en fonction des emplacements d\'origine et de destination paramétrés',
             'exampleValues' => [
                 'chartColors' => [
                     'Legende1' => '#a3d1ff',
@@ -382,7 +382,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'meterKey' => Dashboard\ComponentType::DAILY_HANDLING,
         ],
         'Fiabilité monétaire (indicateur)' => [
-            'hint' => 'A définir',
+            'hint' => 'Quantité corrigée sur une référence ou article * prix unitaire de la référence ou référence liée',
             'category' => Dashboard\ComponentType::CATEGORY_STOCK,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR,
@@ -408,7 +408,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'meterKey' => Dashboard\ComponentType::DAILY_DISPATCHES,
         ],
         'Fiabilité par référence' => [
-            'hint' => 'A définir',
+            'hint' => 'Nombre de mouvements de correction d’inventaire / le nombre d’articles de référence ou articles du stock',
             'category' => Dashboard\ComponentType::CATEGORY_STOCK,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::REFERENCE_RELIABILITY,
