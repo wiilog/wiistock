@@ -4,6 +4,7 @@ const MODE_EXTERNAL = 2;
 
 const MAX_NUMBER_ROWS = 6;
 const MAX_NUMBER_PAGES = 8;
+
 /**
  * @type {{
  *     index: int
@@ -376,11 +377,9 @@ function onDashboardSaved() {
                 showBSAlert("Modifications enregistrés avec succès", "success");
                 dashboards = JSON.parse(data.dashboards);
                 loadCurrentDashboard(false);
-            }
-            else if(data.msg) {
+            } else if(data.msg) {
                 showBSAlert(data.msg, "danger");
-            }
-            else {
+            } else {
                 throw data;
             }
         })
@@ -423,6 +422,8 @@ function onPageAdded() {
             renderCurrentDashboard();
             updateAddRowButton();
             $modal.modal('hide');
+
+            window.location.hash = `#${currentDashboard.index + 1}`;
         }
     } else {
         showBSAlert("Veuillez renseigner un nom de dashboard.", "danger");
