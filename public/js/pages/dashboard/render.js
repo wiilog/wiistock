@@ -218,11 +218,12 @@ function renderRequest(request, rowSize) {
         6: 'col-12',
     }
     const cardSize = cardSizeRowSizeMatching[rowSize] || defaultCardSize;
+    const link = mode !== MODE_EDIT ? `href="${request.href}" onclick="${onCardClick}"` : ``;
+    const cursor = mode === MODE_EDIT ? `cursor-default` : ``;
 
     return `
         <div class="d-flex ${cardSize} p-1">
-            <a class="card wii-card pointer p-3 my-2 shadow-sm flex-grow-1 bg-${request.cardColor}"
-                href="${request.href}" onclick="${onCardClick}">
+            <a class="card wii-card pointer p-3 my-2 shadow-sm flex-grow-1 ${cursor} bg-${request.cardColor}" ${link}>
                 <div class="wii-card-header">
                     <div class="row">
                         <div class="col-10 mb-2">
