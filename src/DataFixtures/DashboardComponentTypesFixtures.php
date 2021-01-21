@@ -25,7 +25,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'subtitle' => 'Litige',
                 'delay' => 20634860
             ],
-            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::ONGOING_PACKS,
             'meterKey' => Dashboard\ComponentType::ONGOING_PACKS
         ],
@@ -403,7 +403,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     '10/01' => 5,
                 ],
             ],
-            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
             'template' => Dashboard\ComponentType::DAILY_DISPATCHES,
             'meterKey' => Dashboard\ComponentType::DAILY_DISPATCHES,
         ],
