@@ -228,7 +228,6 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'exampleValues' => [
                 'requests' => [
                     [
-                        'errorMessage' => 'Exemple',
                         'estimatedFinishTime' => '16:54',
                         'estimatedFinishTimeLabel' => 'Heure de livraison estimée',
                         'requestStatus' => 'À traiter',
@@ -245,7 +244,6 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                         'emergencyText' => '',
                         'progressBarBGColor' => 'lightGrey',
                     ], [
-                        'errorMessage' => 'Exemple',
                         'estimatedFinishTime' => 'Non estimée',
                         'estimatedFinishTimeLabel' => 'Date de livraison non estimée',
                         'requestStatus' => 'Brouillon',
