@@ -13,7 +13,7 @@ class Action {
 
     const LIST = 'lister';
     const CREATE = 'créer';
-    const EDIT = 'modifer';
+    const EDIT = 'modifier';
     const DELETE = 'supprimer';
     const EXPORT = 'exporter';
 
