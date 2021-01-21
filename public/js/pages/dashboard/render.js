@@ -310,23 +310,28 @@ function createEntriesToHandleElement(data, {meterKey}) {
     });
 
     return $('<div/>', {
-        class: 'row',
+        class: 'dashboard-box',
         html: [
             $('<div/>', {
-                class: 'col-12 col-md-8 pr-3 pr-md-2',
-                html: $graph
-            }),
-            $('<div/>', {
-                class: 'col-12 col-md-4 mt-2 mt-md-0 pl-3 pl-md-2',
-                html: $('<div/>', {
-                    class: 'row h-100',
-                    html: [
-                        $firstComponent,
-                        $secondComponent
-                    ]
-                })
+                class: 'row h-100',
+                html: [
+                    $('<div/>', {
+                        class: 'col-12 col-md-8 pr-3 pr-md-2',
+                        html: $graph
+                    }),
+                    $('<div/>', {
+                        class: 'col-12 col-md-4 mt-2 mt-md-0 pl-3 pl-md-2',
+                        html: $('<div/>', {
+                            class: 'row h-100',
+                            html: [
+                                $firstComponent,
+                                $secondComponent
+                            ]
+                        })
+                    })
+                ]
             })
-        ]
+        ],
     });
 }
 
