@@ -16,11 +16,11 @@ use App\Entity\LigneArticlePreparation;
 use App\Entity\Menu;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
+use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Repository\ReceptionRepository;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\NonUniqueResultException;
@@ -47,11 +47,6 @@ class DemandeLivraisonService
     private $router;
 
     /**
-     * @var ReceptionRepository
-     */
-    private $receptionRepository;
-
-    /**
      * @var Utilisateur
      */
     private $user;
@@ -66,8 +61,7 @@ class DemandeLivraisonService
     private $userService;
     private $appURL;
 
-    public function __construct(ReceptionRepository $receptionRepository,
-                                FreeFieldService $freeFieldService,
+    public function __construct(FreeFieldService $freeFieldService,
                                 TokenStorageInterface $tokenStorage,
                                 StringService $stringService,
                                 PreparationsManagerService $preparationsManager,
@@ -80,7 +74,6 @@ class DemandeLivraisonService
                                 string $appURL,
                                 Twig_Environment $templating)
     {
-        $this->receptionRepository = $receptionRepository;
         $this->preparationsManager = $preparationsManager;
         $this->templating = $templating;
         $this->stringService = $stringService;
@@ -263,6 +256,8 @@ class DemandeLivraisonService
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $receptionRepository = $entityManager->getRepository(Reception::class);
+
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
         if (!$fromNomade) {
@@ -303,7 +298,7 @@ class DemandeLivraisonService
 
         // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
-            $reception = $this->receptionRepository->find(intval($data['reception']));
+            $reception = $receptionRepository->find(intval($data['reception']));
             $demande->setReception($reception);
             $demande->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER));
             if (isset($data['needPrepa']) && $data['needPrepa']) {
