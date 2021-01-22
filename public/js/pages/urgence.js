@@ -24,7 +24,7 @@ function initPage() {
             "url": pathUrgences,
             "type": "POST"
         },
-        order: [[1, "desc"]],
+        order: [['start', "desc"]],
         columns:[
             { "data": 'actions', 'title': '', 'orderable': false, className: 'noVis'},
             { "data": 'start', 'name' : 'start', 'title' : 'urgences.date de début', translated: true },

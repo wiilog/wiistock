@@ -4,7 +4,7 @@ let pathCollecte = Routing.generate('ordre_collecte_api');
 let tableCollecteConfig = {
     serverSide: true,
     processing: true,
-    order: [[3, 'desc']],
+    order: [['Date', 'desc']],
     ajax: {
         'url': pathCollecte,
         'data': {

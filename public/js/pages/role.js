@@ -1,6 +1,6 @@
 let pathRoles = Routing.generate('role_api', true);
 let tableRolesConfig = {
-    order: [1, 'asc'],
+    order: ['Nom', 'asc'],
     ajax:{
         "url": pathRoles,
         "type": "POST"

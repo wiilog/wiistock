@@ -19,7 +19,7 @@ let pathTransferOrder = Routing.generate('transfer_orders_api', true);
 let transferOrderTableConfig = {
     processing: true,
     serverSide: true,
-    order: [[1, 'desc']],
+    order: [['number', 'desc']],
     ajax: {
         "url": pathTransferOrder,
         "type": "POST",

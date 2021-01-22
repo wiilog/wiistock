@@ -15,7 +15,7 @@ $(function () {
     let tableReceptionConfig = {
         serverSide: true,
         processing: true,
-        order: [[8, "desc"], [1, "desc"]],
+        order: [['Statut', "desc"], ['Date', "desc"]],
         ajax: {
             "url": pathTableReception,
             "type": "POST",
@@ -23,9 +23,6 @@ $(function () {
         drawConfig: {
             needsSearchOverride: true,
             needsColumnHide: true,
-        },
-        headerCallback: function(thead) {
-            $(thead).find('th').eq(5).attr('title', "n° de réception");
         },
         columns: [
             {"data": 'Actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},

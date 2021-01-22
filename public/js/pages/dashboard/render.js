@@ -758,7 +758,7 @@ function loadLatePacks($table, data) {
         scrollY: `20vh`,
         scrollCollapse: true,
         processing: true,
-        order: [[2, 'desc']],
+        order: [['delay', 'desc']],
         columns: [
             {"data": 'pack', 'name': 'pack', 'title': 'Colis'},
             {"data": 'date', 'name': 'date', 'title': 'Dépose'},

@@ -21,7 +21,7 @@ $(function () {
         rowConfig: {
             needsRowClickAction: true,
         },
-        order: [[1, "asc"]]
+        order: [['Référence', "asc"]]
     };
     initDataTable('tableArticle_id', tableArticleConfig);
 });

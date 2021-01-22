@@ -1,6 +1,6 @@
 let pathTransporteur = Routing.generate('transporteur_api', true);
 let tableTransporteurConfig = {
-    order: [[1, 'desc']],
+    order: [['Label', 'desc']],
     ajax: {
         "url": pathTransporteur,
         "type": "POST"

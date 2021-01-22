@@ -37,7 +37,7 @@ function initDatatableLitiges() {
     let tableLitigesConfig = {
         serverSide: true,
         processing: true,
-        order: [12, 'desc'],
+        order: [['creationDate', 'desc']],
         ajax: {
             "url": pathLitiges,
             "type": "POST",

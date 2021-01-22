@@ -68,7 +68,7 @@ function initPageDatatable() {
     let tableDemandeConfig = {
         serverSide: true,
         processing: true,
-        order: [[1, 'desc']],
+        order: [['Date', 'desc']],
         ajax: {
             "url": pathDemande,
             "type": "POST",
