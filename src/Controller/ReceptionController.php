@@ -32,7 +32,6 @@ use App\Entity\ReceptionReferenceArticle;
 use App\Entity\CategoryType;
 use App\Exceptions\NegativeQuantityException;
 use App\Repository\ParametrageGlobalRepository;
-use App\Repository\ReceptionRepository;
 use App\Repository\TransporteurRepository;
 
 use App\Service\CSVExportService;
@@ -89,11 +88,6 @@ class ReceptionController extends AbstractController {
     private $transporteurRepository;
 
     /**
-     * @var ReceptionRepository
-     */
-    private $receptionRepository;
-
-    /**
      * @var GlobalParamService
      */
     private $globalParamService;
@@ -129,24 +123,20 @@ class ReceptionController extends AbstractController {
     private $mouvementStockService;
     private $mailerService;
 
-    public function __construct(
-        ArticleDataService $articleDataService,
-        GlobalParamService $globalParamService,
-        ReceptionRepository $receptionRepository,
-        UserService $userService,
-        ReceptionService $receptionService,
-        MailerService $mailerService,
-        AttachmentService $attachmentService,
-        TransporteurRepository $transporteurRepository,
-        ParametrageGlobalRepository $parametrageGlobalRepository,
-        MouvementStockService $mouvementStockService
-    ) {
+    public function __construct(ArticleDataService $articleDataService,
+                                GlobalParamService $globalParamService,
+                                UserService $userService,
+                                ReceptionService $receptionService,
+                                MailerService $mailerService,
+                                AttachmentService $attachmentService,
+                                TransporteurRepository $transporteurRepository,
+                                ParametrageGlobalRepository $parametrageGlobalRepository,
+                                MouvementStockService $mouvementStockService) {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
         $this->mailerService = $mailerService;
         $this->attachmentService = $attachmentService;
         $this->receptionService = $receptionService;
         $this->globalParamService = $globalParamService;
-        $this->receptionRepository = $receptionRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
         $this->transporteurRepository = $transporteurRepository;
@@ -191,7 +181,6 @@ class ReceptionController extends AbstractController {
                     'msg' => $translator->trans('réception.Une autre réception est en cours de création, veuillez réessayer').'.'
                 ]);
             }
-
 
             $champLibreService->manageFreeFields($reception, $data, $entityManager);
             $attachmentService->manageAttachments($entityManager, $reception, $request->files);

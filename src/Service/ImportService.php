@@ -15,6 +15,7 @@ use App\Entity\Import;
 use App\Entity\InventoryCategory;
 use App\Entity\MouvementStock;
 use App\Entity\ParametrageGlobal;
+use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Attachment;
 use App\Entity\ReferenceArticle;
@@ -372,11 +373,8 @@ class ImportService
      * @param Utilisateur|null $user
      * @param int $rowIndex
      * @return array
-     * @throws ImportException
-     * @throws NonUniqueResultException
      * @throws ORMException
      * @throws OptimisticLockException
-     * @throws Throwable
      * @throws TransactionRequiredException
      */
     private function treatImportRow(array $row,
@@ -846,11 +844,11 @@ class ImportService
     {
         $refArtRepository = $this->em->getRepository(ReferenceArticle::class);
 
-        $reception = $receptionsWithCommand[$data['orderNumber']] ?? null;
+        $reception = $this->getAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate']);
         $newEntity = isset($reception);
         if (!$reception) {
             $reception = $this->receptionService->createAndPersistReception($this->em, $user, $data, true);
-            $receptionsWithCommand[$data['orderNumber']] = $reception;
+            $this->setAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], $reception);
         }
 
         if(!empty($data['référence'])) {
@@ -1467,5 +1465,25 @@ class ImportService
     {
         $this->em->clear();
         $this->currentImport = $this->em->find(Import::class, $this->currentImport->getId());
+    }
+
+    private function getAlreadySavedReception(array $collection, ?string $orderNumber, ?string $expectedDate): ?Reception {
+        foreach($collection as $receptionIntel) {
+            if ($orderNumber === $receptionIntel['orderNumber']
+                && $expectedDate === $receptionIntel['expectedDate']) {
+                return $receptionIntel['reception'];
+            }
+        }
+        return null;
+    }
+
+    private function setAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, Reception $reception): void {
+        foreach($collection as &$receptionIntel) {
+            if ($orderNumber === $receptionIntel['orderNumber']
+                && $expectedDate === $receptionIntel['expectedDate']) {
+                $receptionIntel['reception'] = $reception;
+                break;
+            }
+        }
     }
 }
