@@ -18,7 +18,6 @@ use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\ParametrageGlobalRepository;
-use App\Repository\ReceptionRepository;
 use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
@@ -65,11 +64,6 @@ class ArticleController extends AbstractController
     ];
 
     /**
-     * @var ReceptionRepository
-     */
-    private $receptionRepository;
-
-    /**
      * @var ArticleDataService
      */
     private $articleDataService;
@@ -102,14 +96,12 @@ class ArticleController extends AbstractController
     public function __construct(Twig_Environment $templating,
                                 GlobalParamService $globalParamService,
                                 ArticleDataService $articleDataService,
-                                ReceptionRepository $receptionRepository,
                                 UserService $userService,
                                 ParametrageGlobalRepository $parametrageGlobalRepository,
                                 FreeFieldService $champLibreService )
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
         $this->globalParamService = $globalParamService;
-        $this->receptionRepository = $receptionRepository;
         $this->articleDataService = $articleDataService;
         $this->userService = $userService;
         $this->templating = $templating;

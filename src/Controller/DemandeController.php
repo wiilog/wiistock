@@ -18,7 +18,6 @@ use App\Entity\Article;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Repository\ReceptionRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
@@ -65,11 +64,6 @@ class DemandeController extends AbstractController
     private $articleDataService;
 
     /**
-     * @var ReceptionRepository
-     */
-    private $receptionRepository;
-
-    /**
      * @var PrefixeNomDemandeRepository
      */
     private $prefixeNomDemandeRepository;
@@ -79,14 +73,12 @@ class DemandeController extends AbstractController
      */
     private $demandeLivraisonService;
 
-    public function __construct(ReceptionRepository $receptionRepository,
-                                PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
+    public function __construct(PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
                                 UserService $userService,
                                 RefArticleDataService $refArticleDataService,
                                 ArticleDataService $articleDataService,
                                 DemandeLivraisonService $demandeLivraisonService)
     {
-        $this->receptionRepository = $receptionRepository;
         $this->userService = $userService;
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
