@@ -7,6 +7,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\MailerServer;
 use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
@@ -15,7 +16,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
-use App\Repository\MailerServerRepository;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use DateTime;
@@ -42,10 +42,6 @@ class OrdreCollecteService
 	 */
 	private $templating;
 	/**
-	 * @var MailerServerRepository
-	 */
-	private $mailerServerRepository;
-	/**
 	 * @var MailerService
 	 */
 	private $mailerService;
@@ -66,7 +62,6 @@ class OrdreCollecteService
 
     public function __construct(RouterInterface $router,
                                 TokenStorageInterface $tokenStorage,
-                                MailerServerRepository $mailerServerRepository,
                                 MailerService $mailerService,
                                 MouvementStockService $mouvementStockService,
                                 EntityManagerInterface $entityManager,
@@ -74,7 +69,6 @@ class OrdreCollecteService
                                 StringService $stringService,
                                 Twig_Environment $templating)
 	{
-	    $this->mailerServerRepository = $mailerServerRepository;
 	    $this->stringService = $stringService;
 		$this->templating = $templating;
 		$this->entityManager = $entityManager;
@@ -113,6 +107,7 @@ class OrdreCollecteService
 		$statutRepository = $em->getRepository(Statut::class);
 		$ordreCollecteReferenceRepository = $em->getRepository(OrdreCollecteReference::class);
         $emplacementRepository = $em->getRepository(Emplacement::class);
+        $mailerServerRepository = $em->getRepository(MailerServer::class);
 
         $statusActiveReference = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
 
@@ -250,7 +245,7 @@ class OrdreCollecteService
 
 		$partialCollect = !empty($rowsToRemove);
 
-		if ($this->mailerServerRepository->findAll()) {
+		if ($mailerServerRepository->findAll()) {
             $this->mailerService->sendMail(
                 'FOLLOW GT // Collecte effectuée',
                 $this->templating->render(
