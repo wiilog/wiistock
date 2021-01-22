@@ -4,8 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method LitigeHistoric|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,12 +12,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method LitigeHistoric[]    findAll()
  * @method LitigeHistoric[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class LitigeHistoricRepository extends ServiceEntityRepository
+class LitigeHistoricRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, LitigeHistoric::class);
-    }
 
 	/**
 	 * @param Litige|int $litige

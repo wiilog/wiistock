@@ -17,7 +17,6 @@ use App\Entity\CategorieCL;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
-use App\Repository\ParametrageGlobalRepository;
 use App\Repository\ReceptionRepository;
 use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;
@@ -89,11 +88,6 @@ class ArticleController extends AbstractController
      */
     private $globalParamService;
 
-	/**
-	 * @var ParametrageGlobalRepository
-	 */
-	private $paramGlobalRepository;
-
     /**
      * @var FreeFieldService
      */
@@ -104,10 +98,8 @@ class ArticleController extends AbstractController
                                 ArticleDataService $articleDataService,
                                 ReceptionRepository $receptionRepository,
                                 UserService $userService,
-                                ParametrageGlobalRepository $parametrageGlobalRepository,
                                 FreeFieldService $champLibreService )
     {
-        $this->paramGlobalRepository = $parametrageGlobalRepository;
         $this->globalParamService = $globalParamService;
         $this->receptionRepository = $receptionRepository;
         $this->articleDataService = $articleDataService;

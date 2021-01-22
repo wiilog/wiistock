@@ -20,7 +20,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -48,11 +47,6 @@ class DemandeLivraisonService
     private $router;
 
     /**
-     * @var PrefixeNomDemandeRepository
-     */
-    private $prefixeNomDemandeRepository;
-
-    /**
      * @var ReceptionRepository
      */
     private $receptionRepository;
@@ -73,7 +67,6 @@ class DemandeLivraisonService
     private $appURL;
 
     public function __construct(ReceptionRepository $receptionRepository,
-                                PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
                                 FreeFieldService $freeFieldService,
                                 TokenStorageInterface $tokenStorage,
                                 StringService $stringService,
@@ -89,7 +82,6 @@ class DemandeLivraisonService
     {
         $this->receptionRepository = $receptionRepository;
         $this->preparationsManager = $preparationsManager;
-        $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
         $this->templating = $templating;
         $this->stringService = $stringService;
         $this->entityManager = $entityManager;

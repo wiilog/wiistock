@@ -24,7 +24,6 @@ use App\Entity\ArticleFournisseur;
 use App\Helper\FormatHelper;
 use App\Helper\Stream;
 use App\Repository\FiltreRefRepository;
-use App\Repository\InventoryFrequencyRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
@@ -88,11 +87,6 @@ class RefArticleDataService {
      */
     private $user;
 
-    /**
-     * @var InventoryFrequencyRepository
-     */
-    private $inventoryFrequencyRepository;
-
     private $entityManager;
 
     /**
@@ -112,7 +106,6 @@ class RefArticleDataService {
                                 VisibleColumnService $visibleColumnService,
                                 TokenStorageInterface $tokenStorage,
                                 ArticleFournisseurService $articleFournisseurService,
-                                InventoryFrequencyRepository $inventoryFrequencyRepository,
                                 AlertService $alertService) {
         $this->filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
         $this->freeFieldService = $champLibreService;
@@ -121,7 +114,6 @@ class RefArticleDataService {
         $this->entityManager = $entityManager;
         $this->userService = $userService;
         $this->router = $router;
-        $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->articleFournisseurService = $articleFournisseurService;
         $this->alertService = $alertService;
         $this->visibleColumnService = $visibleColumnService;

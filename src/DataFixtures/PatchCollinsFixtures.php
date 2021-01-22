@@ -36,6 +36,7 @@ class PatchCollinsFixtures extends Fixture implements FixtureGroupInterface
 			$champLibreRepository = $manager->getRepository(FreeField::class);
 			$categorieCLRepository = $manager->getRepository(CategorieCL::class);
 			$parametrageGlobalRepository = $manager->getRepository(ParametrageGlobal::class);
+
             $champLibreWanted = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS);
             $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, Type::LABEL_STANDARD);
 			$categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARTICLE]);

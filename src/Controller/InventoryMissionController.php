@@ -11,9 +11,6 @@ use App\Entity\InventoryMission;
 
 use App\Entity\ReferenceArticle;
 use App\Helper\Stream;
-use App\Repository\InventoryMissionRepository;
-use App\Repository\InventoryEntryRepository;
-
 use App\Service\CSVExportService;
 use App\Service\InventoryEntryService;
 use App\Service\InventoryService;
@@ -25,7 +22,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -49,16 +45,6 @@ class InventoryMissionController extends AbstractController
     private $userService;
 
     /**
-     * @var InventoryMissionRepository
-     */
-    private $inventoryMissionRepository;
-
-    /**
-     * @var InventoryEntryRepository
-     */
-    private $inventoryEntryRepository;
-
-    /**
      * @var InvMissionService
      */
     private $invMissionService;
@@ -68,17 +54,10 @@ class InventoryMissionController extends AbstractController
      */
     private $inventoryService;
 
-    public function __construct(
-        InventoryMissionRepository $inventoryMissionRepository,
-        UserService $userService,
-        InventoryEntryRepository $inventoryEntryRepository,
-        InvMissionService $invMissionService,
-        InventoryService $inventoryService
-    )
-    {
+    public function __construct(UserService $userService,
+                                InvMissionService $invMissionService,
+                                InventoryService $inventoryService) {
         $this->userService = $userService;
-        $this->inventoryMissionRepository = $inventoryMissionRepository;
-        $this->inventoryEntryRepository = $inventoryEntryRepository;
         $this->invMissionService = $invMissionService;
         $this->inventoryService = $inventoryService;
     }
@@ -158,21 +137,25 @@ class InventoryMissionController extends AbstractController
     /**
      * @Route("/verification", name="mission_check_delete", options={"expose"=true})
      * @param Request $request
-     * @param InventoryEntryRepository $entryRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function checkMissionCanBeDeleted(Request $request, InventoryEntryRepository $entryRepository): Response
+    public function checkMissionCanBeDeleted(Request $request,
+                                             EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $missionId = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $missionArt = $this->inventoryMissionRepository->countArtByMission($missionId);
-            $missionRef = $this->inventoryMissionRepository->countRefArtByMission($missionId);
-            $missionEntries = $entryRepository->countByMission($missionId);
+            $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);
+            $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+
+            $missionArt = $inventoryMissionRepository->countArtByMission($missionId);
+            $missionRef = $inventoryMissionRepository->countRefArtByMission($missionId);
+            $missionEntries = $inventoryEntryRepository->countByMission($missionId);
 
             $missionIsUsed = (intval($missionArt) + intval($missionRef) + intval($missionEntries) > 0);
 
@@ -190,15 +173,21 @@ class InventoryMissionController extends AbstractController
 
     /**
      * @Route("/supprimer", name="mission_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $mission = $this->inventoryMissionRepository->find(intval($data['missionId']));
-            $entityManager = $this->getDoctrine()->getManager();
+
+            $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+            $mission = $inventoryMissionRepository->find(intval($data['missionId']));
+
             $entityManager->remove($mission);
             $entityManager->flush();
             return new JsonResponse();
@@ -273,8 +262,9 @@ class InventoryMissionController extends AbstractController
 
             $refArtRepository = $entityManager->getRepository(ReferenceArticle::class);
             $articleRepository = $entityManager->getRepository(Article::class);
+            $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
 
-            $mission = $this->inventoryMissionRepository->find($data['missionId']);
+            $mission = $inventoryMissionRepository->find($data['missionId']);
 
             Stream::explode([",", " ", ";", "\t"], $data['articles'])
                 ->filterMap(function($barcode) use ($articleRepository, $refArtRepository, $mission) {

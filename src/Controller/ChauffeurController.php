@@ -6,8 +6,8 @@ use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\Chauffeur;
 use App\Entity\Menu;
+use App\Entity\Transporteur;
 use App\Service\UserService;
-use App\Repository\TransporteurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,19 +24,11 @@ class ChauffeurController extends AbstractController
 {
 
     /**
-     * @var TransporteurRepository
-     */
-    private $transporteurRepository;
-
-    /**
      * @var UserService
      */
     private $userService;
 
-    public function __construct(TransporteurRepository $transporteurRepository,
-                                UserService $userService)
-    {
-        $this->transporteurRepository = $transporteurRepository;
+    public function __construct(UserService $userService) {
         $this->userService = $userService;
     }
 
@@ -88,19 +80,24 @@ class ChauffeurController extends AbstractController
 		if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_CHAU)) {
 			return $this->redirectToRoute('access_denied');
 		}
-        $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
+
+		$chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
+		$transporteurRepository = $entityManager->getRepository(Transporteur::class);
+
         return $this->render('chauffeur/index.html.twig', [
             'chauffeurs' => $chauffeurRepository->findAllSorted(),
-            'transporteurs' => $this->transporteurRepository->findAllSorted(),
+            'transporteurs' => $transporteurRepository->findAllSorted(),
         ]);
     }
 
     /**
      * @Route("/creer", name="chauffeur_new", options={"expose"=true}, methods={"GET","POST"})
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE)) {
@@ -108,16 +105,16 @@ class ChauffeurController extends AbstractController
             }
             $chauffeur = new Chauffeur();
 
+            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+
             $chauffeur
                 ->setNom($data['nom'])
                 ->setPrenom($data['prenom'] ?? null)
                 ->setDocumentID($data['documentID'] ?? null)
-                ->setTransporteur(!empty($data['transporteur']) ? $this->transporteurRepository->find($data['transporteur']) : null);
+                ->setTransporteur(!empty($data['transporteur']) ? $transporteurRepository->find($data['transporteur']) : null);
 
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($chauffeur);
-
-            $em->flush();
+            $entityManager->persist($chauffeur);
+            $entityManager->flush();
 
             $data['id'] = $chauffeur->getId();
             $data['text'] = $data['nom'];
@@ -145,8 +142,11 @@ class ChauffeurController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
+            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+
             $chauffeur = $chauffeurRepository->find($data['id']);
-            $transporteurs = $this->transporteurRepository->findAll();
+            $transporteurs = $transporteurRepository->findAll();
+
             $json = $this->renderView('chauffeur/modalEditChauffeurContent.html.twig', [
                 'chauffeur' => $chauffeur,
                 'transporteurs' => $transporteurs,
@@ -171,6 +171,7 @@ class ChauffeurController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
+            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
             $chauffeur = $chauffeurRepository->find($data['id']);
 
@@ -180,7 +181,7 @@ class ChauffeurController extends AbstractController
                 ->setDocumentID($data['documentID']);
 
             if ($data['transporteur']) {
-            	$chauffeur->setTransporteur($this->transporteurRepository->find($data['transporteur']));
+            	$chauffeur->setTransporteur($transporteurRepository->find($data['transporteur']));
 			}
             $em = $this->getDoctrine()->getManager();
             $em->flush();
@@ -276,15 +277,19 @@ class ChauffeurController extends AbstractController
     /**
      * @Route("/autocomplete", name="get_transporteurs", options={"expose"=true})
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      */
-    public function getTransporteurs(Request $request)
+    public function getTransporteurs(Request $request,
+                                     EntityManagerInterface $entityManager)
     {
         if ($request->isXmlHttpRequest()) {
 
             $search = $request->query->get('term');
 
-            $transporteur = $this->transporteurRepository->getIdAndLibelleBySearch($search);
+            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+            $transporteur = $transporteurRepository->getIdAndLibelleBySearch($search);
+
             return new JsonResponse(['results' => $transporteur]);
         }
         throw new BadRequestHttpException();

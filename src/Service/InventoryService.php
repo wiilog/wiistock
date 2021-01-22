@@ -11,8 +11,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
-use App\Repository\InventoryEntryRepository;
-use App\Repository\InventoryMissionRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -32,25 +30,11 @@ class InventoryService
 	 */
     private $user;
 
-	/**
-	 * @var InventoryEntryRepository
-	 */
-    private $inventoryEntryRepository;
 
-	/**
-	 * @var InventoryMissionRepository
-	 */
-    private $inventoryMissionRepository;
-
-
-    public function __construct(InventoryEntryRepository $inventoryEntryRepository,
-                                Security $security,
-                                EntityManagerInterface $entityManager,
-                                InventoryMissionRepository $inventoryMissionRepository) {
+    public function __construct(Security $security,
+                                EntityManagerInterface $entityManager) {
 		$this->entityManager = $entityManager;
 		$this->user = $security->getUser();
-		$this->inventoryEntryRepository = $inventoryEntryRepository;
-		$this->inventoryMissionRepository = $inventoryMissionRepository;
     }
 
     /**
@@ -155,12 +139,14 @@ class InventoryService
 	 */
 	public function isInMissionInSamePeriod($refOrArticle, $mission, $isRef) {
 
+
+        $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
 	    $beginDate = clone($mission->getStartPrevDate())->setTime(0, 0, 0);
 	    $endDate = clone($mission->getEndPrevDate())->setTime(23, 59, 59);
 		if ($isRef) {
-			$nbMissions = $this->inventoryMissionRepository->countByRefAndDates($refOrArticle, $beginDate, $endDate);
+			$nbMissions = $inventoryMissionRepository->countByRefAndDates($refOrArticle, $beginDate, $endDate);
 		} else {
-			$nbMissions = $this->inventoryMissionRepository->countByArtAndDates($refOrArticle, $beginDate, $endDate);
+			$nbMissions = $inventoryMissionRepository->countByArtAndDates($refOrArticle, $beginDate, $endDate);
 		}
 
 		return $nbMissions > 0;
