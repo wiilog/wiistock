@@ -11,6 +11,22 @@ $(function () {
 
     tableArticle = initPageDatatable();
     initPageModals(tableArticle);
+
+    const $submitNewArticle = $('#submitNewArticle');
+
+    $submitNewArticle.on('click', function() {
+
+        const $modal = $submitNewArticle.closest('.modal');
+        const $articleSelect = $modal.find('#article');
+        const $articleOptions = $articleSelect.children('option');
+
+        if ($articleOptions.length === 1) {
+            showBSAlert( 'Il n\'y a aucun article disponible pour cette référence.', 'danger')
+        } else {
+            return true;
+        }
+
+    });
 });
 
 function getCompareStock(submit) {
