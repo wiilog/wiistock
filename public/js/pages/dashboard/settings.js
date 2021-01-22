@@ -57,6 +57,7 @@ function loadDashboards(m) {
         wrapLoadingOnActionButton($(this), onDashboardSaved);
     });
 
+    $(document).keydown(onArrowNavigation);
     $addRowButton.on('click', onRowAdded);
     $dashboard.on(`click`, `.delete-row`, onRowDeleted);
 
@@ -88,6 +89,36 @@ function loadDashboards(m) {
         .arrive(".segments-list .segment-hour", function() {
             onSegmentInputChange($(this), true);
         });
+}
+
+function onArrowNavigation(e) {
+    const LEFT = 37;
+    const RIGHT = 39;
+
+    switch(e.which) {
+        case LEFT:
+            const previous = dashboards[currentDashboard.index - 1];
+            if(previous !== undefined) {
+                currentDashboard = previous;
+                renderCurrentDashboard();
+                updateAddRowButton();
+                renderDashboardPagination();
+            }
+            break;
+        case RIGHT:
+            const next = dashboards[currentDashboard.index + 1];
+            if(next !== undefined) {
+                currentDashboard = next;
+                renderCurrentDashboard();
+                updateAddRowButton();
+                renderDashboardPagination();
+            }
+            break;
+        default:
+            return;
+    }
+
+    e.preventDefault(); // prevent the default action (scroll / move caret)
 }
 
 function onSelectAll() {

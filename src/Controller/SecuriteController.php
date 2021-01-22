@@ -75,6 +75,17 @@ class SecuriteController extends AbstractController {
     }
 
     /**
+     * @Route("/verification-connexion", name="check_login", options={"expose"=true})
+     */
+    public function checkLogin() {
+        return $this->json([
+            "success" => true,
+            "loggedIn" => $this->getUser() !== null,
+        ]);
+    }
+
+
+    /**
      * @Route("/login/{info}", name="login", options={"expose"=true})
      * @param AuthenticationUtils $authenticationUtils
      * @param EntityManagerInterface $entityManager

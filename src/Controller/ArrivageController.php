@@ -368,51 +368,54 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function editApi(Request $request, EntityManagerInterface $entityManager): Response {
+    public function editApi(Request $request,
+                            EntityManagerInterface $entityManager): Response
+    {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-            $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $attachmentRepository = $entityManager->getRepository(Attachment::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+            if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
+                $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+                $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+                $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
+                $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+                $attachmentRepository = $entityManager->getRepository(Attachment::class);
+                $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+                $statutRepository = $entityManager->getRepository(Statut::class);
+                $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
-            $arrivage = $arrivageRepository->find($data['id']);
+                $arrivage = $arrivageRepository->find($data['id']);
 
-            // construction de la chaîne de caractères pour alimenter le select2
-            $acheteursUsernames = [];
-            foreach ($arrivage->getAcheteurs() as $acheteur) {
-                $acheteursUsernames[] = $acheteur->getUsername();
+                // construction de la chaîne de caractères pour alimenter le select2
+                $acheteursUsernames = [];
+                foreach ($arrivage->getAcheteurs() as $acheteur) {
+                    $acheteursUsernames[] = $acheteur->getUsername();
+                }
+                $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+                $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE, $arrivage->getType());
+
+                $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
+                    'arrivage' => $arrivage,
+                    'attachments' => $attachmentRepository->findBy(['arrivage' => $arrivage]),
+                    'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
+                    'fournisseurs' => $fournisseurRepository->findAllSorted(),
+                    'transporteurs' => $transporteurRepository->findAllSorted(),
+                    'chauffeurs' => $chauffeurRepository->findAllSorted(),
+                    'statuts' => $statuses,
+                    'fieldsParam' => $fieldsParam,
+                    'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT)
+                ]);
             }
-            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-
-            $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE, $arrivage->getType());
-
-            $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
-                'arrivage' => $arrivage,
-                'attachments' => $attachmentRepository->findBy(['arrivage' => $arrivage]),
-                'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
-                'fournisseurs' => $fournisseurRepository->findAllSorted(),
-                'transporteurs' => $transporteurRepository->findAllSorted(),
-                'chauffeurs' => $chauffeurRepository->findAllSorted(),
-                'statuts' => $statuses,
-                'fieldsParam' => $fieldsParam,
-                'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT)
-            ]);
 
             return new JsonResponse([
-                'html' => $html,
-                'acheteurs' => $acheteursUsernames
+                'html' => $html ?? "",
+                'acheteurs' => $acheteursUsernames ?? []
             ]);
         }
-
         throw new BadRequestHttpException();
     }
 
