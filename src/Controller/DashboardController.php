@@ -2,11 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\Dashboard\ComponentType;
 use App\Entity\Utilisateur;
 use App\Service\DashboardService;
 use App\Service\DashboardSettingsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -70,5 +73,57 @@ class DashboardController extends AbstractController {
             "refreshed" => $dashboardService->refreshDate($manager),
         ]);
     }
+
+
+    /**
+     * @Route(
+     *     "/statistiques/receptions-associations",
+     *     name="get_asso_recep_statistics",
+     *     options={"expose"=true},
+     *     methods={"GET"},
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param DashboardSettingsService $dashboardSettingsService
+     * @return Response
+     */
+    public function getAssoRecepStatistics(Request $request,
+                                           EntityManagerInterface $entityManager,
+                                           DashboardSettingsService $dashboardSettingsService): Response
+    {
+        $componentTypeRepository = $entityManager->getRepository(ComponentType::class);
+        $componentType = $componentTypeRepository->findOneBy([
+            'meterKey' => ComponentType::RECEIPT_ASSOCIATION
+        ]);
+        $data = $dashboardSettingsService->serializeValues($entityManager, $componentType, $request->query->all());
+        return new JsonResponse($data);
+    }
+
+    /**
+     * @Route(
+     *     "/statistiques/arrivages-um",
+     *     name="get_arrival_um_statistics",
+     *     options={"expose"=true},
+     *     methods={"GET"},
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param DashboardSettingsService $dashboardSettingsService
+     * @return Response
+     */
+    public function getArrivalUmStatistics(Request $request,
+                                           EntityManagerInterface $entityManager,
+                                           DashboardSettingsService $dashboardSettingsService): Response
+    {
+        $componentTypeRepository = $entityManager->getRepository(ComponentType::class);
+        $componentType = $componentTypeRepository->findOneBy([
+            'meterKey' => ComponentType::DAILY_ARRIVALS
+        ]);
+        $data = $dashboardSettingsService->serializeValues($entityManager, $componentType, $request->query->all());
+        return new JsonResponse($data);
+    }
+
 
 }
