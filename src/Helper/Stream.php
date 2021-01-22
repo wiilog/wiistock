@@ -4,7 +4,6 @@ namespace App\Helper;
 
 use ArrayAccess;
 use ArrayIterator;
-use Closure;
 use Countable;
 use Error;
 use IteratorAggregate;
@@ -32,8 +31,8 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
     }
 
     public static function explode($delimiters, string $value): Stream {
-        if(is_array($delimiters)) {
-            if(!count($delimiters)) {
+        if (is_array($delimiters)) {
+            if (!count($delimiters)) {
                 throw new RuntimeException("Empty delimiters array");
             }
 
@@ -55,14 +54,14 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
      * @return Stream
      */
     public static function from($array, ...$others): Stream {
-        if($array instanceof Stream) {
+        if ($array instanceof Stream) {
             $stream = clone $array;
-        } else if(is_array($array)) {
+        } else if (is_array($array)) {
             $stream = new Stream($array);
-        } else if($array instanceof Traversable) {
+        } else if ($array instanceof Traversable) {
             $stream = new Stream(iterator_to_array($array));
         } else {
-            if(is_object($array)) {
+            if (is_object($array)) {
                 $type = get_class($array);
             } else {
                 $type = gettype($array);
@@ -91,65 +90,79 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         return $this;
     }
 
-    public function filter(callable $callable): Stream {
-        if(isset($this->elements)) {
-            $this->elements = array_filter($this->elements, $callable);
+    public function filter(callable $callback): Stream {
+        $this->checkValidity();
+
+        if (self::params($callback) == 1) {
+            $this->elements = array_filter($this->elements, $callback);
         } else {
-            throw new Error(self::INVALID_STREAM);
+            $elements = [];
+            foreach ($this->elements as $key => $element) {
+                if ($callback($key, $element)) {
+                    $elements[$key] = $element;
+                }
+            }
+
+            $this->elements = $elements;
         }
+
         return $this;
     }
 
-    public function sort(callable $callable): Stream {
-        if(isset($this->elements)) {
-            usort($this->elements, $callable);
-        } else {
-            throw new Error($this::INVALID_STREAM);
-        }
+    public function sort(callable $callback): Stream {
+        $this->checkValidity();
+
+        usort($this->elements, $callback);
         return $this;
     }
 
     public function first() {
-        if(isset($this->elements)) {
-            return $this->elements[0];
-        } else {
-            throw new Error($this::INVALID_STREAM);
-        }
+        $this->checkValidity();
+
+        return $this->elements[0];
     }
 
-    public function map(callable $callable): Stream {
-        if(isset($this->elements)) {
-            $this->elements = array_map($callable, $this->elements);
+    public function map(callable $callback): Stream {
+        $this->checkValidity();
+
+        if (self::params($callback) == 1) {
+            $this->elements = array_map($callback, $this->elements);
         } else {
-            throw new Error(self::INVALID_STREAM);
+            $mapped = [];
+            foreach ($this->elements as $key => $element) {
+                $mapped[$key] = $callback($key, $element);
+            }
+
+            $this->elements = $mapped;
         }
+
         return $this;
     }
 
-    public function filterMap(callable $callable): Stream {
+    public function filterMap(callable $callback): Stream {
+        $this->checkValidity();
+
         return $this
-            ->map($callable)
+            ->map($callback)
             ->filter(function($element) {
                 return $element !== null;
             });
     }
 
-    public function keymap(Closure $closure): self {
-        if(!isset($this->elements)) {
-            throw new Error(self::INVALID_STREAM);
-        }
+    public function keymap(callable $callback): self {
+        $this->checkValidity();
 
         $mapped = [];
 
-        if(self::params($closure) == 1) {
-            foreach($this->elements as $element) {
-                [$key, $element] = $closure($element);
+        if (self::params($callback) == 1) {
+            foreach ($this->elements as $element) {
+                [$key, $element] = $callback($element);
 
                 $mapped[$key] = $element;
             }
         } else {
-            foreach($this->elements as $key => $element) {
-                [$key, $element] = $closure($key, $element);
+            foreach ($this->elements as $key => $element) {
+                [$key, $element] = $callback($key, $element);
 
                 $mapped[$key] = $element;
             }
@@ -159,59 +172,78 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         return $this;
     }
 
-    public function reduce(callable $callable, $initial) {
-        if(isset($this->elements)) {
-            return array_reduce($this->elements, $callable, $initial);
+    public function reduce(callable $callback, $initial) {
+        $this->checkValidity();
+
+        if (self::params($callback) == 2) {
+            return array_reduce($this->elements, $callback, $initial);
+        } else if (self::params($callback) >= 3) {
+            $carry = $initial;
+            foreach ($this->elements as $key => $element) {
+                $carry = $callback($carry, $key, $element);
+            }
+
+            return $carry;
         } else {
-            throw new Error(self::INVALID_STREAM);
+            throw new Error("Invalid callback, expected 2 or 3 arguments");
         }
     }
 
+    public function flatMap(callable $callback) {
+        $this->checkValidity();
+
+        $mappedArray = $this->map($callback)->toArray();
+        $this->elements = array_merge(...$mappedArray);
+
+        return $this;
+    }
+
     public function flatten(): self {
-        if(isset($this->elements)) {
-            $elements = [];
-            $iterator = new RecursiveIteratorIterator(new RecursiveArrayIterator($this->elements));
+        $this->checkValidity();
 
-            foreach($iterator as $element) {
-                $elements[] = $element;
-            }
+        $elements = [];
+        $iterator = new RecursiveIteratorIterator(new RecursiveArrayIterator($this->elements));
 
-            $this->elements = $elements;
-        } else {
-            throw new Error(self::INVALID_STREAM);
+        foreach ($iterator as $element) {
+            $elements[] = $element;
         }
+
+        $this->elements = $elements;
 
         return $this;
     }
 
     public function unique(): self {
-        if(isset($this->elements)) {
-            $this->elements = array_unique($this->elements);
-        } else {
-            throw new Error(self::INVALID_STREAM);
-        }
+        $this->checkValidity();
 
+        $this->elements = array_unique($this->elements);
         return $this;
     }
 
-    public function each(callable $callable): self {
-        if(isset($this->elements)) {
-            array_walk($this->elements, $callable);
+    public function each(callable $callback): self {
+        $this->checkValidity();
+
+        if (self::params($callback) == 1) {
+            array_walk($this->elements, $callback);
         } else {
-            throw new Error(self::INVALID_STREAM);
+            foreach($this->elements as $key => $element) {
+                $callback($key, $element);
+            }
         }
 
         return $this;
     }
 
     public function join($glue): string {
+        $this->checkValidity();
+
         $result = "";
 
         $last = array_key_last($this->elements);
-        foreach($this->elements as $key => $element) {
+        foreach ($this->elements as $key => $element) {
             $result .= $element;
 
-            if($key !== $last) {
+            if ($key !== $last) {
                 $result .= $glue;
             }
         }
@@ -220,38 +252,25 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
     }
 
     public function toArray(): array {
+        $this->checkValidity();
+
         $streamArray = $this->elements;
         $this->elements = null;
         return $streamArray;
     }
 
     public function values(): array {
+        $this->checkValidity();
+
         $streamArray = $this->elements;
         $this->elements = null;
         return array_values($streamArray);
     }
 
     public function isEmpty(): bool {
-        if(isset($this->elements)) {
-            return $this->count() === 0;
-        } else {
-            throw new Error($this::INVALID_STREAM);
-        }
-    }
+        $this->checkValidity();
 
-    /**
-     * @param callable $callable
-     * @return $this
-     */
-    public function flatMap(callable $callable) {
-        if(isset($this->elements)) {
-            $mappedArray = $this->map($callable)->toArray();
-            $this->elements = array_merge(...$mappedArray);
-        } else {
-            throw new Error($this::INVALID_STREAM);
-        }
-
-        return $this;
+        return $this->count() === 0;
     }
 
     public function count(): int {
@@ -278,8 +297,14 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         unset($this->elements[$offset]);
     }
 
-    private static function params(Closure $closure): int {
-        return (new ReflectionFunction($closure))->getNumberOfRequiredParameters();
+    public function checkValidity(): void {
+        if (!isset($this->elements)) {
+            throw new Error(self::INVALID_STREAM);
+        }
+    }
+
+    private static function params(callable $callback): int {
+        return (new ReflectionFunction($callback))->getNumberOfRequiredParameters();
     }
 
 }
