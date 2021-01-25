@@ -20,7 +20,7 @@ SELECT
     emplacement_depose.label AS emplacement_depose,
     (SELECT COUNT(dispatch_pack_count.id)
      FROM dispatch AS sub_dispatch
-     LEFT JOIN dispatch_pack AS dispatch_pack_count ON sub_dispatch.id = dispatch_pack_count.dispatch_id
+              LEFT JOIN dispatch_pack AS dispatch_pack_count ON sub_dispatch.id = dispatch_pack_count.dispatch_id
      WHERE sub_dispatch.id = dispatch.id)
         AS nb_colis,
     statut.nom AS statut,
@@ -33,25 +33,25 @@ SELECT
     dispatch.business_unit AS business_unit,
     IF(dispatch.validation_date IS NOT NULL AND dispatch.end_date IS NOT NULL,
        ROUND(
-                   TIME_FORMAT(TIMEDIFF(dispatch.validation_date, dispatch.end_date), '%H')
-                   + TIME_FORMAT(TIMEDIFF(dispatch.validation_date, dispatch.end_date), '%i') / 60
-                   + TIME_FORMAT(TIMEDIFF(dispatch.validation_date, dispatch.end_date), '%s') / 3600, 4),
+                   TIME_FORMAT(TIMEDIFF(dispatch.validation_date, CAST(dispatch.end_date AS DATETIME)), '%H')
+                   + TIME_FORMAT(TIMEDIFF(dispatch.validation_date, CAST(dispatch.end_date AS DATETIME)), '%i') / 60
+                   + TIME_FORMAT(TIMEDIFF(dispatch.validation_date, CAST(dispatch.end_date AS DATETIME)), '%s') / 3600, 4),
        NULL) AS delta_date
 
 FROM dispatch
 
-    LEFT JOIN type ON dispatch.type_id = type.id
-    LEFT JOIN utilisateur AS demandeur ON dispatch.requester_id = demandeur.id
-    LEFT JOIN utilisateur AS destinataire ON dispatch.receiver_id = destinataire.id
-    LEFT JOIN utilisateur AS treate_par ON dispatch.treated_by_id = treate_par.id
-    LEFT JOIN emplacement AS emplacement_prise ON dispatch.location_from_id = emplacement_prise.id
-    LEFT JOIN emplacement AS emplacement_depose ON dispatch.location_to_id = emplacement_depose.id
-    LEFT JOIN statut ON dispatch.statut_id = statut.id
-    LEFT JOIN transporteur ON dispatch.carrier_id = transporteur.id
-    LEFT JOIN dispatch_pack ON dispatch.id = dispatch_pack.dispatch_id
-        LEFT JOIN pack ON dispatch_pack.pack_id = pack.id
-            LEFT JOIN nature ON pack.nature_id = nature.id
-            LEFT JOIN tracking_movement AS dernier_emplacement ON pack.last_drop_id = dernier_emplacement.id
-                LEFT JOIN emplacement AS dernier_emplacement_colis ON dernier_emplacement.emplacement_id = dernier_emplacement_colis.id
-            LEFT JOIN tracking_movement AS dernier_mouvement ON pack.last_tracking_id = dernier_mouvement.id
-                LEFT JOIN utilisateur AS operateur ON dernier_mouvement.operateur_id = operateur.id
+         LEFT JOIN type ON dispatch.type_id = type.id
+         LEFT JOIN utilisateur AS demandeur ON dispatch.requester_id = demandeur.id
+         LEFT JOIN utilisateur AS destinataire ON dispatch.receiver_id = destinataire.id
+         LEFT JOIN utilisateur AS treate_par ON dispatch.treated_by_id = treate_par.id
+         LEFT JOIN emplacement AS emplacement_prise ON dispatch.location_from_id = emplacement_prise.id
+         LEFT JOIN emplacement AS emplacement_depose ON dispatch.location_to_id = emplacement_depose.id
+         LEFT JOIN statut ON dispatch.statut_id = statut.id
+         LEFT JOIN transporteur ON dispatch.carrier_id = transporteur.id
+         LEFT JOIN dispatch_pack ON dispatch.id = dispatch_pack.dispatch_id
+         LEFT JOIN pack ON dispatch_pack.pack_id = pack.id
+         LEFT JOIN nature ON pack.nature_id = nature.id
+         LEFT JOIN tracking_movement AS dernier_emplacement ON pack.last_drop_id = dernier_emplacement.id
+         LEFT JOIN emplacement AS dernier_emplacement_colis ON dernier_emplacement.emplacement_id = dernier_emplacement_colis.id
+         LEFT JOIN tracking_movement AS dernier_mouvement ON pack.last_tracking_id = dernier_mouvement.id
+         LEFT JOIN utilisateur AS operateur ON dernier_mouvement.operateur_id = operateur.id
