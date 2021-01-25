@@ -1,5 +1,5 @@
-{% set fromNb = (receptionNb is defined ? receptionNb : (arrivalNb ?? null)) %}
-{% set fromId = (receptionId is defined ? receptionId : (arrivalId ?? null)) %}
+{% set fromNb = receptionNb ?? arrivalNb ?? null %}
+{% set fromId = receptionId ?? arrivalId ?? null %}
 {% set pathStr = (receptionId is defined ? 'reception_show' : 'arrivage_show') %}
 
 <div class="d-flex">

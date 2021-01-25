@@ -23,7 +23,6 @@ class LitigeRepository extends EntityRepository
 	private const DtToDbLabels = [
 		'type' => 'type',
 		'arrivalNumber' => 'numeroArrivage',
-		'receptionNumber' => 'numeroReception',
 		'provider' => 'provider',
 		'numCommandeBl' => 'numCommandeBl',
         'buyers' => 'acheteurs',
@@ -387,7 +386,7 @@ class LitigeRepository extends EntityRepository
                             $qb->addOrderBy('declarant.username', $order);
                         } else if ($column === 'numeroArrivage') {
                             $qb->addOrderBy('a.numeroArrivage', $order);
-                        } else if ($column === 'numeroReception') {
+                        } else if ($column === 'receptionNumber') {
                             $qb->addOrderBy('r.number', $order);
                         } else if ($column === 'provider') {
                             $qb->addOrderBy('provider', $order);

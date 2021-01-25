@@ -214,7 +214,7 @@ class ReceptionService
             "dateAttendue" => ($reception->getDateAttendue() ? $reception->getDateAttendue()->format('d/m/Y H:i'): '' ),
             "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : ''),
             "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
-            "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
+            "Commentaire" => $reception->getCommentaire() ?: '',
             "receiver" => implode(', ', array_unique(
                 $reception->getDemandes()
                     ->map(function (Demande $request) {
@@ -225,9 +225,9 @@ class ReceptionService
                     })
                     ->toArray())
             ),
-            "number" => ($reception->getNumber() ? $reception->getNumber() : ''),
-            "orderNumber" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
-            "storageLocation" => ($reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : ''),
+            "number" => $reception->getNumber() ?: "",
+            "orderNumber" => $reception->getOrderNumber() ?: "",
+            "storageLocation" => $reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : '',
             "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
             'Actions' => $this->templating->render(
                 'reception/datatableReceptionRow.html.twig',

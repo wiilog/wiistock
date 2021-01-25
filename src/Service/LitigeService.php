@@ -307,7 +307,7 @@ class LitigeService
                 $reception = isset($receptionRefArticle) ? $receptionRefArticle->getReception() : null;
                 $row[] = $article->getBarCode();
                 $row[] = $qteArticle;
-                $row[] = (isset($reception) ? $reception->getNumeroReception() : '');
+                $row[] = (isset($reception) ? $reception->getNumber() : '');
 
                 $row[] = (isset($reception) ? $reception->getOrderNumber() : null);
 
