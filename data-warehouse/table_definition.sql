@@ -261,5 +261,5 @@ CREATE TABLE dw_acheminement
     urgence                 varchar(255),
     numero_projet           varchar(255),
     business_unit           varchar(255),
-    delta_date_acheminement float
+    delta_date              float
 );

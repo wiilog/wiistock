@@ -36,7 +36,7 @@ SELECT
                    TIME_FORMAT(TIMEDIFF(dispatch.validation_date, dispatch.end_date), '%H')
                    + TIME_FORMAT(TIMEDIFF(dispatch.validation_date, dispatch.end_date), '%i') / 60
                    + TIME_FORMAT(TIMEDIFF(dispatch.validation_date, dispatch.end_date), '%s') / 3600, 4),
-       NULL) AS delta_date_acheminement
+       NULL) AS delta_date
 
 FROM dispatch
 
