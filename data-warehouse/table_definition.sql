@@ -238,3 +238,20 @@ CREATE TABLE dw_arrivage_nature_colis
     nature_colis varchar(255),
     quantite_colis integer
 );
+
+CREATE TABLE dw_demande_collecte
+(
+    id                   integer,
+    numero               varchar(255),
+    date_creation        timestamp(0),
+    date_validation      timestamp(0),
+    point_collecte       varchar(255),
+    demandeur            varchar(255),
+    objet                varchar(255),
+    destination          varchar(255),
+    statut               varchar(255),
+    type                 varchar(255),
+    commentaire          text,
+    code_barre           varchar(255),
+    quantite             integer
+)
