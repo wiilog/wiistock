@@ -170,19 +170,9 @@ create table dw_tracabilite
     quantite_mouvement          integer,
     emplacement_mouvement       varchar(255),
     operateur                   varchar(255),
-    no_acheminement             varchar(255),
-    date_creation               timestamp(0),
-    date_traitement             timestamp(0),
-    type_acheminement           varchar(255),
-    demandeur_acheminement      varchar(255),
-    destinataire_acheminement   varchar(255),
-    statut_acheminement         varchar(255),
-    nature                      varchar(255),
-    business_unit_acheminement  varchar(255),
     mouvement_traca_id          integer,
-    acheminement_id             integer,
     arrivage_id                 integer,
-    delta_date_acheminement     float,
+    acheminement_id             integer,
     commentaire_mouvement_traca text,
     piece_jointe                text
 );
@@ -237,4 +227,39 @@ CREATE TABLE dw_arrivage_nature_colis
     arrivage_id integer,
     nature_colis varchar(255),
     quantite_colis integer
+);
+
+CREATE TABLE dw_acheminement
+(
+    id                     integer not null
+        constraint acheminement_pk
+        primary key,
+    numero                  varchar(255),
+    date_creation           timestamp(0),
+    date_validation         timestamp(0),
+    date_traitement         timestamp(0),
+    date_echeance_debut     date,
+    date_echeance_fin       date,
+    type                    varchar(255),
+    transporteur            varchar(255),
+    numero_tracking_transporteur varchar(255),
+    numero_commande         varchar(255),
+    demandeur               varchar(255),
+    destinataire            varchar(255),
+    code_colis              varchar(255),
+    quantite_colis          integer,
+    quantite_a_acheminer    integer,
+    nature_colis            varchar(255),
+    emplacement_prise       varchar(255),
+    emplacement_depose      varchar(255),
+    nb_colis                integer,
+    statut                  varchar(255),
+    operateur               varchar(255),
+    traite_par              varchar(255),
+    dernier_emplacement     varchar(255),
+    date_dernier_mouvement  timestamp(0),
+    urgence                 varchar(255),
+    numero_projet           varchar(255),
+    business_unit           varchar(255),
+    delta_date_acheminement float
 );
