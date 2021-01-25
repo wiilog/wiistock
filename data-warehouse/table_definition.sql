@@ -254,4 +254,19 @@ CREATE TABLE dw_demande_collecte
     commentaire          text,
     code_barre           varchar(255),
     quantite             integer
-)
+);
+
+CREATE TABLE dw_demande_transfert
+(
+    id                   integer,
+    numero               varchar(255),
+    date_creation        timestamp(0),
+    date_validation      timestamp(0),
+    statut               varchar(255),
+    demandeur            varchar(255),
+    origine              varchar(255),
+    destination          varchar(255),
+    commentaire          text,
+    reference            varchar(255),
+    code_barre           varchar(255)
+);
