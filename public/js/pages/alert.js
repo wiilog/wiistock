@@ -2,7 +2,7 @@ let pathAlerte = Routing.generate("alerte_ref_api", true);
 let tableAlerteConfig = {
     processing: true,
     serverSide: true,
-    order: [[1, "desc"]],
+    order: [['type', "desc"]],
     ajax: {
         "url": pathAlerte,
         "type": "POST",

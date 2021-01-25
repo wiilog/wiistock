@@ -23,7 +23,7 @@ $(function () {
             {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
             {"data": 'status', 'name': 'status', 'title': 'Statut'},
         ],
-        order: [[2, 'asc']]
+        order: [['code', 'asc']]
     });
 
     const $modalEditDispatch = $('#modalEditDispatch');

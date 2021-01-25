@@ -16,7 +16,7 @@ $(function() {
         responsive: true,
         serverSide: true,
         processing: true,
-        order: [[3, "desc"]],
+        order: [['quantity', "desc"]],
         ajax: {
             "url": Routing.generate('pack_api', true),
             "type": "POST",
