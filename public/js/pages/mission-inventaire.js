@@ -16,7 +16,7 @@ let tableMisionsConfig = {
     serverSide: true,
     processing: true,
     searching: false,
-    order: [[1, 'desc']],
+    order: [['StartDate', 'desc']],
     ajax:{
         "url": pathMissions,
         "type": "POST"

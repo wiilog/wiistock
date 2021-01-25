@@ -14,9 +14,7 @@ let tableDaysConfig = {
         {"data": 'Times', 'title': 'Horaires de travail'},
         {"data": 'Order', 'title': 'Ordre'},
     ],
-    order: [
-        [4, 'asc']
-    ],
+    order: [['Order', 'asc']],
     rowConfig: {
         needsRowClickAction: true,
     }

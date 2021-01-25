@@ -46,8 +46,8 @@ $(function () {
             {"data": 'type', "name": 'type', 'title': 'Type'},
         ],
         order: [
-            [1, 'asc'],
-            [5, 'asc']
+            ['category', 'asc'],
+            ['order', 'asc']
         ],
         rowConfig: {
             needsRowClickAction: true,

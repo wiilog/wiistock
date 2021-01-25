@@ -11,7 +11,7 @@ $(function() {
             "url": Routing.generate('transfer_request_article_api', {transfer: id}, true),
             "type": "POST"
         },
-        order: [[1, 'desc']],
+        order: [['Référence', 'desc']],
         rowConfig: {
             needsRowClickAction: true,
         },

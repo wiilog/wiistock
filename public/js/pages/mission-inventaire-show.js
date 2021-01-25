@@ -20,7 +20,7 @@ let pathApiArticle = Routing.generate('inv_entry_article_api', {id: mission}, tr
 let tableArticleConfig = {
     processing: true,
     serverSide: true,
-    order: [[3, 'desc']],
+    order: [['Location', 'desc']],
     ajax: {
         "url": pathApiArticle,
         "type": "POST",
@@ -56,7 +56,7 @@ let pathApiReferenceArticle = Routing.generate('inv_entry_reference_article_api'
 let tableRefArticleConfig = {
     processing: true,
     serverSide: true,
-    order: [[3, 'desc']],
+    order: [['Location', 'desc']],
     ajax: {
         "url": pathApiReferenceArticle,
         "type": "POST",

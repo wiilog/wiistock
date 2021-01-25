@@ -4,7 +4,7 @@ let tableChauffeurConfig = {
         "url": pathChauffeur,
         "type": "POST"
     },
-    order: [[1, 'desc']],
+    order: [['Nom', 'desc']],
     columns: [
         { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false },
         { "data": 'Nom', 'name': 'Nom', 'title': 'Nom' },

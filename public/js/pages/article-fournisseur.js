@@ -9,7 +9,7 @@ function InitPageDatatable() {
     let tableArticleFournisseurConfig = {
         processing: true,
         serverSide: true,
-        order: [[1, 'desc']],
+        order: [['Référence', 'desc']],
         ajax: {
             "url": pathArticleFournisseur,
             "type": "POST"
