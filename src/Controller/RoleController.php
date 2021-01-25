@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -255,6 +256,11 @@ class RoleController extends AbstractController
             }
             $roleService->parseParameters($role, $data);
             $entityManager->flush();
+
+            $cache = new FilesystemAdapter();
+            $cache->delete("menu.{$role->getLabel()}");
+            $cache->delete("permissions.{$role->getLabel()}");
+
             return new JsonResponse([
                 'success' => true,
                 'msg' => 'Le rôle <strong>' . $role->getLabel() . '</strong> a bien été modifié.'

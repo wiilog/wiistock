@@ -16,7 +16,10 @@ use App\Entity\Reception;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
 
+use App\Helper\Stream;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Contracts\Cache\ItemInterface;
 use Twig\Environment as Twig_Environment;
 use Symfony\Component\Security\Core\Security;
 use Twig\Error\LoaderError;
@@ -39,6 +42,7 @@ class UserService
     private $user;
 
 	private $entityManager;
+	private $cache;
 
     public function __construct(Twig_Environment $templating,
                                 EntityManagerInterface $entityManager,
@@ -47,6 +51,7 @@ class UserService
         $this->user = $security->getUser();
         $this->templating = $templating;
         $this->entityManager = $entityManager;
+        $this->cache = new FilesystemAdapter();
     }
 
     public static function CreateMobileLoginKey(int $length = self::MIN_MOBILE_KEY_LENGTH): string {
@@ -72,22 +77,20 @@ class UserService
         return $role;
     }
 
-    public function hasRightFunction(string $menuLabel, string $actionLabel, $user = null)
-    {
-        if (!$user) $user = $this->user;
-
+    public function getPermissions($user = null): array {
         $role = $this->getUserRole($user);
-		$actions = $role ? $role->getActions() : [];
-		$actionRepository = $this->entityManager->getRepository(Action::class);
-        $thisAction = $actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
 
-        if ($thisAction) {
-            foreach ($actions as $action) {
-                if ($action->getId() == $thisAction->getId()) return true;
-            }
-        }
+        return $this->cache->get("permissions.{$role->getLabel()}", function(ItemInterface $item) use ($role) {
+            return Stream::from($role->getActions())
+                ->keymap(function(Action $action) {
+                    return [$action->getMenu()->getLabel() . $action->getLabel(), true];
+                })
+                ->toArray();
+        });
+    }
 
-        return false;
+    public function hasRightFunction(string $menuLabel, string $actionLabel, $user = null) {
+        return isset($this->getPermissions($user)[$menuLabel . $actionLabel]);
     }
 
     public function getDataForDatatable($params = null)
