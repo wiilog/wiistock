@@ -83,7 +83,7 @@ let tableFrequenciesConfig = {
         "url": pathFrequencies,
         "type": "POST"
     },
-    order: [2, 'asc'],
+    order: ['NbMonths', 'asc'],
     columns: [
         {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'Label', 'title': 'Label'},

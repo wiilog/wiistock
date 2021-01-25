@@ -4,7 +4,7 @@ let pathHandling = Routing.generate('handling_api', true);
 let tableHandlingConfig = {
     serverSide: true,
     processing: true,
-    order: [[2, 'desc']],
+    order: [['creationDate', 'desc']],
     rowConfig: {
         needsRowClickAction: true,
         needsColor: true,

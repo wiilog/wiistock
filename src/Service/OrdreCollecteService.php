@@ -7,6 +7,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\MailerServer;
 use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
@@ -15,7 +16,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
-use App\Repository\MailerServerRepository;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use DateTime;
@@ -42,10 +42,6 @@ class OrdreCollecteService
 	 */
 	private $templating;
 	/**
-	 * @var MailerServerRepository
-	 */
-	private $mailerServerRepository;
-	/**
 	 * @var MailerService
 	 */
 	private $mailerService;
@@ -66,7 +62,6 @@ class OrdreCollecteService
 
     public function __construct(RouterInterface $router,
                                 TokenStorageInterface $tokenStorage,
-                                MailerServerRepository $mailerServerRepository,
                                 MailerService $mailerService,
                                 MouvementStockService $mouvementStockService,
                                 EntityManagerInterface $entityManager,
@@ -74,7 +69,6 @@ class OrdreCollecteService
                                 StringService $stringService,
                                 Twig_Environment $templating)
 	{
-	    $this->mailerServerRepository = $mailerServerRepository;
 	    $this->stringService = $stringService;
 		$this->templating = $templating;
 		$this->entityManager = $entityManager;
@@ -113,6 +107,7 @@ class OrdreCollecteService
 		$statutRepository = $em->getRepository(Statut::class);
 		$ordreCollecteReferenceRepository = $em->getRepository(OrdreCollecteReference::class);
         $emplacementRepository = $em->getRepository(Emplacement::class);
+        $mailerServerRepository = $em->getRepository(MailerServer::class);
 
         $statusActiveReference = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
 
@@ -250,7 +245,7 @@ class OrdreCollecteService
 
 		$partialCollect = !empty($rowsToRemove);
 
-		if ($this->mailerServerRepository->findAll()) {
+		if ($mailerServerRepository->findAll()) {
             $this->mailerService->sendMail(
                 'FOLLOW GT // Collecte effectuée',
                 $this->templating->render(
@@ -475,6 +470,51 @@ class OrdreCollecteService
             // cas de collecte totale
             $demandeCollecte
                 ->setStatut($statutCollecte);
+        }
+    }
+
+    public function putCollecteLine($handle,
+                                    CSVExportService $csvService,
+                                    OrdreCollecte $ordreCollecte)
+    {
+        $collecte = $ordreCollecte->getDemandeCollecte();
+
+        $dataCollecte =
+            [
+                $ordreCollecte->getNumero() ?? '',
+                $ordreCollecte->getStatut() ? $ordreCollecte->getStatut()->getNom() : '',
+                $ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y') : '',
+                $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '',
+                $collecte->getType() ? $collecte->getType()->getLabel() : ''
+            ];
+
+        foreach ($ordreCollecte->getOrdreCollecteReferences() as $ordreCollecteReference) {
+            $referenceArticle = $ordreCollecteReference->getReferenceArticle();
+
+            $data = array_merge($dataCollecte, [
+                $referenceArticle->getReference() ?? '',
+                $referenceArticle->getLibelle() ?? '',
+                $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
+                $ordreCollecteReference->getQuantite() ?? 0,
+                $referenceArticle->getBarCode(),
+            ]);
+            $csvService->putLine($handle, $data);
+        }
+
+        foreach ($ordreCollecte->getArticles() as $article) {
+            $articleFournisseur = $article->getArticleFournisseur();
+            $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+            $reference = $referenceArticle ? $referenceArticle->getReference() : '';
+
+            $data = array_merge($dataCollecte, [
+                $reference,
+                $article->getLabel() ?? '',
+                $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                $article->getQuantite() ?? 0,
+                $article->getBarCode(),
+                $collecte->isStock() ? 'Mise en stock' : 'Destruction'
+            ]);
+            $csvService->putLine($handle, $data);
         }
     }
 }

@@ -4,11 +4,13 @@ namespace App\Repository;
 
 use App\Entity\Alert;
 use App\Entity\Article;
+use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
+use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Alert|null find($id, $lockMode = null, $lockVersion = null)
@@ -94,7 +96,12 @@ class AlertRepository extends EntityRepository {
                 $search = $params->get('search')['value'];
                 if(!empty($search)) {
                     $qb
-                        ->andWhere('reference.reference LIKE :value OR reference.libelle LIKE :value')
+                        ->andWhere($qb->expr()->orX(
+                            'reference.reference LIKE :value',
+                            'reference.libelle LIKE :value',
+                            'article.reference LIKE :value',
+                            'article.label LIKE :value'
+                        ))
                         ->setParameter('value', '%' . str_replace('_', '\_', $search) . '%');
                 }
             }
@@ -164,6 +171,17 @@ class AlertRepository extends EntityRepository {
             ->getSingleScalarResult();
     }
 
+    public function countAllActive(): int {
+        return $this->createQueryBuilder("alert")
+            ->select("COUNT(alert)")
+            ->leftJoin("alert.reference","reference")
+            ->leftJoin("reference.statut","refStatus")
+            ->where("reference IS NULL OR refStatus.nom = :active")
+            ->setParameter("active", ReferenceArticle::STATUT_ACTIF)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function findNoLongerExpired() {
         $since = new DateTime("now", new DateTimeZone("Europe/Paris"));
 
@@ -204,8 +222,8 @@ class AlertRepository extends EntityRepository {
         $exprBuilder = $qb->expr();
         $iterator = $this->createQueryBuilder('alert')
             ->where($exprBuilder->between('alert.date',':start',':end'))
-            ->setParameter('start',$start)
-            ->setParameter('end',$end)
+            ->setParameter('start', $start)
+            ->setParameter('end', $end)
             ->getQuery()
             ->iterate();
         foreach($iterator as $item) {

@@ -2,15 +2,20 @@
 
 namespace App\Repository;
 
+use App\Entity\AverageRequestTime;
+use App\Entity\Collecte;
+use App\Entity\Demande;
 use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\Stream;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Join;
 
 
 /**
@@ -259,6 +264,26 @@ class DispatchRepository extends EntityRepository
             ->getResult();
     }
 
+    public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
+        $qb = $this->createQueryBuilder("dispatch");
+
+        if($requester) {
+            $qb
+                ->andWhere("dispatch.requester = :requester")
+                ->setParameter("requester", $requester);
+        }
+
+        return $qb
+            ->innerJoin("dispatch.statut", "status")
+            ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = dispatch.type')
+            ->andWhere("status.state != " . Statut::TREATED)
+            ->addOrderBy('status.state', 'ASC')
+            ->addOrderBy("DATE_ADD(dispatch.creationDate, art.average, 'second')", 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
@@ -281,6 +306,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('join_receiver.username AS receiver')
             ->addSelect('join_locationFrom.label AS locationFrom')
             ->addSelect('join_locationTo.label AS locationTo')
+            ->addSelect('join_dispatchPack.quantity AS dispatchQuantity')
             ->addSelect('join_dispatchPack_pack.code AS packCode')
             ->addSelect('join_dispatchPack_nature.label AS packNatureLabel')
             ->addSelect('join_dispatchPack_pack.quantity AS packQuantity')
@@ -320,6 +346,43 @@ class DispatchRepository extends EntityRepository
             ->getResult();
     }
 
+    /**
+     * Assoc array [dispatch number => nb packs]
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return array [dispatch number => nb packs]
+     */
+    public function getNbPacksByDates(DateTime $dateMin,
+                                      DateTime $dateMax): array {
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+
+        $queryBuilder = $this->createQueryBuilder('dispatch')
+            ->addSelect('dispatch.number AS number')
+            ->addSelect('COUNT(join_dispatchPack.id) AS nbPacks')
+
+            ->leftJoin('dispatch.dispatchPacks', 'join_dispatchPack')
+
+            ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
+
+            ->groupBy('dispatch.number')
+
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        $res = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
+        return Stream::from($res)
+            ->reduce(function (array $carry, array $row) {
+                $carry[$row['number']] = $row['nbPacks'];
+                return $carry;
+            }, []);
+    }
+
     public function getDispatchNumbers($search) {
         return $this->createQueryBuilder("dispatch")
             ->select("dispatch.id, dispatch.number AS text")
@@ -329,4 +392,90 @@ class DispatchRepository extends EntityRepository
             ->getResult();
     }
 
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @param array $dispatchStatusesFilter
+     * @param array $dispatchTypesFilter
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByDates(DateTime $dateMin,
+                                 DateTime $dateMax,
+                                 array $dispatchStatusesFilter = [],
+                                 array $dispatchTypesFilter = []): int
+    {
+        $qb = $this->createQueryBuilder('dispatch')
+            ->select('COUNT(dispatch) AS count')
+            ->where('dispatch.endDate BETWEEN :dateMin AND :dateMax')
+            ->setParameter('dateMin', $dateMin)
+            ->setParameter('dateMax', $dateMax);
+
+        if (!empty($dispatchStatusesFilter)) {
+            $qb
+                ->andWhere('dispatch.statut IN (:dispatchStatuses)')
+                ->setParameter('dispatchStatuses', $dispatchStatusesFilter);
+        }
+
+        if (!empty($dispatchTypesFilter)) {
+            $qb
+                ->andWhere('dispatch.type IN (:dispatchTypes)')
+                ->setParameter('dispatchTypes', $dispatchTypesFilter);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function getProcessingTime() {
+        $threeMonthsAgo = new DateTime("-3 month");
+
+        return $this->createQueryBuilder("dispatch")
+            ->select("dispatch_type.id AS type")
+            ->addSelect("SUM(UNIX_TIMESTAMP(dispatch.treatmentDate) - UNIX_TIMESTAMP(dispatch.validationDate)) AS total")
+            ->addSelect("COUNT(dispatch) AS count")
+            ->join("dispatch.type", "dispatch_type")
+            ->join("dispatch.statut", "status")
+            ->where("status.nom = :treated")
+            ->andWhere("dispatch.validationDate >= :from")
+            ->andWhere("dispatch.validationDate IS NOT NULL AND dispatch.treatmentDate IS NOT NULL")
+            ->groupBy("dispatch.type")
+            ->setParameter("from", $threeMonthsAgo)
+            ->setParameter("treated", Statut::TREATED)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    /**
+     * @param array $statuses
+     * @return DateTime|null
+     * @throws NonUniqueResultException
+     */
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($types) && !empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('dispatch')
+                ->select('dispatch.validationDate AS date')
+                ->innerJoin('dispatch.statut', 'status')
+                ->innerJoin('dispatch.type', 'type')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->andWhere('status.state IN (:treatedStates)')
+                ->addOrderBy('dispatch.creationDate', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types)
+                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED])
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            return $res['date'] ?? null;
+        }
+        else {
+            return null;
+        }
+    }
 }

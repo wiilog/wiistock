@@ -23,7 +23,7 @@ $(function () {
             {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
             {"data": 'status', 'name': 'status', 'title': 'Statut'},
         ],
-        order: [[2, 'asc']]
+        order: [['code', 'asc']]
     });
 
     const $modalEditDispatch = $('#modalEditDispatch');
@@ -98,6 +98,11 @@ $(function () {
         delete queryParams['print-delivery-note'];
         SetRequestQuery(queryParams);
         $('#generateDeliveryNoteButton').click();
+    }
+
+    const openModal = $(`#openPackModal`).val();
+    if(openModal) {
+        openNewPackModal();
     }
 });
 

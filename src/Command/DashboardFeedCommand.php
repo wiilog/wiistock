@@ -7,6 +7,8 @@
 // */1 6-18 * * 1-6
 namespace App\Command;
 
+use App\Entity\DaysWorked;
+use App\Entity\WorkFreeDay;
 use App\Service\DashboardService;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManager;
@@ -42,7 +44,7 @@ class DashboardFeedCommand extends Command {
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
-     * @return int|void
+     * @return int
      * @throws ORMException
      * @throws Throwable
      */
@@ -56,10 +58,17 @@ class DashboardFeedCommand extends Command {
         $entityManager->flush();
 
         $dashboardComponentRepository = $entityManager->getRepository(Dashboard\Component::class);
+        $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
+        $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
+
         $components = $dashboardComponentRepository->findAll();
+        $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
+        $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
+
         foreach ($components as $component) {
             $componentType = $component->getType();
-            switch ($componentType->getMeterKey()) {
+            $meterKey = $componentType->getMeterKey();
+            switch ($meterKey) {
                 case Dashboard\ComponentType::ONGOING_PACKS:
                     $this->dashboardService->persistOngoingPack($entityManager, $component);
                     break;
@@ -76,6 +85,36 @@ class DashboardFeedCommand extends Command {
                 case Dashboard\ComponentType::PACK_TO_TREAT_FROM:
                     $this->dashboardService->persistPackToTreatFrom($entityManager, $component);
                     break;
+                case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
+                case Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES:
+                    $this->dashboardService->persistArrivalsEmergencies(
+                        $entityManager,
+                        $component,
+                        $meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES
+                    );
+                    break;
+                case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
+                    $this->dashboardService->persistActiveReferenceAlerts($entityManager, $component);
+                    break;
+                case Dashboard\ComponentType::MONETARY_RELIABILITY_GRAPH:
+                    $this->dashboardService->persistMonetaryReliabilityGraph($entityManager, $component);
+                    break;
+                case Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR:
+                    $this->dashboardService->persistMonetaryReliabilityIndicator($entityManager, $component);
+                    break;
+                case Dashboard\ComponentType::REFERENCE_RELIABILITY:
+                    $this->dashboardService->persistReferenceReliability($entityManager, $component);
+                    break;
+                case Dashboard\ComponentType::DAILY_DISPATCHES:
+                    $this->dashboardService->persistDailyDispatches($entityManager, $component);
+                    break;
+                case Dashboard\ComponentType::DAILY_HANDLING:
+                    $this->dashboardService->persistDailyHandling($entityManager, $component);
+                    break;
+                case Dashboard\ComponentType::REQUESTS_TO_TREAT:
+                case Dashboard\ComponentType::ORDERS_TO_TREAT:
+                    $this->dashboardService->persistEntitiesToTreat($entityManager, $component, $daysWorked, $freeWorkDays);
+                    break;
                 default:
                     break;
             }
@@ -85,6 +124,8 @@ class DashboardFeedCommand extends Command {
 
         $this->wiilockService->toggleFeedingDashboard($entityManager, false);
         $entityManager->flush();
+
+        return 0;
     }
 
     /**

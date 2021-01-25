@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -16,10 +17,8 @@ use App\Helper\Stream;
 use App\Service\DashboardSettingsService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Dashboard;
@@ -38,44 +37,51 @@ class DashboardSettingsController extends AbstractController {
 
     /**
      * @Route("/", name="dashboard_settings", methods={"GET"})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS})
      * @param DashboardSettingsService $dashboardSettingsService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function settings(DashboardSettingsService $dashboardSettingsService,
                              EntityManagerInterface $entityManager): Response {
-        if(!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_DASHBOARDS)) {
-            return $this->userService->accessDenied(UserService::IN_RENDER);
-        }
-
         $componentTypeRepository = $entityManager->getRepository(Dashboard\ComponentType::class);
         $componentTypes = $componentTypeRepository->findAll();
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
+        $orderedComponentCategories = [
+            Dashboard\ComponentType::CATEGORY_TRACKING,
+            Dashboard\ComponentType::CATEGORY_ORDERS,
+            Dashboard\ComponentType::CATEGORY_STOCK,
+            Dashboard\ComponentType::CATEGORY_REQUESTS
+        ];
+
+        $componentTypes = Stream::from($componentTypes)
+            ->reduce(function(array $carry, Dashboard\ComponentType $componentType) {
+                $category = $componentType->getCategory();
+                if(!isset($carry[$category])) {
+                    $carry[$category] = [];
+                }
+
+                $carry[$category][] = $componentType;
+
+                return $carry;
+            }, []);
+
         return $this->render("dashboard/settings.html.twig", [
             "dashboards" => $dashboardSettingsService->serialize($entityManager, $loggedUser, DashboardSettingsService::MODE_EDIT),
             "token" => $_SERVER["APP_DASHBOARD_TOKEN"],
             "componentTypeConfig" => [
                 // component types group by category
-                "componentTypes" => Stream::from($componentTypes)
-                    ->reduce(function(array $carry, Dashboard\ComponentType $componentType) {
-                        $category = $componentType->getCategory();
-                        if(!isset($carry[$category])) {
-                            $carry[$category] = [];
-                        }
-
-                        $carry[$category][] = $componentType;
-
-                        return $carry;
-                    }, [])
+                "componentTypes" => array_merge(array_flip($orderedComponentCategories), $componentTypes)
             ]
         ]);
     }
 
     /**
      * @Route("/save", name="save_dashboard_settings", options={"expose"=true}, methods={"POST"})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param DashboardSettingsService $dashboardSettingsService
@@ -84,10 +90,6 @@ class DashboardSettingsController extends AbstractController {
     public function save(Request $request,
                          EntityManagerInterface $entityManager,
                          DashboardSettingsService $dashboardSettingsService): Response {
-        if(!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_DASHBOARDS)) {
-            return $this->userService->accessDenied(UserService::IN_JSON);
-        }
-
         $dashboards = json_decode($request->request->get("dashboards"), true);
         try {
             $dashboardSettingsService->save($entityManager, $dashboards);
@@ -127,18 +129,15 @@ class DashboardSettingsController extends AbstractController {
 
     /**
      * @Route("/api-component-type/{componentType}", name="dashboard_component_type_form", methods={"POST"}, options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param Dashboard\ComponentType $componentType
-     * @return JsonResponse
+     * @return Response
      */
     public function apiComponentTypeForm(Request $request,
                                          EntityManagerInterface $entityManager,
                                          Dashboard\ComponentType $componentType): Response {
-        if(!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_DASHBOARDS)) {
-            return $this->userService->accessDenied(UserService::IN_JSON);
-        }
-
         $templateName = $componentType->getTemplate();
 
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -154,39 +153,143 @@ class DashboardSettingsController extends AbstractController {
             "secondDestinationLocation" => [],
             "carriers" => [],
             "arrivalTypes" => [],
+            "handlingTypes" => [],
+            "dispatchTypes" => [],
             "arrivalStatuses" => [],
+            "handlingStatuses" => [],
+            "dispatchStatuses" => [],
+            "entityTypes" => [],
+            "entityStatuses" => [],
+            "entity" => '',
+            "treatmentDelay" => null,
             "natures" => [],
             'tooltip' => $componentType->getHint()
         ];
 
+        $entities = [];
+        $entityTypes = [];
+        $entityStatuses = [];
+
+        if ($componentType->getMeterKey() === Dashboard\ComponentType::REQUESTS_TO_TREAT
+            || $componentType->getMeterKey() === Dashboard\ComponentType::ORDERS_TO_TREAT) {
+            if ($componentType->getMeterKey() === Dashboard\ComponentType::REQUESTS_TO_TREAT) {
+                $entities = [
+                    'Service' => [
+                        'categoryType' => CategoryType::DEMANDE_HANDLING,
+                        'categoryStatus' => CategorieStatut::HANDLING,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_HANDLING
+                    ],
+                    'Collecte' => [
+                        'categoryType' => CategoryType::DEMANDE_COLLECTE,
+                        'categoryStatus' => CategorieStatut::DEM_COLLECTE,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_COLLECT
+                    ],
+                    'Livraison' => [
+                        'categoryType' => CategoryType::DEMANDE_LIVRAISON,
+                        'categoryStatus' => CategorieStatut::DEM_LIVRAISON,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_DELIVERY
+                    ],
+                    'Acheminement' => [
+                        'categoryType' => CategoryType::DEMANDE_DISPATCH,
+                        'categoryStatus' => CategorieStatut::DISPATCH,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_DISPATCH
+                    ],
+                    'Transfert' => [
+                        'categoryType' => CategoryType::TRANSFER_REQUEST,
+                        'categoryStatus' => CategorieStatut::TRANSFER_REQUEST,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER
+                    ]
+                ];
+            }
+            else {
+                $entities = [
+                    'Collecte' => [
+                        'categoryType' => CategoryType::DEMANDE_COLLECTE,
+                        'categoryStatus' => CategorieStatut::ORDRE_COLLECTE,
+                        'key' => Dashboard\ComponentType::ORDERS_TO_TREAT_COLLECT
+                    ],
+                    'Livraison' => [
+                        'categoryType' => CategoryType::DEMANDE_LIVRAISON,
+                        'categoryStatus' => CategorieStatut::ORDRE_LIVRAISON,
+                        'key' => Dashboard\ComponentType::ORDERS_TO_TREAT_DELIVERY
+                    ],
+                    'Préparation' => [
+                        'categoryType' => CategoryType::DEMANDE_LIVRAISON,
+                        'categoryStatus' => CategorieStatut::PREPARATION,
+                        'key' => Dashboard\ComponentType::ORDERS_TO_TREAT_PREPARATION
+                    ],
+                    'Transfert' => [
+                        'categoryType' => CategoryType::TRANSFER_REQUEST,
+                        'categoryStatus' => CategorieStatut::TRANSFER_ORDER,
+                        'key' => Dashboard\ComponentType::ORDERS_TO_TREAT_TRANSFER
+                    ]
+                ];
+            }
+
+            $categoryTypes = array_values(Stream::from($entities)
+                ->map(function (array $entityConfig) {
+                    return $entityConfig['categoryType'];
+                })
+                ->toArray());
+
+            $entitiesStatuses = array_values(Stream::from($entities)
+                ->map(function (array $entityConfig) {
+                    return $entityConfig['categoryStatus'];
+                })
+                ->toArray());
+
+            $entityTypes = $typeRepository->findByCategoryLabels($categoryTypes);
+            $entityStatuses = $statusRepository->findByCategorieNames($entitiesStatuses, true, [Statut::NOT_TREATED, Statut::TREATED, Statut::PARTIAL]);
+        }
+
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
         foreach(["locations", "firstOriginLocation", "secondOriginLocation", "firstDestinationLocation", "secondDestinationLocation"] as $field) {
             if(!empty($values[$field])) {
-                $locationRepository = $entityManager->getRepository(Emplacement::class);
-                $values[$field] = $locationRepository->findByIds($values[$field]);
+                $values[$field] = $locationRepository->findBy(['id' => $values[$field]]);
             }
         }
 
         if(!empty($values['carriers'])) {
             $carrierRepository = $entityManager->getRepository(Transporteur::class);
-            $values['carriers'] = $carrierRepository->findByIds($values['carriers']);
+            $values['carriers'] = $carrierRepository->findBy(['id' => $values['carriers']]);
         }
 
         if(!empty($values['arrivalTypes'])) {
-            $values['arrivalTypes'] = $typeRepository->findByIds($values['arrivalTypes']);
+            $values['arrivalTypes'] = $typeRepository->findBy(['id' => $values['arrivalTypes']]);
+        }
+
+        if(!empty($values['dispatchTypes'])) {
+            $values['dispatchTypes'] = $typeRepository->findBy(['id' => $values['dispatchTypes']]);
+        }
+
+        if(!empty($values['handlingTypes'])) {
+            $values['handlingTypes'] = $typeRepository->findBy(['id' => $values['handlingTypes']]);
         }
 
         if(!empty($values['arrivalStatuses'])) {
-            $values['arrivalStatuses'] = $statusRepository->findByIds($values['arrivalStatuses']);
+            $values['arrivalStatuses'] = $statusRepository->findBy(['id' => $values['arrivalStatuses']]);
+        }
+
+        if(!empty($values['dispatchStatuses'])) {
+            $values['dispatchStatuses'] = $statusRepository->findBy(['id' => $values['dispatchStatuses']]);
+        }
+
+        if(!empty($values['handlingStatuses'])) {
+            $values['handlingStatuses'] = $statusRepository->findBy(['id' => $values['handlingStatuses']]);
         }
 
         if(!empty($values['natures'])) {
-            $values['natures'] = $natureRepository->findByIds($values['natures']);
+            $values['natures'] = $natureRepository->findBy(['id' => $values['natures']]);
         }
 
         $arrivalTypes = $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]);
+        $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
         $arrivalStatuses = $statusRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
-        $natures = $natureRepository->findAll();
+        $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+        $handlingStatuses = $statusRepository->findByCategorieName(CategorieStatut::HANDLING);
+        $dispatchStatuses = $statusRepository->findByCategorieName(CategorieStatut::DISPATCH);
 
+        $natures = $natureRepository->findAll();
         if($templateName) {
             return $this->json([
                 'success' => true,
@@ -196,7 +299,14 @@ class DashboardSettingsController extends AbstractController {
                     'rowIndex' => $request->request->get('rowIndex'),
                     'componentIndex' => $request->request->get('componentIndex'),
                     'arrivalTypes' => $arrivalTypes,
+                    'handlingTypes' => $handlingTypes,
+                    'dispatchTypes' => $dispatchTypes,
                     'arrivalStatuses' => $arrivalStatuses,
+                    'handlingStatuses' => $handlingStatuses,
+                    'dispatchStatuses' => $dispatchStatuses,
+                    'entities' => $entities,
+                    'entityTypes' => $entityTypes,
+                    'entityStatuses' => $entityStatuses,
                     'natures' => $natures,
                     'values' => $values
                 ])
@@ -210,21 +320,17 @@ class DashboardSettingsController extends AbstractController {
 
     /**
      * @Route("/api-component-type/{componentType}/example-values", name="dashboard_component_type_example_values", methods={"POST"}, options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param DashboardSettingsService $dashboardSettingsService
      * @param Dashboard\ComponentType $componentType
-     * @return JsonResponse
-     * @throws Exception
+     * @return Response
      */
     public function apiComponentTypeExample(Request $request,
                                             EntityManagerInterface $entityManager,
                                             DashboardSettingsService $dashboardSettingsService,
                                             Dashboard\ComponentType $componentType): Response {
-        if(!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_DASHBOARDS)) {
-            return $this->userService->accessDenied(UserService::IN_JSON);
-        }
-
         if($request->request->has("values")) {
             $values = json_decode($request->request->get("values"), true);
         } else {

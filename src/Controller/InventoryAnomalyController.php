@@ -10,10 +10,9 @@ use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
-use App\Repository\InventoryMissionRepository;
-use App\Repository\InventoryEntryRepository;
 use App\Service\InventoryEntryService;
 use App\Service\InventoryService;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -35,29 +34,15 @@ class InventoryAnomalyController extends AbstractController
      */
     private $userService;
 
-    /**
-     * @var InventoryMissionRepository
-     */
-    private $inventoryMissionRepository;
-
-    /**
-     * @var InventoryEntryRepository
-     */
-    private $inventoryEntryRepository;
-
 	/**
 	 * @var InventoryService
 	 */
     private $inventoryService;
 
     public function __construct(InventoryService $inventoryService,
-                                UserService $userService,
-                                InventoryMissionRepository $inventoryMissionRepository,
-                                InventoryEntryRepository $inventoryEntryRepository)
+                                UserService $userService)
     {
         $this->userService = $userService;
-        $this->inventoryMissionRepository = $inventoryMissionRepository;
-        $this->inventoryEntryRepository = $inventoryEntryRepository;
         $this->inventoryService = $inventoryService;
     }
 
@@ -76,10 +61,12 @@ class InventoryAnomalyController extends AbstractController
     /**
      * @Route("/api", name="inv_anomalies_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param InventoryEntryService $inventoryEntryService
      * @return JsonResponse|RedirectResponse
      */
 	public function apiAnomalies(Request $request,
+                                 EntityManagerInterface $entityManager,
                                  InventoryEntryService $inventoryEntryService)
 	{
 		if ($request->isXmlHttpRequest()) {
@@ -87,7 +74,8 @@ class InventoryAnomalyController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
 
-            $anomaliesData = $this->inventoryEntryRepository->findByParamsAndFilters($request->request, [], true);
+            $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);
+            $anomaliesData = $inventoryEntryRepository->findByParamsAndFilters($request->request, [], true);
 
 			$rows = [];
 			foreach ($anomaliesData['data'] as $anomalyRes) {

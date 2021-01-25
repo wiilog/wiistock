@@ -96,12 +96,13 @@ class ReceptionTracaRepository extends EntityRepository
                 if (!empty($search)) {
                     $qb
                         ->leftJoin('r.user', 'u2')
-                        ->andWhere('
-						r.dateCreation LIKE :value OR
+                        ->andWhere("
+						DATE_FORMAT(r.dateCreation, '%d/%m/%Y') LIKE :value OR
+						DATE_FORMAT(r.dateCreation, '%H:%i:%S') LIKE :value OR
 						u2.username LIKE :value OR
 						r.arrivage LIKE :value OR
 						r.number LIKE :value
-						')
+						")
                         ->setParameter('value', '%' . $search . '%');
                 }
             }

@@ -400,7 +400,7 @@ class EmplacementController extends AbstractController
                 function (Emplacement $location) {
                     return ['code' => $location->getLabel()];
                 },
-                $emplacementRepository->findByIds($listEmplacements)
+                $emplacementRepository->findBy(['id' => $listEmplacements])
             );
 
             $fileName = $PDFGeneratorService->getBarcodeFileName($barCodeConfigs, 'emplacements');

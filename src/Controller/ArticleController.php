@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
 use App\Entity\FreeField;
@@ -16,8 +17,6 @@ use App\Entity\CategorieCL;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
-use App\Repository\ParametrageGlobalRepository;
-use App\Repository\ReceptionRepository;
 use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
@@ -30,6 +29,7 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -63,11 +63,6 @@ class ArticleController extends AbstractController
     ];
 
     /**
-     * @var ReceptionRepository
-     */
-    private $receptionRepository;
-
-    /**
      * @var ArticleDataService
      */
     private $articleDataService;
@@ -87,11 +82,6 @@ class ArticleController extends AbstractController
      */
     private $globalParamService;
 
-	/**
-	 * @var ParametrageGlobalRepository
-	 */
-	private $paramGlobalRepository;
-
     /**
      * @var FreeFieldService
      */
@@ -100,14 +90,10 @@ class ArticleController extends AbstractController
     public function __construct(Twig_Environment $templating,
                                 GlobalParamService $globalParamService,
                                 ArticleDataService $articleDataService,
-                                ReceptionRepository $receptionRepository,
                                 UserService $userService,
-                                ParametrageGlobalRepository $parametrageGlobalRepository,
                                 FreeFieldService $champLibreService )
     {
-        $this->paramGlobalRepository = $parametrageGlobalRepository;
         $this->globalParamService = $globalParamService;
-        $this->receptionRepository = $receptionRepository;
         $this->articleDataService = $articleDataService;
         $this->userService = $userService;
         $this->templating = $templating;
@@ -116,16 +102,13 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/", name="article_index", methods={"GET", "POST"})
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI})
      * @param EntityManagerInterface $entityManager
      * @param ArticleDataService $articleDataService
      * @return Response
      * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager, ArticleDataService $articleDataService): Response {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         /** @var Utilisateur $currentUser */
@@ -186,25 +169,20 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="article_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @return Response
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $data = $this->articleDataService->getDataForDatatable($request->request, $this->getUser());
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        $data = $this->articleDataService->getDataForDatatable($request->request, $this->getUser());
+        return new JsonResponse($data);
     }
 
     /**
      * @Route("/api-columns", name="article_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
      * @param ArticleDataService $articleDataService
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -212,10 +190,6 @@ class ArticleController extends AbstractController
     public function apiColumns(ArticleDataService $articleDataService,
                                EntityManagerInterface $entityManager): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
@@ -226,6 +200,7 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/voir", name="article_show", options={"expose"=true},  methods="GET|POST")
+     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      *
      * @param Request $request
      * @param ArticleDataService $articleDataService
@@ -259,13 +234,12 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/nouveau", name="article_new", options={"expose"=true},  methods="GET|POST")
+     * @HasPermission({Menu::STOCK, Action::CREATE}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param MouvementStockService $mouvementStockService
      * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @throws NonUniqueResultException
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
@@ -304,6 +278,7 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="article_edit", options={"expose"=true},  methods="GET|POST")
+     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @return Response
      */
@@ -339,6 +314,7 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/supprimer", name="article_delete", options={"expose"=true}, methods="GET|POST")
+     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param MouvementStockService $mouvementStockService
      * @param PreparationsManagerService $preparationsManagerService
@@ -346,6 +322,8 @@ class ArticleController extends AbstractController
      * @param RefArticleDataService $refArticleDataService
      * @param EntityManagerInterface $entityManager
      * @return Response
+     * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     public function delete(Request $request,
                            MouvementStockService $mouvementStockService,
@@ -355,10 +333,6 @@ class ArticleController extends AbstractController
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $articleRepository = $entityManager->getRepository(Article::class);
 
             /** @var Article $article */
@@ -412,7 +386,7 @@ class ArticleController extends AbstractController
                     $entityManager->flush();
 
                     foreach ($refToUpdate as $reference) {
-                        $refArticleDataService->updateRefArticleQuantities($reference);
+                        $refArticleDataService->updateRefArticleQuantities($entityManager, $reference);
                     }
 
                     $entityManager->flush();
@@ -433,13 +407,13 @@ class ArticleController extends AbstractController
                 return new JsonResponse([
                     'delete' => $rows,
                     'success' => true,
-                    'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> a bien été supprimé.'
+                    'msg' => "L'article <strong>$articleBarCode</strong> a bien été supprimé."
                 ]);
             }
             else {
                 return new JsonResponse([
                     'success' => false,
-                    'msg' => 'L\'article <strong>' . $articleBarCode . '</strong> est utilisé, vous ne pouvez pas le supprimer.'
+                    'msg' => "L'article <strong>$articleBarCode</strong> est utilisé, vous ne pouvez pas le supprimer."
                 ]);
             }
         }
@@ -448,6 +422,7 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/verification", name="article_check_delete", options={"expose"=true})
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -456,10 +431,6 @@ class ArticleController extends AbstractController
                                              EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $articleId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $isFromReception = $request->query->getBoolean('fromReception');
 
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -540,7 +511,6 @@ class ArticleController extends AbstractController
     public function getArticles(EntityManagerInterface $entityManager, Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-
             $search = $request->query->get('term');
             $referenceArticleReference = $request->query->get('referenceArticleReference');
             $activeOnly = $request->query->getBoolean('activeOnly');
@@ -611,28 +581,24 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/colonne-visible", name="save_column_visible_for_article", options={"expose"=true}, methods="GET|POST")
+     * @Route("/colonne-visible", name="save_column_visible_for_article", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        $data = json_decode($request->getContent(), true);
+        $champs = array_keys($data);
+        $user = $this->getUser();
+        /** @var $user Utilisateur */
+        $user->setColumnsVisibleForArticle($champs);
+        $entityManager->flush();
 
-            $data = json_decode($request->getContent(), true);
-            $champs = array_keys($data);
-            $user = $this->getUser();
-            /** @var $user Utilisateur */
-            $user->setColumnsVisibleForArticle($champs);
-            $entityManager->flush();
-
-            return new JsonResponse();
-        }
-        throw new BadRequestHttpException();
+        return $this->json([
+            "success" => true
+        ]);
     }
 
     /**
@@ -674,7 +640,6 @@ class ArticleController extends AbstractController
                                           EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -728,12 +693,9 @@ class ArticleController extends AbstractController
                     $fournisseurs[] = $articleFournisseur->getFournisseur();
                 }
                 $fournisseursUnique = array_unique($fournisseurs);
-                $json = $this->renderView(
-                    'article/optionFournisseurNewArticle.html.twig',
-                    [
-                        'fournisseurs' => $fournisseursUnique
-                    ]
-                );
+                $json = $this->renderView('article/optionFournisseurNewArticle.html.twig', [
+                    'fournisseurs' => $fournisseursUnique
+                ]);
             } else {
                 $json = false; //TODO gérer erreur retour
             }
@@ -816,14 +778,11 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/etiquettes", name="article_print_bar_codes", options={"expose"=true}, methods={"GET"})
-
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param PDFGeneratorService $PDFGeneratorService
      * @param ArticleDataService $articleDataService
-
      * @return Response
-
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
@@ -838,7 +797,7 @@ class ArticleController extends AbstractController
             function (Article $article) use ($articleDataService) {
                 return $articleDataService->getBarcodeConfig($article);
             },
-            $articleRepository->findByIds($listArticles)
+            $articleRepository->findBy(['id' => $listArticles])
         );
         $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
 

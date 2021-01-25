@@ -7,9 +7,9 @@ use App\Entity\Action;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\LatePack;
 use App\Entity\Menu;
 use App\Entity\Nature;
-use App\Repository\LatePackRepository;
 use App\Service\EnCoursService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -102,10 +102,11 @@ class EnCoursController extends AbstractController
 
     /**
      * @Route("/statistiques/retard-api", name="api_retard", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @param LatePackRepository $latePackRepository
+     * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      */
-    public function apiForRetard(LatePackRepository $latePackRepository): Response {
+    public function apiForRetard(EntityManagerInterface $entityManager): Response {
+        $latePackRepository = $entityManager->getRepository(LatePack::class);
         $retards = $latePackRepository->findAllForDatatable();
         return new JsonResponse([
             'data' => $retards

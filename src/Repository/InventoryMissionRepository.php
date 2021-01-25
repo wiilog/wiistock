@@ -8,12 +8,11 @@ use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
 use DateTime;
 use DateTimeInterface;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 
 /**
@@ -22,17 +21,12 @@ use Exception;
  * @method InventoryMission[]    findAll()
  * @method InventoryMission[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class InventoryMissionRepository extends ServiceEntityRepository
+class InventoryMissionRepository extends EntityRepository
 {
 	const DtToDbLabels = [
 		'StartDate' => 'startPrevDate',
 		'EndDate' => 'endPrevDate',
 	];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, InventoryMission::class);
-    }
 
     /**
      * @return int|mixed|string

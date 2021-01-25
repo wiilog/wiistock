@@ -10,8 +10,7 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInterface
-{
+class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInterface {
 
     private $encoder;
     private $specificService;
@@ -26,7 +25,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'subtitle' => 'Litige',
                 'delay' => 20634860
             ],
-            'category' => Dashboard\ComponentType::STOCK,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::ONGOING_PACKS,
             'meterKey' => Dashboard\ComponentType::ONGOING_PACKS
         ],
@@ -43,7 +42,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     '10' => 7,
                 ],
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
         ],
@@ -55,7 +54,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ['pack' => 'COLIS2', 'date' => '06/08/2020 20:57:89', 'delay' => '10000', 'location' => "EMP2"],
                 ],
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::LATE_PACKS,
         ],
@@ -94,7 +93,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ]
                 ]
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
             'template' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
         ],
@@ -107,7 +106,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     'TRANS3',
                 ]
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::CARRIER_TRACKING,
             'meterKey' => Dashboard\ComponentType::CARRIER_TRACKING,
         ],
@@ -124,7 +123,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     '10' => 13
                 ]
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::RECEIPT_ASSOCIATION,
         ],
@@ -161,12 +160,12 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ]
                 ]
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
             'meterKey' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
         ],
         'Colis à traiter en provenance' => [
-            'hint' => 'A définir',
+            'hint' => 'Nombre de colis à traiter en fonction des emplacements d\'origine et de destination paramétrés',
             'exampleValues' => [
                 'chartColors' => [
                     'Legende1' => '#a3d1ff',
@@ -203,7 +202,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ]
                 ],
             ],
-            'category' => Dashboard\ComponentType::ORDERS,
+            'category' => Dashboard\ComponentType::CATEGORY_ORDERS,
             'meterKey' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
             'template' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
         ],
@@ -220,12 +219,55 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     '10/01' => 3,
                 ],
             ],
-            'category' => Dashboard\ComponentType::TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS,
             'meterKey' => Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS,
         ],
+        'Demandes en cours' => [
+            'hint' => "Liste des demandes de l'entité sélectionnée en cours",
+            'exampleValues' => [
+                'requests' => [
+                    [
+                        'estimatedFinishTime' => '16:54',
+                        'estimatedFinishTimeLabel' => 'Heure de livraison estimée',
+                        'requestStatus' => 'À traiter',
+                        'requestBodyTitle' => '0 article - LIV - BCO',
+                        'requestLocation' => 'MAG 0003 - EXPEDITION',
+                        'requestNumber' => 'DL21010005',
+                        'requestDate' => '18 Janv. (12h01)',
+                        'requestUser' => 'mbenoukaiss',
+                        'cardColor' => 'white',
+                        'bodyColor' => 'lightGrey',
+                        'topRightIcon' => 'livreur.svg',
+                        'progress' => 0,
+                        'progressBarColor' => '#2ec2ab',
+                        'emergencyText' => '',
+                        'progressBarBGColor' => 'lightGrey',
+                    ], [
+                        'estimatedFinishTime' => 'Non estimée',
+                        'estimatedFinishTimeLabel' => 'Date de livraison non estimée',
+                        'requestStatus' => 'Brouillon',
+                        'requestBodyTitle' => '1 article - standard',
+                        'requestLocation' => 'MAG 0003 - EXPEDITION',
+                        'requestNumber' => 'DL21010001',
+                        'requestDate' => '07 Janv. (12h55)',
+                        'requestUser' => 'mbenoukaiss',
+                        'cardColor' => 'lightGrey',
+                        'bodyColor' => 'white',
+                        'topRightIcon' => 'livreur.svg',
+                        'progress' => 0,
+                        'progressBarColor' => '#2ec2ab',
+                        'emergencyText' => '',
+                        'progressBarBGColor' => 'white',
+                    ],
+                ]
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
+            'template' => Dashboard\ComponentType::PENDING_REQUESTS,
+            'meterKey' => Dashboard\ComponentType::PENDING_REQUESTS,
+        ],
         'Entrées à effectuer' => [
-            'hint' => 'Nombre de colis par natures paramétrées présents sur la durée paramétrée sur l\'ensemble des emplacements paramétrés',
+            'hint' => "Nombre de colis par natures paramétrées présents sur la durée paramétrée sur l'ensemble des emplacements paramétrés",
             'exampleValues' => [
                 'count' => 72,
                 'segments' => ['4', '8', '12', '16'],
@@ -273,22 +315,137 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ],
                 ],
             ],
-            'category' => Dashboard\ComponentType::ORDERS,
+            'category' => Dashboard\ComponentType::CATEGORY_ORDERS,
             'template' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
             'meterKey' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
         ],
+        'Arrivages urgents à recevoir' => [
+            'hint' => 'Nombre d\'urgences sur arrivage encore non réceptionnées',
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE,
+            'exampleValues' => [
+                'count' => 7
+            ],
+        ],
+        'Arrivages urgents du jour' => [
+            'hint' => 'Nombre d\'urgences sur arrivage devant être réceptionnées dans la journée',
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES,
+            'exampleValues' => [
+                'count' => 3
+            ],
+        ],
+        'Fiabilité monétaire (graphique)' => [
+            'hint' => 'Somme des quantités corrigées suite à un inventaire',
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY_GRAPH,
+            'exampleValues' => [
+                'chartData' => [
+                    'Août' => 243,
+                    'Septembre' => 145,
+                    'Octobre' => 312,
+                    'Novembre' => -177,
+                    'Décembre' => -67,
+                    'Janvier' => 198
+                ]
+            ],
+        ],
+        'Alertes de stock' => [
+            'hint' => 'Nombre d\'alertes de péremption, seuil de sécurité et alerte en cours',
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS,
+            'exampleValues' => [
+                'count' => 11
+            ],
+        ],
+        'Nombre de services quotidiens' => [
+            'hint' => 'Nombre de services ayant leur date attendue sur les jours présentés',
+            'exampleValues' => [
+                'chartData' => [
+                    '04/01' => 6,
+                    '05/01' => 8,
+                    '06/01' => 4,
+                    '07/01' => 5,
+                    '08/01' => 1,
+                    '09/01' => 3,
+                    '10/01' => 2,
+                ],
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
+            'template' => Dashboard\ComponentType::DAILY_HANDLING,
+            'meterKey' => Dashboard\ComponentType::DAILY_HANDLING,
+        ],
+        'Fiabilité monétaire (indicateur)' => [
+            'hint' => 'Quantité corrigée sur une référence ou article * prix unitaire de la référence ou référence liée',
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR,
+            'exampleValues' => [
+                'count' => 84
+            ],
+        ],
+        'Nombre d\'acheminements quotidiens' => [
+            'hint' => 'Nombre d\'acheminements ayant leurs dates d\'échéances sur les jours présentés',
+            'exampleValues' => [
+                'chartData' => [
+                    '04/01' => 2,
+                    '05/01' => 6,
+                    '06/01' => 4,
+                    '07/01' => 0,
+                    '08/01' => 10,
+                    '09/01' => 8,
+                    '10/01' => 5,
+                ],
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
+            'template' => Dashboard\ComponentType::DAILY_DISPATCHES,
+            'meterKey' => Dashboard\ComponentType::DAILY_DISPATCHES,
+        ],
+        'Fiabilité par référence' => [
+            'hint' => 'Nombre de mouvements de correction d’inventaire / le nombre d’articles de référence ou articles du stock',
+            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'template' => null,
+            'meterKey' => Dashboard\ComponentType::REFERENCE_RELIABILITY,
+            'exampleValues' => [
+                'count' => 25
+            ]
+        ],
+        'Demandes à traiter' => [
+            'hint' => 'Nombre de demandes pour l\'entité, le(s) type(s) et statut(s) sélectionnés',
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
+            'template' => 'entities_to_treat',
+            'meterKey' => Dashboard\ComponentType::REQUESTS_TO_TREAT,
+            'exampleValues' => [
+                'title' => 'Services à traiter',
+                'count' => 5,
+                'delay' => 51025698
+            ]
+        ],
+        'Ordres à traiter' => [
+            'hint' => 'Nombre d\'ordres pour l\'entité, le(s) type(s) et statut(s) sélectionnés',
+            'category' => Dashboard\ComponentType::CATEGORY_ORDERS,
+            'template' => 'entities_to_treat',
+            'meterKey' => Dashboard\ComponentType::ORDERS_TO_TREAT,
+            'exampleValues' => [
+                'title' => 'Ordre de collecte à traiter',
+                'count' => 3,
+                'delay' => 42622697
+            ]
+        ]
     ];
 
     public function __construct(UserPasswordEncoderInterface $encoder,
-                                SpecificService $specificService)
-    {
+                                SpecificService $specificService) {
         $this->encoder = $encoder;
         $this->specificService = $specificService;
         $this->output = new ConsoleOutput();
     }
 
-    public function load(ObjectManager $manager)
-    {
+    public function load(ObjectManager $manager) {
         $componentTypeRepository = $manager->getRepository(Dashboard\ComponentType::class);
         $alreadyExisting = $componentTypeRepository->findAll();
         $alreadyExistingName = [];
@@ -327,8 +484,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         $manager->flush();
     }
 
-    public static function getGroups(): array
-    {
+    public static function getGroups(): array {
         return ['fixtures'];
     }
 

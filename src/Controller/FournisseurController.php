@@ -9,7 +9,6 @@ use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
-use App\Repository\ReceptionRepository;
 use App\Service\UserService;
 use App\Service\FournisseurDataService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,11 +26,6 @@ class FournisseurController extends AbstractController
 {
 
     /**
-     * @var ReceptionRepository
-     */
-    private $receptionRepository;
-
-    /**
      * @var FournisseurDataService
      */
     private $fournisseurDataService;
@@ -42,11 +36,9 @@ class FournisseurController extends AbstractController
     private $userService;
 
     public function __construct(FournisseurDataService $fournisseurDataService,
-                                ReceptionRepository $receptionRepository,
                                 UserService $userService) {
         $this->fournisseurDataService = $fournisseurDataService;
         $this->userService = $userService;
-        $this->receptionRepository = $receptionRepository;
     }
 
     /**

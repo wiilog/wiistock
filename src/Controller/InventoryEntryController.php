@@ -4,22 +4,25 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\InventoryEntry;
 use App\Entity\Menu;
 
-use App\Repository\InventoryEntryRepository;
-
+use App\Service\CSVExportService;
 use App\Service\InventoryEntryService;
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 use App\Service\UserService;
+use Throwable;
 
 
 /**
@@ -32,22 +35,15 @@ class InventoryEntryController extends AbstractController
      */
     private $userService;
 
-    /**
-     * @var InventoryEntryRepository
-     */
-    private $inventoryEntryRepository;
-
 	/**
 	 * @var InventoryEntryService
 	 */
     private $inventoryEntryService;
 
     public function __construct(InventoryEntryService $inventoryEntryService,
-                                UserService $userService,
-                                InventoryEntryRepository $inventoryEntryRepository)
+                                UserService $userService)
     {
         $this->userService = $userService;
-        $this->inventoryEntryRepository = $inventoryEntryRepository;
         $this->inventoryEntryService = $inventoryEntryService;
     }
 
@@ -86,65 +82,52 @@ class InventoryEntryController extends AbstractController
 	}
 
     /**
-     * @Route("/saisies-infos", name="get_entries_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_inventory_entries_csv", options={"expose"=true}, methods={"GET"})
+     * @param Request $request
+     * @param InventoryEntryService $inventoryEntryService
+     * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $CSVExportService
+     * @return Response
      */
-    public function getEntriesIntels(Request $request): Response
+    public function getInventoryEntriesCSV(Request $request,
+                                           InventoryEntryService $inventoryEntryService,
+                                           EntityManagerInterface $entityManager,
+                                           CSVExportService $CSVExportService): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$dateMin = $data['dateMin'] . ' 00:00:00';
-			$dateMax = $data['dateMax'] . ' 23:59:59';
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
 
-			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (Throwable $throwable) {
+        }
+        $headers = [
+            'Libellé',
+            'Référence',
+            'Code barre',
+            'Opérateur',
+            'Emplacement',
+            'Date de saisie',
+            'Quantité'
+        ];
 
-            $entries = $this->inventoryEntryRepository->findByDates($dateTimeMin, $dateTimeMax);
+        if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
+            $entriesRepository = $entityManager->getRepository(InventoryEntry::class);
+            $entries = $entriesRepository->findByDates($dateTimeMin, $dateTimeMax);
 
-            $headers = [];
-            $headers = array_merge($headers, [
-                'Libellé',
-                'Référence',
-                'Code barre',
-                'Opérateur',
-                'Emplacement',
-                'Date de saisie',
-                'Quantité'
-            ]);
-
-            $data = [];
-            $data[] = $headers;
-
-            foreach ($entries as $entry) {
-                $article = $entry->getArticle();
-                $referenceArticle = $entry->getRefArticle();
-
-                if (!empty($referenceArticle)) {
-                    $articleLabel = $referenceArticle->getLibelle();
-                    $reference = $referenceArticle->getReference();
-                    $barCode = $referenceArticle->getBarCode();
-                }
-                else if (!empty($article)) {
-                    $articleLabel = $article->getLabel();
-                    $articleFournisseur = $article->getArticleFournisseur();
-                    $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
-                    $reference = $referenceArticle ? $referenceArticle->getReference() : '';
-                    $barCode = $article->getBarCode();
-                }
-
-                $entryData = [];
-                $entryData[] = $articleLabel ?? '';
-                $entryData[] = $reference ?? '';
-                $entryData[] = $barCode ?? '';
-                $entryData[] = $entry->getOperator() ? $entry->getOperator()->getUsername() : '';
-                $entryData[] = $entry->getLocation() ? $entry->getLocation()->getLabel() : '';
-                $entryData[] = $entry->getDate() ? $entry->getDate()->format('d/m/Y') : '';
-                $entryData[] = $entry->getQuantity();
-
-                $data[] = $entryData;
-            }
-
-            return new JsonResponse($data);
+            return $CSVExportService->streamResponse(
+                function ($output) use ($entries, $CSVExportService, $inventoryEntryService) {
+                    foreach ($entries as $entry) {
+                        $inventoryEntryService->putEntryLine($entry, $output);
+                    }
+                },
+                'Export_Saisies_Inventaire.csv',
+                $headers
+            );
         } else {
-            throw new BadRequestHttpException();
+            throw new NotFoundHttpException('404');
         }
     }
+
 }

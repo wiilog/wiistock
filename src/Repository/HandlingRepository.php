@@ -223,22 +223,22 @@ class HandlingRepository extends EntityRepository
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
 					$qb
-                        ->leftJoin('handling.type', 'search_type')
-                        ->leftJoin('handling.requester', 'search_requester')
-                        ->leftJoin('handling.status', 'search_status')
-                        ->leftJoin('handling.treatedByHandling', 'search_treatedBy')
-						->andWhere('(
+                        ->leftJoin("handling.type", 'search_type')
+                        ->leftJoin("handling.requester", 'search_requester')
+                        ->leftJoin("handling.status", 'search_status')
+                        ->leftJoin("handling.treatedByHandling", 'search_treatedBy')
+						->andWhere("(
                             handling.number LIKE :search_value
-                            OR handling.creationDate LIKE :search_value
+                            OR DATE_FORMAT(handling.creationDate, '%d/%m/%Y') LIKE :search_value
                             OR search_type.label LIKE :search_value
                             OR search_requester.username LIKE :search_value
                             OR handling.subject LIKE :search_value
-                            OR handling.desiredDate LIKE :search_value
-                            OR handling.validationDate LIKE :search_value
+                            OR DATE_FORMAT(handling.desiredDate, '%d/%m/%Y') LIKE :search_value
+                            OR DATE_FORMAT(handling.validationDate, '%d/%m/%Y') LIKE :search_value
                             OR search_status.nom LIKE :search_value
                             OR search_treatedBy.username LIKE :search_value
                             OR handling.carriedOutOperationCount LIKE :search_value
-						)')
+						)")
 						->setParameter('search_value', '%' . $search . '%');
 				}
 			}
@@ -296,14 +296,18 @@ class HandlingRepository extends EntityRepository
         ];
     }
 
-    public function findRequestToTreatByUser(Utilisateur $requester, int $limit) {
-        return $this->createQueryBuilder("h")
-            ->select("h")
+    public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
+        $qb = $this->createQueryBuilder("h");
+
+        if($requester) {
+            $qb->andWhere("h.requester = :requester")
+                ->setParameter("requester", $requester);
+        }
+
+        return $qb->select("h")
             ->innerJoin("h.status", "s")
             ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = h.type')
-            ->where("s.state = " . Statut::NOT_TREATED)
-            ->andWhere("h.requester = :requester")
-            ->setParameter("requester", $requester)
+            ->andWhere("s.state = " . Statut::NOT_TREATED)
             ->addOrderBy('s.state', 'ASC')
             ->addOrderBy("DATE_ADD(h.creationDate, art.average, 'second')", 'ASC')
             ->setMaxResults($limit)
@@ -311,22 +315,21 @@ class HandlingRepository extends EntityRepository
             ->getResult();
     }
 
-    public function getTreatingTimesWithType() {
-        $now = new DateTime();
+    public function getProcessingTime() {
+        $threeMonthsAgo = new DateTime("-3 month");
 
-        $datePrior3Months = clone $now;
-        $datePrior3Months->modify("-3 month");
-
-        return $this->createQueryBuilder("h")
-            ->select("t.id as typeId")
-            ->addSelect("h.creationDate AS validationDate")
-            ->addSelect("h.validationDate AS treatingDate")
-            ->join("h.type", "t")
-            ->join("h.status", "s")
-            ->where("s.state = " . Statut::TREATED)
-            ->andWhere("h.creationDate BETWEEN :prior AND :now")
-            ->setParameter("prior", $datePrior3Months)
-            ->setParameter("now", $now)
+        return $this->createQueryBuilder("handling")
+            ->select("handling_type.id AS type")
+            ->addSelect("SUM(UNIX_TIMESTAMP(handling.validationDate) - UNIX_TIMESTAMP(handling.creationDate)) AS total")
+            ->addSelect("COUNT(handling) AS count")
+            ->join("handling.type", "handling_type")
+            ->join("handling.status", "status")
+            ->where("status.state = :treated")
+            ->andWhere("handling.creationDate >= :from")
+            ->andWhere("handling.validationDate IS NOT NULL")
+            ->groupBy("handling.type")
+            ->setParameter("from", $threeMonthsAgo)
+            ->setParameter("treated", Statut::TREATED)
             ->getQuery()
             ->getArrayResult();
     }
@@ -340,5 +343,70 @@ class HandlingRepository extends EntityRepository
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;
+    }
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @param array $handlingStatusesFilter
+     * @param array $handlingTypesFilter
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByDates(DateTime $dateMin,
+                                 DateTime $dateMax,
+                                 array $handlingStatusesFilter = [],
+                                 array $handlingTypesFilter = []): int
+    {
+        $qb = $this->createQueryBuilder('handling')
+            ->select('COUNT(handling)')
+            ->where('handling.desiredDate BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        if (!empty($handlingStatusesFilter)) {
+            $qb
+                ->andWhere('handling.status IN (:handlingStatuses)')
+                ->setParameter('handlingStatuses', $handlingStatusesFilter);
+        }
+
+        if (!empty($handlingTypesFilter)) {
+            $qb
+                ->andWhere('handling.type IN (:handlingTypes)')
+                ->setParameter('handlingTypes', $handlingTypesFilter);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($types) && !empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('handling')
+                ->select('handling.creationDate AS date')
+                ->innerJoin('handling.status', 'status')
+                ->innerJoin('handling.type', 'type')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->andWhere('status.state IN (:treatedStates)')
+                ->addOrderBy('handling.creationDate', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types)
+                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED])
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            return $res['date'] ?? null;
+        }
+        else {
+            return null;
+        }
     }
 }

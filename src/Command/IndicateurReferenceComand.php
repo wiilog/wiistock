@@ -8,7 +8,6 @@ use App\Entity\Article;
 use App\Entity\FiabilityByReference;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
-use App\Repository\FiabilityByReferenceRepository;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -17,23 +16,13 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class IndicateurReferenceComand extends Command
 {
-    /**
-     * @var entityManagerInterface
-     */
     private $entityManager;
 
-    /**
-     * @var fiabilityByReferenceRepository
-     */
-    private $fiabilityByReferenceRepository;
 
-
-    public function __construct(FiabilityByReferenceRepository $fiabilityByReferenceRepository,
-                                EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager)
     {
         parent::__construct();
         $this->entityManager = $entityManager;
-        $this->fiabilityByReferenceRepository = $fiabilityByReferenceRepository;
     }
 
     protected function configure()
@@ -74,5 +63,6 @@ class IndicateurReferenceComand extends Command
 
         $em->persist($fiabilityReference);
         $em->flush();
+        return 0;
     }
 }

@@ -43,6 +43,11 @@ class ReferenceArticleRepository extends EntityRepository {
         'comment' => 'commentaire',
     ];
 
+    private const FIELDS_TYPE_DATE = [
+        "dateLastInventory"
+    ];
+
+
     public function getIdAndLibelle() {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -466,19 +471,19 @@ class ReferenceArticleRepository extends EntityRepository {
                             }
                             break;
                         default:
-                            $freeFieldId = VisibleColumnService::extractFreeFieldId($searchField);
+                            $field = self::DtToDbLabels[$searchField] ?? $searchField;
+                            $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
                             if(is_numeric($freeFieldId)) {
                                 $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                 $qb->setParameter("search", $date ?: $search);
-                            } else if (property_exists(ReferenceArticle::class, $searchField)) {
-                                if ($date) {
-                                    $query[] = "ra.$searchField BETWEEN :dateMin AND :dateMax";
-                                    $qb->setParameters([
-                                        'dateMin' => $date . ' 00:00:00',
-                                        'dateMax' => $date . ' 23:59:59'
-                                    ]);
+                            } else if (property_exists(ReferenceArticle::class, $field)) {
+                                if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
+                                    $query[] = "ra.$field BETWEEN :dateMin AND :dateMax";
+                                    $qb
+                                        ->setParameter("dateMin", "$date 00:00:00")
+                                        ->setParameter("dateMax", "$date 23:59:59");
                                 } else {
-                                    $query[] = "ra.$searchField LIKE :search";
+                                    $query[] = "ra.$field LIKE :search";
                                     $qb->setParameter('search', $search);
                                 }
                             }

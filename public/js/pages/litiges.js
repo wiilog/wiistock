@@ -37,7 +37,7 @@ function initDatatableLitiges() {
     let tableLitigesConfig = {
         serverSide: true,
         processing: true,
-        order: [12, 'desc'],
+        order: [['creationDate', 'desc']],
         ajax: {
             "url": pathLitiges,
             "type": "POST",
@@ -52,7 +52,7 @@ function initDatatableLitiges() {
             {"data": 'disputeNumber', 'name': 'disputeNumber', 'title': 'Numéro du litige'},
             {"data": "arrivalNumber", 'name': "arrivalNumber", 'title': 'arrivage.n° d\'arrivage', translated: true, className: 'noVis'},
             {"data": 'receptionNumber', 'name': "receptionNumber", 'title': 'réception.n° de réception', translated: true, className: 'noVis'},
-            {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteur'},
+            {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteur', 'orderable': false},
             {"data": 'declarant', 'name': 'declarant', 'title': 'Déclarant'},
             {"data": 'numCommandeBl', 'name': 'numCommandeBl', 'title': 'N° commande / BL'},
             {"data": 'command', 'name': 'command', 'title': 'N° ligne', 'orderable': false},

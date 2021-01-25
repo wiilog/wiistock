@@ -2,9 +2,12 @@
 
 namespace App\Service;
 
+use App\Entity\Arrivage;
+use App\Entity\Article;
 use App\Entity\FiltreSup;
 use App\Entity\Litige;
 use App\Entity\Utilisateur;
+use App\Repository\LitigeRepository;
 use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -20,6 +23,8 @@ class LitigeService
 
     public const CATEGORY_ARRIVAGE = 'un arrivage';
     public const CATEGORY_RECEPTION = 'une réception';
+    public const PUT_LINE_ARRIVAL = 'arrival';
+    public const PUT_LINE_RECEPTION = 'reception';
 
     /**
      * @var Twig_Environment
@@ -42,6 +47,7 @@ class LitigeService
     private $translator;
     private $mailerService;
     private $visibleColumnService;
+    private $CSVExportService;
 
     public function __construct(UserService $userService,
                                 RouterInterface $router,
@@ -49,6 +55,7 @@ class LitigeService
                                 Twig_Environment $templating,
                                 TranslatorInterface $translator,
                                 MailerService $mailerService,
+                                CSVExportService $CSVExportService,
                                 VisibleColumnService $visibleColumnService,
                                 Security $security)
     {
@@ -60,6 +67,7 @@ class LitigeService
         $this->security = $security;
         $this->mailerService = $mailerService;
         $this->visibleColumnService = $visibleColumnService;
+        $this->CSVExportService = $CSVExportService;
     }
 
     /**
@@ -228,5 +236,99 @@ class LitigeService
             [],
             $columnsVisible
         );
+    }
+
+    public function putDisputeLine(string $mode,
+                                   $handle,
+                                   LitigeRepository $litigeRepository,
+                                   Litige $dispute) {
+
+        if (!in_array($mode, [self::PUT_LINE_ARRIVAL, self::PUT_LINE_RECEPTION])) {
+            throw new \InvalidArgumentException('Invalid mode');
+        }
+
+        if ($mode === self::PUT_LINE_ARRIVAL) {
+            $colis = $dispute->getPacks();
+            foreach ($colis as $coli) {
+                $colis = $dispute->getPacks();
+                /** @var Arrivage $arrivage */
+                $arrivage = ($colis->count() > 0 && $colis->first()->getArrivage())
+                    ? $colis->first()->getArrivage()
+                    : null;
+                $acheteurs = $arrivage->getAcheteurs()->toArray();
+                $buyersMailsStr = implode('/', array_map(function (Utilisateur $acheteur) {
+                    return $acheteur->getEmail();
+                }, $acheteurs));
+
+                $row = $dispute->serialize();
+
+                $row[] = $coli->getCode();
+                $row[] = ' ';
+                $row[] = '';
+
+                $row[] = $arrivage ? $arrivage->getNumeroArrivage() : '';
+
+                $numeroCommandeList = $arrivage ? $arrivage->getNumeroCommandeList() : [];
+                $row[] = implode(' / ', $numeroCommandeList); // N° de commandes
+                $declarant = $dispute->getDeclarant() ? $dispute->getDeclarant()->getUsername() : '';
+                $row[] = $declarant;
+                $fournisseur = $arrivage ? $arrivage->getFournisseur() : null;
+                $row[] = $fournisseur ? $fournisseur->getNom() : '';
+                $row[] = ''; // N° de ligne
+                $row[] = $buyersMailsStr;
+                $litigeHistorics = $dispute->getLitigeHistorics();
+                if (!$litigeHistorics->isEmpty()) {
+                    $historic = $litigeHistorics->last();
+                    $row[] = $historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '';
+                    $row[] = $historic->getUser() ? $historic->getUser()->getUsername() : '';
+                    $row[] = $historic->getComment();
+                }
+                $this->CSVExportService->putLine($handle, $row);
+            }
+        }
+        else if ($mode === self::PUT_LINE_RECEPTION) {
+            $articles = $dispute->getArticles();
+            foreach ($articles as $article) {
+                $buyers = $dispute->getBuyers()->toArray();
+                $buyersMailsStr = implode('/', array_map(function (Utilisateur $acheteur) {
+                    return $acheteur->getEmail();
+                }, $buyers));
+
+                $row = $dispute->serialize();
+
+                $referencesStr = implode(', ', $litigeRepository->getReferencesByLitigeId($dispute->getId()));
+
+                $row[] = $referencesStr;
+
+                /** @var Article $firstArticle */
+                $firstArticle = ($articles->count() > 0 ? $articles->first() : null);
+                $qteArticle = $article->getQuantite();
+                $receptionRefArticle = isset($firstArticle) ? $firstArticle->getReceptionReferenceArticle() : null;
+                $reception = isset($receptionRefArticle) ? $receptionRefArticle->getReception() : null;
+                $row[] = $article->getBarCode();
+                $row[] = $qteArticle;
+                $row[] = (isset($reception) ? $reception->getNumeroReception() : '');
+
+                $row[] = (isset($reception) ? $reception->getOrderNumber() : null);
+
+                $declarant = $dispute->getDeclarant() ? $dispute->getDeclarant()->getUsername() : '';
+                $row[] = $declarant;
+                $fournisseur = (isset($reception) ? $reception->getFournisseur() : null);
+                $row[] = isset($fournisseur) ? $fournisseur->getNom() : '';
+
+                $row[] = implode(', ', $litigeRepository->getCommandesByLitigeId($dispute->getId()));
+
+                $litigeHistorics = $dispute->getLitigeHistorics();
+
+                $row[] = $buyersMailsStr;
+                if (!$litigeHistorics->isEmpty()) {
+                    $historic = $litigeHistorics->last();
+                    $row[] = ($historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '');
+                    $row[] = $historic->getUser() ? $historic->getUser()->getUsername() : '';
+                    $row[] = $historic->getComment();
+                }
+                $this->CSVExportService->putLine($handle, $row);
+            }
+        }
     }
 }

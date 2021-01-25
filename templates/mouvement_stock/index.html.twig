@@ -13,7 +13,7 @@
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 <div class="btn-group">
-                    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
+                    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
                         <button type="button"
                                 data-toggle="modal"
                                 data-target="#modalNewMvtStock"
@@ -34,7 +34,7 @@
                         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                             <button type="button"
                                     class="dropdown-item pointer"
-                                    onclick="generateCSV('get_mouvements_stock_for_csv', 'mvts-stock')">
+                                    onclick="saveExportFile('get_stock_movements_csv')">
                                 <span class="fa fa-file-csv mr-2"></span>
                                 Exporter au format CSV
                             </button>

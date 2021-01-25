@@ -93,5 +93,6 @@ class MailsLitigesComand extends Command
 
         $output->writeln($nbMails . ' mails ont été envoyés');
         $this->logger->info('ENVOI DE ' . $nbMails . ' MAILS RECAP LITIGES : ' . $listEmails);
+        return 0;
     }
 }

@@ -5,19 +5,15 @@ namespace App\DataFixtures;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Role;
-use App\Repository\MenuRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
 
 class PatchNewMenusFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
-    private $menuRepository;
-
-    public function __construct(MenuRepository $menuRepository)
-    {
-        $this->menuRepository = $menuRepository;
+    public function __construct(EntityManagerInterface $entityManager) {
     }
 
     public function load(ObjectManager $manager)
@@ -50,7 +46,7 @@ class PatchNewMenusFixtures extends Fixture implements DependentFixtureInterface
 			'Service/créer' => [Menu::DEM => [Action::CREATE]],
 			'Service/modifier+supprimer' => [Menu::DEM => [Action::EDIT, Action::DELETE]],
 			'Service/exporter' => [Menu::DEM => [Action::EXPORT]],
-			'Paramétrage/oui' => [Menu::PARAM => [Action::DISPLAY_GLOB, Action::DISPLAY_CL, Action::DISPLAY_STATU_LITI, Action::DISPLAY_ROLE, Action::DISPLAY_EXPO, Action::DISPLAY_NATU_COLI, Action::DISPLAY_UTIL, Action::DISPLAY_TYPE, Action::DISPLAY_CF, Action::DISPLAY_INVE, Action::EDIT, Action::DELETE]],
+			'Paramétrage/oui' => [Menu::PARAM => [Action::DISPLAY_GLOB, Action::DISPLAY_STATU_LITI, Action::DISPLAY_ROLE, Action::DISPLAY_EXPO, Action::DISPLAY_NATU_COLI, Action::DISPLAY_UTIL, Action::DISPLAY_TYPE, Action::DISPLAY_CF, Action::DISPLAY_INVE, Action::EDIT, Action::DELETE]],
 			'Stock/lister' => [Menu::STOCK => [Action::DISPLAY_ARTI, Action::DISPLAY_REFE, Action::DISPLAY_ARTI_FOUR, Action::DISPLAY_MOUV_STOC, Action::DISPLAY_INVE, Action::DISPLAY_ALER]],
 			'Stock/créer+modifier' => [Menu::STOCK => [Action::CREATE, Action::EDIT]],
 			'Stock/supprimer' => [Menu::STOCK => [Action::DELETE]],

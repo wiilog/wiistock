@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Helper\FormatHelper;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -157,6 +158,16 @@ class InventoryEntry
         $this->anomaly = $anomaly;
 
         return $this;
+    }
+
+    public function serialize()
+    {
+        return [
+            'operator' => FormatHelper::user($this->getOperator()),
+            'location' => FormatHelper::location($this->getLocation()),
+            'date' => FormatHelper::date($this->getDate()),
+            'quantity' => $this->getQuantity()
+        ];
     }
 
 }

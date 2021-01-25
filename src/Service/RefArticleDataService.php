@@ -24,10 +24,10 @@ use App\Entity\ArticleFournisseur;
 use App\Helper\FormatHelper;
 use App\Helper\Stream;
 use App\Repository\FiltreRefRepository;
-use App\Repository\InventoryFrequencyRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use RuntimeException;
 use Twig\Environment as Twig_Environment;
 use Exception;
@@ -87,11 +87,6 @@ class RefArticleDataService {
      */
     private $user;
 
-    /**
-     * @var InventoryFrequencyRepository
-     */
-    private $inventoryFrequencyRepository;
-
     private $entityManager;
 
     /**
@@ -111,7 +106,6 @@ class RefArticleDataService {
                                 VisibleColumnService $visibleColumnService,
                                 TokenStorageInterface $tokenStorage,
                                 ArticleFournisseurService $articleFournisseurService,
-                                InventoryFrequencyRepository $inventoryFrequencyRepository,
                                 AlertService $alertService) {
         $this->filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
         $this->freeFieldService = $champLibreService;
@@ -120,7 +114,6 @@ class RefArticleDataService {
         $this->entityManager = $entityManager;
         $this->userService = $userService;
         $this->router = $router;
-        $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->articleFournisseurService = $articleFournisseurService;
         $this->alertService = $alertService;
         $this->visibleColumnService = $visibleColumnService;
@@ -638,21 +631,29 @@ class RefArticleDataService {
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param ReferenceArticle $referenceArticle
      * @param bool $fromCommand
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function updateRefArticleQuantities(ReferenceArticle $referenceArticle, bool $fromCommand = false) {
-        $this->updateStockQuantity($referenceArticle);
-        $this->updateReservedQuantity($referenceArticle, $fromCommand);
+    public function updateRefArticleQuantities(EntityManagerInterface $entityManager,
+                                               ReferenceArticle $referenceArticle,
+                                               bool $fromCommand = false) {
+        $this->updateStockQuantity($entityManager, $referenceArticle);
+        $this->updateReservedQuantity($entityManager, $referenceArticle, $fromCommand);
         $referenceArticle->setQuantiteDisponible($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param ReferenceArticle $referenceArticle
      * @return void
+     * @throws NonUniqueResultException
+     * @throws NoResultException
      */
-    private function updateStockQuantity(ReferenceArticle $referenceArticle): void {
-        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+    private function updateStockQuantity(EntityManagerInterface $entityManager, ReferenceArticle $referenceArticle): void {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
         if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $referenceArticle->setQuantiteStock($referenceArticleRepository->getStockQuantity($referenceArticle));
@@ -660,12 +661,17 @@ class RefArticleDataService {
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param ReferenceArticle $referenceArticle
      * @param bool $fromCommand
      * @return void
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    private function updateReservedQuantity(ReferenceArticle $referenceArticle, bool $fromCommand = false): void {
-        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+    private function updateReservedQuantity(EntityManagerInterface $entityManager,
+                                            ReferenceArticle $referenceArticle,
+                                            bool $fromCommand = false): void {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
         if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $referenceArticle->setQuantiteReservee($referenceArticleRepository->getReservedQuantity($referenceArticle));
@@ -697,17 +703,18 @@ class RefArticleDataService {
     /**
      * Create or delete security and limit alerts.
      *
+     * @param EntityManagerInterface $entityManager
      * @param ReferenceArticle $reference
-     * @throws Exception
+     * @throws NonUniqueResultException
      */
-    public function treatAlert(ReferenceArticle $reference): void {
+    public function treatAlert(EntityManagerInterface $entityManager, ReferenceArticle $reference): void {
         if($reference->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF) {
             foreach($reference->getAlerts() as $alert) {
-                $this->entityManager->remove($alert);
+                $entityManager->remove($alert);
             }
         } else {
             $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
-            $ar = $this->entityManager->getRepository(Alert::class);
+            $alertRepository = $entityManager->getRepository(Alert::class);
 
             if($reference->getLimitSecurity() !== null && $reference->getLimitSecurity() >= $reference->getQuantiteDisponible()) {
                 $type = Alert::SECURITY;
@@ -715,12 +722,12 @@ class RefArticleDataService {
                 $type = Alert::WARNING;
             }
 
-            $existing = $ar->findForReference($reference, [Alert::SECURITY, Alert::WARNING]);
+            $existing = $alertRepository->findForReference($reference, [Alert::SECURITY, Alert::WARNING]);
 
             //more than 1 security/warning alert is an invalid state -> reset
             if(count($existing) > 1) {
                 foreach($existing as $remove) {
-                    $this->entityManager->remove($remove);
+                    $entityManager->remove($remove);
                 }
 
                 $existing = null;
@@ -729,7 +736,7 @@ class RefArticleDataService {
             }
 
             if($existing && (!isset($type) || $this->isDifferentThresholdType($existing, $type))) {
-                $this->entityManager->remove($existing);
+                $entityManager->remove($existing);
                 $existing = null;
             }
 
@@ -739,9 +746,9 @@ class RefArticleDataService {
                 $alert->setType($type);
                 $alert->setDate($now);
 
-                $this->entityManager->persist($alert);
+                $entityManager->persist($alert);
 
-                $this->alertService->sendThresholdMails($reference, $this->entityManager);
+                $this->alertService->sendThresholdMails($reference, $entityManager);
             }
         }
     }

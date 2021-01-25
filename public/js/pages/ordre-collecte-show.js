@@ -6,7 +6,7 @@ let tableArticleConfig = {
         'url': pathArticle,
         "type": "POST"
     },
-    order: [1, 'asc'],
+    order: ['Référence', 'asc'],
     columns: [
         { "data": 'Actions', 'title': '', orderable: false, className: 'noVis' },
         { "data": 'Référence', 'title': 'Référence' },

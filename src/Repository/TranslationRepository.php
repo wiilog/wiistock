@@ -3,8 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Translation;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 
 /**
@@ -13,11 +12,8 @@ use Doctrine\ORM\NonUniqueResultException;
  * @method Translation[]    findAll()
  * @method Translation[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class TranslationRepository extends ServiceEntityRepository
+class TranslationRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry) {
-        parent::__construct($registry, Translation::class);
-    }
 
     public function countUpdatedRows(): int {
         return $this->createQueryBuilder("t")

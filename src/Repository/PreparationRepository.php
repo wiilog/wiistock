@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\FiltreSup;
 use App\Entity\Preparation;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
@@ -12,6 +13,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
+use Generator;
 
 /**
  * @method Preparation|null find($id, $lockMode = null, $lockVersion = null)
@@ -223,26 +225,28 @@ class PreparationRepository extends EntityRepository
 		];
 	}
 
-	/**
-	 * @param DateTime $dateMin
-	 * @param DateTime $dateMax
-	 * @return Preparation[]|null
-	 */
-	public function findByDates($dateMin, $dateMax)
-	{
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return Generator
+     */
+	public function iterateByDates($dateMin, $dateMax): Generator {
 		$dateMax = $dateMax->format('Y-m-d H:i:s');
 		$dateMin = $dateMin->format('Y-m-d H:i:s');
 
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			'SELECT p
-            FROM App\Entity\Preparation p
-            WHERE p.date BETWEEN :dateMin AND :dateMax'
-		)->setParameters([
-			'dateMin' => $dateMin,
-			'dateMax' => $dateMax
-		]);
-		return $query->execute();
+        $iterator = $this->createQueryBuilder('preparation')
+            ->where('preparation.date BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ])
+            ->getQuery()
+            ->iterate();
+
+        foreach($iterator as $item) {
+            // $item [index => preparation]
+            yield array_pop($item);
+        }
 	}
 
     public function getFirstDatePreparationGroupByDemande (array $demandes)
@@ -298,6 +302,67 @@ class PreparationRepository extends EntityRepository
             ->getResult();
 
 	    return !empty($result) ? ($result[0]['counter'] ?? 0) : 0;
+    }
+
+    /**
+     * @param array|null $types
+     * @param array|null $statuses
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByTypesAndStatuses(?array $types, ?array $statuses): ?int {
+        if (!empty($types) && !empty($statuses)) {
+            $qb = $this->createQueryBuilder('preparationOrder')
+                ->select('COUNT(preparationOrder)')
+                ->leftJoin('preparationOrder.statut', 'status')
+                ->leftJoin('preparationOrder.demande', 'request')
+                ->leftJoin('request.type', 'type')
+                ->where('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types);
+
+            return $qb
+                ->getQuery()
+                ->getSingleScalarResult();
+        }
+        else {
+            return [];
+        }
+    }
+
+    /**
+     * @param array $types
+     * @param array $statuses
+     * @return DateTime|null
+     * @throws NonUniqueResultException
+     */
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('preparation')
+                ->select('preparation.date AS date')
+                ->innerJoin('preparation.statut', 'status')
+                ->innerJoin('preparation.demande', 'request')
+                ->innerJoin('request.type', 'type')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->andWhere('status.state IN (:treatedStates)')
+                ->addOrderBy('preparation.date', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types)
+                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED])
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            return $res['date'] ?? null;
+        }
+        else {
+            return null;
+        }
     }
 
 }

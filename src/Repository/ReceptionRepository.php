@@ -6,10 +6,9 @@ use App\Entity\Reception;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Reception|null find($id, $lockMode = null, $lockVersion = null)
@@ -17,7 +16,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Reception[]    findAll()
  * @method Reception[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ReceptionRepository extends ServiceEntityRepository
+class ReceptionRepository extends EntityRepository
 {
 
     private const DtToDbLabels = [
@@ -31,11 +30,6 @@ class ReceptionRepository extends ServiceEntityRepository
         'urgence' => 'emergencyTriggered',
         'dateAttendue' =>'dateAttendue'
     ];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Reception::class);
-    }
 
 	public function countByFournisseur($fournisseurId)
 	{
@@ -232,6 +226,7 @@ class ReceptionRepository extends ServiceEntityRepository
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
+
             if (!empty($params->get('order')))
             {
                 foreach ($params->get('order') as $sort) {

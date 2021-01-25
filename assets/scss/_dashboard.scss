@@ -127,6 +127,10 @@ $minimumWidth: 1300px;
         padding: 0;
         color: $blackDashboard;
 
+        @media all and (max-width: $minimumWidth) {
+            font-size: 0.9rem;
+        }
+
         .dashboard-ext & {
             font-weight: bold;
         }
@@ -279,7 +283,11 @@ $minimumWidth: 1300px;
             justify-content: center;
             align-items: center;
             width: 100%;
-            height: 50px;
+            height: 70px;
         }
     }
+}
+
+.select2-container--default .select2-results__option[aria-disabled=true] {
+    display: none;
 }

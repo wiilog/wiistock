@@ -68,7 +68,22 @@ jQuery.deepCopy = function(object) {
     return object !== undefined ? JSON.parse(JSON.stringify(object)) : object;
 };
 
+jQuery.capitalize = function(string) {
+    if (typeof string !== `string`) return ``;
+    return string.charAt(0).toUpperCase() + string.slice(1);
+};
+
 $(document).ready(() => {
+    //logout after session has expired
+    setInterval(() => {
+        $.get(Routing.generate(`check_login`), function(response) {
+            if(!response.loggedIn) {
+                window.location.reload();
+            }
+        })
+    }, 30 * 60 * 1000 + 30 * 1000); //every 30 minutes and 30 seconds
+
+    //custom datetimepickers for firefox
     if (!BrowserSupport.input("datetime-local")) {
         const observer = new MutationObserver(function () {
             for (const input of $('input[type=datetime-local]')) {
@@ -98,4 +113,3 @@ $(document).ready(() => {
         });
     }
 });
-

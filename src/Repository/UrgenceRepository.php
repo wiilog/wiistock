@@ -11,6 +11,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Exception;
 
 /**
  * @method Urgence|null find($id, $lockMode = null, $lockVersion = null)
@@ -126,10 +127,11 @@ class UrgenceRepository extends EntityRepository
     }
 
     /**
+     * @param bool $daily
      * @return mixed
      * @throws NoResultException
      * @throws NonUniqueResultException
-     * @throws \Exception
+     * @throws Exception
      */
     public function countUnsolved(bool $daily = false)
     {
@@ -138,6 +140,7 @@ class UrgenceRepository extends EntityRepository
             ->where('urgence.dateStart < :now')
             ->andWhere('urgence.lastArrival IS NULL')
             ->setParameter('now', new DateTime('now', new DateTimeZone('Europe/Paris')));
+
         if ($daily) {
             $todayEvening = new DateTime('now', new DateTimeZone('Europe/Paris'));
             $todayEvening->setTime(23, 59, 59, 59);
@@ -149,6 +152,7 @@ class UrgenceRepository extends EntityRepository
                 ->setParameter('todayEvening', $todayEvening)
                 ->setParameter('todayMorning', $todayMorning);
         }
+
         return $queryBuilder
             ->getQuery()
             ->getSingleScalarResult();
@@ -256,22 +260,25 @@ class UrgenceRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @return Urgence[]|null
      */
-    public function findByDates($dateMin, $dateMax)
+    public function iterateByDates($dateMin, $dateMax)
     {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
-        $qb = $this->createQueryBuilder('u')
+        $iterator = $this->createQueryBuilder('u')
             ->where('u.dateEnd >= :dateMin')
             ->andWhere('u.dateStart <= :dateMax')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
-            ]);
-        return $qb
+            ])
             ->getQuery()
-            ->getResult();
+            ->iterate();
+
+        foreach($iterator as $item) {
+            // $item [index => urgence]
+            yield array_pop($item);
+        }
     }
 }

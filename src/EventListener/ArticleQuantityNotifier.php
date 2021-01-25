@@ -22,6 +22,9 @@ class ArticleQuantityNotifier {
     private $entityManager;
     private $expiryDelay;
 
+    private static $referenceArticlesToUpdate = [];
+    private static $referenceArticlesUpdating = false;
+
     public function __construct(RefArticleDataService $refArticleDataService,
                                 AlertService $alertService,
                                 EntityManagerInterface $entityManager) {
@@ -34,12 +37,38 @@ class ArticleQuantityNotifier {
     }
 
     /**
+     * @throws ORMException
+     */
+    public function postFlush() {
+        if (!self::$referenceArticlesUpdating) {
+            self::$referenceArticlesUpdating = true;
+
+            $cleanedEntityManager = $this->getEntityManager();
+
+            foreach (self::$referenceArticlesToUpdate as $item) {
+                $referenceArticle = $item['referenceArticle'];
+
+                $this->refArticleService->updateRefArticleQuantities($cleanedEntityManager, $referenceArticle);
+
+                $this->refArticleService->treatAlert($cleanedEntityManager, $referenceArticle);
+                $articles = $item['articles'];
+                foreach ($articles as $articleId => $article) {
+                    $this->treatAlert($cleanedEntityManager, $article);
+                }
+                $cleanedEntityManager->flush();
+            }
+
+            self::$referenceArticlesToUpdate = [];
+            self::$referenceArticlesUpdating = false;
+        }
+    }
+
+    /**
      * @param Article $article
      * @throws Exception
      */
     public function postUpdate(Article $article) {
-        $entityManager = $this->getEntityManager();
-        $this->treatAlertAndUpdateRefArticleQuantities($entityManager, $article);
+        $this->saveArticle($article);
     }
 
     /**
@@ -47,8 +76,7 @@ class ArticleQuantityNotifier {
      * @throws Exception
      */
     public function postPersist(Article $article) {
-        $entityManager = $this->getEntityManager();
-        $this->treatAlertAndUpdateRefArticleQuantities($entityManager, $article);
+        $this->saveArticle($article);
     }
 
     /**
@@ -56,24 +84,29 @@ class ArticleQuantityNotifier {
      * @throws Exception
      */
     public function postRemove(Article $article) {
-        $entityManager = $this->getEntityManager(true);
-        $this->treatAlertAndUpdateRefArticleQuantities($entityManager, $article);
+        $this->saveArticle($article);
     }
 
     /**
-     * @param EntityManagerInterface $entityManager
      * @param Article $article
-     * @throws Exception
+     * @throws ORMException
      */
-    private function treatAlertAndUpdateRefArticleQuantities(EntityManagerInterface $entityManager, Article $article) {
+    private function saveArticle(Article $article) {
+        $cleanedEntityManager = $this->getEntityManager(true);
+        $cleanedEntityManager->clear();
+
         $articleFournisseur = $article->getArticleFournisseur();
         if(isset($articleFournisseur)) {
             $referenceArticle = $articleFournisseur->getReferenceArticle();
-            $this->refArticleService->updateRefArticleQuantities($referenceArticle);
-            $entityManager->flush();
-            $this->refArticleService->treatAlert($referenceArticle);
-            $this->treatAlert($article);
-            $entityManager->flush();
+            $referenceArticleId = $referenceArticle->getId();
+            if (!isset(self::$referenceArticlesToUpdate[$referenceArticleId])) {
+                self::$referenceArticlesToUpdate[$referenceArticleId] = [
+                    'referenceArticle' => $referenceArticle,
+                    'articles' => []
+                ];
+            }
+            $articleId = $article->getId();
+            self::$referenceArticlesToUpdate[$referenceArticleId]['articles'][$articleId] = $article;
         }
     }
 
@@ -88,18 +121,19 @@ class ArticleQuantityNotifier {
             : EntityManager::Create($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
     }
 
-    private function treatAlert(Article $article) {
+    private function treatAlert(EntityManagerInterface $entityManager,
+                                Article $article) {
         if($article->getExpiryDate()) {
             $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
             $expires = clone $now;
             $expires->modify("{$this->expiryDelay}day");
 
-            $existing = $this->entityManager->getRepository(Alert::class)->findForArticle($article, Alert::EXPIRY);
+            $existing = $entityManager->getRepository(Alert::class)->findForArticle($article, Alert::EXPIRY);
 
             //more than one expiry alert is an invalid state, so remove them to reset
             if(count($existing) > 1) {
                 foreach($existing as $alert) {
-                    $this->entityManager->remove($alert);
+                    $entityManager->remove($alert);
                 }
 
                 $existing = null;
@@ -111,7 +145,7 @@ class ArticleQuantityNotifier {
                 $alert->setType(Alert::EXPIRY);
                 $alert->setDate($now);
 
-                $this->entityManager->persist($alert);
+                $entityManager->persist($alert);
 
                 $managers = $article->getArticleFournisseur()
                     ->getReferenceArticle()
@@ -123,7 +157,7 @@ class ArticleQuantityNotifier {
 
                 $this->alertService->sendExpiryMails($managers, $article, $this->expiryDelay);
             } else if($now < $article->getExpiryDate() && $existing) {
-                $this->entityManager->remove($existing[0]);
+                $entityManager->remove($existing[0]);
             }
         }
     }

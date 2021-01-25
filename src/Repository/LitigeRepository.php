@@ -7,8 +7,10 @@ use App\Entity\LitigeHistoric;
 use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use Exception;
+use Generator;
 
 /**
  * @method Litige|null find($id, $lockMode = null, $lockVersion = null)
@@ -133,16 +135,19 @@ class LitigeRepository extends EntityRepository
 	/**
 	 * @param DateTime $dateMin
 	 * @param DateTime $dateMax
-	 * @return Litige[]|null
 	 */
-	public function findArrivalsLitigeByDates(DateTime $dateMin, DateTime $dateMax)
-	{
-		$query = $this
+	public function iterateArrivalsLitigeByDates(DateTime $dateMin, DateTime $dateMax): Generator {
+        $iterator = $this
             ->createQueryBuilderByDates($dateMin, $dateMax)
             ->join('litige.packs', 'pack')
             ->join('pack.arrivage', 'arrivage')
-            ->getQuery();
-		return $query->execute();
+            ->getQuery()
+            ->iterate();
+
+        foreach($iterator as $item) {
+            // $item [index => reference array]
+            yield array_pop($item);
+        }
 	}
 
 	/**
@@ -150,15 +155,20 @@ class LitigeRepository extends EntityRepository
 	 * @param DateTime $dateMax
 	 * @return Litige[]|null
 	 */
-	public function findReceptionLitigeByDates(DateTime $dateMin, DateTime $dateMax)
+	public function iterateReceptionLitigeByDates(DateTime $dateMin, DateTime $dateMax)
 	{
-		$query = $this
+        $iterator = $this
             ->createQueryBuilderByDates($dateMin, $dateMax)
             ->join('litige.articles', 'article')
             ->join('article.receptionReferenceArticle', 'receptionReferenceArticle')
             ->join('receptionReferenceArticle.reception', 'reception')
-            ->getQuery();
-		return $query->execute();
+            ->getQuery()
+            ->iterate();
+
+        foreach($iterator as $item) {
+            // $item [index => reference array]
+            yield array_pop($item);
+        }
 	}
 
     /**
@@ -370,35 +380,23 @@ class LitigeRepository extends EntityRepository
                         $column = self::DtToDbLabels[$params->get('columns')[$sort['column']]['data']];
 
                         if ($column === 'type') {
-                            $qb
-                                ->addOrderBy('t.label', $order);
+                            $qb->addOrderBy('t.label', $order);
                         } else if ($column === 'status') {
-                            $qb
-                                ->addOrderBy('s.nom', $order);
-                        } else if ($column === 'acheteurs') {
-                            $qb
-                                ->addOrderBy('achUsername', $order);
+                            $qb->addOrderBy('s.nom', $order);
                         } else if ($column === 'declarant') {
-                            $qb
-                                ->addOrderBy('declarant.username', $order);
+                            $qb->addOrderBy('declarant.username', $order);
                         } else if ($column === 'numeroArrivage') {
-                            $qb
-                                ->addOrderBy('a.numeroArrivage', $order);
+                            $qb->addOrderBy('a.numeroArrivage', $order);
                         } else if ($column === 'numeroReception') {
-                            $qb
-                                ->addOrderBy('r.number', $order);
+                            $qb->addOrderBy('r.number', $order);
                         } else if ($column === 'provider') {
-                            $qb
-                                ->addOrderBy('provider', $order);
+                            $qb->addOrderBy('provider', $order);
                         } else if ($column === 'numCommandeBl') {
-                            $qb
-                                ->addOrderBy('numCommandeBl', $order);
+                            $qb->addOrderBy('numCommandeBl', $order);
                         } else if ($column === 'disputeNumber') {
-                            $qb
-                                ->addOrderBy('litige.numeroLitige', $order);
+                            $qb->addOrderBy('litige.numeroLitige', $order);
                         } else {
-                            $qb
-                                ->addOrderBy('litige.' . $column, $order);
+                            $qb->addOrderBy("litige.$column", $order);
                         }
                     }
                 }

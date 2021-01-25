@@ -559,13 +559,6 @@ function loadSpinner(div) {
     div.addClass('d-flex');
 }
 
-function checkZero(data) {
-    if (data.length == 1) {
-        data = "0" + data;
-    }
-    return data;
-}
-
 function displayRight(div) {
     div.addClass('isRight');
     div.removeClass('isWrong');
@@ -705,61 +698,6 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', for
     $(dateInput).datetimepicker(options);
 }
 
-/**
- * @deprecated use php export
- * @param route
- * @param filename
- * @param param
- */
-function generateCSV(route, filename = 'export', param = null) {
-    loadSpinner($('#spinner'));
-    let data = param ? {'param': param} : {};
-
-    $('.filterService, select').first().find('input').each(function () {
-        if ($(this).attr('name') !== undefined) {
-            data[$(this).attr('name')] = $(this).val();
-        }
-    });
-
-    if (data['dateMin'] && data['dateMax']) {
-        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        let params = JSON.stringify(data);
-        let path = Routing.generate(route, true);
-
-        $.post(path, params, function (response) {
-            if (response) {
-                let csv = "";
-                $.each(response, function (index, value) {
-                    csv += value.join(';');
-                    csv += '\n';
-                });
-                dlFile(csv, filename);
-                hideSpinner($('#spinner'));
-            }
-        }, 'json');
-    } else {
-        warningEmptyDatesForCsv();
-        hideSpinner($('#spinner'));
-    }
-}
-
-let dlFile = function (csv, filename) {
-    // !!! remove a special char (first param is not empty) !!!
-    // Fix temporaire en attendant d'exporter en server side !
-    csv = csv.replace('﻿', '');
-    csv = csv.replace("﻿", '');
-    $.post(Routing.generate('get_encodage'), function (usesUTF8) {
-        let encoding = usesUTF8 ? 'utf-8' : 'windows-1252';
-        let d = new Date();
-        let textEncode = new CustomTextEncoder(encoding, {NONSTANDARD_allowLegacyEncoding: true});
-        let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-        date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-        let exportedFilenmae = filename + '-' + date + '.csv';
-        let blob = new Blob([textEncode.encode(csv)], {type: 'text/csv;charset=' + encoding + ';'});
-        saveAs(blob, exportedFilenmae);
-    });
-};
 
 function warningEmptyDatesForCsv() {
     showBSAlert('Veuillez saisir des dates dans le filtre en haut de page.', 'danger');
@@ -958,11 +896,11 @@ function initOnTheFlyCopies($elems) {
     });
 }
 
-function saveExportFile(routeName, needsDateFilters = true) {
+function saveExportFile(routeName, needsDateFilters = true, routeParam = {}) {
     const $spinner = $('#spinner');
     loadSpinner($spinner);
 
-    const path = Routing.generate(routeName, true);
+    const path = Routing.generate(routeName, routeParam, true);
 
     const data = {};
     $('.filterService input').each(function () {

@@ -8,7 +8,7 @@ $(function() {
         responsive: true,
         serverSide: true,
         processing: true,
-        order: [[1, "desc"]],
+        order: [['date', "desc"]],
         ajax: {
             "url": pathMvt,
             "type": "POST"

@@ -4,11 +4,10 @@ namespace App\Repository;
 
 use App\Entity\Transporteur;
 use DateTime;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 
 /**
@@ -17,31 +16,13 @@ use Exception;
  * @method Transporteur[]    findAll()
  * @method Transporteur[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class TransporteurRepository extends ServiceEntityRepository
+class TransporteurRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Transporteur::class);
-    }
-
     public function findAllSorted() {
         return $this->createQueryBuilder("t")
             ->orderBy("t.label")
             ->getQuery()
             ->getResult();
-    }
-
-    public function findByIds(array $ids): array {
-        if (!empty($ids)) {
-            return $this->createQueryBuilder('carrier')
-                ->where('carrier.id IN (:ids)')
-                ->setParameter('ids', $ids, Connection::PARAM_STR_ARRAY)
-                ->getQuery()
-                ->getResult();
-        }
-        else {
-            return [];
-        }
     }
 
     public function getIdAndLibelleBySearch($search)

@@ -1,5 +1,5 @@
 const maxSizeFileAllowed = 10000000;
-let allowedLogoExtensions = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg'];
+let allowedLogoExtensions = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg','svg'];
 let pathDays = Routing.generate('days_param_api', true);
 let disabledDates = [];
 let tableDaysConfig = {
@@ -14,9 +14,7 @@ let tableDaysConfig = {
         {"data": 'Times', 'title': 'Horaires de travail'},
         {"data": 'Order', 'title': 'Ordre'},
     ],
-    order: [
-        [4, 'asc']
-    ],
+    order: [['Order', 'asc']],
     rowConfig: {
         needsRowClickAction: true,
     }
@@ -29,6 +27,13 @@ let modalEditDays = $('#modalEditDays');
 let submitEditDays = $('#submitEditDays');
 let urlEditDays = Routing.generate('days_edit', true);
 InitModal(modalEditDays, submitEditDays, urlEditDays, {tables: [tableDays]});
+
+const resetLogos = {
+    website: false,
+    mailLogo: false,
+    nomadeAccueil: false,
+    nomadeHeader: false,
+}
 
 $(function () {
     Select2.init($('#locationArrivageDest'));
@@ -348,7 +353,7 @@ function editAppearance() {
     });
 
     showBSAlert("Mise à jour de l'apparence. Veuillez patienter.", 'success', false);
-
+    data.append('reset-logos', JSON.stringify(resetLogos));
     $.ajax(path, {
         data: data,
         type: 'POST',
@@ -420,7 +425,7 @@ function updateImagePreview(preview, upload) {
 
                         reader.readAsDataURL($upload.files[0]);
                     } else {
-                        showBSAlert('Veuillez choisir une image valide (png, jpeg, jpg).', 'danger')
+                        showBSAlert('Veuillez choisir une image valide (png, jpeg, jpg, svg).', 'danger')
                     }
                 } else {
                     showBSAlert('La taille du fichier est supérieure à 10 mo.', 'danger')
@@ -520,4 +525,17 @@ function toggleRecipient($checkbox) {
         && $checkbox.prop('checked')) {
         $('.checkbox[name="param-add-destination-location-article-label"]').prop('checked', false);
     }
+}
+
+function onResetLogoClicked($button) {
+    const $defaultValue = $button.siblings('.default-value');
+    const $logoImg = $button.siblings('.logo');
+    const $inputFile = $button.siblings('[type="file"]');
+    const defaultValue = $defaultValue.val();
+
+    $inputFile.val('');
+    $logoImg.attr('src', defaultValue);
+    const name = $button.data('name');
+    resetLogos[name] = true;
+
 }

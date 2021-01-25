@@ -27,6 +27,7 @@ class GenerateAlertsCommand extends Command {
 
     protected function execute(InputInterface $input, OutputInterface $output) {
         $this->service->generateAlerts($this->manager);
+        return 0;
     }
 
 }

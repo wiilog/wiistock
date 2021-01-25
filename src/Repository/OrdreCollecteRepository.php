@@ -3,12 +3,15 @@
 namespace App\Repository;
 
 use App\Entity\OrdreCollecte;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Internal\Hydration\IterableResult;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
+use Generator;
 
 /**
  * @method OrdreCollecte|null find($id, $lockMode = null, $lockVersion = null)
@@ -229,25 +232,84 @@ class OrdreCollecteRepository extends EntityRepository
 		];
 	}
 
-	/**
-	 * @param DateTime $dateMin
-	 * @param DateTime $dateMax
-	 * @return OrdreCollecte[]|null
-	 */
-	public function findByDates($dateMin, $dateMax)
-	{
-		$dateMax = $dateMax->format('Y-m-d H:i:s');
-		$dateMin = $dateMin->format('Y-m-d H:i:s');
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return Generator
+     */
+	public function iterateByDates($dateMin, $dateMax): Generator {
+		$iterator = $this->createQueryBuilder('collect_order')
+            ->where('collect_order.date BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ])
+            ->getQuery()
+            ->iterate();
 
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			'SELECT oc
-            FROM App\Entity\OrdreCollecte oc
-            WHERE oc.date BETWEEN :dateMin AND :dateMax'
-		)->setParameters([
-			'dateMin' => $dateMin,
-			'dateMax' => $dateMax
-		]);
-		return $query->execute();
+        foreach($iterator as $item) {
+            yield array_pop($item);
+        }
 	}
+
+    /**
+     * @param array|null $types
+     * @param array|null $statuses
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByTypesAndStatuses(?array $types, ?array $statuses): ?int {
+        if (!empty($types) && !empty($statuses)) {
+            $qb = $this->createQueryBuilder('collectOrdre')
+                ->select('COUNT(collectOrdre)')
+                ->leftJoin('collectOrdre.statut', 'status')
+                ->leftJoin('collectOrdre.demandeCollecte', 'request')
+                ->leftJoin('request.type', 'type')
+                ->where('status IN (:statuses)')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types);
+
+            return $qb
+                ->getQuery()
+                ->getSingleScalarResult();
+        }
+        else {
+            return [];
+        }
+    }
+
+    /**
+     * @param array $types
+     * @param array $statuses
+     * @return DateTime|null
+     * @throws NonUniqueResultException
+     */
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($types) && !empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('collectOrder')
+                ->select('collectRequest.validationDate AS date')
+                ->innerJoin('collectOrder.demandeCollecte', 'collectRequest')
+                ->innerJoin('collectOrder.statut', 'status')
+                ->innerJoin('collectRequest.type', 'type')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->andWhere('status.state IN (:treatedStates)')
+                ->addOrderBy('collectRequest.validationDate', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types)
+                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED])
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+            return $res['date'] ?? null;
+        }
+        else {
+            return null;
+        }
+    }
 }

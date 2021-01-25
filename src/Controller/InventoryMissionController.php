@@ -10,11 +10,9 @@ use App\Entity\Menu;
 use App\Entity\InventoryMission;
 
 use App\Entity\ReferenceArticle;
-use App\Helper\FormatHelper;
 use App\Helper\Stream;
-use App\Repository\InventoryMissionRepository;
-use App\Repository\InventoryEntryRepository;
-
+use App\Service\CSVExportService;
+use App\Service\InventoryEntryService;
 use App\Service\InventoryService;
 use App\Service\InvMissionService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -47,16 +45,6 @@ class InventoryMissionController extends AbstractController
     private $userService;
 
     /**
-     * @var InventoryMissionRepository
-     */
-    private $inventoryMissionRepository;
-
-    /**
-     * @var InventoryEntryRepository
-     */
-    private $inventoryEntryRepository;
-
-    /**
      * @var InvMissionService
      */
     private $invMissionService;
@@ -66,17 +54,10 @@ class InventoryMissionController extends AbstractController
      */
     private $inventoryService;
 
-    public function __construct(
-        InventoryMissionRepository $inventoryMissionRepository,
-        UserService $userService,
-        InventoryEntryRepository $inventoryEntryRepository,
-        InvMissionService $invMissionService,
-        InventoryService $inventoryService
-    )
-    {
+    public function __construct(UserService $userService,
+                                InvMissionService $invMissionService,
+                                InventoryService $inventoryService) {
         $this->userService = $userService;
-        $this->inventoryMissionRepository = $inventoryMissionRepository;
-        $this->inventoryEntryRepository = $inventoryEntryRepository;
         $this->invMissionService = $invMissionService;
         $this->inventoryService = $inventoryService;
     }
@@ -156,21 +137,25 @@ class InventoryMissionController extends AbstractController
     /**
      * @Route("/verification", name="mission_check_delete", options={"expose"=true})
      * @param Request $request
-     * @param InventoryEntryRepository $entryRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function checkMissionCanBeDeleted(Request $request, InventoryEntryRepository $entryRepository): Response
+    public function checkMissionCanBeDeleted(Request $request,
+                                             EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $missionId = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $missionArt = $this->inventoryMissionRepository->countArtByMission($missionId);
-            $missionRef = $this->inventoryMissionRepository->countRefArtByMission($missionId);
-            $missionEntries = $entryRepository->countByMission($missionId);
+            $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);
+            $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+
+            $missionArt = $inventoryMissionRepository->countArtByMission($missionId);
+            $missionRef = $inventoryMissionRepository->countRefArtByMission($missionId);
+            $missionEntries = $inventoryEntryRepository->countByMission($missionId);
 
             $missionIsUsed = (intval($missionArt) + intval($missionRef) + intval($missionEntries) > 0);
 
@@ -188,15 +173,21 @@ class InventoryMissionController extends AbstractController
 
     /**
      * @Route("/supprimer", name="mission_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $mission = $this->inventoryMissionRepository->find(intval($data['missionId']));
-            $entityManager = $this->getDoctrine()->getManager();
+
+            $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+            $mission = $inventoryMissionRepository->find(intval($data['missionId']));
+
             $entityManager->remove($mission);
             $entityManager->flush();
             return new JsonResponse();
@@ -271,8 +262,9 @@ class InventoryMissionController extends AbstractController
 
             $refArtRepository = $entityManager->getRepository(ReferenceArticle::class);
             $articleRepository = $entityManager->getRepository(Article::class);
+            $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
 
-            $mission = $this->inventoryMissionRepository->find($data['missionId']);
+            $mission = $inventoryMissionRepository->find($data['missionId']);
 
             Stream::explode([",", " ", ";", "\t"], $data['articles'])
                 ->filterMap(function($barcode) use ($articleRepository, $refArtRepository, $mission) {
@@ -311,92 +303,70 @@ class InventoryMissionController extends AbstractController
     }
 
     /**
-     * @Route("/mission-infos", name="get_mission_for_csv", options={"expose"=true}, methods={"GET","POST"})
-     * @param Request $request
+     * @Route("/{mission}/csv", name="get_inventory_mission_csv", options={"expose"=true}, methods={"GET"})
+     * @param InventoryEntryService $inventoryEntryService
+     * @param CSVExportService $CSVExportService
+     * @param InventoryMission $mission
      * @return Response
      */
-    public function getCSVForInventoryMission(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $mission = $this->inventoryMissionRepository->find($data['param']);
+    public function getInventoryMissionCSV(InventoryEntryService $inventoryEntryService,
+                                           CSVExportService $CSVExportService,
+                                           InventoryMission $mission): Response {
 
-            /** @var InventoryEntry[] $inventoryEntries */
-            $inventoryEntries = Stream::from($mission->getEntries()->toArray())
-                ->reduce(function (array $carry, InventoryEntry $entry) {
-                    $article = $entry->getArticle();
-                    $refArticle = $entry->getRefArticle();
+        $headers = [
+            'Libellé',
+            'Référence',
+            'Code barre',
+            'Quantité',
+            'Emplacement',
+            'Date dernier inventaire',
+            'Anomalie'
+        ];
 
-                    if (isset($article)) {
-                        $barcode = $article->getBarCode();
-                        $carry[$barcode] = $entry;
-                    }
+        $missionStartDate = $mission->getStartPrevDate();
+        $missionEndDate = $mission->getEndPrevDate();
 
-                    if (isset($refArticle)) {
-                        $barcode = $refArticle->getBarCode();
-                        $carry[$barcode] = $entry;
-                    }
-                    return $carry;
-                }, []);
+        $inventoryEntries = Stream::from($mission->getEntries()->toArray())
+            ->reduce(function (array $carry, InventoryEntry $entry) {
+                $article = $entry->getArticle();
+                $refArticle = $entry->getRefArticle();
 
-            $articles = $mission->getArticles();
-            $refArticles = $mission->getRefArticles();
-            $missionStartDate = $mission->getStartPrevDate();
-            $missionEndDate = $mission->getEndPrevDate();
-
-            $missionHeader = ['MISSION DU ' . $missionStartDate->format('d/m/Y') . ' AU ' . $missionEndDate->format('d/m/Y')];
-            $headers = [
-                'référence',
-                'label',
-                'quantité',
-                'emplacement',
-                'date dernier inventaire',
-                'anomalie'
-            ];
-
-            $data = [];
-            $data[] = $missionHeader;
-            $data[] = $headers;
-
-            /** @var Article $article */
-            foreach ($articles as $article) {
-                $articleData = [];
-                $barcode = $article->getBarCode();
-
-                $articleFournisseur = $article->getArticleFournisseur();
-                $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
-
-                $articleData[] = $referenceArticle ? $referenceArticle->getReference() : '';
-                $articleData[] = $referenceArticle ? $referenceArticle->getLibelle() : '';
-                $articleData[] = $article->getQuantite() ?? '';
-                $articleData[] = FormatHelper::location($article->getEmplacement());
-                if (isset($inventoryEntries[$barcode])) {
-                    $articleData[] = FormatHelper::date($inventoryEntries[$barcode]->getDate());
-                    $articleData[] = FormatHelper::bool($inventoryEntries[$barcode]->getAnomaly());
+                if (isset($article)) {
+                    $barcode = $article->getBarCode();
+                    $carry[$barcode] = $entry;
                 }
 
-                $data[] = $articleData;
-            }
+                if (isset($refArticle)) {
+                    $barcode = $refArticle->getBarCode();
+                    $carry[$barcode] = $entry;
+                }
+                return $carry;
+            }, []);
 
-            /** @var ReferenceArticle $refArticle */
-            foreach ($refArticles as $refArticle) {
-                $refArticleData = [];
-                $barcode = $refArticle->getBarCode();
+        $missionStartDateStr = $missionStartDate->format('d-m-Y');
+        $missionEndDateStr = $missionEndDate->format('d-m-Y');
 
-                $refArticleData[] = $refArticle->getReference() ?? '';
-                $refArticleData[] = $refArticle->getLibelle() ?? '';
-                $refArticleData[] = $refArticle->getQuantiteStock() ?? '';
-                $refArticleData[] = FormatHelper::location($refArticle->getEmplacement());
-                if (isset($inventoryEntries[$barcode])) {
-                    $refArticleData[] = FormatHelper::date($inventoryEntries[$barcode]->getDate());
-                    $refArticleData[] = FormatHelper::bool($inventoryEntries[$barcode]->getAnomaly());
+        return $CSVExportService->streamResponse(
+            function ($output) use ($mission, $inventoryEntries, $CSVExportService, $inventoryEntryService, $missionStartDate, $missionEndDate) {
+                $articles = $mission->getArticles();
+                $refArticles = $mission->getRefArticles();
+                /** @var Article $article */
+                foreach ($articles as $article) {
+                    $barcode = $article->getBarCode();
+                    $inventoryEntryService->putMissionEntryLine($article, $inventoryEntries[$barcode] ?? null, $output);
                 }
 
-                $data[] = $refArticleData;
-            }
-
-            return new JsonResponse($data);
-        } else {
-            throw new BadRequestHttpException();
-        }
+                /** @var ReferenceArticle $refArticle */
+                foreach ($refArticles as $refArticle) {
+                    $barcode = $refArticle->getBarCode();
+                    $inventoryEntryService->putMissionEntryLine($refArticle, $inventoryEntries[$barcode] ?? null, $output);
+                }
+            },
+            "Export_Mission_Inventaire_${missionStartDateStr}_${missionEndDateStr}.csv",
+            [
+                ['MISSION DU ' . $missionStartDate->format('d/m/Y') . ' AU ' . $missionEndDate->format('d/m/Y')],
+                $headers
+            ]
+        );
     }
 }

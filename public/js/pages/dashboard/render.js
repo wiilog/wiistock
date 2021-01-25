@@ -1,7 +1,3 @@
-function todo() { //TODO: remove todo
-    console.error("To do");
-}
-
 let currentChartsFontSize;
 let fontSizeYAxes;
 
@@ -12,9 +8,20 @@ const CARRIER_TRACKING = 'carrier_tracking';
 const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
 const RECEIPT_ASSOCIATION = 'receipt_association';
 const WEEKLY_ARRIVALS_AND_PACKS = 'weekly_arrivals_and_packs';
+const PENDING_REQUESTS = 'pending_requests';
 const ENTRIES_TO_HANDLE = 'entries_to_handle';
 const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
 const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
+const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
+const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
+const REQUESTS_TO_TREAT = 'requests_to_treat';
+const ORDERS_TO_TREAT = 'orders_to_treat';
+const DAILY_HANDLING = 'daily_handling';
+const MONETARY_RELIABILITY_GRAPH = 'monetary_reliability_graph';
+const MONETARY_RELIABILITY_INDICATOR = 'monetary_reliability_indicator';
+const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
+const REFERENCE_RELIABILITY = 'reference_reliability';
+const DAILY_DISPATCHES = 'daily_dispatches';
 
 $(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -48,6 +55,9 @@ const creators = {
     [WEEKLY_ARRIVALS_AND_PACKS]: {
         callback: createChart
     },
+    [PENDING_REQUESTS]: {
+        callback: createPendingRequests
+    },
     [ENTRIES_TO_HANDLE]: {
         callback: createEntriesToHandleElement
     },
@@ -57,6 +67,39 @@ const creators = {
     },
     [DROP_OFF_DISTRIBUTED_PACKS]: {
         callback: createChart
+    },
+    [DAILY_DISPATCHES]: {
+        callback: createChart
+    },
+    [ARRIVALS_EMERGENCIES_TO_RECEIVE]: {
+        callback: createIndicatorElement
+    },
+    [DAILY_ARRIVALS_EMERGENCIES]: {
+        callback: createIndicatorElement
+    },
+    [ACTIVE_REFERENCE_ALERTS]: {
+        callback: createIndicatorElement
+    },
+    [MONETARY_RELIABILITY_GRAPH]: {
+        callback: createChart,
+        arguments: {
+            hideRange: true
+        }
+    },
+    [REQUESTS_TO_TREAT]: {
+        callback: createIndicatorElement
+    },
+    [ORDERS_TO_TREAT]: {
+        callback: createIndicatorElement
+    },
+    [DAILY_HANDLING]: {
+        callback: createChart
+    },
+    [MONETARY_RELIABILITY_INDICATOR]: {
+        callback: createIndicatorElement
+    },
+    [REFERENCE_RELIABILITY]: {
+        callback: createIndicatorElement
     },
 };
 
@@ -75,7 +118,11 @@ function renderComponent(meterKey, $container, data) {
         return false;
     } else {
         const {callback, arguments} = creators[meterKey];
-        const $element = callback(data, arguments);
+        const $element = callback(data, {
+            ...(arguments || {}),
+            meterKey,
+            rowSize: $container.closest('.dashboard-row').data('size')
+        });
 
         if($element) {
             $container.html($element);
@@ -118,38 +165,177 @@ function createTooltip(text) {
     }
 }
 
-function createEntriesToHandleElement(data) {
+function createPendingRequests(data, {rowSize}) {
+    const title = data.title || "";
+
+    if(mode === MODE_EXTERNAL && data.shown === `self`) {
+        return $('<div/>', {
+            class: 'text-danger d-flex flex-fill align-items-center justify-content-center',
+            html: `<i class="fas fa-exclamation-triangle mr-2"></i>Ce composant ne peut pas être utilisé sur un dashboard externe`
+        });
+    } else {
+        let content = ``;
+        for(let request of data.requests) {
+            content += renderRequest(request, rowSize);
+        }
+
+        return $(`
+            <div class="dashboard-box dashboard-stats-container">
+                <div class="title">
+                    ${title}
+                </div>
+                ${createTooltip(data.tooltip)}
+                <div class="d-flex flex-row h-100 overflow-auto overflow-y-hidden">
+                    ${content}
+                </div>
+            </div>
+        `);
+    }
+}
+
+function renderRequest(request, rowSize) {
+    let onCardClick = ``;
+    if(!request.href && request.errorMessage) {
+        onCardClick = `showBSAlert('${request.errorMessage}', 'danger'); event.preventDefault()`;
+    }
+
+    let topRightIcon;
+    if(request.topRightIcon === ``) {
+        topRightIcon = `<i class="wii-card-icon fa fa-exclamation-triangle red"></i>`
+    } else {
+        topRightIcon = `<img alt="" src="/svg/${request.topRightIcon}" class="wii-card-icon"/>`;
+    }
+
+    const requestUserFirstLetter = request.requestUser.charAt(0).toUpperCase();
+
+    const defaultCardSize = 'col-12 col-lg-4 col-xl-3';
+    const cardSizeRowSizeMatching = {
+        1: 'col-12 col-lg-4 col-xl-3',
+        2: 'col-12 col-lg-5',
+        3: 'col-12 col-lg-7',
+        4: 'col-12 col-lg-10',
+        5: 'col-12',
+        6: 'col-12',
+    }
+    const cardSize = cardSizeRowSizeMatching[rowSize] || defaultCardSize;
+    const link = mode !== MODE_EDIT ? `href="${request.href}" onclick="${onCardClick}"` : ``;
+    const cursor = mode === MODE_EDIT ? `cursor-default` : ``;
+
+    return `
+        <div class="d-flex ${cardSize} p-1">
+            <a class="card wii-card pointer p-3 my-2 shadow-sm flex-grow-1 ${cursor} bg-${request.cardColor}" ${link}>
+                <div class="wii-card-header">
+                    <div class="row">
+                        <div class="col-10 mb-2">
+                            <p class="mb-2 small">${request.estimatedFinishTimeLabel}</p>
+                            <strong>${request.estimatedFinishTime}</strong>
+                        </div>
+                        <div class="col-2 d-flex justify-content-end align-items-start">
+                            ${request.emergencyText} ${topRightIcon}
+                        </div>
+                        <div class="col-12 mb-2">
+                            <div class="progress bg-${request.progressBarBGColor}" style="height: 7px;">
+                                <div class="progress-bar"
+                                     role="progressbar"
+                                     style="width: ${request.progress}%; background-color: ${request.progressBarColor};"
+                                     aria-valuenow="${request.progress}"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <p>${$.capitalize(request.requestStatus)}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="wii-card-body p-2">
+                    <div class="row">
+                        <div class="col-12 card-title text-center">
+                            <strong>${request.requestBodyTitle}</strong>
+                        </div>
+                        <div class="col-12">
+                            <div class="w-100 d-inline-flex justify-content-center">
+                                <strong class="card-title m-0 mr-2">
+                                    <i class="fa fa-map-marker-alt "></i>
+                                </strong>
+                                <strong class="ellipsis">${request.requestLocation}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="wii-card-footer">
+                    <div class="row align-items-end">
+                        <div class="col-6 text-left ellipsis">
+                            <span class="bold">${request.requestNumber}</span><br/>
+                            <span class="text-secondary">${request.requestDate}</span>
+                        </div>
+                        <div class="col-6 text-right ellipsis">
+                            <div class="profile-picture" style="background-color: #EEE">${requestUserFirstLetter}</div>
+                            <span class="bold">${request.requestUser}</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    `;
+}
+
+function createEntriesToHandleElement(data, {meterKey}) {
     if(!data) {
         console.error(`Invalid data for entries element.`);
         return false;
     }
 
-    const graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'})[0].outerHTML;
-    const $firstComponent = createIndicatorElement({
-        title: 'Nombre de lignes à traiter',
-        tooltip: data.linesCountTooltip,
-        count: data.count,
-        componentLink: data.componentLink
-    })[0].outerHTML;
-    const $secondComponent = createIndicatorElement({
-        title: 'Prochain emplacement à traiter',
-        tooltip: data.nextLocationTooltip,
-        count: data.nextLocation,
-        componentLink: data.componentLink
-    })[0].outerHTML;
-    return $(`
-        <div class="row">
-            <div class="col-8 pr-1">
-                ${graph}
-            </div>
-            <div class="col-4 pl-1">
-                <div class="row h-100">
-                    <div class="col-12 mb-2">${$firstComponent}</div>
-                    <div class="col-12">${$secondComponent}</div>
-                </div>
-            </div>
-        </div>
-    `);
+    const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'});
+    const $firstComponent = $('<div/>', {
+        class: `col-12`,
+        html: createIndicatorElement(
+            {
+                title: 'Nombre de lignes à traiter',
+                tooltip: data.linesCountTooltip,
+                count: data.count,
+                componentLink: data.componentLink
+            }, {meterKey}
+        )
+    });
+    const $secondComponent = $('<div/>', {
+        class: `col-12 mt-2`,
+        html: createIndicatorElement(
+            {
+                title: 'Prochain emplacement à traiter',
+                tooltip: data.nextLocationTooltip,
+                count: data.nextLocation,
+                componentLink: data.componentLink
+            },
+            {meterKey}
+        )
+    });
+
+    return $('<div/>', {
+        class: 'dashboard-box',
+        html: [
+            $('<div/>', {
+                class: 'row h-100',
+                html: [
+                    $('<div/>', {
+                        class: 'col-12 col-md-8 pr-3 pr-md-2',
+                        html: $graph
+                    }),
+                    $('<div/>', {
+                        class: 'col-12 col-md-4 mt-2 mt-md-0 pl-3 pl-md-2',
+                        html: $('<div/>', {
+                            class: 'row h-100',
+                            html: [
+                                $firstComponent,
+                                $secondComponent
+                            ]
+                        })
+                    })
+                ]
+            })
+        ],
+    });
 }
 
 /**
@@ -177,7 +363,7 @@ function createLatePacksElement(data) {
 }
 
 function calculateChartsFontSize() {
-    let width = document.body.clientWidth;
+    let width = Math.max(document.body.clientWidth, 1500);
     return Math.floor(width / 120);
 }
 
@@ -186,8 +372,8 @@ function calculateChartsFontSize() {
  * @param {{route: string|null, variable: string|null}} pagination
  * @return {boolean|jQuery}
  */
-function createChart(data, {route, cssClass} = {route: null, cssClass: null}) {
-    if (!data) {
+function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass: null, hideRange: false}) {
+    if(!data) {
         console.error(`Invalid data for "${data.title}"`);
         return false;
     }
@@ -195,9 +381,9 @@ function createChart(data, {route, cssClass} = {route: null, cssClass: null}) {
     const title = data.title || "";
 
     let pagination = ``;
-    if(route) {
+    if(route && !hideRange && mode !== MODE_EDIT) {
         pagination = `
-            <div class="range-buttons ${mode === MODE_EDIT ? 'd-none' : ''}">
+            <div class="range-buttons">
                 <div class="arrow-chart"
                      onclick="drawChartWithHisto($(this), '${route}', 'before')">
                     <i class="fas fa-chevron-left pointer"></i>
@@ -214,11 +400,11 @@ function createChart(data, {route, cssClass} = {route: null, cssClass: null}) {
     return $(`
         <div class="dashboard-box dashboard-stats-container h-100">
             <div class="title">
-                ${title}
+                ${title.split('(')[0]}
             </div>
             ${createTooltip(data.tooltip)}
             <div class="h-100">
-                <canvas class="${cssClass || ''}"></canvas>
+                <canvas style="min-height:200px;" class="${cssClass || ''}"></canvas>
             </div>
             ${pagination}
         </div>
@@ -251,11 +437,12 @@ function createCarrierTrackingElement(data) {
 
 /**
  * @param {*} data
+ * @param {string} meterKey
  * @return {boolean|jQuery}
  */
-function createIndicatorElement(data) {
+function createIndicatorElement(data, {meterKey}) {
     if(!data || data.count === undefined) {
-        console.error(`Invalid data for ongoing pack element.`);
+        console.error('Invalid data for ' + (meterKey || '-').replaceAll('_', ' ') + ' element.');
         return false;
     }
 
@@ -275,7 +462,7 @@ function createIndicatorElement(data) {
             title
                 ? $('<div/>', {
                     class: 'text-center title ellipsis',
-                    text: title
+                    text: title.split('(')[0]
                 })
                 : undefined,
             subtitle
@@ -287,7 +474,7 @@ function createIndicatorElement(data) {
             count !== undefined
                 ? $('<div/>', {
                     class: 'align-items-center',
-                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter">${count ? count : '-'}</div>`
+                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter">${(count || count === '0' || count === 0) ? count : '-'}</div>`
                 })
                 : undefined,
             delay
@@ -353,7 +540,7 @@ function drawChartWithHisto($button, path, beforeAfter = 'now') {
         'lastDay': $lastDay.data('day'),
         'beforeAfter': beforeAfter
     };
-    $.get(Routing.generate(path), params, function (data) {
+    $.get(Routing.generate(path), params, function(data) {
         $firstDay.text(data.firstDay);
         $firstDay.data('day', data.firstDayData);
         $lastDay.text(data.lastDay);
@@ -381,7 +568,7 @@ function updateSimpleChartData(chart, data, label, stack = false,
         chart.data.datasets[0].backgroundColor.fill('#A3D1FF');
     }
 
-    if (subData) {
+    if(subData) {
         const subColor = '#999';
         chart.data.datasets.push({
             label: lineChartLabel,
@@ -438,6 +625,7 @@ function newChart($canvasId, redForLastData = false, disableAnimation = false) {
                 },
                 tooltips: false,
                 responsive: true,
+                maintainAspectRatio: false,
                 legend: {
                     position: 'bottom',
                     labels: {
@@ -570,7 +758,7 @@ function loadLatePacks($table, data) {
         scrollY: `20vh`,
         scrollCollapse: true,
         processing: true,
-        order: [[2, 'desc']],
+        order: [['delay', 'desc']],
         columns: [
             {"data": 'pack', 'name': 'pack', 'title': 'Colis'},
             {"data": 'date', 'name': 'date', 'title': 'Dépose'},

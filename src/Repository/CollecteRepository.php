@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
@@ -219,31 +220,27 @@ class CollecteRepository extends EntityRepository
             ->getResult();
     }
 
-    public function getTreatingTimesWithType() {
-        $nowDate = new DateTime();
-        $datePrior3Months = (clone $nowDate)->modify('-3 month');
-        $queryBuilder = $this->createQueryBuilder('request');
-        $queryBuilderExpr = $queryBuilder->expr();
-        $query = $queryBuilder
-            ->select('type.id AS typeId')
-            ->addSelect($queryBuilderExpr->min('request.validationDate') . ' AS validationDate')
-            ->addSelect($queryBuilderExpr->max('collect_order.date') . ' AS treatingDate')
-            ->join('request.ordreCollecte', 'collect_order')
-            ->join('request.statut', 'status')
-            ->join('request.type', 'type')
-            ->where('status.nom LIKE :treatedStatus')
-            ->andHaving($queryBuilderExpr->min('request.validationDate') . ' BETWEEN :start AND :end')
-            ->groupBy('request.id')
-            ->setParameters([
-                'start' => $datePrior3Months,
-                'end' => $nowDate,
-                'treatedStatus' => Collecte::STATUT_COLLECTE
-            ])
-            ->getQuery();
-        return $query->execute();
+    public function getProcessingTime() {
+        $threeMonthsAgo = new DateTime("-3 month");
+
+        return $this->createQueryBuilder("collect")
+            ->select("collect_type.id AS type")
+            ->addSelect("SUM(UNIX_TIMESTAMP(collect_order.treatingDate) - UNIX_TIMESTAMP(collect.validationDate)) AS total")
+            ->addSelect("COUNT(collect) AS count")
+            ->join("collect.type", "collect_type")
+            ->join("collect.statut", "status")
+            ->join("collect.ordreCollecte", "collect_order")
+            ->where("status.nom = :collect")
+            ->andWhere("collect.validationDate >= :from")
+            ->andWhere("collect_order.date IS NOT NULL")
+            ->groupBy("collect.type")
+            ->setParameter("from", $threeMonthsAgo)
+            ->setParameter("collect", Collecte::STATUT_COLLECTE)
+            ->getQuery()
+            ->getArrayResult();
     }
 
-    public function findRequestToTreatByUser(Utilisateur $requester, int $limit) {
+    public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
         $statuses = [
             Collecte::STATUT_BROUILLON,
             Collecte::STATUT_A_TRAITER,
@@ -251,24 +248,52 @@ class CollecteRepository extends EntityRepository
         ];
 
         $queryBuilder = $this->createQueryBuilder('request');
+        if($requester) {
+            $queryBuilder->andWhere("demande.utilisateur = :requester")
+                ->setParameter("requester", $requester);
+        }
+
         $queryBuilderExpr = $queryBuilder->expr();
         return $queryBuilder
             ->innerJoin('request.statut', 'status')
             ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = request.type')
-            ->where(
-                $queryBuilderExpr->andX(
-                    $queryBuilderExpr->in('status.nom', ':statusNames'),
-                    $queryBuilderExpr->eq('request.demandeur', ':requester')
-                )
-            )
-            ->setParameters([
-                'statusNames' => $statuses,
-                'requester' => $requester,
-            ])
+            ->andWhere($queryBuilderExpr->in('status.nom', ':statusNames'))
+            ->setParameter('statusNames', $statuses)
             ->addOrderBy(sprintf("FIELD(status.nom, '%s', '%s', '%s')", ...$statuses), 'DESC')
             ->addOrderBy("DATE_ADD(request.validationDate, art.average, 'second')", 'ASC')
             ->setMaxResults($limit)
             ->getQuery()
             ->execute();
+    }
+
+    /**
+     * @param array $types
+     * @param array $statuses
+     * @return DateTime|null
+     * @throws NonUniqueResultException
+     */
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($types) && !empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('collect')
+                ->select('collect.validationDate AS date')
+                ->innerJoin('collect.statut', 'status')
+                ->innerJoin('collect.type', 'type')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->andWhere('status.state IN (:treatedStates)')
+                ->addOrderBy('collect.validationDate', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types)
+                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED])
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+            return $res['date'] ?? null;
+        }
+        else {
+            return null;
+        }
     }
 }

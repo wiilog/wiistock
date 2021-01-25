@@ -35,6 +35,13 @@ const $dashboardRowSelector = $('.dashboard-row-selector');
 const $modalComponentTypeFirstStep = $('#modalComponentTypeFistStep');
 const $modalComponentTypeSecondStep = $('#modalComponentTypeSecondStep');
 
+$(window).resize(function () {
+    clearTimeout(window.resizedFinished);
+    window.resizedFinished = setTimeout(function(){
+        renderCurrentDashboard();
+    }, 100);
+});
+
 function loadDashboards(m) {
     mode = m;
     if(mode === undefined) {
@@ -50,13 +57,14 @@ function loadDashboards(m) {
         wrapLoadingOnActionButton($(this), onDashboardSaved);
     });
 
+    $(document).keydown(onArrowNavigation);
     $addRowButton.on('click', onRowAdded);
     $dashboard.on(`click`, `.delete-row`, onRowDeleted);
 
     $dashboard.on(`click`, `.edit-component`, onComponentEdited);
     $dashboard.on(`click`, `.delete-component`, onComponentDeleted);
-    $modalComponentTypeSecondStep.on(`click`, `.select-all-arrival-types`, onSelectAll);
-    $modalComponentTypeSecondStep.on(`click`, `.select-all-arrival-statuses`, onSelectAll);
+    $modalComponentTypeSecondStep.on(`click`, `.select-all-types`, onSelectAll);
+    $modalComponentTypeSecondStep.on(`click`, `.select-all-statuses`, onSelectAll);
 
     $('button.add-dashboard-modal-submit').on('click', onPageAdded);
     $pagination.on(`click`, `.delete-dashboard`, onPageDeleted);
@@ -64,6 +72,7 @@ function loadDashboards(m) {
     $(window).bind('beforeunload', hasEditDashboard);
 
     if(mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
+        // all 5 min
         setInterval(function() {
             $.get(Routing.generate("dashboards_fetch", {mode}), function(response) {
                 dashboards = JSON.parse(response.dashboards);
@@ -82,10 +91,40 @@ function loadDashboards(m) {
         });
 }
 
+function onArrowNavigation(e) {
+    const LEFT = 37;
+    const RIGHT = 39;
+
+    switch(e.which) {
+        case LEFT:
+            const previous = dashboards[currentDashboard.index - 1];
+            if(previous !== undefined) {
+                currentDashboard = previous;
+                renderCurrentDashboard();
+                updateAddRowButton();
+                renderDashboardPagination();
+            }
+            break;
+        case RIGHT:
+            const next = dashboards[currentDashboard.index + 1];
+            if(next !== undefined) {
+                currentDashboard = next;
+                renderCurrentDashboard();
+                updateAddRowButton();
+                renderDashboardPagination();
+            }
+            break;
+        default:
+            return;
+    }
+
+    e.preventDefault(); // prevent the default action (scroll / move caret)
+}
+
 function onSelectAll() {
     const $select = $(this).closest(`.input-group`).find(`select`);
 
-    $select.find(`option`).each(function() {
+    $select.find(`option:not([disabled])`).each(function() {
         $(this).prop(`selected`, true);
     });
 
@@ -162,6 +201,10 @@ function renderCurrentDashboard() {
             .map(renderRow)
             .forEach(row => $dashboard.append(row));
     }
+
+    if(mode === MODE_EXTERNAL) {
+        $(`.header-title`).html(`<span class="bold">${currentDashboard.name}</span>`);
+    }
 }
 
 function updateAddRowButton() {
@@ -173,6 +216,7 @@ function renderRow(row) {
     const $row = $(`<div/>`, {
         class: `dashboard-row dashboard-row-size-${row.size}`,
         'data-row': `${row.index}`,
+        'data-size': `${row.size}`,
         html: $rowWrapper
     });
 
@@ -364,11 +408,9 @@ function onDashboardSaved() {
                 showBSAlert("Modifications enregistrés avec succès", "success");
                 dashboards = JSON.parse(data.dashboards);
                 loadCurrentDashboard(false);
-            }
-            else if(data.msg) {
+            } else if(data.msg) {
                 showBSAlert(data.msg, "danger");
-            }
-            else {
+            } else {
                 throw data;
             }
         })
@@ -411,6 +453,8 @@ function onPageAdded() {
             renderCurrentDashboard();
             updateAddRowButton();
             $modal.modal('hide');
+
+            window.location.hash = `#${currentDashboard.index + 1}`;
         }
     } else {
         showBSAlert("Veuillez renseigner un nom de dashboard.", "danger");
@@ -621,10 +665,23 @@ function processSecondModalForm($modal) {
 
     const {data, ...remaining} = ProcessForm($modal, null, () => {
         if(meterKey === ENTRIES_TO_HANDLE) {
-            const success = $modal
-                .find(`.segment-hour`)
+            let previous = null;
+            const allFilled = $modal
+                .find(`.segment-hour:not(.display-previous)`)
                 .toArray()
                 .every(elem => elem.value);
+
+            const correctOrder = $modal
+                .find(`.segment-hour:not(.display-previous)`)
+                .toArray()
+                .every(elem => {
+                    let valid = previous
+                        ? elem.value && clearSegmentHourValues(previous.value) < clearSegmentHourValues(elem.value)
+                        : elem.value;
+
+                    previous = elem;
+                    return valid;
+                });
 
             const $invalidElements = $modal.find(`.segment-hour`)
                 .toArray()
@@ -632,8 +689,11 @@ function processSecondModalForm($modal) {
                 .filter($elem => $elem.val());
 
             return {
-                success,
-                errorMessages: [`Le segment ne peut pas être vide`],
+                success: correctOrder && allFilled,
+                errorMessages: [
+                    !allFilled ? `Les segments ne peuvent pas être vides` : undefined,
+                    allFilled && !correctOrder ? `L'ordre des segments n'est pas valide` : undefined,
+                ],
                 $isInvalidElements: $invalidElements,
             };
         }
@@ -675,6 +735,11 @@ function initSecondStep(html) {
     $modalComponentTypeSecondStepContent.html('');
     $modalComponentTypeSecondStepContent.html(html);
 
+    const $entitySelect = $modalComponentTypeSecondStepContent.find('select[name="entity"].init-entity-change');
+    if ($entitySelect.length > 0) {
+        onEntityChange($entitySelect, true);
+    }
+
     $modalComponentTypeSecondStep.find(`.select2`).select2();
     Select2.location($modalComponentTypeSecondStep.find('.ajax-autocomplete-location'));
     Select2.carrier($modalComponentTypeSecondStep.find('.ajax-autocomplete-carrier'));
@@ -688,8 +753,8 @@ function initSecondStep(html) {
     $modalComponentTypeSecondStep.off('change.secondStepComponentType');
     $modalComponentTypeSecondStep.on('change.secondStepComponentType', 'select.data, input.data, input.data-array, input.checkbox', () => renderFormComponentExample())
 
-    const $segmentsList = $modalComponentTypeSecondStepContent.find('.segments-list');
 
+    const $segmentsList = $modalComponentTypeSecondStepContent.find('.segments-list');
     if($segmentsList.length > 0) {
         const segments = $segmentsList.data(`segments`);
         if(segments.length > 0) {
@@ -891,5 +956,68 @@ function onSegmentInputChange($input, isChanged = false) {
 }
 
 function clearSegmentHourValues(value) {
-    return (value || '').replace(/[^\d]/g, '');
+    const cleared = (value || ``).replace(/[^\d]/g, ``);
+    return cleared ? parseInt(cleared) : ``;
+}
+
+function onEntityChange($select, onInit = false) {
+    const $modal = $select.closest('.modal');
+
+    const $selectedOption = $select.find(`option[value="${$select.val()}"]`);
+    const categoryType = $selectedOption.data('category-type');
+    const categoryStatus = $selectedOption.data('category-status');
+    const $selectAllAvailableTypes = $modal.find('.select-all-types');
+    const $selectAllAvailableStatuses = $modal.find('.select-all-statuses');
+    const $selectType = $modal.find('select[name="entityTypes"]');
+    const $selectStatus = $modal.find('select[name="entityStatuses"]');
+
+    const $correspondingTypes = $selectType.find(`option[data-category-label="${categoryType}"]`);
+    const $correspondingStatuses = $selectStatus.find(`option[data-category-label="${categoryStatus}"]`);
+    const $otherTypes = $selectType.find(`option[data-category-label!="${categoryType}"]`);
+    const $otherStatuses = $selectStatus.find(`option[data-category-label!="${categoryStatus}"]`);
+
+    const disabledSelect = (
+        !categoryType
+        || !categoryStatus
+        || $correspondingTypes.length === 0
+        || $correspondingStatuses.length === 0
+    );
+
+    $selectType.prop('disabled', disabledSelect);
+    $selectStatus.prop('disabled', disabledSelect);
+    $selectAllAvailableTypes.prop('disabled', disabledSelect);
+    $selectAllAvailableStatuses.prop('disabled', disabledSelect);
+    $otherTypes.prop('disabled', true);
+    $otherStatuses.prop('disabled', true);
+
+    if (!onInit) {
+        $selectType.val(null);
+        $selectStatus.val(null);
+
+        if (!disabledSelect) {
+            $correspondingTypes.prop('disabled', false);
+            $correspondingStatuses.prop('disabled', false);
+
+            if ($correspondingTypes.length === 1) {
+                $selectType.val($correspondingTypes[0].value);
+            }
+            if ($correspondingStatuses.length === 1) {
+                $selectStatus.val($correspondingStatuses[0].value);
+            }
+        }
+    }
+
+    $selectType.trigger('change');
+    $selectStatus.trigger('change');
+}
+
+function toggleTreatmentDelay($checkbox) {
+    const $modal = $checkbox.closest('.modal');
+    const $treatmentDelay = $modal.find('[name=treatmentDelay]');
+    $treatmentDelay.val('');
+    if(!$checkbox.prop('checked')) {
+        $treatmentDelay.prop('disabled', true);
+    } else {
+        $treatmentDelay.prop('disabled', false);
+    }
 }

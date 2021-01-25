@@ -9,8 +9,11 @@ namespace App\Command;
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
 use App\Entity\Demande;
+use App\Entity\Dispatch;
 use App\Entity\Handling;
+use App\Entity\TransferRequest;
 use App\Entity\Type;
+use App\Helper\Stream;
 use App\Service\DateService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,90 +22,72 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 
-class AverageRequestTimeCommand extends Command
-{
-    protected static $defaultName = 'app:feed:average:requests';
+class AverageRequestTimeCommand extends Command {
+
+    protected static $defaultName = "app:feed:average:requests";
 
     private $entityManager;
     private $dateService;
 
-    public function __construct(EntityManagerInterface $entityManager, DateService $dateService)
-    {
+    public function __construct(EntityManagerInterface $entityManager, DateService $dateService) {
         parent::__construct(self::$defaultName);
         $this->entityManager = $entityManager;
         $this->dateService = $dateService;
     }
 
-    protected function configure()
-    {
-        $this->setDescription('This command feeds the average request treating time.');
+    protected function configure() {
+        $this->setDescription("Feeds the average request processing time");
     }
 
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return int|void
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
-
+    protected function execute(InputInterface $input, OutputInterface $output): int {
         $demandeRepository = $this->entityManager->getRepository(Demande::class);
         $collecteRepository = $this->entityManager->getRepository(Collecte::class);
         $handlingRepository = $this->entityManager->getRepository(Handling::class);
+        $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
+        $transferRequestRepository = $this->entityManager->getRepository(TransferRequest::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
 
-        $requests = array_merge(
-            $demandeRepository->getTreatingTimesWithType(),
-            $handlingRepository->getTreatingTimesWithType(),
-            $collecteRepository->getTreatingTimesWithType()
+        $values = array_merge(
+            $demandeRepository->getProcessingTime(),
+            $handlingRepository->getProcessingTime(),
+            $collecteRepository->getProcessingTime(),
+            $dispatchRepository->getProcessingTime(),
+            $transferRequestRepository->getProcessingTime()
         );
 
+        $types = [];
         $typeMeters = [];
-        foreach ($requests as $request) {
-
-            $validationDate = $request['validationDate'] instanceof \DateTimeInterface
-                ? $request['validationDate']
-                : DateTime::createFromFormat('Y-m-d H:i:s', $request['validationDate']);
-
-            $treatingDate = $request['treatingDate'] instanceof \DateTimeInterface
-                ? $request['treatingDate']
-                : DateTime::createFromFormat('Y-m-d H:i:s', $request['treatingDate']);
-
-            $typeId = $request['typeId'];
-
-            if (!isset($typeMeters[$typeId])) {
-                $typeMeters[$typeId] = [
-                    'total' => 0,
-                    'count' => 0
-                ];
-            }
-
-            $intervalDiff = $treatingDate->diff($validationDate);
-            $typeMeters[$typeId]['total'] += $this->dateService->dateIntervalToSeconds($intervalDiff);
-            $typeMeters[$typeId]['count']++;
+        foreach($values as $value) {
+            $types[$value["type"]] = true;
+            $typeMeters[$value["type"]] = [
+                "total" => $value["total"],
+                "count" => $value["count"],
+            ];
         }
 
-        $typeIdToTypeEntity = [];
+        $types = Stream::from($typeRepository->findBy(["id" => array_keys($types)]))
+            ->keymap(function($type) {
+                return [$type->getId(), $type];
+            })
+            ->toArray();
 
         foreach ($typeMeters as $typeId => $total) {
-            $average = (int)floor($total['total'] / $total['count']);
+            $average = (int)floor($total["total"] / $total["count"]);
 
-            $type = $typeIdToTypeEntity[$typeId] ?? $typeRepository->find($typeId);
-
+            $type = $types[$typeId];
             $averageTime = $type->getAverageRequestTime();
 
             if (!$averageTime) {
                 $averageTime = new AverageRequestTime();
-                $averageTime
-                    ->setType($type);
+                $averageTime->setType($type);
                 $this->entityManager->persist($averageTime);
             }
 
-            $averageTime
-                ->setAverage($average)
-                ->setTotal($total['count']);
+            $averageTime->setAverage($average);
         }
 
         $this->entityManager->flush();
+
+        return 0;
     }
 }

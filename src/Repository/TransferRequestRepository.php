@@ -2,9 +2,16 @@
 
 namespace App\Repository;
 
+use App\Entity\AverageRequestTime;
+use App\Entity\Statut;
 use App\Entity\TransferRequest;
+use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Join;
 
 /**
  * @method TransferRequest|null find($id, $lockMode = null, $lockVersion = null)
@@ -19,8 +26,8 @@ class TransferRequestRepository extends EntityRepository {
         $total = QueryCounter::count($qb, "transfer_request");
 
         // filtres sup
-        foreach($filters as $filter) {
-            switch($filter['field']) {
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
                 case 'statut':
                     $value = explode(',', $filter['value']);
                     $qb
@@ -55,10 +62,10 @@ class TransferRequestRepository extends EntityRepository {
         }
 
         //Filter search
-        if(!empty($params)) {
-            if(!empty($params->get('search'))) {
+        if (!empty($params)) {
+            if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
-                if(!empty($search)) {
+                if (!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb
                         ->andWhere('(' .
@@ -69,7 +76,7 @@ class TransferRequestRepository extends EntityRepository {
                                 'search_destination.label LIKE :value',
                                 'search_status.nom LIKE :value'
                             )
-                        . ')')
+                            . ')')
                         ->leftJoin('transfer_request.requester', 'search_requester')
                         ->leftJoin('transfer_request.origin', 'search_origin')
                         ->leftJoin('transfer_request.destination', 'search_destination')
@@ -78,12 +85,12 @@ class TransferRequestRepository extends EntityRepository {
                 }
             }
 
-            if(!empty($params->get('order'))) {
+            if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
-                if(!empty($order)) {
+                if (!empty($order)) {
                     $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
 
-                    switch($column) {
+                    switch ($column) {
                         case 'number':
                             $qb
                                 ->orderBy("transfer_request.number", $order);
@@ -128,9 +135,9 @@ class TransferRequestRepository extends EntityRepository {
         // compte éléments filtrés
         $countFiltered = QueryCounter::count($qb, 'transfer_request');
 
-        if($params) {
-            if(!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if(!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        if ($params) {
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
 
         return [
@@ -140,8 +147,24 @@ class TransferRequestRepository extends EntityRepository {
         ];
     }
 
-    public function findByStatutLabelAndUser($statutLabel, $user)
-    {
+    public function getProcessingTime() {
+        $threeMonthsAgo = new DateTime("-3 months");
+
+        return $this->createQueryBuilder("transfer_request")
+            ->select("transfer_type.id AS type")
+            ->addSelect("SUM(UNIX_TIMESTAMP(transfer_order.transferDate) - UNIX_TIMESTAMP(transfer_request.validationDate)) AS total")
+            ->addSelect("COUNT(transfer_request) AS count")
+            ->join("transfer_request.type", "transfer_type")
+            ->join("transfer_request.order", "transfer_order")
+            ->where("transfer_request.creationDate >= :from")
+            ->andWhere("transfer_order.transferDate IS NOT NULL")
+            ->groupBy("transfer_request.type")
+            ->setParameter("from", $threeMonthsAgo)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function findByStatutLabelAndUser($statutLabel, $user) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT t
@@ -180,4 +203,57 @@ class TransferRequestRepository extends EntityRepository {
             ->getQuery()
             ->getResult();
     }
+
+    public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
+        $qb = $this->createQueryBuilder("transfer_request");
+
+        if($requester) {
+            $qb->andWhere("transfer_request.requester = :requester")
+                ->setParameter("requester", $requester);
+        }
+
+        return $qb->select("transfer_request")
+            ->innerJoin("transfer_request.status", "s")
+            ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = transfer_request.type')
+            ->andWhere("s.nom IN (:statuses)")
+            ->addOrderBy('s.state', 'ASC')
+            ->addOrderBy("DATE_ADD(transfer_request.creationDate, art.average, 'second')", 'ASC')
+            ->setMaxResults($limit)
+            ->setParameter("statuses", [TransferRequest::DRAFT, TransferRequest::TO_TREAT])
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param array $types
+     * @param array $statuses
+     * @return DateTime|null
+     * @throws NonUniqueResultException
+     */
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('transfer_request')
+                ->select('transfer_request.validationDate AS date')
+                ->innerJoin('transfer_request.status', 'status')
+                ->innerJoin('transfer_request.type', 'type')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->andWhere('status.state IN (:treatedStates)')
+                ->addOrderBy('transfer_request.validationDate', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types)
+                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED])
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            return $res['date'] ?? null;
+        }
+        else {
+            return null;
+        }
+    }
+
 }

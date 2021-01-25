@@ -10,9 +10,8 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
 use DateTime;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method InventoryEntry|null find($id, $lockMode = null, $lockVersion = null)
@@ -20,7 +19,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method InventoryEntry[]    findAll()
  * @method InventoryEntry[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class InventoryEntryRepository extends ServiceEntityRepository
+class InventoryEntryRepository extends EntityRepository
 {
 	private const DtToDbLabels = [
 		'Ref' => 'reference',
@@ -31,11 +30,6 @@ class InventoryEntryRepository extends ServiceEntityRepository
 		'Quantity' => 'quantity',
 		'barCode' => 'barCode',
 	];
-
-	public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, InventoryEntry::class);
-    }
 
     public function countByMission($mission)
     {
@@ -359,6 +353,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
 			'dateMin' => $dateMin,
 			'dateMax' => $dateMax
 		]);
+		// TODO iterate
 		return $query->execute();
 	}
 

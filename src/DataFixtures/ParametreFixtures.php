@@ -7,8 +7,6 @@ use App\Entity\DimensionsEtiquettes;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Parametre;
 
-use App\Repository\ParametrageGlobalRepository;
-
 use App\Service\SpecificService;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -20,18 +18,11 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 class ParametreFixtures extends Fixture implements FixtureGroupInterface {
 
     /**
-     * @var ParametrageGlobalRepository
-     */
-    private $parametreGlobalRepository;
-
-    /**
      * @var SpecificService
      */
     private $specificService;
 
-    public function __construct(ParametrageGlobalRepository $parametrageGlobalRepository,
-                                SpecificService $specificService) {
-        $this->parametreGlobalRepository = $parametrageGlobalRepository;
+    public function __construct(SpecificService $specificService) {
         $this->specificService = $specificService;
     }
 
@@ -48,6 +39,8 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
         ];
 
         $parametreRepository = $manager->getRepository(Parametre::class);
+        $parametreGlobalRepository = $manager->getRepository(ParametrageGlobal::class);
+        $dimensionEtiquetteRepository = $manager->getRepository(DimensionsEtiquettes::class);
 
         foreach ($parameters as $parameter) {
             $param = $parametreRepository->findBy(['label' => $parameter['label']]);
@@ -64,7 +57,6 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             }
         }
 
-        $dimensionEtiquetteRepository = $manager->getRepository(DimensionsEtiquettes::class);
         $dimensionEtiquette = $dimensionEtiquetteRepository->findOneDimension();
         $globalParameterLabels = [
             ParametrageGlobal::CREATE_DL_AFTER_RECEPTION => [
@@ -162,16 +154,16 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ],
             ParametrageGlobal::OVERCONSUMPTION_LOGO => [],
             ParametrageGlobal::WEBSITE_LOGO => [
-                'default' => "img/followGTwhite.svg"
+                'default' => ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE
             ],
             ParametrageGlobal::EMAIL_LOGO => [
-                'default' => "img/gtlogistics.jpg"
+                'default' => ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE
             ],
             ParametrageGlobal::MOBILE_LOGO_LOGIN => [
-                'default' => "img/mobile_logo_login.svg"
+                'default' => ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE
             ],
             ParametrageGlobal::MOBILE_LOGO_HEADER => [
-                'default' => "img/mobile_logo_header.svg"
+                'default' => ParametrageGlobal::DEFAULT_MOBILE_LOGO_HEADER_VALUE
             ],
             ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [],
             ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON => [],
@@ -215,7 +207,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
         ];
 
         foreach ($globalParameterLabels as $globalParameterLabel => $values) {
-            $globalParam = $this->parametreGlobalRepository->findBy(['label' => $globalParameterLabel]);
+            $globalParam = $parametreGlobalRepository->findBy(['label' => $globalParameterLabel]);
 
             if (empty($globalParam)) {
                 $appClient = $this->specificService->getAppClient();

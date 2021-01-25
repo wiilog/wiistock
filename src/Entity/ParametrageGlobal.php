@@ -9,6 +9,12 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class ParametrageGlobal
 {
+
+    const DEFAULT_WEBSITE_LOGO_VALUE = '/img/followGTwhite.svg';
+    const DEFAULT_EMAIL_LOGO_VALUE = '/img/gtlogistics.jpg';
+    const DEFAULT_MOBILE_LOGO_LOGIN_VALUE = '/img/mobile_logo_login.svg';
+    const DEFAULT_MOBILE_LOGO_HEADER_VALUE = '/img/mobile_logo_header.svg';
+
 	// arrivages
     const REDIRECT_AFTER_NEW_ARRIVAL = 'REDIRECT AFTER NEW ARRIVAL';
     const SEND_MAIL_AFTER_NEW_ARRIVAL = 'SEND MAIL AFTER NEW ARRIVAL';
@@ -49,6 +55,8 @@ class ParametrageGlobal
     const MVT_DEPOSE_DESTINATION = 'MVT DEPOSE DESTINATION';
     const OVERCONSUMPTION_LOGO = 'OVERCONSUMPTION_LOGO';
     const KEEP_DISPATCH_PACK_MODAL_OPEN = 'KEEP_DISPATCH_PACK_MODAL_OPEN';
+    const OPEN_DISPATCH_ADD_PACK_MODAL_ON_CREATION = 'OPEN_DISPATCH_ADD_PACK_MODAL_ON_CREATION';
+
     // apparence
     const FONT_FAMILY = 'FONT FAMILY';
     const WEBSITE_LOGO = 'WEBSITE_LOGO';
@@ -140,7 +148,6 @@ class ParametrageGlobal
         'value'=> false,
         'label'=> '1252 Europe de l\'ouest Windows'
     ];
-
 
 
 	/**

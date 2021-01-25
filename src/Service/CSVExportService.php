@@ -26,18 +26,6 @@ class CSVExportService {
     }
 
     /**
-     * TODO delete
-     * @deprecated à supprimer quand il n'y aura plu d'export en JS
-     * @param $cell
-     * @return string
-     */
-    public function escapeCSV($cell) {
-        return !empty($cell)
-            ? ('"' . str_replace('"', '""', $cell) . '"')
-            : '';
-    }
-
-    /**
      * @deprecated Use CSVExportService::stream instead
      * @param array $data
      * @param array|null $csvHeader
@@ -105,11 +93,19 @@ class CSVExportService {
         fputcsv($handle, $encodedRow, ';');
     }
 
-    public function streamResponse(callable $generator, string $name, ?array $header = null): StreamedResponse {
-        $response = new StreamedResponse(function() use ($generator, $header) {
+    public function streamResponse(callable $generator, string $name, ?array $headers = null): StreamedResponse {
+        $response = new StreamedResponse(function () use ($generator, $headers) {
             $output = fopen("php://output", "wb");
-            if($header) {
-                $this->putLine($output, $header);
+            if ($headers) {
+                $firstCell = $headers[0] ?? null;
+                if (is_array($firstCell)) {
+                    foreach ($headers as $headerLine) {
+                        $this->putLine($output, $headerLine);
+                    }
+                }
+                else {
+                    $this->putLine($output, $headers);
+                }
             }
 
             $generator($output);

@@ -37,6 +37,12 @@ class TransferRequest implements Serializable {
     private $number;
 
     /**
+     * @ORM\ManyToOne(targetEntity=Type::class)
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $type;
+
+    /**
      * @var Statut|null
      * @ORM\ManyToOne(targetEntity=Statut::class, inversedBy="transferRequests")
      * @ORM\JoinColumn(nullable=false)
@@ -125,6 +131,15 @@ class TransferRequest implements Serializable {
 
         $reception->addTransferRequest($this);
 
+        return $this;
+    }
+
+    public function getType(): ?Type {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self {
+        $this->type = $type;
         return $this;
     }
 

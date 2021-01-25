@@ -78,27 +78,12 @@ class ArrivageDataService
     {
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
         $supFilterRepository = $this->entityManager->getRepository(FiltreSup::class);
-        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->security->getUser();
 
         $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $currentUser);
-
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARRIVAGE);
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, $categorieCL);
-
-
-        $queryResult = $arrivalRepository->findByParamsAndFilters(
-            $params,
-            $filters,
-            $userId,
-            array_reduce($freeFields, function (array $accumulator, array $freeField) {
-                $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
-                return $accumulator;
-            }, [])
-        );
+        $queryResult = $arrivalRepository->findByParamsAndFilters($params, $filters, $userId);
 
         $arrivals = $queryResult['data'];
 

@@ -3,8 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\LatePack;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method LatePack|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,12 +11,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method LatePack[]    findAll()
  * @method LatePack[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class LatePackRepository extends ServiceEntityRepository
+class LatePackRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, LatePack::class);
-    }
 
     public function clearTable(): void {
         $entityManager = $this->getEntityManager();
