@@ -4,7 +4,7 @@ let tableNatureConfig = {
         "url": pathNature,
         "type": "POST"
     },
-    order: ['Label', 'asc'],
+    order: [['Label', 'asc']],
     columns: [
         {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'Label', 'title': 'Libellé'},

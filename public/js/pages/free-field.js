@@ -2,7 +2,7 @@ $('.select2').select2();
 
 const urlApiChampLibre = Routing.generate('free_field_api', {'id': $('#cl-type-id').val()}, true);
 let tableChampLibreConfig = {
-    order: ['Label', 'asc'],
+    order: [['Label', 'asc']],
     ajax: {
         "url": urlApiChampLibre,
         "type": "POST"
