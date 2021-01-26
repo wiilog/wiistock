@@ -298,3 +298,20 @@ create table dw_demande_livraison_champs_libres
     libelle              varchar(255),
     valeur               text
 );
+
+CREATE TABLE dw_ordre_transfert
+(
+    id                   integer,
+    numero_ordre         varchar(255),
+    numero_demande       varchar(255),
+    statut               varchar(255),
+    demandeur            varchar(255),
+    operateur            varchar(255),
+    origine              varchar(255),
+    destination          varchar(255),
+    date_creation        timestamp(0),
+    date_transfert       timestamp(0),
+    commentaire          text,
+    reference            varchar(255),
+    code_barre           varchar(255)
+);
