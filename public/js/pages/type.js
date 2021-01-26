@@ -1,6 +1,6 @@
 let pathTypes = Routing.generate('types_param_api', true);
 let tableTypesConfig = {
-    order: ['Categorie', 'asc'],
+    order: [['Categorie', 'asc']],
     ajax: {
         "url": pathTypes,
         "type": "POST"
