@@ -270,3 +270,31 @@ CREATE TABLE dw_demande_transfert
     reference            varchar(255),
     code_barre           varchar(255)
 );
+
+CREATE TABLE dw_demande_livraison
+(
+    id                   integer,
+    numero               varchar(255),
+    date_creation        timestamp(0),
+    date_validation      timestamp(0),
+    demandeur            varchar(255),
+    type                 varchar(255),
+    statut               varchar(255),
+    codes_preparations   varchar(255),
+    codes_livraisons     varchar(255),
+    destination          varchar(255),
+    commentaire          text,
+    reference_article    varchar(255),
+    libelle_article      varchar(255),
+    code_barre_article   varchar(255),
+    code_barre_reference varchar(255),
+    quantite_disponible  integer,
+    quantite_a_prelever  integer
+);
+
+create table dw_demande_livraison_champs_libres
+(
+    demande_livraison_id integer,
+    libelle              varchar(255),
+    valeur               text
+);
