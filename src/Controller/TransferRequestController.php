@@ -8,6 +8,7 @@ use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Article;
 use App\Entity\Utilisateur;
@@ -407,12 +408,28 @@ class TransferRequestController extends AbstractController {
      * @Route("/non-vide/{id}", name="transfer_request_has_articles", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
      * @param TransferRequest $transferRequest
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function hasArticles(Request $request,
-                                TransferRequest $transferRequest): Response {
+                                TransferRequest $transferRequest,
+                                EntityManagerInterface $entityManager): Response {
+
         if($request->isXmlHttpRequest()) {
             $count = $transferRequest->getArticles()->count() + $transferRequest->getReferences()->count();
+
+            if ($transferRequest->getStatus() && $transferRequest->getStatus()->getNom() !== TransferRequest::DRAFT) {
+
+                $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
+                $transferOrder = $transferOrderRepository->findOneBy(['request' => $transferRequest]);
+
+                return new JsonResponse([
+                    'success' => true,
+                    'redirect' => $this->generateUrl('transfer_order_show', [
+                        'id' => $transferOrder->getId()
+                    ]),
+                ]);
+            }
 
             if($count > 0) {
                 return $this->redirectToRoute('transfer_order_new', [
