@@ -4,10 +4,9 @@
 namespace App\Command;
 
 use App\Entity\Article;
+use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
-use App\Repository\InventoryFrequencyRepository;
-use App\Repository\InventoryMissionRepository;
 use App\Service\InventoryService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,16 +23,6 @@ class MissionCommand extends Command
      */
     private $entityManager;
 
-    /**
-     * @var InventoryFrequencyRepository
-     */
-    private $inventoryFrequencyRepository;
-
-    /**
-     * @var InventoryMissionRepository
-     */
-    private $inventoryMissionRepository;
-
 	/**
 	 * @var InventoryService
 	 */
@@ -41,13 +30,9 @@ class MissionCommand extends Command
 
 
     public function __construct(EntityManagerInterface $entityManager,
-                                InventoryFrequencyRepository $inventoryFrequencyRepository,
-                                InventoryMissionRepository $inventoryMissionRepository,
                                 InventoryService $inventoryService) {
         parent::__construct();
         $this->entityManager = $entityManager;
-        $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
-        $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->inventoryService = $inventoryService;
     }
 
@@ -61,13 +46,15 @@ class MissionCommand extends Command
     {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
+        $inventoryFrequencyRepository = $this->entityManager->getRepository(InventoryFrequency::class);
+        $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
 
         $now = new \DateTime('now');
-        $frequencies = $this->inventoryFrequencyRepository->findUsedByCat();
+        $frequencies = $inventoryFrequencyRepository->findUsedByCat();
 
         $monday = new \DateTime('now');
         $monday->modify('next monday');
-        $mission = $this->inventoryMissionRepository->findFirstByStartDate($monday->format('Y/m/d'));
+        $mission = $inventoryMissionRepository->findFirstByStartDate($monday->format('Y/m/d'));
 
         if (!$mission) {
         	$mission = new InventoryMission();

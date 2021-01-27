@@ -3,8 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\InventoryFrequency;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 
 /**
  * @method InventoryFrequency|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,17 +13,14 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method InventoryFrequency[]    findAll()
  * @method InventoryFrequency[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class InventoryFrequencyRepository extends ServiceEntityRepository
+class InventoryFrequencyRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, InventoryFrequency::class);
-    }
 
     /**
      * @param string $label
      * @return mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function countByLabel($label)
     {

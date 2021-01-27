@@ -3,9 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\ParametrageGlobal;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ParametrageGlobal|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,12 +12,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method ParametrageGlobal[]    findAll()
  * @method ParametrageGlobal[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ParametrageGlobalRepository extends ServiceEntityRepository
+class ParametrageGlobalRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, ParametrageGlobal::class);
-    }
 
     /**
      * @param $label

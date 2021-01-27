@@ -3,9 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\LigneArticlePreparation;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method LigneArticlePreparation|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,13 +12,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method LigneArticlePreparation[]    findAll()
  * @method LigneArticlePreparation[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class LigneArticlePreparationRepository extends ServiceEntityRepository
+class LigneArticlePreparationRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, LigneArticlePreparation::class);
-    }
-
     /**
      * @param $referenceArticle
      * @param $preparation

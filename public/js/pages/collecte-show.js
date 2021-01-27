@@ -6,7 +6,7 @@ let tableArticleConfig = {
         "url": pathAddArticle,
         "type": "POST"
     },
-    order: [[1, 'desc']],
+    order: [['Référence', 'desc']],
     rowConfig: {
         needsRowClickAction: true,
     },

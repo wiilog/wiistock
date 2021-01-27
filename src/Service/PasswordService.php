@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use App\Entity\Utilisateur;
-use App\Repository\MailerServerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -21,11 +20,6 @@ class PasswordService
     private $entityManager;
 
     /**
-     * @var MailerServerRepository
-     */
-    private $mailerServerRepository;
-
-    /**
      * @var MailerService
      */
     private $mailerService;
@@ -36,15 +30,13 @@ class PasswordService
     private $templating;
 
 
-    public function __construct(MailerServerRepository $mailerServerRepository,
-                                UserPasswordEncoderInterface $passwordEncoder,
+    public function __construct(UserPasswordEncoderInterface $passwordEncoder,
                                 EntityManagerInterface $entityManager,
                                 MailerService $mailerService,
                                 Twig_Environment $templating)
     {
         $this->entityManager = $entityManager;
         $this->passwordEncoder = $passwordEncoder;
-        $this->mailerServerRepository = $mailerServerRepository;
         $this->mailerService = $mailerService;
         $this->templating = $templating;
     }

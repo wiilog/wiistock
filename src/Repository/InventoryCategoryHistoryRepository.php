@@ -3,8 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\InventoryCategoryHistory;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method InventoryCategoryHistory|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,10 +11,6 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method InventoryCategoryHistory[]    findAll()
  * @method InventoryCategoryHistory[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class InventoryCategoryHistoryRepository extends ServiceEntityRepository
+class InventoryCategoryHistoryRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, InventoryCategoryHistory::class);
-    }
 }

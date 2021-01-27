@@ -7,8 +7,6 @@ use App\Entity\Action;
 use App\Entity\InventoryEntry;
 use App\Entity\Menu;
 
-use App\Repository\InventoryEntryRepository;
-
 use App\Service\CSVExportService;
 use App\Service\InventoryEntryService;
 use DateTime;
@@ -37,22 +35,15 @@ class InventoryEntryController extends AbstractController
      */
     private $userService;
 
-    /**
-     * @var InventoryEntryRepository
-     */
-    private $inventoryEntryRepository;
-
 	/**
 	 * @var InventoryEntryService
 	 */
     private $inventoryEntryService;
 
     public function __construct(InventoryEntryService $inventoryEntryService,
-                                UserService $userService,
-                                InventoryEntryRepository $inventoryEntryRepository)
+                                UserService $userService)
     {
         $this->userService = $userService;
-        $this->inventoryEntryRepository = $inventoryEntryRepository;
         $this->inventoryEntryService = $inventoryEntryService;
     }
 

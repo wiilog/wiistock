@@ -17,7 +17,7 @@ let tableUserConfig = {
     rowConfig: {
         needsRowClickAction: true
     },
-    order: [[1, 'asc']]
+    order: [['Nom d\'utilisateur', 'asc']]
 };
 let tableUser = initDataTable('tableUser_id', tableUserConfig);
 

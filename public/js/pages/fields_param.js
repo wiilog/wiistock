@@ -20,7 +20,7 @@ $(function () {
             rowConfig: {
                 needsRowClickAction: true,
             },
-            order: [[1, "asc"]],
+            order: [['fieldCode', "asc"]],
             info: false,
             filter: false,
             paging: false
