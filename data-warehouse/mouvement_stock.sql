@@ -1,7 +1,12 @@
 SELECT
     mouvement_stock.id,
     demande_collecte.id AS demande_collecte_id,
+    ordre_collecte.id AS ordre_collecte_id,
     ordre_livraison_demande.id AS demande_livraison_id,
+    ordre_livraison.id AS ordre_livraison_id,
+    demande_transfert.id AS demande_transfert_id,
+    ordre_transfert.id AS ordre_transfert_id,
+    ordre_reception.id AS ordre_reception_id,
     mouvement_stock.type     AS type_mouvement, -- CEA
 
     IF(ordre_collecte.id IS NOT NULL, type_collecte.label,

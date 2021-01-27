@@ -334,3 +334,24 @@ CREATE TABLE dw_ordre_collecte
     destination          varchar(255),
     delta_date           float
 );
+
+CREATE TABLE dw_ordre_livraison
+(
+    id                   integer,
+    numero               varchar(255),
+    statut               varchar(255),
+    date_creation        timestamp(0),
+    date_livraison       timestamp(0),
+    date_demande         timestamp(0),
+    demandeur            varchar(255),
+    operateur            varchar(255),
+    type                 varchar(255),
+    commentaire          text,
+    reference            varchar(255),
+    libelle              varchar(255),
+    emplacement          varchar(255),
+    quantite_a_livrer    integer,
+    quantite_en_stock    integer,
+    code_barre           varchar(255),
+    delta_date           float
+);
