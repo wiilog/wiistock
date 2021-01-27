@@ -22,7 +22,10 @@ yarn-error.log
 ###< symfony/webpack-encore-bundle ###
 
 ###> wiilog/wiistock ###
+/.vs-code/
+/.idea/
 /public/uploads/attachements/
 /public/generated/
-/assets/scss/_customFont.scss/
+/SnoreToast.lnk
+/assets/scss/_customFont.scss
 ###< wiilog/wiistock ###
