@@ -249,7 +249,7 @@ class CollecteRepository extends EntityRepository
 
         $queryBuilder = $this->createQueryBuilder('request');
         if($requester) {
-            $queryBuilder->andWhere("demande.utilisateur = :requester")
+            $queryBuilder->andWhere("request.demandeur = :requester")
                 ->setParameter("requester", $requester);
         }
 
