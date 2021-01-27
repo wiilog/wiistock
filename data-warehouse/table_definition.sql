@@ -57,6 +57,8 @@ create table dw_mouvement_stock
     commentaire_demande  text,
     numero_demande       varchar(255),
     numero_ordre         varchar(255),
+    date_validation_collecte    timestamp(0),
+    date_validation_livraison   timestamp(0),
     reference            varchar(255),
     libelle              varchar(255),
     quantite_livree      integer,
