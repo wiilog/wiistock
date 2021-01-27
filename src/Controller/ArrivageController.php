@@ -417,13 +417,10 @@ class ArrivageController extends AbstractController
                     'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT)
                 ]);
             }
-            else {
-                $html = '';
-            }
 
             return new JsonResponse([
-                'html' => $html,
-                'acheteurs' => $acheteursUsernames
+                'html' => $html ?? "",
+                'acheteurs' => $acheteursUsernames ?? []
             ]);
         }
         throw new BadRequestHttpException();

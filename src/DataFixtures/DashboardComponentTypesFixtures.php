@@ -25,7 +25,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'subtitle' => 'Litige',
                 'delay' => 20634860
             ],
-            'category' => Dashboard\ComponentType::CATEGORY_STOCK,
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::ONGOING_PACKS,
             'meterKey' => Dashboard\ComponentType::ONGOING_PACKS
         ],
@@ -165,7 +165,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'meterKey' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
         ],
         'Colis à traiter en provenance' => [
-            'hint' => 'A définir',
+            'hint' => 'Nombre de colis à traiter en fonction des emplacements d\'origine et de destination paramétrés',
             'exampleValues' => [
                 'chartColors' => [
                     'Legende1' => '#a3d1ff',
@@ -228,8 +228,6 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'exampleValues' => [
                 'requests' => [
                     [
-                        'href' => '/demande/voir/439',
-                        'errorMessage' => 'Exemple',
                         'estimatedFinishTime' => '16:54',
                         'estimatedFinishTimeLabel' => 'Heure de livraison estimée',
                         'requestStatus' => 'À traiter',
@@ -246,7 +244,6 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                         'emergencyText' => '',
                         'progressBarBGColor' => 'lightGrey',
                     ], [
-                        'errorMessage' => 'Exemple',
                         'estimatedFinishTime' => 'Non estimée',
                         'estimatedFinishTimeLabel' => 'Date de livraison non estimée',
                         'requestStatus' => 'Brouillon',
@@ -383,7 +380,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'meterKey' => Dashboard\ComponentType::DAILY_HANDLING,
         ],
         'Fiabilité monétaire (indicateur)' => [
-            'hint' => 'A définir',
+            'hint' => 'Quantité corrigée sur une référence ou article * prix unitaire de la référence ou référence liée',
             'category' => Dashboard\ComponentType::CATEGORY_STOCK,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR,
@@ -404,17 +401,39 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     '10/01' => 5,
                 ],
             ],
-            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
             'template' => Dashboard\ComponentType::DAILY_DISPATCHES,
             'meterKey' => Dashboard\ComponentType::DAILY_DISPATCHES,
         ],
         'Fiabilité par référence' => [
-            'hint' => 'A définir',
+            'hint' => 'Nombre de mouvements de correction d’inventaire / le nombre d’articles de référence ou articles du stock',
             'category' => Dashboard\ComponentType::CATEGORY_STOCK,
             'template' => null,
             'meterKey' => Dashboard\ComponentType::REFERENCE_RELIABILITY,
             'exampleValues' => [
                 'count' => 25
+            ]
+        ],
+        'Demandes à traiter' => [
+            'hint' => 'Nombre de demandes pour l\'entité, le(s) type(s) et statut(s) sélectionnés',
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
+            'template' => 'entities_to_treat',
+            'meterKey' => Dashboard\ComponentType::REQUESTS_TO_TREAT,
+            'exampleValues' => [
+                'title' => 'Services à traiter',
+                'count' => 5,
+                'delay' => 51025698
+            ]
+        ],
+        'Ordres à traiter' => [
+            'hint' => 'Nombre d\'ordres pour l\'entité, le(s) type(s) et statut(s) sélectionnés',
+            'category' => Dashboard\ComponentType::CATEGORY_ORDERS,
+            'template' => 'entities_to_treat',
+            'meterKey' => Dashboard\ComponentType::ORDERS_TO_TREAT,
+            'exampleValues' => [
+                'title' => 'Ordre de collecte à traiter',
+                'count' => 3,
+                'delay' => 42622697
             ]
         ]
     ];

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
+use App\Entity\Demande;
 use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
@@ -428,26 +429,53 @@ class DispatchRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function getTreatingTimesWithType() {
-        $nowDate = new DateTime();
-        $datePrior3Months = (clone $nowDate)->modify('-3 month');
-        $queryBuilder = $this->createQueryBuilder('dispatch');
-        $queryBuilderExpr = $queryBuilder->expr();
-        $query = $queryBuilder
-            ->select('type.id AS typeId')
-            ->addSelect($queryBuilderExpr->min('dispatch.validationDate') . ' AS validationDate')
-            ->addSelect($queryBuilderExpr->max('dispatch.treatmentDate') . ' AS treatingDate')
-            ->join('dispatch.statut', 'status')
-            ->join('dispatch.type', 'type')
-            ->where('status.state LIKE :treatedStatus')
-            ->andHaving($queryBuilderExpr->min('dispatch.validationDate') . ' BETWEEN :start AND :end')
-            ->groupBy('dispatch.id')
-            ->setParameters([
-                'start' => $datePrior3Months,
-                'end' => $nowDate,
-                'treatedStatus' => Statut::TREATED
-            ])
-            ->getQuery();
-        return $query->execute();
+    public function getProcessingTime() {
+        $threeMonthsAgo = new DateTime("-3 month");
+
+        return $this->createQueryBuilder("dispatch")
+            ->select("dispatch_type.id AS type")
+            ->addSelect("SUM(UNIX_TIMESTAMP(dispatch.treatmentDate) - UNIX_TIMESTAMP(dispatch.validationDate)) AS total")
+            ->addSelect("COUNT(dispatch) AS count")
+            ->join("dispatch.type", "dispatch_type")
+            ->join("dispatch.statut", "status")
+            ->where("status.nom = :treated")
+            ->andWhere("dispatch.validationDate >= :from")
+            ->andWhere("dispatch.validationDate IS NOT NULL AND dispatch.treatmentDate IS NOT NULL")
+            ->groupBy("dispatch.type")
+            ->setParameter("from", $threeMonthsAgo)
+            ->setParameter("treated", Statut::TREATED)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    /**
+     * @param array $statuses
+     * @return DateTime|null
+     * @throws NonUniqueResultException
+     */
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($types) && !empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('dispatch')
+                ->select('dispatch.validationDate AS date')
+                ->innerJoin('dispatch.statut', 'status')
+                ->innerJoin('dispatch.type', 'type')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->andWhere('status.state IN (:treatedStates)')
+                ->addOrderBy('dispatch.creationDate', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types)
+                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED])
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            return $res['date'] ?? null;
+        }
+        else {
+            return null;
+        }
     }
 }

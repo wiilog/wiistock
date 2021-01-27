@@ -74,5 +74,6 @@ class IndicateurReferenceComand extends Command
 
         $em->persist($fiabilityReference);
         $em->flush();
+        return 0;
     }
 }

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Demande;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
@@ -12,6 +13,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
+use DoctrineExtensions\Query\Mysql\Date;
 
 /**
  * @method Demande|null find($id, $lockMode = null, $lockVersion = null)
@@ -71,34 +73,30 @@ class DemandeRepository extends EntityRepository
             ->execute();
     }
 
-    /**
-     * @return int|mixed|string
-     */
-    public function getTreatingTimesWithType() {
-        $nowDate = new DateTime();
-        $datePrior3Months = (clone $nowDate)->modify('-3 month');
-        $queryBuilder = $this->createQueryBuilder('demande');
-        $queryBuilderExpr = $queryBuilder->expr();
-        $query = $queryBuilder
-            ->select($queryBuilderExpr->min('preparation.date') . ' AS validationDate')
-            ->addSelect('type.id as typeId')
-            ->addSelect(
-                $queryBuilderExpr->max('livraison.dateFin') . ' AS treatingDate'
-            )
-            ->join('demande.type', 'type')
-            ->join('demande.statut', 'statut')
-            ->join('demande.preparations', 'preparation')
-            ->join('preparation.livraison', 'livraison')
-            ->where('statut.nom LIKE :statutTreated')
-            ->andHaving($queryBuilderExpr->min('preparation.date') . ' BETWEEN :start AND :end')
-            ->groupBy('demande.id')
-            ->setParameters([
-                'start' => $datePrior3Months,
-                'end' => $nowDate,
-                'statutTreated' => Demande::STATUT_LIVRE,
-            ])
-            ->getQuery();
-        return $query->execute();
+    public function getProcessingTime(): array {
+        $status = Demande::STATUT_LIVRE;
+        $threeMonthsAgo = new DateTime("-3 months");
+        $threeMonthsAgo = $threeMonthsAgo->format('Y-m-d H:i:s');
+
+        $query = $this->getEntityManager()->getConnection()->executeQuery("
+            SELECT times.id                                                   AS type,
+                   SUM(UNIX_TIMESTAMP(times.max) - UNIX_TIMESTAMP(times.min)) AS total,
+                   COUNT(times.id)                                            AS count
+            FROM (SELECT type.id                 AS id,
+                         MAX(livraison.date_fin) AS max,
+                         MIN(preparation.date)   AS min
+                  FROM demande
+                           INNER JOIN type ON demande.type_id = type.id
+                           INNER JOIN statut ON demande.statut_id = statut.id
+                           INNER JOIN preparation ON demande.id = preparation.demande_id
+                           INNER JOIN livraison ON preparation.id = livraison.preparation_id
+                  WHERE statut.nom LIKE '$status'
+                  GROUP BY demande.id
+                  HAVING MIN(preparation.date) >= '$threeMonthsAgo'
+                 ) AS times
+            GROUP BY times.id");
+
+        return $query->fetchAll();
     }
 
     public function findByStatutAndUser($statut, $user)
@@ -344,4 +342,40 @@ class DemandeRepository extends EntityRepository
             ->getQuery()
             ->execute();
     }
+
+
+
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($statuses)) {
+            $statusesStr = implode(',', $statuses);
+            $typesStr = implode(',', $types);
+            $query = $this->getEntityManager()
+                ->getConnection()
+                ->executeQuery("
+                    SELECT preparation_date.date
+                    FROM demande
+                    INNER JOIN (
+                        SELECT sub_demande.id AS demande_id,
+                               MAX(preparation.date) AS date
+                        FROM demande AS sub_demande
+                        INNER JOIN preparation ON preparation.demande_id = sub_demande.id
+                        WHERE sub_demande.type_id IN (${typesStr})
+                          AND sub_demande.statut_id IN (${statusesStr})
+                        GROUP BY sub_demande.id
+                    ) AS preparation_date ON preparation_date.demande_id = demande.id
+                    ORDER BY preparation_date.date ASC
+                    LIMIT 1
+                ");
+
+            $res = $query->fetchColumn();
+            return $res
+                ? (DateTime::createFromFormat('Y-m-d H:i:s', $res) ?: null)
+                : null;
+        }
+        else {
+            return null;
+        }
+    }
+
 }

@@ -75,6 +75,17 @@ class SecuriteController extends AbstractController {
     }
 
     /**
+     * @Route("/verification-connexion", name="check_login", options={"expose"=true})
+     */
+    public function checkLogin() {
+        return $this->json([
+            "success" => true,
+            "loggedIn" => $this->getUser() !== null,
+        ]);
+    }
+
+
+    /**
      * @Route("/login/{info}", name="login", options={"expose"=true})
      * @param AuthenticationUtils $authenticationUtils
      * @param EntityManagerInterface $entityManager
@@ -328,11 +339,17 @@ class SecuriteController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function checkEmail(Request $request,
-                               EntityManagerInterface $entityManager): Response {
+    public function checkEmail(Request $request, EntityManagerInterface $entityManager): Response {
         if($request->isXmlHttpRequest() && $email = json_decode($request->getContent())) {
             $errorCode = '';
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+
+            if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Adresse email invalide",
+                ]);
+            }
 
             $user = $utilisateurRepository->findOneBy(['email' => $email]);
             if($user) {
@@ -346,8 +363,9 @@ class SecuriteController extends AbstractController {
                 $errorCode = 'mailNotFound';
             }
 
-            return new JsonResponse($errorCode);
+            return $this->json($errorCode);
         }
+
         throw new BadRequestHttpException();
     }
 

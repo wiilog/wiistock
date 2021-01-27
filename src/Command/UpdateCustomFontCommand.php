@@ -25,6 +25,7 @@ class UpdateCustomFontCommand extends Command {
         $this->globalParamService->generateScssFile();
         $output->writeln("\"assets/scss/_customFont.scss\" generated");
         $output->writeln("");
+        return 0;
     }
 
 }

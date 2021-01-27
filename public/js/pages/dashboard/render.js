@@ -1,7 +1,3 @@
-function todo() { //TODO: remove todo
-    console.error("To do");
-}
-
 let currentChartsFontSize;
 let fontSizeYAxes;
 
@@ -18,7 +14,8 @@ const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
 const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
 const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
-const MONETARY_RELIABILITY = 'monetary_reliability';
+const REQUESTS_TO_TREAT = 'requests_to_treat';
+const ORDERS_TO_TREAT = 'orders_to_treat';
 const DAILY_HANDLING = 'daily_handling';
 const MONETARY_RELIABILITY_GRAPH = 'monetary_reliability_graph';
 const MONETARY_RELIABILITY_INDICATOR = 'monetary_reliability_indicator';
@@ -88,6 +85,12 @@ const creators = {
         arguments: {
             hideRange: true
         }
+    },
+    [REQUESTS_TO_TREAT]: {
+        callback: createIndicatorElement
+    },
+    [ORDERS_TO_TREAT]: {
+        callback: createIndicatorElement
     },
     [DAILY_HANDLING]: {
         callback: createChart
@@ -205,19 +208,22 @@ function renderRequest(request, rowSize) {
 
     const requestUserFirstLetter = request.requestUser.charAt(0).toUpperCase();
 
-    const defaultCardSize = 'col-12';
+    const defaultCardSize = 'col-12 col-lg-4 col-xl-3';
     const cardSizeRowSizeMatching = {
         1: 'col-12 col-lg-4 col-xl-3',
         2: 'col-12 col-lg-5',
         3: 'col-12 col-lg-7',
-        4: 'col-12 col-lg-10'
+        4: 'col-12 col-lg-10',
+        5: 'col-12',
+        6: 'col-12',
     }
     const cardSize = cardSizeRowSizeMatching[rowSize] || defaultCardSize;
+    const link = mode !== MODE_EDIT ? `href="${request.href}" onclick="${onCardClick}"` : ``;
+    const cursor = mode === MODE_EDIT ? `cursor-default` : ``;
 
     return `
         <div class="d-flex ${cardSize} p-1">
-            <a class="card wii-card pointer p-3 my-2 shadow-sm flex-grow-1 bg-${request.cardColor}"
-                href="${request.href}" onclick="${onCardClick}">
+            <a class="card wii-card pointer p-3 my-2 shadow-sm flex-grow-1 ${cursor} bg-${request.cardColor}" ${link}>
                 <div class="wii-card-header">
                     <div class="row">
                         <div class="col-10 mb-2">
@@ -307,23 +313,28 @@ function createEntriesToHandleElement(data, {meterKey}) {
     });
 
     return $('<div/>', {
-        class: 'row',
+        class: 'dashboard-box',
         html: [
             $('<div/>', {
-                class: 'col-12 col-md-8 pr-3 pr-md-2',
-                html: $graph
-            }),
-            $('<div/>', {
-                class: 'col-12 col-md-4 mt-2 mt-md-0 pl-3 pl-md-2',
-                html: $('<div/>', {
-                    class: 'row h-100',
-                    html: [
-                        $firstComponent,
-                        $secondComponent
-                    ]
-                })
+                class: 'row h-100',
+                html: [
+                    $('<div/>', {
+                        class: 'col-12 col-md-8 pr-3 pr-md-2',
+                        html: $graph
+                    }),
+                    $('<div/>', {
+                        class: 'col-12 col-md-4 mt-2 mt-md-0 pl-3 pl-md-2',
+                        html: $('<div/>', {
+                            class: 'row h-100',
+                            html: [
+                                $firstComponent,
+                                $secondComponent
+                            ]
+                        })
+                    })
+                ]
             })
-        ]
+        ],
     });
 }
 

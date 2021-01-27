@@ -16,7 +16,7 @@
                     </select>
                 </div>
                 <div class="input-group-append col-4">
-                    <button class="btn btn-primary select-all-arrival-types w-100" type="button">Tous les types</button>
+                    <button class="btn btn-primary select-all-types w-100" type="button">Tous les types</button>
                 </div>
             </div>
         </div>
@@ -37,7 +37,7 @@
                     </select>
                 </div>
                 <div class="input-group-append col-4">
-                    <button class="btn btn-primary select-all-arrival-statuses w-100" type="button">Tous les statuts</button>
+                    <button class="btn btn-primary select-all-statuses w-100" type="button">Tous les statuts</button>
                 </div>
             </div>
         </div>
@@ -54,8 +54,8 @@
                step="1"
                style="width: 70px">
         <select class="form-control data w-25" name="period">
-            <option value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_PREVIOUS_DAYS') }}" selected>dernier jours</option>
-            <option value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_NEXT_DAYS') }}">prochains jours</option>
+            <option value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_PREVIOUS_DAYS') }}" {{ values.period is not defined or constant('App\\Service\\DashboardService::DAILY_PERIOD_PREVIOUS_DAYS') == values.period ? 'selected' }}>dernier jours</option>
+            <option value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_NEXT_DAYS') }}" {{ values.period is defined and constant('App\\Service\\DashboardService::DAILY_PERIOD_NEXT_DAYS') == values.period ? 'selected' }}>prochains jours</option>
         </select>
     </div>
     <label class="d-block mb-3" style="margin-top: -15px;font-size:0.9rem">

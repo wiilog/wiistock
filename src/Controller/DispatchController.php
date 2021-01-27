@@ -27,6 +27,7 @@ use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
+use App\Service\RedirectService;
 use App\Service\SpecificService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
@@ -60,6 +61,8 @@ use Twig\Error\SyntaxError;
  * @Route("/acheminements")
  */
 class DispatchController extends AbstractController {
+
+    private const EXTRA_OPEN_PACK_MODAL = "EXTRA_OPEN_PACK_MODAL";
 
     /**
      * @var UserService
@@ -223,8 +226,9 @@ class DispatchController extends AbstractController {
                         AttachmentService $attachmentService,
                         EntityManagerInterface $entityManager,
                         TranslatorInterface $translator,
-                        UniqueNumberService $uniqueNumberService): Response {
-        if($request->isXmlHttpRequest()) {
+                        UniqueNumberService $uniqueNumberService,
+                        RedirectService $redirectService): Response {
+        if ($request->isXmlHttpRequest()) {
             if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
                 !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
                 return $this->redirectToRoute('access_denied');
@@ -386,7 +390,9 @@ class DispatchController extends AbstractController {
                 $dispatchService->sendEmailsAccordingToStatus($dispatch, false);
             }
 
-            $showArguments = ['id' => $dispatch->getId()];
+            $showArguments = [
+                "id" => $dispatch->getId(),
+            ];
 
             if($printDeliveryNote) {
                 $showArguments['print-delivery-note'] = "1";
@@ -394,7 +400,7 @@ class DispatchController extends AbstractController {
 
             return new JsonResponse([
                 'success' => true,
-                'redirect' => $this->generateUrl('dispatch_show', $showArguments),
+                'redirect' => $redirectService->generateUrl("dispatch_show", $showArguments, self::EXTRA_OPEN_PACK_MODAL),
                 'msg' => $translator->trans('acheminement.L\'acheminement a bien été créé') . '.'
             ]);
         }
@@ -402,20 +408,25 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/voir/{id}/{printBL}", name="dispatch_show", options={"expose"=true}, methods="GET|POST", defaults={"printBL"=0})
+     * @Route("/voir/{id}/{printBL}", name="dispatch_show", options={"expose"=true}, methods="GET|POST", defaults={"printBL"=0,"fromCreation"=0})
      * @param Dispatch $dispatch
      * @param EntityManagerInterface $entityManager
-     * @param bool $printBL
      * @param DispatchService $dispatchService
+     * @param RedirectService $redirectService
+     * @param bool $printBL
      * @return RedirectResponse|Response
+     * @throws NonUniqueResultException
      */
     public function show(Dispatch $dispatch,
                          EntityManagerInterface $entityManager,
-                         bool $printBL,
-                         DispatchService $dispatchService) {
+                         DispatchService $dispatchService,
+                         RedirectService $redirectService,
+                         bool $printBL) {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
             return $this->redirectToRoute('access_denied');
         }
+
+        $extra = $redirectService->load();
 
         $paramRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -426,6 +437,7 @@ class DispatchController extends AbstractController {
         return $this->render('dispatch/show.html.twig', [
             'dispatch' => $dispatch,
             'keep_pack_modal_open' => $paramRepository->getOneParamByLabel(ParametrageGlobal::KEEP_DISPATCH_PACK_MODAL_OPEN),
+            'open_pack_modal' => $extra === self::EXTRA_OPEN_PACK_MODAL && $paramRepository->getOneParamByLabel(ParametrageGlobal::OPEN_DISPATCH_ADD_PACK_MODAL_ON_CREATION),
             'detailsConfig' => $dispatchService->createHeaderDetailsConfig($dispatch),
             'modifiable' => !$dispatchStatus || $dispatchStatus->isDraft(),
             'newPackConfig' => [

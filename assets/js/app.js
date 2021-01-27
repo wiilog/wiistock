@@ -74,6 +74,16 @@ jQuery.capitalize = function(string) {
 };
 
 $(document).ready(() => {
+    //logout after session has expired
+    setInterval(() => {
+        $.get(Routing.generate(`check_login`), function(response) {
+            if(!response.loggedIn) {
+                window.location.reload();
+            }
+        })
+    }, 30 * 60 * 1000 + 30 * 1000); //every 30 minutes and 30 seconds
+
+    //custom datetimepickers for firefox
     if (!BrowserSupport.input("datetime-local")) {
         const observer = new MutationObserver(function () {
             for (const input of $('input[type=datetime-local]')) {
@@ -103,4 +113,3 @@ $(document).ready(() => {
         });
     }
 });
-
