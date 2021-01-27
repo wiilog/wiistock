@@ -13,8 +13,8 @@ use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -249,9 +249,7 @@ class RoleController extends AbstractController
             $roleService->parseParameters($role, $data);
             $entityManager->flush();
 
-            $cache = new FilesystemAdapter();
-            $cache->delete("menu.{$role->getLabel()}");
-            $cache->delete("permissions.{$role->getLabel()}");
+            $roleService->onRoleUpdate($role->getId());
 
             return new JsonResponse([
                 'success' => true,
@@ -298,12 +296,15 @@ class RoleController extends AbstractController
     /**
      * @Route("/supprimer", name="role_delete",  options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
+     * @param RoleService $roleService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws InvalidArgumentException
      */
     public function delete(Request $request,
+                           RoleService $roleService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -321,8 +322,12 @@ class RoleController extends AbstractController
                     $nbUsers = $utilisateurRepository->countByRoleId($roleId);
 
                     if ($nbUsers == 0) {
+                        $roleId = $role->getId();
                         $entityManager->remove($role);
                         $entityManager->flush();
+
+                        $roleService->onRoleUpdate($roleId);
+
                         $resp = [
                             'success' => true,
                             'msg' => 'Le rôle <strong>' . $role->getLabel() . '</strong> a bien été supprimé.'

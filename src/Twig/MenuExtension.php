@@ -2,10 +2,10 @@
 
 namespace App\Twig;
 
+use App\Service\RoleService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
-use Symfony\Contracts\Cache\ItemInterface;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 
@@ -13,6 +13,7 @@ class MenuExtension extends AbstractExtension
 {
 
     private $userService;
+    private $roleService;
     private $specificService;
     private $cache;
     private $menuConfig;
@@ -20,11 +21,13 @@ class MenuExtension extends AbstractExtension
 
     public function __construct(SpecificService $specificService,
                                 UserService $userService,
+                                RoleService $roleService,
                                 array $menuConfig)
     {
         $this->userService = $userService;
+        $this->roleService = $roleService;
         $this->specificService = $specificService;
-        $this->cache = new FilesystemAdapter();
+        $this->cache = new FilesystemAdapter(RoleService::PERMISSIONS_CACHE_POOL);
         $this->menuConfig = $menuConfig;
     }
 
@@ -36,11 +39,12 @@ class MenuExtension extends AbstractExtension
     }
 
 	public function getMenuConfigFunction() {
-        $role = $this->userService->getUserRole();
-
-        return $this->cache->get("menu.{$role->getLabel()}", function(ItemInterface $item) {
+        $user = $this->userService->getUser();
+        $role = $user->getRole();
+        $menuPrefix = RoleService::MENU_CACHE_PREFIX;
+        return $this->cache->get("{$menuPrefix}.{$role->getId()}", function() use ($user) {
             $menuWithRight = [];
-            $permissions = $this->userService->getPermissions();
+            $permissions = $this->roleService->getPermissions($this->userService->getUser(), true);
 
             foreach($this->menuConfig as $menu) {
                 if($this->hasRight($permissions, $menu)) {
@@ -66,7 +70,7 @@ class MenuExtension extends AbstractExtension
     }
 
     private function hasRight(array $permissions, array $item) {
-        return !isset($item["rights"]) || isset($permissions[constant($item["rights"]["menu"]) . constant($item["rights"]["action"])]);
+        return !isset($item["rights"]) || !empty($permissions[constant($item["rights"]["menu"]) . constant($item["rights"]["action"])]);
     }
 
 }

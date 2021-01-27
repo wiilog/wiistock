@@ -17,10 +17,7 @@ use App\Entity\Reception;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
 
-use App\Helper\Stream;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
-use Symfony\Contracts\Cache\ItemInterface;
 use Twig\Environment as Twig_Environment;
 use Symfony\Component\Security\Core\Security;
 use Twig\Error\LoaderError;
@@ -43,16 +40,17 @@ class UserService
     private $user;
 
 	private $entityManager;
-	private $cache;
+	private $roleService;
 
     public function __construct(Twig_Environment $templating,
+                                RoleService $roleService,
                                 EntityManagerInterface $entityManager,
                                 Security $security)
     {
         $this->user = $security->getUser();
         $this->templating = $templating;
         $this->entityManager = $entityManager;
-        $this->cache = new FilesystemAdapter();
+        $this->roleService = $roleService;
     }
 
     public static function CreateMobileLoginKey(int $length = self::MIN_MOBILE_KEY_LENGTH): string {
@@ -69,29 +67,8 @@ class UserService
         return $this->user;
     }
 
-    public function getUserRole($user = null)
-    {
-        if (!$user) $user = $this->user;
-
-        $role = $user ? $user->getRole() : null;
-
-        return $role;
-    }
-
-    public function getPermissions($user = null): array {
-        $role = $this->getUserRole($user);
-
-        return $this->cache->get("permissions.{$role->getLabel()}", function(ItemInterface $item) use ($role) {
-            return Stream::from($role->getActions())
-                ->keymap(function(Action $action) {
-                    return [$action->getMenu()->getLabel() . $action->getLabel(), true];
-                })
-                ->toArray();
-        });
-    }
-
     public function hasRightFunction(string $menuLabel, string $actionLabel, $user = null) {
-        return isset($this->getPermissions($user)[$menuLabel . $actionLabel]);
+        return isset($this->roleService->getPermissions($user ?: $this->user)[$menuLabel . $actionLabel]);
     }
 
     public function getDataForDatatable($params = null)
