@@ -313,5 +313,24 @@ CREATE TABLE dw_ordre_transfert
     date_transfert       timestamp(0),
     commentaire          text,
     reference            varchar(255),
-    code_barre           varchar(255)
+    code_barre           varchar(255),
+    delta_date           float
+);
+
+CREATE TABLE dw_ordre_collecte
+(
+    id                   integer,
+    numero               varchar(255),
+    statut               varchar(255),
+    date_creation        timestamp(0),
+    date_traitement      timestamp(0),
+    operateur            varchar(255),
+    type                 varchar(255),
+    reference            varchar(255),
+    libelle              varchar(255),
+    emplacement          varchar(255),
+    quantite_a_collecter varchar(255),
+    code_barre           varchar(255),
+    destination          varchar(255),
+    delta_date           float
 );

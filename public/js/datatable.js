@@ -246,16 +246,18 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             tooltips.push({id, text: column.tooltip});
         }
 
-        const newOrder = [];
-        for(let [name, order] of config.order) {
-            if(name === column.data || name === column.name) {
-                name = id;
+        if (config.order && Array.isArray(config.order)) {
+            const newOrder = [];
+            for (let [name, order] of config.order) {
+                if (name === column.data || name === column.name) {
+                    name = id;
+                }
+
+                newOrder.push([name, order]);
             }
 
-            newOrder.push([name, order]);
+            config.order = newOrder;
         }
-
-        config.order = newOrder;
     });
 
     let existingHeaderCallback = config.headerCallback;
