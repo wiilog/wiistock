@@ -31,8 +31,6 @@ use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\CategoryType;
 use App\Exceptions\NegativeQuantityException;
-use App\Repository\ParametrageGlobalRepository;
-use App\Repository\ReceptionRepository;
 use App\Repository\TransporteurRepository;
 
 use App\Service\CSVExportService;
@@ -84,16 +82,6 @@ use Twig\Error\SyntaxError;
 class ReceptionController extends AbstractController {
 
     /**
-     * @var TransporteurRepository
-     */
-    private $transporteurRepository;
-
-    /**
-     * @var ReceptionRepository
-     */
-    private $receptionRepository;
-
-    /**
      * @var GlobalParamService
      */
     private $globalParamService;
@@ -119,37 +107,24 @@ class ReceptionController extends AbstractController {
     private $receptionService;
 
     /**
-     * @var ParametrageGlobalRepository
-     */
-    private $paramGlobalRepository;
-
-    /**
      * @var MouvementStockService
      */
     private $mouvementStockService;
     private $mailerService;
 
-    public function __construct(
-        ArticleDataService $articleDataService,
-        GlobalParamService $globalParamService,
-        ReceptionRepository $receptionRepository,
-        UserService $userService,
-        ReceptionService $receptionService,
-        MailerService $mailerService,
-        AttachmentService $attachmentService,
-        TransporteurRepository $transporteurRepository,
-        ParametrageGlobalRepository $parametrageGlobalRepository,
-        MouvementStockService $mouvementStockService
-    ) {
-        $this->paramGlobalRepository = $parametrageGlobalRepository;
+    public function __construct(ArticleDataService $articleDataService,
+                                GlobalParamService $globalParamService,
+                                UserService $userService,
+                                ReceptionService $receptionService,
+                                MailerService $mailerService,
+                                AttachmentService $attachmentService,
+                                MouvementStockService $mouvementStockService) {
         $this->mailerService = $mailerService;
         $this->attachmentService = $attachmentService;
         $this->receptionService = $receptionService;
         $this->globalParamService = $globalParamService;
-        $this->receptionRepository = $receptionRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
-        $this->transporteurRepository = $transporteurRepository;
         $this->mouvementStockService = $mouvementStockService;
     }
 
@@ -191,7 +166,6 @@ class ReceptionController extends AbstractController {
                     'msg' => $translator->trans('réception.Une autre réception est en cours de création, veuillez réessayer').'.'
                 ]);
             }
-
 
             $champLibreService->manageFreeFields($reception, $data, $entityManager);
             $attachmentService->manageAttachments($entityManager, $reception, $request->files);
@@ -924,6 +898,8 @@ class ReceptionController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+
         $listTypesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $typeChampLibreDL = [];
 
@@ -937,8 +913,8 @@ class ReceptionController extends AbstractController {
             ];
         }
 
-        $createDL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
-        $needsCurrentUser = $this->paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEMANDEUR_DANS_DL);
+        $createDL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
+        $needsCurrentUser = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEMANDEUR_DANS_DL);
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::LITIGE_RECEPT);
         return $this->render("reception/show.html.twig", [
@@ -1889,6 +1865,7 @@ class ReceptionController extends AbstractController {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $paramGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
             $totalQuantities = [];
             foreach($articles as $article) {
@@ -1931,7 +1908,7 @@ class ReceptionController extends AbstractController {
 
             if($needCreateLivraison) {
                 // optionnel : crée l'ordre de prépa
-                $paramCreatePrepa = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
+                $paramCreatePrepa = $paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
                 $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
                 $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
 

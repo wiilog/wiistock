@@ -25,7 +25,6 @@ use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\Stream;
-use App\Repository\TransporteurRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\DispatchService;
@@ -75,11 +74,6 @@ class ArrivageController extends AbstractController
     private $userService;
 
     /**
-     * @var TransporteurRepository
-     */
-    private $transporteurRepository;
-
-    /**
      * @var GlobalParamService
      */
     private $globalParamService;
@@ -115,14 +109,12 @@ class ArrivageController extends AbstractController
                                 SpecificService $specificService,
                                 MailerService $mailerService,
                                 GlobalParamService $globalParamService,
-                                TransporteurRepository $transporteurRepository,
                                 UserService $userService)
     {
         $this->dashboardService = $dashboardService;
         $this->specificService = $specificService;
         $this->globalParamService = $globalParamService;
         $this->userService = $userService;
-        $this->transporteurRepository = $transporteurRepository;
         $this->mailerService = $mailerService;
         $this->attachmentService = $attachmentService;
         $this->arrivageDataService = $arrivageDataService;
@@ -393,6 +385,7 @@ class ArrivageController extends AbstractController
                 $attachmentRepository = $entityManager->getRepository(Attachment::class);
                 $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
                 $statutRepository = $entityManager->getRepository(Statut::class);
+                $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
                 $arrivage = $arrivageRepository->find($data['id']);
 
@@ -410,7 +403,7 @@ class ArrivageController extends AbstractController
                     'attachments' => $attachmentRepository->findBy(['arrivage' => $arrivage]),
                     'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                     'fournisseurs' => $fournisseurRepository->findAllSorted(),
-                    'transporteurs' => $this->transporteurRepository->findAllSorted(),
+                    'transporteurs' => $transporteurRepository->findAllSorted(),
                     'chauffeurs' => $chauffeurRepository->findAllSorted(),
                     'statuts' => $statuses,
                     'fieldsParam' => $fieldsParam,
@@ -552,6 +545,7 @@ class ArrivageController extends AbstractController
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
         $post = $request->request;
         $isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
@@ -575,7 +569,7 @@ class ArrivageController extends AbstractController
             ->setNoTracking(substr($post->get('noTracking'), 0, 64))
             ->setNumeroCommandeList(explode(',', $numeroCommadeListStr))
             ->setFournisseur($fournisseurId ? $fournisseurRepository->find($fournisseurId) : null)
-            ->setTransporteur($transporteurId ? $this->transporteurRepository->find($transporteurId) : null)
+            ->setTransporteur($transporteurId ? $transporteurRepository->find($transporteurId) : null)
             ->setChauffeur($chauffeurId ? $chauffeurRepository->find($chauffeurId) : null)
             ->setStatut($statutId ? $statutRepository->find($statutId) : null)
             ->setCustoms($post->get('customs') == 'true')

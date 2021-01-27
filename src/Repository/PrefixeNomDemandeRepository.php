@@ -3,8 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\PrefixeNomDemande;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method PrefixeNomDemande|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,13 +11,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method PrefixeNomDemande[]    findAll()
  * @method PrefixeNomDemande[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class PrefixeNomDemandeRepository extends ServiceEntityRepository
+class PrefixeNomDemandeRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, PrefixeNomDemande::class);
-    }
-
 	/**
 	 * @param string $typeDemande
 	 * @return PrefixeNomDemande|null

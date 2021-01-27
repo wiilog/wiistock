@@ -7,8 +7,6 @@ use App\Entity\DimensionsEtiquettes;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Parametre;
 
-use App\Repository\ParametrageGlobalRepository;
-
 use App\Service\SpecificService;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -20,18 +18,11 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 class ParametreFixtures extends Fixture implements FixtureGroupInterface {
 
     /**
-     * @var ParametrageGlobalRepository
-     */
-    private $parametreGlobalRepository;
-
-    /**
      * @var SpecificService
      */
     private $specificService;
 
-    public function __construct(ParametrageGlobalRepository $parametrageGlobalRepository,
-                                SpecificService $specificService) {
-        $this->parametreGlobalRepository = $parametrageGlobalRepository;
+    public function __construct(SpecificService $specificService) {
         $this->specificService = $specificService;
     }
 
@@ -48,6 +39,8 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
         ];
 
         $parametreRepository = $manager->getRepository(Parametre::class);
+        $parametreGlobalRepository = $manager->getRepository(ParametrageGlobal::class);
+        $dimensionEtiquetteRepository = $manager->getRepository(DimensionsEtiquettes::class);
 
         foreach ($parameters as $parameter) {
             $param = $parametreRepository->findBy(['label' => $parameter['label']]);
@@ -64,7 +57,6 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             }
         }
 
-        $dimensionEtiquetteRepository = $manager->getRepository(DimensionsEtiquettes::class);
         $dimensionEtiquette = $dimensionEtiquetteRepository->findOneDimension();
         $globalParameterLabels = [
             ParametrageGlobal::CREATE_DL_AFTER_RECEPTION => [
@@ -215,7 +207,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
         ];
 
         foreach ($globalParameterLabels as $globalParameterLabel => $values) {
-            $globalParam = $this->parametreGlobalRepository->findBy(['label' => $globalParameterLabel]);
+            $globalParam = $parametreGlobalRepository->findBy(['label' => $globalParameterLabel]);
 
             if (empty($globalParam)) {
                 $appClient = $this->specificService->getAppClient();

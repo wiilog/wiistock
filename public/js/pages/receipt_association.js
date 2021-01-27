@@ -27,10 +27,6 @@ let tableRecepConfig = {
     rowConfig: {
         needsRowClickAction: true
     },
-    headerCallback: function (thead) {
-        $(thead).find('th').eq(2).attr('title', "arrivage");
-        $(thead).find('th').eq(3).attr('title', "réception");
-    },
     buttons: [
         {
             extend: 'csv',

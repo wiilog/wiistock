@@ -8,7 +8,6 @@ use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
-use App\Repository\MenuRepository;
 use App\Service\RoleService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,20 +28,13 @@ class RoleController extends AbstractController
 {
 
     /**
-     * @var MenuRepository
-     */
-    private $menuRepository;
-
-    /**
      * @var UserService
      */
     private $userService;
 
 
-    public function __construct(MenuRepository $menuRepository,
-                                UserService $userService)
+    public function __construct(UserService $userService)
     {
-        $this->menuRepository = $menuRepository;
         $this->userService = $userService;
     }
 

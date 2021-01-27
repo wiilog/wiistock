@@ -3,9 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\Alert;
-use App\Entity\Arrivage;
-use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Litige;
@@ -14,10 +11,9 @@ use App\Entity\LitigeHistoric;
 
 use App\Entity\Attachment;
 use App\Entity\Statut;
+use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Repository\LitigeHistoricRepository;
-use App\Repository\TransporteurRepository;
 
 use App\Service\CSVExportService;
 use App\Service\LitigeService;
@@ -41,20 +37,11 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 class LitigeController extends AbstractController
 {
-	/**
-	 * @var TransporteurRepository
-	 */
-	private $transporteurRepository;
 
 	/**
 	 * @var UserService
 	 */
 	private $userService;
-
-    /**
-     * @var LitigeHistoricRepository
-     */
-    private $litigeHistoricRepository;
 
 	/**
 	 * @var LitigeService
@@ -69,19 +56,12 @@ class LitigeController extends AbstractController
     /**
      * @param LitigeService $litigeService
      * @param UserService $userService
-     * @param TransporteurRepository $transporteurRepository
      * @param TranslatorInterface $translator
-     * @param LitigeHistoricRepository $litigeHistoricRepository
      */
 	public function __construct(LitigeService $litigeService,
                                 UserService $userService,
-                                TransporteurRepository $transporteurRepository,
-                                TranslatorInterface $translator,
-                                LitigeHistoricRepository $litigeHistoricRepository)
-	{
-		$this->transporteurRepository = $transporteurRepository;
+                                TranslatorInterface $translator) {
 		$this->userService = $userService;
-		$this->litigeHistoricRepository = $litigeHistoricRepository;
 		$this->litigeService = $litigeService;
         $this->translator = $translator;
 	}
@@ -103,13 +83,14 @@ class LitigeController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
         return $this->render('litige/index.html.twig',[
             'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
-            'carriers' => $this->transporteurRepository->findAllSorted(),
+            'carriers' => $transporteurRepository->findAllSorted(),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
 			'litigeOrigins' => $litigeService->getLitigeOrigin(),
 			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS),
@@ -238,27 +219,31 @@ class LitigeController extends AbstractController
     /**
      * @Route("/histo/{litige}", name="histo_litige_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param Litige $litige
      * @return Response
      */
-	public function apiHistoricLitige(Request $request, Litige $litige): Response
+	public function apiHistoricLitige(Request $request,
+                                      EntityManagerInterface $entityManager,
+                                      Litige $litige): Response
     {
         if ($request->isXmlHttpRequest()) {
             $rows = [];
-                $idLitige = $litige->getId();
-                $litigeHisto = $this->litigeHistoricRepository->findByLitige($idLitige);
-                foreach ($litigeHisto as $histo)
-                {
-                    $rows[] = [
-                        'user' => $histo->getUser() ? $histo->getUser()->getUsername() : '',
-                        'date' => $histo->getDate() ? $histo->getDate()->format('d/m/Y H:i') : '',
-                        'commentaire' => nl2br($histo->getComment()),
-                    ];
-                }
+            $idLitige = $litige->getId();
+            $litigeHistoricRepository = $entityManager->getRepository(LitigeHistoric::class);
+            $litigeHisto = $litigeHistoricRepository->findByLitige($idLitige);
+
+            foreach ($litigeHisto as $histo)
+            {
+                $rows[] = [
+                    'user' => $histo->getUser() ? $histo->getUser()->getUsername() : '',
+                    'date' => $histo->getDate() ? $histo->getDate()->format('d/m/Y H:i') : '',
+                    'commentaire' => nl2br($histo->getComment()),
+                ];
+            }
             $data['data'] = $rows;
 
             return new JsonResponse($data);
-
         }
         throw new BadRequestHttpException();
     }

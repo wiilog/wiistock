@@ -3,8 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\MailerServer;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 
 /**
  * @method MailerServer|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,16 +12,11 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method MailerServer[]    findAll()
  * @method MailerServer[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class MailerServerRepository extends ServiceEntityRepository
+class MailerServerRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, MailerServer::class);
-    }
-
 	/**
 	 * @return MailerServer|null
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
     public function findOneMailerServer()
     {

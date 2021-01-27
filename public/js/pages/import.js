@@ -39,7 +39,7 @@ let tableImportConfig = {
         callback: () => initDoubleClick('.status-planifié'),
         needsSearchOverride: true,
     },
-    order: [[1, "desc"]],
+    order: [['id', "desc"]],
 };
 let tableImport = initDataTable('tableImport', tableImportConfig);
 

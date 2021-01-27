@@ -5,19 +5,15 @@ namespace App\DataFixtures;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Role;
-use App\Repository\MenuRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
 
 class PatchNewMenusFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
-    private $menuRepository;
-
-    public function __construct(MenuRepository $menuRepository)
-    {
-        $this->menuRepository = $menuRepository;
+    public function __construct(EntityManagerInterface $entityManager) {
     }
 
     public function load(ObjectManager $manager)

@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Arrivage;
 use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\Collecte;

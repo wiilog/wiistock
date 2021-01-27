@@ -176,7 +176,7 @@ function initPageDatatable() {
     let pathArticle = Routing.generate('demande_article_api', {id: $('#demande-id').val()}, true);
     let tableArticleConfig = {
         processing: true,
-        order: [[1, "desc"]],
+        order: [['Référence', "desc"]],
         ajax: {
             "url": pathArticle,
             "type": "POST"
