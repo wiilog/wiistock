@@ -8,6 +8,9 @@
     "psr/event-dispatcher": {
         "version": "1.0.0"
     },
+    "swiftmailer/swiftmailer": {
+        "version": "v6.2.5"
+    },
     "symfony/browser-kit": {
         "version": "v5.2.1"
     },

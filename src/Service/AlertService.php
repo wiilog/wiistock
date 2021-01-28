@@ -51,10 +51,11 @@ class AlertService {
         /** @var Article $article */
         foreach($expired as $article) {
             $hasExistingAlert = !(
-            Stream::from($article->getAlerts())
-                ->filter(function(Alert $alert) {
-                    return $alert->getType() === Alert::EXPIRY;
-                })->isEmpty()
+                Stream::from($article->getAlerts())
+                    ->filter(function(Alert $alert) {
+                        return $alert->getType() === Alert::EXPIRY;
+                    })
+                    ->isEmpty()
             );
 
             if(!$hasExistingAlert) {
