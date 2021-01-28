@@ -31,38 +31,15 @@ class DashboardSettingsService {
     const UNKNOWN_COMPONENT = 'unknown_component';
     const INVALID_SEGMENTS_ENTRY = 'invalid_segments_entry';
 
-    private $enCoursService;
-    private $dashboardService;
-    private $dateService;
-    private $demandeLivraisonService;
-    private $demandeCollecteService;
-    private $handlingService;
-    private $dispatchService;
-    private $transferRequestService;
-    private $userService;
-    private $router;
-
-    public function __construct(EnCoursService $enCoursService,
-                                DashboardService $dashboardService,
-                                DateService $dateService,
-                                DemandeLivraisonService $demandeLivraisonService,
-                                DemandeCollecteService $demandeCollecteService,
-                                HandlingService $handlingService,
-                                TransferRequestService $transferRequestService,
-                                UserService $userService,
-                                DispatchService $dispatchService,
-                                RouterInterface $router) {
-        $this->enCoursService = $enCoursService;
-        $this->dashboardService = $dashboardService;
-        $this->dateService = $dateService;
-        $this->demandeLivraisonService = $demandeLivraisonService;
-        $this->demandeCollecteService = $demandeCollecteService;
-        $this->handlingService = $handlingService;
-        $this->transferRequestService = $transferRequestService;
-        $this->userService = $userService;
-        $this->router = $router;
-        $this->dispatchService = $dispatchService;
-    }
+    private DashboardService $dashboardService;
+    private DateService $dateService;
+    private DemandeLivraisonService $demandeLivraisonService;
+    private DemandeCollecteService $demandeCollecteService;
+    private HandlingService $handlingService;
+    private DispatchService $dispatchService;
+    private TransferRequestService $transferRequestService;
+    private UserService $userService;
+    private RouterInterface $router;
 
     public function serialize(EntityManagerInterface $entityManager, ?Utilisateur $user, int $mode): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);

@@ -399,8 +399,7 @@ class DashboardService {
      * @throws Exception
      */
     public function persistPackToTreatFrom(EntityManagerInterface $entityManager,
-                                           Dashboard\Component $component): void
-    {
+                                           Dashboard\Component $component): void {
 
         $locationClusterMeterRepository = $this->entityManager->getRepository(LocationClusterMeter::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
@@ -486,8 +485,7 @@ class DashboardService {
      * @throws NoResultException
      * @throws Exception
      */
-    public function persistEntriesToHandle(EntityManagerInterface $entityManager, Dashboard\Component $component)
-    {
+    public function persistEntriesToHandle(EntityManagerInterface $entityManager, Dashboard\Component $component) {
         $config = $component->getConfig();
 
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -644,7 +642,6 @@ class DashboardService {
             ->setTotal(!empty($totalToDisplay) ? $totalToDisplay : '-')
             ->setLocation(!empty($locationToDisplay) ? $locationToDisplay : '-');
     }
-
 
     /**
      * @param EntityManagerInterface $entityManager
@@ -1007,6 +1004,7 @@ class DashboardService {
      * @return array [('S' . weekNumber) => $getCounter return]
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @noinspection PhpUnusedPrivateMethodInspection
      */
     private function getWeeklyObjectsStatistics(EntityManagerInterface $entityManager,
                                                 int $nbWeeksToReturn,
