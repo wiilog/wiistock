@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Service;
 
 use App\Entity\Action;
@@ -180,7 +179,7 @@ class DispatchService {
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
-            'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
+            'typeChampsLibres' => array_map(function(Type $type) use ($champLibreRepository) {
                 $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
                 return [
                     'typeLabel' => $type->getLabel(),
@@ -253,97 +252,97 @@ class DispatchService {
         }
 
         $config = [
-                [
-                    'label' => 'Statut',
-                    'value' => $status ? $status->getNom() : ''
-                ],
-                [
-                    'label' => 'Type',
-                    'value' => $type ? $type->getLabel() : ''
-                ],
-                [
-                    'label' => $this->translator->trans('acheminement.Transporteur'),
-                    'title' => 'Transporteur',
-                    'value' => $carrier ? $carrier->getLabel() : '',
-                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_CARRIER_DISPATCH ]
-                ],
-                [
-                    'label' => $this->translator->trans('acheminement.Numéro de tracking transporteur'),
-                    'title' => 'Numéro de tracking transporteur',
-                    'value' => $carrierTrackingNumber,
-                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH ]
-                ],
-                [
-                    'label' => 'Demandeur',
-                    'value' => $requester ? $requester->getUsername() : ''
-                ],
-                $receiverDetails,
-                [
-                    'label' => $this->translator->trans('acheminement.Numéro de projet'),
-                    'title' => 'Numéro de projet',
-                    'value' => $projectNumber,
-                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_PROJECT_NUMBER ]
-                ],
-                [
-                    'label' => $this->translator->trans('acheminement.Business unit'),
-                    'title' => 'Business unit',
-                    'value' => $dispatch->getBusinessUnit() ?? '',
-                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_BUSINESS_UNIT ]
-                ],
-                [
-                    'label' => $this->translator->trans('acheminement.Numéro de commande'),
-                    'value' => $commandNumber,
-                    'title' => 'Numéro de commande',
-                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH ]
-                ],
-                [
-                    'label' => $this->translator->trans('acheminement.Emplacement prise'),
-                    'value' => $locationFrom ? $locationFrom->getLabel() : '', 'title' => 'Emplacement prise',
-                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_LOCATION_PICK ]
-                ],
-                [
-                    'label' => $this->translator->trans('acheminement.Emplacement dépose'),
-                    'value' => $locationTo ? $locationTo->getLabel() : '', 'title' => 'Emplacement dépose',
-                    'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_LOCATION_DROP ]
-                ],
-                [
-                    'label' => 'Date de création',
-                    'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''
-                ],
-                [
-                    'label' => 'Date de validation',
-                    'value' => $validationDate ? $validationDate->format('d/m/Y H:i:s') : ''
-                ],
-                [
-                    'label' => 'Dates d\'échéance',
-                    'value' => ($startDate || $endDate) ? ('Du ' . $startDateStr . ' au ' . $endDateStr) : ''
-                ],
-                [
-                    'label' => 'Traité par',
-                    'value' => $treatedBy
-                ],
-                [
-                    'label' => 'Date de traitement',
-                    'value' => $treatmentDate ? $treatmentDate->format('d/m/Y H:i:s') : ''
-                ]
-            ];
-        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DISPATCH);
+            [
+                'label' => 'Statut',
+                'value' => $status ? $status->getNom() : ''
+            ],
+            [
+                'label' => 'Type',
+                'value' => $type ? $type->getLabel() : ''
+            ],
+            [
+                'label' => $this->translator->trans('acheminement.Transporteur'),
+                'title' => 'Transporteur',
+                'value' => $carrier ? $carrier->getLabel() : '',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_DISPATCH]
+            ],
+            [
+                'label' => $this->translator->trans('acheminement.Numéro de tracking transporteur'),
+                'title' => 'Numéro de tracking transporteur',
+                'value' => $carrierTrackingNumber,
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH]
+            ],
+            [
+                'label' => 'Demandeur',
+                'value' => $requester ? $requester->getUsername() : ''
+            ],
+            $receiverDetails,
+            [
+                'label' => $this->translator->trans('acheminement.Numéro de projet'),
+                'title' => 'Numéro de projet',
+                'value' => $projectNumber,
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_PROJECT_NUMBER]
+            ],
+            [
+                'label' => $this->translator->trans('acheminement.Business unit'),
+                'title' => 'Business unit',
+                'value' => $dispatch->getBusinessUnit() ?? '',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_BUSINESS_UNIT]
+            ],
+            [
+                'label' => $this->translator->trans('acheminement.Numéro de commande'),
+                'value' => $commandNumber,
+                'title' => 'Numéro de commande',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH]
+            ],
+            [
+                'label' => $this->translator->trans('acheminement.Emplacement prise'),
+                'value' => $locationFrom ? $locationFrom->getLabel() : '', 'title' => 'Emplacement prise',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_LOCATION_PICK]
+            ],
+            [
+                'label' => $this->translator->trans('acheminement.Emplacement dépose'),
+                'value' => $locationTo ? $locationTo->getLabel() : '', 'title' => 'Emplacement dépose',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_LOCATION_DROP]
+            ],
+            [
+                'label' => 'Date de création',
+                'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''
+            ],
+            [
+                'label' => 'Date de validation',
+                'value' => $validationDate ? $validationDate->format('d/m/Y H:i:s') : ''
+            ],
+            [
+                'label' => 'Dates d\'échéance',
+                'value' => ($startDate || $endDate) ? ('Du ' . $startDateStr . ' au ' . $endDateStr) : ''
+            ],
+            [
+                'label' => 'Traité par',
+                'value' => $treatedBy
+            ],
+            [
+                'label' => 'Date de traitement',
+                'value' => $treatmentDate ? $treatmentDate->format('d/m/Y H:i:s') : ''
+            ]
+        ];
+        $configFiltered = $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DISPATCH);
         return array_merge(
             $configFiltered,
             $freeFieldArray,
             ($this->fieldsParamService->isFieldRequired($fieldsParam, 'comment', 'displayedFormsCreate')
                 || $this->fieldsParamService->isFieldRequired($fieldsParam, 'comment', 'displayedFormsEdit'))
                 ? [[
-                    'label' => 'Commentaire',
-                    'value' => $comment ?: '',
-                    'isRaw' => true,
-                    'colClass' => 'col-sm-6 col-12',
-                    'isScrollable' => true,
-                    'isNeededNotEmpty' => true
-                ]]
+                'label' => 'Commentaire',
+                'value' => $comment ?: '',
+                'isRaw' => true,
+                'colClass' => 'col-sm-6 col-12',
+                'isScrollable' => true,
+                'isNeededNotEmpty' => true
+            ]]
                 : [],
             ($this->fieldsParamService->isFieldRequired($fieldsParam, 'attachments', 'displayedFormsCreate')
-            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachments', 'displayedFormsEdit'))
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachments', 'displayedFormsEdit'))
                 ? [[
                 'label' => 'Pièces jointes',
                 'value' => $attachments->toArray(),
@@ -375,9 +374,9 @@ class DispatchService {
             $requesterEmails = $dispatch->getRequester() ? $dispatch->getRequester()->getMainAndSecondaryEmails() : [];
 
             $partialDispatch = !(
-                $dispatch
+            $dispatch
                 ->getDispatchPacks()
-                ->filter(function (DispatchPack $dispatchPack) {
+                ->filter(function(DispatchPack $dispatchPack) {
                     return !$dispatchPack->isTreated();
                 })
                 ->isEmpty()
@@ -520,7 +519,7 @@ class DispatchService {
             ['title' => 'acheminement.Transporteur', 'name' => 'carrier', 'translated' => true],
             ['title' => 'acheminement.Numéro de tracking transporteur', 'name' => 'carrierTrackingNumber', 'translated' => true],
             ['title' => 'acheminement.Numéro de commande', 'name' => 'commandNumber', 'translated' => true],
-            ['title' => 'Date de création',  'name' => 'creationDate'],
+            ['title' => 'Date de création', 'name' => 'creationDate'],
             ['title' => 'Date de validation', 'name' => 'validationDate'],
             ['title' => 'Date de traitement', 'name' => 'treatmentDate'],
             ['title' => 'Date d\'échéance', 'name' => 'endDate'],
@@ -546,8 +545,13 @@ class DispatchService {
      */
     public function parseRequestForCard(Dispatch $request,
                                         DateService $dateService,
-                                        array $averageRequestTimesByType) {
-        $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE);
+                                        array $averageRequestTimesByType,
+                                        ?int $mode = null) {
+        if(!$mode || $mode === DashboardSettingsService::MODE_EXTERNAL) {
+            $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE);
+        } else {
+            $hasRightToSeeRequest = false;
+        }
 
         $requestStatus = $request->getStatut() ? $request->getStatut()->getNom() : '';
         $requestType = $request->getType() ? $request->getType()->getLabel() : '';
@@ -612,4 +616,5 @@ class DispatchService {
             'progressBarBGColor' => $requestState === Statut::DRAFT ? 'white' : 'lightGrey',
         ];
     }
+
 }

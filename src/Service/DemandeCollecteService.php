@@ -273,9 +273,15 @@ class DemandeCollecteService
      */
     public function parseRequestForCard(Collecte $request,
                                         DateService $dateService,
-                                        array $averageRequestTimesByType) {
-        $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL);
-        $hasRightToSeeOrder = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL);
+                                        array $averageRequestTimesByType,
+                                        ?int $mode = null) {
+        if(!$mode || $mode === DashboardSettingsService::MODE_EXTERNAL) {
+            $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL);
+            $hasRightToSeeOrder = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL);
+        } else {
+            $hasRightToSeeRequest = false;
+            $hasRightToSeeOrder = false;
+        }
 
         $requestStatus = $request->getStatut() ? $request->getStatut()->getNom() : '';
         $requestType = $request->getType() ? $request->getType()->getLabel() : '';

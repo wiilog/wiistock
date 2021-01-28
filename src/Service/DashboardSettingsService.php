@@ -213,46 +213,56 @@ class DashboardSettingsService {
 
             if ($config["kind"] == "delivery" && ($mode === self::MODE_EXTERNAL || $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR))) {
                 $demandeRepository = $entityManager->getRepository(Demande::class);
-                $pendingDeliveries = Stream::from($demandeRepository->findRequestToTreatByUser($loggedUser, 50))
-                    ->map(function(Demande $demande) use ($averageRequestTimesByType) {
-                        return $this->demandeLivraisonService->parseRequestForCard($demande, $this->dateService, $averageRequestTimesByType);
-                    })
-                    ->toArray();
+                if($config["shown"] === "everyone" || $mode !== self::MODE_EXTERNAL) {
+                    $pendingDeliveries = Stream::from($demandeRepository->findRequestToTreatByUser($loggedUser, 50))
+                        ->map(function(Demande $demande) use ($averageRequestTimesByType, $mode) {
+                            return $this->demandeLivraisonService->parseRequestForCard($demande, $this->dateService, $averageRequestTimesByType, $mode);
+                        })
+                        ->toArray();
+                }
             }
 
             if ($config["kind"] == "collect" && ($mode === self::MODE_EXTERNAL || $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL))) {
                 $collecteRepository = $entityManager->getRepository(Collecte::class);
-                $pendingCollects = Stream::from($collecteRepository->findRequestToTreatByUser($loggedUser, 50))
-                    ->map(function(Collecte $collecte) use ($averageRequestTimesByType) {
-                        return $this->demandeCollecteService->parseRequestForCard($collecte, $this->dateService, $averageRequestTimesByType);
-                    })
-                    ->toArray();
+                if($config["shown"] === "everyone" || $mode !== self::MODE_EXTERNAL) {
+                    $pendingCollects = Stream::from($collecteRepository->findRequestToTreatByUser($loggedUser, 50))
+                        ->map(function(Collecte $collecte) use ($averageRequestTimesByType, $mode) {
+                            return $this->demandeCollecteService->parseRequestForCard($collecte, $this->dateService, $averageRequestTimesByType, $mode);
+                        })
+                        ->toArray();
+                }
             }
 
             if ($config["kind"] == "handling" && ($mode === self::MODE_EXTERNAL || $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND))) {
                 $handlingRepository = $entityManager->getRepository(Handling::class);
-                $pendingHandlings = Stream::from($handlingRepository->findRequestToTreatByUser($loggedUser, 50))
-                    ->map(function(Handling $handling) use ($averageRequestTimesByType) {
-                        return $this->handlingService->parseRequestForCard($handling, $this->dateService, $averageRequestTimesByType);
-                    })
-                    ->toArray();
+                if($config["shown"] === "everyone" || $mode !== self::MODE_EXTERNAL) {
+                    $pendingHandlings = Stream::from($handlingRepository->findRequestToTreatByUser($loggedUser, 50))
+                        ->map(function(Handling $handling) use ($averageRequestTimesByType, $mode) {
+                            return $this->handlingService->parseRequestForCard($handling, $this->dateService, $averageRequestTimesByType, $mode);
+                        })
+                        ->toArray();
+                }
             }
 
             if ($config["kind"] == "transfer" && ($mode === self::MODE_EXTERNAL || $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ))) {
                 $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
-                $pendingTransfers = Stream::from($transferRequestRepository->findRequestToTreatByUser($loggedUser, 50))
-                    ->map(function(TransferRequest $transfer) use ($averageRequestTimesByType) {
-                        return $this->transferRequestService->parseRequestForCard($transfer, $this->dateService, $averageRequestTimesByType);
-                    })
-                    ->toArray();
+                if($config["shown"] === "everyone" || $mode !== self::MODE_EXTERNAL) {
+                    $pendingTransfers = Stream::from($transferRequestRepository->findRequestToTreatByUser($loggedUser, 50))
+                        ->map(function(TransferRequest $transfer) use ($averageRequestTimesByType, $mode) {
+                            return $this->transferRequestService->parseRequestForCard($transfer, $this->dateService, $averageRequestTimesByType, $mode);
+                        })
+                        ->toArray();
+                }
             }
             if ($config["kind"] == "dispatch" && ($mode === self::MODE_EXTERNAL || $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE))) {
                 $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-                $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUser($loggedUser, 50))
-                    ->map(function(Dispatch $dispatch) use ($averageRequestTimesByType) {
-                        return $this->dispatchService->parseRequestForCard($dispatch, $this->dateService, $averageRequestTimesByType);
-                    })
-                    ->toArray();
+                if($config["shown"] === "everyone" || $mode !== self::MODE_EXTERNAL) {
+                    $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUser($loggedUser, 50))
+                        ->map(function(Dispatch $dispatch) use ($averageRequestTimesByType, $mode) {
+                            return $this->dispatchService->parseRequestForCard($dispatch, $this->dateService, $averageRequestTimesByType, $mode);
+                        })
+                        ->toArray();
+                }
             }
 
             $values["requests"] = array_merge($pendingDeliveries ?? [], $pendingCollects ?? [], $pendingHandlings ?? [], $pendingTransfers ?? [], $pendingDispatches ?? []);
