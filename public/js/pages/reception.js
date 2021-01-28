@@ -15,7 +15,7 @@ $(function () {
     let tableReceptionConfig = {
         serverSide: true,
         processing: true,
-        order: [['Statut', "desc"], ['Date', "desc"]],
+        order: [['Date', "desc"]],
         ajax: {
             "url": pathTableReception,
             "type": "POST",

@@ -47,11 +47,6 @@ use Throwable;
 
 class DashboardService {
 
-    //TODO: remove
-    public const DASHBOARD_PACKAGING = 'packaging';
-    public const DASHBOARD_ADMIN = 'admin';
-    public const DASHBOARD_DOCK = 'dock';
-
     public const DEFAULT_DAILY_REQUESTS_SCALE = 5;
     public const DEFAULT_WEEKLY_REQUESTS_SCALE = 7;
 
@@ -178,191 +173,6 @@ class DashboardService {
     }
 
     /**
-     * @return array
-     */
-    public function getSimplifiedDataForDockDashboard() {
-        $locationCounter = [];
-        $adminData = $this->getMeterData(self::DASHBOARD_DOCK);
-        foreach ($adminData as $adminDatum) {
-            $locationCounter[$adminDatum['meterKey']] = $adminDatum;
-        }
-        return $locationCounter;
-    }
-
-    /**
-     * @return array
-     * @deprecated
-     */
-    public function getDataForReceptionDockDashboard() {
-        $locationCounter = $this->getLocationCounters([
-            'enCoursDock' => ParametrageGlobal::DASHBOARD_LOCATION_DOCK,
-            'enCoursClearance' => ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK,
-            'enCoursCleared' => ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE,
-            'enCoursDropzone' => ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES
-        ]);
-
-        $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
-        return array_merge(
-            $locationCounter,
-            ['dailyUrgenceCount' => $urgenceRepository->countUnsolved(true)],
-            ['urgenceCount' => $urgenceRepository->countUnsolved()]
-        );
-    }
-
-    /**
-     * @return array
-     */
-    public function getSimplifiedDataForAdminDashboard() {
-        $locationCounter = [];
-        $adminData = $this->getMeterData(self::DASHBOARD_ADMIN);
-        foreach ($adminData as $adminDatum) {
-            $locationCounter[$adminDatum['meterKey']] = $adminDatum;
-        }
-        return $locationCounter;
-    }
-
-    /**
-     * @return array
-     * @deprecated
-     */
-    public function getDataForReceptionAdminDashboard() {
-        $locationCounter = $this->getLocationCounters([
-            'enCoursUrgence' => ParametrageGlobal::DASHBOARD_LOCATION_URGENCES,
-            'enCoursLitige' => ParametrageGlobal::DASHBOARD_LOCATION_LITIGES,
-            'enCoursClearance' => ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN
-        ]);
-
-        $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
-
-        return array_merge(
-            $locationCounter,
-            ['urgenceCount' => $urgenceRepository->countUnsolved()]
-        );
-    }
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @return array
-     * @throws NonUniqueResultException
-     */
-    public function getSimplifiedDataForPackagingDashboard(EntityManagerInterface $entityManager) {
-        $locationCounter = [];
-        $adminData = $this->getMeterData(self::DASHBOARD_PACKAGING);
-        foreach ($adminData as $adminDatum) {
-            $locationCounter[$adminDatum['meterKey']] = $adminDatum;
-        }
-        $chartData = $this->getChartData($entityManager, self::DASHBOARD_PACKAGING, 'of');
-        return [
-            'counters' => $locationCounter,
-            'chartData' => $chartData['data'] ?? [],
-            'chartColors' => $chartData['chartColors'] ?? [],
-        ];
-    }
-
-    public function flatArray(array $toFlat): array {
-        $formattedArrivalData = [];
-        foreach ($toFlat as $datum) {
-            $firstKey = array_key_first($datum);
-            $formattedArrivalData[$firstKey] = $datum[$firstKey];
-        }
-        return $formattedArrivalData;
-    }
-
-    /**
-     * @return array
-     * @throws Exception
-     * @deprecated
-     */
-    public function getDataForMonitoringPackagingDashboard() {
-        $defaultDelay = '24:00';
-        $urgenceDelay = '2:00';
-        return $this->getLocationCounters([
-            'packaging1' => [ParametrageGlobal::DASHBOARD_PACKAGING_1, $defaultDelay],
-            'packaging2' => [ParametrageGlobal::DASHBOARD_PACKAGING_2, $defaultDelay],
-            'packaging3' => [ParametrageGlobal::DASHBOARD_PACKAGING_3, $defaultDelay],
-            'packaging4' => [ParametrageGlobal::DASHBOARD_PACKAGING_4, $defaultDelay],
-            'packaging5' => [ParametrageGlobal::DASHBOARD_PACKAGING_5, $defaultDelay],
-            'packaging6' => [ParametrageGlobal::DASHBOARD_PACKAGING_6, $defaultDelay],
-            'packaging7' => [ParametrageGlobal::DASHBOARD_PACKAGING_7, $defaultDelay],
-            'packaging8' => [ParametrageGlobal::DASHBOARD_PACKAGING_8, $defaultDelay],
-            'packaging9' => [ParametrageGlobal::DASHBOARD_PACKAGING_9, $defaultDelay],
-            'packaging10' => [ParametrageGlobal::DASHBOARD_PACKAGING_10, $defaultDelay],
-            'packagingKitting' => [ParametrageGlobal::DASHBOARD_PACKAGING_KITTING, $defaultDelay],
-            'packagingRPA' => [ParametrageGlobal::DASHBOARD_PACKAGING_RPA, $defaultDelay],
-            'packagingLitige' => [ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE, $defaultDelay],
-            'packagingUrgence' => [ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE, $urgenceDelay]
-        ]);
-    }
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param array $data
-     * @throws NonUniqueResultException
-     * @deprecated
-     */
-    private function updateDashboardGraphMeter(EntityManagerInterface $entityManager, array $data)
-    {
-        $dashboardChartMeterRepository = $entityManager->getRepository(DashboardMeter\Chart::class);
-        $dashboardChartMeter = $dashboardChartMeterRepository->findEntityByDashboardAndId($data['dashboard'], $data['key']);
-        if (!isset($dashboardChartMeter)) {
-            $dashboardChartMeter = new DashboardMeter\Chart();
-            $entityManager->persist($dashboardChartMeter);
-        }
-        $dashboardChartMeter
-            ->setData($data['data'])
-            ->setChartColors($data['chartColors'])
-            ->setDashboard($data['dashboard'])
-            ->setTotal(isset($data['total']) ? $data['total'] : null)
-            ->setLocation(isset($data['location']) ? $data['location'] : null)
-            ->setChartKey($data['key']);
-    }
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param string $dashboard
-     * @param string $id
-     * @return mixed
-     * @throws NonUniqueResultException
-     */
-    public function getChartData(EntityManagerInterface $entityManager, string $dashboard, string $id) {
-        $dashboardChartMeterRepository = $entityManager->getRepository(DashboardMeter\Chart::class);
-        return $dashboardChartMeterRepository->findByDashboardAndId($dashboard, $id);
-    }
-
-    /**
-     * @param string $dashboard
-     * @return array
-     */
-    public function getMeterData(string $dashboard): array {
-        $dashboardMeterRepository = $this->entityManager->getRepository(DashboardMeter\Indicator::class);
-        return $dashboardMeterRepository->getByDashboard($dashboard);
-    }
-
-    /**
-     * @param array $counterConfig
-     * @return array
-     * @throws Exception
-     * @deprecated
-     */
-    private function getLocationCounters(array $counterConfig): array {
-        $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
-        $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
-        return array_reduce(
-            array_keys($counterConfig),
-            function(array $carry, string $key) use ($counterConfig, $daysWorked) {
-                $delay = is_array($counterConfig[$key])
-                    ? $counterConfig[$key][1]
-                    : null;
-                $param = is_array($counterConfig[$key])
-                    ? $counterConfig[$key][0]
-                    : $counterConfig[$key];
-                $carry[$key] = $this->getDashboardCounter($param, $daysWorked, $delay);
-                return $carry;
-            },
-            []);
-    }
-
-    /**
      * @param EntityManagerInterface $entityManager
      * @param array $locationIds
      * @param array $daysWorked
@@ -456,201 +266,6 @@ class DashboardService {
             $timeSpanToObject[$key] = $getObject($timeBegin, $timeEnd);
         }
         return $timeSpanToObject;
-    }
-
-    /**
-     * @return array
-     */
-    public function getDailyArrivalCarriers(): array {
-        $transporteurRepository = $this->entityManager->getRepository(Transporteur::class);
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
-        $carriersParams = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_CARRIER_DOCK);
-        $carriersIds = empty($carriersParams)
-            ? []
-            : explode(',', $carriersParams);
-
-        return array_map(
-            function($carrier) {
-                return $carrier['label'];
-            },
-            $transporteurRepository->getDailyArrivalCarriersLabel($carriersIds)
-        );
-    }
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @throws Throwable
-     * @deprecated
-     */
-    public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager): void {
-        $lastUpdateDate = $this->wiilockService->getLastDashboardFeedingTime($entityManager);
-        $currentDate = new DateTime();
-        if ($lastUpdateDate) {
-            $dateDiff = $currentDate
-                ->diff($lastUpdateDate);
-            $hoursBetweenNowAndLastUpdateDate = $dateDiff->h + ($dateDiff->days * 24);
-            if ($hoursBetweenNowAndLastUpdateDate > 2) {
-                $this->wiilockService->toggleFeedingDashboard($entityManager, false);
-                $entityManager->flush();
-            }
-        }
-        if (!$this->wiilockService->dashboardIsBeingFed($entityManager)) {
-            $this->wiilockService->toggleFeedingDashboard($entityManager, true);
-            try {
-                $this->retrieveAndInsertGlobalMeterData($entityManager);
-                $this->retrieveAndInsertGlobalGraphData($entityManager);
-            } catch (Throwable $throwable) {
-                $this->wiilockService->toggleFeedingDashboard($entityManager, false);
-                $this->flushAndClearEm($entityManager);
-                throw $throwable;
-            }
-
-            $this->wiilockService->toggleFeedingDashboard($entityManager, false);
-            $this->flushAndClearEm($entityManager);
-        }
-    }
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @deprecated
-     */
-    private function flushAndClearEm(EntityManagerInterface $entityManager) {
-        $entityManager->flush();
-        $entityManager->clear();
-    }
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @throws Exception
-     * @deprecated
-     */
-    private function retrieveAndInsertGlobalGraphData(EntityManagerInterface $entityManager) {
-        $this->getAndSetGraphDataForDock($entityManager);
-        dump('Finished Dock Graph');
-        $this->flushAndClearEm($entityManager);
-
-        $this->getAndSetGraphDataForAdmin($entityManager, LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1);
-        $this->getAndSetGraphDataForAdmin($entityManager, LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2);
-        dump('Finished Admin Graphs');
-        $this->flushAndClearEm($entityManager);
-
-        $this->getAndSetGraphDataForPackaging($entityManager);
-        dump('Finished Packaging Graph');
-        $this->flushAndClearEm($entityManager);
-    }
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @throws Exception
-     * @deprecated
-     */
-    private function retrieveAndInsertGlobalMeterData(EntityManagerInterface $entityManager) {
-        $dockData = $this->getDataForReceptionDockDashboard();
-        $this->parseRetrievedDataAndPersistMeter($dockData, self::DASHBOARD_DOCK, $entityManager);
-        dump('Finished Dock Counter');
-        $this->flushAndClearEm($entityManager);
-
-        $adminData = $this->getDataForReceptionAdminDashboard();
-        $this->parseRetrievedDataAndPersistMeter($adminData, self::DASHBOARD_ADMIN, $entityManager);
-        dump('Finished Admin Counter');
-        $this->flushAndClearEm($entityManager);
-
-        $packagingData = $this->getDataForMonitoringPackagingDashboard();
-        $this->parseRetrievedDataAndPersistMeter($packagingData, self::DASHBOARD_PACKAGING, $entityManager);
-        dump('Finished Packaging Counter');
-        $this->flushAndClearEm($entityManager);
-
-        $this->retrieveAndInsertLastEnCours($entityManager);
-        dump('Finished Late packs');
-        $this->flushAndClearEm($entityManager);
-    }
-
-    /**
-     * @param $data
-     * @param string $dashboard
-     * @param EntityManagerInterface $entityManager
-     * @throws NonUniqueResultException
-     * @deprecated
-     */
-    private function parseRetrievedDataAndPersistMeter($data, string $dashboard, EntityManagerInterface $entityManager): void {
-        $dashboardMeterRepository = $entityManager->getRepository(DashboardMeter\Indicator::class);
-        foreach ($data as $key => $datum) {
-            $dashboardMeter = $dashboardMeterRepository->findByKeyAndDashboard($key, $dashboard);
-            if (!isset($dashboardMeter)) {
-                $dashboardMeter = new DashboardMeter\Indicator();
-                $entityManager->persist($dashboardMeter);
-            }
-            $dashboardMeter->setMeterKey($key);
-            $dashboardMeter->setDashboard($dashboard);
-            if (is_array($datum)) {
-                $dashboardMeter
-                    ->setCount($datum['count'])
-                    ->setDelay($datum['delay'])
-                    ->setSubtitle($datum['subtitle']);
-            } else {
-                $dashboardMeter->setCount(intval($datum));
-            }
-        }
-    }
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @throws NonUniqueResultException
-     * @throws Exception
-     * @deprecated
-     */
-    private function getAndSetGraphDataForPackaging(EntityManagerInterface $entityManager) {
-        $dsqrLabel = 'OF envoyés par le DSQR';
-        $gtLabel = 'OF traités par GT';
-        $locationClusterMeterRepository = $this->entityManager->getRepository(LocationClusterMeter::class);
-        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-
-        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-        $chartData = $this->getDailyObjectsStatistics(function(DateTime $date)
-        use ($dsqrLabel, $gtLabel, $locationClusterMeterRepository) {
-            return [
-                $dsqrLabel => $locationClusterMeterRepository->countByDate($date, LocationCluster::CLUSTER_CODE_PACKAGING_DSQR),
-                $gtLabel => $locationClusterMeterRepository->countByDate($date, LocationCluster::CLUSTER_CODE_PACKAGING_GT_TARGET, LocationCluster::CLUSTER_CODE_PACKAGING_GT_ORIGIN),
-            ];
-        }, $workFreeDays);
-        $dashboardData = [
-            'dashboard' => self::DASHBOARD_PACKAGING,
-            'chartColors' => [
-                $dsqrLabel => '#003871',
-                $gtLabel => '#77933C',
-            ],
-            'key' => 'of',
-            'data' => $chartData,
-        ];
-        $this->updateDashboardGraphMeter($entityManager, $dashboardData);
-    }
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @throws Exception
-     * @deprecated
-     */
-    public function retrieveAndInsertLastEnCours(EntityManagerInterface $entityManager) {
-        $latePackRepository = $entityManager->getRepository(LatePack::class);
-        $lastLates = $this->enCoursService->getLastEnCoursForLate();
-        $latePackRepository->clearTable();
-        foreach ($lastLates as $lastLate) {
-            $latePack = new LatePack();
-            $latePack
-                ->setDelay($lastLate['delay'])
-                ->setDate($lastLate['date'])
-                ->setEmp($lastLate['emp'])
-                ->setColis($lastLate['colis']);
-            $entityManager->persist($latePack);
-        }
-    }
-
-    public function getLastRefresh(string $meterType): string {
-        $wiilockRepository = $this->entityManager->getRepository(Wiilock::class);
-        $dashboardLock = $wiilockRepository->findOneBy(['lockKey' => $meterType]);
-        return ($dashboardLock && $dashboardLock->getUpdateDate())
-            ? $dashboardLock->getUpdateDate()->format('d/m/Y H:i')
-            : 'Aucune données';
     }
 
     /**
@@ -784,8 +399,7 @@ class DashboardService {
      * @throws Exception
      */
     public function persistPackToTreatFrom(EntityManagerInterface $entityManager,
-                                           Dashboard\Component $component): void
-    {
+                                           Dashboard\Component $component): void {
 
         $locationClusterMeterRepository = $this->entityManager->getRepository(LocationClusterMeter::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
@@ -871,8 +485,7 @@ class DashboardService {
      * @throws NoResultException
      * @throws Exception
      */
-    public function persistEntriesToHandle(EntityManagerInterface $entityManager, Dashboard\Component $component)
-    {
+    public function persistEntriesToHandle(EntityManagerInterface $entityManager, Dashboard\Component $component) {
         $config = $component->getConfig();
 
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -1029,7 +642,6 @@ class DashboardService {
             ->setTotal(!empty($totalToDisplay) ? $totalToDisplay : '-')
             ->setLocation(!empty($locationToDisplay) ? $locationToDisplay : '-');
     }
-
 
     /**
      * @param EntityManagerInterface $entityManager
@@ -1392,6 +1004,7 @@ class DashboardService {
      * @return array [('S' . weekNumber) => $getCounter return]
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @noinspection PhpUnusedPrivateMethodInspection
      */
     private function getWeeklyObjectsStatistics(EntityManagerInterface $entityManager,
                                                 int $nbWeeksToReturn,

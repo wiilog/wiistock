@@ -264,7 +264,7 @@ function initDatatableConditionnement() {
         rowConfig: {
             needsRowClickAction: true,
         },
-        order: ['barCode', 'asc'],
+        order: [['barCode', 'asc']],
         columns: [
             {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'barCode', 'name': 'barCode', 'title': 'Code article'},

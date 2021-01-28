@@ -622,11 +622,18 @@ class ReferenceArticleController extends AbstractController
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $activeOnly = $request->query->getBoolean('activeOnly', false);
-            $minQuantity = $request->query->getInt('minQuantity');
+            $minQuantity = $request->query->get('minQuantity');
             $typeQuantity = $request->query->get('typeQuantity');
             $field = $request->query->get('field', 'reference');
             $locationFilter = $request->query->get('locationFilter');
-            $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $minQuantity, $typeQuantity, $field, $locationFilter);
+            $refArticles = $referenceArticleRepository->getIdAndRefBySearch(
+                $search,
+                $activeOnly,
+                $minQuantity !== null ? (int) $minQuantity : null,
+                $typeQuantity,
+                $field,
+                $locationFilter
+            );
             return new JsonResponse(['results' => $refArticles]);
         }
         throw new BadRequestHttpException();

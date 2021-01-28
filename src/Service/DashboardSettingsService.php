@@ -31,37 +31,46 @@ class DashboardSettingsService {
     const UNKNOWN_COMPONENT = 'unknown_component';
     const INVALID_SEGMENTS_ENTRY = 'invalid_segments_entry';
 
-    private $enCoursService;
-    private $dashboardService;
-    private $dateService;
-    private $demandeLivraisonService;
-    private $demandeCollecteService;
-    private $handlingService;
-    private $dispatchService;
-    private $transferRequestService;
-    private $userService;
-    private $router;
+    private DashboardService $dashboardService;
+    private DateService $dateService;
+    private DemandeLivraisonService $demandeLivraisonService;
+    private DemandeCollecteService $demandeCollecteService;
+    private HandlingService $handlingService;
+    private DispatchService $dispatchService;
+    private TransferRequestService $transferRequestService;
+    private UserService $userService;
+    private RouterInterface $router;
 
-    public function __construct(EnCoursService $enCoursService,
-                                DashboardService $dashboardService,
+    /**
+     * DashboardSettingsService constructor.
+     * @param DashboardService $dashboardService
+     * @param DateService $dateService
+     * @param DemandeLivraisonService $demandeLivraisonService
+     * @param DemandeCollecteService $demandeCollecteService
+     * @param HandlingService $handlingService
+     * @param DispatchService $dispatchService
+     * @param TransferRequestService $transferRequestService
+     * @param UserService $userService
+     * @param RouterInterface $router
+     */
+    public function __construct(DashboardService $dashboardService,
                                 DateService $dateService,
                                 DemandeLivraisonService $demandeLivraisonService,
                                 DemandeCollecteService $demandeCollecteService,
                                 HandlingService $handlingService,
+                                DispatchService $dispatchService,
                                 TransferRequestService $transferRequestService,
                                 UserService $userService,
-                                DispatchService $dispatchService,
                                 RouterInterface $router) {
-        $this->enCoursService = $enCoursService;
         $this->dashboardService = $dashboardService;
         $this->dateService = $dateService;
         $this->demandeLivraisonService = $demandeLivraisonService;
         $this->demandeCollecteService = $demandeCollecteService;
         $this->handlingService = $handlingService;
+        $this->dispatchService = $dispatchService;
         $this->transferRequestService = $transferRequestService;
         $this->userService = $userService;
         $this->router = $router;
-        $this->dispatchService = $dispatchService;
     }
 
     public function serialize(EntityManagerInterface $entityManager, ?Utilisateur $user, int $mode): string {
