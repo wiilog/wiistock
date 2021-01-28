@@ -417,6 +417,8 @@ function clearModal(modal) {
     // });
     // on vide les messages d'erreur
     $modal.find('.error-msg, .password-error-msg').html('');
+    // on supprime le padding du error-msg
+    $modal.find('.error-msg').removeClass('p-4');
     // on remet toutes les checkboxes sur off
     clearCheckboxes($modal);
     // on vide les éditeurs de texte

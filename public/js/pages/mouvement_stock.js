@@ -35,7 +35,7 @@ $(function() {
     let modalDeleteArrivage = $('#modalDeleteMvtStock');
     let submitDeleteArrivage = $('#submitDeleteMvtStock');
     let urlDeleteArrivage = Routing.generate('mvt_stock_delete', true);
-    InitModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, {tables: [tableMvt]});
+    InitModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, {tables: [tableMvt], clearOnClose: true});
 
     let submitNewMvtStock = $('#submitNewMvtStock');
     let urlNewMvtStock = Routing.generate('mvt_stock_new', true);
