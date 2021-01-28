@@ -1113,7 +1113,7 @@ class DispatchController extends AbstractController {
                     $row[] = $number;
                     $row[] = $dispatch['creationDate'] ? $dispatch['creationDate']->format('d/m/Y H:i:s') : '';
                     $row[] = $dispatch['validationDate'] ? $dispatch['validationDate']->format('d/m/Y H:i:s') : '';
-                    $row[] = $dispatch['treatDate'] ? $dispatch['treatDate']->format('d/m/Y H:i:s') : '';
+                    $row[] = $dispatch['treatmentDate'] ? $dispatch['treatmentDate']->format('d/m/Y H:i:s') : '';
                     $row[] = $dispatch['type'] ?? '';
                     $row[] = $dispatch['requester'] ?? '';
                     $row[] = $dispatch['receiver'] ?? '';
