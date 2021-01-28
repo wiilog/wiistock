@@ -646,7 +646,7 @@ function displayFormErrors($modal, {$isInvalidElements, errorMessages} = {}) {
 
 function displayAttachements(files, $dropFrame, isMultiple = true) {
 
-    let errorMsg = [];
+    const errorMessages = [];
 
     const $fileBag = $dropFrame.siblings('.file-bag');
 
@@ -659,9 +659,9 @@ function displayAttachements(files, $dropFrame, isMultiple = true) {
         let sizeValid = checkSizeFormat(file, $dropFrame);
 
         if (!formatValid) {
-            errorMsg.push('"' + file.name + '" : Le format de votre pièce jointe n\'est pas supporté. Le fichier doit avoir une extension.');
+            errorMessages.push('"' + file.name + '" : Le format de votre pièce jointe n\'est pas supporté. Le fichier doit avoir une extension.');
         } else if (!sizeValid) {
-            errorMsg.push('"' + file.name + '" : La taille du fichier ne doit pas dépasser 10 Mo.');
+            errorMessages.push('"' + file.name + '" : La taille du fichier ne doit pas dépasser 10 Mo.');
         } else {
             let fileName = file.name;
 
@@ -679,14 +679,13 @@ function displayAttachements(files, $dropFrame, isMultiple = true) {
         }
     });
 
-    if (errorMsg.length === 0) {
+    if (errorMessages.length === 0) {
         displayRight($dropFrame);
         clearErrorMsg($dropFrame);
     } else {
         displayWrong($dropFrame);
-        $dropFrame.closest('.modal').find('.error-msg').html(errorMsg.join("<br>"));
+        displayFormErrors($dropFrame.closest('.modal'), {errorMessages});
     }
-
 }
 
 function withoutExtension(fileName) {
