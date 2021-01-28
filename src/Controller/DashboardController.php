@@ -37,7 +37,7 @@ class DashboardController extends AbstractController {
     }
 
     /**
-     * @Route("/dashboard/{token}", name="dashboards_external", options={"expose"=true})
+     * @Route("/dashboard/externe/{token}", name="dashboards_external", options={"expose"=true})
      * @param DashboardService $dashboardService
      * @param DashboardSettingsService $dashboardSettingsService
      * @param EntityManagerInterface $manager
