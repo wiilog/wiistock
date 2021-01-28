@@ -151,7 +151,7 @@ class DemandeLivraisonService
                                         DateService $dateService,
                                         array $averageRequestTimesByType,
                                         ?int $mode = null) {
-        if(!$mode || $mode === DashboardSettingsService::MODE_EXTERNAL) {
+        if(!$mode || $mode !== DashboardSettingsService::MODE_EXTERNAL) {
             $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR);
             $hasRightToSeePrepaOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA);
             $hasRightToSeeDeliveryOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR);

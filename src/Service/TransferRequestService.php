@@ -149,7 +149,7 @@ class TransferRequestService {
                                         DateService $dateService,
                                         array $averageRequestTimesByType,
                                         ?int $mode = null) {
-        if(!$mode || $mode === DashboardSettingsService::MODE_EXTERNAL) {
+        if(!$mode || $mode !== DashboardSettingsService::MODE_EXTERNAL) {
             $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ);
             $hasRightToSeeOrder = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS);
         } else {

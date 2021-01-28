@@ -547,7 +547,7 @@ class DispatchService {
                                         DateService $dateService,
                                         array $averageRequestTimesByType,
                                         ?int $mode = null) {
-        if(!$mode || $mode === DashboardSettingsService::MODE_EXTERNAL) {
+        if(!$mode || $mode !== DashboardSettingsService::MODE_EXTERNAL) {
             $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE);
         } else {
             $hasRightToSeeRequest = false;
