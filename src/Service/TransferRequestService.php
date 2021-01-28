@@ -147,9 +147,15 @@ class TransferRequestService {
      */
     public function parseRequestForCard(TransferRequest $request,
                                         DateService $dateService,
-                                        array $averageRequestTimesByType) {
-        $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ);
-        $hasRightToSeeOrder = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS);
+                                        array $averageRequestTimesByType,
+                                        ?int $mode = null) {
+        if(!$mode || $mode === DashboardSettingsService::MODE_EXTERNAL) {
+            $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ);
+            $hasRightToSeeOrder = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS);
+        } else {
+            $hasRightToSeeRequest = false;
+            $hasRightToSeeOrder = false;
+        }
 
         $requestStatus = $request->getStatus() ? $request->getStatus()->getNom() : '';
 
