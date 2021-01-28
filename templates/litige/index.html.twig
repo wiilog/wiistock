@@ -58,6 +58,6 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/form-litiges.js') }}?{{ app_last_cache_clear }}"></script>
-    <script src="{{ asset('js/pages/litiges.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/form-litiges.js') }}?v={{ web_version }}"></script>
+    <script src="{{ asset('js/pages/litiges.js') }}?v={{ web_version }}"></script>
 {% endblock %}

@@ -12,7 +12,6 @@ parameters:
 
     # default value for env variable
     env(APP_FORBIDDEN_PHONES): ''
-    env(APP_LAST_CACHE_CLEAR): ''
 
 services:
     # default configuration for services in *this* file

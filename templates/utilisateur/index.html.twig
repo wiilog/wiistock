@@ -33,5 +33,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/utilisateur.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/utilisateur.js') }}?v={{ web_version }}"></script>
 {% endblock %}
