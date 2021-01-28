@@ -13,7 +13,7 @@ SELECT
 
     reception.date AS date, -- CEA
 
-    reception.numero_reception AS numero, -- CEA
+    reception.number AS numero, -- CEA
 
     fournisseur.nom AS fournisseur, -- CEA
 

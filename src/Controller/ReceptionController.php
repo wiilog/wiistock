@@ -265,7 +265,7 @@ class ReceptionController extends AbstractController {
                     'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
                 ]),
                 'success' => true,
-                'msg' => 'La réception <strong>' . $reception->getNumeroReception() . '</strong> a bien été modifiée.'
+                'msg' => 'La réception <strong>' . $reception->getNumber() . '</strong> a bien été modifiée.'
             ];
             return new JsonResponse($json);
         }
@@ -1803,7 +1803,7 @@ class ReceptionController extends AbstractController {
 
     private function serializeReception(array $reception): array {
         return [
-            $reception['numeroReception'] ?: '',
+            $reception['number'] ?: '',
             $reception['orderNumber'] ?: '',
             $reception['providerName'] ?: '',
             $reception['userUsername'] ?: '',
@@ -2115,7 +2115,7 @@ class ReceptionController extends AbstractController {
                         'reception' => $reception,
                         'title' => 'Une ' . $translator->trans('réception.réception')
                             . ' '
-                            . $reception->getNumeroReception()
+                            . $reception->getNumber()
                             . ' de type «'
                             . $demande->getType()->getLabel()
                             . '» a été réceptionnée le '

@@ -37,8 +37,11 @@ SELECT
           IF(ordre_livraison.id IS NOT NULL, ordre_livraison.numero,
              IF(ordre_preparation.id IS NOT NULL, ordre_preparation.numero,
                 IF(ordre_transfert.id IS NOT NULL, ordre_transfert.number,
-                   IF(ordre_reception.id IS NOT NULL, ordre_reception.numero_reception, NULL))))))
+                   IF(ordre_reception.id IS NOT NULL, ordre_reception.number, NULL))))))
         AS numero_ordre, -- CEA
+
+    demande_collecte.validation_date AS date_validation_collecte, -- CEA
+    ordre_livraison_preparation.date AS date_validation_livraison, -- CEA
 
     IF(reference_article.id IS NOT NULL, reference_article.bar_code,
        IF(article.id IS NOT NULL, article_reference_article.bar_code, NULL)) AS code_barre_reference, -- CEA
