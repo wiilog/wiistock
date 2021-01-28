@@ -39,10 +39,12 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface {
 
             if(empty($menu)) {
                 $menu = new Menu();
-                $menu->setLabel($label);
                 $manager->persist($menu);
                 $output->writeln("Created menu \"$label\"");
             }
+
+            // force case update
+            $menu->setLabel($label);
 
             $this->addReference("menu-$label", $menu);
         }

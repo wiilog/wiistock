@@ -15,8 +15,8 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/dashboard/render.js') }}?{{ app_last_cache_clear }}"></script>
-    <script src="{{ asset('js/pages/dashboard/settings.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/dashboard/render.js') }}?v={{ web_version }}"></script>
+    <script src="{{ asset('js/pages/dashboard/settings.js') }}?v={{ web_version }}"></script>
 
     <script>
         $(document).ready(() => loadDashboards(MODE_DISPLAY));

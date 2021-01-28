@@ -2,8 +2,10 @@
 
 namespace App\Twig;
 
+use App\Service\RoleService;
 use App\Service\SpecificService;
 use App\Service\UserService;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 
@@ -11,16 +13,21 @@ class MenuExtension extends AbstractExtension
 {
 
     private $userService;
+    private $roleService;
     private $specificService;
+    private $cache;
     private $menuConfig;
 
 
     public function __construct(SpecificService $specificService,
                                 UserService $userService,
+                                RoleService $roleService,
                                 array $menuConfig)
     {
         $this->userService = $userService;
+        $this->roleService = $roleService;
         $this->specificService = $specificService;
+        $this->cache = new FilesystemAdapter(RoleService::PERMISSIONS_CACHE_POOL);
         $this->menuConfig = $menuConfig;
     }
 
@@ -31,41 +38,39 @@ class MenuExtension extends AbstractExtension
         ];
     }
 
-	public function getMenuConfigFunction()
-    {
-        return array_reduce($this->menuConfig, function($menuConfigWithRight, array $item) {
-            if ($this->itemHasRights($item)) {
-                if (!isset($item['sub'])) {
-                    $menuConfigWithRight[] = $item;
-                }
-                else {
-                    $subWithRight = $this->getMenuSubConfigFunction($item['sub']);
-                    if (!empty($subWithRight)) {
-                        $menuConfigWithRight[] = array_merge(
-                            $item,
-                            ['sub' => $subWithRight]
-                        );
+	public function getMenuConfigFunction() {
+        $user = $this->userService->getUser();
+        $role = $user->getRole();
+        $menuPrefix = RoleService::MENU_CACHE_PREFIX;
+        return $this->cache->get("{$menuPrefix}.{$role->getId()}", function() use ($user) {
+            $menuWithRight = [];
+            $permissions = $this->roleService->getPermissions($this->userService->getUser(), true);
+
+            foreach($this->menuConfig as $menu) {
+                if($this->hasRight($permissions, $menu)) {
+                    if (!isset($menu["sub"])) {
+                        $menuWithRight[] = $menu;
+                    } else {
+                        $subWithRight = array_filter($menu["sub"], function($item) use ($permissions) {
+                            return $this->hasRight($permissions, $item);
+                        });
+
+                        if(!empty($subWithRight)) {
+                            $menuWithRight[] = array_merge(
+                                $menu,
+                                ["sub" => $subWithRight]
+                            );
+                        }
                     }
                 }
             }
-            return $menuConfigWithRight;
-        }, []);
+
+            return $menuWithRight;
+        });
     }
 
-	private function getMenuSubConfigFunction(array $sub) {
-        return array_reduce($sub, function(array $menuConfigWithRight, array $item) {
-            if ($this->itemHasRights($item)) {
-                $menuConfigWithRight[] = $item;
-            }
-            return $menuConfigWithRight;
-        }, []);
-    }
-
-    private function itemHasRights(array $item): bool {
-        return (
-            !isset($item['rights'])
-            || $this->userService->hasRightFunction(constant($item['rights']['menu']), constant($item['rights']['action']))
-        );
+    private function hasRight(array $permissions, array $item) {
+        return !isset($item["rights"]) || !empty($permissions[constant($item["rights"]["menu"]) . constant($item["rights"]["action"])]);
     }
 
 }

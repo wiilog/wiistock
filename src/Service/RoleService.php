@@ -8,16 +8,26 @@ use App\Entity\Menu;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\Role;
+use App\Entity\Utilisateur;
+use App\Helper\Stream;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 
 class RoleService
 {
 
+    public const PERMISSIONS_CACHE_PREFIX = 'permissions';
+    public const MENU_CACHE_PREFIX = 'menu';
+    public const PERMISSIONS_CACHE_POOL = 'app.cache.permissions';
+
     private $entityManager;
+    private $cache;
 
     public function __construct(EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
+        $this->cache = new FilesystemAdapter(RoleService::PERMISSIONS_CACHE_POOL);
     }
 
     /**
@@ -81,5 +91,28 @@ class RoleService
             'menus' => $menus,
             'params' => $params,
         ];
+    }
+
+    public function getPermissions(Utilisateur $user, $bool = false): array {
+        $role = $user->getRole();
+        $permissionsPrefix = self::PERMISSIONS_CACHE_PREFIX;
+        return $this->cache->get("{$permissionsPrefix}.{$role->getId()}", function() use ($role, $bool) {
+            return Stream::from($role->getActions())
+                ->keymap(function(Action $action) use ($bool) {
+                    return [$action->getMenu()->getLabel() . $action->getLabel(), true];
+                })
+                ->toArray();
+        });
+    }
+
+    /**
+     * @param int $roleId
+     * @throws InvalidArgumentException
+     */
+    public function onRoleUpdate(int $roleId): void {
+        $menuPrefix = self::MENU_CACHE_PREFIX;
+        $permissionsPrefix = self::PERMISSIONS_CACHE_PREFIX;
+        $this->cache->delete("{$menuPrefix}.{$roleId}");
+        $this->cache->delete("{$permissionsPrefix}.{$roleId}");
     }
 }
