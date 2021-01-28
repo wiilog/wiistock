@@ -7,6 +7,7 @@ use App\Entity\Menu;
 use App\Entity\Role;
 use App\Repository\ActionRepository;
 use App\Repository\RoleRepository;
+use App\Service\RoleService;
 use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -20,10 +21,13 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
     private $encoder;
     private $specificService;
     private $output;
+    private $roleService;
 
     public function __construct(UserPasswordEncoderInterface $encoder,
+                                RoleService $roleService,
                                 SpecificService $specificService)
     {
+        $this->roleService = $roleService;
         $this->encoder = $encoder;
         $this->specificService = $specificService;
         $this->output = new ConsoleOutput();
