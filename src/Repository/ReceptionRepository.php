@@ -214,15 +214,15 @@ class ReceptionRepository extends EntityRepository
 						->leftJoin('r.fournisseur', 'search_provider')
                         ->leftJoin('r.demandes', 'search_request')
                         ->leftJoin('search_request.utilisateur', 'search_request_user')
-                        ->andWhere('
-                            r.date LIKE :value
-                            OR r.dateAttendue LIKE :value
+                        ->andWhere("
+                            DATE_FORMAT(r.date, '%d/%m/%Y') LIKE :value
+                            OR DATE_FORMAT(r.dateAttendue, '%d/%m/%Y') LIKE :value
                             OR r.number LIKE :value
                             OR r.orderNumber LIKE :value
                             OR r.commentaire LIKE :value
                             OR search_status.nom LIKE :value
                             OR search_provider.nom LIKE :value
-                            OR search_request_user.username LIKE :value')
+                            OR search_request_user.username LIKE :value")
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
