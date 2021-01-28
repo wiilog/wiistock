@@ -41,6 +41,38 @@ class DashboardSettingsService {
     private UserService $userService;
     private RouterInterface $router;
 
+    /**
+     * DashboardSettingsService constructor.
+     * @param DashboardService $dashboardService
+     * @param DateService $dateService
+     * @param DemandeLivraisonService $demandeLivraisonService
+     * @param DemandeCollecteService $demandeCollecteService
+     * @param HandlingService $handlingService
+     * @param DispatchService $dispatchService
+     * @param TransferRequestService $transferRequestService
+     * @param UserService $userService
+     * @param RouterInterface $router
+     */
+    public function __construct(DashboardService $dashboardService,
+                                DateService $dateService,
+                                DemandeLivraisonService $demandeLivraisonService,
+                                DemandeCollecteService $demandeCollecteService,
+                                HandlingService $handlingService,
+                                DispatchService $dispatchService,
+                                TransferRequestService $transferRequestService,
+                                UserService $userService,
+                                RouterInterface $router) {
+        $this->dashboardService = $dashboardService;
+        $this->dateService = $dateService;
+        $this->demandeLivraisonService = $demandeLivraisonService;
+        $this->demandeCollecteService = $demandeCollecteService;
+        $this->handlingService = $handlingService;
+        $this->dispatchService = $dispatchService;
+        $this->transferRequestService = $transferRequestService;
+        $this->userService = $userService;
+        $this->router = $router;
+    }
+
     public function serialize(EntityManagerInterface $entityManager, ?Utilisateur $user, int $mode): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
 
