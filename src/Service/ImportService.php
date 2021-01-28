@@ -844,7 +844,7 @@ class ImportService
         $refArtRepository = $this->em->getRepository(ReferenceArticle::class);
 
         $reception = $this->getAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate']);
-        $newEntity = isset($reception);
+        $newEntity = !isset($reception);
         if (!$reception) {
             $reception = $this->receptionService->createAndPersistReception($this->em, $user, $data, true);
             $this->setAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], $reception);
@@ -1477,12 +1477,21 @@ class ImportService
     }
 
     private function setAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, Reception $reception): void {
+        $receptionSaved = false;
         foreach($collection as &$receptionIntel) {
             if ($orderNumber === $receptionIntel['orderNumber']
                 && $expectedDate === $receptionIntel['expectedDate']) {
                 $receptionIntel['reception'] = $reception;
+                $receptionSaved = true;
                 break;
             }
+        }
+        if (!$receptionSaved) {
+            $collection[] = [
+                'orderNumber' => $orderNumber,
+                'expectedDate' => $expectedDate,
+                'reception' => $reception
+            ];
         }
     }
 }
