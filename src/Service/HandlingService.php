@@ -199,7 +199,7 @@ class HandlingService
      * @throws \Exception
      */
     public function parseRequestForCard(Handling $handling, DateService $dateService, array $averageRequestTimesByType, ?int $mode = null) {
-        if(!$mode || $mode === DashboardSettingsService::MODE_EXTERNAL) {
+        if(!$mode || $mode !== DashboardSettingsService::MODE_EXTERNAL) {
             $hasRightHandling = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND);
         } else {
             $hasRightHandling = false;

@@ -275,7 +275,7 @@ class DemandeCollecteService
                                         DateService $dateService,
                                         array $averageRequestTimesByType,
                                         ?int $mode = null) {
-        if(!$mode || $mode === DashboardSettingsService::MODE_EXTERNAL) {
+        if(!$mode || $mode !== DashboardSettingsService::MODE_EXTERNAL) {
             $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL);
             $hasRightToSeeOrder = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL);
         } else {
