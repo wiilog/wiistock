@@ -300,6 +300,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('dispatch.number AS number')
             ->addSelect('dispatch.creationDate AS creationDate')
             ->addSelect('dispatch.validationDate AS validationDate')
+            ->addSelect('dispatch.treatmentDate AS treatDate')
             ->addSelect('dispatch.endDate AS endDate')
             ->addSelect('join_type.label AS type')
             ->addSelect('join_requester.username AS requester')
