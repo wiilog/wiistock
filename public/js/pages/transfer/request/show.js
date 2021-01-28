@@ -3,7 +3,7 @@ let tableArticles;
 $(function() {
     const transferOriginId = $('#transfer-origin-id').val();
     Select2.articleReference($('#add-article-reference'), {
-        locationfilter: transferOriginId,
+        locationFilter: transferOriginId,
     });
 
     tableArticle = initDataTable('tableArticle', {
