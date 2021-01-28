@@ -24,7 +24,7 @@ class CacheClearCommand extends SymfonyCacheClearCommand {
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
-        $name = $this->kernel->getProjectDir() . "/.env";
+        $name = $this->kernel->getProjectDir() . "/.env.local";
         if(file_exists($name)) {
             $env = file($name);
             $now = time();

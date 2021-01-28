@@ -3,7 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\Menu;
-use App\Repository\MenuRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -27,21 +26,16 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface {
 
     private $encoder;
 
-    /**
-     * @var MenuRepository
-     */
-    private $menuRepository;
-
-    public function __construct(MenuRepository $menuRepository, UserPasswordEncoderInterface $encoder) {
+    public function __construct(UserPasswordEncoderInterface $encoder) {
         $this->encoder = $encoder;
-        $this->menuRepository = $menuRepository;
     }
 
     public function load(ObjectManager $manager) {
         $output = new ConsoleOutput();
+        $menuRepository = $manager->getRepository(Menu::class);
 
         foreach(self::MENUS as $label) {
-            $menu = $this->menuRepository->findOneBy(["label" => $label]);
+            $menu = $menuRepository->findOneBy(["label" => $label]);
 
             if(empty($menu)) {
                 $menu = new Menu();

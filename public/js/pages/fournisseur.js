@@ -5,7 +5,7 @@ let tableFournisseurConfig = {
     processing: true,
     serverSide: true,
     paging: true,
-    order: [[1, 'desc']],
+    order: [['Nom', 'desc']],
     ajax: {
         "url": pathFournisseur,
         "type": "POST"

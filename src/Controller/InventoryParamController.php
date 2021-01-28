@@ -5,12 +5,12 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\ReferenceArticle;
-use App\Repository\InventoryFrequencyRepository;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -29,28 +29,24 @@ class InventoryParamController extends AbstractController
      */
     private $userService;
 
-    /**
-     * @var InventoryFrequencyRepository
-     */
-    private $inventoryFrequencyRepository;
-
-    public function __construct(UserService $userService,
-                                InventoryFrequencyRepository $inventoryFrequencyRepository)
-    {
+    public function __construct(UserService $userService) {
         $this->userService = $userService;
-        $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
     }
 
     /**
      * @Route("/", name="inventaire_param_index")
+     * @param EntityManagerInterface $entityManager
+     * @return RedirectResponse|Response
      */
-    public function index()
+    public function index(EntityManagerInterface $entityManager)
     {
         if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_INVE)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $frequences = $this->inventoryFrequencyRepository->findAll();
+
+        $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
+        $frequences = $inventoryFrequencyRepository->findAll();
 
         return $this->render('inventaire_param/index.html.twig', [
             'frequencies' => $frequences
@@ -97,32 +93,35 @@ class InventoryParamController extends AbstractController
     /**
      * @Route("/creer", name="categorie_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
+     * @throws NonUniqueResultException
+     * @throws \Doctrine\ORM\NoResultException
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getManager();
-            $inventoryCategoryRepository = $em->getRepository(InventoryCategory::class);
-
+            $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+            $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
 
             // on vérifie que le label n'est pas déjà utilisé
             $labelExist = $inventoryCategoryRepository->countByLabel($data['label']);
 
             if (!$labelExist) {
-                $frequency = $this->inventoryFrequencyRepository->find($data['frequency']);
+                $frequency = $inventoryFrequencyRepository->find($data['frequency']);
                 $category = new InventoryCategory();
                 $category
                     ->setLabel($data['label'])
                     ->setFrequency($frequency)
                     ->setPermanent($data['permanent']);
 
-                $em->persist($category);
-                $em->flush();
+                $entityManager->persist($category);
+                $entityManager->flush();
 
                 return new JsonResponse([
                     'success' => true,
@@ -141,19 +140,22 @@ class InventoryParamController extends AbstractController
     /**
      * @Route("/api-modifier", name="category_api_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function apiEdit(Request $request): Response
+    public function apiEdit(Request $request,
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $inventoryCategoryRepository = $this->getDoctrine()->getRepository(InventoryCategory::class);
+            $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+            $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
 
             $category = $inventoryCategoryRepository->find($data['id']);
-            $frequencies = $this->inventoryFrequencyRepository->findAll();
+            $frequencies = $inventoryFrequencyRepository->findAll();
 
             $json = $this->renderView('inventaire_param/modalEditCategoryContent.html.twig', [
                 'category' => $category,
@@ -168,17 +170,19 @@ class InventoryParamController extends AbstractController
     /**
      * @Route("/modifier", name="category_edit",  options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request,
+                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getManager();
-            $inventoryCategoryRepository = $em->getRepository(InventoryCategory::class);
+            $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+            $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
 
             $category = $inventoryCategoryRepository->find($data['category']);
             $categoryLabel = $category->getLabel();
@@ -187,14 +191,14 @@ class InventoryParamController extends AbstractController
             $labelExist = $inventoryCategoryRepository->countByLabelDiff($data['label'], $categoryLabel);
 
             if (!$labelExist) {
-                $frequency = $this->inventoryFrequencyRepository->find($data['frequency']);
+                $frequency = $inventoryFrequencyRepository->find($data['frequency']);
                 $category
                     ->setLabel($data['label'])
                     ->setFrequency($frequency)
                     ->setPermanent($data['permanent']);
 
-                $em->persist($category);
-                $em->flush();
+                $entityManager->persist($category);
+                $entityManager->flush();
 
                 return new JsonResponse([
                     'success' => true,
@@ -266,20 +270,21 @@ class InventoryParamController extends AbstractController
     /**
      * @Route("/creer-frequence", name="frequency_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
      */
-    public function newFrequency(Request $request): Response
+    public function newFrequency(Request $request,
+                                 EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getManager();
+            $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
 
             // on vérifie que le label n'est pas déjà utilisé
-            $labelExist = $this->inventoryFrequencyRepository->countByLabel($data['label']);
+            $labelExist = $inventoryFrequencyRepository->countByLabel($data['label']);
 
             if (!$labelExist) {
 
@@ -288,8 +293,8 @@ class InventoryParamController extends AbstractController
                     ->setLabel($data['label'])
                     ->setNbMonths($data['nbMonths']);
 
-                $em->persist($frequency);
-                $em->flush();
+                $entityManager->persist($frequency);
+                $entityManager->flush();
                 return new JsonResponse([
                     'success' => true,
                     'msg' => 'La fréquence a bien été ajoutée.'
@@ -307,16 +312,19 @@ class InventoryParamController extends AbstractController
     /**
      * @Route("/frequences/voir", name="invParamFrequencies_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function apiFrequencies(Request $request): Response
+    public function apiFrequencies(Request $request,
+                                   EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_INVE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $frequencies = $this->inventoryFrequencyRepository->findAll();
+            $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
+            $frequencies = $inventoryFrequencyRepository->findAll();
             $rows = [];
             foreach ($frequencies as $frequency) {
                 $url['edit'] = $this->generateUrl('frequency_api_edit', ['id' => $frequency->getId()]);
@@ -325,7 +333,6 @@ class InventoryParamController extends AbstractController
                     [
                         'Label' => $frequency->getLabel(),
                         'NbMonths' => $frequency->getNbMonths() . ' mois',
-                        'Actions' => $frequency->getId(),
                         'Actions' => $this->renderView('inventaire_param/datatableFrequencyRow.html.twig', [
                             'url' => $url,
                             'frequencyId' => $frequency->getId(),
@@ -341,16 +348,19 @@ class InventoryParamController extends AbstractController
     /**
      * @Route("/apiFrequence-modifier", name="frequency_api_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function apiEditFrequency(Request $request): Response
+    public function apiEditFrequency(Request $request,
+                                     EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $frequency = $this->inventoryFrequencyRepository->find($data['id']);
+            $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
+            $frequency = $inventoryFrequencyRepository->find($data['id']);
 
             $json = $this->renderView('inventaire_param/modalEditFrequencyContent.html.twig', [
                 'frequency' => $frequency,
@@ -364,30 +374,32 @@ class InventoryParamController extends AbstractController
     /**
      * @Route("/frequence-modifier", name="frequency_edit",  options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function editFrequency(Request $request): Response
+    public function editFrequency(Request $request,
+                                  EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getManager();
-            $frequency = $this->inventoryFrequencyRepository->find($data['frequency']);
+            $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
+            $frequency = $inventoryFrequencyRepository->find($data['frequency']);
             $frequencyLabel = $frequency->getLabel();
 
             // on vérifie que le label n'est pas déjà utilisé
-            $labelExist = $this->inventoryFrequencyRepository->countByLabelDiff($data['label'], $frequencyLabel);
+            $labelExist = $inventoryFrequencyRepository->countByLabelDiff($data['label'], $frequencyLabel);
 
             if (!$labelExist) {
-                $frequency = $this->inventoryFrequencyRepository->find($data['frequency']);
+                $frequency = $inventoryFrequencyRepository->find($data['frequency']);
                 $frequency
                     ->setLabel($data['label'])
                     ->setNbMonths($data['nbMonths']);
 
-                $em->persist($frequency);
-                $em->flush();
+                $entityManager->persist($frequency);
+                $entityManager->flush();
 
                 return new JsonResponse([
                     'success' => true,
@@ -406,16 +418,18 @@ class InventoryParamController extends AbstractController
     /**
      * @Route("/frequence-verification", name="frequency_check_delete", options={"expose"=true})
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function checkFrequencyCanBeDeleted(Request $request): Response
+    public function checkFrequencyCanBeDeleted(Request $request,
+                                               EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $frequencyId = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $inventoryCategoryRepository = $this->getDoctrine()->getRepository(InventoryCategory::class);
+            $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
             $frequencyIsUsed = $inventoryCategoryRepository->countByFrequency($frequencyId);
 
@@ -435,20 +449,24 @@ class InventoryParamController extends AbstractController
     /**
      * @Route("/frequence-supprimer", name="frequency_delete", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function deleteFrequency(Request $request): Response
+    public function deleteFrequency(Request $request,
+                                    EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $frequency = $this->inventoryFrequencyRepository->find($data['category']);
 
-            $entityManager = $this->getDoctrine()->getManager();
+            $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
+            $frequency = $inventoryFrequencyRepository->find($data['category']);
+
             $entityManager->remove($frequency);
             $entityManager->flush();
+
             return new JsonResponse();
         }
         throw new BadRequestHttpException();

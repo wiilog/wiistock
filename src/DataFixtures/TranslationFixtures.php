@@ -3,7 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\Translation;
-use App\Repository\TranslationRepository;
 use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -12,16 +11,10 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 class TranslationFixtures extends Fixture implements FixtureGroupInterface
 {
-    /**
-     * @var TranslationRepository
-     */
-    private $translationRepository;
 
     private $specificService;
 
-    public function __construct(TranslationRepository $translationRepository, SpecificService $specificService)
-    {
-        $this->translationRepository = $translationRepository;
+    public function __construct(SpecificService $specificService) {
         $this->specificService = $specificService;
     }
 
@@ -211,7 +204,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             foreach ($translation as $label => $translatedLabel) {
                 // array_reduce to force request with case sensitive
                 $translationObject = array_reduce(
-                    $this->translationRepository->findBy([ 'menu' => $menu, 'label' => $label]),
+                    $translationRepository->findBy([ 'menu' => $menu, 'label' => $label]),
                     function (?Translation $res, Translation $translation) use ($label, $menu) {
                         return $res ?? (
                             ($translation->getLabel() === $label && $translation->getMenu() === $menu)

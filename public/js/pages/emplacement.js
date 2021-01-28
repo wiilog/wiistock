@@ -4,7 +4,7 @@ let tableEmplacementConfig = {
     processing: true,
     serverSide: true,
     "lengthMenu": [10, 25, 50, 100, 1000],
-    order: [[1, 'desc']],
+    order: [['Nom', 'desc']],
     ajax: {
         "url": pathEmplacement,
         "type": "POST",

@@ -29,9 +29,7 @@ $(function () {
     let tableLiraisonConfig = {
         serverSide: true,
         processing: true,
-        order: [
-            [3, "desc"]
-        ],
+        order: [['Date', "desc"]],
         ajax: {
             'url': pathLivraison,
             'data': {

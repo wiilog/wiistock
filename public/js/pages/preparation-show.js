@@ -32,7 +32,7 @@ let tableArticleConfig = {
         color: 'success',
         dataToCheck: 'active'
     },
-    order: [[1, "asc"]]
+    order: [['Référence', "asc"]]
 };
 
 let tableArticle = initDataTable('tableArticle_id', tableArticleConfig);

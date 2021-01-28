@@ -9,7 +9,9 @@
 namespace App\Service;
 
 
+use App\Entity\MailerServer;
 use App\Repository\MailerServerRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 
 class MailerService
@@ -23,12 +25,13 @@ class MailerService
      * @var Twig_Environment
      */
     private $templating;
+    private $entityManager;
 
 
-    public function __construct(MailerServerRepository $mailerServerRepository,
+    public function __construct(EntityManagerInterface $entityManager,
                                 Twig_Environment $templating)
     {
-        $this->mailerServerRepository = $mailerServerRepository;
+        $this->entityManager = $entityManager;
         $this->templating = $templating;
     }
 
@@ -37,7 +40,8 @@ class MailerService
         if (isset($_SERVER['APP_NO_MAIL']) && $_SERVER['APP_NO_MAIL'] == 1) {
     		return true;
 		}
-        $mailerServer = $this->mailerServerRepository->findOneMailerServer();
+        $mailerServerRepository = $this->entityManager->getRepository(MailerServer::class);
+        $mailerServer = $mailerServerRepository->findOneMailerServer();
         if ($mailerServer) {
             $user = $mailerServer->getUser() ?? '';
             $password = $mailerServer->getPassword() ?? '';

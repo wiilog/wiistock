@@ -63,7 +63,7 @@ function openTableHisto() {
             "url": pathHistoLitige,
             "type": "POST"
         },
-        order: [[1, 'asc']],
+        order: [['date', 'asc']],
         columns: [
             {"data": 'user', 'name': 'Utilisateur', 'title': 'Utilisateur'},
             {"data": 'date', 'name': 'date', 'title': 'Date', "type": "customDate"},
@@ -98,7 +98,7 @@ let tableColisConfig = {
         {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
         {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
     ],
-    order: [[2, 'asc']]
+    order: [['code', 'asc']]
 };
 let tableColis = initDataTable('tableColis', tableColisConfig);
 
@@ -154,7 +154,7 @@ let tableArrivageLitigesConfig = {
         needsRowClickAction: true,
         dataToCheck: 'urgence'
     },
-    order: [[1, 'desc']]
+    order: [['firstDate', 'desc']]
 };
 let tableArrivageLitiges = initDataTable('tableArrivageLitiges', tableArrivageLitigesConfig);
 

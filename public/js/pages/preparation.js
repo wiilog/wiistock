@@ -29,7 +29,7 @@ let path = Routing.generate('preparation_api');
 let tableConfig = {
     serverSide: true,
     processing: true,
-    order: [[3, 'desc']],
+    order: [['Date', 'desc']],
     ajax: {
         url: path,
         'data': {

@@ -100,7 +100,7 @@ function InitPageDataTable() {
         domConfig: {
             removeInfo: true
         },
-        order: [[5, "desc"], [1, "desc"]],
+        order: [['Urgence', "desc"], ['Référence', "desc"]],
         columns: [
             {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'Référence', 'title': 'Référence'},
@@ -139,8 +139,8 @@ function InitPageDataTable() {
             {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', visible: false},
         ],
         order: [
-            [5, 'desc'],
-            [4, 'desc'],
+            ['urgence', 'desc'],
+            ['date', 'desc'],
         ],
         domConfig: {
             removeInfo: true
@@ -264,7 +264,7 @@ function initDatatableConditionnement() {
         rowConfig: {
             needsRowClickAction: true,
         },
-        order: [1, 'asc'],
+        order: [['barCode', 'asc']],
         columns: [
             {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'barCode', 'name': 'barCode', 'title': 'Code article'},
