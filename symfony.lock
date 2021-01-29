@@ -2,6 +2,9 @@
     "composer/semver": {
         "version": "3.2.4"
     },
+    "friendsofphp/proxy-manager-lts": {
+        "version": "v1.0.3"
+    },
     "nikic/php-parser": {
         "version": "v4.10.4"
     },
