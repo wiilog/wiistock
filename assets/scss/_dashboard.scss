@@ -171,6 +171,14 @@ $minimumWidth: 1300px;
             padding-right: 2px;
         }
 
+        .title {
+            font-size: 1.7vw !important;
+        }
+
+        .has-tooltip {
+            font-size: 1.5vw;
+        }
+
         .dashboard-stats {
             font-weight: bold;
             color: $blueNeon;
@@ -184,7 +192,7 @@ $minimumWidth: 1300px;
             }
 
             &.dashboard-stats-counter {
-                font-size: 2rem;
+                font-size: 5vw;
                 word-wrap: break-word;
             }
 
