@@ -89,4 +89,5 @@ security:
         - { path: ^/dashboard/externe, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/statistiques/, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/verification-connexion, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/empty-cache, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED }

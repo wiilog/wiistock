@@ -9,25 +9,25 @@ use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
+use App\Helper\CacheHelper;
 use App\Helper\Stream;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 
 class RoleService
 {
 
     public const PERMISSIONS_CACHE_PREFIX = 'permissions';
     public const MENU_CACHE_PREFIX = 'menu';
-    public const PERMISSIONS_CACHE_POOL = 'app.cache.permissions';
+    public const PERMISSIONS_CACHE_POOL = 'wiistock.app.cache.permissions';
 
     private $entityManager;
     private $cache;
 
     public function __construct(EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
-        $this->cache = new FilesystemAdapter(RoleService::PERMISSIONS_CACHE_POOL);
+        $this->cache = CacheHelper::create(RoleService::PERMISSIONS_CACHE_POOL);
     }
 
     /**
