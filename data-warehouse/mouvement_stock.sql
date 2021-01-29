@@ -1,5 +1,5 @@
 SELECT
-    mouvement_stock.id,
+    mouvement_stock.id AS id,
     demande_collecte.id AS demande_collecte_id,
     ordre_collecte.id AS ordre_collecte_id,
     ordre_livraison_demande.id AS demande_livraison_id,
@@ -7,15 +7,15 @@ SELECT
     demande_transfert.id AS demande_transfert_id,
     ordre_transfert.id AS ordre_transfert_id,
     ordre_reception.id AS ordre_reception_id,
-    mouvement_stock.type     AS type_mouvement, -- CEA
+    mouvement_stock.type     AS type_mouvement,
 
     IF(ordre_collecte.id IS NOT NULL, type_collecte.label,
        IF(ordre_livraison.id IS NOT NULL, ordre_livraison_type.label,
           IF(ordre_preparation.id IS NOT NULL, ordre_livraison_type.label, NULL)))
-        AS type_flux, -- CEA
+        AS type_flux,
 
-    emplacement_prise.label  AS emplacement_prise, -- CEA
-    emplacement_depose.label AS emplacement_depose, -- CEA
+    emplacement_prise.label  AS emplacement_prise,
+    emplacement_depose.label AS emplacement_depose,
 
     IF(ordre_collecte.id IS NOT NULL, demandeur_collecte.username,
        IF(ordre_transfert.id IS NOT NULL, demandeur_transfert.username,
@@ -23,68 +23,29 @@ SELECT
              IF(ordre_preparation.id IS NOT NULL, ordre_preparation_demandeur.username,
                 IF(ordre_reception.id IS NOT NULL, reception_utilisateur.username,
                    IF(import.id IS NOT NULL, import_utilisateur.username, NULL))))))
-        AS demandeur, -- CEA
-
-    IF(ordre_collecte.id IS NOT NULL, demande_collecte.cleaned_comment,
-       IF(ordre_transfert.id IS NOT NULL, demande_transfert.cleaned_comment,
-          IF(ordre_livraison.id IS NOT NULL, ordre_livraison_demande.cleaned_comment,
-             IF(ordre_preparation.id IS NOT NULL, ordre_preparation_demande.cleaned_comment, NULL))))
-        AS commentaire_demande, -- CEA
-
-    IF(ordre_collecte.id IS NOT NULL, demande_collecte.numero,
-       IF(ordre_transfert.id IS NOT NULL, demande_transfert.number,
-          IF(ordre_livraison.id IS NOT NULL, ordre_livraison_demande.numero,
-             IF(ordre_preparation.id IS NOT NULL, ordre_preparation_demande.numero, NULL))))
-        AS numero_demande, -- CEA
-
-    IF(ordre_collecte.id IS NOT NULL, ordre_collecte.numero,
-       IF(ordre_transfert.id IS NOT NULL, ordre_transfert.number,
-          IF(ordre_livraison.id IS NOT NULL, ordre_livraison.numero,
-             IF(ordre_preparation.id IS NOT NULL, ordre_preparation.numero,
-                IF(ordre_transfert.id IS NOT NULL, ordre_transfert.number,
-                   IF(ordre_reception.id IS NOT NULL, ordre_reception.number, NULL))))))
-        AS numero_ordre, -- CEA
-
-    demande_collecte.validation_date AS date_validation_collecte, -- CEA
-    ordre_livraison_preparation.date AS date_validation_livraison, -- CEA
+        AS demandeur,
 
     IF(reference_article.id IS NOT NULL, reference_article.bar_code,
-       IF(article.id IS NOT NULL, article_reference_article.bar_code, NULL)) AS code_barre_reference, -- CEA
-    article.bar_code AS code_barre_article, -- CEA
+       IF(article.id IS NOT NULL, article_reference_article.bar_code, NULL)) AS code_barre_reference,
+    article.bar_code AS code_barre_article,
 
     IF(reference_article.id IS NOT NULL, reference_article.reference,
        IF(article_id IS NOT NULL, article_reference_article.reference, NULL))
-        AS reference, -- CEA
+        AS reference,
 
     IF(reference_article.id IS NOT NULL, reference_article.libelle,
        IF(article.id IS NOT NULL, article_reference_article.libelle, NULL))
-        AS libelle, -- CEA
+        AS libelle,
 
-    mouvement_stock.quantity AS quantite_livree, -- CEA
+    mouvement_stock.quantity AS quantite_livree,
 
-    operateur.username AS operateur, -- CEA
+    operateur.username AS operateur,
 
-    IF(ordre_livraison.id IS NOT NULL, emplacement_transfert.label, NULL) AS emplacement_transfert, -- CEA
-
-    mouvement_stock.date AS date, -- CEA
+    mouvement_stock.date AS date,
 
     IF(reference_article.id IS NOT NULL, emplacement_stock_reference_article.label,
        IF(article.id IS NOT NULL, emplacement_stock_article.label, NULL))
-        AS emplacement_stock, -- CEA
-
-    IF(demande_collecte.validation_date IS NOT NULL AND ordre_collecte.date IS NOT NULL,
-       ROUND(TIME_FORMAT(TIMEDIFF(ordre_collecte.date, demande_collecte.validation_date), '%H')
-                 + TIME_FORMAT(TIMEDIFF(ordre_collecte.date, demande_collecte.validation_date), '%i') / 60
-                 + TIME_FORMAT(TIMEDIFF(ordre_collecte.date, demande_collecte.validation_date), '%s') / 3600, 4),
-       IF(ordre_livraison_demande.date IS NOT NULL AND ordre_livraison.date IS NOT NULL,
-          ROUND(TIME_FORMAT(TIMEDIFF(ordre_livraison.date, ordre_livraison_demande.date), '%H')
-                    + TIME_FORMAT(TIMEDIFF(ordre_livraison.date, ordre_livraison_demande.date), '%i') / 60
-                    + TIME_FORMAT(TIMEDIFF(ordre_livraison.date, ordre_livraison_demande.date), '%s') / 3600, 4),
-          IF(demande_transfert.validation_date IS NOT NULL AND ordre_transfert.transfer_date IS NOT NULL,
-             ROUND(TIME_FORMAT(TIMEDIFF(ordre_transfert.transfer_date, demande_transfert.validation_date), '%H')
-                       + TIME_FORMAT(TIMEDIFF(ordre_transfert.transfer_date, demande_transfert.validation_date), '%i') / 60
-                       + TIME_FORMAT(TIMEDIFF(ordre_transfert.transfer_date, demande_transfert.validation_date), '%s') / 3600, 4),
-             NULL))) AS delta_date
+        AS emplacement_stock
 
 FROM mouvement_stock
          LEFT JOIN emplacement AS emplacement_prise ON mouvement_stock.emplacement_from_id = emplacement_prise.id
