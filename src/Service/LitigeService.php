@@ -136,9 +136,12 @@ class LitigeService
                 'disputeNumber' => $litige['disputeNumber']
             ]),
             'type' => $litige['type'] ?? '',
-            'arrivalNumber' => $litige['numeroArrivage'] ?? '',
+            'arrivalNumber' => $this->templating->render('litige/datatableLitigesRowFrom.html.twig', [
+                'arrivalNb' => $litige['arrivalNumber'] ?? '',
+                'arrivalId' => $litige['arrivageId']
+            ]),
             'receptionNumber' => $this->templating->render('litige/datatableLitigesRowFrom.html.twig', [
-                'receptionNb' => $litige['numeroReception'] ?? '',
+                'receptionNb' => $litige['receptionNumber'] ?? '',
                 'receptionId' => $litige['receptionId']
             ]),
             'disputeNumber' => $litige['disputeNumber'],
@@ -304,7 +307,7 @@ class LitigeService
                 $reception = isset($receptionRefArticle) ? $receptionRefArticle->getReception() : null;
                 $row[] = $article->getBarCode();
                 $row[] = $qteArticle;
-                $row[] = (isset($reception) ? $reception->getNumeroReception() : '');
+                $row[] = (isset($reception) ? $reception->getNumber() : '');
 
                 $row[] = (isset($reception) ? $reception->getOrderNumber() : null);
 

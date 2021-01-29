@@ -14,23 +14,15 @@ use Doctrine\ORM\NonUniqueResultException;
  */
 class ActionRepository extends EntityRepository {
 
-    /**
-     * @param string $menuLabel
-     * @param string $actionLabel
-     * @return Action
-     * @throws NonUniqueResultException
-     */
-    public function findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel)
-    {
-        $em = $this->getEntityManager();
-
-        $query = $em->createQuery(
-            "SELECT a
-            FROM App\Entity\Action a
-            JOIN a.menu m
-            WHERE a.label = :actionLabel AND m.label = :menuLabel"
-        )->setParameters(['actionLabel' => $actionLabel, 'menuLabel' => $menuLabel]);
-
-        return $query->getOneOrNullResult();
+    public function findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel): ?Action {
+        return $this->createQueryBuilder("action")
+            ->join("action.menu", "menu")
+            ->where("action.label = :action")
+            ->andWhere("menu.label = :menu")
+            ->setParameter("action", $actionLabel)
+            ->setParameter("menu", $menuLabel)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
+
 }

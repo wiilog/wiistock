@@ -50,7 +50,7 @@ class Reception extends FreeFieldEntity
     /**
      * @ORM\Column(type="string", length=255, nullable=true, unique=true)
      */
-    private $numeroReception;
+    private $number;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="receptions")
@@ -194,14 +194,14 @@ class Reception extends FreeFieldEntity
         return $this;
     }
 
-    public function getNumeroReception(): ?string
+    public function getNumber(): ?string
     {
-        return $this->numeroReception;
+        return $this->number;
     }
 
-    public function setNumeroReception(?string $numeroReception): self
+    public function setNumber(?string $number): self
     {
-        $this->numeroReception = $numeroReception;
+        $this->number = $number;
 
         return $this;
     }

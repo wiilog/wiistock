@@ -163,7 +163,7 @@ class ReceptionService
             ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
             ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null)
             ->setStatut($statut)
-            ->setNumeroReception($numero)
+            ->setNumber($numero)
             ->setDate($date)
             ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
             ->setUtilisateur($currentUser)
@@ -214,7 +214,7 @@ class ReceptionService
             "dateAttendue" => ($reception->getDateAttendue() ? $reception->getDateAttendue()->format('d/m/Y H:i'): '' ),
             "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : ''),
             "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
-            "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
+            "Commentaire" => $reception->getCommentaire() ?: '',
             "receiver" => implode(', ', array_unique(
                 $reception->getDemandes()
                     ->map(function (Demande $request) {
@@ -225,9 +225,9 @@ class ReceptionService
                     })
                     ->toArray())
             ),
-            "numeroReception" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
-            "orderNumber" => ($reception->getOrderNumber() ? $reception->getOrderNumber() : ''),
-            "storageLocation" => ($reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : ''),
+            "number" => $reception->getNumber() ?: "",
+            "orderNumber" => $reception->getOrderNumber() ?: "",
+            "storageLocation" => $reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : '',
             "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
             'Actions' => $this->templating->render(
                 'reception/datatableReceptionRow.html.twig',
@@ -278,8 +278,8 @@ class ReceptionService
             [
                 'label' => $this->translator->trans('réception.n° de réception'),
                 'title' => 'n° de réception',
-                'value' => $reception->getNumeroReception(),
-                'show' => [ 'fieldName' => 'numeroReception' ]
+                'value' => $reception->getNumber(),
+                'show' => [ 'fieldName' => 'number' ]
             ],
             [
                 'label' => 'Fournisseur',

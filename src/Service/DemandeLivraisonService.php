@@ -149,10 +149,17 @@ class DemandeLivraisonService
      */
     public function parseRequestForCard(Demande $demande,
                                         DateService $dateService,
-                                        array $averageRequestTimesByType) {
-        $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR);
-        $hasRightToSeePrepaOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA);
-        $hasRightToSeeDeliveryOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR);
+                                        array $averageRequestTimesByType,
+                                        ?int $mode = null) {
+        if(!$mode || $mode !== DashboardSettingsService::MODE_EXTERNAL) {
+            $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR);
+            $hasRightToSeePrepaOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA);
+            $hasRightToSeeDeliveryOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR);
+        } else {
+            $hasRightToSeeRequest = false;
+            $hasRightToSeePrepaOrders =  false;
+            $hasRightToSeeDeliveryOrders =  false;
+        }
 
         $requestStatus = $demande->getStatut() ? $demande->getStatut()->getNom() : '';
         $demandeType = $demande->getType() ? $demande->getType()->getLabel() : '';

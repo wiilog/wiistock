@@ -93,18 +93,14 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
     public function filter(callable $callback): Stream {
         $this->checkValidity();
 
-        if (self::params($callback) == 1) {
-            $this->elements = array_filter($this->elements, $callback);
-        } else {
-            $elements = [];
-            foreach ($this->elements as $key => $element) {
-                if ($callback($key, $element)) {
-                    $elements[$key] = $element;
-                }
+        $elements = [];
+        foreach ($this->elements as $key => $element) {
+            if ($callback($element, $key)) {
+                $elements[$key] = $element;
             }
-
-            $this->elements = $elements;
         }
+
+        $this->elements = $elements;
 
         return $this;
     }
@@ -125,16 +121,12 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
     public function map(callable $callback): Stream {
         $this->checkValidity();
 
-        if (self::params($callback) == 1) {
-            $this->elements = array_map($callback, $this->elements);
-        } else {
-            $mapped = [];
-            foreach ($this->elements as $key => $element) {
-                $mapped[$key] = $callback($key, $element);
-            }
-
-            $this->elements = $mapped;
+        $mapped = [];
+        foreach ($this->elements as $key => $element) {
+            $mapped[$key] = $callback($element, $key);
         }
+
+        $this->elements = $mapped;
 
         return $this;
     }
@@ -153,19 +145,10 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         $this->checkValidity();
 
         $mapped = [];
+        foreach ($this->elements as $key => $element) {
+            [$key, $element] = $callback($element, $key);
 
-        if (self::params($callback) == 1) {
-            foreach ($this->elements as $element) {
-                [$key, $element] = $callback($element);
-
-                $mapped[$key] = $element;
-            }
-        } else {
-            foreach ($this->elements as $key => $element) {
-                [$key, $element] = $callback($key, $element);
-
-                $mapped[$key] = $element;
-            }
+            $mapped[$key] = $element;
         }
 
         $this->elements = $mapped;
@@ -175,18 +158,12 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
     public function reduce(callable $callback, $initial) {
         $this->checkValidity();
 
-        if (self::params($callback) == 2) {
-            return array_reduce($this->elements, $callback, $initial);
-        } else if (self::params($callback) >= 3) {
-            $carry = $initial;
-            foreach ($this->elements as $key => $element) {
-                $carry = $callback($carry, $key, $element);
-            }
-
-            return $carry;
-        } else {
-            throw new Error("Invalid callback, expected 2 or 3 arguments");
+        $carry = $initial;
+        foreach ($this->elements as $key => $element) {
+            $carry = $callback($carry, $element, $key);
         }
+
+        return $carry;
     }
 
     public function flatMap(callable $callback) {
@@ -223,12 +200,8 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
     public function each(callable $callback): self {
         $this->checkValidity();
 
-        if (self::params($callback) == 1) {
-            array_walk($this->elements, $callback);
-        } else {
-            foreach($this->elements as $key => $element) {
-                $callback($key, $element);
-            }
+        foreach($this->elements as $key => $element) {
+            $callback($element, $key);
         }
 
         return $this;
@@ -301,10 +274,6 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         if (!isset($this->elements)) {
             throw new Error(self::INVALID_STREAM);
         }
-    }
-
-    private static function params(callable $callback): int {
-        return (new ReflectionFunction($callback))->getNumberOfRequiredParameters();
     }
 
 }

@@ -40,14 +40,17 @@ class UserService
     private $user;
 
 	private $entityManager;
+	private $roleService;
 
     public function __construct(Twig_Environment $templating,
+                                RoleService $roleService,
                                 EntityManagerInterface $entityManager,
                                 Security $security)
     {
         $this->user = $security->getUser();
         $this->templating = $templating;
         $this->entityManager = $entityManager;
+        $this->roleService = $roleService;
     }
 
     public static function CreateMobileLoginKey(int $length = self::MIN_MOBILE_KEY_LENGTH): string {
@@ -64,31 +67,8 @@ class UserService
         return $this->user;
     }
 
-    public function getUserRole($user = null)
-    {
-        if (!$user) $user = $this->user;
-
-        $role = $user ? $user->getRole() : null;
-
-        return $role;
-    }
-
-    public function hasRightFunction(string $menuLabel, string $actionLabel, $user = null)
-    {
-        if (!$user) $user = $this->user;
-
-        $role = $this->getUserRole($user);
-		$actions = $role ? $role->getActions() : [];
-		$actionRepository = $this->entityManager->getRepository(Action::class);
-        $thisAction = $actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
-
-        if ($thisAction) {
-            foreach ($actions as $action) {
-                if ($action->getId() == $thisAction->getId()) return true;
-            }
-        }
-
-        return false;
+    public function hasRightFunction(string $menuLabel, string $actionLabel, $user = null) {
+        return isset($this->roleService->getPermissions($user ?: $this->user)[$menuLabel . $actionLabel]);
     }
 
     public function getDataForDatatable($params = null)

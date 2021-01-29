@@ -123,8 +123,8 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/arrivage-common.js') }}?{{ app_last_cache_clear }}"></script>
-    <script src="{{ asset('js/pages/show-arrivage.js') }}?{{ app_last_cache_clear }}"></script>
-    <script src="{{ asset('js/pages/dispatch-common.js') }}?{{ app_last_cache_clear }}"></script>
-    <script src="{{ asset('js/pages/form-litiges.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/arrivage-common.js') }}?v={{ web_version }}"></script>
+    <script src="{{ asset('js/pages/show-arrivage.js') }}?v={{ web_version }}"></script>
+    <script src="{{ asset('js/pages/dispatch-common.js') }}?v={{ web_version }}"></script>
+    <script src="{{ asset('js/pages/form-litiges.js') }}?v={{ web_version }}"></script>
 {% endblock %}

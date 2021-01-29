@@ -111,5 +111,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/article.js') }}?{{ app_last_cache_clear }}"></script>
+    <script src="{{ asset('js/pages/article.js') }}?v={{ web_version }}"></script>
 {% endblock %}

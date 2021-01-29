@@ -543,7 +543,7 @@ class TrackingMovementController extends AbstractController
                     $row[] = $movement['operatorUsername'] ?: '';
                     $row[] = $movement['commentaire'] ? strip_tags($movement['commentaire']) : '';
                     $row[] = $attachmentsNameByTracking[(int)$movement['id']] ?? '';
-                    $row[] = $movement['numeroArrivage'] ?: $movement['numeroReception'] ?: '';
+                    $row[] = $movement['numeroArrivage'] ?: $movement['receptionNumber'] ?: '';
                     $row[] = $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
                         ? implode(', ', $movement['numeroCommandeListArrivage'])
                         : ($movement['orderNumber'] ?: '');

@@ -246,10 +246,10 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             tooltips.push({id, text: column.tooltip});
         }
 
-        if (config.order && Array.isArray(config.order)) {
+        if(config.order && Array.isArray(config.order)) {
             const newOrder = [];
-            for (let [name, order] of config.order) {
-                if (name === column.data || name === column.name) {
+            for(let [name, order] of config.order) {
+                if(name === column.data || name === column.name) {
                     name = id;
                 }
 

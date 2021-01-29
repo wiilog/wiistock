@@ -23,7 +23,6 @@ class LitigeRepository extends EntityRepository
 	private const DtToDbLabels = [
 		'type' => 'type',
 		'arrivalNumber' => 'numeroArrivage',
-		'receptionNumber' => 'numeroReception',
 		'provider' => 'provider',
 		'numCommandeBl' => 'numCommandeBl',
         'buyers' => 'acheteurs',
@@ -246,7 +245,7 @@ class LitigeRepository extends EntityRepository
 			// litiges sur arrivage
             ->addSelect('declarant.username as declarantUsername')
             ->addSelect('buyers.username as achUsername')
-            ->addSelect('a.numeroArrivage')
+            ->addSelect('a.numeroArrivage AS arrivalNumber')
             ->addSelect('a.id as arrivageId')
             ->leftJoin('litige.packs', 'c')
             ->leftJoin('c.arrivage', 'a')
@@ -256,7 +255,7 @@ class LitigeRepository extends EntityRepository
             ->leftJoin('litige.declarant', 'declarant')
 			->leftJoin('a.fournisseur', 'aFourn')
 			// litiges sur réceptions
-            ->addSelect('r.numeroReception')
+            ->addSelect('r.number AS receptionNumber')
             ->addSelect('r.orderNumber')
             ->addSelect('r.id as receptionId')
             ->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
@@ -353,7 +352,7 @@ class LitigeRepository extends EntityRepository
 						declarant.username LIKE :value OR
 						declarant.email LIKE :value OR
 						a.numeroArrivage LIKE :value OR
-						r.numeroReception LIKE :value OR
+						r.number LIKE :value OR
 						r.orderNumber LIKE :value OR
                         rra.commande LIKE :value OR
 						ach.username LIKE :value OR
@@ -387,8 +386,8 @@ class LitigeRepository extends EntityRepository
                             $qb->addOrderBy('declarant.username', $order);
                         } else if ($column === 'numeroArrivage') {
                             $qb->addOrderBy('a.numeroArrivage', $order);
-                        } else if ($column === 'numeroReception') {
-                            $qb->addOrderBy('r.numeroReception', $order);
+                        } else if ($column === 'receptionNumber') {
+                            $qb->addOrderBy('r.number', $order);
                         } else if ($column === 'provider') {
                             $qb->addOrderBy('provider', $order);
                         } else if ($column === 'numCommandeBl') {
