@@ -52,9 +52,7 @@ class AlertService {
         foreach($expired as $article) {
             $hasExistingAlert = !(
                 Stream::from($article->getAlerts())
-                    ->filter(function(Alert $alert) {
-                        return $alert->getType() === Alert::EXPIRY;
-                    })
+                    ->filter(fn(Alert $alert) => $alert->getType() === Alert::EXPIRY)
                     ->isEmpty()
             );
 
@@ -119,13 +117,9 @@ class AlertService {
         }
 
         Stream::from($reference->getManagers())
-            ->map(function(Utilisateur $manager) {
-                return [$manager->getEmail(), $manager->getSecondaryEmails()];
-            })
+            ->map(fn(Utilisateur $manager) => [$manager->getEmail(), $manager->getSecondaryEmails()])
             ->flatten()
-            ->filter(function($email) {
-                return !empty($email);
-            })
+            ->filter(fn($email) => !empty($email))
             ->unique()
             ->each(function($email) use ($reference, $type, $freeFieldValue) {
                 $content = $this->templating->render("mails/contents/mailThresholdReached.html.twig", [
@@ -133,7 +127,6 @@ class AlertService {
                     "type" => $type,
                     'machinePDTValue' => $freeFieldValue
                 ]);
-
 
                 $this->mailer->sendMail("FOLLOW GT // $type atteint", $content, $email);
             });

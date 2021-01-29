@@ -2,10 +2,10 @@
 
 namespace App\Twig;
 
+use App\Helper\CacheHelper;
 use App\Service\RoleService;
 use App\Service\SpecificService;
 use App\Service\UserService;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 
@@ -27,7 +27,7 @@ class MenuExtension extends AbstractExtension
         $this->userService = $userService;
         $this->roleService = $roleService;
         $this->specificService = $specificService;
-        $this->cache = new FilesystemAdapter(RoleService::PERMISSIONS_CACHE_POOL);
+        $this->cache = CacheHelper::create(RoleService::PERMISSIONS_CACHE_POOL);
         $this->menuConfig = $menuConfig;
     }
 
