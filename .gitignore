@@ -29,3 +29,6 @@ yarn-error.log
 /SnoreToast.lnk
 /assets/scss/_customFont.scss
 ###< wiilog/wiistock ###
+
+/local-php-security-checker.exe
+/local-php-security-checker
