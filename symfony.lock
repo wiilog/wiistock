@@ -2,6 +2,9 @@
     "composer/semver": {
         "version": "3.2.4"
     },
+    "friendsofphp/proxy-manager-lts": {
+        "version": "v1.0.3"
+    },
     "nikic/php-parser": {
         "version": "v4.10.4"
     },
@@ -114,8 +117,5 @@
     },
     "twig/extra-bundle": {
         "version": "v3.2.1"
-    },
-    "webimpress/safe-writer": {
-        "version": "2.1.0"
     }
 }

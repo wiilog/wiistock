@@ -343,7 +343,7 @@ class Collecte extends FreeFieldEntity implements Serializable {
     public function serialize(): array {
         $freeFieldData = [];
 
-        foreach($this->freeFields as $freeFieldId => $freeFieldValue) {
+        foreach($this->getFreeFields() as $freeFieldId => $freeFieldValue) {
             $freeFieldData[$freeFieldId] = $freeFieldValue;
         }
 

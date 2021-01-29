@@ -15,6 +15,10 @@ use App\Entity\Dashboard\Meter as DashboardMeter;
  */
 class Component
 {
+
+    public const EVERYONE = "everyone";
+    public const SELF = "self";
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue

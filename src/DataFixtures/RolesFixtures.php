@@ -4,21 +4,26 @@ namespace App\DataFixtures;
 
 use App\Entity\Action;
 use App\Entity\Role;
+use App\Helper\CacheHelper;
+use App\Service\RoleService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentFixtureInterface
-{
+class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentFixtureInterface {
+
+    /** @Required */
+    public HttpClientInterface $client;
+
     /**
      * @param ObjectManager $manager
      * @throws NonUniqueResultException
      */
-    public function load(ObjectManager $manager)
-    {
+    public function load(ObjectManager $manager) {
         $output = new ConsoleOutput();
 
         $rolesLabels = [
@@ -49,15 +54,24 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentF
             }
         }
         $manager->flush();
+
+        $cache = CacheHelper::create(RoleService::PERMISSIONS_CACHE_POOL);
+        $menuPrefix = RoleService::MENU_CACHE_PREFIX;
+        $permissionsPrefix = RoleService::PERMISSIONS_CACHE_PREFIX;
+
+        $roles = $roleRepository->findAll();
+        foreach($roles as $role) {
+            $cache->delete("{$menuPrefix}.{$role->getId()}");
+            $cache->delete("{$permissionsPrefix}.{$role->getId()}");
+        }
     }
 
-    public static function getGroups(): array
-    {
+    public static function getGroups(): array {
         return ['fixtures'];
     }
 
-    public function getDependencies()
-    {
+    public function getDependencies() {
         return [ActionsFixtures::class];
     }
+
 }

@@ -475,9 +475,14 @@ class TrackingMovementController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $entityManager->remove($trackingMovement);
-            $entityManager->flush();
-            return new JsonResponse();
+            if($trackingMovement) {
+                $entityManager->remove($trackingMovement);
+                $entityManager->flush();
+            }
+
+            return $this->json([
+                "success" => true,
+            ]);
         }
 
         throw new BadRequestHttpException();
