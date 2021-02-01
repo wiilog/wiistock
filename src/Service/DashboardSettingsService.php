@@ -454,7 +454,8 @@ class DashboardSettingsService {
         } else if ($example) {
             $values = $componentType->getExampleValues();
         } else {
-            $values["carriers"] = $carrierRepository->getDailyArrivalCarriersLabel();
+            $carriers = $carrierRepository->getDailyArrivalCarriersLabel();
+            $values["carriers"] = FormatHelper::carriers($carriers);
         }
 
         return $values;
