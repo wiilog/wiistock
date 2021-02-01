@@ -313,17 +313,17 @@ function createEntriesToHandleElement(data, {meterKey}) {
     });
 
     return $('<div/>', {
-        class: 'dashboard-box',
+        class: $.mobileCheck() ? 'dashboard-box' : '',
         html: [
             $('<div/>', {
                 class: 'row h-100',
                 html: [
                     $('<div/>', {
-                        class: 'col-12 col-md-8 pr-3 pr-md-2',
+                        class: 'col-12 col-md-9 pr-3 pr-md-2',
                         html: $graph
                     }),
                     $('<div/>', {
-                        class: 'col-12 col-md-4 mt-2 mt-md-0 pl-3 pl-md-2',
+                        class: 'col-12 col-md-3 mt-2 mt-md-0 pl-3 pl-md-2',
                         html: $('<div/>', {
                             class: 'row h-100',
                             html: [
