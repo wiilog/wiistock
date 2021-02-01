@@ -462,10 +462,10 @@ function createIndicatorElement(data, {meterKey}) {
             title
                 ? $('<div/>', {
                     class: 'text-center title ellipsis',
-                    text: title.split('(')[0]
+                    html: `${title.split('(')[0]}<p class="small ellipsis location-label">${subtitle || ''}</p>`
                 })
                 : undefined,
-            subtitle
+            subtitle && !title
                 ? $('<div/>', {
                     class: 'location-label ellipsis small',
                     text: subtitle
