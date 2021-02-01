@@ -168,8 +168,8 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'hint' => 'Nombre de colis à traiter en fonction des emplacements d\'origine et de destination paramétrés',
             'exampleValues' => [
                 'chartColors' => [
-                    'Legende1' => '#a3d1ff',
-                    'Legende2' => '#a3efdf'
+                    'Legende1' => '#77933C',
+                    'Legende2' => '#003871'
                 ],
                 'chartData' => [
                     '04/01' => [
