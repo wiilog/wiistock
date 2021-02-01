@@ -1,4 +1,4 @@
-SELECT id, numero, statut, date_creation, date_livraison, date_demande, demandeur, operateur, type, commentaire, reference, libelle, emplacement, quantite_a_livrer, quantite_en_stock, code_barre, detla_date
+SELECT id, numero, statut, date_creation, date_livraison, date_demande, demandeur, operateur, type, commentaire, reference, libelle, emplacement, quantite_a_livrer, quantite_en_stock, code_barre, delta_date
 
 FROM (
     SELECT
@@ -22,7 +22,7 @@ FROM (
            IF(demande_livraison.date IS NOT NULL AND ordre_livraison.date IS NOT NULL,
               ROUND(TIME_FORMAT(TIMEDIFF(ordre_livraison.date, demande_livraison.date), '%H')
                         + TIME_FORMAT(TIMEDIFF(ordre_livraison.date, demande_livraison.date), '%i') / 60
-                        + TIME_FORMAT(TIMEDIFF(ordre_livraison.date, demande_livraison.date), '%s') / 3600, 4), NULL) AS detla_date
+                        + TIME_FORMAT(TIMEDIFF(ordre_livraison.date, demande_livraison.date), '%s') / 3600, 4), NULL) AS delta_date
 
     FROM livraison AS ordre_livraison
         LEFT JOIN statut ON ordre_livraison.statut_id = statut.id
@@ -58,7 +58,7 @@ FROM (
         IF(demande_livraison.date IS NOT NULL AND ordre_livraison.date IS NOT NULL,
            ROUND(TIME_FORMAT(TIMEDIFF(ordre_livraison.date, demande_livraison.date), '%H')
                      + TIME_FORMAT(TIMEDIFF(ordre_livraison.date, demande_livraison.date), '%i') / 60
-                     + TIME_FORMAT(TIMEDIFF(ordre_livraison.date, demande_livraison.date), '%s') / 3600, 4), NULL) AS detla_date
+                     + TIME_FORMAT(TIMEDIFF(ordre_livraison.date, demande_livraison.date), '%s') / 3600, 4), NULL) AS delta_date
 
     FROM livraison AS ordre_livraison
         LEFT JOIN statut ON ordre_livraison.statut_id = statut.id

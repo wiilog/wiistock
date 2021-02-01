@@ -1,41 +1,31 @@
 SELECT
+    reception.id AS id,
 
-    IF(reception_reference_article.id IS NOT NULL, reception_reference_article.id, 0) AS reception_reference_article_id,
-    IF(article.id IS NOT NULL, article.id, 0) AS article_id,
-
-    reception.id AS reception_id,
-
-    reception.order_number AS no_commande, -- CEA
-
-    statut.nom AS statut, -- CEA
-
-    reception.cleaned_comment AS commentaire, -- CEA
-
-    reception.date AS date, -- CEA
-
-    reception.number AS numero, -- CEA
-
-    fournisseur.nom AS fournisseur, -- CEA
+    reception.order_number AS no_commande,
+    statut.nom AS statut,
+    reception.cleaned_comment AS commentaire,
+    reception.date AS date,
+    reception.number AS numero,
+    fournisseur.nom AS fournisseur,
 
     IF(reference_article.id IS NOT NULL, reference_article.reference,
-       IF(article.id IS NOT NULL, article_reference_article.reference, NULL)) AS reference, -- CEA
+       IF(article.id IS NOT NULL, article_reference_article.reference, NULL)) AS reference,
 
     IF(reference_article.id IS NOT NULL, reference_article.libelle,
-       IF(article.id IS NOT NULL, article_reference_article.libelle, NULL)) AS libelle, -- CEA
+       IF(article.id IS NOT NULL, article_reference_article.libelle, NULL)) AS libelle,
 
-    reception_reference_article.quantite AS quantite_recue, -- CEA
-
-    reception_reference_article.quantite_ar AS quantite_a_recevoir, -- CEA
+    reception_reference_article.quantite AS quantite_recue,
+    reception_reference_article.quantite_ar AS quantite_a_recevoir,
 
     IF(reference_article.id IS NOT NULL, reference_article.quantite_stock,
-       IF(article.id IS NOT NULL, article_reference_article.quantite_stock, NULL)) AS quantite_reference, -- CEA
+       IF(article.id IS NOT NULL, article_reference_article.quantite_stock, NULL)) AS quantite_reference,
 
-    article.quantite AS quantite_article_associe, -- CEA
+    article.quantite AS quantite_article_associe,
 
     IF(reference_article.id IS NOT NULL, reference_article.bar_code,
-       IF(article.id IS NOT NULL, article_reference_article.bar_code, NULL)) AS code_barre_reference, -- CEA
+       IF(article.id IS NOT NULL, article_reference_article.bar_code, NULL)) AS code_barre_reference,
 
-    article.bar_code AS code_barre_article, -- CEA
+    article.bar_code AS code_barre_article,
 
     IF(reference_article.id IS NOT NULL, type_reference_article.label,
        IF(article.id IS NOT NULL, type_article.label, NULL)) AS type_flux

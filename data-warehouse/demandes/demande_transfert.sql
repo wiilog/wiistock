@@ -1,10 +1,10 @@
-SELECT id, numero, date_creation, date_valication, statut, demandeur, origine, destination, commentaire, reference, code_barre
+SELECT id, numero, date_creation, date_validation, statut, demandeur, origine, destination, commentaire, reference, code_barre
 FROM (
      SELECT
         transfer_request.id                 AS id,
         transfer_request.number             AS numero,
         transfer_request.creation_date      AS date_creation,
-        transfer_request.validation_date    AS date_valication,
+        transfer_request.validation_date    AS date_validation,
         statut.nom                          AS statut,
         demandeur.username                  AS demandeur,
         origine.label                       AS origine,

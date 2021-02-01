@@ -1,49 +1,81 @@
-SELECT
-    demande.id AS id,
-    demande.numero AS numero,
-    demande.date AS date_creation,
-    preparation.date AS date_validation,
-    demandeur.username AS demandeur,
-    type.label AS type,
-    statut.nom AS statut,
+SELECT id, numero, date_creation, date_validation, demandeur, type, statut, codes_preparations, codes_livraisons, destination, commentaire, reference_article, libelle, code_barre, quantite_disponible, quantite_a_prelever
+FROM (
+    SELECT
+       demande.id                                                    AS id,
+       demande.numero                                                AS numero,
+       demande.date                                                  AS date_creation,
+       preparation.date                                              AS date_validation,
+       demandeur.username                                            AS demandeur,
+       type.label                                                    AS type,
+       statut.nom                                                    AS statut,
 
-    (SELECT GROUP_CONCAT(preparation.numero SEPARATOR ' / ')
-     FROM demande AS sub_demande
-     LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-     WHERE sub_demande.id IN (demande.id)) AS codes_preparations,
+       (SELECT GROUP_CONCAT(preparation.numero SEPARATOR ' / ')
+        FROM demande AS sub_demande
+            LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+       WHERE sub_demande.id IN (demande.id))                        AS codes_preparations,
 
-    (SELECT GROUP_CONCAT(livraison.numero SEPARATOR ' / ')
-     FROM demande AS sub_demande
-              LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-              LEFT JOIN livraison on preparation.id = livraison.preparation_id
-     WHERE sub_demande.id IN (demande.id)) AS codes_livraisons,
+       (SELECT GROUP_CONCAT(livraison.numero SEPARATOR ' / ')
+        FROM demande AS sub_demande
+                  LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                  LEFT JOIN livraison on preparation.id = livraison.preparation_id
+       WHERE sub_demande.id IN (demande.id))                        AS codes_livraisons,
 
-    destination.label AS destination,
-    demande.cleaned_comment AS commentaire,
-    ligne_article_reference_article.reference AS reference_article,
-    article.label AS libelle_article,
-    article.bar_code AS code_barre_article,
-    ligne_article_reference_article.bar_code AS code_barre_reference,
-    ligne_article_reference_article.quantite_disponible AS quantite_disponible,
-    IF(ligne_article.id IS NOT NULL, ligne_article.quantite,
-       IF(article.id IS NOT NULL, article.quantite_aprelever, NULL)) AS quantite_a_prelever
+       destination.label                                            AS destination,
+       demande.cleaned_comment                                      AS commentaire,
+       reference_article.reference                                  AS reference_article,
+       article.label                                                AS libelle,
+       article.bar_code                                             AS code_barre,
+       reference_article.quantite_disponible                        AS quantite_disponible,
+       article.quantite_aprelever                                   AS quantite_a_prelever
 
-FROM demande
+    FROM demande
 
-LEFT JOIN preparation ON demande.id = preparation.demande_id
-LEFT JOIN utilisateur AS demandeur ON demande.utilisateur_id = demandeur.id
-LEFT JOIN statut ON demande.statut_id = statut.id
-LEFT JOIN emplacement AS destination ON demande.destination_id = destination.id
-LEFT JOIN type ON demande.type_id = type.id
-LEFT JOIN article ON demande.id = article.demande_id
+        LEFT JOIN preparation ON demande.id = preparation.demande_id
+        LEFT JOIN utilisateur AS demandeur ON demande.utilisateur_id = demandeur.id
+        LEFT JOIN statut ON demande.statut_id = statut.id
+        LEFT JOIN emplacement AS destination ON demande.destination_id = destination.id
+        LEFT JOIN type ON demande.type_id = type.id
+        INNER JOIN article ON demande.id = article.demande_id
+            LEFT JOIN article_fournisseur ON article.article_fournisseur_id = article_fournisseur.id
+                LEFT JOIN reference_article ON article_fournisseur.reference_article_id = reference_article.id
 
-LEFT JOIN ligne_article ON demande.id = ligne_article.demande_id
-    LEFT JOIN reference_article AS ligne_article_reference_article ON ligne_article.reference_id = ligne_article_reference_article.id
+    UNION
+    SELECT
+       demande.id                                                   AS id,
+       demande.numero                                               AS numero,
+       demande.date                                                 AS date_creation,
+       preparation.date                                             AS date_validation,
+       demandeur.username                                           AS demandeur,
+       type.label                                                   AS type,
+       statut.nom                                                   AS statut,
 
-WHERE
-    article.id IS NOT NULL OR ligne_article_reference_article.id IS NOT NULL
+       (SELECT GROUP_CONCAT(preparation.numero SEPARATOR ' / ')
+        FROM demande AS sub_demande
+                 LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+       WHERE sub_demande.id IN (demande.id))                        AS codes_preparations,
 
-GROUP BY
-    article.id,
-    ligne_article_reference_article.id,
-    demande.id
+       (SELECT GROUP_CONCAT(livraison.numero SEPARATOR ' / ')
+        FROM demande AS sub_demande
+                 LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                 LEFT JOIN livraison on preparation.id = livraison.preparation_id
+       WHERE sub_demande.id IN (demande.id))                        AS codes_livraisons,
+
+       destination.label                                            AS destination,
+       demande.cleaned_comment                                      AS commentaire,
+       reference_article.reference                                  AS reference_article,
+       reference_article.libelle                                    AS libelle,
+       reference_article.bar_code                                   AS code_barre,
+       reference_article.quantite_disponible                        AS quantite_disponible,
+       ligne_article.quantite                                       AS quantite_a_prelever
+
+    FROM demande
+
+        LEFT JOIN preparation ON demande.id = preparation.demande_id
+        LEFT JOIN utilisateur AS demandeur ON demande.utilisateur_id = demandeur.id
+        LEFT JOIN statut ON demande.statut_id = statut.id
+        LEFT JOIN emplacement AS destination ON demande.destination_id = destination.id
+        LEFT JOIN type ON demande.type_id = type.id
+
+        LEFT JOIN ligne_article ON demande.id = ligne_article.demande_id
+            INNER JOIN reference_article ON ligne_article.reference_id = reference_article.id
+) AS requests

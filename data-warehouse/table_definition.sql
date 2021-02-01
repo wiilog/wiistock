@@ -1,32 +1,32 @@
-create table dw_acheminement_champs_libres
+CREATE TABLE dw_acheminement_champs_libres
 (
     acheminement_id integer,
     libelle         varchar(255),
     valeur          text
 );
 
-create table dw_arrivage_champs_libres
+CREATE TABLE dw_arrivage_champs_libres
 (
     arrivage_id integer,
     libelle     varchar(255),
     valeur      text
 );
 
-create table dw_collecte_champs_libres
+CREATE TABLE dw_collecte_champs_libres
 (
     collecte_id integer,
     libelle     varchar(255),
     valeur      text
 );
 
-create table dw_indicateur_arrivage
+CREATE TABLE dw_indicateur_arrivage
 (
     nb_fournisseurs_differents integer,
     pourcentage_urgence        double precision,
     analyse_destinataire       double precision
 );
 
-create table dw_inventaire
+CREATE TABLE dw_inventaire
 (
     code_barre_reference varchar(255),
     code_barre_article   varchar(255),
@@ -40,25 +40,30 @@ create table dw_inventaire
         primary key
 );
 
-create table dw_livraison_champs_libres
+CREATE TABLE dw_livraison_champs_libres
 (
     livraison_id integer,
     libelle      varchar(255),
     valeur       text
 );
 
-create table dw_mouvement_stock
+CREATE TABLE dw_mouvement_stock
 (
+    id                   integer not null
+        constraint mouvement_stock_pk
+        primary key,
+    demande_collecte_id  integer,
+    ordre_collecte_id    integer,
+    demande_livraison_id integer,
+    ordre_livraison_id   integer,
+    demande_transfert_id integer,
+    ordre_transfert_id   integer,
+    ordre_reception_id   integer,
     type_mouvement       varchar(255),
     type_flux            varchar(255),
     emplacement_prise    varchar(255),
     emplacement_depose   varchar(255),
     demandeur            varchar(255),
-    commentaire_demande  text,
-    numero_demande       varchar(255),
-    numero_ordre         varchar(255),
-    date_validation_collecte    timestamp(0),
-    date_validation_livraison   timestamp(0),
     reference            varchar(255),
     libelle              varchar(255),
     quantite_livree      integer,
@@ -66,19 +71,13 @@ create table dw_mouvement_stock
     code_barre_reference varchar(255),
     date                 timestamp(0),
     emplacement_stock    varchar(255),
-    emplacement_transfert    varchar(255),
-    id                   integer not null
-        constraint mouvement_stock_pk
-        primary key,
-    demande_livraison_id    integer,
-    demande_collecte_id     integer,
-    delta_date           float,
     code_barre_article   varchar(255),
     urgence              varchar(3)
 );
 
-create table dw_reception
+CREATE TABLE dw_reception
 (
+    id                       integer,
     no_commande              varchar(255),
     statut                   varchar(255),
     commentaire              text,
@@ -93,20 +92,17 @@ create table dw_reception
     type_flux                varchar(255),
     quantite_recue           integer,
     quantite_a_recevoir      integer,
-    code_barre_reference     varchar(255),
-    reception_id             integer,
-    article_id             integer,
-    reception_reference_article_id             integer
+    code_barre_reference     varchar(255)
 );
 
-create table dw_reception_champs_libres
+CREATE TABLE dw_reception_champs_libres
 (
     reception_id integer,
     libelle      varchar(255),
     valeur       text
 );
 
-create table dw_reference_article
+CREATE TABLE dw_reference_article
 (
     reference                  varchar(255),
     libelle                    varchar(255),
@@ -122,7 +118,7 @@ create table dw_reference_article
     code_barre                 varchar(255),
     categorie_inventaire       varchar(255),
     gestion_stock              varchar(255),
-    gestionnaires              varchar(255),
+    gestionnaires              text,
     statut                     varchar(255),
     id                         integer not null
         constraint reference_article_pk
@@ -131,14 +127,14 @@ create table dw_reference_article
     synchronisation_inventaire varchar(255)
 );
 
-create table dw_reference_article_champs_libres
+CREATE TABLE dw_reference_article_champs_libres
 (
     reference_article_id integer,
     libelle              varchar(255),
     valeur               text
 );
 
-create table dw_service
+CREATE TABLE dw_service
 (
     type               varchar(255),
     objet              text,
@@ -157,14 +153,14 @@ create table dw_service
     delta_date         float
 );
 
-create table dw_service_champs_libres
+CREATE TABLE dw_service_champs_libres
 (
     service_id integer,
     libelle    varchar(255),
     valeur     text
 );
 
-create table dw_tracabilite
+CREATE TABLE dw_tracabilite
 (
     date_mouvement              timestamp(0),
     code_colis                  varchar(255),
@@ -174,12 +170,10 @@ create table dw_tracabilite
     operateur                   varchar(255),
     mouvement_traca_id          integer,
     arrivage_id                 integer,
-    acheminement_id             integer,
-    commentaire_mouvement_traca text,
-    piece_jointe                text
+    acheminement_id             integer
 );
 
-create table dw_urgence
+CREATE TABLE dw_urgence
 (
     debut_delais_livraison date,
     fin_delais_livraison   date,
@@ -198,7 +192,7 @@ create table dw_urgence
 );
 
 -- Nouvelle table SED
-create table dw_arrivage
+CREATE TABLE dw_arrivage
 (
     id                     integer not null
         constraint arrivage_pk
@@ -211,9 +205,9 @@ create table dw_arrivage
     transporteur           varchar(255),
     chauffeur              varchar(255),
     no_tracking_transporteur varchar(255),
-    no_commande_bl            varchar(255),
+    no_commande_bl         text,
     type                   varchar(255),
-    acheteurs              varchar(255),
+    acheteurs              text,
     urgence                varchar(255),
     douane                 varchar(255),
     congele                varchar(255),
@@ -233,9 +227,7 @@ CREATE TABLE dw_arrivage_nature_colis
 
 CREATE TABLE dw_acheminement
 (
-    id                     integer not null
-        constraint acheminement_pk
-        primary key,
+    id                      integer,
     numero                  varchar(255),
     date_creation           timestamp(0),
     date_validation         timestamp(0),
@@ -307,19 +299,18 @@ CREATE TABLE dw_demande_livraison
     demandeur            varchar(255),
     type                 varchar(255),
     statut               varchar(255),
-    codes_preparations   varchar(255),
-    codes_livraisons     varchar(255),
+    codes_preparations   text,
+    codes_livraisons     text,
     destination          varchar(255),
     commentaire          text,
     reference_article    varchar(255),
-    libelle_article      varchar(255),
-    code_barre_article   varchar(255),
-    code_barre_reference varchar(255),
+    libelle              varchar(255),
+    code_barre           varchar(255),
     quantite_disponible  integer,
     quantite_a_prelever  integer
 );
 
-create table dw_demande_livraison_champs_libres
+CREATE TABLE dw_demande_livraison_champs_libres
 (
     demande_livraison_id integer,
     libelle              varchar(255),
@@ -356,7 +347,7 @@ CREATE TABLE dw_ordre_collecte
     reference            varchar(255),
     libelle              varchar(255),
     emplacement          varchar(255),
-    quantite_a_collecter varchar(255),
+    quantite_a_collecter integer,
     code_barre           varchar(255),
     destination          varchar(255),
     delta_date           float
