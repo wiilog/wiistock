@@ -202,8 +202,8 @@ function renderCurrentDashboard() {
             .forEach(row => $dashboard.append(row));
     }
 
-    if(mode === MODE_EXTERNAL) {
-        $(`.header-title`).html(`<span class="bold">${currentDashboard.name}</span>`);
+    if(mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
+        $(`.header-title`).html(`Dashboard | <span class="bold">${currentDashboard.name}</span>`);
     }
 }
 

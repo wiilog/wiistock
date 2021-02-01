@@ -441,9 +441,8 @@ class DashboardSettingsService {
                                                array $config,
                                                bool $example = false): array {
         $values = [];
-
+        $carrierRepository = $manager->getRepository(Transporteur::class);
         if (!empty($config["carriers"])) {
-            $carrierRepository = $manager->getRepository(Transporteur::class);
 
             if ($example) {
                 $carriers = $carrierRepository->findBy(['id' => $config['carriers']]);
@@ -455,7 +454,8 @@ class DashboardSettingsService {
         } else if ($example) {
             $values = $componentType->getExampleValues();
         } else {
-            $values["carriers"] = '';
+            $carriers = $carrierRepository->getDailyArrivalCarriersLabel();
+            $values["carriers"] = FormatHelper::carriers($carriers);
         }
 
         return $values;
