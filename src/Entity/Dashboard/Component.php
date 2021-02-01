@@ -15,56 +15,52 @@ use App\Entity\Dashboard\Meter as DashboardMeter;
  */
 class Component
 {
-
-    public const EVERYONE = "everyone";
-    public const SELF = "self";
-
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id;
 
     /**
      * @ORM\ManyToOne(targetEntity=ComponentType::class, inversedBy="componentsUsing")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $type;
+    private ?ComponentType $type;
 
     /**
      * @ORM\ManyToOne(targetEntity=PageRow::class, inversedBy="components")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $row;
+    private ?PageRow $row;
 
     /**
      * @ORM\Column(type="integer")
      */
-    private $columnIndex;
+    private ?int $columnIndex;
 
     /**
      * @ORM\Column(type="json")
      */
-    private $config = [];
+    private array $config;
 
     /**
      * @var null|DashboardMeter\Indicator;
      * @ORM\OneToOne (targetEntity=DashboardMeter\Indicator::class, mappedBy="component", cascade={"remove"})
      */
-    private $indicatorMeter;
+    private ?DashboardMeter\Indicator $indicatorMeter;
 
     /**
      * @var null|DashboardMeter\Chart;
      * @ORM\OneToOne(targetEntity=DashboardMeter\Chart::class, mappedBy="component", cascade={"remove"})
      */
-    private $chartMeter;
+    private ?DashboardMeter\Chart$chartMeter;
 
     /**
-     * @var Collection;
+     * @var Collection
      * @ORM\OneToMany(targetEntity=LocationCluster::class, mappedBy="component", cascade={"remove"})
      */
-    private $locationClusters;
+    private Collection $locationClusters;
 
     /**
      * Component constructor.
@@ -72,6 +68,7 @@ class Component
     public function __construct()
     {
         $this->locationClusters = new ArrayCollection();
+        $this->config = [];
     }
 
     public function getId(): ?int

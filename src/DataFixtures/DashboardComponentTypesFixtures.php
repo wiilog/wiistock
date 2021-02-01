@@ -17,13 +17,6 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
     private $output;
 
     private const COMPONENT_TYPES = [
-        'Cellule séparée' => [
-            'category' => Dashboard\ComponentType::HIDDEN,
-            'hint' => 'Sépare une cellule verticalement',
-            'exampleValues' => null,
-            'template' => null,
-            'meterKey' => Dashboard\ComponentType::SPLIT_CELL,
-        ],
         'Quantité en cours sur n emplacement(s)' => [
             'hint' => 'Nombre de colis en encours sur les emplacements sélectionnés',
             'exampleValues' => [

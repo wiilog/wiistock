@@ -14,7 +14,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class ComponentType
 {
-    public const SPLIT_CELL = 'split_cell';
     public const ONGOING_PACKS = 'ongoing_packs';
     public const DAILY_ARRIVALS = 'daily_arrivals';
     public const LATE_PACKS = 'late_packs';
@@ -48,9 +47,11 @@ class ComponentType
     public const REQUESTS_TO_TREAT_DISPATCH = 'requests_to_treat_dispatch';
     public const REQUESTS_TO_TREAT_TRANSFER = 'requests_to_treat_transfer';
 
+    public const REQUESTS_SELF = 'self';
+    public const REQUESTS_EVERYONE = 'everyone';
+
     public const ENTITY_TO_TREAT_REGEX_TREATMENT_DELAY = '/^(([01]?[0-9])|(2[0-3])):[0-5][0-9]$/';
 
-    public const HIDDEN = null;
     public const CATEGORY_TRACKING = "Traçabilité";
     public const CATEGORY_REQUESTS = "Demandes";
     public const CATEGORY_ORDERS = "Ordres";

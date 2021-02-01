@@ -274,7 +274,8 @@ function renderCardComponent(component, init = false, isSplit = false) {
                     `));
                 }
             });
-    } else {
+    }
+    else {
         const $addComponent = $('<button/>', {
             class: 'btn btn-light',
             click: openModalComponentTypeFirstStep,

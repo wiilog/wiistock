@@ -1,7 +1,6 @@
 let currentChartsFontSize;
 let fontSizeYAxes;
 
-const SPLIT_CELL = 'split_cell';
 const ONGOING_PACK = 'ongoing_packs';
 const DAILY_ARRIVALS = 'daily_arrivals';
 const LATE_PACKS = 'late_packs';
@@ -33,9 +32,6 @@ $(function() {
 });
 
 const creators = {
-    [SPLIT_CELL]: {
-        callback: createSplitCell,
-    },
     [ONGOING_PACK]: {
         callback: createIndicatorElement
     },
@@ -115,7 +111,7 @@ function createSplitCell(data, {component}) {
     for(let i = components.length; i < 2; i++) {
         components.push(null);
     }
-console.log(components);
+
     for(let child of components) {
         renderedChildren.push(renderCardComponent(child || component.index, false, true));
     }
