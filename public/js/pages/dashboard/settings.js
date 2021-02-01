@@ -235,7 +235,7 @@ function renderRow(row) {
     return $row;
 }
 
-function renderCardComponent(component, init = false) {
+function renderCardComponent(component, init = false, isSplit = false) {
     let $componentContainer;
     if(component && typeof component === 'object') {
         $componentContainer = $('<div/>', {
@@ -245,12 +245,11 @@ function renderCardComponent(component, init = false) {
         $componentContainer.pushLoader('black', 'normal');
         renderComponentWithData(
             $componentContainer,
-            component.type,
-            component.meterKey,
+            component,
             component.config || {},
-            init ? component.initData : undefined
         )
             .then(() => {
+                console.log("GO?", component, $componentContainer[0].outerHTML);
                 $componentContainer.popLoader();
                 if($componentContainer.children().length === 0) {
                     $componentContainer.append($('<div/>', {
@@ -258,7 +257,8 @@ function renderCardComponent(component, init = false) {
                         html: `<i class="fas fa-exclamation-triangle mr-2"></i>Erreur lors de l'affichage du composant`
                     }));
                 }
-                if(mode === MODE_EDIT) {
+
+                if(mode === MODE_EDIT && $componentContainer.find('.dashboard-component.split').length !== 0) {
                     $componentContainer.append($(`
                         <div class="component-toolbox dropdown">
                             <i class="fas fa-cog" data-toggle="dropdown"></i>
@@ -275,20 +275,56 @@ function renderCardComponent(component, init = false) {
                 }
             });
     } else {
+        const $addComponent = $('<button/>', {
+            class: 'btn btn-light',
+            click: openModalComponentTypeFirstStep,
+            html: `<i class="fas fa-plus mr-2"></i> Ajouter un composant`
+        });
+
+        const $splitCell = !isSplit
+            ? $('<button/>', {
+                class: 'btn btn-light mt-2',
+                click: separateCellHorizontally,
+                html: `<i class="fas fa-cut"></i> Diviser`,
+            }) : ``;
+
         $componentContainer = $('<div/>', {
             class: 'dashboard-component empty',
             'data-component': component,
             html: mode === MODE_EDIT
-                ? $('<button/>', {
-                    class: 'btn btn-light',
-                    click: openModalComponentTypeFirstStep,
-                    html: `<i class="fas fa-plus mr-2"></i> Ajouter un composant`
-                })
-                : ``,
+                ? $('<div/>', {
+                    class: 'd-flex flex-column align-content-center',
+                    html: [
+                        $addComponent,
+                        $splitCell,
+                    ],
+                }) : ``,
         });
     }
 
     return $componentContainer;
+}
+
+function separateCellHorizontally() {
+    const $row = $(this).parents('.dashboard-row');
+    const $component = $(this).parents('.dashboard-component');
+
+    const row = currentDashboard.rows[$row.data(`row`)];
+    const componentIndex = $component.data(`component`);
+
+    let component = {
+        index: componentIndex,
+        type: 22,
+        size: 2,
+        components: [],
+        template: null,
+        meterKey: SPLIT_CELL,
+        updated: true,
+    };
+
+    row.components.push(component);
+
+    renderCurrentDashboard();
 }
 
 function renderDashboardPagination() {
@@ -619,7 +655,7 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
         componentIndex: component.index,
         values: JSON.stringify(component.config || {})
     };
-
+console.error(component);
     wrapLoadingOnActionButton($button, () => $.post(route, content, function(data) {
         if(data.html) {
             initSecondStep(data.html);
@@ -708,12 +744,14 @@ function processSecondModalForm($modal) {
 }
 
 function editComponent(rowIndex, componentIndex, {config, type, meterKey, template = null}) {
-    const currentRow = getCurrentDashboardRow(rowIndex);
-    if(currentRow && componentIndex < currentRow.size) {
+    const currentRow = getCurrentDashboardRow(rowIndex, componentIndex);
+    console.error("ok so", currentRow, componentIndex, currentRow.size);
+    if(currentRow) {
         currentDashboard.updated = true;
         currentRow.updated = true;
 
         let currentComponent = getRowComponent(currentRow, componentIndex);
+        console.error("ok:", currentRow, currentComponent);
         if(!currentComponent) {
             currentComponent = {index: componentIndex};
             currentRow.components.push(currentComponent);
@@ -727,8 +765,17 @@ function editComponent(rowIndex, componentIndex, {config, type, meterKey, templa
         const $currentComponent = $dashboard
             .find(`.dashboard-row[data-row="${rowIndex}"]`)
             .find(`.dashboard-component[data-component="${componentIndex}"]`);
-        $currentComponent.replaceWith(renderCardComponent(currentComponent));
+        console.log($currentComponent, renderCardComponent(currentComponent));
+
+        if(currentRow.meterKey === SPLIT_CELL) {
+            console.error("FUCK", renderCardComponent(currentRow));
+            $currentComponent.replaceWith(renderCardComponent(currentRow));
+        } else {
+            $currentComponent.replaceWith(renderCardComponent(currentComponent));
+        }
     }
+
+    console.error("done");
 }
 
 function initSecondStep(html) {
@@ -773,9 +820,28 @@ function getRowComponent(row, componentIndex) {
         : undefined;
 }
 
-function getCurrentDashboardRow(rowIndex) {
+/**
+ * Retrieve the row for the given row index
+ * and retrieve the split component if there
+ * is a split component at the given index.
+ *
+ * @param rowIndex
+ * @param componentIndex
+ * @returns {{components}|any}
+ */
+function getCurrentDashboardRow(rowIndex, componentIndex) {
     // noinspection EqualityComparisonWithCoercionJS
-    return currentDashboard.rows.find(({index}) => (index == rowIndex));
+    const row =  currentDashboard.rows.find(({index}) => (index == rowIndex));
+console.log(row, componentIndex);
+    if(row && componentIndex) {
+        const existingComponent = getRowComponent(row, componentIndex);
+    console.warn(existingComponent);
+        if(existingComponent && existingComponent.components) {
+            return existingComponent;
+        }
+    }
+
+    return row;
 }
 
 /**
@@ -808,7 +874,12 @@ function renderFormComponentExample() {
     const componentType = $exampleContainer.data('component-type');
     const {data: formData} = processSecondModalForm($modalComponentTypeSecondStep);
 
-    return renderComponentWithData($exampleContainer, componentType, $exampleContainer.data('meter-key'), formData)
+    const component = {
+        type: componentType,
+        meterKey: $exampleContainer.data(`meter-key`),
+    };
+
+    return renderComponentWithData($exampleContainer, component, formData)
         .then((renderingSuccess) => {
             if(renderingSuccess) {
                 $exampleContainerParent.removeClass('d-none');
@@ -821,23 +892,25 @@ function renderFormComponentExample() {
         });
 }
 
-function renderComponentWithData($container, componentType, meterKey, formData = null, initData = null) {
+function renderComponentWithData($container, component, formData = null) {
     let exampleValuesPromise;
-    if(initData) {
+    if(component.initData) {
         exampleValuesPromise = new Promise((resolve) => {
             resolve({
-                exampleValues: initData
+                exampleValues: component.initData
             });
         });
     } else {
         exampleValuesPromise = $.post(
-            Routing.generate('dashboard_component_type_example_values', {componentType}),
+            Routing.generate('dashboard_component_type_example_values', {
+                componentType: component.type
+            }),
             formData ? {values: JSON.stringify(formData)} : null
         );
     }
 
     return exampleValuesPromise
-        .then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues))
+        .then(({exampleValues}) => renderComponent(component, $container, exampleValues))
         .catch((error) => {
             console.error(error);
         });

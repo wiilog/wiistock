@@ -14,6 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class ComponentType
 {
+    public const SPLIT_CELL = 'split_cell';
     public const ONGOING_PACKS = 'ongoing_packs';
     public const DAILY_ARRIVALS = 'daily_arrivals';
     public const LATE_PACKS = 'late_packs';
@@ -49,6 +50,7 @@ class ComponentType
 
     public const ENTITY_TO_TREAT_REGEX_TREATMENT_DELAY = '/^(([01]?[0-9])|(2[0-3])):[0-5][0-9]$/';
 
+    public const HIDDEN = null;
     public const CATEGORY_TRACKING = "Traçabilité";
     public const CATEGORY_REQUESTS = "Demandes";
     public const CATEGORY_ORDERS = "Ordres";
@@ -59,42 +61,42 @@ class ComponentType
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id;
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
      */
-    private $name;
+    private ?string $name;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $template;
+    private ?string $template;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $hint;
+    private ?string $hint;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $category;
+    private ?string $category;
 
     /**
-     * @ORM\Column(type="json")
+     * @ORM\Column(type="json", nullable=true)
      */
-    private $exampleValues;
+    private ?array $exampleValues;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $meterKey;
+    private ?string $meterKey;
 
     /**
      * @ORM\OneToMany(targetEntity=Component::class, mappedBy="type", cascade={"remove"})
      */
-    private $componentsUsing;
+    private Collection $componentsUsing;
 
     public function __construct()
     {
@@ -136,7 +138,7 @@ class ComponentType
         return $this->category;
     }
 
-    public function setCategory(string $category): self
+    public function setCategory(?string $category): self
     {
         $this->category = $category;
 

@@ -1,6 +1,7 @@
 let currentChartsFontSize;
 let fontSizeYAxes;
 
+const SPLIT_CELL = 'split_cell';
 const ONGOING_PACK = 'ongoing_packs';
 const DAILY_ARRIVALS = 'daily_arrivals';
 const LATE_PACKS = 'late_packs';
@@ -32,6 +33,9 @@ $(function() {
 });
 
 const creators = {
+    [SPLIT_CELL]: {
+        callback: createSplitCell,
+    },
     [ONGOING_PACK]: {
         callback: createIndicatorElement
     },
@@ -103,25 +107,46 @@ const creators = {
     },
 };
 
+function createSplitCell(data, {component}) {
+    console.log("GOOD", component);
+    const renderedChildren = [];
+
+    const components = $.deepCopy(component.components);
+    for(let i = components.length; i < 2; i++) {
+        components.push(null);
+    }
+console.log(components);
+    for(let child of components) {
+        renderedChildren.push(renderCardComponent(child || component.index, false, true));
+    }
+
+    return $(`<div/>`, {
+        class: `dashboard-component split`,
+        html: renderedChildren
+    });
+}
+
 /**
  *
+ * @param component
  * @param {jQuery} $container
- * @param {string} meterKey
- * @param {*} data
+ * @param data
  * @return {boolean}
  */
-function renderComponent(meterKey, $container, data) {
+function renderComponent(component, $container, data) {
+    console.log(component);
     $container.empty();
 
-    if(!creators[meterKey]) {
-        console.error(`No creator function for ${meterKey} key.`);
+    if(!creators[component.meterKey]) {
+        console.error(`No creator function for ${component.meterKey} key.`);
         return false;
     } else {
-        const {callback, arguments} = creators[meterKey];
+        const {callback, arguments} = creators[component.meterKey];
         const $element = callback(data, {
-            ...(arguments || {}),
-            meterKey,
-            rowSize: $container.closest('.dashboard-row').data('size')
+            meterKey: component.meterKey,
+            rowSize: $container.closest('.dashboard-row').data('size'),
+            component: component,
+            ...(arguments || {})
         });
 
         if($element) {
