@@ -204,6 +204,7 @@ function renderCurrentDashboard() {
 
     if(mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
         $(`.header-title`).html(`Dashboard | <span class="bold">${currentDashboard.name}</span>`);
+        document.title = document.title.split('|')[0] + ` | ${currentDashboard.name}`;
     }
 }
 
