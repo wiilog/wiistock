@@ -169,10 +169,15 @@ $minimumWidth: 1300px;
         .dashboard-ext & {
             padding-left: 2px;
             padding-right: 2px;
-        }
 
-        .title {
-            font-size: 1.7vw !important;
+            .title {
+                font-size: 1.7vw !important;
+                font-weight: 600;
+            }
+
+            .dashboard-stats-counter {
+                font-size: 4.5vw !important;
+            }
         }
 
         .has-tooltip {
@@ -192,7 +197,7 @@ $minimumWidth: 1300px;
             }
 
             &.dashboard-stats-counter {
-                font-size: 5vw;
+                font-size: 2vw;
                 word-wrap: break-word;
             }
 
