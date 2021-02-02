@@ -74,7 +74,7 @@ class MenuExtension extends AbstractExtension
         $key = $rightIsset
             ? $this->roleService->getPermissionKey(constant($item["rights"]["menu"]), constant($item["rights"]["action"]))
             : null;
-        return !isset($rightIsset) || !empty($permissions[$key]);
+        return !$rightIsset || !empty($permissions[$key]);
     }
 
 }
