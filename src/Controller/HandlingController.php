@@ -450,19 +450,21 @@ class HandlingController extends AbstractController
     }
 
     /**
-     * @Route("/infos", name="get_handlings_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_handlings_csv", options={"expose"=true}, methods={"GET","POST"})
      * @param Request $request
+     * @param TranslatorInterface $translator
      * @param CSVExportService $CSVExportService
      * @param FreeFieldService $freeFieldService
      * @param DateService $dateService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function getHandlingsIntels(Request $request,
-                                       CSVExportService $CSVExportService,
-                                       FreeFieldService $freeFieldService,
-                                       DateService $dateService,
-                                       EntityManagerInterface $entityManager): Response
+    public function getHandlingsCSV(Request $request,
+                                    TranslatorInterface $translator,
+                                    CSVExportService $CSVExportService,
+                                    FreeFieldService $freeFieldService,
+                                    DateService $dateService,
+                                    EntityManagerInterface $entityManager): Response
     {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -485,7 +487,7 @@ class HandlingController extends AbstractController
                     'date création',
                     'demandeur',
                     'type',
-                    'objet',
+                    $translator->trans('services.Objet'),
                     'chargement',
                     'déchargement',
                     'date attendue',
@@ -493,7 +495,7 @@ class HandlingController extends AbstractController
                     'statut',
                     'commentaire',
                     'urgence',
-                    'nombre d\'opération(s) réalisée(s)',
+                    $translator->trans('services.Nombre d\'opération(s) réalisée(s)'),
                     'traité par',
                     //'Temps de traitement opérateur'
                 ],
