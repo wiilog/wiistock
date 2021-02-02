@@ -103,25 +103,6 @@ const creators = {
     },
 };
 
-function createSplitCell(data, {component}) {
-    console.log("GOOD", component);
-    const renderedChildren = [];
-
-    const components = $.deepCopy(component.components);
-    for(let i = components.length; i < 2; i++) {
-        components.push(null);
-    }
-
-    for(let child of components) {
-        renderedChildren.push(renderCardComponent(child || component.index, false, true));
-    }
-
-    return $(`<div/>`, {
-        class: `dashboard-component split`,
-        html: renderedChildren
-    });
-}
-
 /**
  *
  * @param component

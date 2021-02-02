@@ -71,13 +71,10 @@ $minimumWidth: 1300px;
     position: relative;
     border-radius: 8px;
 
-    .split {
+    &.dashboard-component-split {
         flex-direction: column;
-        margin-left: 0;
-        margin-right: 0;
-        width: 100%;
 
-        &> .dashboard-component {
+        & > .dashboard-component {
             margin-left: 0;
             margin-right: 0;
             flex: 1;

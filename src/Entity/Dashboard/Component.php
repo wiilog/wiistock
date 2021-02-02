@@ -20,44 +20,46 @@ class Component
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private ?int $id;
+    private ?int $id = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=ComponentType::class, inversedBy="componentsUsing")
      * @ORM\JoinColumn(nullable=false)
      */
-    private ?ComponentType $type;
+    private ?ComponentType $type = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=PageRow::class, inversedBy="components")
      * @ORM\JoinColumn(nullable=false)
      */
-    private ?PageRow $row;
+    private ?PageRow $row = null;
 
     /**
      * @ORM\Column(type="integer")
      */
-    private ?int $columnIndex;
+    private ?int $columnIndex = null;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private ?int $cellIndex = null;
 
     /**
      * @ORM\Column(type="json")
      */
-    private array $config;
+    private array $config = [];
 
     /**
-     * @var null|DashboardMeter\Indicator;
      * @ORM\OneToOne (targetEntity=DashboardMeter\Indicator::class, mappedBy="component", cascade={"remove"})
      */
-    private ?DashboardMeter\Indicator $indicatorMeter;
+    private ?DashboardMeter\Indicator $indicatorMeter = null;
 
     /**
-     * @var null|DashboardMeter\Chart;
      * @ORM\OneToOne(targetEntity=DashboardMeter\Chart::class, mappedBy="component", cascade={"remove"})
      */
-    private ?DashboardMeter\Chart$chartMeter;
+    private ?DashboardMeter\Chart $chartMeter = null;
 
     /**
-     * @var Collection
      * @ORM\OneToMany(targetEntity=LocationCluster::class, mappedBy="component", cascade={"remove"})
      */
     private Collection $locationClusters;
@@ -65,10 +67,8 @@ class Component
     /**
      * Component constructor.
      */
-    public function __construct()
-    {
+    public function __construct() {
         $this->locationClusters = new ArrayCollection();
-        $this->config = [];
     }
 
     public function getId(): ?int
@@ -96,6 +96,18 @@ class Component
     public function setColumnIndex(int $columnIndex): self
     {
         $this->columnIndex = $columnIndex;
+
+        return $this;
+    }
+
+    public function getCellIndex(): ?int
+    {
+        return $this->cellIndex;
+    }
+
+    public function setCellIndex(?int $cellIndex): self
+    {
+        $this->cellIndex = $cellIndex;
 
         return $this;
     }

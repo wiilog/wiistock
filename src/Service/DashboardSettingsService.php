@@ -31,47 +31,32 @@ class DashboardSettingsService {
     const UNKNOWN_COMPONENT = 'unknown_component';
     const INVALID_SEGMENTS_ENTRY = 'invalid_segments_entry';
 
-    private DashboardService $dashboardService;
-    private DateService $dateService;
-    private DemandeLivraisonService $demandeLivraisonService;
-    private DemandeCollecteService $demandeCollecteService;
-    private HandlingService $handlingService;
-    private DispatchService $dispatchService;
-    private TransferRequestService $transferRequestService;
-    private UserService $userService;
-    private RouterInterface $router;
+    /** @Required */
+    public DashboardService $dashboardService;
 
-    /**
-     * DashboardSettingsService constructor.
-     * @param DashboardService $dashboardService
-     * @param DateService $dateService
-     * @param DemandeLivraisonService $demandeLivraisonService
-     * @param DemandeCollecteService $demandeCollecteService
-     * @param HandlingService $handlingService
-     * @param DispatchService $dispatchService
-     * @param TransferRequestService $transferRequestService
-     * @param UserService $userService
-     * @param RouterInterface $router
-     */
-    public function __construct(DashboardService $dashboardService,
-                                DateService $dateService,
-                                DemandeLivraisonService $demandeLivraisonService,
-                                DemandeCollecteService $demandeCollecteService,
-                                HandlingService $handlingService,
-                                DispatchService $dispatchService,
-                                TransferRequestService $transferRequestService,
-                                UserService $userService,
-                                RouterInterface $router) {
-        $this->dashboardService = $dashboardService;
-        $this->dateService = $dateService;
-        $this->demandeLivraisonService = $demandeLivraisonService;
-        $this->demandeCollecteService = $demandeCollecteService;
-        $this->handlingService = $handlingService;
-        $this->dispatchService = $dispatchService;
-        $this->transferRequestService = $transferRequestService;
-        $this->userService = $userService;
-        $this->router = $router;
-    }
+    /** @Required */
+    public DateService $dateService;
+
+    /** @Required */
+    public DemandeLivraisonService $demandeLivraisonService;
+
+    /** @Required */
+    public DemandeCollecteService $demandeCollecteService;
+
+    /** @Required */
+    public HandlingService $handlingService;
+
+    /** @Required */
+    public DispatchService $dispatchService;
+
+    /** @Required */
+    public TransferRequestService $transferRequestService;
+
+    /** @Required */
+    public UserService $userService;
+
+    /** @Required */
+    public RouterInterface $router;
 
     public function serialize(EntityManagerInterface $entityManager, ?Utilisateur $user, int $mode): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
@@ -88,13 +73,13 @@ class DashboardSettingsService {
             return [
                 "id" => $page->getId(),
                 "name" => $page->getName(),
-                "index" => $pageIndex++,
+                "dashboardIndex" => $pageIndex++,
                 "rows" => $page->getRows()
                     ->map(function(Dashboard\PageRow $row) use (&$rowIndex, $entityManager, $mode) {
                         return [
                             "id" => $row->getId(),
                             "size" => $row->getSize(),
-                            "index" => $rowIndex++,
+                            "rowIndex" => $rowIndex++,
                             "components" => $row->getComponents()
                                 ->map(function(Dashboard\Component $component) use ($entityManager, $mode) {
                                     $type = $component->getType();
@@ -104,7 +89,8 @@ class DashboardSettingsService {
                                     return [
                                         "id" => $component->getId(),
                                         "type" => $type->getId(),
-                                        "index" => $component->getColumnIndex(),
+                                        "columnIndex" => $component->getColumnIndex(),
+                                        "cellIndex" => $component->getCellIndex(),
                                         "template" => $type->getTemplate(),
                                         "config" => $config,
                                         "meterKey" => $meterKey,
@@ -713,7 +699,8 @@ class DashboardSettingsService {
                                         }
                                         $component->setType($type);
                                         $component->setRow($row);
-                                        $component->setColumnIndex($jsonComponent["index"]);
+                                        $component->setColumnIndex($jsonComponent["columnIndex"]);
+                                        $component->setCellIndex($jsonComponent["cellIndex"] ?? null);
                                         $this->validateComponentConfig($type, $jsonComponent["config"]);
                                         $component->setConfig($jsonComponent["config"]);
                                     }
