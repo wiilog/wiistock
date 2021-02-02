@@ -70,7 +70,11 @@ class MenuExtension extends AbstractExtension
     }
 
     private function hasRight(array $permissions, array $item) {
-        return !isset($item["rights"]) || !empty($permissions[constant($item["rights"]["menu"]) . constant($item["rights"]["action"])]);
+        $rightIsset = isset($item["rights"]);
+        $key = $rightIsset
+            ? $this->roleService->getPermissionKey(constant($item["rights"]["menu"]), constant($item["rights"]["action"]))
+            : null;
+        return !isset($rightIsset) || !empty($permissions[$key]);
     }
 
 }

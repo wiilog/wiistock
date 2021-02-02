@@ -27,4 +27,9 @@ class StringHelper {
         return levenshtein($s1, $s2);
     }
 
+    public static function slugify($str) {
+        $map = [];
+        return strtolower(trim(preg_replace('/[^A-Za-z0-9-]/', '_', self::stripUTF8Accents($str, $map))));;
+    }
+
 }
