@@ -95,31 +95,25 @@ function loadDashboards(m) {
 function onArrowNavigation(e) {
     const LEFT = 37;
     const RIGHT = 39;
+    let requestedDashboardIndex;
 
-    switch(e.which) {
-        case LEFT:
-            const previous = dashboards[currentDashboard.dashboardIndex - 1];
-            if(previous !== undefined) {
-                currentDashboard = previous;
-                renderCurrentDashboard();
-                updateAddRowButton();
-                renderDashboardPagination();
-            }
-            break;
-        case RIGHT:
-            const next = dashboards[currentDashboard.dashboardIndex + 1];
-            if(next !== undefined) {
-                currentDashboard = next;
-                renderCurrentDashboard();
-                updateAddRowButton();
-                renderDashboardPagination();
-            }
-            break;
-        default:
-            return;
+    if (e.which === LEFT) {
+        requestedDashboardIndex = currentDashboard.dashboardIndex - 1;
+    }
+    else if (e.which === RIGHT) {
+        requestedDashboardIndex = currentDashboard.dashboardIndex + 1;
     }
 
-    e.preventDefault(); // prevent the default action (scroll / move caret)
+    const requestedDashboard = dashboards[requestedDashboardIndex];
+
+    if (requestedDashboard) {
+        currentDashboard = requestedDashboard;
+        location.hash = `#${requestedDashboardIndex + 1}`;
+        renderCurrentDashboard();
+        updateAddRowButton();
+        renderDashboardPagination();
+        e.preventDefault(); // prevent the default action (scroll / move caret)
+    }
 }
 
 function onSelectAll() {
@@ -198,9 +192,11 @@ function renderRefreshDate(date) {
 function renderCurrentDashboard() {
     $dashboard.empty();
     if(currentDashboard) {
+        updateCurrentDashboardSize();
+
         Object.values(currentDashboard.rows)
             .map(renderRow)
-            .forEach(row => $dashboard.append(row));
+            .forEach((row) => $dashboard.append(row));
     }
 
     if(mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
@@ -209,14 +205,28 @@ function renderCurrentDashboard() {
     }
 }
 
+function updateCurrentDashboardSize() {
+    const currentSize = $dashboard.data('size');
+    const prefixSize = `dashboard-${(mode === MODE_EXTERNAL) ? 'external-' : ''}size-`;
+    if (currentSize) {
+        $dashboard.removeClass(`${currentSize}`);
+    }
+
+    const dashboardSize = currentDashboard.rows ? currentDashboard.rows.length : 0
+    $dashboard
+        .addClass(`${prefixSize}${dashboardSize}`)
+        .data('size', dashboardSize);
+}
+
 function updateAddRowButton() {
     $(`[data-target="#add-row-modal"]`).prop(`disabled`, !currentDashboard || currentDashboard.rows.length >= MAX_NUMBER_ROWS);
 }
 
 function renderRow(row) {
     const $rowWrapper = $(`<div/>`, {class: `dashboard-row-wrapper`});
+    const flexFill = mode !== MODE_EXTERNAL ? 'flex-fill' : '';
     const $row = $(`<div/>`, {
-        class: `dashboard-row dashboard-row-size-${row.size}`,
+        class: `dashboard-row dashboard-row-size-${row.size} ${flexFill}`,
         'data-row-index': `${row.rowIndex}`,
         'data-size': `${row.size}`,
         html: $rowWrapper
@@ -267,8 +277,9 @@ function renderRow(row) {
 }
 
 function createComponentContainer(columnIndex, cellIndex) {
+    const dFlex = mode !== MODE_EXTERNAL ? 'd-flex' : '';
     const $container = $('<div/>', {
-        class: 'dashboard-component',
+        class: `dashboard-component ${dFlex}`,
         'data-column-index': columnIndex
     });
 
@@ -587,6 +598,7 @@ function onRowAdded() {
     }
 
     updateAddRowButton();
+    updateCurrentDashboardSize();
     $addRowButton.closest('.modal').modal('hide');
 }
 
@@ -602,6 +614,7 @@ function onRowDeleted() {
 
     recalculateIndexes();
     updateAddRowButton();
+    updateCurrentDashboardSize();
 }
 
 function onComponentEdited() {

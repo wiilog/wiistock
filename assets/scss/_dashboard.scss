@@ -1,4 +1,5 @@
 $maxColumnOnRow: 12;
+$maxRowOnPage: 12;
 $columnGutters: 15px;
 $minimumWidth: 1300px;
 
@@ -22,6 +23,10 @@ $minimumWidth: 1300px;
     flex: 1;
     display: flex;
     flex-direction: column;
+
+    .dashboard-ext & {
+        overflow: hidden;
+    }
 }
 
 .dashboard {
@@ -30,28 +35,43 @@ $minimumWidth: 1300px;
     height: 100%;
     width: 100%;
 
+    .dashboard-ext & {
+        overflow: hidden;
+    }
+
     @media not all and (max-width: $minimumWidth) {
         height: 100%;
+    }
+
+    @for $rowIndex from 1 through $maxRowOnPage {
+        &.dashboard-external-size-#{$rowIndex} .dashboard-row {
+            flex: 0 0 calc(#{percentage(1 / $rowIndex)} - #{$columnGutters});
+            max-height: calc(#{percentage(1 / $rowIndex)} - #{$columnGutters});
+        }
+    }
+
+    @for $rowIndex from 2 through $maxRowOnPage {
+        &.dashboard-size-#{$rowIndex} .pending-request-wrapper {
+            max-height: 400px;
+        }
+    }
+
+    &.dashboard-size-1 .pending-request-wrapper {
+        max-height: 400px;
     }
 
     .dashboard-row {
         display: flex;
         width: 100%;
-        flex: 1;
+        position: relative;
 
-        &:not(:first-child) {
-            margin-top: 15px;
-        }
+        margin-top: map-get($spacers, 2);
+        margin-bottom: map-get($spacers, 2);
 
         @for $columnIndex from 1 through $maxColumnOnRow {
             &.dashboard-row-size-#{$columnIndex} > .dashboard-row-wrapper > .dashboard-component {
                 flex: 0 0 calc(#{percentage(1 / $columnIndex)} - #{$columnGutters});
                 max-width: calc(#{percentage(1 / $columnIndex)} - #{$columnGutters});
-
-                @media all and (max-width: $minimumWidth) {
-                    flex: 1;
-                    max-width: 100%;
-                }
             }
         }
 
@@ -67,9 +87,9 @@ $minimumWidth: 1300px;
 }
 
 .dashboard-component {
-    display: flex;
     position: relative;
     border-radius: 8px;
+    max-height: 100%;
 
     &.dashboard-component-split {
         flex-direction: column;
@@ -94,9 +114,13 @@ $minimumWidth: 1300px;
         margin-right: $columnGutters / 2;
     }
 
+    @media all and (max-width: $minimumWidth) {
+        flex: 1;
+        max-width: 100%;
+    }
+
     &.empty {
         background: #D0D9E0;
-        display: flex;
         align-items: center;
         justify-content: center;
         min-height: 100px;
@@ -126,13 +150,17 @@ $minimumWidth: 1300px;
         transform: none !important;
     }
 
+    padding: 0.5rem;
+    .dashboard-ext & {
+        padding: 0.20rem;
+    }
+
     width: 100%;
     display: flex;
     flex-direction: column;
     box-shadow: 2px 2px 3px grey;
     position: relative;
     background: $white;
-    padding: 0.5rem;
 
     .title {
         @extend .h5;
