@@ -12,6 +12,7 @@ use App\Entity\Menu;
 use App\Entity\Handling;
 
 use App\Entity\Attachment;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -96,6 +97,7 @@ class HandlingController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @return Response
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager,
                           Request $request): Response
@@ -108,6 +110,7 @@ class HandlingController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
@@ -119,6 +122,7 @@ class HandlingController extends AbstractController
 			'filterStatus' => $filterStatus,
             'types' => $types,
             'fieldsParam' => $fieldsParam,
+            'removeHourInDatetime' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME),
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
@@ -251,6 +255,7 @@ class HandlingController extends AbstractController
      * @param DateService $dateService
      * @param Request $request
      * @return Response
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function editApi(EntityManagerInterface $entityManager,
                             DateService $dateService,
@@ -265,6 +270,7 @@ class HandlingController extends AbstractController
             $handlingRepository = $entityManager->getRepository(Handling::class);
             $attachmentsRepository = $entityManager->getRepository(Attachment::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
             $handling = $handlingRepository->find($data['id']);
             $status = $handling->getStatus();
@@ -277,6 +283,7 @@ class HandlingController extends AbstractController
 
             $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
                 'handling' => $handling,
+                'removeHourInDatetime' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME),
                 'treatmentDelay' => $treatmentDelayStr,
                 'handlingStatus' => !$statusTreated
                     ? $statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType())

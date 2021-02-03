@@ -386,7 +386,7 @@ function editParamLocations($select, $inputValue) {
 
 function editReceptionStatus() {
     let path = Routing.generate('edit_status_receptions');
-    let $inputs = $('#paramReceptions').find('.status');
+    let $inputs = $('#receptionSettings').find('.status');
 
     let param = {};
     $inputs.each(function () {

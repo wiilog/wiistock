@@ -5,43 +5,47 @@
 {% block page_content %}
     <div class="m-4 wii-page-card">
         <div class="row mt-4">
-            {% include 'parametrage_global/paramLabels.html.twig' %}
+            {% include 'parametrage_global/labelSettings.html.twig' %}
         </div>
 
         <div class="row">
-            {% include 'parametrage_global/paramDocuments.html.twig' with paramDocuments %}
+            {% include 'parametrage_global/documentSettings.html.twig' with documentSettings %}
         </div>
 
         <div class="row">
-            {% include 'parametrage_global/paramExportCsv.html.twig' %}
+            {% include 'parametrage_global/CSVExportSettings.html.twig' %}
         </div>
 
         <div class="row">
-            {% include 'parametrage_global/paramPrefixDemands.html.twig' with paramArrivages %}
+            {% include 'parametrage_global/requestPrefixSettings.html.twig' with arrivalSettings %}
         </div>
 
         <div class="row">
-            {% include 'parametrage_global/paramDemandeLivraison.html.twig' with paramLivraisons %}
+            {% include 'parametrage_global/deliveryRequestSettings.html.twig' with deliverySettings %}
         </div>
 
         <div class="row">
-            {% include 'parametrage_global/paramMailServer.html.twig' %}
+            {% include 'parametrage_global/mailServerSettings.html.twig' %}
         </div>
 
         <div class="row">
-            {% include 'parametrage_global/paramReceptions.html.twig' with paramReceptions %}
+            {% include 'parametrage_global/receptionSettings.html.twig' with receptionSettings %}
         </div>
 
         <div class="row">
-            {% include 'parametrage_global/paramArrivages.html.twig' with paramArrivages %}
+            {% include 'parametrage_global/arrivalSettings.html.twig' with arrivalSettings %}
         </div>
 
         <div class="row">
-            {% include 'parametrage_global/paramDispatches.html.twig' with paramDispatches %}
+            {% include 'parametrage_global/dispatchSettings.html.twig' with dispatchSettings %}
         </div>
 
         <div class="row">
-            {% include 'parametrage_global/paramStock.html.twig' with paramStock %}
+            {% include 'parametrage_global/handlingSettings.html.twig' with handlingSettings %}
+        </div>
+
+        <div class="row">
+            {% include 'parametrage_global/stockSettings.html.twig' with stockSettings %}
         </div>
 
         <div class="row">
@@ -49,19 +53,19 @@
         </div>
 
         <div class="row">
-            {% include 'parametrage_global/paramTranslations.html.twig' with paramTranslations %}
+            {% include 'parametrage_global/translationSettings.html.twig' with translationSettings %}
         </div>
 
         <div class="row">
-            {% include 'parametrage_global/paramAppearance.html.twig' %}
+            {% include 'parametrage_global/appearanceSettings.html.twig' %}
         </div>
 
         <div class="row">
-            {% include 'parametrage_global/paramMvtTraca.html.twig' %}
+            {% include 'parametrage_global/trackingMovementSettings.html.twig' %}
         </div>
 
         <div class="row">
-            {% include 'parametrage_global/paramWorkFreeDays.html.twig' %}
+            {% include 'parametrage_global/workFreeDaysSettings.html.twig' %}
         </div>
     </div>
 {% endblock %}
