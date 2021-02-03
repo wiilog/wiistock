@@ -1,7 +1,7 @@
 $maxColumnOnRow: 12;
 $maxRowOnPage: 12;
 $columnGutters: 15px;
-$minimumWidth: 1300px;
+$responsive-breakpoint: map-get($grid-breakpoints, lg);
 
 .refresh-date {
     &.display {
@@ -39,20 +39,22 @@ $minimumWidth: 1300px;
         overflow: hidden;
     }
 
-    @media not all and (max-width: $minimumWidth) {
+    @media (min-width: $responsive-breakpoint) {
         height: 100%;
     }
 
-    @for $rowIndex from 1 through $maxRowOnPage {
-        &.dashboard-external-size-#{$rowIndex} .dashboard-row {
-            flex: 0 0 calc(#{percentage(1 / $rowIndex)} - #{$columnGutters});
-            max-height: calc(#{percentage(1 / $rowIndex)} - #{$columnGutters});
+    @media (min-width: $responsive-breakpoint) {
+        @for $rowIndex from 1 through $maxRowOnPage {
+            &.dashboard-external-size-#{$rowIndex} .dashboard-row {
+                flex: 0 0 calc(#{percentage(1 / $rowIndex)} - #{$columnGutters});
+                max-height: calc(#{percentage(1 / $rowIndex)} - #{$columnGutters});
+            }
         }
-    }
 
-    @for $rowIndex from 2 through $maxRowOnPage {
-        &.dashboard-size-#{$rowIndex} .pending-request-wrapper {
-            max-height: 400px;
+        @for $rowIndex from 2 through $maxRowOnPage {
+            &.dashboard-size-#{$rowIndex} .pending-request-wrapper {
+                max-height: 400px;
+            }
         }
     }
 
@@ -68,10 +70,12 @@ $minimumWidth: 1300px;
         margin-top: map-get($spacers, 2);
         margin-bottom: map-get($spacers, 2);
 
-        @for $columnIndex from 1 through $maxColumnOnRow {
-            &.dashboard-row-size-#{$columnIndex} > .dashboard-row-wrapper > .dashboard-component {
-                flex: 0 0 calc(#{percentage(1 / $columnIndex)} - #{$columnGutters});
-                max-width: calc(#{percentage(1 / $columnIndex)} - #{$columnGutters});
+        @media (min-width: $responsive-breakpoint) {
+            @for $columnIndex from 1 through $maxColumnOnRow {
+                &.dashboard-row-size-#{$columnIndex} > .dashboard-row-wrapper > .dashboard-component {
+                    flex: 0 0 calc(#{percentage(1 / $columnIndex)} - #{$columnGutters});
+                    max-width: calc(#{percentage(1 / $columnIndex)} - #{$columnGutters});
+                }
             }
         }
 
@@ -79,7 +83,7 @@ $minimumWidth: 1300px;
             display: flex;
             width: 100%;
 
-            @media all and (max-width: $minimumWidth) {
+            @media all and (max-width: $responsive-breakpoint) {
                 flex-direction: column;
             }
         }
@@ -104,19 +108,21 @@ $minimumWidth: 1300px;
         }
     }
 
-    @media all and (max-width: $minimumWidth) {
+    @media (max-width: $responsive-breakpoint) {
         margin-top: $columnGutters / 2;
         margin-bottom: $columnGutters / 2;
-    }
-
-    @media not all and (max-width: $minimumWidth) {
-        margin-left: $columnGutters / 2;
-        margin-right: $columnGutters / 2;
-    }
-
-    @media all and (max-width: $minimumWidth) {
+        width: 100%;
         flex: 1;
         max-width: 100%;
+
+        & canvas {
+            max-height: 400px !important;
+        }
+    }
+
+    @media (min-width: $responsive-breakpoint) {
+        margin-left: $columnGutters / 2;
+        margin-right: $columnGutters / 2;
     }
 
     &.empty {
@@ -126,8 +132,7 @@ $minimumWidth: 1300px;
         min-height: 100px;
         border: 2px dashed #878d92;
 
-        @media all and (max-width: $minimumWidth) {
-            min-height: 50px;
+        @media (max-width: $responsive-breakpoint) {
             display: none;
         }
     }
@@ -168,7 +173,7 @@ $minimumWidth: 1300px;
         padding: 0;
         color: $blackDashboard;
 
-        @media all and (max-width: $minimumWidth) {
+        @media all and (max-width: $responsive-breakpoint) {
             font-size: 0.9rem;
         }
 
@@ -262,7 +267,7 @@ $minimumWidth: 1300px;
     align-items: center;
     margin: 10px 0;
 
-    @media all and (max-width: $minimumWidth) {
+    @media (max-width: $responsive-breakpoint) {
         flex-direction: column;
     }
 }
@@ -276,7 +281,7 @@ $minimumWidth: 1300px;
     justify-content: center;
     margin: 10px 0;
 
-    @media all and (max-width: $minimumWidth) {
+    @media (max-width: $responsive-breakpoint) {
         flex-direction: column;
     }
 }

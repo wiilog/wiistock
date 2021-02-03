@@ -277,7 +277,7 @@ function renderRow(row) {
 }
 
 function createComponentContainer(columnIndex, cellIndex) {
-    const dFlex = mode !== MODE_EXTERNAL ? 'd-flex' : '';
+    const dFlex = mode !== MODE_EXTERNAL ? 'd-lg-flex' : '';
     const $container = $('<div/>', {
         class: `dashboard-component ${dFlex}`,
         'data-column-index': columnIndex
@@ -386,7 +386,9 @@ function renderDashboardPagination() {
 
     if(mode === MODE_EDIT) {
         $(`.dashboard-pagination`).append(`
-            <button class="btn btn-primary btn-ripple mx-1" data-toggle="modal" data-target="#add-dashboard-modal">
+            <button class="btn btn-primary btn-ripple mx-1"
+                    data-toggle="modal"
+                    data-target="#add-dashboard-modal">
                 <span class="fa fa-plus mr-2"></span> Ajouter un dashboard
             </button>
         `);
@@ -425,7 +427,7 @@ function createDashboardSelectorItem(dashboard) {
         $editable = `
             <div class="dropdown d-inline-flex">
                 <span class="pointer" data-toggle="dropdown">
-                <i class="fas fa-cog"></i>
+                    <i class="fas fa-cog"></i>
                 </span>
                 <div class="dropdown-menu pointer">
                     <a class="dropdown-item rename-dashboard" role="button" data-dashboard-index="${dashboard.dashboardIndex}"
@@ -444,7 +446,7 @@ function createDashboardSelectorItem(dashboard) {
     }
 
     return $('<div/>', {
-        class: `d-flex align-items-center mx-1 p-2 ${subContainerClasses}`,
+        class: `d-flex align-items-center mx-1 p-2 justify-content-center ${subContainerClasses}`,
         html: [
             $link,
             $editable,
