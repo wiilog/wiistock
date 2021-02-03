@@ -16,9 +16,6 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentFixtureInterface {
 
-    /** @Required */
-    public HttpClientInterface $client;
-
     /**
      * @param ObjectManager $manager
      * @throws NonUniqueResultException

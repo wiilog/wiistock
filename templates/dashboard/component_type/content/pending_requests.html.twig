@@ -20,8 +20,8 @@
         <div class="form-group col-6">
             <label class="d-inline-block">Afficher</label>
             <select class="data form-control w-100 needed d-inline-block" name="shown">
-                <option value="{{ constant('App\\Entity\\Dashboard\\Component::SELF') }}" {{ shown == constant('App\\Entity\\Dashboard\\Component::SELF') ? 'selected' }}>seulement les demandes de l'utilisateur en cours</option>
-                <option value="{{ constant('App\\Entity\\Dashboard\\Component::EVERYONE') }}" {{ shown == constant('App\\Entity\\Dashboard\\Component::EVERYONE') ? 'selected' }}>toutes les demandes</option>
+                <option value="{{ constant('App\\Entity\\Dashboard\\ComponentType::REQUESTS_SELF') }}" {{ shown == constant('App\\Entity\\Dashboard\\ComponentType::REQUESTS_SELF') ? 'selected' }}>seulement les demandes de l'utilisateur en cours</option>
+                <option value="{{ constant('App\\Entity\\Dashboard\\ComponentType::REQUESTS_EVERYONE') }}" {{ shown == constant('App\\Entity\\Dashboard\\ComponentType::REQUESTS_EVERYONE') ? 'selected' }}>toutes les demandes</option>
             </select>
         </div>
     </div>

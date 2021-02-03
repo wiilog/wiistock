@@ -3,21 +3,24 @@ const MODE_DISPLAY = 1;
 const MODE_EXTERNAL = 2;
 
 const MAX_NUMBER_ROWS = 6;
+const MAX_COMPONENTS_IN_CELL = 2;
 const MAX_NUMBER_PAGES = 8;
 
 /**
  * @type {{
- *     index: int
+ *     dashboardIndex: int
  *     name: string,
  *     updated: boolean,
  *     rows: {
  *         size: int,
  *         updated: boolean,
+ *         rowIndex: int,
  *         components: {
  *             updated: boolean,
  *             type: int,
  *             meterKey: string,
- *             index: int,
+ *             columnIndex: int,
+ *             cellIndex: int,
  *             config: Object.<string,*>,
  *         }[],
  *     }[],
@@ -61,8 +64,6 @@ function loadDashboards(m) {
     $addRowButton.on('click', onRowAdded);
     $dashboard.on(`click`, `.delete-row`, onRowDeleted);
 
-    $dashboard.on(`click`, `.edit-component`, onComponentEdited);
-    $dashboard.on(`click`, `.delete-component`, onComponentDeleted);
     $modalComponentTypeSecondStep.on(`click`, `.select-all-types`, onSelectAll);
     $modalComponentTypeSecondStep.on(`click`, `.select-all-statuses`, onSelectAll);
 
@@ -76,7 +77,7 @@ function loadDashboards(m) {
         setInterval(function() {
             $.get(Routing.generate("dashboards_fetch", {mode}), function(response) {
                 dashboards = JSON.parse(response.dashboards);
-                currentDashboard = dashboards.find(d => d.index === currentDashboard.index);
+                currentDashboard = dashboards.find(({dashboardIndex: currentDashboardIndex}) => currentDashboardIndex === currentDashboard.dashboardIndex);
 
                 renderCurrentDashboard();
                 renderDashboardPagination();
@@ -97,7 +98,7 @@ function onArrowNavigation(e) {
 
     switch(e.which) {
         case LEFT:
-            const previous = dashboards[currentDashboard.index - 1];
+            const previous = dashboards[currentDashboard.dashboardIndex - 1];
             if(previous !== undefined) {
                 currentDashboard = previous;
                 renderCurrentDashboard();
@@ -106,7 +107,7 @@ function onArrowNavigation(e) {
             }
             break;
         case RIGHT:
-            const next = dashboards[currentDashboard.index + 1];
+            const next = dashboards[currentDashboard.dashboardIndex + 1];
             if(next !== undefined) {
                 currentDashboard = next;
                 renderCurrentDashboard();
@@ -146,7 +147,7 @@ $dashboardRowSelector.click(function() {
 });
 
 $pagination.on(`click`, `[data-target="#rename-dashboard-modal"]`, function() {
-    const dashboard = $(this).data(`dashboard`);
+    const dashboard = $(this).data(`dashboard-index`);
     const $indexInput = $(`input[name="rename-dashboard-index"]`);
     const $nameInput = $(`input[name="rename-dashboard-name"]`);
 
@@ -176,16 +177,16 @@ $(`.rename-dashboard-modal-submit`).click(function() {
 
 function recalculateIndexes() {
     dashboards.forEach((dashboard, dashboardIndex) => {
-        dashboard.index = dashboardIndex;
+        dashboard.dashboardIndex = dashboardIndex;
 
         (dashboard.rows || []).forEach((row, rowIndex) => {
             if(dashboard === currentDashboard) {
-                $(`[data-row="${row.index}"]`)
-                    .data(`row`, rowIndex)
-                    .attr(`data-row`, rowIndex); //update the dom too
+                $(`[data-row-index="${row.rowIndex}"]`)
+                    .data(`row-index`, rowIndex)
+                    .attr(`data-row-index`, rowIndex); //update the dom too
             }
 
-            row.index = rowIndex;
+            row.rowIndex = rowIndex;
         });
     });
 }
@@ -216,14 +217,44 @@ function renderRow(row) {
     const $rowWrapper = $(`<div/>`, {class: `dashboard-row-wrapper`});
     const $row = $(`<div/>`, {
         class: `dashboard-row dashboard-row-size-${row.size}`,
-        'data-row': `${row.index}`,
+        'data-row-index': `${row.rowIndex}`,
         'data-size': `${row.size}`,
         html: $rowWrapper
     });
 
-    for(let componentIndex = 0; componentIndex < row.size; ++componentIndex) {
-        const component = getRowComponent(row, componentIndex);
-        $rowWrapper.append(renderCardComponent($.deepCopy(component) || componentIndex, true));
+    const orderedComponent = getRowComponentsGroupedByColumn(row);
+
+    for (let columnIndex = 0; columnIndex < orderedComponent.length; columnIndex++) {
+        const cellComponents = orderedComponent[columnIndex];
+        let $component;
+        if (cellComponents.length === 0
+            || (
+                cellComponents.length === 1
+                && (
+                    !cellComponents[0]
+                    || cellComponents[0].cellIndex === null
+                )
+            )) {
+            $component = renderCardComponent({
+                component: $.deepCopy(cellComponents[0]),
+                columnIndex
+            });
+        }
+        else {
+            $component = createComponentContainer(columnIndex);
+            $component.addClass('dashboard-component-split');
+            for (let cellIndex = 0; cellIndex < cellComponents.length; cellIndex++) {
+                const component = cellComponents[cellIndex];
+                const $cardComponent = renderCardComponent({
+                    component: $.deepCopy(component),
+                    columnIndex,
+                    cellIndex
+                });
+                $component.append($cardComponent);
+            }
+        }
+
+        $rowWrapper.append($component);
     }
 
     if(mode === MODE_EDIT) {
@@ -235,20 +266,32 @@ function renderRow(row) {
     return $row;
 }
 
-function renderCardComponent(component, init = false) {
-    let $componentContainer;
+function createComponentContainer(columnIndex, cellIndex) {
+    const $container = $('<div/>', {
+        class: 'dashboard-component',
+        'data-column-index': columnIndex
+    });
+
+    cellIndex = convertIndex(cellIndex);
+
+    if (cellIndex !== null) {
+        $container
+            .data('cell-index', cellIndex)
+            .attr('data-cell-index', cellIndex);
+    }
+    return $container;
+}
+
+function renderCardComponent({columnIndex, cellIndex, component}) {
+    const $componentContainer = createComponentContainer(columnIndex, cellIndex);
+    cellIndex = convertIndex(cellIndex);
+
     if(component && typeof component === 'object') {
-        $componentContainer = $('<div/>', {
-            class: 'dashboard-component',
-            'data-component': component.index
-        });
         $componentContainer.pushLoader('black', 'normal');
         renderComponentWithData(
             $componentContainer,
-            component.type,
-            component.meterKey,
+            component,
             component.config || {},
-            init ? component.initData : undefined
         )
             .then(() => {
                 $componentContainer.popLoader();
@@ -258,34 +301,65 @@ function renderCardComponent(component, init = false) {
                         html: `<i class="fas fa-exclamation-triangle mr-2"></i>Erreur lors de l'affichage du composant`
                     }));
                 }
+
                 if(mode === MODE_EDIT) {
-                    $componentContainer.append($(`
-                        <div class="component-toolbox dropdown">
-                            <i class="fas fa-cog" data-toggle="dropdown"></i>
-                            <div class="dropdown-menu dropdown-menu-right pointer">
-                                <div class="dropdown-item edit-component pointer ${!component.template ? 'd-none' : ''}" role="button">
-                                    <i class="fa fa-pen mr-2"></i> Modifier
-                                </div>
-                                <div class="dropdown-item delete-component pointer" role="button">
-                                    <i class="fa fa-trash mr-2"></i> Supprimer
-                                </div>
-                            </div>
-                        </div>
-                    `));
+                    const $editButton = component.template
+                        ? $('<div/>', {
+                            class: 'dropdown-item pointer',
+                            role: 'button',
+                            html: '<i class="fa fa-pen mr-2"></i> Modifier',
+                            click: onComponentEdited
+                        })
+                        : null;
+
+                    const $deleteButton = $(`<div/>`, {
+                        class: 'dropdown-item pointer',
+                        role: 'button',
+                        html: '<i class="fa fa-trash mr-2"></i> Supprimer',
+                        click: onComponentDeleted
+                    });
+
+                    $componentContainer.append($(`<div/>`, {
+                        class: 'component-toolbox dropdown',
+                        html: [
+                            '<i class="fas fa-cog" data-toggle="dropdown"></i>',
+                            $(`<div/>`, {
+                                class: 'dropdown-menu dropdown-menu-right pointer',
+                                html: [
+                                    $editButton,
+                                    $deleteButton
+                                ]
+                            })
+                        ]
+                    }));
                 }
             });
-    } else {
-        $componentContainer = $('<div/>', {
-            class: 'dashboard-component empty',
-            'data-component': component,
-            html: mode === MODE_EDIT
+    }
+    else {
+        $componentContainer.addClass('empty');
+        if (mode === MODE_EDIT) {
+            const $addComponent = $('<button/>', {
+                class: 'btn btn-light',
+                click: openModalComponentTypeFirstStep,
+                html: `<i class="fas fa-plus mr-2"></i> Ajouter un composant`
+            });
+
+            const $splitCell = cellIndex === null
                 ? $('<button/>', {
-                    class: 'btn btn-light',
-                    click: openModalComponentTypeFirstStep,
-                    html: `<i class="fas fa-plus mr-2"></i> Ajouter un composant`
+                    class: 'btn btn-light mt-2',
+                    click: splitCell,
+                    html: `<i class="fas fa-cut"></i> Diviser`,
                 })
-                : ``,
-        });
+                : ``;
+
+            $componentContainer.html($('<div/>', {
+                class: 'd-flex flex-column align-content-center',
+                html: [
+                    $addComponent,
+                    $splitCell,
+                ],
+            }));
+        }
     }
 
     return $componentContainer;
@@ -312,8 +386,8 @@ function renderDashboardPagination() {
 }
 
 function createDashboardSelectorItem(dashboard) {
-    const index = dashboard.index;
-    const currentDashboardIndex = currentDashboard && currentDashboard.index;
+    const index = dashboard.dashboardIndex;
+    const currentDashboardIndex = currentDashboard && currentDashboard.dashboardIndex;
     const subContainerClasses = (index === currentDashboardIndex ? 'bg-light rounded bold' : '');
 
     let name;
@@ -343,14 +417,14 @@ function createDashboardSelectorItem(dashboard) {
                 <i class="fas fa-cog"></i>
                 </span>
                 <div class="dropdown-menu pointer">
-                    <a class="dropdown-item rename-dashboard" role="button" data-dashboard="${dashboard.index}"
+                    <a class="dropdown-item rename-dashboard" role="button" data-dashboard-index="${dashboard.dashboardIndex}"
                          data-toggle="modal" data-target="#rename-dashboard-modal">
                         <i class="fas fa-edit mr-2"></i>Renommer
                     </a>
-                    <a class="dropdown-item delete-dashboard" role="button" data-dashboard="${dashboard.index}">
+                    <a class="dropdown-item delete-dashboard" role="button" data-dashboard-index="${dashboard.dashboardIndex}">
                         <i class="fas fa-trash mr-2"></i>Supprimer
                     </a>
-                    <a class="dropdown-item" href="${externalRoute}#${dashboard.index + 1}" target="_blank">
+                    <a class="dropdown-item" href="${externalRoute}#${dashboard.dashboardIndex + 1}" target="_blank">
                         <i class="fas fa-external-link-alt"></i> Dashboard externe
                     </a>
                 </div>
@@ -444,7 +518,7 @@ function onPageAdded() {
         } else {
             currentDashboard = {
                 updated: true,
-                index: dashboards.length,
+                dashboardIndex: dashboards.length,
                 name,
                 rows: [],
             };
@@ -455,7 +529,7 @@ function onPageAdded() {
             updateAddRowButton();
             $modal.modal('hide');
 
-            window.location.hash = `#${currentDashboard.index + 1}`;
+            window.location.hash = `#${currentDashboard.dashboardIndex + 1}`;
         }
     } else {
         showBSAlert("Veuillez renseigner un nom de dashboard.", "danger");
@@ -464,7 +538,7 @@ function onPageAdded() {
 
 function onPageDeleted() {
     const $modal = $(`#delete-dashboard-modal`);
-    const dashboard = Number($(this).data(`dashboard`));
+    const dashboard = convertIndex($(this).data(`dashboard-index`));
 
     $modal.find(`[name="delete-dashboard-index"]`).val(dashboard);
     $modal.find(`.delete-dashboard-name`).text(dashboards[dashboard].name);
@@ -473,14 +547,14 @@ function onPageDeleted() {
 
 function onConfirmPageDeleted() {
     const $modal = $(`#delete-dashboard-modal`);
-    const dashboard = Number($modal.find(`[name="delete-dashboard-index"]`).val());
+    const dashboard = convertIndex($modal.find(`[name="delete-dashboard-index"]`).val());
 
     dashboards.splice(dashboard, 1);
     recalculateIndexes();
 
     if(dashboards.length === 0) {
         currentDashboard = undefined;
-    } else if(dashboard === currentDashboard.index) {
+    } else if(dashboard === currentDashboard.dashboardIndex) {
         currentDashboard = dashboards[0];
     }
     somePagesDeleted = true;
@@ -503,7 +577,7 @@ function onRowAdded() {
     if(currentDashboard) {
         currentDashboard.updated = true;
         currentDashboard.rows.push({
-            index: currentDashboard.rows.length,
+            rowIndex: currentDashboard.rows.length,
             size: columns,
             updated: true,
             components: []
@@ -518,7 +592,7 @@ function onRowAdded() {
 
 function onRowDeleted() {
     const $row = $(this).parents('.dashboard-row');
-    const rowIndex = $row.data(`row`);
+    const rowIndex = $row.data(`row-index`);
 
     $row.remove();
     if(currentDashboard) {
@@ -534,11 +608,7 @@ function onComponentEdited() {
     const $button = $(this);
     const {row, component} = getComponentFromTooltipButton($button);
 
-    openModalComponentTypeSecondStep(
-        $button,
-        row.index,
-        component
-    );
+    openModalComponentTypeSecondStep($button, row.rowIndex, component);
 }
 
 function onComponentDeleted() {
@@ -546,30 +616,37 @@ function onComponentDeleted() {
     const $component = $button.closest('.dashboard-component');
 
     const {row, component} = getComponentFromTooltipButton($button);
-    const componentIndex = Number(component.index);
+    if (component) {
+        const columnIndex = convertIndex(component.columnIndex);
+        const cellIndex = convertIndex(component.cellIndex);
 
-    currentDashboard.updated = true;
-    row.updated = true;
+        currentDashboard.updated = true;
+        row.updated = true;
 
-    const indexOfComponentToDelete = row.components
-        .filter(c => !!c)
-        .findIndex((component) => component.index === componentIndex);
+        const indexOfComponentToDelete = row.components
+            .filter(c => !!c)
+            .findIndex((component) => (
+                (component.columnIndex === columnIndex)
+                && (component.cellIndex === cellIndex)
+            ));
 
-    if(indexOfComponentToDelete !== -1) {
-        row.components.splice(indexOfComponentToDelete, 1);
+        if (indexOfComponentToDelete !== -1) {
+            row.components.splice(indexOfComponentToDelete, 1);
+        }
+
+        $component.replaceWith(renderCardComponent({columnIndex, cellIndex}));
     }
-
-    $component.replaceWith(renderCardComponent(componentIndex));
 }
 
 function getComponentFromTooltipButton($button) {
     const $component = $button.closest('.dashboard-component');
-    const componentIndex = $component.data(`component`);
-    const row = currentDashboard.rows[$component.closest(`.dashboard-row`).data(`row`)];
+    const columnIndex = $component.data(`column-index`);
+    const cellIndex = $component.data(`cell-index`);
+    const row = currentDashboard.rows[$component.closest(`.dashboard-row`).data(`row-index`)];
 
     return {
         row,
-        component: getRowComponent(row, componentIndex),
+        component: getRowComponent(row, columnIndex, cellIndex),
     };
 }
 
@@ -581,12 +658,16 @@ function openModalComponentTypeFirstStep() {
     const $row = $component.closest(`.dashboard-row`);
 
     $modalComponentTypeFirstStep
-        .find(`input[name="componentIndex"]`)
-        .val($component.data(`component`));
+        .find(`input[name="columnIndex"]`)
+        .val($component.data(`column-index`));
+
+    $modalComponentTypeFirstStep
+        .find(`input[name="cellIndex"]`)
+        .val($component.data(`cell-index`));
 
     $modalComponentTypeFirstStep
         .find(`input[name="rowIndex"]`)
-        .val($row.data(`row`));
+        .val($row.data(`row-index`));
 }
 
 function openModalComponentTypeNextStep($button) {
@@ -595,13 +676,15 @@ function openModalComponentTypeNextStep($button) {
         const componentTypeId = $button.data('component-type-id');
         const $form = $button.closest('.form');
         const rowIndex = $form.find('[name="rowIndex"]').val();
-        const componentIndex = $form.find('[name="componentIndex"]').val();
+        const columnIndex = $form.find('[name="columnIndex"]').val();
+        const cellIndex = $form.find('[name="cellIndex"]').val();
         const componentTypeName = $button.data('component-type-name');
         const componentTypeMeterKey = $button.data('component-meter-key');
         const componentTypeTemplate = $button.data('component-template');
 
         openModalComponentTypeSecondStep($button, rowIndex, {
-            index: componentIndex,
+            columnIndex,
+            cellIndex,
             config: {
                 title: componentTypeName,
             },
@@ -616,7 +699,8 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
     const route = Routing.generate(`dashboard_component_type_form`, {componentType: component.type});
     const content = {
         rowIndex,
-        componentIndex: component.index,
+        columnIndex: component.columnIndex,
+        cellIndex: component.cellIndex,
         values: JSON.stringify(component.config || {})
     };
 
@@ -624,7 +708,8 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
         if(data.html) {
             initSecondStep(data.html);
         } else {
-            editComponent(Number(rowIndex), Number(component.index), {
+
+            editComponent(convertIndex(rowIndex), convertIndex(component.columnIndex), convertIndex(component.cellIndex), {
                 config: component.config,
                 type: component.type,
                 meterKey: component.meterKey,
@@ -644,8 +729,9 @@ function onComponentSaved($modal) {
     clearFormErrors($modal);
     const {success, errorMessages, $isInvalidElements, data} = processSecondModalForm($modal);
     if(success) {
-        const {rowIndex, componentIndex, meterKey, template, componentType, ...config} = data;
-        editComponent(Number(rowIndex), Number(componentIndex), {
+        const {rowIndex, columnIndex, cellIndex, meterKey, template, componentType, ...config} = data;
+
+        editComponent(convertIndex(rowIndex), convertIndex(columnIndex), convertIndex(cellIndex), {
             config,
             type: componentType,
             meterKey,
@@ -707,27 +793,43 @@ function processSecondModalForm($modal) {
     return {data, ...remaining};
 }
 
-function editComponent(rowIndex, componentIndex, {config, type, meterKey, template = null}) {
+function editComponent(rowIndex, columnIndex, cellIndex, {config, type, meterKey, template = null}) {
     const currentRow = getCurrentDashboardRow(rowIndex);
-    if(currentRow && componentIndex < currentRow.size) {
+    cellIndex = convertIndex(cellIndex);
+
+    if(currentRow) {
         currentDashboard.updated = true;
         currentRow.updated = true;
 
-        let currentComponent = getRowComponent(currentRow, componentIndex);
+        let currentComponent = getRowComponent(currentRow, columnIndex, cellIndex);
+
         if(!currentComponent) {
-            currentComponent = {index: componentIndex};
+            currentComponent = {columnIndex, cellIndex};
             currentRow.components.push(currentComponent);
         }
+
         currentComponent.updated = true;
         currentComponent.config = config;
         currentComponent.type = type;
         currentComponent.meterKey = meterKey;
         currentComponent.template = template;
 
-        const $currentComponent = $dashboard
-            .find(`.dashboard-row[data-row="${rowIndex}"]`)
-            .find(`.dashboard-component[data-component="${componentIndex}"]`);
-        $currentComponent.replaceWith(renderCardComponent(currentComponent));
+        let $currentComponent = $dashboard
+            .find(`.dashboard-row[data-row-index="${rowIndex}"]`)
+            .find(`.dashboard-component[data-column-index="${columnIndex}"]`);
+
+        if (cellIndex === null) {
+            $currentComponent = $currentComponent.filter(`:not([data-cell-index])`);
+        }
+        else {
+            $currentComponent = $currentComponent.filter(`[data-cell-index="${cellIndex}"]`);
+        }
+
+        $currentComponent.replaceWith(renderCardComponent({
+            columnIndex,
+            cellIndex,
+            component: currentComponent
+        }));
     }
 }
 
@@ -754,7 +856,6 @@ function initSecondStep(html) {
     $modalComponentTypeSecondStep.off('change.secondStepComponentType');
     $modalComponentTypeSecondStep.on('change.secondStepComponentType', 'select.data, input.data, input.data-array, input.checkbox', () => renderFormComponentExample())
 
-
     const $segmentsList = $modalComponentTypeSecondStepContent.find('.segments-list');
     if($segmentsList.length > 0) {
         const segments = $segmentsList.data(`segments`);
@@ -766,16 +867,76 @@ function initSecondStep(html) {
     }
 }
 
-function getRowComponent(row, componentIndex) {
-    // noinspection EqualityComparisonWithCoercionJS
-    return (row && componentIndex < row.size)
-        ? row.components.find(({index} = {}) => (index == componentIndex))
-        : undefined;
+function getRowComponent(row, columnIndex, cellIndex = null) {
+    cellIndex = convertIndex(cellIndex);
+    if (row
+        && columnIndex < row.size
+        && row.components
+        && Array.isArray(row.components)) {
+        let component;
+        for(let currentIndex = 0; currentIndex < row.components.length; currentIndex++){
+            const currentComponent = row.components[currentIndex];
+            if (currentComponent) {
+                const {columnIndex: currentColumnIndex, cellIndex: currentCellIndex} = currentComponent;
+                // noinspection EqualityComparisonWithCoercionJS
+                if (currentColumnIndex == columnIndex
+                    && currentCellIndex == cellIndex) {
+                    component = currentComponent;
+                    break;
+                }
+            }
+        }
+        return component;
+    }
+    else {
+        return undefined;
+    }
 }
 
+function getRowComponentsGroupedByColumn(row) {
+    const size = row.size || 0;
+    const res = new Array(size);
+    for (let columnIndex = 0; columnIndex < size; columnIndex++) {
+        res[columnIndex] = [];
+
+        for (let cellIndex = 0; cellIndex < MAX_COMPONENTS_IN_CELL; cellIndex++) {
+            const component = getRowComponent(row, columnIndex, cellIndex);
+            if (component) {
+                res[columnIndex][cellIndex] = component;
+            }
+        }
+
+        // if cell was not split we check if a component existing in
+        if (res[columnIndex].length === 0) {
+            const uniqueComponent = getRowComponent(row, columnIndex);
+            if (uniqueComponent) {
+                res[columnIndex][0] = uniqueComponent;
+            }
+        }
+
+        // wee add an empty component
+        if (res[columnIndex].length === 0
+            || (
+                res[columnIndex].length === 1
+                && res[columnIndex][0].cellIndex !== null
+            )) {
+            res[columnIndex].push(undefined);
+        }
+    }
+    return res;
+}
+
+/**
+ * Retrieve the row for the given row index
+ * and retrieve the split component if there
+ * is a split component at the given index.
+ *
+ * @param rowIndex
+ * @returns {{components}|any}
+ */
 function getCurrentDashboardRow(rowIndex) {
     // noinspection EqualityComparisonWithCoercionJS
-    return currentDashboard.rows.find(({index}) => (index == rowIndex));
+    return currentDashboard.rows.find(({rowIndex: currentRowIndex}) => (currentRowIndex == rowIndex));
 }
 
 /**
@@ -808,7 +969,12 @@ function renderFormComponentExample() {
     const componentType = $exampleContainer.data('component-type');
     const {data: formData} = processSecondModalForm($modalComponentTypeSecondStep);
 
-    return renderComponentWithData($exampleContainer, componentType, $exampleContainer.data('meter-key'), formData)
+    const component = {
+        type: componentType,
+        meterKey: $exampleContainer.data(`meter-key`),
+    };
+
+    return renderComponentWithData($exampleContainer, component, formData)
         .then((renderingSuccess) => {
             if(renderingSuccess) {
                 $exampleContainerParent.removeClass('d-none');
@@ -821,23 +987,25 @@ function renderFormComponentExample() {
         });
 }
 
-function renderComponentWithData($container, componentType, meterKey, formData = null, initData = null) {
+function renderComponentWithData($container, component, formData = null) {
     let exampleValuesPromise;
-    if(initData) {
+    if(component.initData) {
         exampleValuesPromise = new Promise((resolve) => {
             resolve({
-                exampleValues: initData
+                exampleValues: component.initData
             });
         });
     } else {
         exampleValuesPromise = $.post(
-            Routing.generate('dashboard_component_type_example_values', {componentType}),
+            Routing.generate('dashboard_component_type_example_values', {
+                componentType: component.type
+            }),
             formData ? {values: JSON.stringify(formData)} : null
         );
     }
 
     return exampleValuesPromise
-        .then(({exampleValues}) => renderComponent(meterKey, $container, exampleValues))
+        .then(({exampleValues}) => renderComponent(component, $container, exampleValues))
         .catch((error) => {
             console.error(error);
         });
@@ -1021,4 +1189,30 @@ function toggleTreatmentDelay($checkbox) {
     } else {
         $treatmentDelay.prop('disabled', false);
     }
+}
+
+function splitCell() {
+    const $button = $(this);
+    const $componentContainer = $button.closest('.dashboard-component');
+
+    $button.remove();
+
+    const $first = $componentContainer.clone(true);
+    $first
+        .data('cell-index', 0)
+        .attr('data-cell-index', 0);
+
+    const $last = $componentContainer.clone(true);
+    $last
+        .data('cell-index', 1)
+        .attr('data-cell-index', 1);
+
+    $componentContainer.html([$first, $last]);
+    $componentContainer
+        .addClass('dashboard-component-split')
+        .removeClass('empty');
+}
+
+function convertIndex(indexStr) {
+    return (indexStr === undefined || indexStr === null || indexStr === '') ? null : Number(indexStr);
 }

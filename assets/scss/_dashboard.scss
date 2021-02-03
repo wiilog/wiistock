@@ -44,7 +44,7 @@ $minimumWidth: 1300px;
         }
 
         @for $columnIndex from 1 through $maxColumnOnRow {
-            &.dashboard-row-size-#{$columnIndex} .dashboard-row-wrapper .dashboard-component {
+            &.dashboard-row-size-#{$columnIndex} > .dashboard-row-wrapper > .dashboard-component {
                 flex: 0 0 calc(#{percentage(1 / $columnIndex)} - #{$columnGutters});
                 max-width: calc(#{percentage(1 / $columnIndex)} - #{$columnGutters});
 
@@ -70,6 +70,19 @@ $minimumWidth: 1300px;
     display: flex;
     position: relative;
     border-radius: 8px;
+
+    &.dashboard-component-split {
+        flex-direction: column;
+
+        & > .dashboard-component {
+            margin-left: 0;
+            margin-right: 0;
+            flex: 1;
+        }
+        &> .dashboard-component:not(:last-child) {
+            margin-bottom: 10px;
+        }
+    }
 
     @media all and (max-width: $minimumWidth) {
         margin-top: $columnGutters / 2;

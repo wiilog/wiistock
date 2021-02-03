@@ -105,23 +105,25 @@ const creators = {
 
 /**
  *
+ * @param component
  * @param {jQuery} $container
- * @param {string} meterKey
- * @param {*} data
+ * @param data
  * @return {boolean}
  */
-function renderComponent(meterKey, $container, data) {
+function renderComponent(component, $container, data) {
+    console.log(component);
     $container.empty();
 
-    if(!creators[meterKey]) {
-        console.error(`No creator function for ${meterKey} key.`);
+    if(!creators[component.meterKey]) {
+        console.error(`No creator function for ${component.meterKey} key.`);
         return false;
     } else {
-        const {callback, arguments} = creators[meterKey];
+        const {callback, arguments} = creators[component.meterKey];
         const $element = callback(data, {
-            ...(arguments || {}),
-            meterKey,
-            rowSize: $container.closest('.dashboard-row').data('size')
+            meterKey: component.meterKey,
+            rowSize: $container.closest('.dashboard-row').data('size'),
+            component: component,
+            ...(arguments || {})
         });
 
         if($element) {

@@ -68,7 +68,8 @@ class UserService
     }
 
     public function hasRightFunction(string $menuLabel, string $actionLabel, $user = null) {
-        return isset($this->roleService->getPermissions($user ?: $this->user)[$menuLabel . $actionLabel]);
+        $key = $this->roleService->getPermissionKey($menuLabel, $actionLabel);
+        return isset($this->roleService->getPermissions($user ?: $this->user)[$key]);
     }
 
     public function getDataForDatatable($params = null)
