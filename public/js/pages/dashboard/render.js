@@ -322,7 +322,8 @@ function createEntriesToHandleElement(data, {meterKey}) {
     }
 
     const $content = $('<div/>', {
-        class: 'row',
+        class: 'row w-100',
+        style: 'flex: 1',
         html: [
             $('<div/>', {
                 class: 'flex-fill col-12 col-md-9 pr-3 pr-md-2',
