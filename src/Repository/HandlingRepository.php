@@ -215,6 +215,10 @@ class HandlingRepository extends EntityRepository
                     $qb->andWhere('handling.creationDate <= :filter_dateMax_value')
                         ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
                     break;
+                case 'subject':
+                    $qb->andWhere('handling.subject LIKE :filter_subject')
+                        ->setParameter('filter_subject', "%{$filter['value']}%");
+                    break;
             }
         }
 
