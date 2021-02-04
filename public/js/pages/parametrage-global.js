@@ -168,7 +168,7 @@ function ajaxMailerServer() {
             showBSAlert('La configuration du serveur mail a bien été mise à jour.', 'success');
         }
     }
-    let data = $('#mailerServerForm').find('.data');
+    let data = $('#mailServerSettings').find('.data');
     let json = {};
     data.each(function () {
         let val = $(this).val();
@@ -187,7 +187,7 @@ function ajaxDims() {
     const $emergencyIconFile = $('#upload-emergency-icon');
 
     let data = new FormData();
-    let dataInputs = $('#dimsForm').find('.data');
+    let dataInputs = $('#labelSettings').find('.data');
     dataInputs.each(function () {
         let val = $(this).attr('type') === 'checkbox' ? $(this).is(':checked') : $(this).val();
         let name = $(this).attr("name");
