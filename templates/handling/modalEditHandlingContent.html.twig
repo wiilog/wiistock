@@ -49,13 +49,14 @@
 </div>
 
 {% set removeHourInDatetime = removeHourInDatetime is defined and removeHourInDatetime %}
+{% set desiredDateFormat = removeHourInDatetime ? 'Y-m-d' : 'Y-m-d\\TH:i' %}
 <div class="form-group col-md-6 col-12">
     <label for="desired-date">Date attendue</label>
     <input class="form-control data needed"
            type="{{ removeHourInDatetime ? 'date' : 'datetime-local' }}"
-           value="{{ handling.desiredDate | date(removeHourInDatetime ? 'Y-m-d' : 'Y-m-d\\TH:i') }}"
+           value="{{ handling.desiredDate | date(desiredDateFormat) }}"
            name="desired-date"
-           min="{{ 'now' | date(removeHourInDatetime ? 'Y-m-d' : 'Y-m-d\\TH:i') }}">
+           min="{{ 'now' | date(desiredDateFormat) }}">
 </div>
 
 {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}

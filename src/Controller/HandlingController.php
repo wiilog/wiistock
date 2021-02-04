@@ -484,8 +484,11 @@ class HandlingController extends AbstractController
 
         if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $handlingsRepository = $entityManager->getRepository(Handling::class);
+            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
+            $includeDesiredTime = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+
             $handlings = $handlingsRepository->getByDates($dateTimeMin, $dateTimeMax);
             $currentDate = new DateTime('now');
             $csvHeader = array_merge(
@@ -514,20 +517,22 @@ class HandlingController extends AbstractController
                 $globalTitle,
                 $handlings,
                 $csvHeader,
-                function ($handling) use ($freeFieldService, $freeFieldsConfig, $dateService) {
+                function ($handling) use ($freeFieldService, $freeFieldsConfig, $dateService, $includeDesiredTime) {
 //                    $treatmentDelay = $handling['treatmentDelay'];
 //                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
 //                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
                     $row = [];
                     $row[] = $handling['number'] ?? '';
-                    $row[] = $handling['creationDate']->format('d/m/Y H:i:s') ?? '';
+                    $row[] = FormatHelper::datetime($handling['creationDate']);
                     $row[] = $handling['requester'] ?? '';
                     $row[] = $handling['type'] ?? '';
                     $row[] = $handling['subject'] ?? '';
                     $row[] = $handling['loadingZone'] ?? '';
                     $row[] = $handling['unloadingZone'] ?? '';
-                    $row[] = $handling['desiredDate'] ? $handling['desiredDate']->format('d/m/Y H:i:s') : '';
-                    $row[] = $handling['validationDate'] ? $handling['validationDate']->format('d/m/Y H:i:s') : '';
+                    $row[] = $includeDesiredTime
+                        ? FormatHelper::datetime($handling['desiredDate'])
+                        : FormatHelper::date($handling['desiredDate']);
+                    $row[] = FormatHelper::datetime($handling['validationDate']);
                     $row[] = $handling['status'] ?? '';
                     $row[] = strip_tags($handling['comment']) ?? '';
                     $row[] = $handling['emergency'] ?? '';
