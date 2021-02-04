@@ -27,7 +27,7 @@ let tableHandlingConfig = {
         { "data": 'creationDate', 'name': 'creationDate', 'title': 'Date demande' },
         { "data": 'type', 'name': 'type', 'title': 'Type' },
         { "data": 'requester', 'name': 'requester', 'title': 'Demandeur' },
-        { "data": 'subject', 'name': 'subject', 'title': 'Objet' },
+        { "data": 'subject', 'name': 'subject', 'title': 'services.Objet', translated: true },
         { "data": 'desiredDate', 'name': 'desiredDate', 'title': 'Date attendue' },
         { "data": 'validationDate', 'name': 'validationDate', 'title': 'Date de réalisation' },
         { "data": 'status', 'name': 'status', 'title': 'Statut' },
@@ -38,7 +38,7 @@ let tableHandlingConfig = {
         //     'title': 'Temps de traitement opérateur',
         //     'tooltip': "Temps entre l’ouverture de la demande sur la nomade et la validation de cette dernière."
         // },
-        { "data": 'carriedOutOperationCount', 'name': 'carriedOutOperationCount', 'title': 'Nb d\'opération(s) réalisée(s)' },
+        { "data": 'carriedOutOperationCount', 'name': 'carriedOutOperationCount', 'title': 'services.Nombre d\'opération(s) réalisée(s)', translated: true },
         { "data": 'treatedBy', 'name': 'treatedBy', 'title': 'Traité par' },
     ]
 };

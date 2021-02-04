@@ -156,7 +156,9 @@ function renderComponent(component, $container, data) {
 
 function createTooltip(text) {
     const trimmedText = (text || "").trim();
-    if(mode === MODE_EDIT || !trimmedText) {
+    if (mode === MODE_EDIT
+        || mode === MODE_EXTERNAL
+        || !trimmedText) {
         return ``;
     } else {
         return `
@@ -170,7 +172,7 @@ function createTooltip(text) {
 function createPendingRequests(data, {rowSize}) {
     const title = data.title || "";
 
-    if(mode === MODE_EXTERNAL && data.shown === `self`) {
+    if(mode === MODE_EXTERNAL) {
         return $('<div/>', {
             class: 'text-danger d-flex flex-fill align-items-center justify-content-center',
             html: `<i class="fas fa-exclamation-triangle mr-2"></i>Ce composant ne peut pas être utilisé sur un dashboard externe`
@@ -182,12 +184,12 @@ function createPendingRequests(data, {rowSize}) {
         }
 
         return $(`
-            <div class="dashboard-box dashboard-stats-container">
+            <div class="dashboard-box dashboard-stats-container h-100">
                 <div class="title">
                     ${title}
                 </div>
                 ${createTooltip(data.tooltip)}
-                <div class="d-flex flex-row h-100 overflow-auto overflow-y-hidden">
+                <div class="d-flex row no-gutters h-100 overflow-auto overflow-x-hidden pending-request-wrapper">
                     ${content}
                 </div>
             </div>
@@ -225,7 +227,7 @@ function renderRequest(request, rowSize) {
 
     return `
         <div class="d-flex ${cardSize} p-1">
-            <a class="card wii-card pointer p-3 my-2 shadow-sm flex-grow-1 ${cursor} bg-${request.cardColor}" ${link}>
+            <a class="card wii-card request-card pointer p-3 my-2 shadow-sm flex-grow-1 ${cursor} bg-${request.cardColor}" ${link}>
                 <div class="wii-card-header">
                     <div class="row">
                         <div class="col-10 mb-2">
@@ -291,7 +293,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
 
     const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'});
     const $firstComponent = $('<div/>', {
-        class: `col-12`,
+        class: `w-100 mb-1 flex-fill`,
         html: createIndicatorElement(
             {
                 title: 'Nombre de lignes à traiter',
@@ -302,7 +304,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
         )
     });
     const $secondComponent = $('<div/>', {
-        class: `col-12 mt-2`,
+        class: `w-100 mt-1 flex-fill`,
         html: createIndicatorElement(
             {
                 title: 'Prochain emplacement à traiter',
@@ -314,30 +316,40 @@ function createEntriesToHandleElement(data, {meterKey}) {
         )
     });
 
-    return $('<div/>', {
-        class: $.mobileCheck() ? 'dashboard-box' : '',
+    let $container;
+    if ($.mobileCheck()) {
+        $container = $('<div/>', {class: 'dashboard-box'});
+    }
+
+    const $content = $('<div/>', {
+        class: 'row w-100',
+        style: 'flex: 1',
         html: [
             $('<div/>', {
-                class: 'row h-100',
-                html: [
-                    $('<div/>', {
-                        class: 'col-12 col-md-9 pr-3 pr-md-2',
-                        html: $graph
-                    }),
-                    $('<div/>', {
-                        class: 'col-12 col-md-3 mt-2 mt-md-0 pl-3 pl-md-2',
-                        html: $('<div/>', {
-                            class: 'row h-100',
-                            html: [
-                                $firstComponent,
-                                $secondComponent
-                            ]
-                        })
-                    })
-                ]
+                class: 'flex-fill col-12 col-md-9 pr-3 pr-md-2',
+                html: $graph
+            }),
+            $('<div/>', {
+                class: 'flex-fill col-12 col-md-3 mt-2 mt-md-0 pl-3 pl-md-2',
+                html: $('<div/>', {
+                    class: 'h-100 d-flex flex-column',
+                    html: [
+                        $firstComponent,
+                        $secondComponent
+                    ]
+                })
             })
-        ],
+        ]
     });
+
+    if ($container) {
+        $container.html($content);
+    }
+    else {
+        $container = $content;
+    }
+
+    return $container;
 }
 
 /**
@@ -385,7 +397,7 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
     let pagination = ``;
     if(route && !hideRange && mode !== MODE_EDIT) {
         pagination = `
-            <div class="range-buttons">
+            <div class="flex-fill range-buttons">
                 <div class="arrow-chart"
                      onclick="drawChartWithHisto($(this), '${route}', 'before')">
                     <i class="fas fa-chevron-left pointer"></i>
@@ -399,14 +411,16 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
             </div>
         `;
     }
+
+    const customCanvasStyle = mode === MODE_EXTERNAL ? '' : 'style="min-height:200px;"';
     return $(`
-        <div class="dashboard-box dashboard-stats-container h-100">
+        <div class="dashboard-box dashboard-stats-container d-flex h-100">
             <div class="title">
                 ${title.split('(')[0]}
             </div>
             ${createTooltip(data.tooltip)}
-            <div class="h-100">
-                <canvas style="min-height:200px;" class="${cssClass || ''}"></canvas>
+            <div class="flex-fill">
+                <canvas ${customCanvasStyle} class="${cssClass || ''}"></canvas>
             </div>
             ${pagination}
         </div>
@@ -463,7 +477,7 @@ function createIndicatorElement(data, {meterKey}) {
             createTooltip(tooltip),
             title
                 ? $('<div/>', {
-                    class: 'text-center title ellipsis',
+                    class: `text-center title ${meterKey === ENTRIES_TO_HANDLE ? '' : 'ellipsis'}`,
                     html: `${title.split('(')[0]}<p class="small ellipsis location-label">${subtitle || ''}</p>`
                 })
                 : undefined,
@@ -751,13 +765,14 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
 }
 
 function loadLatePacks($table, data) {
+    const customConfig = mode === MODE_EXTERNAL ? {} : {scrollY: `20vh`};
     let datatableColisConfig = {
+        ...customConfig,
         responsive: true,
         domConfig: {
             needsMinimalDomOverride: true
         },
         paging: false,
-        scrollY: `20vh`,
         scrollCollapse: true,
         processing: true,
         order: [['delay', 'desc']],

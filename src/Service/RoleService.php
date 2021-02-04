@@ -11,6 +11,7 @@ use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Helper\CacheHelper;
 use App\Helper\Stream;
+use App\Helper\StringHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Psr\Cache\InvalidArgumentException;
@@ -99,10 +100,15 @@ class RoleService
         return $this->cache->get("{$permissionsPrefix}.{$role->getId()}", function() use ($role, $bool) {
             return Stream::from($role->getActions())
                 ->keymap(function(Action $action) use ($bool) {
-                    return [$action->getMenu()->getLabel() . $action->getLabel(), true];
+                    $key = $this->getPermissionKey($action->getMenu()->getLabel(), $action->getLabel());
+                    return [$key, true];
                 })
                 ->toArray();
         });
+    }
+
+    public function getPermissionKey(string $menuLabel, string $actionLabel): string {
+        return StringHelper::slugify($menuLabel . '_' . $actionLabel);
     }
 
     /**

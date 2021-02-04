@@ -74,6 +74,7 @@ class HandlingRepository extends EntityRepository
             ->addSelect('handling_type.label AS typeLabel')
             ->addSelect('handling_type.id AS typeId')
             ->addSelect('handling.emergency AS emergency')
+            ->addSelect('handling.carriedOutOperationCount AS carriedOutOperationCount')
             ->addSelect('handling.freeFields AS freeFields')
             ->leftJoin('handling.requester', 'handling_requester')
             ->leftJoin('handling.status', 'status')
@@ -213,6 +214,10 @@ class HandlingRepository extends EntityRepository
                 case 'dateMax':
                     $qb->andWhere('handling.creationDate <= :filter_dateMax_value')
                         ->setParameter('filter_dateMax_value', $filter['value'] . " 23:59:59");
+                    break;
+                case 'subject':
+                    $qb->andWhere('handling.subject LIKE :filter_subject')
+                        ->setParameter('filter_subject', "%{$filter['value']}%");
                     break;
             }
         }

@@ -5,6 +5,10 @@
     border: 0 solid black;
     transition: transform .35s;
 
+    &.request-card {
+        max-height: 350px !important;
+    }
+
     .wii-card-body {
         flex-grow: 1;
         border-radius: 5px;
