@@ -172,7 +172,7 @@ function createTooltip(text) {
 function createPendingRequests(data, {rowSize}) {
     const title = data.title || "";
 
-    if(mode === MODE_EXTERNAL && data.shown === `self`) {
+    if(mode === MODE_EXTERNAL) {
         return $('<div/>', {
             class: 'text-danger d-flex flex-fill align-items-center justify-content-center',
             html: `<i class="fas fa-exclamation-triangle mr-2"></i>Ce composant ne peut pas être utilisé sur un dashboard externe`
@@ -322,7 +322,8 @@ function createEntriesToHandleElement(data, {meterKey}) {
     }
 
     const $content = $('<div/>', {
-        class: 'row',
+        class: 'row w-100',
+        style: 'flex: 1',
         html: [
             $('<div/>', {
                 class: 'flex-fill col-12 col-md-9 pr-3 pr-md-2',
@@ -476,7 +477,7 @@ function createIndicatorElement(data, {meterKey}) {
             createTooltip(tooltip),
             title
                 ? $('<div/>', {
-                    class: 'text-center title ellipsis',
+                    class: `text-center title ${meterKey === ENTRIES_TO_HANDLE ? '' : 'ellipsis'}`,
                     html: `${title.split('(')[0]}<p class="small ellipsis location-label">${subtitle || ''}</p>`
                 })
                 : undefined,

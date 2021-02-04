@@ -53,13 +53,13 @@ $responsive-breakpoint: map-get($grid-breakpoints, lg);
 
         @for $rowIndex from 2 through $maxRowOnPage {
             &.dashboard-size-#{$rowIndex} .pending-request-wrapper {
-                max-height: 400px;
+                max-height: 72vh;
             }
         }
     }
 
     &.dashboard-size-1 .pending-request-wrapper {
-        max-height: 400px;
+        max-height: 72vh;
     }
 
     .dashboard-row {
@@ -227,7 +227,7 @@ $responsive-breakpoint: map-get($grid-breakpoints, lg);
         }
 
         .has-tooltip {
-            font-size: 1.5vw;
+            font-size: 1.0vw;
         }
 
         .dashboard-stats {
