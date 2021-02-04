@@ -476,7 +476,7 @@ function createIndicatorElement(data, {meterKey}) {
             createTooltip(tooltip),
             title
                 ? $('<div/>', {
-                    class: 'text-center title ellipsis',
+                    class: `text-center title ${meterKey === ENTRIES_TO_HANDLE ? '' : 'ellipsis'}`,
                     html: `${title.split('(')[0]}<p class="small ellipsis location-label">${subtitle || ''}</p>`
                 })
                 : undefined,
