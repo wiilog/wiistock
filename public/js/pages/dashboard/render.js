@@ -172,7 +172,7 @@ function createTooltip(text) {
 function createPendingRequests(data, {rowSize}) {
     const title = data.title || "";
 
-    if(mode === MODE_EXTERNAL && data.shown === `self`) {
+    if(mode === MODE_EXTERNAL) {
         return $('<div/>', {
             class: 'text-danger d-flex flex-fill align-items-center justify-content-center',
             html: `<i class="fas fa-exclamation-triangle mr-2"></i>Ce composant ne peut pas être utilisé sur un dashboard externe`
