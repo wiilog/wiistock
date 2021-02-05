@@ -12,6 +12,10 @@
     {% include 'filters/filter_item/filterType.html.twig' with {
         arrivalType: false } %}
 
+    {% if page == 'PAGE_HAND' %}
+        {% include 'filters/filter_item/filterSubject.html.twig' %}
+    {% endif %}
+
     {% if emergencies is defined %}
         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}

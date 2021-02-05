@@ -8,8 +8,10 @@ use App\Entity\Action;
 use App\Entity\FiltreSup;
 use App\Entity\Handling;
 use App\Entity\Menu;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use DateTime;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
@@ -66,6 +68,9 @@ class HandlingService
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $handlingRepository = $this->entityManager->getRepository(Handling::class);
+        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+
+        $includeDesiredTime = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
 
         if ($statusFilter) {
             $filters = [
@@ -84,7 +89,7 @@ class HandlingService
 
         $rows = [];
         foreach ($handlingArray as $handling) {
-            $rows[] = $this->dataRowHandling($handling);
+            $rows[] = $this->dataRowHandling($handling, $includeDesiredTime);
         }
 
         return [
@@ -96,12 +101,13 @@ class HandlingService
 
     /**
      * @param Handling $handling
+     * @param bool $includeDesiredTime
      * @return array
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function dataRowHandling(Handling $handling)
+    public function dataRowHandling(Handling $handling, bool $includeDesiredTime = true)
     {
 //        $treatmentDelay = $handling->getTreatmentDelay();
 //        $treatmentDelayInterval = $treatmentDelay ? $this->dateService->secondsToDateInterval($treatmentDelay) : null;
@@ -110,12 +116,14 @@ class HandlingService
         return [
             'id' => $handling->getId() ? $handling->getId() : 'Non défini',
             'number' => $handling->getNumber() ? $handling->getNumber() : '',
-            'creationDate' => $handling->getCreationDate() ? $handling->getCreationDate()->format('d/m/Y H:i:s') : null,
+            'creationDate' => FormatHelper::datetime($handling->getCreationDate()),
             'type' => $handling->getType() ? $handling->getType()->getLabel() : '',
             'requester' => $handling->getRequester() ? $handling->getRequester()->getUserName() : null,
             'subject' => $handling->getSubject() ? $handling->getSubject() : '',
-            'desiredDate' => $handling->getDesiredDate() ? $handling->getDesiredDate()->format('d/m/Y H:i:s') : null,
-            'validationDate' => $handling->getValidationDate() ? $handling->getValidationDate()->format('d/m/Y H:i:s') : null,
+            'desiredDate' => $includeDesiredTime
+                ? FormatHelper::datetime($handling->getDesiredDate())
+                : FormatHelper::date($handling->getDesiredDate()),
+            'validationDate' => FormatHelper::datetime($handling->getValidationDate()),
             'status' => $handling->getStatus()->getNom() ? $handling->getStatus()->getNom() : null,
             'emergency' => $handling->getEmergency() ?? '',
             'treatedBy' => $handling->getTreatedByHandling() ? $handling->getTreatedByHandling()->getUsername() : '',
