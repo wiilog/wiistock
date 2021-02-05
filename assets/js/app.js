@@ -86,7 +86,7 @@ $(document).ready(() => {
                 window.location.reload();
             }
         })
-    }, 30 * 60 * 1000 + 30 * 1000); //every 30 minutes and 30 seconds
+    }, 30 * 60 * 1000 + 60 * 1000); //every 30 minutes and 30 seconds
 
     //custom datetimepickers for firefox
     if (!BrowserSupport.input("datetime-local")) {
