@@ -36,11 +36,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
     public function load(ObjectManager $manager)
     {
     	$menus = [
-    		Menu::ACCUEIL => [
-    			Action::DISPLAY_INDI,
-    			Action::DISPLAY_INDIC_INV_MONETAIRE,
-				Action::DISPLAY_INDIC_INV_REFERENCE
-			],
+
 			Menu::TRACA => [
 				Action::DISPLAY_ARRI,
 				Action::DISPLAY_MOUV,
