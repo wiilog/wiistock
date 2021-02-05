@@ -777,15 +777,12 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
 }
 
 function loadLatePacks($table, data) {
-    const customConfig = mode === MODE_EXTERNAL ? {} : {scrollY: `20vh`};
     let datatableColisConfig = {
-        ...customConfig,
         responsive: true,
         domConfig: {
             needsMinimalDomOverride: true
         },
         paging: false,
-        scrollCollapse: true,
         processing: true,
         order: [['delay', 'desc']],
         columns: [
@@ -798,7 +795,33 @@ function loadLatePacks($table, data) {
                 render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)
             },
             {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
-        ]
+        ],
+        "drawCallback": function() {
+            let $dataTable = $table.dataTable();
+            $dataTable.fnAdjustColumnSizing(false);
+
+            // TableTools
+            if (typeof(TableTools) != "undefined") {
+                let tableTools = TableTools.fnGetInstance(table);
+                if (tableTools != null && tableTools.fnResizeRequired()) {
+                    tableTools.fnResizeButtons();
+                }
+            }
+            //
+            let $dataTableWrapper = $table.closest(".dataTables_wrapper");
+            let panelHeight = $dataTableWrapper.parent().height();
+
+            let toolbarHeights = 0;
+            $dataTableWrapper.find(".fg-toolbar").each(function(i, obj) {
+                toolbarHeights = toolbarHeights + $(obj).height();
+            });
+
+            let scrollHeadHeight = $dataTableWrapper.find(".dataTables_scrollHead").height();
+            let height = panelHeight - toolbarHeights - scrollHeadHeight;
+            $dataTableWrapper.find(".dataTables_scrollBody").height(height);
+
+            $dataTable._fnScrollDraw();
+        }
     };
     if(mode === MODE_EDIT) {
         datatableColisConfig.data = data.tableData;
