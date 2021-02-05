@@ -179,6 +179,7 @@ $responsive-breakpoint: map-get($grid-breakpoints, lg);
 
         .dashboard-ext & {
             font-weight: bold;
+            margin-bottom: 0;
         }
     }
 

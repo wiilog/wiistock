@@ -173,10 +173,7 @@ function createPendingRequests(data, {rowSize}) {
     const title = data.title || "";
 
     if(mode === MODE_EXTERNAL) {
-        return $('<div/>', {
-            class: 'text-danger d-flex flex-fill align-items-center justify-content-center',
-            html: `<i class="fas fa-exclamation-triangle mr-2"></i>Ce composant ne peut pas être utilisé sur un dashboard externe`
-        });
+        return createExternalErrorComponent();
     } else {
         let content = ``;
         for(let request of data.requests) {
@@ -300,7 +297,11 @@ function createEntriesToHandleElement(data, {meterKey}) {
                 tooltip: data.linesCountTooltip,
                 count: data.count,
                 componentLink: data.componentLink
-            }, {meterKey}
+            },
+            {
+                meterKey,
+                customContainerClass: 'overflow-hidden'
+            }
         )
     });
     const $secondComponent = $('<div/>', {
@@ -312,7 +313,10 @@ function createEntriesToHandleElement(data, {meterKey}) {
                 count: data.nextLocation,
                 componentLink: data.componentLink
             },
-            {meterKey}
+            {
+                meterKey,
+                customContainerClass: 'overflow-hidden'
+            }
         )
     });
 
@@ -362,18 +366,23 @@ function createLatePacksElement(data) {
         return false;
     }
 
-    const title = data.title || "";
+    if(mode === MODE_EXTERNAL) {
+        return createExternalErrorComponent();
+    }
+    else {
+        const title = data.title || "";
 
-    return $(`
-        <div class="dashboard-box dashboard-stats-container">
-            <div class="title">
-                ${title}
+        return $(`
+            <div class="dashboard-box dashboard-stats-container">
+                <div class="title">
+                    ${title}
+                </div>
+                ${createTooltip(data.tooltip)}
+                <table class="table display retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
+                </table>
             </div>
-            ${createTooltip(data.tooltip)}
-            <table class="table display retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
-            </table>
-        </div>
-    `);
+        `);
+    }
 }
 
 function calculateChartsFontSize() {
@@ -395,7 +404,7 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
     const title = data.title || "";
 
     let pagination = ``;
-    if(route && !hideRange && mode !== MODE_EDIT) {
+    if(route && !hideRange && mode !== MODE_EDIT && mode !== MODE_EXTERNAL) {
         pagination = `
             <div class="flex-fill range-buttons">
                 <div class="arrow-chart"
@@ -454,13 +463,16 @@ function createCarrierTrackingElement(data) {
 /**
  * @param {*} data
  * @param {string} meterKey
+ * @param {undefined|string} customContainerClass
  * @return {boolean|jQuery}
  */
-function createIndicatorElement(data, {meterKey}) {
+function createIndicatorElement(data, {meterKey, customContainerClass}) {
     if(!data || data.count === undefined) {
         console.error('Invalid data for ' + (meterKey || '-').replaceAll('_', ' ') + ' element.');
         return false;
     }
+
+    customContainerClass = customContainerClass || '';
 
     const {title, subtitle, tooltip, count, delay, componentLink} = data;
     const element = componentLink ? '<a/>' : '<div/>';
@@ -472,7 +484,7 @@ function createIndicatorElement(data, {meterKey}) {
         : {};
     const clickableClass = componentLink ? 'pointer' : '';
     return $(element, {
-        class: 'dashboard-box text-center justify-content-around dashboard-stats-container h-100',
+        class: `dashboard-box text-center justify-content-around dashboard-stats-container h-100 ${customContainerClass}`,
         html: [
             createTooltip(tooltip),
             title
@@ -849,4 +861,11 @@ function updateMultipleChartData(chart, data) {
         }
     }
     chart.update();
+}
+
+function createExternalErrorComponent() {
+    return $('<div/>', {
+        class: 'text-danger d-flex h-100 align-items-center justify-content-center',
+        html: `<i class="fas fa-exclamation-triangle mr-3"></i>Ce composant ne peut pas être utilisé sur un dashboard externe`
+    });
 }

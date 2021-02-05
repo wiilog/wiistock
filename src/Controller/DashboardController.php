@@ -16,7 +16,8 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @Route("/")
  */
-class DashboardController extends AbstractController {
+class
+DashboardController extends AbstractController {
 
     /**
      * @Route("/accueil", name="accueil")
