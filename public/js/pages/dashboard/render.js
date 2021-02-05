@@ -326,15 +326,15 @@ function createEntriesToHandleElement(data, {meterKey}) {
     }
 
     const $content = $('<div/>', {
-        class: 'row w-100 mx-0 h-100',
+        class: 'row w-100 mx-0 h-100 no-gutters',
         style: 'flex: 1',
         html: [
             $('<div/>', {
-                class: 'flex-fill col-12 col-md-9 pr-3 pr-md-2 pl-0 h-100',
+                class: 'flex-fill col-12 col-md-9 pr-md-2 h-100',
                 html: $graph
             }),
             $('<div/>', {
-                class: 'flex-fill col-12 col-md-3 mt-2 mt-md-0 pl-3 pl-md-2 pr-0 h-100',
+                class: 'flex-fill col-12 col-md-3 mt-2 mt-md-0 pl-md-2 h-100',
                 html: $('<div/>', {
                     class: 'h-100 d-flex flex-column',
                     html: [
