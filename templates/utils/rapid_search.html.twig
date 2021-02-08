@@ -16,7 +16,7 @@
                         <th class="text-center">Actions</th>
                     </tr>
                     </thead>
-                    {% for field in fieldsSearch %}
+                    {% for field in fieldsSearch|sort((a,b) => a.title <=> b.title) %}
                         {% if field.name != 'actions' %}
                             {% set title = (
                                 (field.title is defined and field.title is not empty) ? field.title :
