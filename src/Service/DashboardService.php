@@ -1112,4 +1112,19 @@ class DashboardService {
         }
         return array_values($naturesStack);
     }
+
+    public function persistEntitiesLatePack(EntityManagerInterface $entityManager) {
+        $latePackRepository = $entityManager->getRepository(LatePack::class);
+        $lastLates = $this->enCoursService->getLastEnCoursForLate();
+        $latePackRepository->clearTable();
+        foreach ($lastLates as $lastLate) {
+            $latePack = new LatePack();
+            $latePack
+                ->setDelay($lastLate['delay'])
+                ->setDate($lastLate['date'])
+                ->setEmp($lastLate['emp'])
+                ->setColis($lastLate['colis']);
+            $entityManager->persist($latePack);
+        }
+    }
 }
