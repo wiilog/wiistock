@@ -4,39 +4,60 @@
 </a>
 
 <div class="collapse col-12" id="translation">
-    {% for menu in menusTranslations %}
-        <div class="row">
-            <div class="col-auto">
-                <h2 class="bold">MENU {{ menu|upper }}</h2>
+    <div id="accordion">
+
+        <div class="ml-auto col-auto">
+            <div class="row justify-content-end">
+                <div class="d-none col-auto" id="spinnerSaveTranslations">
+                    <div class="spinner-border sizeLoader mini-loader" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <div class="btn btn-success mb-3" onclick="saveTranslations()">
+                        <i class='fas fa-check'></i>
+                    </div>
+                </div>
             </div>
-            {% if loop.first %}
-                <div class="ml-auto col-auto">
-                    <div class="row align-items-center">
-                        <div class="d-none col-auto" id="spinnerSaveTranslations">
-                            <div class="spinner-border sizeLoader mini-loader" role="status">
-                                <span class="sr-only">Loading...</span>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <div class="btn btn-success" onclick="saveTranslations()">
-                                <i class='fas fa-check'></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
         </div>
-        {% for translation in translations %}
-            {% if (translation.menu == menu) %}
-            {% set translatedValue = (translation.menu~'.'~translation.label)|trans %}
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text" id="translate-{{ translation.id }}">{{ translation.label }}</span>
-                    </div>
-                    <input type="text" class="form-control translate" name="{{ translation.id }}" aria-describedby="translate-{{ translation.id }}"
-                    value="{% if translatedValue != translation.label %}{{ translatedValue }}{% endif %}">
+
+        {% for menu in menusTranslations %}
+            <div class="card my-3">
+
+                <div class="card-header" id="headingOne{{ menu|replace({' ': ''}) }}">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne{{ menu|replace({' ': ''}) }}"
+                                aria-expanded='false'
+                                aria-controls="collapseOne{{ menu|replace({' ': ''}) }}">
+                            Menu : {{ menu }}
+                        </button>
+                    </h5>
                 </div>
-            {% endif %}
+
+                <div id="collapseOne{{ menu|replace({' ': ''}) }}" class="collapse" aria-labelledby="headingOne{{ menu|replace({' ': ''}) }}"
+                     data-parent="#accordion">
+                    <div class="card-body">
+
+                        {% for translation in translations %}
+                            {% if (translation.menu == menu) %}
+                                {% set translatedValue = (translation.menu~'.'~translation.label)|trans %}
+
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text" id="translate-{{ translation.id }}">{{ translation.label }}</span>
+                                    </div>
+                                    <input type="text" class="form-control translate" name="{{ translation.id }}"
+                                           aria-describedby="translate-{{ translation.id }}"
+                                           value="{% if translatedValue != translation.label %}{{ translatedValue }}{% endif %}">
+                                </div>
+
+                            {% endif %}
+                        {% endfor %}
+
+                    </div>
+                </div>
+            </div>
         {% endfor %}
-    {% endfor %}
+
+    </div>
 </div>
