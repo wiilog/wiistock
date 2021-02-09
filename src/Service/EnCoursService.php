@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\Pack;
 use App\Entity\DaysWorked;
 use App\Entity\WorkFreeDay;
+use App\Helper\FormatHelper;
 use DateInterval;
 use DatePeriod;
 use DateTime;
@@ -20,7 +21,7 @@ class EnCoursService
     /**
      * @var EntityManagerInterface $entityManager
      */
-    private $entityManager;
+    private EntityManagerInterface $entityManager;
 
     private const AFTERNOON_FIRST_HOUR_INDEX = 4;
     private const AFTERNOON_LAST_HOUR_INDEX = 6;
@@ -349,4 +350,42 @@ class EnCoursService
         }
         return $isDayInArray;
     }
+
+    /**
+     * @param $handle
+     * @param CSVExportService $CSVExportService
+     * @param array $encours
+     */
+    public function putOngoingPackLine($handle,
+                                        CSVExportService $CSVExportService,
+                                        array $encours)
+    {
+        $line = [
+            $encours['emp'] ?: '',
+            $encours['colis'] ?: '',
+            $encours['date'] ?: '',
+            $encours['delay'] ? $this->renderMillisecondsToDelay($encours['delay']): '',
+            FormatHelper::bool($encours['late'])
+        ];
+        $CSVExportService->putLine($handle, $line);
+    }
+
+    /**
+     * @param int $milliseconds
+     * @return string
+     */
+    public function renderMillisecondsToDelay(int $milliseconds): string
+    {
+        $seconds = floor($milliseconds / 1000);
+        $totalMinutes = ($seconds / 60);
+        $minutes = floor($totalMinutes % 60);
+        $hours = floor($totalMinutes / 60);
+
+        $hoursString = ($hours > 0 ? ($hours < 10 ? '0' : '') . $hours : '00');
+        $minutesString = ($minutes > 0 ? ($minutes < 10 ? '0' : '') . $minutes : '00');
+
+        return ($hoursString . ' h ' . $minutesString . ' min');
+
+    }
+
 }
