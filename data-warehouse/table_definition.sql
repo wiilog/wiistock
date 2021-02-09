@@ -124,7 +124,7 @@ CREATE TABLE dw_reference_article
         constraint reference_article_pk
         primary key,
     date_dernier_inventaire    timestamp(0),
-    synchronisation_inventaire varchar(255)
+    synchronisation_nomade     varchar(3)
 );
 
 CREATE TABLE dw_reference_article_champs_libres

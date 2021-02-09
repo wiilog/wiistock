@@ -19,7 +19,7 @@ SELECT
     reference_article.prix_unitaire AS prix_unitaire,
     inventory_category.label AS categorie_inventaire,
     reference_article.date_last_inventory AS date_dernier_inventaire,
-    IF(reference_article.needs_mobile_sync = 1, 'oui', 'non') AS synchronisation_inventaire,
+    IF(reference_article.needs_mobile_sync = 1, 'oui', 'non') AS synchronisation_nomade,
     reference_article.stock_management AS gestion_stock,
     GROUP_CONCAT(gestionnaires.username SEPARATOR ', ') AS gestionnaires
 
@@ -51,5 +51,5 @@ GROUP BY
     prix_unitaire,
     categorie_inventaire,
     date_dernier_inventaire,
-    synchronisation_inventaire,
+    synchronisation_nomade,
     gestion_stock
