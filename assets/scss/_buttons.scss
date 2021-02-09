@@ -99,3 +99,12 @@ button:focus {
     transition: 0s;
     transform: scale(0, 0);
 }
+
+.btn-menu-label {
+    text-decoration: none !important;
+
+    &:focus {
+        outline: 0 !important;
+        box-shadow: none;
+    }
+}

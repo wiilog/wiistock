@@ -23,13 +23,14 @@
 
         {% for menu in menusTranslations %}
             <div class="card my-3">
-
                 <div class="card-header" id="headingOne{{ menu|replace({' ': ''}) }}">
-                    <h5 class="mb-0">
-                        <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne{{ menu|replace({' ': ''}) }}"
-                                aria-expanded='false'
-                                aria-controls="collapseOne{{ menu|replace({' ': ''}) }}">
-                            <span class="toggle-collapsible">   Menu : {{ menu }}</span>
+                    <h5 class="toggle-collapsible"
+                        data-toggle="collapse"
+                        data-target="#collapseOne{{ menu|replace({' ': ''}) }}"
+                        aria-expanded='false'
+                        aria-controls="collapseOne{{ menu|replace({' ': ''}) }}">
+                        <button class="btn btn-link btn-menu-label">
+                            <span>Menu : {{ menu }}</span>
                         </button>
                     </h5>
                 </div>
@@ -37,27 +38,22 @@
                 <div id="collapseOne{{ menu|replace({' ': ''}) }}" class="collapse" aria-labelledby="headingOne{{ menu|replace({' ': ''}) }}"
                      data-parent="#accordion">
                     <div class="card-body">
-
-                        {% for translation in translations %}
-                            {% if (translation.menu == menu) %}
-                                {% set translatedValue = (translation.menu~'.'~translation.label)|trans %}
-
-                                <div class="input-group mb-3">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text" id="translate-{{ translation.id }}">{{ translation.label }}</span>
-                                    </div>
-                                    <input type="text" class="form-control translate" name="{{ translation.id }}"
-                                           aria-describedby="translate-{{ translation.id }}"
-                                           value="{% if translatedValue != translation.label %}{{ translatedValue }}{% endif %}">
+                    {% for translation in translations %}
+                        {% if (translation.menu == menu) %}
+                            {% set translatedValue = (translation.menu~'.'~translation.label)|trans %}
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text" id="translate-{{ translation.id }}">{{ translation.label }}</span>
                                 </div>
-
-                            {% endif %}
-                        {% endfor %}
-
+                                <input type="text" class="form-control translate" name="{{ translation.id }}"
+                                       aria-describedby="translate-{{ translation.id }}"
+                                       value="{% if translatedValue != translation.label %}{{ translatedValue }}{% endif %}">
+                            </div>
+                        {% endif %}
+                    {% endfor %}
                     </div>
                 </div>
             </div>
         {% endfor %}
-
     </div>
 </div>
