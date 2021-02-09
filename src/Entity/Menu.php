@@ -11,7 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Menu
 {
-	const ACCUEIL = 'accueil';
 	const DASHBOARDS = 'dashboard';
 	const TRACA = 'tracabilité';
 	const QUALI = 'qualité';

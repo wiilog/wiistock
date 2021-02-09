@@ -12,7 +12,6 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 class MenusFixtures extends Fixture implements FixtureGroupInterface {
 
     const MENUS = [
-        Menu::ACCUEIL,
         Menu::DASHBOARDS,
         Menu::TRACA,
         Menu::QUALI,
