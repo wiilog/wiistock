@@ -23,7 +23,7 @@ function InitModal($modal, $submit, path, options = {}) {
     if(options.clearOnClose) {
         $modal.on('hidden.bs.modal', function () {
             clearModal($modal);
-            clearFormErrors();
+            clearFormErrors($modal);
         });
     }
 
