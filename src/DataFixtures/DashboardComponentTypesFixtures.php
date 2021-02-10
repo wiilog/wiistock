@@ -48,10 +48,11 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         ],
         'Colis en retard' => [
             'hint' => 'Les 100 colis les plus anciens ayant dépassé le délai de présence sur leur emplacement',
+            'inSplitCell' => false,
             'exampleValues' => [
                 'tableData' => [
                     ['pack' => 'COLIS1', 'date' => '06/04/2020 10:27:09', 'delay' => '10000', 'location' => "EMP1"],
-                    ['pack' => 'COLIS2', 'date' => '06/08/2020 20:57:89', 'delay' => '10000', 'location' => "EMP2"],
+                    ['pack' => 'COLIS2', 'date' => '06/08/2020 20:57:89', 'delay' => '10000', 'location' => "EMP2"]
                 ],
             ],
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
@@ -475,6 +476,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
 
             $componentType
                 ->setHint($config['hint'] ?? null)
+                ->setInSplitCell($config['inSplitCell'] ?? true)
                 ->setExampleValues($config['exampleValues'] ?? [])
                 ->setCategory($config['category'] ?? null)
                 ->setMeterKey($config['meterKey'] ?? null)

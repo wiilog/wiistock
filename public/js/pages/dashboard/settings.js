@@ -207,12 +207,12 @@ function renderCurrentDashboard() {
 
 function updateCurrentDashboardSize() {
     const currentSize = $dashboard.data('size');
-    const prefixSize = `dashboard-${(mode === MODE_EXTERNAL) ? 'external-' : ''}size-`;
+    const prefixSize = `dashboard-size-`;
     if (currentSize) {
-        $dashboard.removeClass(`${currentSize}`);
+        $dashboard.removeClass(`${prefixSize}${currentSize}`);
     }
 
-    const dashboardSize = currentDashboard.rows ? currentDashboard.rows.length : 0
+    const dashboardSize = currentDashboard.rows ? currentDashboard.rows.length : 0;
     $dashboard
         .addClass(`${prefixSize}${dashboardSize}`)
         .data('size', dashboardSize);
@@ -277,9 +277,8 @@ function renderRow(row) {
 }
 
 function createComponentContainer(columnIndex, cellIndex) {
-    const dFlex = mode !== MODE_EXTERNAL ? 'd-lg-flex' : '';
     const $container = $('<div/>', {
-        class: `dashboard-component ${dFlex}`,
+        class: `dashboard-component`,
         'data-column-index': columnIndex
     });
 
@@ -349,13 +348,15 @@ function renderCardComponent({columnIndex, cellIndex, component}) {
     else {
         $componentContainer.addClass('empty');
         if (mode === MODE_EDIT) {
+            const isSplitCell = cellIndex !== null;
             const $addComponent = $('<button/>', {
                 class: 'btn btn-light',
-                click: openModalComponentTypeFirstStep,
+                name: 'add-component-button',
+                click: ({target} = {}) => openModalComponentTypeFirstStep($(target), isSplitCell),
                 html: `<i class="fas fa-plus mr-2"></i> Ajouter un composant`
             });
 
-            const $splitCell = cellIndex === null
+            const $splitCell = !isSplitCell
                 ? $('<button/>', {
                     class: 'btn btn-light mt-2',
                     click: splitCell,
@@ -665,12 +666,20 @@ function getComponentFromTooltipButton($button) {
     };
 }
 
-function openModalComponentTypeFirstStep() {
-    $modalComponentTypeFirstStep.modal(`show`);
-
-    const $button = $(this);
+function openModalComponentTypeFirstStep($button, isSplitCell = false) {
     const $component = $button.closest(`.dashboard-component`);
     const $row = $component.closest(`.dashboard-row`);
+
+    const $componentButtonsInSplitCell = $modalComponentTypeFirstStep.find('[data-component-in-split-cell="0"]');
+    const $componentButtonsHint = $componentButtonsInSplitCell.siblings('.points');
+    if (isSplitCell) {
+        $componentButtonsInSplitCell.addClass('d-none');
+        $componentButtonsHint.addClass('d-none');
+    }
+    else {
+        $componentButtonsInSplitCell.removeClass('d-none');
+        $componentButtonsHint.removeClass('d-none');
+    }
 
     $modalComponentTypeFirstStep
         .find(`input[name="columnIndex"]`)
@@ -683,6 +692,8 @@ function openModalComponentTypeFirstStep() {
     $modalComponentTypeFirstStep
         .find(`input[name="rowIndex"]`)
         .val($row.data(`row-index`));
+
+    $modalComponentTypeFirstStep.modal(`show`);
 }
 
 function openModalComponentTypeNextStep($button) {
@@ -723,7 +734,6 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
         if(data.html) {
             initSecondStep(data.html);
         } else {
-
             editComponent(convertIndex(rowIndex), convertIndex(component.columnIndex), convertIndex(component.cellIndex), {
                 config: component.config,
                 type: component.type,
@@ -1211,6 +1221,9 @@ function splitCell() {
     const $componentContainer = $button.closest('.dashboard-component');
 
     $button.remove();
+    const $addComponentButton = $componentContainer.find('button[name="add-component-button"]');
+    $addComponentButton.off('click');
+    $addComponentButton.on('click', ({target} = {}) => openModalComponentTypeFirstStep($(target), true));
 
     const $first = $componentContainer.clone(true);
     $first
