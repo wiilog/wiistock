@@ -145,6 +145,7 @@ class DashboardSettingsService {
                 break;
             case Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS:
             case Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS:
+                $values['label'] = 'Arrivages';
                 $values += $this->serializeArrivalsAndPacks($componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::RECEIPT_ASSOCIATION:
