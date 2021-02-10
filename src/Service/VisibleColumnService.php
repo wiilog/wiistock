@@ -9,7 +9,8 @@ class VisibleColumnService {
 
     public function getArrayConfig(array $fields,
                                    array $freeFields = [],
-                                   array $columnsVisible = []) {
+                                   array $columnsVisible = []): array
+    {
         return array_merge(
             array_map(
                 function (array $column) use ($columnsVisible) {
