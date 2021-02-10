@@ -93,7 +93,6 @@ class LitigeController extends AbstractController
             'carriers' => $transporteurRepository->findAllSorted(),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
 			'litigeOrigins' => $litigeService->getLitigeOrigin(),
-			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS),
             'fields' => $litigeService->getColumnVisibleConfig($user)
 		]);
     }
