@@ -456,6 +456,7 @@ class DashboardSettingsService {
         $displayPackNatures = $config['displayPackNatures'] ?? false;
 
         $values['stack'] = true;
+        $values['label'] = 'Arrivages';
 
         $dailyRequest = ($componentType->getMeterKey() === Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS);
         if ($dailyRequest) {
