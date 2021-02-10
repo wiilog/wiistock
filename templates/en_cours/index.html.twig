@@ -27,14 +27,16 @@
                             <div class="col-auto">
                                 <h1 class="m-0">{{ emplacement.label }}</h1>
                             </div>
-                            <div class="col-auto">
-                                <button type="button"
-                                        class="btn btn-primary split-button btn-ripple"
-                                        onclick="saveExportFile('onGoingPack_csv', false, { id: {{ emplacement.id }} })">
-                                    <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
-                                    Exporter au format CSV
-                                </button>
-                            </div>
+                            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
+                                <div class="col-auto">
+                                    <button type="button"
+                                            class="btn btn-primary split-button btn-ripple"
+                                            onclick="saveExportFile('ongoing_pack_csv', false, { id: {{ emplacement.id }} })">
+                                        <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
+                                        Exporter au format CSV
+                                    </button>
+                                </div>
+                            {% endif %}
                         </div>
                         <table class="table encours-table w-100"
                                id="{{ emplacement.id }}">

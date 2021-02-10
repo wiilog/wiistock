@@ -139,7 +139,7 @@ class EnCoursController extends AbstractController
     }
 
     /**
-     * @Route ("/{id}/csv", name="onGoingPack_csv",options={"expose"=true}, methods={"GET"})
+     * @Route ("/{id}/csv", name="ongoing_pack_csv",options={"expose"=true}, methods={"GET"})
      * @param Emplacement $emplacement
      * @param CSVExportService $CSVExportService
      * @param EnCoursService $encoursService
