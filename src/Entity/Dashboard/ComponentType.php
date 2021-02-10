@@ -95,6 +95,11 @@ class ComponentType
     private ?string $meterKey;
 
     /**
+     * @ORM\Column(type="boolean", options={"default": true})
+     */
+    private ?bool $inSplitCell;
+
+    /**
      * @ORM\OneToMany(targetEntity=Component::class, mappedBy="type", cascade={"remove"})
      */
     private Collection $componentsUsing;
@@ -103,6 +108,7 @@ class ComponentType
     {
         $this->componentsUsing = new ArrayCollection();
         $this->exampleValues = [];
+        $this->inSplitCell = true;
     }
 
     public function getId(): ?int
@@ -154,6 +160,15 @@ class ComponentType
     public function setHint(string $hint): self
     {
         $this->hint = $hint;
+        return $this;
+    }
+
+    public function isInSplitCell(): bool {
+        return $this->inSplitCell;
+    }
+
+    public function setInSplitCell(bool $inSplitCell): self {
+        $this->inSplitCell = $inSplitCell;
         return $this;
     }
 

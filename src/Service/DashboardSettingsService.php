@@ -663,6 +663,11 @@ class DashboardSettingsService {
                 'delay' => $meter ? $meter->getDelay() : '-'
             ];
         }
+
+        if (empty($config['treatmentDelay']) && isset($values['delay'])) {
+            unset($values['delay']);
+        }
+
         return $values;
     }
 

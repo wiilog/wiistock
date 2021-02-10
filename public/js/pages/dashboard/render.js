@@ -111,7 +111,6 @@ const creators = {
  * @return {boolean}
  */
 function renderComponent(component, $container, data) {
-    console.log(component);
     $container.empty();
 
     if(!creators[component.meterKey]) {
@@ -172,26 +171,22 @@ function createTooltip(text) {
 function createPendingRequests(data, {rowSize}) {
     const title = data.title || "";
 
-    if(mode === MODE_EXTERNAL) {
-        return createExternalErrorComponent();
-    } else {
-        let content = ``;
-        for(let request of data.requests) {
-            content += renderRequest(request, rowSize);
-        }
-
-        return $(`
-            <div class="dashboard-box dashboard-stats-container h-100">
-                <div class="title">
-                    ${title}
-                </div>
-                ${createTooltip(data.tooltip)}
-                <div class="d-flex row no-gutters h-100 overflow-auto overflow-x-hidden pending-request-wrapper">
-                    ${content}
-                </div>
-            </div>
-        `);
+    let content = ``;
+    for(let request of data.requests) {
+        content += renderRequest(request, rowSize);
     }
+
+    return $(`
+        <div class="dashboard-box dashboard-stats-container h-100">
+            <div class="title">
+                ${title}
+            </div>
+            ${createTooltip(data.tooltip)}
+            <div class="d-flex row no-gutters h-100 overflow-auto overflow-x-hidden pending-request-wrapper">
+                ${content}
+            </div>
+        </div>
+    `);
 }
 
 function renderRequest(request, rowSize) {
@@ -290,7 +285,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
 
     const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'});
     const $firstComponent = $('<div/>', {
-        class: `w-100 mb-1 flex-fill`,
+        class: `w-100 pb-1 flex-fill dashboard-component mx-0 mt-0`,
         html: createIndicatorElement(
             {
                 title: 'Nombre de lignes à traiter',
@@ -305,7 +300,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
         )
     });
     const $secondComponent = $('<div/>', {
-        class: `w-100 mt-1 flex-fill`,
+        class: `w-100 pt-1 flex-fill dashboard-component mx-0 mb-0`,
         html: createIndicatorElement(
             {
                 title: 'Prochain emplacement à traiter',
@@ -327,14 +322,13 @@ function createEntriesToHandleElement(data, {meterKey}) {
 
     const $content = $('<div/>', {
         class: 'row w-100 mx-0 h-100 no-gutters',
-        style: 'flex: 1',
         html: [
             $('<div/>', {
-                class: 'flex-fill col-12 col-md-9 pr-md-2 h-100',
+                class: 'col-12 col-lg-9 pr-lg-2 dashboard-component-column dashboard-component m-lg-0',
                 html: $graph
             }),
             $('<div/>', {
-                class: 'flex-fill col-12 col-md-3 mt-2 mt-md-0 pl-md-2 h-100',
+                class: 'col-12 col-lg-3 pl-lg-2 dashboard-component-column dashboard-component dashboard-component-split m-0',
                 html: $('<div/>', {
                     class: 'h-100 d-flex flex-column',
                     html: [
@@ -365,24 +359,18 @@ function createLatePacksElement(data) {
         console.error(`Invalid data for late packs element.`);
         return false;
     }
+    const title = data.title || "";
 
-    if(mode === MODE_EXTERNAL) {
-        return createExternalErrorComponent();
-    }
-    else {
-        const title = data.title || "";
-
-        return $(`
-            <div class="dashboard-box dashboard-stats-container">
-                <div class="title">
-                    ${title}
-                </div>
-                ${createTooltip(data.tooltip)}
-                <table class="table display retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
-                </table>
+    return $(`
+        <div class="dashboard-box dashboard-stats-container">
+            <div class="title">
+                ${title}
             </div>
-        `);
-    }
+            ${createTooltip(data.tooltip)}
+            <table class="table display retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
+            </table>
+        </div>
+    `);
 }
 
 function calculateChartsFontSize() {
@@ -401,12 +389,18 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
         return false;
     }
 
+    const hasRangeButton = (route && !hideRange && mode !== MODE_EDIT && mode !== MODE_EXTERNAL);
+
+    const dashboardBoxContainerClass = hasRangeButton
+        ? 'dashboard-box-container-title-content'
+        : 'dashboard-box-container-title-content-rangeButton';
+
     const title = data.title || "";
 
-    let pagination = ``;
-    if(route && !hideRange && mode !== MODE_EDIT && mode !== MODE_EXTERNAL) {
-        pagination = `
-            <div class="flex-fill range-buttons">
+
+    const pagination = hasRangeButton
+        ? `
+            <div class="range-buttons">
                 <div class="arrow-chart"
                      onclick="drawChartWithHisto($(this), '${route}', 'before')">
                     <i class="fas fa-chevron-left pointer"></i>
@@ -418,18 +412,18 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
                     <i class="fas fa-chevron-right pointer"></i>
                 </div>
             </div>
-        `;
-    }
+        `
+        : '';
 
-    const customCanvasStyle = mode === MODE_EXTERNAL ? '' : 'style="min-height:200px;"';
+
     return $(`
-        <div class="dashboard-box dashboard-stats-container d-flex h-100">
+        <div class="dashboard-box dashboard-stats-container ${dashboardBoxContainerClass}">
             <div class="title">
                 ${title.split('(')[0]}
             </div>
             ${createTooltip(data.tooltip)}
-            <div class="flex-fill">
-                <canvas ${customCanvasStyle} class="${cssClass || ''}"></canvas>
+            <div class="flex-fill content">
+                <canvas class="${cssClass || ''}"></canvas>
             </div>
             ${pagination}
         </div>
@@ -483,8 +477,9 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
         }
         : {};
     const clickableClass = componentLink ? 'pointer' : '';
+
     return $(element, {
-        class: `dashboard-box text-center justify-content-around dashboard-stats-container h-100 ${customContainerClass}`,
+        class: `dashboard-box dashboard-box-indicator text-center justify-content-around dashboard-stats-container ${customContainerClass}`,
         html: [
             createTooltip(tooltip),
             title
@@ -640,9 +635,8 @@ function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false,
 function newChart($canvasId, redForLastData = false, disableAnimation = false) {
     if($canvasId.length) {
         const fontSize = currentChartsFontSize;
-        const fontStyle = undefined;
 
-        const chart = new Chart($canvasId, {
+        return new Chart($canvasId, {
             type: 'bar',
             data: {},
             options: {
@@ -658,7 +652,6 @@ function newChart($canvasId, redForLastData = false, disableAnimation = false) {
                     position: 'bottom',
                     labels: {
                         fontSize,
-                        fontStyle,
                         filter: function(item) {
                             return Boolean(item && item.text);
                         }
@@ -668,7 +661,6 @@ function newChart($canvasId, redForLastData = false, disableAnimation = false) {
                     yAxes: [{
                         ticks: {
                             fontSizeYAxes,
-                            fontStyle,
                             beginAtZero: true,
                             callback: (value) => {
                                 if(Math.floor(value) === value) {
@@ -679,8 +671,7 @@ function newChart($canvasId, redForLastData = false, disableAnimation = false) {
                     }],
                     xAxes: [{
                         ticks: {
-                            fontSize,
-                            fontStyle
+                            fontSize
                         }
                     }]
                 },
@@ -693,7 +684,6 @@ function newChart($canvasId, redForLastData = false, disableAnimation = false) {
                 }
             }
         });
-        return chart;
     } else {
         return null;
     }
@@ -884,11 +874,4 @@ function updateMultipleChartData(chart, data) {
         }
     }
     chart.update();
-}
-
-function createExternalErrorComponent() {
-    return $('<div/>', {
-        class: 'text-danger d-flex h-100 align-items-center justify-content-center',
-        html: `<i class="fas fa-exclamation-triangle mr-3"></i>Ce composant ne peut pas être utilisé sur un dashboard externe`
-    });
 }

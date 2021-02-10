@@ -1,12 +1,19 @@
 $maxColumnOnRow: 12;
 $maxRowOnPage: 12;
-$columnGutters: 15px;
 $responsive-breakpoint: map-get($grid-breakpoints, lg);
+
+$rowNumberToDatatableHeight: (
+    1: 66vh,
+    2: 28vh,
+    3: 12vh,
+    4: 8vh
+);
 
 .refresh-date {
     &.display {
         position: fixed;
-        bottom: 0; right: 0;
+        bottom: 0;
+        right: 0;
     }
 
     &.external {
@@ -19,12 +26,31 @@ $responsive-breakpoint: map-get($grid-breakpoints, lg);
     }
 }
 
+.dashboard-settings {
+    @media (max-width: $responsive-breakpoint) {
+        .dashboard-row-wrapper {
+            width: 97% !important;
+        }
+        .delete-row-container {
+            width: 3%;
+        }
+    }
+    @media (min-width: $responsive-breakpoint) {
+        .dashboard-row-wrapper {
+            width: 98% !important;
+        }
+        .delete-row-container {
+            width: 2%;
+        }
+    }
+}
+
 .dashboard-container {
     flex: 1;
     display: flex;
     flex-direction: column;
 
-    .dashboard-ext & {
+    @media (min-width: $responsive-breakpoint) {
         overflow: hidden;
     }
 }
@@ -35,31 +61,18 @@ $responsive-breakpoint: map-get($grid-breakpoints, lg);
     height: 100%;
     width: 100%;
 
-    .dashboard-ext & {
+    @media (min-width: $responsive-breakpoint) {
         overflow: hidden;
-    }
-
-    @media (min-width: $responsive-breakpoint) {
-        height: 100%;
-    }
-
-    @media (min-width: $responsive-breakpoint) {
         @for $rowIndex from 1 through $maxRowOnPage {
-            &.dashboard-external-size-#{$rowIndex} .dashboard-row {
-                flex: 0 0 calc(#{percentage(1 / $rowIndex)} - #{$columnGutters});
-                max-height: calc(#{percentage(1 / $rowIndex)} - #{$columnGutters});
+            &.dashboard-size-#{$rowIndex} .dashboard-row {
+                flex: 1 1 calc(#{percentage(1 / $rowIndex)} - #{$spacer});
+                max-height: calc(#{percentage(1 / $rowIndex)} - #{$spacer});
+
+                .dataTables_scrollBody {
+                    height: if(map-has-key($rowNumberToDatatableHeight, $rowIndex), map-get($rowNumberToDatatableHeight, $rowIndex), 0) !important;
+                }
             }
         }
-
-        @for $rowIndex from 2 through $maxRowOnPage {
-            &.dashboard-size-#{$rowIndex} .pending-request-wrapper {
-                max-height: 72vh;
-            }
-        }
-    }
-
-    &.dashboard-size-1 .pending-request-wrapper {
-        max-height: 72vh;
     }
 
     .dashboard-row {
@@ -67,25 +80,41 @@ $responsive-breakpoint: map-get($grid-breakpoints, lg);
         width: 100%;
         position: relative;
 
-        margin-top: map-get($spacers, 2);
-        margin-bottom: map-get($spacers, 2);
-
         @media (min-width: $responsive-breakpoint) {
+            margin-top: map-get($spacers, 2);
+            margin-bottom: map-get($spacers, 2);
+
             @for $columnIndex from 1 through $maxColumnOnRow {
                 &.dashboard-row-size-#{$columnIndex} > .dashboard-row-wrapper > .dashboard-component {
-                    flex: 0 0 calc(#{percentage(1 / $columnIndex)} - #{$columnGutters});
-                    max-width: calc(#{percentage(1 / $columnIndex)} - #{$columnGutters});
+                    flex: 1 1 calc(#{percentage(1 / $columnIndex)} - #{$spacer});
+                    max-width: calc(#{percentage(1 / $columnIndex)} - #{$spacer});
                 }
             }
         }
 
         .dashboard-row-wrapper {
             display: flex;
+            flex: 1;
             width: 100%;
 
-            @media all and (max-width: $responsive-breakpoint) {
+            .dashboard-settings & {
+                width: 98% !important;
+            }
+
+            @media (min-width: $responsive-breakpoint) {
+                flex-direction: row;
+            }
+
+            @media (max-width: $responsive-breakpoint) {
                 flex-direction: column;
             }
+        }
+
+        .delete-row-container {
+            display: flex;
+            justify-content: center;
+            align-content: center;
+            flex-direction: column;
         }
     }
 }
@@ -93,47 +122,49 @@ $responsive-breakpoint: map-get($grid-breakpoints, lg);
 .dashboard-component {
     position: relative;
     border-radius: 8px;
-    max-height: 100%;
-
-    &.dashboard-component-split {
-        flex-direction: column;
-
-        & > .dashboard-component {
-            margin-left: 0;
-            margin-right: 0;
-            flex: 1;
-        }
-        &> .dashboard-component:not(:last-child) {
-            margin-bottom: 10px;
-        }
-    }
 
     @media (max-width: $responsive-breakpoint) {
-        margin-top: $columnGutters / 2;
-        margin-bottom: $columnGutters / 2;
-        width: 100%;
-        flex: 1;
-        max-width: 100%;
+        margin-top: map-get($spacers, 1);
+        margin-bottom: map-get($spacers, 1);
 
-        & canvas {
-            max-height: 400px !important;
+        .dataTables_scrollBody {
+            height: 20vh;
         }
     }
 
     @media (min-width: $responsive-breakpoint) {
-        margin-left: $columnGutters / 2;
-        margin-right: $columnGutters / 2;
+        margin-left: map-get($spacers, 2);
+        margin-right: map-get($spacers, 2);
+
+        &.dashboard-component-split {
+            flex-direction: column;
+            display: flex;
+
+            & > .dashboard-component {
+                margin-left: 0;
+                margin-right: 0;
+                flex: 1 1 50%;
+                height: 50%;
+            }
+            &> .dashboard-component:not(:last-child) {
+                margin-bottom: 10px;
+            }
+        }
+
+        .dashboard-component-column {
+            height: 100% !important;
+        }
     }
 
     &.empty {
         background: #D0D9E0;
         align-items: center;
         justify-content: center;
-        min-height: 100px;
         border: 2px dashed #878d92;
+        display: flex;
 
         @media (max-width: $responsive-breakpoint) {
-            display: none;
+            display: none !important;
         }
     }
 
@@ -144,11 +175,22 @@ $responsive-breakpoint: map-get($grid-breakpoints, lg);
         top: 3px;
         right: 3px;
         cursor: pointer;
+        @media (max-width: $responsive-breakpoint) {
+            top: calc(3px + map-get($spacers, 2));
+        }
     }
 }
 
 .dashboard-box {
     @extend .wii-card;
+
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 2px 3px grey;
+    background: $white;
 
     .dashboard:not(.dashboard-bounce) &,
     &:not(a){
@@ -160,12 +202,41 @@ $responsive-breakpoint: map-get($grid-breakpoints, lg);
         padding: 0.20rem;
     }
 
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 2px 2px 3px grey;
-    position: relative;
-    background: $white;
+    @media (max-width: $responsive-breakpoint) {
+        min-height: 30px;
+        &.dashboard-box-indicator {
+            min-height: 100px;
+        }
+    }
+
+    @media (min-width: $responsive-breakpoint) {
+        &.dashboard-box-container-title-content,
+        &.dashboard-box-container-title-content-rangeButton {
+            .title {
+                height: 14%;
+            }
+
+            .content {
+                position: relative;
+            }
+        }
+
+        &.dashboard-box-container-title-content {
+            .content {
+                height: 86%;
+            }
+        }
+
+        &.dashboard-box-container-title-content-rangeButton {
+            .range-buttons {
+                height: 10%;
+            }
+
+            .content {
+                height: 76%;
+            }
+        }
+    }
 
     .title {
         @extend .h5;
@@ -259,13 +330,6 @@ $responsive-breakpoint: map-get($grid-breakpoints, lg);
             }
         }
     }
-}
-
-.delete-row-container {
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    flex-direction: column;
 }
 
 .dashboard-bottom-bar {
