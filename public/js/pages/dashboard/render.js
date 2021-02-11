@@ -124,15 +124,12 @@ function renderComponent(component, $container, data) {
             component: component,
             ...(arguments || {})
         });
-console.log('------------ 1');
         if($element) {
             $container.html($element);
             const isCardExample = $container.parents('#modalComponentTypeSecondStep').length > 0;
             const $canvas = $element.find('canvas');
             const $table = $element.find('table');
-            console.log('------------ 2');
             if($canvas.length > 0) {
-                console.log('------------ 3', !$canvas.hasClass('multiple'));
                 if(!$canvas.hasClass('multiple')) {
                     createAndUpdateSimpleChart(
                         $canvas,
