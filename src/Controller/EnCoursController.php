@@ -16,6 +16,7 @@ use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -24,10 +25,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 
 
+/**
+ * @Route("/encours")
+ */
 class EnCoursController extends AbstractController
 {
     /**
-     * @Route("/encours", name="en_cours", methods={"GET"})
+     * @Route("/", name="en_cours", methods={"GET"})
      * @param UserService $userService
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -68,13 +72,13 @@ class EnCoursController extends AbstractController
     }
 
     /**
-     * @Route("/encours-api", name="en_cours_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/api", name="en_cours_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param EnCoursService $enCoursService
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
-     * @throws \Exception
+     * @throws Exception
      */
     public function apiForEmplacement(Request $request,
                                       EnCoursService $enCoursService,
@@ -139,7 +143,7 @@ class EnCoursController extends AbstractController
     }
 
     /**
-     * @Route ("/{id}/csv", name="ongoing_pack_csv",options={"expose"=true}, methods={"GET"})
+     * @Route ("/{emplacement}/csv", name="ongoing_pack_csv",options={"expose"=true}, methods={"GET"})
      * @param Emplacement $emplacement
      * @param CSVExportService $CSVExportService
      * @param EnCoursService $encoursService
