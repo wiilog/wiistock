@@ -838,6 +838,7 @@ function editComponent(rowIndex, columnIndex, cellIndex, {config, type, meterKey
         currentComponent.type = type;
         currentComponent.meterKey = meterKey;
         currentComponent.template = template;
+        currentComponent.initData = undefined;
 
         let $currentComponent = $dashboard
             .find(`.dashboard-row[data-row-index="${rowIndex}"]`)
