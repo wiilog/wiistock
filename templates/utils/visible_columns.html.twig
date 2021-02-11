@@ -16,8 +16,11 @@
                     </tr>
                     </thead>
                     <tbody>
-
-                    {% for name, field in fields|sort((a,b) => a.title <=> b.title) %}
+                    {% for name, field in fields|sort((a,b) => ((a.displayedTitle is defined)
+                        ? a.displayedTitle
+                        : a.title) <=> ((b.displayedTitle is defined)
+                        ? b.displayedTitle
+                        : b.title)) %}
                         {% if (field.alwaysVisible is not defined or not field.alwaysVisible)
                               and (field.hiddenColumn is not defined or not field.hiddenColumn) %}
                             {% set title = (
@@ -27,8 +30,8 @@
                             {% set name = field.name is defined ? field.name : name %}
 
                             <tr class="pointer" onclick="toggleInputRadioOnRow(this)">
-                                {% set label = ((field.translated is defined and field.translated)
-                                    ? title|trans
+                                {% set label = ((field.displayedTitle is defined)
+                                    ? field.displayedTitle
                                     : title) %}
                                 {% set tooltip = (field.translated is defined and field.translated) ? ('title="' ~ title ~ '"') %}
                                 <td>
