@@ -408,8 +408,8 @@ class DashboardService {
 
         $config = $component->getConfig();
 
-        $legend1 = $config['firstCaption'];
-        $legend2 = $config['secondCaption'];
+        $legend1 = $config['originCaption'];
+        $legend2 = $config['destinationCaption'];
         $clusterKeys = ['firstOriginLocation', 'secondOriginLocation', 'firstDestinationLocation', 'secondDestinationLocation'];
         foreach ($clusterKeys as $key) {
             $this->updateComponentLocationCluster($entityManager, $component, $key);
