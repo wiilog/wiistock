@@ -31,11 +31,11 @@ SELECT
     dispatch.emergency AS urgence,
     dispatch.project_number AS numero_projet,
     dispatch.business_unit AS business_unit,
-    IF(dispatch.validation_date IS NOT NULL AND dispatch.end_date IS NOT NULL,
+    IF(dispatch.treatment_date IS NOT NULL AND dispatch.end_date IS NOT NULL,
        ROUND(
-                   TIME_FORMAT(TIMEDIFF(dispatch.validation_date, CAST(dispatch.end_date AS DATETIME)), '%H')
-                   + TIME_FORMAT(TIMEDIFF(dispatch.validation_date, CAST(dispatch.end_date AS DATETIME)), '%i') / 60
-                   + TIME_FORMAT(TIMEDIFF(dispatch.validation_date, CAST(dispatch.end_date AS DATETIME)), '%s') / 3600, 4),
+                   TIME_FORMAT(TIMEDIFF(dispatch.treatment_date, CAST(dispatch.end_date AS DATETIME)), '%H')
+                   + TIME_FORMAT(TIMEDIFF(dispatch.treatment_date, CAST(dispatch.end_date AS DATETIME)), '%i') / 60
+                   + TIME_FORMAT(TIMEDIFF(dispatch.treatment_date, CAST(dispatch.end_date AS DATETIME)), '%s') / 3600, 4),
        NULL) AS delta_date
 
 FROM dispatch

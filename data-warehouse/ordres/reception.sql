@@ -28,15 +28,18 @@ SELECT
     article.bar_code AS code_barre_article,
 
     IF(reference_article.id IS NOT NULL, type_reference_article.label,
-       IF(article.id IS NOT NULL, type_article.label, NULL)) AS type_flux
+       IF(article.id IS NOT NULL, type_article.label, NULL)) AS type_flux,
+
+    IF(reception.urgent_articles = 1, 'oui', 'non') AS urgence_reference,
+
+    IF(reception.manual_urgent = 1, 'oui', 'non') AS urgence_reception
 
 FROM reception
 
          LEFT JOIN statut ON reception.statut_id = statut.id
          LEFT JOIN fournisseur ON reception.fournisseur_id = fournisseur.id
 
-    -- Récupère uniquement les réceptions qui contiennent des ref/articles
-         INNER JOIN reception_reference_article ON reception.id = reception_reference_article.reception_id
+         LEFT JOIN reception_reference_article ON reception.id = reception_reference_article.reception_id
 
          LEFT JOIN reference_article ON reception_reference_article.reference_article_id = reference_article.id
 

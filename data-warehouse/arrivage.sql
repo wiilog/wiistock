@@ -13,7 +13,7 @@ SELECT
     transporteur.label AS transporteur,
     chauffeur.nom AS chauffeur,
     arrivage.no_tracking AS no_tracking_transporteur,
-    IF(JSON_LENGTH(arrivage.numero_commande_list) > 0, arrivage.numero_commande_list, NULL) AS no_commande_bl,
+    IF(JSON_LENGTH(arrivage.numero_commande_list) > 0, REPLACE(REPLACE(REPLACE(arrivage.numero_commande_list, '"', ''), '[', ''), ']', ''), NULL) AS no_commande_bl,
     type.label AS type,
     GROUP_CONCAT(acheteurs.username SEPARATOR ', ') AS acheteurs,
     IF(arrivage.is_urgent = 1, 'oui', 'non') AS urgence,

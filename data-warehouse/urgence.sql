@@ -1,16 +1,16 @@
 SELECT
     urgence.id,
-    date_start AS debut_delais_livraison, -- SED
-    date_end AS fin_delais_livraison, -- SED
-    commande AS no_commande, -- SED
-    post_nb AS no_poste, -- SED
-    utilisateur.username AS acheteur, -- SED
-    fournisseur.code_reference AS fournisseur, -- SED
-    transporteur.code AS transporteur, -- SED
-    tracking_nb AS no_tracking, -- SED
-    arrivage.date AS date_arrivage, -- SED
-    arrivage.numero_arrivage, -- SED
-    created_at AS date_creation -- SED
+    date_start AS debut_delais_livraison,
+    date_end AS fin_delais_livraison,
+    commande AS no_commande,
+    post_nb AS no_poste,
+    utilisateur.username AS acheteur,
+    fournisseur.code_reference AS fournisseur,
+    transporteur.code AS transporteur,
+    tracking_nb AS no_tracking,
+    arrivage.date AS date_arrivage,
+    arrivage.numero_arrivage,
+    created_at AS date_creation
 
 FROM urgence
 
