@@ -421,31 +421,63 @@ class PreparationController extends AbstractController
                                     EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $totalQuantity = 0;
-            foreach ($data['articles'] as $id => $quantity) {
-                $totalQuantity += $quantity;
-            }
-            if (!empty($data['articles'])) {
-                $articleRepository = $entityManager->getRepository(Article::class);
-                $statutRepository = $entityManager->getRepository(Statut::class);
-                $preparationRepository = $entityManager->getRepository(Preparation::class);
-                $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
 
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $preparationRepository = $entityManager->getRepository(Preparation::class);
+            $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
+
+            if (!empty($data['articles'])) {
                 $preparation = $preparationRepository->find($data['preparation']);
+
+                $articles = [];
+                $pickedQuantity = 0;
+                foreach ($data['articles'] as $idArticle => $pickedQuantity) {
+                    $article = $articleRepository->find($idArticle);
+                    if ($pickedQuantity > 0 && $pickedQuantity <= $article->getQuantite()) {
+                        $pickedQuantity += $pickedQuantity;
+                        $articles[$idArticle] = $article;
+                    }
+                    else {
+                        return $this->json([
+                            'success' => false,
+                            'msg' => 'Une des quantités saisies est invalide'
+                        ]);
+                    }
+                }
+
                 $articleFirst = $articleRepository->find(array_key_first($data['articles']));
                 $refArticle = $articleFirst->getArticleFournisseur()->getReferenceArticle();
+
+                /** @var LigneArticlePreparation $ligneArticle */
                 $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($refArticle, $preparation);
 
+                if ($pickedQuantity > $ligneArticle->getQuantite()) {
+                    return $this->json([
+                        'success' => false,
+                        'msg' => 'Vous avez trop sélectionné d\'article.'
+                    ]);
+                }
+
                 $inTransitStatus = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
-                foreach ($data['articles'] as $idArticle => $quantite) {
-                    $article = $articleRepository->find($idArticle);
-                    $this->preparationsManagerService->treatArticleSplitting($article, $quantite, $ligneArticle, $inTransitStatus);
+                foreach ($articles as $idArticle => $article) {
+                    $articleFournisseur = $article->getArticleFournisseur();
+                    if ($articleFournisseur) {
+                        $referenceArticle = $articleFournisseur->getReferenceArticle();
+                        if ($referenceArticle && $referenceArticle->getId() === $ligneArticle->getReference()->getId()) {
+                            $pickedQuantity = $data['articles'][$idArticle];
+                            $this->preparationsManagerService->treatArticleSplitting($article, $pickedQuantity, $ligneArticle, $inTransitStatus);
+                        }
+                    }
                 }
                 $this->preparationsManagerService->deleteLigneRefOrNot($ligneArticle);
                 $entityManager->flush();
-                $resp = true;
+                $resp = ['success' => true];
             } else {
-                $resp = false;
+                $resp = [
+                    'success' => false,
+                    'msg' => 'Vous devez sélectionner au moins un article.'
+                ];
             }
             return new JsonResponse($resp);
         }
