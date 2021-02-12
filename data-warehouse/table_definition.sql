@@ -19,6 +19,34 @@ CREATE TABLE dw_collecte_champs_libres
     valeur      text
 );
 
+CREATE TABLE dw_reception_champs_libres
+(
+    reception_id integer,
+    libelle      varchar(255),
+    valeur       text
+);
+
+CREATE TABLE dw_reference_article_champs_libres
+(
+    reference_article_id integer,
+    libelle              varchar(255),
+    valeur               text
+);
+
+CREATE TABLE dw_demande_livraison_champs_libres
+(
+    demande_livraison_id integer,
+    libelle              varchar(255),
+    valeur               text
+);
+
+CREATE TABLE dw_arrivage_nature_colis
+(
+    arrivage_id integer,
+    nature_colis varchar(255),
+    quantite_colis integer
+);
+
 CREATE TABLE dw_indicateur_arrivage
 (
     nb_fournisseurs_differents integer,
@@ -28,30 +56,19 @@ CREATE TABLE dw_indicateur_arrivage
 
 CREATE TABLE dw_inventaire
 (
+    id                   integer,
     code_barre_reference varchar(255),
     code_barre_article   varchar(255),
     reference            varchar(255),
     libelle              varchar(255),
     type_flux            varchar(255),
     date                 date,
-    quantite_comptee     integer,
-    id                   integer not null
-        constraint inventaire_pk
-        primary key
-);
-
-CREATE TABLE dw_livraison_champs_libres
-(
-    livraison_id integer,
-    libelle      varchar(255),
-    valeur       text
+    quantite_comptee     integer
 );
 
 CREATE TABLE dw_mouvement_stock
 (
-    id                   integer not null
-        constraint mouvement_stock_pk
-        primary key,
+    id                   integer,
     demande_collecte_id  integer,
     ordre_collecte_id    integer,
     demande_livraison_id integer,
@@ -71,8 +88,7 @@ CREATE TABLE dw_mouvement_stock
     code_barre_reference varchar(255),
     date                 timestamp(0),
     emplacement_stock    varchar(255),
-    code_barre_article   varchar(255),
-    urgence              varchar(3)
+    code_barre_article   varchar(255)
 );
 
 CREATE TABLE dw_reception
@@ -92,18 +108,14 @@ CREATE TABLE dw_reception
     type_flux                varchar(255),
     quantite_recue           integer,
     quantite_a_recevoir      integer,
-    code_barre_reference     varchar(255)
-);
-
-CREATE TABLE dw_reception_champs_libres
-(
-    reception_id integer,
-    libelle      varchar(255),
-    valeur       text
+    code_barre_reference     varchar(255),
+    urgence_reference        varchar(3),
+    urgence_reception        varchar(3)
 );
 
 CREATE TABLE dw_reference_article
 (
+    id                         integer,
     reference                  varchar(255),
     libelle                    varchar(255),
     quantite_stock             integer,
@@ -120,22 +132,13 @@ CREATE TABLE dw_reference_article
     gestion_stock              varchar(255),
     gestionnaires              text,
     statut                     varchar(255),
-    id                         integer not null
-        constraint reference_article_pk
-        primary key,
     date_dernier_inventaire    timestamp(0),
     synchronisation_nomade     varchar(3)
 );
 
-CREATE TABLE dw_reference_article_champs_libres
-(
-    reference_article_id integer,
-    libelle              varchar(255),
-    valeur               text
-);
-
 CREATE TABLE dw_service
 (
+    id                 integer,
     type               varchar(255),
     objet              text,
     demandeur          varchar(255),
@@ -147,9 +150,6 @@ CREATE TABLE dw_service
     emplacement_depose varchar(255),
     numero             varchar(255),
     statut             varchar(255),
-    id                 integer not null
-        constraint service_pk
-        primary key,
     delta_date         float
 );
 
@@ -175,6 +175,7 @@ CREATE TABLE dw_tracabilite
 
 CREATE TABLE dw_urgence
 (
+    id                     integer,
     debut_delais_livraison date,
     fin_delais_livraison   date,
     no_commande            varchar(255),
@@ -185,18 +186,13 @@ CREATE TABLE dw_urgence
     no_tracking            varchar(255),
     date_arrivage          timestamp(0),
     numero_arrivage        varchar(255),
-    date_creation          timestamp(0),
-    id                     integer not null
-        constraint urgence_pk
-        primary key
+    date_creation          timestamp(0)
 );
 
 -- Nouvelle table SED
 CREATE TABLE dw_arrivage
 (
-    id                     integer not null
-        constraint arrivage_pk
-        primary key,
+    id                     integer,
     no_arrivage            varchar(255),
     date                   timestamp(0),
     nb_colis               integer,
@@ -216,13 +212,6 @@ CREATE TABLE dw_arrivage
     utilisateur            varchar(255),
     numero_projet          varchar(255),
     business_unit          varchar(255)
-);
-
-CREATE TABLE dw_arrivage_nature_colis
-(
-    arrivage_id integer,
-    nature_colis varchar(255),
-    quantite_colis integer
 );
 
 CREATE TABLE dw_acheminement
@@ -308,13 +297,6 @@ CREATE TABLE dw_demande_livraison
     code_barre           varchar(255),
     quantite_disponible  integer,
     quantite_a_prelever  integer
-);
-
-CREATE TABLE dw_demande_livraison_champs_libres
-(
-    demande_livraison_id integer,
-    libelle              varchar(255),
-    valeur               text
 );
 
 CREATE TABLE dw_ordre_transfert

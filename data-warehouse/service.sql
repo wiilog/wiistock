@@ -1,16 +1,16 @@
 SELECT
     handling.id,
-    type.label AS type, -- CEA
-    handling.subject AS objet, -- CEA
-    demandeur.username AS demandeur, -- CEA
-    handling.creation_date AS date_creation, -- CEA
-    handling.desired_date AS date_attendue, -- CEA
-    handling.validation_date AS date_realisation, -- CEA
-    operateur.username AS operateur, -- CEA
-    handling.source AS emplacement_prise, -- CEA
-    handling.destination AS emplacement_depose, -- CEA
-    handling.number AS numero, -- CEA
-    statut.nom AS statut, -- CEA
+    type.label AS type,
+    handling.subject AS objet,
+    demandeur.username AS demandeur,
+    handling.creation_date AS date_creation,
+    handling.desired_date AS date_attendue,
+    handling.validation_date AS date_realisation,
+    operateur.username AS operateur,
+    handling.source AS emplacement_prise,
+    handling.destination AS emplacement_depose,
+    handling.number AS numero,
+    statut.nom AS statut,
     IF(handling.validation_date IS NOT NULL AND handling.desired_date IS NOT NULL,
        ROUND(TIME_FORMAT(TIMEDIFF(handling.validation_date, handling.desired_date), '%H')
                  + TIME_FORMAT(TIMEDIFF(handling.validation_date, handling.desired_date), '%i') / 60

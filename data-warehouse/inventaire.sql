@@ -3,25 +3,25 @@ SELECT
 
     IF(reference_article.id IS NOT NULL, reference_article.bar_code,
        IF(article.id IS NOT NULL, reference_article_article.bar_code, NULL))
-                     AS code_barre_reference, -- CEA
+                     AS code_barre_reference,
 
-    article.bar_code AS code_barre_article, -- CEA
+    article.bar_code AS code_barre_article,
 
     IF(reference_article.id IS NOT NULL, reference_article.reference,
        IF(article.id IS NOT NULL, reference_article_article.reference, NULL))
-                     AS reference, -- CEA
+                     AS reference,
 
     IF(reference_article.id IS NOT NULL, reference_article.libelle,
        IF(article.id IS NOT NULL, reference_article_article.libelle, NULL))
-                     AS libelle, -- CEA
+                     AS libelle,
 
     IF(reference_article.id IS NOT NULL, type_reference_article.label,
        IF(article.id IS NOT NULL, type_reference_article_article.label, NULL))
-                     AS type_flux, -- CEA
+                     AS type_flux,
 
-    inventory_entry.date AS date, -- CEA
+    inventory_entry.date AS date,
 
-    inventory_entry.quantity AS quantite_comptee -- CEA
+    inventory_entry.quantity AS quantite_comptee
 
 FROM inventory_entry
          LEFT JOIN reference_article ON inventory_entry.ref_article_id = reference_article.id

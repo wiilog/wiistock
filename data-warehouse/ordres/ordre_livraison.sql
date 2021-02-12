@@ -35,6 +35,7 @@ FROM (
                 LEFT JOIN reference_article ON ligne_article_preparation.reference_id = reference_article.id
                 LEFT JOIN emplacement AS destination ON demande_livraison.destination_id = destination.id
 
+    WHERE ligne_article_preparation.quantite_prelevee > 0
 
     UNION
     SELECT
@@ -71,4 +72,6 @@ FROM (
                 LEFT JOIN utilisateur AS demandeur ON demande_livraison.utilisateur_id = demandeur.id
                 LEFT JOIN article_fournisseur ON article.article_fournisseur_id = article_fournisseur.id
                     LEFT JOIN reference_article ON article_fournisseur.reference_article_id = reference_article.id
+
+    WHERE article.quantite > 0
 ) AS orders
