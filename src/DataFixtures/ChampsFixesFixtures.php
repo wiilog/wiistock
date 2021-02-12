@@ -77,7 +77,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
 
         $mappedExistingFields = Stream::from($existingFields)
             ->keymap(function($field) {
-                return [$field->getEntityCode() .'-'. $field->getFieldCode(), $field];
+                return [$field->getEntityCode() . '-' . $field->getFieldCode(), $field];
             })
             ->toArray();
 
@@ -112,9 +112,10 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
             }
         }
 
-        foreach ($mappedExistingFields as $field)
-        {
+        /** @var FieldsParam $field */
+        foreach ($mappedExistingFields as $field) {
             $manager->remove($field);
+            $output->writeln('Champ fixe ' . $field->getEntityCode() . ' / ' . $field->getFieldCode() . ' supprimé.');
         }
 
         $manager->flush();
