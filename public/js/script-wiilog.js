@@ -670,7 +670,7 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', for
     let options = {
         format: format,
         useCurrent: false,
-        locale: moment.locale(),
+        locale: moment.locale('fr'),
         showTodayButton: true,
         showClear: true,
         icons: {
