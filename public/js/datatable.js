@@ -236,7 +236,19 @@ function moveSearchInputToHeader($searchInputContainer) {
     }
 }
 
-function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCallback, hideColumnConfig, ...config}) {
+function initDataTable(dtId, options) {
+    const domConfig = options.domConfig;
+    const rowConfig = options.rowConfig;
+    const drawConfig = options.drawConfig;
+    const initCompleteCallback = options.initCompleteCallback;
+    const hideColumnConfig = options.hideColumnConfig;
+    const config = Object.assign({}, options);
+    delete options.domConfig;
+    delete options.rowConfig;
+    delete options.drawConfig;
+    delete options.initCompleteCallback;
+    delete options.hideColumnConfig;
+
     let tooltips = [];
     (config.columns || []).forEach((column, id) => {
         if (column.translated) {
@@ -283,7 +295,7 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
         .on('error.dt', function (e, settings, techNote, message) {
             console.log('An error has been reported by DataTables: ', message, e, dtId);
         })
-        .DataTable({
+        .DataTable(Object.assign({
             fixedColumns:   {
                 heightMatch: 'auto'
             },
@@ -296,12 +308,11 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             dom: getAppropriateDom(domConfig || {}),
             rowCallback: getAppropriateRowCallback(rowConfig || {}),
             drawCallback: (response) => {
-                datatableDrawCallback({
+                datatableDrawCallback(Object.assign({
                     table: datatableToReturn,
                     response,
-                    $tableDom,
-                    ...(drawConfig || {})
-                });
+                    $tableDom
+                }, drawConfig || {}));
             },
             initComplete: () => {
                 let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
@@ -311,9 +322,8 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
                     initCompleteCallback();
                 }
                 attachDropdownToBodyOnDropdownOpening($tableDom);
-            },
-            ...config
-        });
+            }
+        }, config));
     return datatableToReturn;
 }
 

@@ -118,12 +118,14 @@ function renderComponent(component, $container, data) {
         return false;
     } else {
         const {callback, arguments} = creators[component.meterKey];
-        const $element = callback(data, {
-            meterKey: component.meterKey,
-            rowSize: $container.closest('.dashboard-row').data('size'),
-            component: component,
-            ...(arguments || {})
-        });
+        const $element = callback(
+            data,
+            Object.assign({
+                meterKey: component.meterKey,
+                rowSize: $container.closest('.dashboard-row').data('size'),
+                component: component
+            }, arguments || {})
+        );
 
         if($element) {
             $container.html($element);
@@ -286,7 +288,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
 
     const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'});
     const $firstComponent = $('<div/>', {
-        class: `w-100 pb-1 flex-fill dashboard-component mx-0 mt-0`,
+        class: `w-100 pb-1 flex-fill dashboard-component h-100 mx-0 mt-0`,
         html: createIndicatorElement(
             {
                 title: 'Nombre de lignes à traiter',
@@ -301,7 +303,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
         )
     });
     const $secondComponent = $('<div/>', {
-        class: `w-100 pt-1 flex-fill dashboard-component mx-0 mb-0`,
+        class: `w-100 pt-1 flex-fill dashboard-component h-100 mx-0 mb-0`,
         html: createIndicatorElement(
             {
                 title: 'Prochain emplacement à traiter',
@@ -479,7 +481,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
         : {};
     const clickableClass = componentLink ? 'pointer' : '';
 
-    return $(element, {
+    return $(element, Object.assign({
         class: `dashboard-box dashboard-box-indicator text-center justify-content-around dashboard-stats-container ${customContainerClass}`,
         html: [
             createTooltip(tooltip),
@@ -515,9 +517,8 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
                     text: !isNaN(Math.abs(delay)) ? renderMillisecondsToDelay(Math.abs(delay), 'display') : delay
                 })
                 : undefined,
-        ].filter(Boolean),
-        ...customAttributes
-    });
+        ].filter(Boolean)
+    }, customAttributes));
 }
 
 

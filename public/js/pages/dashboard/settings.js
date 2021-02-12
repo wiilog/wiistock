@@ -754,7 +754,19 @@ function onComponentSaved($modal) {
     clearFormErrors($modal);
     const {success, errorMessages, $isInvalidElements, data} = processSecondModalForm($modal);
     if(success) {
-        const {rowIndex, columnIndex, cellIndex, meterKey, template, componentType, ...config} = data;
+        const rowIndex = data.rowIndex;
+        const columnIndex = data.columnIndex;
+        const meterKey = data.meterKey;
+        const componentType = data.componentType;
+        const cellIndex = data.cellIndex;
+        const template = data.template;
+        const config = Object.assign({}, data);
+        delete config.rowIndex;
+        delete config.columnIndex;
+        delete config.meterKey;
+        delete config.componentType;
+        delete config.cellIndex;
+        delete config.template;
 
         editComponent(convertIndex(rowIndex), convertIndex(columnIndex), convertIndex(cellIndex), {
             config,
@@ -775,7 +787,7 @@ function onComponentSaved($modal) {
 function processSecondModalForm($modal) {
     const meterKey = $modal.find(`input[name="meterKey"]`).val();
 
-    const {data, ...remaining} = ProcessForm($modal, null, () => {
+    const processFormResult = ProcessForm($modal, null, () => {
         if(meterKey === ENTRIES_TO_HANDLE) {
             let previous = null;
             const allFilled = $modal
@@ -810,12 +822,15 @@ function processSecondModalForm($modal) {
             };
         }
     });
+    const data = processFormResult.data;
+    const remaining = Object.assign({}, processFormResult);
+    delete remaining.data;
 
     if(meterKey === ENTRIES_TO_HANDLE && data.segments) {
         data.segments = data.segments.map(clearSegmentHourValues);
     }
 
-    return {data, ...remaining};
+    return Object.assign({}, remaining, {data});
 }
 
 function editComponent(rowIndex, columnIndex, cellIndex, {config, type, meterKey, template = null}) {
