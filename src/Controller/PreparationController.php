@@ -434,7 +434,7 @@ class PreparationController extends AbstractController
                 $pickedQuantity = 0;
                 foreach ($data['articles'] as $idArticle => $pickedQuantity) {
                     $article = $articleRepository->find($idArticle);
-                    if ($pickedQuantity > 0 && $pickedQuantity <= $article->getQuantite()) {
+                    if ($pickedQuantity >= 0 && $pickedQuantity <= $article->getQuantite()) {
                         $pickedQuantity += $pickedQuantity;
                         $articles[$idArticle] = $article;
                     }

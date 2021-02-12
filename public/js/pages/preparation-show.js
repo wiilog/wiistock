@@ -76,12 +76,10 @@ function submitSplitting(submit) {
             .reduce((acc, input) => {
                 const $input = $(input);
                 const val = Number($input.val());
-                return val
-                    ? acc
-                    : {
-                        ...acc,
-                        [$input.data('id')]: val
-                    };
+                return {
+                    ...acc,
+                    [$input.data('id')]: val || 0
+                };
             }, {})
 
         let path = Routing.generate('submit_splitting', true);
