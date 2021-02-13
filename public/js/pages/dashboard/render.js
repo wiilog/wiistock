@@ -819,7 +819,7 @@ function loadLatePacks($table, data) {
         datatableColisConfig.data = data.tableData;
     } else {
         datatableColisConfig.ajax = {
-            "url": Routing.generate('api_retard', true),
+            "url": Routing.generate('api_late_pack', true),
             "type": "GET",
         };
     }

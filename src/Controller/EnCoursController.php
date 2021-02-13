@@ -106,21 +106,6 @@ class EnCoursController extends AbstractController
         ]);
     }
 
-
-    /**
-     * @Route("/statistiques/retard-api", name="api_retard", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
-     */
-    public function apiForRetard(EntityManagerInterface $entityManager): Response
-    {
-        $latePackRepository = $entityManager->getRepository(LatePack::class);
-        $retards = $latePackRepository->findAllForDatatable();
-        return new JsonResponse([
-            'data' => $retards
-        ]);
-    }
-
     /**
      * @Route("/verification-temps-travaille", name="check_time_worked_is_defined", options={"expose"=true}, methods="GET|POST")
      * @param Request $request

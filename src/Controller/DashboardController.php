@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Dashboard\ComponentType;
+use App\Entity\LatePack;
 use App\Entity\Utilisateur;
 use App\Service\DashboardService;
 use App\Service\DashboardSettingsService;
@@ -61,7 +62,7 @@ DashboardController extends AbstractController {
     }
 
     /**
-     * @Route("/dashboard/actualiser/{mode}", name="dashboards_fetch", options={"expose"=true})
+     * @Route("/dashboard/sync/{mode}", name="dashboards_fetch", options={"expose"=true})
      * @param DashboardService $dashboardService
      * @param DashboardSettingsService $dashboardSettingsService
      * @param EntityManagerInterface $manager
@@ -80,10 +81,24 @@ DashboardController extends AbstractController {
         ]);
     }
 
+    /**
+     * @Route("/dashboard/statistics/late-pack-api", name="api_late_pack", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     */
+    public function apiLatePacks(EntityManagerInterface $entityManager): Response
+    {
+        $latePackRepository = $entityManager->getRepository(LatePack::class);
+        $retards = $latePackRepository->findAllForDatatable();
+        return new JsonResponse([
+            'data' => $retards
+        ]);
+    }
+
 
     /**
      * @Route(
-     *     "/statistiques/receptions-associations",
+     *     "/dashboard/statistics/receptions-associations",
      *     name="get_asso_recep_statistics",
      *     options={"expose"=true},
      *     methods={"GET"},
@@ -108,7 +123,7 @@ DashboardController extends AbstractController {
 
     /**
      * @Route(
-     *     "/statistiques/arrivages-um",
+     *     "/dashboard/statistics/arrivages-um",
      *     name="get_arrival_um_statistics",
      *     options={"expose"=true},
      *     methods={"GET"},
