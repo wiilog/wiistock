@@ -452,7 +452,7 @@ function createCarrierTrackingElement(data) {
                 ${title}
             </div>
             ${createTooltip(data.tooltip)}
-            <p>${carriers}</p>
+            <h1>${carriers}</h1>
         </div>
     `);
 }
