@@ -197,7 +197,14 @@ function renderCurrentDashboard() {
         Object.keys(currentDashboard.rows)
             .map((key) => currentDashboard.rows[key])
             .map(renderRow)
-            .forEach((row) => $dashboard.append(row));
+            .forEach((row) => {
+                const $dashboardCurrentRow = $dashboard.find(`.dashboard-row[data-row-index="${row.data('row-index')}"]`);
+                if ($dashboardCurrentRow.length > 0) {
+                    $dashboardCurrentRow.replaceWith(row);
+                } else {
+                    $dashboard.append(row);
+                }
+            });
     }
 
     if(mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
