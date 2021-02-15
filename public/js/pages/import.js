@@ -94,7 +94,9 @@ function displaySecondModal(data) {
             }
         );
 
-        updateOptions($(".import-options"));
+        $(".import-options").each(function() {
+            updateOptions($(this));
+        });
     }
 }
 

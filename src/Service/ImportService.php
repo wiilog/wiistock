@@ -33,6 +33,7 @@ use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\TransactionRequiredException;
 use Exception;
+use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -411,7 +412,7 @@ class ImportService
                         $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $dataToCheck, $stats);
                         break;
                     case Import::ENTITY_RECEPTION:
-                        $this->importReceptionEntity($verifiedData, $receptionsWithCommand, $user, $stats);
+                        $this-> importReceptionEntity($verifiedData, $receptionsWithCommand, $user, $stats);
                         break;
                     case Import::ENTITY_ART:
                         $referenceArticle = $this->importArticleEntity($verifiedData, $colChampsLibres, $row, $stats, $rowIndex);
@@ -521,6 +522,10 @@ class ImportService
                     'orderDate' => [
                         'needed' => $this->fieldIsNeeded('orderDate', Import::ENTITY_RECEPTION),
                         'value' => isset($corresp['orderDate']) ? $corresp['orderDate'] : null
+                    ],
+                    'manualUrgent' => [
+                        'needed' => $this->fieldIsNeeded('manualUrgent', Import::ENTITY_RECEPTION),
+                        'value' => isset($corresp['manualUrgent']) ? $corresp['manualUrgent'] : null
                     ],
                     'expectedDate' => [
                         'needed' => $this->fieldIsNeeded('expectedDate', Import::ENTITY_RECEPTION),
@@ -843,10 +848,38 @@ class ImportService
     {
         $refArtRepository = $this->em->getRepository(ReferenceArticle::class);
 
+        if ($user) {
+            $userRepository = $this->em->getRepository(Utilisateur::class);
+            $user = $userRepository->find($user->getId());
+        }
+
         $reception = $this->getAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate']);
         $newEntity = !isset($reception);
         if (!$reception) {
-            $reception = $this->receptionService->createAndPersistReception($this->em, $user, $data, true);
+            try {
+                $reception = $this->receptionService->createAndPersistReception($this->em, $user, $data, true);
+            }
+            catch(InvalidArgumentException $exception) {
+                switch ($exception->getMessage()) {
+                    case ReceptionService::INVALID_EXPECTED_DATE:
+                        $this->throwError('La date attendue n\'est pas au bon format (dd/mm/yyyy)');
+                        break;
+                    case ReceptionService::INVALID_ORDER_DATE:
+                        $this->throwError('La date commande n\'est pas au bon format (dd/mm/yyyy)');
+                        break;
+                    case ReceptionService::INVALID_LOCATION:
+                        $this->throwError('Emplacement renseigné invalide');
+                        break;
+                    case ReceptionService::INVALID_CARRIER:
+                        $this->throwError('Transporteur renseigné invalide');
+                        break;
+                    case ReceptionService::INVALID_PROVIDER:
+                        $this->throwError('Fournisseur renseigné invalide');
+                        break;
+                    default:
+                        throw $exception;
+                }
+            }
             $this->setAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], $reception);
         }
 
@@ -855,17 +888,31 @@ class ImportService
 
             if($refArt) {
                 if(isset($data['quantité à recevoir'])) {
+                    $manualEmergency = false;
+                    if (isset($data['manualUrgent'])) {
+                        $value = strtolower($data['manualUrgent']);
+                        if ($value !== 'oui' && $value !== 'non') {
+                            $this->throwError('La valeur saisie pour le champ urgence est invalide (autorisé : "oui" ou "non")');
+                        }
+                        $manualEmergency = $value === 'oui';
+                    }
+
                     $receptionRefArticle = new ReceptionReferenceArticle();
                     $receptionRefArticle
                         ->setReception($reception)
                         ->setReferenceArticle($refArt)
                         ->setQuantiteAR($data['quantité à recevoir'])
+                        ->setEmergencyTriggered($manualEmergency)
                         ->setCommande($reception->getOrderNumber())
+                        ->setEmergencyTriggered($manualEmergency)
                         ->setQuantite(0);
                     $this->em->persist($receptionRefArticle);
                 } else {
                     $this->throwError('La quantité à recevoir doit être renseignée.');
                 }
+            }
+            else {
+                $this->throwError('La référence article n\'existe pas.');
             }
         }
         if ($newEntity) {

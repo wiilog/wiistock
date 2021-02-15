@@ -20,6 +20,7 @@ use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
+use InvalidArgumentException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -30,33 +31,37 @@ use Twig\Error\SyntaxError;
 
 class ReceptionService
 {
-    private $templating;
-    private $router;
-    private $entityManager;
-    private $fieldsParamService;
-    private $stringService;
-    private $translator;
-    private $freeFieldService;
-    private $uniqueNumberService;
 
-    public function __construct(RouterInterface $router,
-                                FieldsParamService $fieldsParamService,
-                                StringService $stringService,
-                                FreeFieldService $champLibreService,
-                                TranslatorInterface $translator,
-                                EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-                                UniqueNumberService $uniqueNumberService)
-    {
-        $this->templating = $templating;
-        $this->freeFieldService = $champLibreService;
-        $this->entityManager = $entityManager;
-        $this->stringService = $stringService;
-        $this->fieldsParamService = $fieldsParamService;
-        $this->router = $router;
-        $this->translator = $translator;
-        $this->uniqueNumberService = $uniqueNumberService;
-    }
+    public const INVALID_EXPECTED_DATE = 'invalid-expected-date';
+    public const INVALID_ORDER_DATE = 'invalid-order-date';
+    public const INVALID_LOCATION = 'invalid-location';
+    public const INVALID_CARRIER = 'invalid-carrier';
+    public const INVALID_PROVIDER = 'invalid-provider';
+
+
+    /** @Required */
+    public Twig_Environment $templating;
+
+    /** @Required */
+    public EntityManagerInterface $entityManager;
+
+    /** @Required */
+    public FieldsParamService $fieldsParamService;
+
+    /** @Required */
+    public StringService $stringService;
+
+    /** @Required */
+    public TranslatorInterface $translator;
+
+    /** @Required */
+    public FreeFieldService $freeFieldService;
+
+    /** @Required */
+    public UniqueNumberService $uniqueNumberService;
+
+    /** @Required */
+    public FormService $formService;
 
     public function getDataForDatatable(Utilisateur $user, $params = null)
     {
@@ -123,6 +128,9 @@ class ReceptionService
         if(!empty($data['fournisseur'])) {
             if($fromImport) {
                 $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $data['fournisseur']]);
+                if (!isset($fournisseur)) {
+                    throw new InvalidArgumentException(self::INVALID_PROVIDER);
+                }
             } else {
                 $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
             }
@@ -133,6 +141,9 @@ class ReceptionService
         if(!empty($data['location'])) {
             if($fromImport) {
                 $location = $emplacementRepository->findOneBy(['label' => $data['location']]);
+                if (!isset($location)) {
+                    throw new InvalidArgumentException(self::INVALID_LOCATION);
+                }
             } else {
                 $location = $emplacementRepository->find(intval($data['location']));
             }
@@ -143,6 +154,9 @@ class ReceptionService
         if(!empty($data['transporteur'])) {
             if($fromImport) {
                 $transporteur = $ransporteurRepository->findOneBy(['code' => $data['transporteur']]);
+                if (!isset($transporteur)) {
+                    throw new InvalidArgumentException(self::INVALID_CARRIER);
+                }
             } else {
                 $transporteur = $ransporteurRepository->find(intval($data['transporteur']));
             }
@@ -165,14 +179,15 @@ class ReceptionService
             ->setStatut($statut)
             ->setNumber($numero)
             ->setDate($date)
-            ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
             ->setUtilisateur($currentUser)
             ->setType($type)
             ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null);
 
         // Date commande provenant des imports de réception
         if ($fromImport && isset($data['orderDate'])) {
-            $reception->setDateCommande(DateTime::createFromFormat('d/m/Y', $data['orderDate'], new DateTimeZone("Europe/Paris")) ?: null);
+            $this->formService->validateDate($data['orderDate'], self::INVALID_ORDER_DATE);
+            $orderDate = DateTime::createFromFormat('d/m/Y', $data['orderDate'] ?: '', new DateTimeZone("Europe/Paris")) ?: null;
+            $reception->setDateCommande($orderDate);
         }
         // Date commande pour création d'une réception standard
         else {
@@ -184,7 +199,9 @@ class ReceptionService
 
         // Date attendue provenant des imports de réception
         if ($fromImport && isset($data['expectedDate'])) {
-            $reception->setDateAttendue(DateTime::createFromFormat('d/m/Y', $data['expectedDate'], new DateTimeZone("Europe/Paris")) ?: null);
+            $this->formService->validateDate($data['expectedDate'], self::INVALID_ORDER_DATE);
+            $expectedDate = DateTime::createFromFormat('d/m/Y', $data['expectedDate'] ?: '', new DateTimeZone("Europe/Paris")) ?: null;
+            $reception->setDateAttendue($expectedDate);
         }
         // Date attendue pour création d'une réception standard
         else {
