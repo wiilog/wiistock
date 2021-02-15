@@ -194,7 +194,8 @@ function renderCurrentDashboard() {
     if(currentDashboard) {
         updateCurrentDashboardSize();
 
-        Object.values(currentDashboard.rows)
+        Object.keys(currentDashboard.rows)
+            .map((key) => currentDashboard.rows[key])
             .map(renderRow)
             .forEach((row) => $dashboard.append(row));
     }
@@ -301,7 +302,7 @@ function renderCardComponent({columnIndex, cellIndex, component}) {
         renderComponentWithData(
             $componentContainer,
             component,
-            component.config || {},
+            component.config || {}
         )
             .then(() => {
                 $componentContainer.popLoader();
@@ -990,13 +991,15 @@ function hasEditDashboard() {
             pageUpdated
             || (
                 rows
-                && rows.some(({updated: rowUpdated, components}) => {
-                    components = Object.values(components);
+                && rows.some(({updated: rowUpdated, components: savedComponents}) => {
+                    const components = Object
+                        .keys(savedComponents)
+                        .map((key) => savedComponents[key]);
                     return rowUpdated
-                    || (
-                        components
-                        && components.some(({updated: componentUpdated}) => componentUpdated)
-                    )
+                        || (
+                            components
+                            && components.some(({updated: componentUpdated}) => componentUpdated)
+                        );
                 })
             )
         ))
