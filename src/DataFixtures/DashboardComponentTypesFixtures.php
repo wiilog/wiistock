@@ -320,7 +320,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
             'meterKey' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
         ],
-        'Arrivages urgents à recevoir' => [
+        'Urgences à recevoir' => [
             'hint' => 'Nombre d\'urgences sur arrivage encore non réceptionnées',
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => null,
@@ -329,7 +329,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'count' => 7
             ],
         ],
-        'Arrivages urgents du jour' => [
+        'Urgences du jour' => [
             'hint' => 'Nombre d\'urgences sur arrivage devant être réceptionnées dans la journée',
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => null,
