@@ -31,8 +31,8 @@ use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\CategoryType;
 use App\Exceptions\NegativeQuantityException;
-use App\Repository\TransporteurRepository;
 
+use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
@@ -1808,8 +1808,8 @@ class ReceptionController extends AbstractController {
             $reception['providerName'] ?: '',
             $reception['userUsername'] ?: '',
             $reception['statusName'] ?: '',
-            $reception['date'] ? $reception['date']->format('d/m/Y H:i') : '',
-            $reception['dateFinReception'] ? $reception['dateFinReception']->format('d/m/Y H:i') : '',
+            FormatHelper::datetime($reception['date']),
+            FormatHelper::datetime($reception['dateFinReception']),
             $reception['commentaire'] ? strip_tags($reception['commentaire']) : '',
             $reception['receptionRefArticleQuantiteAR'] ?: '',
             (!$reception['referenceArticleId'] && !$reception['articleId']

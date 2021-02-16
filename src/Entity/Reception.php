@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
+use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -64,9 +65,9 @@ class Reception extends FreeFieldEntity
     private $statut;
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(type="date", nullable=true)
      */
-    private $dateAttendue;
+    private ?DateTime $dateAttendue;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
@@ -230,13 +231,11 @@ class Reception extends FreeFieldEntity
         return $this;
     }
 
-    public function getDateAttendue(): ?DateTimeInterface
-    {
+    public function getDateAttendue(): ?DateTime {
         return $this->dateAttendue;
     }
 
-    public function setDateAttendue(?DateTimeInterface $dateAttendue): self
-    {
+    public function setDateAttendue(?DateTime $dateAttendue): self {
         $this->dateAttendue = $dateAttendue;
 
         return $this;

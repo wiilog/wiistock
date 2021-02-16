@@ -3,6 +3,7 @@
 namespace App\Helper;
 
 use App\Entity\Emplacement;
+use App\Entity\Fournisseur;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -27,6 +28,10 @@ class FormatHelper {
 
     public static function status(?Statut $status, $else = "") {
         return $status ? $status->getNom() : $else;
+    }
+
+    public static function provider(?Fournisseur $provider, $else = "") {
+        return $provider ? $provider->getNom() : $else;
     }
 
     public static function location(?Emplacement $location, $else = "") {

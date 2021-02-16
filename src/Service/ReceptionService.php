@@ -16,6 +16,7 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
@@ -24,7 +25,6 @@ use InvalidArgumentException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Routing\RouterInterface;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -226,11 +226,11 @@ class ReceptionService
     {
         return [
             "id" => ($reception->getId()),
-            "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
-            "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y H:i'),
-            "dateAttendue" => ($reception->getDateAttendue() ? $reception->getDateAttendue()->format('d/m/Y H:i'): '' ),
-            "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : ''),
-            "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
+            "Statut" => FormatHelper::status($reception->getStatut()),
+            "Date" => FormatHelper::datetime($reception->getDate()),
+            "dateAttendue" => FormatHelper::date($reception->getDateAttendue()),
+            "DateFin" => FormatHelper::datetime($reception->getDateFinReception()),
+            "Fournisseur" => FormatHelper::provider($reception->getFournisseur()),
             "Commentaire" => $reception->getCommentaire() ?: '',
             "receiver" => implode(', ', array_unique(
                 $reception->getDemandes()
@@ -244,7 +244,7 @@ class ReceptionService
             ),
             "number" => $reception->getNumber() ?: "",
             "orderNumber" => $reception->getOrderNumber() ?: "",
-            "storageLocation" => $reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : '',
+            "storageLocation" => FormatHelper::location($reception->getStorageLocation()),
             "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
             'Actions' => $this->templating->render(
                 'reception/datatableReceptionRow.html.twig',

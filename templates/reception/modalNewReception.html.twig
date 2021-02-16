@@ -12,8 +12,7 @@
                 <div class='row'>
                     {% if fieldsParam|isFieldRequired('dateCommande', 'displayedFormsCreate') %}
                         <div class="form-group col-6">
-                            <label for="dateCommande">Date
-                                commande{{ fieldsParam|isFieldRequired('dateCommande', 'mustToCreate') ? '*' : '' }}</label>
+                            <label for="dateCommande">Date commande{{ fieldsParam|isFieldRequired('dateCommande', 'mustToCreate') ? '*' : '' }}</label>
                             <input type="text"
                                    class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateCommande', 'mustToCreate') ? 'needed' : '' }}"
                                    name="dateCommande"
@@ -26,8 +25,7 @@
 
                     {% if fieldsParam|isFieldRequired('dateAttendue', 'displayedFormsCreate') %}
                         <div class="form-group col-6">
-                            <label for="dateAttendue">Date
-                                attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'mustToCreate') ? '*' : '' }}</label>
+                            <label for="dateAttendue">Date attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'mustToCreate') ? '*' : '' }}</label>
                             <input type="text"
                                    class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateAttendue', 'mustToCreate') ? 'needed' : '' }}"
                                    name="dateAttendue"
