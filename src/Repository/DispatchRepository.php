@@ -412,7 +412,6 @@ class DispatchRepository extends EntityRepository
             ->where('dispatch.endDate BETWEEN :dateMin AND :dateMax')
             ->setParameter('dateMin', $dateMin)
             ->setParameter('dateMax', $dateMax);
-
         if (!empty($dispatchStatusesFilter)) {
             $qb
                 ->andWhere('dispatch.statut IN (:dispatchStatuses)')

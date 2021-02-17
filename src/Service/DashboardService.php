@@ -797,8 +797,8 @@ class DashboardService {
     {
         $config = $component->getConfig();
 
-        $dispatchStatusesFilter = $config['handlingStatuses'] ?? [];
-        $dispatchTypesFilter = $config['handlingTypes'] ?? [];
+        $dispatchStatusesFilter = $config['dispatchStatuses'] ?? [];
+        $dispatchTypesFilter = $config['dispatchTypes'] ?? [];
         $scale = $config['scale'] ?? self::DEFAULT_DAILY_REQUESTS_SCALE;
         $period = $config['period'] ?? self::DAILY_PERIOD_PREVIOUS_DAYS;
 
@@ -816,7 +816,6 @@ class DashboardService {
             $workFreeDays,
             $period
         );
-
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter
             ->setData($chartData);
