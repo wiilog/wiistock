@@ -302,6 +302,10 @@ $rowNumberToDatatableHeight: (
             font-size: 1.0vw;
         }
 
+        .dashboard-stats-delay-title {
+            font-weight: normal !important;
+        }
+
         .dashboard-stats {
             font-weight: bold;
             color: $blueNeon;
