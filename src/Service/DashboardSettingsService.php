@@ -125,7 +125,10 @@ class DashboardSettingsService {
         $meterKey = $componentType->getMeterKey();
 
         $values['title'] = !empty($config['title']) ? $config['title'] : $componentType->getName();
-        $values['tooltip'] = !empty($config['tooltip']) ? $config['tooltip'] : $componentType->getHint();
+
+        if (!empty($config['tooltip'])) {
+            $values['tooltip'] = $config['tooltip'];
+        }
 
         $redirect = $config['redirect'] ?? false;
 
