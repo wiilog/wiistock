@@ -396,6 +396,10 @@ $rowNumberToDatatableHeight: (
     &.graph {
         min-height: 250px;
     }
+
+    .dashboard-box {
+        min-width: 250px;
+    }
 }
 
 .component-type-container {
