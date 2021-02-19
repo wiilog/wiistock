@@ -471,7 +471,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
 
     customContainerClass = customContainerClass || '';
 
-    const {title, subtitle, tooltip, count, delay, componentLink} = data;
+    const {title, subtitle, tooltip, count, delay, componentLink, emergency} = data;
     const element = componentLink ? '<a/>' : '<div/>';
     const customAttributes = componentLink
         ? {
@@ -480,7 +480,8 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
         }
         : {};
     const clickableClass = componentLink ? 'pointer' : '';
-
+    const needsEmergencyDisplay = emergency && count > 0;
+    const $emergencyIcon = needsEmergencyDisplay ? '<i class="fa fa-exclamation-triangle red"></i>' : '';
     return $(element, Object.assign({
         class: `dashboard-box dashboard-box-indicator text-center justify-content-around dashboard-stats-container ${customContainerClass}`,
         html: [
@@ -488,7 +489,10 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
             title
                 ? $('<div/>', {
                     class: `text-center title ${meterKey === ENTRIES_TO_HANDLE ? '' : 'ellipsis'}`,
-                    html: `${title.split('(')[0]}<p class="small ellipsis location-label">${subtitle || ''}</p>`
+                    html: $emergencyIcon
+                        +  `<span class="${needsEmergencyDisplay ? 'mx-3' : ''}">${title.split('(')[0]}</span>`
+                        + $emergencyIcon
+                        + `<p class="small ellipsis location-label">${subtitle || ''}</p>`
                 })
                 : undefined,
             subtitle && !title
@@ -499,8 +503,8 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
                 : undefined,
             count !== undefined
                 ? $('<div/>', {
-                    class: 'align-items-center',
-                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter">${(count || count === '0' || count === 0) ? count : '-'}</div>`
+                    class: `align-items-center`,
+                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter ${needsEmergencyDisplay ? 'red' : ''}">${(count || count === '0' || count === 0) ? count : '-'}</div>`
                 })
                 : undefined,
             delay

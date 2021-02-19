@@ -386,6 +386,7 @@ class DashboardSettingsService {
                                            DashboardMeter\Indicator $meter = null): array {
         $shouldShowTreatmentDelay = isset($config['withTreatmentDelay']) && $config['withTreatmentDelay'];
         $shouldShowLocationLabels = isset($config['withLocationLabels']) && $config['withLocationLabels'];
+        $emergency = isset($config['emergency']) && $config['emergency'];
         if ($example) {
             $values = $componentType->getExampleValues();
 
@@ -409,7 +410,7 @@ class DashboardSettingsService {
                 ];
             }
         }
-
+        $values['emergency'] = $emergency;
         if (!$shouldShowLocationLabels) {
             unset($values['subtitle']);
         } else if (empty($values['subtitle'])) {
