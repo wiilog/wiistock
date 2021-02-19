@@ -489,10 +489,12 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
             title
                 ? $('<div/>', {
                     class: `text-center title ${meterKey === ENTRIES_TO_HANDLE ? '' : 'ellipsis'}`,
-                    html: $emergencyIcon
-                        +  `<span class="${needsEmergencyDisplay ? 'mx-3' : ''}">${title.split('(')[0]}</span>`
-                        + $emergencyIcon
-                        + `<p class="small ellipsis location-label">${subtitle || ''}</p>`
+                    html: [
+                        $emergencyIcon,
+                        `<span class="${needsEmergencyDisplay ? 'mx-3' : ''}">${title.split('(')[0]}</span>`,
+                        $emergencyIcon,
+                        `<p class="small ellipsis location-label">${subtitle || ''}</p>`
+                    ]
                 })
                 : undefined,
             subtitle && !title
