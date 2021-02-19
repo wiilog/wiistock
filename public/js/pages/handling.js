@@ -40,6 +40,7 @@ let tableHandlingConfig = {
         // },
         { "data": 'carriedOutOperationCount', 'name': 'carriedOutOperationCount', 'title': 'services.Nombre d\'opération(s) réalisée(s)', translated: true },
         { "data": 'treatedBy', 'name': 'treatedBy', 'title': 'Traité par' },
+        { "data":  'receivers', 'name': 'receivers', 'title': 'Destinataire', orderable: false},
     ]
 };
 let tableHandling = initDataTable('tableHandling_id', tableHandlingConfig);
@@ -47,7 +48,8 @@ let tableHandling = initDataTable('tableHandling_id', tableHandlingConfig);
 $(function() {
     initDateTimePicker();
     Select2.init($('.filter-select2[name="statut"]'), 'Statuts');
-    Select2.user('Demandeurs');
+    Select2.user($('.filter-select2[name="utilisateurs"]'), 'Demandeurs');
+    Select2.user($('.filter-select2[name="receivers"]'), 'Destinataires');
     Select2.init($('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
 
     // applique les filtres si pré-remplis

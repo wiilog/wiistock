@@ -125,7 +125,7 @@ class HandlingRepository extends EntityRepository
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
         $queryBuilder = $this->createQueryBuilder('handling')
-            ->select('handling.id')
+            ->select('handling.id AS id')
             ->addSelect('handling.number AS number')
             ->addSelect('handling.creationDate AS creationDate')
             ->addSelect('join_requester.username AS requester')
@@ -218,6 +218,13 @@ class HandlingRepository extends EntityRepository
                 case 'subject':
                     $qb->andWhere('handling.subject LIKE :filter_subject')
                         ->setParameter('filter_subject', "%{$filter['value']}%");
+                    break;
+                case 'receivers':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('handling.receivers', 'filter_receivers')
+                        ->andWhere("filter_receivers.id in (:filter_receivers_username_value)")
+                        ->setParameter('filter_receivers_username_value', $value);
                     break;
             }
         }

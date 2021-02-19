@@ -18,6 +18,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
+use App\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DateService;
@@ -171,6 +172,7 @@ class HandlingController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+            $userRepository = $entityManager->getRepository(Utilisateur::class);
 
             $post = $request->request;
 
@@ -206,6 +208,14 @@ class HandlingController extends AbstractController
             if ($status && $status->isTreated()) {
                 $handling->setValidationDate($date);
                 $handling->setTreatedByHandling($requester);
+            }
+            $receivers = $post->get('receivers');
+            if(!empty($receivers)) {
+            $ids = explode ( "," , $receivers );
+
+                foreach ($ids as $id) {
+                    $handling->addReceiver($userRepository->find($id));
+                }
             }
 
             $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
@@ -290,7 +300,8 @@ class HandlingController extends AbstractController
                     : [],
                 'attachments' => $attachmentsRepository->findBy(['handling' => $handling]),
                 'fieldsParam' => $fieldsParam,
-                'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY)
+                'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
+                'receivers' => $handling->getReceivers()->toArray(),
             ]);
 
             return new JsonResponse($json);
@@ -320,7 +331,7 @@ class HandlingController extends AbstractController
                          HandlingService $handlingService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
-
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
         $post = $request->request;
 
         $handling = $handlingRepository->find($post->get('id'));
@@ -328,8 +339,20 @@ class HandlingController extends AbstractController
         $date = (new DateTime('now', new DateTimeZone('Europe/Paris')));
         $desiredDateStr = $post->get('desired-date');
         $desiredDate = $desiredDateStr ? FormatHelper::parseDatetime($desiredDateStr) : null;
+
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
+        $receivers = $post->get('receivers')? explode(",", $post->get('receivers')) : [];
+
+        $existingReceivers = $handling->getReceivers();
+        /** @var Utilisateur $receiver */
+        foreach($existingReceivers as $receiver) {
+            $handling->removeReceiver($receiver);
+        }
+
+        foreach ($receivers as $receiver) {
+            $handling->addReceiver($userRepository->find($receiver));
+        }
 
         $oldStatus = $handling->getStatus();
 
@@ -507,6 +530,7 @@ class HandlingController extends AbstractController
                     'urgence',
                     $translator->trans('services.Nombre d\'opération(s) réalisée(s)'),
                     'traité par',
+                    'destinataire(s)',
                     //'Temps de traitement opérateur'
                 ],
                 $freeFieldsConfig['freeFieldsHeader']
@@ -517,10 +541,14 @@ class HandlingController extends AbstractController
                 $globalTitle,
                 $handlings,
                 $csvHeader,
-                function ($handling) use ($freeFieldService, $freeFieldsConfig, $dateService, $includeDesiredTime) {
+                function ($handling) use ($freeFieldService, $freeFieldsConfig, $dateService, $includeDesiredTime,$handlingsRepository) {
 //                    $treatmentDelay = $handling['treatmentDelay'];
 //                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
 //                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
+                    $receivers = ($handlingsRepository->find($handling['id']))->getReceivers();
+                    $receiversStr = Stream::from($receivers)
+                        ->map(fn(Utilisateur $receiver) => $receiver->getUsername())
+                        ->join(",");
                     $row = [];
                     $row[] = $handling['number'] ?? '';
                     $row[] = FormatHelper::datetime($handling['creationDate']);
@@ -538,6 +566,7 @@ class HandlingController extends AbstractController
                     $row[] = $handling['emergency'] ?? '';
                     $row[] = $handling['carriedOutOperationCount'] ?? '';
                     $row[] = $handling['treatedBy'] ?? '';
+                    $row[] = $receiversStr ?? '';
 //                    $row[] = $treatmentDelayStr;
 
                     foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {

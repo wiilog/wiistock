@@ -107,10 +107,16 @@ class Handling extends FreeFieldEntity
      */
     private $treatedByHandling;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=Utilisateur::class, inversedBy="receivedHandlings")
+     */
+    private Collection $receivers;
+
     public function __construct()
     {
         $this->attachments = new ArrayCollection();
         $this->emergency = false;
+        $this->receivers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -320,5 +326,34 @@ class Handling extends FreeFieldEntity
 
     public function getCarriedOutOperationCount(): ?int {
         return $this->carriedOutOperationCount;
+    }
+
+    /**
+     * @return Collection|Utilisateur[]
+     */
+    public function getReceivers(): Collection
+    {
+        return $this->receivers;
+    }
+
+    public function addReceiver(Utilisateur $receiver): self
+    {
+        if (!$this->receivers->contains($receiver)) {
+            $this->receivers[] = $receiver;
+            if (!$receiver->getReceivedHandlings()->contains($this)) {
+                $receiver->addReceivedHandling($this);
+            }
+        }
+
+        return $this;
+    }
+
+    public function removeReceiver(Utilisateur $receiver): self
+    {
+        if ($this->receivers->removeElement($receiver)) {
+            $receiver->removeReceivedHandling($this);
+        }
+
+        return $this;
     }
 }

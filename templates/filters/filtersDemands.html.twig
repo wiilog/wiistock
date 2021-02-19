@@ -14,6 +14,9 @@
 
     {% if page == 'PAGE_HAND' %}
         {% include 'filters/filter_item/filterSubject.html.twig' %}
+        {% include 'filters/filter_item/filterUser.html.twig' with {
+            name: 'receivers'
+        }%}
     {% endif %}
 
     {% if emergencies is defined %}

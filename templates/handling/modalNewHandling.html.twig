@@ -62,6 +62,12 @@
                         </select>
                     </div>
 
+                    <div class="form-group col-4">
+                        <label>Destinataire</label>
+                        <select name="receivers" class="form-control data ajax-autocomplete-user receivers w-100" multiple>
+                        </select>
+                    </div>
+
                     {% set removeHourInDatetime = removeHourInDatetime is defined and removeHourInDatetime %}
                     <div class="form-group col-12">
                         <label for="desired-date">Date attendue*</label>
