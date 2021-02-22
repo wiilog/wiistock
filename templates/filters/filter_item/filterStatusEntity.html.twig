@@ -8,7 +8,7 @@
 
         <select hidden class="filter-input" name="statusEntity" {{ disabled }}>
             <option value>Entité</option>
-            {% for category in categories %}
+            {% for category in categories|sort((a, b) => a.nom <=> b.nom) %}
                 <option value="{{ category.id }}">
                     {{ category.nom }}
                 </option>

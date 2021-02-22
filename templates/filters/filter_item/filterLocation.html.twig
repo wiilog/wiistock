@@ -7,7 +7,7 @@
                     {{ disabled }}
                     {{ isPreFilled ? 'disabled' }}>
                 {% if isPreFilled %}
-                    {% for location in locationsFilter %}
+                    {% for location in locationsFilter|sort((a, b) => a.label <=> b.label) %}
                         <option selected value="{{ location.id }}">{{ location.label }}</option>
                     {% endfor %}
                 {% endif %}

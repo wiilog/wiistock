@@ -7,7 +7,7 @@
                         name="type" {{ disabled }}
                         id="type">
                     <option value> {{ arrivalType ? 'Type d\'arrivage' : 'Type' }}</option>
-                    {% for type in types %}
+                    {% for type in types |sort((a, b) => a.label <=> b.label) %}
                         <option value="{{ type.label }}">
                             {{ type.label }}
                         </option>
