@@ -163,6 +163,7 @@ class TransferOrderRepository extends EntityRepository {
             ->select('transfer_order.number')
             ->where('transfer_order.number LIKE :value')
             ->orderBy('transfer_order.creationDate', 'DESC')
+            ->addOrderBy('transfer_order.number', 'DESC')
             ->setParameter('value', TransferOrder::NUMBER_PREFIX . '-' . $date . '%')
             ->getQuery()
             ->getResult();
