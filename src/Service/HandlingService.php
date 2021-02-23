@@ -113,9 +113,6 @@ class HandlingService
 //        $treatmentDelay = $handling->getTreatmentDelay();
 //        $treatmentDelayInterval = $treatmentDelay ? $this->dateService->secondsToDateInterval($treatmentDelay) : null;
 //        $treatmentDelayStr = $treatmentDelayInterval ? $this->dateService->intervalToStr($treatmentDelayInterval) : '';
-        $receivers = Stream::from($handling->getReceivers())
-            ->map(fn(Utilisateur $receiver) => $receiver->getEmail())
-            ->join(",");
         return [
             'id' => $handling->getId() ? $handling->getId() : 'Non défini',
             'number' => $handling->getNumber() ? $handling->getNumber() : '',
@@ -123,7 +120,7 @@ class HandlingService
             'type' => $handling->getType() ? $handling->getType()->getLabel() : '',
             'requester' => $handling->getRequester() ? $handling->getRequester()->getUserName() : null,
             'subject' => $handling->getSubject() ? $handling->getSubject() : '',
-            "receivers" => $receivers,
+            "receivers" => FormatHelper::users($handling->getReceivers()->toArray()),
             'desiredDate' => $includeDesiredTime
                 ? FormatHelper::datetime($handling->getDesiredDate())
                 : FormatHelper::date($handling->getDesiredDate()),

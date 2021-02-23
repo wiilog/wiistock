@@ -6,6 +6,7 @@ use App\Entity\AverageRequestTime;
 use App\Entity\Handling;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -421,5 +422,39 @@ class HandlingRepository extends EntityRepository
         else {
             return null;
         }
+    }
+
+    public function getReceiversByDates(DateTime $dateMin,
+                                        DateTime $dateMax) {
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+
+        $queryBuilder = $this->createQueryBuilder('handling')
+            ->select('handling.id AS id')
+            ->addSelect('join_receiver.username AS username')
+            ->join('handling.receivers', 'join_receiver')
+            ->where('handling.creationDate BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        $res = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
+        return Stream::from($res)
+            ->reduce(function (array $carry, array $handling) {
+                $id = $handling['id'];
+                $username = $handling['username'];
+
+                if (!isset($carry[$id])) {
+                    $carry[$id] = [];
+                }
+
+                $carry[$id][] = $username;
+
+                return $carry;
+            }, []);
     }
 }

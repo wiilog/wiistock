@@ -16,80 +16,80 @@
             {{ statusDisabled ? 'disabled' }}
             class="form-control data d-block needed"
             title="Statut">
-        {% if handling.status is not null %}
-            <option selected value="{{ handling.status.id }}">{{ handling.status.nom }}</option>
-        {% endif %}
-        {% if not statusDisabled %}
-            {% for status in handlingStatus %}
-                {% if status.id != handling.status.id %}
-                    {% if
-                        (
-                        status.state == constant('App\\Entity\\Statut::TREATED')
-                        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::TREAT_HANDLING'))
-                        ) or status.state != constant('App\\Entity\\Statut::TREATED')
-                    %}
-                        <option value="{{ status.id }}">{{ status.nom }}</option>
+            {% if handling.status is not null %}
+                <option selected value="{{ handling.status.id }}">{{ handling.status.nom }}</option>
+            {% endif %}
+            {% if not statusDisabled %}
+                {% for status in handlingStatus %}
+                    {% if status.id != handling.status.id %}
+                        {% if
+                            (
+                            status.state == constant('App\\Entity\\Statut::TREATED')
+                            and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::TREAT_HANDLING'))
+                            ) or status.state != constant('App\\Entity\\Statut::TREATED')
+                        %}
+                            <option value="{{ status.id }}">{{ status.nom }}</option>
+                        {% endif %}
                     {% endif %}
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-    </select>
-</div>
-
-<div class="form-group needed col-md-6 col-12">
-    <label for="subject">{{ 'services.Objet'|trans }}*</label>
-    <input class="form-control data needed" name="subject" value="{{ handling.subject }}">
-</div>
-
-<div class="form-group needed col-md-6 col-12">
-    <label for="requester">Demandeur</label>
-    <select class="demandeur form-control data needed input" name="requester" disabled>
-        <option value="{{ handling.requester.id }}">{{ handling.requester.username }}</option>
-    </select>
-</div>
-
-{% set removeHourInDatetime = removeHourInDatetime is defined and removeHourInDatetime %}
-{% set desiredDateFormat = removeHourInDatetime ? 'Y-m-d' : 'Y-m-d\\TH:i' %}
-<div class="form-group col-md-6 col-12">
-    <label for="desired-date">Date attendue</label>
-    <input class="form-control data needed"
-           type="{{ removeHourInDatetime ? 'date' : 'datetime-local' }}"
-           value="{{ handling.desiredDate | date(desiredDateFormat) }}"
-           name="desired-date"
-           min="{{ 'now' | date(desiredDateFormat) }}">
-</div>
-
-{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
-{% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
-    <div class="form-group col-md-6 col-12">
-        <label>Urgence{{ required ? '*' }}</label>
-        <div class="w-100">
-            <select
-                class="form-control input-sm data {{ required ? 'needed' : '' }}"
-                name="emergency">
-                <option value="">Non urgent</option>
-
-                {% if handling.emergency and handling.emergency not in emergencies %}
-                    <option value="{{ handling.emergency }}" selected>{{ handling.emergency }}</option>
-                {% endif %}
-
-                {% for emergency in emergencies %}
-                    <option value="{{ emergency }}" {% if handling.emergency == emergency %}selected{% endif %}>{{ emergency }}</option>
                 {% endfor %}
-            </select>
-        </div>
+            {% endif %}
+        </select>
     </div>
-{% endif %}
 
-{% set validationDate = handling.validationDate ? handling.validationDate|date('Y-m-d\\TH:i') : '' %}
-<div class="form-group col-md-6 col-12">
-    <label for="desired-date">Date de réalisation</label>
-    <input class="form-control needed"
-           type="datetime-local"
-           value="{{ validationDate }}"
-           disabled>
-</div>
+    <div class="form-group needed col-md-6 col-12">
+        <label for="subject">{{ 'services.Objet'|trans }}*</label>
+        <input class="form-control data needed" name="subject" value="{{ handling.subject }}">
+    </div>
+
+    <div class="form-group needed col-md-6 col-12">
+        <label for="requester">Demandeur</label>
+        <select class="demandeur form-control data needed input" name="requester" disabled>
+            <option value="{{ handling.requester.id }}">{{ handling.requester.username }}</option>
+        </select>
+    </div>
+
+    {% set removeHourInDatetime = removeHourInDatetime is defined and removeHourInDatetime %}
+    {% set desiredDateFormat = removeHourInDatetime ? 'Y-m-d' : 'Y-m-d\\TH:i' %}
+    <div class="form-group col-md-6 col-12">
+        <label for="desired-date">Date attendue</label>
+        <input class="form-control data needed"
+               type="{{ removeHourInDatetime ? 'date' : 'datetime-local' }}"
+               value="{{ handling.desiredDate | date(desiredDateFormat) }}"
+               name="desired-date"
+               min="{{ 'now' | date(desiredDateFormat) }}">
+    </div>
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+        <div class="form-group col-md-6 col-12">
+            <label>Urgence{{ required ? '*' }}</label>
+            <div class="w-100">
+                <select
+                    class="form-control input-sm data {{ required ? 'needed' : '' }}"
+                    name="emergency">
+                    <option value="">Non urgent</option>
+
+                    {% if handling.emergency and handling.emergency not in emergencies %}
+                        <option value="{{ handling.emergency }}" selected>{{ handling.emergency }}</option>
+                    {% endif %}
+
+                    {% for emergency in emergencies %}
+                        <option value="{{ emergency }}" {% if handling.emergency == emergency %}selected{% endif %}>{{ emergency }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    {% endif %}
+
+    {% set validationDate = handling.validationDate ? handling.validationDate|date('Y-m-d\\TH:i') : '' %}
+    <div class="form-group col-md-6 col-12">
+        <label for="desired-date">Date de réalisation</label>
+        <input class="form-control needed"
+               type="datetime-local"
+               value="{{ validationDate }}"
+               disabled>
+    </div>
 {#<div class="form-group col-md-6 col-12">#}
 {#    <label title="Temps entre l’ouverture de la demande sur la nomade et la validation de cette dernière">Temps de traitement opérateur</label>#}
 {#    <input class="form-control"#}
@@ -99,38 +99,54 @@
 {#           disabled>#}
 {#</div>#}
 
-{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOADING_ZONE') %}
-{% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-    <div class="form-group col-md-6 col-12">
-        <label for="source">Chargement{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
-        <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }} input"
-               value="{{ handling.source }}"
-               name="source">
-    </div>
-{% endif %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOADING_ZONE') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
+        <div class="form-group col-md-6 col-12">
+            <label for="source">Chargement{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
+            <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }} input"
+                   value="{{ handling.source }}"
+                   name="source">
+        </div>
+    {% endif %}
 
-{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_UNLOADING_ZONE') %}
-{% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-    <div class="form-group col-md-6 col-12">
-        <label for="destination">Déchargement{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
-        <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }} input"
-               value="{{ handling.destination }}"
-               name="destination">
-    </div>
-{% endif %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_UNLOADING_ZONE') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
+        <div class="form-group col-md-6 col-12">
+            <label for="destination">Déchargement{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
+            <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }} input"
+                   value="{{ handling.destination }}"
+                   name="destination">
+        </div>
+    {% endif %}
 
-{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
-{% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-    {% set carriedOutOperationCount = handling.carriedOutOperationCount is null ? '' : handling.carriedOutOperationCount %}
-    <div class="form-group col-md-6 col-12">
-        <label for="carriedOutOperationCount">{{ 'services.Nombre d\'opération(s) réalisée(s)'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' }}</label>
-        <input type="number"
-               min="0"
-               class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' }} input"
-               value="{{ carriedOutOperationCount }}"
-               name="carriedOutOperationCount">
-    </div>
-{% endif %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
+        {% set carriedOutOperationCount = handling.carriedOutOperationCount is null ? '' : handling.carriedOutOperationCount %}
+        <div class="form-group col-md-6 col-12">
+            <label for="carriedOutOperationCount">{{ 'services.Nombre d\'opération(s) réalisée(s)'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' }}</label>
+            <input type="number"
+                   min="0"
+                   class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' }} input"
+                   value="{{ carriedOutOperationCount }}"
+                   name="carriedOutOperationCount">
+        </div>
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
+        <div class="form-group col-4">
+            <label>Destinataires{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' }}</label>
+            <select name="receivers"
+                    class="form-control data ajax-autocomplete-user-edit w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed'}}"
+                    multiple>
+                {% if receivers is not empty %}
+                    {% for receiver in receivers %}
+                        <option value="{{ receiver.id }}" selected>{{ receiver.username }}</option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+        </div>
+    {% endif %}
 
     {% if handling.type is not null and handling.type.champsLibres.count > 0 %}
         <div class="col-12">
@@ -146,17 +162,6 @@
             </div>
         </div>
     {% endif %}
-
-    <div class="form-group col-4">
-        <label>Gestionnaires</label>
-        <select name="receivers" class="form-control data ajax-autocomplete-user-edit w-100" multiple>
-            {% if receivers is not empty %}
-                {% for receiver in receivers %}
-                    <option value="{{ receiver.id }}" selected>{{ receiver.username }}</option>
-                {% endfor %}
-            {% endif %}
-        </select>
-    </div>
 
     <div class="form-group col-md-8 col-12">
         <label for="commentaire">Commentaire</label>

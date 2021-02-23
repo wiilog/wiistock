@@ -98,12 +98,14 @@ class FieldsParam
     const FIELD_CODE_LOADING_ZONE = 'loadingZone';
     const FIELD_CODE_UNLOADING_ZONE = 'unloadingZone';
     const FIELD_CODE_CARRIED_OUT_OPERATION_COUNT = 'carriedOutOperationCount';
+    const FIELD_CODE_RECEIVERS_HANDLING = 'receivers';
 
     const FIELD_LABEL_LOADING_ZONE = 'chargement';
     const FIELD_LABEL_UNLOADING_ZONE = 'déchargement';
     const FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT = 'nombre d\'opération(s) réalisée(s)';
+    const FIELD_LABEL_RECEIVERS_HANDLING = 'destinataires';
 
-	/**
+    /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")

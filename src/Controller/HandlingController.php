@@ -211,10 +211,13 @@ class HandlingController extends AbstractController
             }
             $receivers = $post->get('receivers');
             if(!empty($receivers)) {
-            $ids = explode ( "," , $receivers );
+                $ids = explode("," , $receivers);
 
                 foreach ($ids as $id) {
-                    $handling->addReceiver($userRepository->find($id));
+                    $receiver = $id ? $userRepository->find($id) : null;
+                    if ($receiver) {
+                        $handling->addReceiver($receiver);
+                    }
                 }
             }
 
@@ -342,7 +345,9 @@ class HandlingController extends AbstractController
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $receivers = $post->get('receivers')? explode(",", $post->get('receivers')) : [];
+        $receivers = $post->get('receivers')
+            ? explode(",", $post->get('receivers') ?? '')
+            : [];
 
         $existingReceivers = $handling->getReceivers();
         /** @var Utilisateur $receiver */
@@ -350,8 +355,11 @@ class HandlingController extends AbstractController
             $handling->removeReceiver($receiver);
         }
 
-        foreach ($receivers as $receiver) {
-            $handling->addReceiver($userRepository->find($receiver));
+        foreach ($receivers as $receiverId) {
+            $receiver = $receiverId ? $userRepository->find($receiverId) : null;
+            if ($receiver) {
+                $handling->addReceiver($receiver);
+            }
         }
 
         $oldStatus = $handling->getStatus();
@@ -508,31 +516,42 @@ class HandlingController extends AbstractController
         if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $handlingsRepository = $entityManager->getRepository(Handling::class);
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
             $includeDesiredTime = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
 
+            $handlingParameters = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
+            $receiversParameters = $handlingParameters[FieldsParam::FIELD_CODE_RECEIVERS_HANDLING];
+
             $handlings = $handlingsRepository->getByDates($dateTimeMin, $dateTimeMax);
+            $receivers = $handlingsRepository->getReceiversByDates($dateTimeMin, $dateTimeMax);
             $currentDate = new DateTime('now');
+
+            $csvHeaderBase = [
+                'numéro de demande',
+                'date création',
+                'demandeur',
+                'type',
+                $translator->trans('services.Objet'),
+                'chargement',
+                'déchargement',
+                'date attendue',
+                'date de réalisation',
+                'statut',
+                'commentaire',
+                'urgence',
+                $translator->trans('services.Nombre d\'opération(s) réalisée(s)'),
+                'traité par',
+            ];
+
             $csvHeader = array_merge(
-                [
-                    'numéro de demande',
-                    'date création',
-                    'demandeur',
-                    'type',
-                    $translator->trans('services.Objet'),
-                    'chargement',
-                    'déchargement',
-                    'date attendue',
-                    'date de réalisation',
-                    'statut',
-                    'commentaire',
-                    'urgence',
-                    $translator->trans('services.Nombre d\'opération(s) réalisée(s)'),
-                    'traité par',
-                    'destinataire(s)',
-                    //'Temps de traitement opérateur'
-                ],
+                $csvHeaderBase,
+                ($receiversParameters['displayedFormsCreate'] ?? false
+                    || $receiversParameters['displayedFormsEdit'] ?? false
+                    ||  $receiversParameters['displayedFilters'] ?? false)
+                    ? ['destinataire(s)']
+                    : [],
                 $freeFieldsConfig['freeFieldsHeader']
             );
 
@@ -541,14 +560,13 @@ class HandlingController extends AbstractController
                 $globalTitle,
                 $handlings,
                 $csvHeader,
-                function ($handling) use ($freeFieldService, $freeFieldsConfig, $dateService, $includeDesiredTime,$handlingsRepository) {
+                function ($handling) use ($freeFieldService, $freeFieldsConfig, $dateService, $includeDesiredTime, $receivers) {
 //                    $treatmentDelay = $handling['treatmentDelay'];
 //                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
 //                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
-                    $receivers = ($handlingsRepository->find($handling['id']))->getReceivers();
-                    $receiversStr = Stream::from($receivers)
-                        ->map(fn(Utilisateur $receiver) => $receiver->getUsername())
-                        ->join(",");
+                    $id = $handling['id'];
+                    $receiversStr = Stream::from($receivers[$id] ?? [])
+                        ->join(", ");
                     $row = [];
                     $row[] = $handling['number'] ?? '';
                     $row[] = FormatHelper::datetime($handling['creationDate']);

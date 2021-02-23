@@ -62,12 +62,6 @@
                         </select>
                     </div>
 
-                    <div class="form-group col-4">
-                        <label>Destinataire</label>
-                        <select name="receivers" class="form-control data ajax-autocomplete-user receivers w-100" multiple>
-                        </select>
-                    </div>
-
                     {% set removeHourInDatetime = removeHourInDatetime is defined and removeHourInDatetime %}
                     <div class="form-group col-12">
                         <label for="desired-date">Date attendue*</label>
@@ -121,6 +115,16 @@
                                    min="0"
                                    class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' }}"
                                    name="carriedOutOperationCount">
+                        </div>
+                    {% endif %}
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                        <div class="form-group col-md-6 col-12">
+                            <label>Destinataires{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' }}</label>
+                            <select name="receivers"
+                                    class="form-control data ajax-autocomplete-user receivers w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' }}"
+                                    multiple>
+                            </select>
                         </div>
                     {% endif %}
 

@@ -13,6 +13,13 @@
 {% endblock %}
 
 {% block page_content %}
+    {% set fieldCodeReceiversHandling = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
+    <input type="hidden"
+           id="showReceiversColumn"
+           value="{{ (fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFormsCreate')
+                     or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFormsEdit')
+                     or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFilters')) ? 1 : 0 }}"/>
+
     <input type="hidden"
            data-id=""
            data-target='#modalEditHandling'
