@@ -35,6 +35,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->where('u.username LIKE :search')
             ->andWhere('u.status = true')
             ->setParameter('search', '%' . $search . '%')
+            ->orderBy('u.username','ASC')
             ->getQuery()
             ->execute();
     }

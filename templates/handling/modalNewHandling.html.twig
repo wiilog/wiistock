@@ -19,7 +19,7 @@
                                 onchange="onTypeChange($(this))">
                             <option value="">Type à choisir...</option>
                             {% set typeIsUnique = freeFieldsTypes | length == 1 %}
-                            {% for type in freeFieldsTypes %}
+                            {% for type in freeFieldsTypes |sort((a, b) => a.typeLabel <=> b.typeLabel) %}
                                 <option value="{{ type.typeId }}" {{ typeIsUnique ? 'selected' }}>{{ type.typeLabel }}</option>
                             {% endfor %}
                         </select>
