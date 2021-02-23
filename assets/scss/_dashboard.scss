@@ -304,7 +304,6 @@ $rowNumberToDatatableHeight: (
 
         .dashboard-stats-delay-title {
             font-weight: normal !important;
-            font-size: 1.7vw !important;
         }
 
         .dashboard-stats {
@@ -316,16 +315,12 @@ $rowNumberToDatatableHeight: (
             line-height: 0.8;
 
             &.dashboard-stats-delay {
-                font-size: 1.5rem;
+                font-size: 1.6vw;
             }
 
             &.dashboard-stats-counter {
                 font-size: 2vw;
                 word-wrap: break-word;
-            }
-
-            &.dashboard-stats-label {
-                font-size: 1.5rem;
             }
 
             @media (max-width: $responsive-breakpoint) {
