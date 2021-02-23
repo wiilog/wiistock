@@ -52,6 +52,7 @@ class ReceptionRepository extends EntityRepository
             ->select('reception.number AS number')
             ->where('reception.number LIKE :value')
             ->orderBy('reception.date', 'DESC')
+            ->addOrderBy('reception.number', 'DESC')
             ->addOrderBy('reception.id', 'DESC')
             ->setParameter('value', Reception::PREFIX_NUMBER . $date . '%')
             ->getQuery()

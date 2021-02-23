@@ -481,6 +481,7 @@ class LitigeRepository extends EntityRepository
             ->select('dispute.numeroLitige')
             ->where('dispute.numeroLitige LIKE :value')
             ->orderBy('dispute.creationDate', 'DESC')
+            ->addOrderBy('dispute.numeroLitige', 'DESC')
             ->setParameter('value', $prefix . '-' . $date . '%')
             ->getQuery()
             ->execute();
