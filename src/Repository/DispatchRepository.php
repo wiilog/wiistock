@@ -227,6 +227,7 @@ class DispatchRepository extends EntityRepository
             ->select('dispatch.number')
             ->where('dispatch.number LIKE :value')
             ->orderBy('dispatch.creationDate', 'DESC')
+            ->addOrderBy('dispatch.number', 'DESC')
             ->setParameter('value', Dispatch::PREFIX_NUMBER . '-' . $date . '%')
             ->getQuery()
             ->execute();

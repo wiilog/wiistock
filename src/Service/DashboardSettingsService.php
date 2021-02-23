@@ -386,6 +386,7 @@ class DashboardSettingsService {
                                            DashboardMeter\Indicator $meter = null): array {
         $shouldShowTreatmentDelay = isset($config['withTreatmentDelay']) && $config['withTreatmentDelay'];
         $shouldShowLocationLabels = isset($config['withLocationLabels']) && $config['withLocationLabels'];
+        $emergency = isset($config['emergency']) && $config['emergency'];
         if ($example) {
             $values = $componentType->getExampleValues();
 
@@ -409,7 +410,7 @@ class DashboardSettingsService {
                 ];
             }
         }
-
+        $values['emergency'] = $emergency;
         if (!$shouldShowLocationLabels) {
             unset($values['subtitle']);
         } else if (empty($values['subtitle'])) {
@@ -749,13 +750,14 @@ class DashboardSettingsService {
     private function validateComponentConfig(Dashboard\ComponentType $componentType,
                                              array $config) {
         if ($componentType->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE) {
-            if (empty($config['segments']) || count($config['segments']) < 2) {
-                throw new InvalidArgumentException(self::INVALID_SEGMENTS_ENTRY . '-' . $config['title']);
+            $errorMessage = self::INVALID_SEGMENTS_ENTRY . '-' . $config['title'];
+            if (empty($config['segments']) || count($config['segments']) < 1) {
+                throw new InvalidArgumentException($errorMessage);
             } else {
                 $previousSegment = 0;
                 foreach ($config['segments'] as $segment) {
                     if ($previousSegment > $segment) {
-                        throw new InvalidArgumentException(self::INVALID_SEGMENTS_ENTRY . '-' . $config['title']);
+                        throw new InvalidArgumentException($errorMessage);
                     } else {
                         $previousSegment = $segment;
                     }

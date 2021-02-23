@@ -183,6 +183,7 @@ class TransferRequestRepository extends EntityRepository {
             ->select('transfer_request.number')
             ->where('transfer_request.number LIKE :value')
             ->orderBy('transfer_request.creationDate', 'DESC')
+            ->addOrderBy('transfer_request.number', 'DESC')
             ->setParameter('value', TransferRequest::NUMBER_PREFIX . '-' . $date . '%')
             ->getQuery()
             ->getResult();

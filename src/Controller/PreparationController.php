@@ -431,11 +431,11 @@ class PreparationController extends AbstractController
                 $preparation = $preparationRepository->find($data['preparation']);
 
                 $articles = [];
-                $pickedQuantity = 0;
+                $pickedQuantities = 0;
                 foreach ($data['articles'] as $idArticle => $pickedQuantity) {
                     $article = $articleRepository->find($idArticle);
                     if ($pickedQuantity >= 0 && $pickedQuantity <= $article->getQuantite()) {
-                        $pickedQuantity += $pickedQuantity;
+                        $pickedQuantities += (int) $pickedQuantity;
                         $articles[$idArticle] = $article;
                     }
                     else {
@@ -452,7 +452,7 @@ class PreparationController extends AbstractController
                 /** @var LigneArticlePreparation $ligneArticle */
                 $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($refArticle, $preparation);
 
-                if ($pickedQuantity > $ligneArticle->getQuantite()) {
+                if ($pickedQuantities > $ligneArticle->getQuantite()) {
                     return $this->json([
                         'success' => false,
                         'msg' => 'Vous avez trop sélectionné d\'article.'
