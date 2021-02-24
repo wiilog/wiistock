@@ -58,9 +58,10 @@ class HandlingRepository extends EntityRepository
 
     /**
      * @param int[] $typeIds
+     * @param callable $customFieldsFactory
      * @return int|mixed|string
      */
-    public function getMobileHandlingsByUserTypes(array $typeIds) {
+    public function getMobileHandlingsByUserTypes(array $typeIds, callable $customFieldsFactory) {
 
         $queryBuilder = $this->createQueryBuilder('handling');
         $queryBuilder
@@ -87,9 +88,12 @@ class HandlingRepository extends EntityRepository
             ->setParameter('treatedId', Statut::TREATED);
 
         return array_map(
-            function (array $handling): array {
+            function (array $handling) use ($customFieldsFactory): array {
+                $customFields = $customFieldsFactory($handling);
+
                 $handling['desiredDate'] = $handling['desiredDate'] ? $handling['desiredDate']->format('d/m/Y H:i:s') : null;
                 $handling['comment'] = $handling['comment'] ? strip_tags($handling['comment']) : null;
+                $handling += $customFields;
                 return $handling;
             },
             $queryBuilder->getQuery()->getResult()

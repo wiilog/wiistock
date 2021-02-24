@@ -1301,6 +1301,7 @@ class ApiController extends AbstractFOSRestController {
         $attachmentRepository = $entityManager->getRepository(Attachment::class);
         $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1386,7 +1387,32 @@ class ApiController extends AbstractFOSRestController {
         }
 
         if($rights['demande']) {
-            $handlings = $handlingRepository->getMobileHandlingsByUserTypes($user->getHandlingTypeIds());
+
+            $handlingExpectedDateColors = [
+                'after' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_AFTER),
+                'DDay' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_D_DAY),
+                'before' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_BEFORE)
+            ];
+
+            $nowStr = (new DateTime('now', new DateTimeZone('Europe/Paris')))->format('Y-m-d');
+            $handlings = $handlingRepository->getMobileHandlingsByUserTypes($user->getHandlingTypeIds(), function (array $handling) use ($nowStr, $handlingExpectedDateColors) {
+                $desiredDateStr = !empty($handling['desiredDate']) ? $handling['desiredDate']->format('Y-m-d') : null;
+                $color = null;
+                if ($desiredDateStr) {
+                    if ($desiredDateStr > $nowStr && isset($handlingExpectedDateColors['after'])) {
+                        $color = $handlingExpectedDateColors['after'];
+                    }
+                    if ($desiredDateStr === $nowStr && isset($handlingExpectedDateColors['DDay'])) {
+                        $color = $handlingExpectedDateColors['DDay'];
+                    }
+                    if ($desiredDateStr < $nowStr && isset($handlingExpectedDateColors['before'])) {
+                        $color = $handlingExpectedDateColors['before'];
+                    }
+                }
+                return [
+                    'color' => $color
+                ];
+            });
             $handlingIds = array_map(function(array $handling) {
                 return $handling['id'];
             }, $handlings);
