@@ -34,6 +34,12 @@ const resetLogos = {
     nomadeAccueil: false,
     nomadeHeader: false,
 }
+const handlingColorHasChanged = {
+    after: false,
+    DDay: false,
+    before: false
+};
+
 
 $(function () {
     Select2.init($('#locationArrivageDest'));
@@ -538,4 +544,32 @@ function onResetLogoClicked($button) {
     const name = $button.data('name');
     resetLogos[name] = true;
 
+}
+
+function saveHandlingParams() {
+    const $form = $('#handlingSettings');
+
+    const $removeHoursDateTimeSwitch = $form.find('[name="removeHoursDateTime"]');
+    const $expectedDateColorAfter = $form.find('[name="expectedDateColorAfter"]');
+    const $expectedDateColorDDay = $form.find('[name="expectedDateColorDDay"]');
+    const $expectedDateColorBefore = $form.find('[name="expectedDateColorBefore"]');
+
+    Promise.all([
+        $.post(Routing.generate('toggle_params', true), JSON.stringify({val: $removeHoursDateTimeSwitch.is(':checked'), param: $removeHoursDateTimeSwitch.data('param')})),
+        ...(handlingColorHasChanged.after
+            ? [$.post(Routing.generate('toggle_params'), JSON.stringify({param: 'HANDLING_EXPECTED_DATE_COLOR_AFTER', val: $expectedDateColorAfter.val()}))]
+            : []),
+        ...(handlingColorHasChanged.DDay
+            ? [$.post(Routing.generate('toggle_params'), JSON.stringify({param: 'HANDLING_EXPECTED_DATE_COLOR_D_DAY', val: $expectedDateColorDDay.val()}))]
+            : []),
+        ...(handlingColorHasChanged.before
+            ? [$.post(Routing.generate('toggle_params'), JSON.stringify({param: 'HANDLING_EXPECTED_DATE_COLOR_BEFORE', val: $expectedDateColorBefore.val()}))]
+            : [])
+    ]).then(function (responses) {
+        if (responses.every(result => result)) {
+            showBSAlert('La modification du paramétrage a bien été prise en compte.', 'success');
+        } else {
+            showBSAlert('Une erreur est survenue lors de la modification du paramétrage.', 'danger');
+        }
+    });
 }

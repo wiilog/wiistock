@@ -6,16 +6,69 @@
     </h1>
 </a>
 <div class="collapse col-12 mb-3" id="handlingSettings">
-    <div class="row mt-2">
-        <div class="col-12">
+    <div class="float-right btn btn-success" onclick="saveHandlingParams()">
+        <i class='fas fa-check'></i>
+    </div>
+    <div class="row">
+        <div class="col-12 my-3">
             {% set checked = (removeHourInDatetime ? 'checked' : '') %}
             <label class="switch">
-                <input type="checkbox" class="checkbox col-3" {{ checked }}
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::REMOVE_HOURS_DATETIME') }}"
-                       onchange="updateToggledParam($(this))">
+                <input type="checkbox"
+                       name="removeHoursDateTime"
+                       class="checkbox col-3"
+                       {{ checked }}
+                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::REMOVE_HOURS_DATETIME') }}">
                 <span class="slider round"></span>
             </label>
             <label class="pl-1">Enlever les heures de la date attendue</label>
+        </div>
+        <div class="col-12">
+            <div class="row">
+                <div class="col-lg-4 col-12">
+                    <div class="form-group row justify-content-between align-items-center">
+                        <label class="col">Date attendue +1 jour</label>
+                        <div class="col-5 col-lg-3">
+                            <input type="color"
+                                   class="data form-control"
+                                   name="expectedDateColorAfter"
+                                   value="{{ expectedDateColors.after ? expectedDateColors.after }}"
+                                   onchange="handlingColorHasChanged.after = true">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="row">
+                <div class="col-lg-4 col-12">
+                    <div class="form-group row justify-content-between align-items-center">
+                        <label class="col">Date attendue Jour J</label>
+                        <div class="col-5 col-lg-3">
+                            <input type="color"
+                                   class="data form-control"
+                                   name="expectedDateColorDDay"
+                                   value="{{ expectedDateColors.DDay ? expectedDateColors.DDay }}"
+                                   onchange="handlingColorHasChanged.DDay = true">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="row">
+                <div class="col-lg-4 col-12">
+                    <div class="form-group row justify-content-between align-items-center">
+                        <label class="col">Date attendue -1 Jour</label>
+                        <div class="col-5 col-lg-3">
+                            <input type="color"
+                                   class="data form-control"
+                                   name="expectedDateColorBefore"
+                                   value="{{ expectedDateColors.before ? expectedDateColors.before }}"
+                                   onchange="handlingColorHasChanged.before = true">
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
