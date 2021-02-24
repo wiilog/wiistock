@@ -175,7 +175,8 @@ class DashboardSettingsService {
                 $values += $this->serializeDailyDispatches($componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::DAILY_HANDLING:
-                $values += $this->serializeDailyHandling($componentType, $config, $example, $meter);
+            case Dashboard\ComponentType::DAILY_OPERATIONS:
+                $values += $this->serializeDailyHandlingOrOperations($componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::REQUESTS_TO_TREAT:
             case Dashboard\ComponentType::ORDERS_TO_TREAT:
@@ -571,10 +572,11 @@ class DashboardSettingsService {
      * @param DashboardMeter\Chart|null $chart
      * @return array
      */
-    private function serializeDailyHandling(Dashboard\ComponentType $componentType,
-                                            array $config,
-                                            bool $example = false,
-                                            DashboardMeter\Chart $chart = null): array {
+    private function serializeDailyHandlingOrOperations(Dashboard\ComponentType $componentType,
+                                                        array $config,
+                                                        bool $example = false,
+                                                        DashboardMeter\Chart $chart = null): array {
+        $separateType = isset($config['separateType']) && $config['separateType'];
 
         if (!$example) {
             if ($chart) {
@@ -586,8 +588,7 @@ class DashboardSettingsService {
             $values = $componentType->getExampleValues();
 
             $scale = $config['daysNumber'] ?? DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE;
-
-            $chartData = $values['chartData'] ?? [];
+            $chartData = $separateType ? ($values['chartDataMultiple'] ?? []) : ($values['chartData'] ?? []);
             $keysToKeep = array_slice(array_keys($chartData), 0, $scale);
             $chartData = Stream::from($keysToKeep)
                 ->reduce(function(array $carry, string $key) use ($chartData) {
@@ -596,9 +597,9 @@ class DashboardSettingsService {
                     }
                     return $carry;
                 }, []);
-
             $values['chartData'] = $chartData;
         }
+        $values['multiple'] = $separateType;
         return $values;
     }
 
