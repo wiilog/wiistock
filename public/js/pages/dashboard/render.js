@@ -132,9 +132,8 @@ function renderComponent(component, $container, data) {
             const isCardExample = $container.parents('#modalComponentTypeSecondStep').length > 0;
             const $canvas = $element.find('canvas');
             const $table = $element.find('table');
-
             if($canvas.length > 0) {
-                if(!$canvas.hasClass('multiple')) {
+                if(!$canvas.hasClass('multiple') && !data.multiple) {
                     createAndUpdateSimpleChart(
                         $canvas,
                         null,

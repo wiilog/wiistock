@@ -30,6 +30,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
+use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
 use App\Entity\Wiilock;
@@ -377,7 +378,7 @@ class DashboardService {
      * @param string $class
      * @return DashboardMeter\Indicator|DashboardMeter\Chart
      */
-    private function persistDashboardMeter(EntityManagerInterface $entityManager,
+    public function persistDashboardMeter(EntityManagerInterface $entityManager,
                                            Dashboard\Component $component,
                                            string $class) {
 
@@ -706,36 +707,57 @@ class DashboardService {
     /**
      * @param EntityManagerInterface $entityManager
      * @param Dashboard\Component $component
-     * @throws Exception
+     * @return
      */
     public function persistDailyHandling(EntityManagerInterface $entityManager,
-                                         Dashboard\Component $component): void {
+                                         Dashboard\Component $component) {
         $config = $component->getConfig();
 
         $handlingStatusesFilter = $config['handlingStatuses'] ?? [];
         $handlingTypesFilter = $config['handlingTypes'] ?? [];
         $scale = $config['daysNumber'] ?? self::DEFAULT_DAILY_REQUESTS_SCALE;
         $period = $config['period'] ?? self::DAILY_PERIOD_PREVIOUS_DAYS;
+        $separateType = isset($config['separateType']) && $config['separateType'];
 
         $handlingRepository = $entityManager->getRepository(Handling::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
         $getObjectsStatisticsCallable = 'getDailyObjectsStatistics';
 
+        $types = $typeRepository->findBy([
+            'id' => $handlingTypesFilter
+        ]);
+
         $chartData = $this->{$getObjectsStatisticsCallable}(
             $entityManager,
             $scale,
-            function(DateTime $dateMin, DateTime $dateMax) use ($handlingRepository, $handlingStatusesFilter, $handlingTypesFilter) {
-                return $handlingRepository->countByDates($dateMin, $dateMax, $handlingStatusesFilter, $handlingTypesFilter);
+            function(DateTime $dateMin, DateTime $dateMax) use ($handlingRepository, $handlingStatusesFilter, $handlingTypesFilter, $separateType) {
+                return $handlingRepository->countByDates($dateMin, $dateMax, $separateType, $handlingStatusesFilter, $handlingTypesFilter);
             },
             $workFreeDays,
             $period
         );
+        if ($separateType) {
+            $chartData = Stream::from($chartData)
+                ->reduce(function ($carry, $data, $date) use ($types) {
+                    foreach ($types as $type) {
+                        $carry[$date][$type->getLabel()] = 0;
+                    }
+                    foreach ($data as $datum) {
+                        if (isset($datum['typeLabel']) && $datum['typeLabel']) {
+                            $carry[$date][$datum['typeLabel']] = $datum['count'];
+                        }
+                    }
+                    return $carry;
+                }, []);
+        }
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter
             ->setData($chartData);
+        return $chartData;
     }
 
     /**

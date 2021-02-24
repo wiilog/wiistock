@@ -362,6 +362,7 @@ class HandlingRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
+     * @param bool $multiple
      * @param array $handlingStatusesFilter
      * @param array $handlingTypesFilter
      * @return int
@@ -370,32 +371,36 @@ class HandlingRepository extends EntityRepository
      */
     public function countByDates(DateTime $dateMin,
                                  DateTime $dateMax,
+                                 bool $multiple,
                                  array $handlingStatusesFilter = [],
-                                 array $handlingTypesFilter = []): int
+                                 array $handlingTypesFilter = [])
     {
         $qb = $this->createQueryBuilder('handling')
-            ->select('COUNT(handling)')
+            ->select('COUNT(handling) ' . ($multiple ? ' AS count' : ''))
             ->where('handling.desiredDate BETWEEN :dateMin AND :dateMax')
+            ->join('handling.type', 'type')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
             ]);
+
+        if ($multiple) {
+            $qb
+                ->groupBy('type.id')
+                ->addSelect('type.label as typeLabel');
+        }
 
         if (!empty($handlingStatusesFilter)) {
             $qb
                 ->andWhere('handling.status IN (:handlingStatuses)')
                 ->setParameter('handlingStatuses', $handlingStatusesFilter);
         }
-
         if (!empty($handlingTypesFilter)) {
             $qb
                 ->andWhere('handling.type IN (:handlingTypes)')
                 ->setParameter('handlingTypes', $handlingTypesFilter);
         }
-
-        return $qb
-            ->getQuery()
-            ->getSingleScalarResult();
+        return $multiple ? $qb->getQuery()->getResult() : $qb->getQuery()->getSingleScalarResult();
     }
 
     public function getOlderDateToTreat(array $types = [],
