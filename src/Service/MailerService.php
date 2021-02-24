@@ -10,16 +10,11 @@ namespace App\Service;
 
 
 use App\Entity\MailerServer;
-use App\Repository\MailerServerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 
 class MailerService
 {
-    /**
-     * @var MailerServerRepository
-     */
-    private $mailerServerRepository;
 
     /**
      * @var Twig_Environment

@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Demande;
-use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
@@ -13,7 +12,6 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
-use DoctrineExtensions\Query\Mysql\Date;
 
 /**
  * @method Demande|null find($id, $lockMode = null, $lockVersion = null)

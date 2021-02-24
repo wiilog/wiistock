@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\Emplacement;
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;

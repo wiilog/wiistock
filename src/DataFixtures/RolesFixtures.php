@@ -12,7 +12,6 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentFixtureInterface {
 

@@ -6,7 +6,6 @@ use App\Entity\Alert;
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
 use App\Entity\Article;
-use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\Dashboard;
 use App\Entity\Demande;
@@ -23,13 +22,11 @@ use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\LatePack;
 use App\Entity\Nature;
-use App\Entity\ParametrageGlobal;
 use App\Entity\Preparation;
 use App\Entity\ReceptionTraca;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
-use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
 use App\Entity\Wiilock;
@@ -43,7 +40,6 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
 use InvalidArgumentException;
-use Throwable;
 
 class DashboardService {
 

@@ -12,7 +12,6 @@ use App\Entity\Litige;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 

@@ -3,8 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
-use App\Entity\Collecte;
-use App\Entity\Demande;
 use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;

@@ -31,7 +31,6 @@ use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\CategoryType;
 use App\Exceptions\NegativeQuantityException;
-use App\Repository\TransporteurRepository;
 
 use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;

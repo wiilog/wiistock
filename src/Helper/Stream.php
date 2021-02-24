@@ -9,7 +9,6 @@ use Error;
 use IteratorAggregate;
 use RecursiveArrayIterator;
 use RecursiveIteratorIterator;
-use ReflectionFunction;
 use RuntimeException;
 use Traversable;
 

@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Statut;
 use App\Entity\TransferOrder;
-use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
