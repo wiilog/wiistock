@@ -483,7 +483,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
     const needsEmergencyDisplay = emergency && count > 0;
     const $emergencyIcon = needsEmergencyDisplay ? '<i class="fa fa-exclamation-triangle red"></i>' : '';
     return $(element, Object.assign({
-        class: `dashboard-box dashboard-box-indicator text-center justify-content-around dashboard-stats-container ${customContainerClass}`,
+        class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
         html: [
             createTooltip(tooltip),
             title
