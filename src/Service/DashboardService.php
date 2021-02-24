@@ -295,6 +295,70 @@ class DashboardService {
     /**
      * @param EntityManagerInterface $entityManager
      * @param Dashboard\Component $component
+     * @throws Exception
+     */
+    public function persistDailyHandlingIndicator(EntityManagerInterface $entityManager,
+                                       Dashboard\Component $component): void {
+        $config = $component->getConfig();
+        $handlingRepository = $entityManager->getRepository(Handling::class);
+        $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $nowMorning = clone $now;
+        $nowMorning->setTime(0, 0, 0, 0);
+        $nowEvening = clone $now;
+        $nowEvening->setTime(23, 59, 59, 59);
+        $handlingStatusesFilter = $config['handlingStatuses'] ?? [];
+        $handlingTypesFilter = $config['handlingTypes'] ?? [];
+
+        $numberOfOperations = $handlingRepository->countByDates(
+            $nowMorning,
+            $nowEvening,
+            false,
+            true,
+            false,
+            $handlingStatusesFilter,
+            $handlingTypesFilter
+        );
+
+        $numberOfHandlings = $handlingRepository->countByDates(
+            $nowMorning,
+            $nowEvening,
+            false,
+            false,
+            false,
+            $handlingStatusesFilter,
+            $handlingTypesFilter
+        );
+
+        $numberOfEmergenciesHandlings = $handlingRepository->countByDates(
+            $nowMorning,
+            $nowEvening,
+            false,
+            false,
+            true,
+            $handlingStatusesFilter,
+            $handlingTypesFilter
+        );
+
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
+
+        $delay = '<span class="text-wii-red">'
+            . $numberOfEmergenciesHandlings
+            . '/'
+            . $numberOfHandlings
+            . '</span><span class="text-wii-black"> urgences</span>';
+        $firstDelayLine = '<span class="text-wii-green">'
+            . $numberOfOperations
+            . '</span><span class="text-wii-black"> lignes</span>';
+
+        $meter
+            ->setCount($numberOfHandlings)
+            ->setDelay($delay)
+            ->setFirstDelayLine($firstDelayLine);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
      * @param bool $daily
      * @throws NoResultException
      * @throws NonUniqueResultException

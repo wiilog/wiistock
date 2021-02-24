@@ -15,6 +15,7 @@ const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
 const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
 const REQUESTS_TO_TREAT = 'requests_to_treat';
+const DAILY_HANDLING_INDICATOR = 'daily_handling_indicator';
 const ORDERS_TO_TREAT = 'orders_to_treat';
 const DAILY_HANDLING = 'daily_handling';
 const DAILY_OPERATIONS = 'daily_operations';
@@ -91,6 +92,9 @@ const creators = {
         callback: createIndicatorElement
     },
     [ORDERS_TO_TREAT]: {
+        callback: createIndicatorElement
+    },
+    [DAILY_HANDLING_INDICATOR]: {
         callback: createIndicatorElement
     },
     [DAILY_HANDLING]: {
@@ -474,7 +478,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
 
     customContainerClass = customContainerClass || '';
 
-    const {title, subtitle, tooltip, count, delay, componentLink, emergency} = data;
+    const {title, subtitle, tooltip, count, delay, componentLink, emergency, firstDelayLine} = data;
     const element = componentLink ? '<a/>' : '<div/>';
     const customAttributes = componentLink
         ? {
@@ -512,18 +516,16 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
                     html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter ${needsEmergencyDisplay ? 'red' : ''}">${(count || count === '0' || count === 0) ? count : '-'}</div>`
                 })
                 : undefined,
-            delay
+            delay || firstDelayLine
                 ? $('<div/>', {
-                    class: `text-center title dashboard-stats-delay-title ${delay < 0 ? 'red' : ''}`,
-                    text: delay < 0
-                        ? 'Retard : '
-                        : 'A traiter sous :'
+                    class: `text-center title ${firstDelayLine ? 'dashboard-stats-delay dashboard-stats' : 'dashboard-stats-delay-title'} ${delay < 0 ? 'red' : ''}`,
+                    html: !isNaN(delay) ? (delay < 0 ? 'Retard : ' : 'A traiter sous :') : (firstDelayLine || '')
                 })
                 : undefined,
             delay
                 ? $('<div/>', {
                     class: `${clickableClass} dashboard-stats dashboard-stats-delay ${delay < 0 ? 'red' : ''}`,
-                    text: !isNaN(Math.abs(delay)) ? renderMillisecondsToDelay(Math.abs(delay), 'display') : delay
+                    html: !isNaN(Math.abs(delay)) ? renderMillisecondsToDelay(Math.abs(delay), 'display') : delay
                 })
                 : undefined,
         ].filter(Boolean)

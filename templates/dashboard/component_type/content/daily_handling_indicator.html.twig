@@ -1,0 +1,81 @@
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
+
+{% block header %}
+    <p class="font-italic">Des dates attendues doivent être placées sur les services.</p>
+    <p class="font-italic">Des heures travaillées doivent être renseignées.</p>
+    <br>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="form-group col-6">
+            <label>Type(s) de services*</label>
+            <div class="input-group flex-nowrap no-gutters">
+                <div class="flex-fill">
+                    <select class="data form-control h-100 w-100 needed select2"
+                            name="handlingTypes"
+                            multiple
+                            title="Type(s) de services">
+                        {% for handlingType in handlingTypes %}
+                            <option
+                                value="{{ handlingType.id }}" {{ handlingType in values.handlingTypes ? 'selected' }}>{{ handlingType.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group-append col-4">
+                    <button class="btn btn-primary select-all-types w-100" type="button">Tous les types</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            <label>Statut(s)*</label>
+            <div class="input-group flex-nowrap no-gutters">
+                <div class="flex-fill">
+                    <select class="data form-control h-100 w-100 needed select2"
+                            name="handlingStatuses"
+                            multiple
+                            title="Statut(s)">
+                        {% for handlingStatus in handlingStatuses %}
+                            <option
+                                value="{{ handlingStatus.id }}" {{ handlingStatus in values.handlingStatuses ? 'selected' }}>{{ handlingStatus.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group-append col-4">
+                    <button class="btn btn-primary select-all-statuses w-100" type="button">Tous les statuts</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row form-group align-items-center mt-2">
+        <div class="col-auto">
+            <label class="switch">
+                <input class="checkbox"
+                       type="checkbox"
+                       name="displayOperations"
+                    {{ values.displayOperations ?? false ? 'checked' }}/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="col">
+            Afficher le nombre d'opération(s) réalisé(s) de la journée
+        </div>
+    </div>
+    <div class="row form-group align-items-center">
+        <div class="col-auto">
+            <label class="switch">
+                <input class="checkbox"
+                       type="checkbox"
+                       name="displayEmergency"
+                    {{ values.displayEmergency ?? false ? 'checked' }}/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="col">
+            Afficher le nombre d'urgences de la journée
+        </div>
+    </div>
+{% endblock %}

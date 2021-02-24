@@ -140,6 +140,9 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::ONGOING_PACKS:
                 $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example, $meter);
                 break;
+            case Dashboard\ComponentType::DAILY_HANDLING_INDICATOR:
+                $values += $this->serializeDailyHandlingIndicator($entityManager, $componentType, $config, $example, $meter);
+                break;
             case Dashboard\ComponentType::CARRIER_TRACKING:
                 $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
                 break;
@@ -377,6 +380,40 @@ class DashboardSettingsService {
             unset($chartValues['data']);
             $values += $chartValues;
         }
+        return $values;
+    }
+
+    private function serializeDailyHandlingIndicator(EntityManagerInterface $manager,
+                                           Dashboard\ComponentType $componentType,
+                                           array $config,
+                                           bool $example = false,
+                                           DashboardMeter\Indicator $meter = null): array {
+        $shouldShowOperations = isset($config['displayOperations']) && $config['displayOperations'];
+        $shouldShowEmergencies = isset($config['displayEmergency']) && $config['displayEmergency'];
+        if ($example) {
+            $values = $componentType->getExampleValues();
+        } else {
+            if ($meter) {
+                $values = [
+                    'firstDelayLine' => $meter->getFirstDelayLine(),
+                    'delay' => $meter->getDelay(),
+                    'count' => $meter->getCount(),
+                ];
+            } else {
+                $values = [
+                    'subtitle' => '-',
+                    'delay' => '-',
+                    'count' => '-',
+                ];
+            }
+        }
+        if (!$shouldShowOperations) {
+            unset($values['firstDelayLine']);
+        }
+        if (!$shouldShowEmergencies) {
+            unset($values['delay']);
+        }
+
         return $values;
     }
 

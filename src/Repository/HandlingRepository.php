@@ -364,6 +364,7 @@ class HandlingRepository extends EntityRepository
      * @param DateTime $dateMax
      * @param bool $multiple
      * @param bool $isOperations
+     * @param bool $emergency
      * @param array $handlingStatusesFilter
      * @param array $handlingTypesFilter
      * @return int
@@ -374,6 +375,7 @@ class HandlingRepository extends EntityRepository
                                  DateTime $dateMax,
                                  bool $multiple,
                                  bool $isOperations,
+                                 bool $emergency,
                                  array $handlingStatusesFilter = [],
                                  array $handlingTypesFilter = [])
     {
@@ -390,6 +392,11 @@ class HandlingRepository extends EntityRepository
             $qb
                 ->groupBy('type.id')
                 ->addSelect('type.label as typeLabel');
+        }
+
+        if ($emergency) {
+            $qb
+                ->andWhere("handling.emergency NOT LIKE ''");
         }
 
         if (!empty($handlingStatusesFilter)) {

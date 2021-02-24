@@ -76,6 +76,9 @@ class DashboardFeedCommand extends Command {
                 case Dashboard\ComponentType::ONGOING_PACKS:
                     $this->dashboardService->persistOngoingPack($entityManager, $component);
                     break;
+                case Dashboard\ComponentType::DAILY_HANDLING_INDICATOR:
+                    $this->dashboardService->persistDailyHandlingIndicator($entityManager, $component);
+                    break;
                 case Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS:
                     $this->dashboardService->persistDroppedPacks($entityManager, $component);
                     break;

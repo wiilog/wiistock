@@ -511,6 +511,19 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'delay' => 51025698
             ]
         ],
+        'Nombre de services du jour' => [
+            'hint' => 'Nombre de services du jour',
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
+            'template' => Dashboard\ComponentType::DAILY_HANDLING_INDICATOR,
+            'meterKey' => Dashboard\ComponentType::DAILY_HANDLING_INDICATOR,
+            'exampleValues' => [
+                'title' => 'Services',
+                'hint' => 'Services du jour',
+                'count' => 5,
+                'delay' => '<span class="text-wii-red">3/5</span> <span class="text-wii-black">urgences</span>',
+                'firstDelayLine' => '<span class="text-wii-green">150</span> <span class="text-wii-black">lignes</span>',
+            ]
+        ],
         'Ordres à traiter' => [
             'hint' => 'Nombre d\'ordres pour l\'entité, le(s) type(s) et statut(s) sélectionnés',
             'category' => Dashboard\ComponentType::CATEGORY_ORDERS,

@@ -31,9 +31,14 @@ class Indicator
     private $subtitle;
 
     /**
-     * @ORM\Column(type="bigint", nullable=true)
+     * @ORM\Column(type="string", nullable=true)
      */
     private $delay;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $firstDelayLine;
 
     /**
      * @var Dashboard\Component
@@ -70,14 +75,26 @@ class Indicator
         return $this;
     }
 
-    public function getDelay(): ?int
+    public function getDelay(): ?string
     {
         return $this->delay;
     }
 
-    public function setDelay(?int $delay): self
+    public function setDelay($delay): self
     {
-        $this->delay = $delay;
+        $this->delay = strval($delay);
+
+        return $this;
+    }
+
+    public function getFirstDelayLine(): ?string
+    {
+        return $this->firstDelayLine;
+    }
+
+    public function setFirstDelayLine(?string $firstDelayLine): self
+    {
+        $this->firstDelayLine = $firstDelayLine;
 
         return $this;
     }
