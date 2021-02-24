@@ -17,6 +17,7 @@ const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
 const REQUESTS_TO_TREAT = 'requests_to_treat';
 const ORDERS_TO_TREAT = 'orders_to_treat';
 const DAILY_HANDLING = 'daily_handling';
+const DAILY_OPERATIONS = 'daily_operations';
 const MONETARY_RELIABILITY_GRAPH = 'monetary_reliability_graph';
 const MONETARY_RELIABILITY_INDICATOR = 'monetary_reliability_indicator';
 const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
@@ -93,6 +94,9 @@ const creators = {
         callback: createIndicatorElement
     },
     [DAILY_HANDLING]: {
+        callback: createChart
+    },
+    [DAILY_OPERATIONS]: {
         callback: createChart
     },
     [MONETARY_RELIABILITY_INDICATOR]: {

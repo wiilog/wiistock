@@ -414,6 +414,57 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::DAILY_HANDLING,
             'meterKey' => Dashboard\ComponentType::DAILY_HANDLING,
         ],
+        'Nombre d\'opérations quotidiennes' => [
+            'hint' => 'Nombre d\'opérations quotidiennes sur les services ayant leur date attendue sur les jours présentés',
+            'exampleValues' => [
+                'chartColors' => [
+                    'Type1' => '#77933C',
+                    'Type2' => '#003871'
+                ],
+                'chartData' => [
+                    '04/01' => 6,
+                    '05/01' => 8,
+                    '06/01' => 4,
+                    '07/01' => 5,
+                    '08/01' => 1,
+                    '09/01' => 3,
+                    '10/01' => 2,
+                ],
+                'chartDataMultiple' => [
+                    '04/01' => [
+                        'Type1' => 25,
+                        'Type2' => 12,
+                    ],
+                    '05/01' => [
+                        'Type1' => 10,
+                        'Type2' => 12,
+                    ],
+                    '06/01' => [
+                        'Type1' => 4,
+                        'Type2' => 12,
+                    ],
+                    '07/01' => [
+                        'Type1' => 25,
+                        'Type2' => 9,
+                    ],
+                    '08/01' => [
+                        'Type1' => 15,
+                        'Type2' => 12,
+                    ],
+                    '09/01' => [
+                        'Type1' => 2,
+                        'Type2' => 12,
+                    ],
+                    '10/01' => [
+                        'Type1' => 23,
+                        'Type2' => 8,
+                    ]
+                ]
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
+            'template' => Dashboard\ComponentType::DAILY_HANDLING,
+            'meterKey' => Dashboard\ComponentType::DAILY_OPERATIONS,
+        ],
         'Fiabilité monétaire (indicateur)' => [
             'hint' => 'Quantité corrigée sur une référence ou article * prix unitaire de la référence ou référence liée',
             'category' => Dashboard\ComponentType::CATEGORY_STOCK,

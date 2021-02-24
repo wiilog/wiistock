@@ -363,6 +363,7 @@ class HandlingRepository extends EntityRepository
      * @param DateTime $dateMin
      * @param DateTime $dateMax
      * @param bool $multiple
+     * @param bool $isOperations
      * @param array $handlingStatusesFilter
      * @param array $handlingTypesFilter
      * @return int
@@ -372,11 +373,12 @@ class HandlingRepository extends EntityRepository
     public function countByDates(DateTime $dateMin,
                                  DateTime $dateMax,
                                  bool $multiple,
+                                 bool $isOperations,
                                  array $handlingStatusesFilter = [],
                                  array $handlingTypesFilter = [])
     {
         $qb = $this->createQueryBuilder('handling')
-            ->select('COUNT(handling) ' . ($multiple ? ' AS count' : ''))
+            ->select(($isOperations ? 'SUM(handling.carriedOutOperationCount) as count' : ('COUNT(handling) ' . ($multiple ? ' AS count' : ''))))
             ->where('handling.desiredDate BETWEEN :dateMin AND :dateMax')
             ->join('handling.type', 'type')
             ->setParameters([

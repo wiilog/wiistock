@@ -709,10 +709,10 @@ class DashboardService {
      * @param Dashboard\Component $component
      * @return
      */
-    public function persistDailyHandling(EntityManagerInterface $entityManager,
-                                         Dashboard\Component $component) {
+    public function persistDailyHandlingOrOperations(EntityManagerInterface $entityManager,
+                                                     Dashboard\Component $component) {
         $config = $component->getConfig();
-
+        $isOperations = $component->getType() && $component->getType()->getMeterKey() === Dashboard\ComponentType::DAILY_OPERATIONS;
         $handlingStatusesFilter = $config['handlingStatuses'] ?? [];
         $handlingTypesFilter = $config['handlingTypes'] ?? [];
         $scale = $config['daysNumber'] ?? self::DEFAULT_DAILY_REQUESTS_SCALE;
@@ -733,8 +733,8 @@ class DashboardService {
         $chartData = $this->{$getObjectsStatisticsCallable}(
             $entityManager,
             $scale,
-            function(DateTime $dateMin, DateTime $dateMax) use ($handlingRepository, $handlingStatusesFilter, $handlingTypesFilter, $separateType) {
-                return $handlingRepository->countByDates($dateMin, $dateMax, $separateType, $handlingStatusesFilter, $handlingTypesFilter);
+            function(DateTime $dateMin, DateTime $dateMax) use ($handlingRepository, $handlingStatusesFilter, $handlingTypesFilter, $separateType, $isOperations) {
+                return $handlingRepository->countByDates($dateMin, $dateMax, $separateType, $isOperations, $handlingStatusesFilter, $handlingTypesFilter);
             },
             $workFreeDays,
             $period

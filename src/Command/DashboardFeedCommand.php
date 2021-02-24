@@ -113,7 +113,8 @@ class DashboardFeedCommand extends Command {
                     $this->dashboardService->persistDailyDispatches($entityManager, $component);
                     break;
                 case Dashboard\ComponentType::DAILY_HANDLING:
-                    $this->dashboardService->persistDailyHandling($entityManager, $component);
+                case Dashboard\ComponentType::DAILY_OPERATIONS:
+                    $this->dashboardService->persistDailyHandlingOrOperations($entityManager, $component);
                     break;
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT:
                 case Dashboard\ComponentType::ORDERS_TO_TREAT:

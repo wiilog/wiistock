@@ -175,7 +175,8 @@ class DashboardSettingsService {
                 $values += $this->serializeDailyDispatches($componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::DAILY_HANDLING:
-                $values += $this->serializeDailyHandling($componentType, $config, $example, $meter);
+            case Dashboard\ComponentType::DAILY_OPERATIONS:
+                $values += $this->serializeDailyHandlingOrOperations($componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::REQUESTS_TO_TREAT:
             case Dashboard\ComponentType::ORDERS_TO_TREAT:
@@ -571,10 +572,10 @@ class DashboardSettingsService {
      * @param DashboardMeter\Chart|null $chart
      * @return array
      */
-    private function serializeDailyHandling(Dashboard\ComponentType $componentType,
-                                            array $config,
-                                            bool $example = false,
-                                            DashboardMeter\Chart $chart = null): array {
+    private function serializeDailyHandlingOrOperations(Dashboard\ComponentType $componentType,
+                                                        array $config,
+                                                        bool $example = false,
+                                                        DashboardMeter\Chart $chart = null): array {
         $separateType = isset($config['separateType']) && $config['separateType'];
 
         if (!$example) {
