@@ -12,6 +12,7 @@ use App\Entity\ParametrageGlobal;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Helper\Stream;
 use DateTime;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
@@ -143,32 +144,38 @@ class HandlingService
      * @throws SyntaxError
      */
     public function sendEmailsAccordingToStatus(Handling $handling, $isNewHandlingAndNotTreated = false): void {
-        $requester = $handling->getRequester();
-        $emails = $requester ? $requester->getMainAndSecondaryEmails() : [];
+        $status = $handling->getStatus();
+        $requester = $status->getSendNotifToDeclarant() ? $handling->getRequester() : null;
+        $receivers = $status->getSendNotifToRecipient() ? $handling->getReceivers() : [];
+
+        $requesterEmails = $requester ? $requester->getMainAndSecondaryEmails() : [];
+        $emails = Stream::from($receivers)
+            ->map(fn(Utilisateur $receiver) => $receiver->getEmail())
+            ->concat($requesterEmails)
+            ->unique()
+            ->toArray();
+
         if (!empty($emails)) {
-            $status = $handling->getStatus();
-            if ($status && $status->getSendNotifToDeclarant()) {
-                $statusTreated = $status->isTreated();
-                if ($isNewHandlingAndNotTreated) {
-                    $subject = $this->translator->trans('services.Création d\'une demande de service');
-                    $title = $this->translator->trans('services.Votre demande de service a été créée') . '.';
-                } else {
-                    $subject = $statusTreated
-                        ? $this->translator->trans('services.Demande de service effectuée')
-                        : $this->translator->trans('services.Changement de statut d\'une demande de service');
-                    $title = $statusTreated
-                        ? $this->translator->trans('services.Votre demande de service a bien été effectuée') . '.'
-                        : $this->translator->trans('services.Une demande de service vous concernant a changé de statut') . '.';
-                }
-                $this->mailerService->sendMail(
-                    'FOLLOW GT // ' . $subject,
-                    $this->templating->render('mails/contents/mailHandlingTreated.html.twig', [
-                        'handling' => $handling,
-                        'title' => $title
-                    ]),
-                    $emails
-                );
+            $statusTreated = $status->isTreated();
+            if ($isNewHandlingAndNotTreated) {
+                $subject = $this->translator->trans('services.Création d\'une demande de service');
+                $title = $this->translator->trans('services.Votre demande de service a été créée') . '.';
+            } else {
+                $subject = $statusTreated
+                    ? $this->translator->trans('services.Demande de service effectuée')
+                    : $this->translator->trans('services.Changement de statut d\'une demande de service');
+                $title = $statusTreated
+                    ? $this->translator->trans('services.Votre demande de service a bien été effectuée') . '.'
+                    : $this->translator->trans('services.Une demande de service vous concernant a changé de statut') . '.';
             }
+            $this->mailerService->sendMail(
+                'FOLLOW GT // ' . $subject,
+                $this->templating->render('mails/contents/mailHandlingTreated.html.twig', [
+                    'handling' => $handling,
+                    'title' => $title
+                ]),
+                $emails
+            );
         }
     }
 
