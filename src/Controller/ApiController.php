@@ -1394,23 +1394,9 @@ class ApiController extends AbstractFOSRestController {
                 'before' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_BEFORE)
             ];
 
-            $nowStr = (new DateTime('now', new DateTimeZone('Europe/Paris')))->format('Y-m-d');
-            $handlings = $handlingRepository->getMobileHandlingsByUserTypes($user->getHandlingTypeIds(), function (array $handling) use ($nowStr, $handlingExpectedDateColors) {
-                $desiredDateStr = !empty($handling['desiredDate']) ? $handling['desiredDate']->format('Y-m-d') : null;
-                $color = null;
-                if ($desiredDateStr) {
-                    if ($desiredDateStr > $nowStr && isset($handlingExpectedDateColors['after'])) {
-                        $color = $handlingExpectedDateColors['after'];
-                    }
-                    if ($desiredDateStr === $nowStr && isset($handlingExpectedDateColors['DDay'])) {
-                        $color = $handlingExpectedDateColors['DDay'];
-                    }
-                    if ($desiredDateStr < $nowStr && isset($handlingExpectedDateColors['before'])) {
-                        $color = $handlingExpectedDateColors['before'];
-                    }
-                }
+            $handlings = $handlingRepository->getMobileHandlingsByUserTypes($user->getHandlingTypeIds(), function (array $handling) use ($handlingExpectedDateColors) {
                 return [
-                    'color' => $color
+                    'color' => $this->expectedDateColor($handling['desiredDate'] ?? null, $handlingExpectedDateColors)
                 ];
             });
             $handlingIds = array_map(function(array $handling) {
@@ -1451,7 +1437,17 @@ class ApiController extends AbstractFOSRestController {
             $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
             $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
 
-            $dispatches = $dispatchRepository->getMobileDispatches($user);
+            $dispatchExpectedDateColors = [
+                'after' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EXPECTED_DATE_COLOR_AFTER),
+                'DDay' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EXPECTED_DATE_COLOR_D_DAY),
+                'before' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EXPECTED_DATE_COLOR_BEFORE)
+            ];
+
+            $dispatches = $dispatchRepository->getMobileDispatches($user, function (array $dispatch) use ($dispatchExpectedDateColors) {
+                return [
+                    'color' => $this->expectedDateColor($dispatch['endDate'] ?? null, $dispatchExpectedDateColors)
+                ];
+            });
             $dispatchPacks = $dispatchPackRepository->getMobilePacksFromDispatches(array_map(function($dispatch) {
                 return $dispatch['id'];
             }, $dispatches));
@@ -1931,6 +1927,24 @@ class ApiController extends AbstractFOSRestController {
             'demande' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_HAND, $user),
             'inventoryManager' => $userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user)
         ];
+    }
+
+    private function expectedDateColor(?DateTime $date, array $colors): ?string {
+        $nowStr = (new DateTime('now', new DateTimeZone('Europe/Paris')))->format('Y-m-d');
+        $dateStr = !empty($date) ? $date->format('Y-m-d') : null;
+        $color = null;
+        if ($dateStr) {
+            if ($dateStr > $nowStr && isset($colors['after'])) {
+                $color = $colors['after'];
+            }
+            if ($dateStr === $nowStr && isset($colors['DDay'])) {
+                $color = $colors['DDay'];
+            }
+            if ($dateStr < $nowStr && isset($colors['before'])) {
+                $color = $colors['before'];
+            }
+        }
+        return $color;
     }
 
 }
