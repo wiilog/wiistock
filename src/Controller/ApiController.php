@@ -1426,9 +1426,12 @@ class ApiController extends AbstractFOSRestController {
             $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
 
             $dispatches = $dispatchRepository->getMobileDispatches($user);
-            $dispatchPacks = $dispatchPackRepository->getMobilePacksFromDispatches(array_map(function($dispatch) {
-                return $dispatch['id'];
-            }, $dispatches));
+            $dispatchPacks = array_map(function($dispatchPack) {
+                if(!empty($dispatchPack['comment'])) {
+                    $dispatchPack['comment'] = substr(strip_tags($dispatchPack['comment']), 0, 200);
+                }
+                return $dispatchPack;
+            }, $dispatchPackRepository->getMobilePacksFromDispatches(array_map(fn($dispatch) => $dispatch['id'], $dispatches)));
         }
 
         return [
