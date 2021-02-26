@@ -16,6 +16,15 @@
     <div>Demandeur :
         <strong>{{ handling.requester.username }}</strong>
     </div>
+    {% set fieldCodeReceiversHandling = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
+    {% if (fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFormsCreate')
+        or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFormsEdit')
+        or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFilters')) %}
+        <div>
+            Destinataire(s) :
+            <strong>{{ handling.receivers|map(receiver => receiver.username)|join(', ') }}</strong>
+        </div>
+    {% endif %}
     <div>Objet :
         <strong>{{ handling.subject }}</strong>
     </div>

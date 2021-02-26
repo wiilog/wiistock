@@ -250,7 +250,7 @@ class HandlingController extends AbstractController
                 ]);
             }
 
-            $handlingService->sendEmailsAccordingToStatus($handling, !$status->isTreated());
+            $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, !$status->isTreated());
 
             return new JsonResponse([
                 'success' => true,
@@ -416,7 +416,7 @@ class HandlingController extends AbstractController
                 && $newStatus
                 && ($oldStatus->getId() !== $newStatus->getId())
             )) {
-            $handlingService->sendEmailsAccordingToStatus($handling);
+            $handlingService->sendEmailsAccordingToStatus($entityManager, $handling);
         }
 
         return new JsonResponse([

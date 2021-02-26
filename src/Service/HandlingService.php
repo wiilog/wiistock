@@ -5,6 +5,7 @@ namespace App\Service;
 
 
 use App\Entity\Action;
+use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Handling;
 use App\Entity\Menu;
@@ -137,13 +138,16 @@ class HandlingService
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param Handling $handling
      * @param bool $isNewHandlingAndNotTreated
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function sendEmailsAccordingToStatus(Handling $handling, $isNewHandlingAndNotTreated = false): void {
+    public function sendEmailsAccordingToStatus(EntityManagerInterface $entityManager,
+                                                Handling $handling,
+                                                $isNewHandlingAndNotTreated = false): void {
         $status = $handling->getStatus();
         $requester = $status->getSendNotifToDeclarant() ? $handling->getRequester() : null;
         $receivers = $status->getSendNotifToRecipient() ? $handling->getReceivers() : [];
@@ -168,42 +172,20 @@ class HandlingService
                     ? $this->translator->trans('services.Votre demande de service a bien été effectuée') . '.'
                     : $this->translator->trans('services.Une demande de service vous concernant a changé de statut') . '.';
             }
+
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
+
             $this->mailerService->sendMail(
                 'FOLLOW GT // ' . $subject,
                 $this->templating->render('mails/contents/mailHandlingTreated.html.twig', [
                     'handling' => $handling,
-                    'title' => $title
+                    'title' => $title,
+                    'fieldsParam' => $fieldsParam
                 ]),
                 $emails
             );
         }
-    }
-
-    public function createHandlingNumber(EntityManagerInterface $entityManager,
-                                         DateTime $date): string {
-
-        $handlingRepository = $entityManager->getRepository(Handling::class);
-
-        $dateStr = $date->format('Ymd');
-
-        $lastHandlingNumber = $handlingRepository->getLastHandlingNumberByPrefix(Handling::PREFIX_NUMBER . $dateStr);
-
-        if ($lastHandlingNumber) {
-            $lastCounter = (int) substr($lastHandlingNumber, -4, 4);
-            $currentCounter = ($lastCounter + 1);
-        }
-        else {
-            $currentCounter = 1;
-        }
-
-        $currentCounterStr = (
-        $currentCounter < 10 ? ('000' . $currentCounter) :
-            ($currentCounter < 100 ? ('00' . $currentCounter) :
-                ($currentCounter < 1000 ? ('0' . $currentCounter) :
-                    $currentCounter))
-        );
-
-        return (Handling::PREFIX_NUMBER . $dateStr . $currentCounterStr);
     }
 
     /**
