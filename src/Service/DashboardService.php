@@ -312,48 +312,46 @@ class DashboardService {
         $numberOfOperations = $handlingRepository->countByDates(
             $nowMorning,
             $nowEvening,
-            false,
-            true,
-            false,
-            $handlingStatusesFilter,
-            $handlingTypesFilter
+            [
+                'isOperation' => true,
+                'handlingStatusesFilter' => $handlingStatusesFilter,
+                'handlingTypesFilter' => $handlingTypesFilter
+            ]
         );
 
         $numberOfHandlings = $handlingRepository->countByDates(
             $nowMorning,
             $nowEvening,
-            false,
-            false,
-            false,
-            $handlingStatusesFilter,
-            $handlingTypesFilter
+            [
+                'handlingStatusesFilter' => $handlingStatusesFilter,
+                'handlingTypesFilter' => $handlingTypesFilter
+            ]
         );
 
         $numberOfEmergenciesHandlings = $handlingRepository->countByDates(
             $nowMorning,
             $nowEvening,
-            false,
-            false,
-            true,
-            $handlingStatusesFilter,
-            $handlingTypesFilter
+            [
+                'emergency' => true,
+                'handlingStatusesFilter' => $handlingStatusesFilter,
+                'handlingTypesFilter' => $handlingTypesFilter
+            ]
         );
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
 
-        $delay = '<span class="text-wii-red">'
+        $secondCount = '<span class="text-wii-green">'
+            . $numberOfOperations
+            . '</span><span class="text-wii-black"> lignes</span>';
+        $thirdCount = '<span class="text-wii-red">'
             . $numberOfEmergenciesHandlings
             . '/'
             . $numberOfHandlings
             . '</span><span class="text-wii-black"> urgences</span>';
-        $firstDelayLine = '<span class="text-wii-green">'
-            . $numberOfOperations
-            . '</span><span class="text-wii-black"> lignes</span>';
 
         $meter
             ->setCount($numberOfHandlings)
-            ->setDelay($delay)
-            ->setFirstDelayLine($firstDelayLine);
+            ->setSubCounts([$secondCount, $thirdCount]);
     }
 
     /**
@@ -439,7 +437,7 @@ class DashboardService {
      * @param string $class
      * @return DashboardMeter\Indicator|DashboardMeter\Chart
      */
-    public function persistDashboardMeter(EntityManagerInterface $entityManager,
+    private function persistDashboardMeter(EntityManagerInterface $entityManager,
                                            Dashboard\Component $component,
                                            string $class) {
 
@@ -787,20 +785,27 @@ class DashboardService {
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
         $getObjectsStatisticsCallable = 'getDailyObjectsStatistics';
 
-        $types = $typeRepository->findBy([
-            'id' => $handlingTypesFilter
-        ]);
-
         $chartData = $this->{$getObjectsStatisticsCallable}(
             $entityManager,
             $scale,
             function(DateTime $dateMin, DateTime $dateMax) use ($handlingRepository, $handlingStatusesFilter, $handlingTypesFilter, $separateType, $isOperations) {
-                return $handlingRepository->countByDates($dateMin, $dateMax, $separateType, $isOperations, $handlingStatusesFilter, $handlingTypesFilter);
+                return $handlingRepository->countByDates(
+                    $dateMin,
+                    $dateMax,
+                    [
+                        'groupByTypes' => $separateType,
+                        'isOperations' => $isOperations,
+                        'handlingStatusesFilter' => $handlingStatusesFilter,
+                        'handlingTypesFilter' => $handlingTypesFilter
+                    ]
+                );
             },
             $workFreeDays,
             $period
         );
+
         if ($separateType) {
+            $types = $typeRepository->findBy(['id' => $handlingTypesFilter]);
             $chartData = Stream::from($chartData)
                 ->reduce(function ($carry, $data, $date) use ($types) {
                     foreach ($types as $type) {

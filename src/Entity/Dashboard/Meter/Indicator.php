@@ -31,14 +31,14 @@ class Indicator
     private $subtitle;
 
     /**
-     * @ORM\Column(type="string", nullable=true)
+     * @ORM\Column(type="bigint", nullable=true)
      */
-    private $delay;
+    private ?int $delay;
 
     /**
-     * @ORM\Column(type="string", nullable=true)
+     * @ORM\Column(type="json", nullable=false)
      */
-    private $firstDelayLine;
+    private array $subCounts = [];
 
     /**
      * @var Dashboard\Component
@@ -75,26 +75,26 @@ class Indicator
         return $this;
     }
 
-    public function getDelay(): ?string
+    public function getDelay(): ?int
     {
         return $this->delay;
     }
 
-    public function setDelay($delay): self
+    public function setDelay(?int $delay): self
     {
-        $this->delay = strval($delay);
+        $this->delay = $delay;
 
         return $this;
     }
 
-    public function getFirstDelayLine(): ?string
+    public function getSubCounts(): array
     {
-        return $this->firstDelayLine;
+        return $this->subCounts;
     }
 
-    public function setFirstDelayLine(?string $firstDelayLine): self
+    public function setSubCounts(array $subCounts): self
     {
-        $this->firstDelayLine = $firstDelayLine;
+        $this->subCounts = $subCounts;
 
         return $this;
     }

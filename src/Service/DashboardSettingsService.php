@@ -141,7 +141,7 @@ class DashboardSettingsService {
                 $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::DAILY_HANDLING_INDICATOR:
-                $values += $this->serializeDailyHandlingIndicator($entityManager, $componentType, $config, $example, $meter);
+                $values += $this->serializeDailyHandlingIndicator($componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::CARRIER_TRACKING:
                 $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
@@ -383,11 +383,10 @@ class DashboardSettingsService {
         return $values;
     }
 
-    private function serializeDailyHandlingIndicator(EntityManagerInterface $manager,
-                                           Dashboard\ComponentType $componentType,
-                                           array $config,
-                                           bool $example = false,
-                                           DashboardMeter\Indicator $meter = null): array {
+    private function serializeDailyHandlingIndicator(Dashboard\ComponentType $componentType,
+                                                     array $config,
+                                                     bool $example = false,
+                                                     DashboardMeter\Indicator $meter = null): array {
         $shouldShowOperations = isset($config['displayOperations']) && $config['displayOperations'];
         $shouldShowEmergencies = isset($config['displayEmergency']) && $config['displayEmergency'];
         if ($example) {
@@ -395,24 +394,29 @@ class DashboardSettingsService {
         } else {
             if ($meter) {
                 $values = [
-                    'firstDelayLine' => $meter->getFirstDelayLine(),
+                    'subCounts' => $meter->getSubCounts(),
                     'delay' => $meter->getDelay(),
                     'count' => $meter->getCount(),
                 ];
             } else {
                 $values = [
                     'subtitle' => '-',
-                    'delay' => '-',
+                    'subCounts' => [
+                        '<span class="text-wii-green">-</span> <span class="text-wii-black">lignes</span>',
+                        '<span class="text-wii-red">-</span> <span class="text-wii-black">urgences</span>'
+                    ],
                     'count' => '-',
                 ];
             }
         }
-        if (!$shouldShowOperations) {
-            unset($values['firstDelayLine']);
+        if (!$shouldShowOperations && isset($values['subCounts'][0])) {
+            unset($values['subCounts'][0]);
         }
-        if (!$shouldShowEmergencies) {
-            unset($values['delay']);
+        if (!$shouldShowEmergencies && isset($values['subCounts'][1])) {
+            unset($values['subCounts'][1]);
         }
+
+        $values['subCounts'] = array_values($values['subCounts']);
 
         return $values;
     }

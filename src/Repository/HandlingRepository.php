@@ -362,25 +362,24 @@ class HandlingRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @param bool $multiple
-     * @param bool $isOperations
-     * @param bool $emergency
-     * @param array $handlingStatusesFilter
-     * @param array $handlingTypesFilter
+     * @param array $options
      * @return int
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function countByDates(DateTime $dateMin,
                                  DateTime $dateMax,
-                                 bool $multiple,
-                                 bool $isOperations,
-                                 bool $emergency,
-                                 array $handlingStatusesFilter = [],
-                                 array $handlingTypesFilter = [])
+                                 array $options)
     {
+
+        $groupByTypes = $options['groupByTypes'] ?? false;
+        $isOperations = $options['isOperations'] ?? false;
+        $emergency = $options['emergency'] ?? false;
+        $handlingStatusesFilter = $options['handlingStatusesFilter'] ?? [];
+        $handlingTypesFilter = $options['handlingTypesFilter'] ?? [];
+
         $qb = $this->createQueryBuilder('handling')
-            ->select(($isOperations ? 'SUM(handling.carriedOutOperationCount) as count' : ('COUNT(handling) ' . ($multiple ? ' AS count' : ''))))
+            ->select(($isOperations ? 'SUM(handling.carriedOutOperationCount) AS count' : ('COUNT(handling) ' . ($groupByTypes ? ' AS count' : ''))))
             ->where('handling.desiredDate BETWEEN :dateMin AND :dateMax')
             ->join('handling.type', 'type')
             ->setParameters([
@@ -388,7 +387,7 @@ class HandlingRepository extends EntityRepository
                 'dateMax' => $dateMax
             ]);
 
-        if ($multiple) {
+        if ($groupByTypes) {
             $qb
                 ->groupBy('type.id')
                 ->addSelect('type.label as typeLabel');
@@ -404,12 +403,14 @@ class HandlingRepository extends EntityRepository
                 ->andWhere('handling.status IN (:handlingStatuses)')
                 ->setParameter('handlingStatuses', $handlingStatusesFilter);
         }
+
         if (!empty($handlingTypesFilter)) {
             $qb
                 ->andWhere('handling.type IN (:handlingTypes)')
                 ->setParameter('handlingTypes', $handlingTypesFilter);
         }
-        return $multiple ? $qb->getQuery()->getResult() : $qb->getQuery()->getSingleScalarResult();
+
+        return $groupByTypes ? $qb->getQuery()->getResult() : $qb->getQuery()->getSingleScalarResult();
     }
 
     public function getOlderDateToTreat(array $types = [],

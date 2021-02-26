@@ -478,7 +478,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
 
     customContainerClass = customContainerClass || '';
 
-    const {title, subtitle, tooltip, count, delay, componentLink, emergency, firstDelayLine} = data;
+    const {title, subtitle, tooltip, count, delay, componentLink, emergency, subCounts} = data;
     const element = componentLink ? '<a/>' : '<div/>';
     const customAttributes = componentLink
         ? {
@@ -489,6 +489,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
     const clickableClass = componentLink ? 'pointer' : '';
     const needsEmergencyDisplay = emergency && count > 0;
     const $emergencyIcon = needsEmergencyDisplay ? '<i class="fa fa-exclamation-triangle red"></i>' : '';
+
     return $(element, Object.assign({
         class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
         html: [
@@ -516,18 +517,28 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
                     html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter ${needsEmergencyDisplay ? 'red' : ''}">${(count || count === '0' || count === 0) ? count : '-'}</div>`
                 })
                 : undefined,
-            delay || firstDelayLine
+            delay
                 ? $('<div/>', {
-                    class: `text-center title ${firstDelayLine ? 'dashboard-stats-delay dashboard-stats' : 'dashboard-stats-delay-title'} ${delay < 0 ? 'red' : ''}`,
-                    html: !isNaN(delay) ? (delay < 0 ? 'Retard : ' : 'A traiter sous :') : (firstDelayLine || '')
+                    class: `text-center title dashboard-stats-delay-title ${delay < 0 ? 'red' : ''}`,
+                    text: delay < 0
+                        ? 'Retard : '
+                        : 'A traiter sous :'
                 })
                 : undefined,
             delay
                 ? $('<div/>', {
                     class: `${clickableClass} dashboard-stats dashboard-stats-delay ${delay < 0 ? 'red' : ''}`,
-                    html: !isNaN(Math.abs(delay)) ? renderMillisecondsToDelay(Math.abs(delay), 'display') : delay
+                    text: !isNaN(Math.abs(delay)) ? renderMillisecondsToDelay(Math.abs(delay), 'display') : delay
                 })
                 : undefined,
+            ...((subCounts || [])
+                .filter(Boolean)
+                .map((subCount) => (
+                    $('<div/>', {
+                        class: `${clickableClass} dashboard-stats`,
+                        html: subCount || ''
+                    })
+                )))
         ].filter(Boolean)
     }, customAttributes));
 }

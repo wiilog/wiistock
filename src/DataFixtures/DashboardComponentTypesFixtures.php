@@ -520,8 +520,10 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'title' => 'Services',
                 'hint' => 'Services du jour',
                 'count' => 5,
-                'delay' => '<span class="text-wii-red">3/5</span> <span class="text-wii-black">urgences</span>',
-                'firstDelayLine' => '<span class="text-wii-green">150</span> <span class="text-wii-black">lignes</span>',
+                'subCounts' => [
+                    '<span class="text-wii-green">150</span> <span class="text-wii-black">lignes</span>',
+                    '<span class="text-wii-red">3/5</span> <span class="text-wii-black">urgences</span>'
+                ]
             ]
         ],
         'Ordres à traiter' => [
