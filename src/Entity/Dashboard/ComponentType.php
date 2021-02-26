@@ -31,7 +31,9 @@ class ComponentType
     public const REFERENCE_RELIABILITY = 'reference_reliability';
     public const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
     public const DAILY_DISPATCHES = 'daily_dispatches';
+    public const DAILY_HANDLING_INDICATOR = 'daily_handling_indicator';
     public const DAILY_HANDLING = 'daily_handling';
+    public const DAILY_OPERATIONS = 'daily_operations';
     public const PENDING_REQUESTS = 'pending_requests';
 
     public const ORDERS_TO_TREAT = 'orders_to_treat';

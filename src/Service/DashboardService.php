@@ -27,6 +27,8 @@ use App\Entity\ReceptionTraca;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
+use App\Entity\Transporteur;
+use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
 use App\Entity\Wiilock;
@@ -288,6 +290,68 @@ class DashboardService {
             ->setCount($calculatedData ? $calculatedData['count'] : 0)
             ->setDelay($calculatedData ? $calculatedData['delay'] : 0)
             ->setSubtitle($calculatedData['subtitle'] ?? null);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @throws Exception
+     */
+    public function persistDailyHandlingIndicator(EntityManagerInterface $entityManager,
+                                       Dashboard\Component $component): void {
+        $config = $component->getConfig();
+        $handlingRepository = $entityManager->getRepository(Handling::class);
+        $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $nowMorning = clone $now;
+        $nowMorning->setTime(0, 0, 0, 0);
+        $nowEvening = clone $now;
+        $nowEvening->setTime(23, 59, 59, 59);
+        $handlingStatusesFilter = $config['handlingStatuses'] ?? [];
+        $handlingTypesFilter = $config['handlingTypes'] ?? [];
+
+        $numberOfOperations = $handlingRepository->countByDates(
+            $nowMorning,
+            $nowEvening,
+            [
+                'isOperation' => true,
+                'handlingStatusesFilter' => $handlingStatusesFilter,
+                'handlingTypesFilter' => $handlingTypesFilter
+            ]
+        );
+
+        $numberOfHandlings = $handlingRepository->countByDates(
+            $nowMorning,
+            $nowEvening,
+            [
+                'handlingStatusesFilter' => $handlingStatusesFilter,
+                'handlingTypesFilter' => $handlingTypesFilter
+            ]
+        );
+
+        $numberOfEmergenciesHandlings = $handlingRepository->countByDates(
+            $nowMorning,
+            $nowEvening,
+            [
+                'emergency' => true,
+                'handlingStatusesFilter' => $handlingStatusesFilter,
+                'handlingTypesFilter' => $handlingTypesFilter
+            ]
+        );
+
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
+
+        $secondCount = '<span class="text-wii-green">'
+            . $numberOfOperations
+            . '</span><span class="text-wii-black"> lignes</span>';
+        $thirdCount = '<span class="text-wii-red">'
+            . $numberOfEmergenciesHandlings
+            . '/'
+            . $numberOfHandlings
+            . '</span><span class="text-wii-black"> urgences</span>';
+
+        $meter
+            ->setCount($numberOfHandlings)
+            ->setSubCounts([$secondCount, $thirdCount]);
     }
 
     /**
@@ -702,18 +766,20 @@ class DashboardService {
     /**
      * @param EntityManagerInterface $entityManager
      * @param Dashboard\Component $component
-     * @throws Exception
+     * @return
      */
-    public function persistDailyHandling(EntityManagerInterface $entityManager,
-                                         Dashboard\Component $component): void {
+    public function persistDailyHandlingOrOperations(EntityManagerInterface $entityManager,
+                                                     Dashboard\Component $component) {
         $config = $component->getConfig();
-
+        $isOperations = $component->getType() && $component->getType()->getMeterKey() === Dashboard\ComponentType::DAILY_OPERATIONS;
         $handlingStatusesFilter = $config['handlingStatuses'] ?? [];
         $handlingTypesFilter = $config['handlingTypes'] ?? [];
         $scale = $config['daysNumber'] ?? self::DEFAULT_DAILY_REQUESTS_SCALE;
         $period = $config['period'] ?? self::DAILY_PERIOD_PREVIOUS_DAYS;
+        $separateType = isset($config['separateType']) && $config['separateType'];
 
         $handlingRepository = $entityManager->getRepository(Handling::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
@@ -722,16 +788,42 @@ class DashboardService {
         $chartData = $this->{$getObjectsStatisticsCallable}(
             $entityManager,
             $scale,
-            function(DateTime $dateMin, DateTime $dateMax) use ($handlingRepository, $handlingStatusesFilter, $handlingTypesFilter) {
-                return $handlingRepository->countByDates($dateMin, $dateMax, $handlingStatusesFilter, $handlingTypesFilter);
+            function(DateTime $dateMin, DateTime $dateMax) use ($handlingRepository, $handlingStatusesFilter, $handlingTypesFilter, $separateType, $isOperations) {
+                return $handlingRepository->countByDates(
+                    $dateMin,
+                    $dateMax,
+                    [
+                        'groupByTypes' => $separateType,
+                        'isOperations' => $isOperations,
+                        'handlingStatusesFilter' => $handlingStatusesFilter,
+                        'handlingTypesFilter' => $handlingTypesFilter
+                    ]
+                );
             },
             $workFreeDays,
             $period
         );
 
+        if ($separateType) {
+            $types = $typeRepository->findBy(['id' => $handlingTypesFilter]);
+            $chartData = Stream::from($chartData)
+                ->reduce(function ($carry, $data, $date) use ($types) {
+                    foreach ($types as $type) {
+                        $carry[$date][$type->getLabel()] = 0;
+                    }
+                    foreach ($data as $datum) {
+                        if (isset($datum['typeLabel']) && $datum['typeLabel']) {
+                            $carry[$date][$datum['typeLabel']] = $datum['count'];
+                        }
+                    }
+                    return $carry;
+                }, []);
+        }
+
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter
             ->setData($chartData);
+        return $chartData;
     }
 
     /**

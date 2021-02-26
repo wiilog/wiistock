@@ -362,24 +362,41 @@ class HandlingRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @param array $handlingStatusesFilter
-     * @param array $handlingTypesFilter
+     * @param array $options
      * @return int
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function countByDates(DateTime $dateMin,
                                  DateTime $dateMax,
-                                 array $handlingStatusesFilter = [],
-                                 array $handlingTypesFilter = []): int
+                                 array $options)
     {
+
+        $groupByTypes = $options['groupByTypes'] ?? false;
+        $isOperations = $options['isOperations'] ?? false;
+        $emergency = $options['emergency'] ?? false;
+        $handlingStatusesFilter = $options['handlingStatusesFilter'] ?? [];
+        $handlingTypesFilter = $options['handlingTypesFilter'] ?? [];
+
         $qb = $this->createQueryBuilder('handling')
-            ->select('COUNT(handling)')
+            ->select(($isOperations ? 'SUM(handling.carriedOutOperationCount) AS count' : ('COUNT(handling) ' . ($groupByTypes ? ' AS count' : ''))))
             ->where('handling.desiredDate BETWEEN :dateMin AND :dateMax')
+            ->join('handling.type', 'type')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
             ]);
+
+        if ($groupByTypes) {
+            $qb
+                ->groupBy('type.id')
+                ->addSelect('type.label as typeLabel');
+        }
+
+        if ($emergency) {
+            $qb
+                ->andWhere("handling.emergency NOT LIKE ''");
+        }
 
         if (!empty($handlingStatusesFilter)) {
             $qb
@@ -393,9 +410,7 @@ class HandlingRepository extends EntityRepository
                 ->setParameter('handlingTypes', $handlingTypesFilter);
         }
 
-        return $qb
-            ->getQuery()
-            ->getSingleScalarResult();
+        return $groupByTypes ? $qb->getQuery()->getResult() : $qb->getQuery()->getSingleScalarResult();
     }
 
     public function getOlderDateToTreat(array $types = [],
