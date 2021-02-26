@@ -8,6 +8,7 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Chauffeur;
 use App\Entity\Pack;
@@ -227,6 +228,7 @@ class ArrivageController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -239,12 +241,14 @@ class ArrivageController extends AbstractController
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
+        $dropLocation = !empty($data['dropLocation']) ? $emplacementRepository->find($data['dropLocation']) : null;
 
         $arrivage = new Arrivage();
         $arrivage
             ->setIsUrgent(false)
             ->setDate($date)
             ->setUtilisateur($currentUser)
+            ->setDropLocation($dropLocation)
             ->setNumeroArrivage($numeroArrivage)
             ->setCustoms(isset($data['customs']) ? $data['customs'] == 'true' : false)
             ->setFrozen(isset($data['frozen']) ? $data['frozen'] == 'true' : false)
@@ -544,6 +548,7 @@ class ArrivageController extends AbstractController
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
@@ -556,11 +561,13 @@ class ArrivageController extends AbstractController
         $transporteurId = $post->get('transporteur');
         $destinataireId = $post->get('destinataire');
         $statutId = $post->get('statut');
+        $dropLocationId = $post->get('dropLocation');
         $chauffeurId = $post->get('chauffeur');
         $type = $post->get('type');
         $newDestinataire = $destinataireId ? $utilisateurRepository->find($destinataireId) : null;
         $destinataireChanged = $newDestinataire && $newDestinataire !== $arrivage->getDestinataire();
         $numeroCommadeListStr = $post->get('numeroCommandeList');
+        $dropLocation = $dropLocationId ? $emplacementRepository->find($dropLocationId) : null;
 
         $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
@@ -568,6 +575,7 @@ class ArrivageController extends AbstractController
             ->setCommentaire($post->get('commentaire'))
             ->setNoTracking(substr($post->get('noTracking'), 0, 64))
             ->setNumeroCommandeList(explode(',', $numeroCommadeListStr))
+            ->setDropLocation($dropLocation)
             ->setFournisseur($fournisseurId ? $fournisseurRepository->find($fournisseurId) : null)
             ->setTransporteur($transporteurId ? $transporteurRepository->find($transporteurId) : null)
             ->setChauffeur($chauffeurId ? $chauffeurRepository->find($chauffeurId) : null)

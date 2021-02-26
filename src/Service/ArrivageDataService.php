@@ -366,6 +366,7 @@ class ArrivageDataService
         $status = $arrivage->getStatut();
         $type = $arrivage->getType();
         $destinataire = $arrivage->getDestinataire();
+        $dropLocation = $arrivage->getDropLocation();
         $buyers = $arrivage->getAcheteurs();
         $comment = $arrivage->getCommentaire();
         $attachments = $arrivage->getAttachments();
@@ -390,6 +391,11 @@ class ArrivageDataService
                 'label' => 'Fournisseur',
                 'value' => $provider ? $provider->getNom() : '',
                 'show' => [ 'fieldName' => 'fournisseur' ]
+            ],
+            [
+                'label' => 'Emplacement de dépose',
+                'value' => $dropLocation ? $dropLocation->getLabel() : '',
+                'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE ]
             ],
             [
                 'label' => 'Transporteur',
@@ -525,8 +531,9 @@ class ArrivageDataService
         }
         else if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) && $arrivage->getDestinataire()) {
             $location = $emplacementRepository->findOneByLabel(SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE);
-        }
-        else if($defaultArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION)) {
+        } else if ($arrivage->getDropLocation()) {
+            $location = $arrivage->getDropLocation();
+        } else if($defaultArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION)) {
             $location = $emplacementRepository->find($defaultArrivalsLocation);
         }
         else {

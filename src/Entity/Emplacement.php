@@ -107,6 +107,11 @@ class Emplacement
      */
     private $clusters;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="dropLocation")
+     */
+    private $arrivals;
+
 
     public function __construct()
     {
@@ -561,6 +566,37 @@ class Emplacement
             $this->clusters->removeElement($locationCluster);
             $locationCluster->removeLocation($this);
         }
+        return $this;
+    }
+
+    /**
+     * @return Collection|Arrivage[]
+     */
+    public function getArrivals(): Collection
+    {
+        return $this->arrivals;
+    }
+
+    public function addArrival(Arrivage $arrival): self
+    {
+        if (!$this->arrivals->contains($arrival)) {
+            $this->arrivals[] = $arrival;
+            $arrival->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArrival(Arrivage $arrival): self
+    {
+        if ($this->arrivals->contains($arrival)) {
+            $this->arrivals->removeElement($arrival);
+            // set the owning side to null (unless already changed)
+            if ($arrival->getType() === $this) {
+                $arrival->setType(null);
+            }
+        }
+
         return $this;
     }
 }

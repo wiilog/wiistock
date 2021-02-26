@@ -47,6 +47,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_FROZEN_ARRIVAGE, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true, 'hidden' => true],
                 ['code' => FieldsParam::FIELD_CODE_PROJECT_NUMBER, 'label' => FieldsParam::FIELD_LABEL_PROJECT_NUMBER, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true, 'default' => false],
                 ['code' => FieldsParam::FIELD_CODE_BUSINESS_UNIT, 'label' => FieldsParam::FIELD_LABEL_BUSINESS_UNIT, 'values' => [], 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true, 'default' => false],
+                ['code' => FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_DROP_LOCATION_ARRIVAGE, 'displayedFormsCreate' => false, 'displayedFormsEdit' => false, 'displayedFilters' => false],
             ],
 
             FieldsParam::ENTITY_CODE_DISPATCH => [

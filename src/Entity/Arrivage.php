@@ -135,6 +135,11 @@ class Arrivage extends FreeFieldEntity
 	 */
     private $type;
 
+    /**
+     * @ORM\ManyToOne (targetEntity="App\Entity\Emplacement", inversedBy="arrivals")
+     */
+    private $dropLocation;
+
     public function __construct() {
         $this->acheteurs = new ArrayCollection();
         $this->packs = new ArrayCollection();
@@ -551,6 +556,18 @@ class Arrivage extends FreeFieldEntity
     public function setType(?Type $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function getDropLocation(): ?Emplacement
+    {
+        return $this->dropLocation;
+    }
+
+    public function setDropLocation(?Emplacement $dropLocation): self
+    {
+        $this->dropLocation = $dropLocation;
 
         return $this;
     }

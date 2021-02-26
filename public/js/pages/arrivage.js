@@ -148,6 +148,7 @@ function initNewArrivageEditor(modal) {
     Select2.init($modal.find('.ajax-autocomplete-fournisseur'));
     Select2.init($modal.find('.ajax-autocomplete-transporteur'));
     Select2.init($modal.find('.ajax-autocomplete-chauffeur'));
+    Select2.location($modal.find('.ajax-autocomplete-location'));
     Select2.init($modal.find('.ajax-autocomplete-user'), '', 1);
     $modal.find('.list-multiple').select2();
     Select2.initFree($('.select2-free'));
