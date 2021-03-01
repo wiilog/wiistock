@@ -136,7 +136,7 @@ class Arrivage extends FreeFieldEntity
     private $type;
 
     /**
-     * @ORM\ManyToOne (targetEntity="App\Entity\Emplacement", inversedBy="arrivals")
+     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="arrivals")
      */
     private $dropLocation;
 
@@ -145,7 +145,6 @@ class Arrivage extends FreeFieldEntity
         $this->packs = new ArrayCollection();
         $this->attachements = new ArrayCollection();
         $this->urgences = new ArrayCollection();
-        $this->trackingMovements = new ArrayCollection();
         $this->numeroCommandeList = [];
     }
 
@@ -567,7 +566,19 @@ class Arrivage extends FreeFieldEntity
 
     public function setDropLocation(?Emplacement $dropLocation): self
     {
+        $oldDropLocation = $this->getDropLocation();
+
+        if ($oldDropLocation
+            && $oldDropLocation !== $dropLocation) {
+            $oldDropLocation->removeArrival($this);
+        }
+
         $this->dropLocation = $dropLocation;
+
+        if ($this->dropLocation
+            && $oldDropLocation !== $this->dropLocation) {
+            $this->dropLocation->addArrival($this);
+        }
 
         return $this;
     }

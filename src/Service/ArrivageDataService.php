@@ -12,6 +12,7 @@ use App\Entity\FiltreSup;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -154,6 +155,7 @@ class ArrivageDataService
             'emergency' => $arrival->getIsUrgent() ? 'oui' : 'non',
             'projectNumber' => $arrival->getProjectNumber() ?? '',
             'businessUnit' => $arrival->getBusinessUnit() ?? '',
+            'dropLocation' => FormatHelper::location($arrival->getDropLocation()),
             'url' => $url,
             'actions' => $this->templating->render(
                 'arrivage/datatableArrivageRow.html.twig',
@@ -487,6 +489,7 @@ class ArrivageDataService
 
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $columnsVisible = $currentUser->getColumnsVisibleForArrivage();
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARRIVAGE);
@@ -514,6 +517,12 @@ class ArrivageDataService
             ['title' => 'Business Unit', 'name' => 'businessUnit'],
         ];
 
+        $arrivalFieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+        if ($this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsCreate')
+            || $this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsEdit')) {
+            $columns[] = ['title' => 'Emplacement de dépose', 'name' => 'dropLocation'];
+        }
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 

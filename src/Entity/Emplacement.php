@@ -108,7 +108,7 @@ class Emplacement
     private $clusters;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="dropLocation")
+     * @ORM\OneToMany(targetEntity=Arrivage::class, mappedBy="dropLocation")
      */
     private $arrivals;
 
@@ -128,6 +128,7 @@ class Emplacement
         $this->dispatchesTo = new ArrayCollection();
         $this->dropTypes = new ArrayCollection();
         $this->pickTypes = new ArrayCollection();
+        $this->arrivals = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -581,7 +582,7 @@ class Emplacement
     {
         if (!$this->arrivals->contains($arrival)) {
             $this->arrivals[] = $arrival;
-            $arrival->setType($this);
+            $arrival->setDropLocation($this);
         }
 
         return $this;
@@ -592,8 +593,8 @@ class Emplacement
         if ($this->arrivals->contains($arrival)) {
             $this->arrivals->removeElement($arrival);
             // set the owning side to null (unless already changed)
-            if ($arrival->getType() === $this) {
-                $arrival->setType(null);
+            if ($arrival->getDropLocation() === $this) {
+                $arrival->setDropLocation(null);
             }
         }
 

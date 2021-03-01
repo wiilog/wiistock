@@ -54,6 +54,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -736,6 +737,11 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $csvService
+     * @param FreeFieldService $freeFieldService
+     * @return JsonResponse|StreamedResponse
      */
     public function exportArrivals(Request $request,
                                    EntityManagerInterface $entityManager,
@@ -784,6 +790,7 @@ class ArrivageController extends AbstractController
             "utilisateur",
             "numéro de projet",
             "business unit",
+            'Emplacement de dépose'
         ], $natureLabels, $ffConfig["freeFieldsHeader"]);
 
         $today = new DateTime();
@@ -791,19 +798,19 @@ class ArrivageController extends AbstractController
 
         return $csvService->streamResponse(function($output) use ($csvService, $freeFieldService, $ffConfig, $arrivals, $buyersByArrival, $natureLabels, $packs) {
             foreach($arrivals as $arrival) {
-                $this->putArrivageLine($output, $csvService, $freeFieldService, $ffConfig, $arrival, $buyersByArrival, $natureLabels, $packs);
+                $this->putArrivalLine($output, $csvService, $freeFieldService, $ffConfig, $arrival, $buyersByArrival, $natureLabels, $packs);
             }
         }, "export-arrivages-$today.csv", $header);
     }
 
-    private function putArrivageLine($handle,
-                                     CSVExportService $csvService,
-                                     FreeFieldService $freeFieldService,
-                                     array $ffConfig,
-                                     array $arrival,
-                                     array $buyersByArrival,
-                                     array $natureLabels,
-                                     array $packs) {
+    private function putArrivalLine($handle,
+                                    CSVExportService $csvService,
+                                    FreeFieldService $freeFieldService,
+                                    array $ffConfig,
+                                    array $arrival,
+                                    array $buyersByArrival,
+                                    array $natureLabels,
+                                    array $packs) {
         $id = (int)$arrival['id'];
 
         $line = [
@@ -826,6 +833,7 @@ class ArrivageController extends AbstractController
             $arrival['userUsername'] ?: '',
             $arrival['projectNumber'] ?: '',
             $arrival['businessUnit'] ?: '',
+            $arrival['dropLocation'] ?: '',
         ];
 
         foreach($natureLabels as $natureLabel) {
