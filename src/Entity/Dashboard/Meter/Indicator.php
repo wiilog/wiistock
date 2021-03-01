@@ -33,7 +33,12 @@ class Indicator
     /**
      * @ORM\Column(type="bigint", nullable=true)
      */
-    private $delay;
+    private ?int $delay;
+
+    /**
+     * @ORM\Column(type="json", nullable=false)
+     */
+    private array $subCounts = [];
 
     /**
      * @var Dashboard\Component
@@ -78,6 +83,18 @@ class Indicator
     public function setDelay(?int $delay): self
     {
         $this->delay = $delay;
+
+        return $this;
+    }
+
+    public function getSubCounts(): array
+    {
+        return $this->subCounts;
+    }
+
+    public function setSubCounts(array $subCounts): self
+    {
+        $this->subCounts = $subCounts;
 
         return $this;
     }

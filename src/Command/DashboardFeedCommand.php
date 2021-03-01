@@ -8,7 +8,9 @@
 namespace App\Command;
 
 use App\Entity\DaysWorked;
+use App\Entity\Type;
 use App\Entity\WorkFreeDay;
+use App\Helper\Stream;
 use App\Service\DashboardService;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManager;
@@ -74,6 +76,9 @@ class DashboardFeedCommand extends Command {
                 case Dashboard\ComponentType::ONGOING_PACKS:
                     $this->dashboardService->persistOngoingPack($entityManager, $component);
                     break;
+                case Dashboard\ComponentType::DAILY_HANDLING_INDICATOR:
+                    $this->dashboardService->persistDailyHandlingIndicator($entityManager, $component);
+                    break;
                 case Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS:
                     $this->dashboardService->persistDroppedPacks($entityManager, $component);
                     break;
@@ -111,7 +116,8 @@ class DashboardFeedCommand extends Command {
                     $this->dashboardService->persistDailyDispatches($entityManager, $component);
                     break;
                 case Dashboard\ComponentType::DAILY_HANDLING:
-                    $this->dashboardService->persistDailyHandling($entityManager, $component);
+                case Dashboard\ComponentType::DAILY_OPERATIONS:
+                    $this->dashboardService->persistDailyHandlingOrOperations($entityManager, $component);
                     break;
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT:
                 case Dashboard\ComponentType::ORDERS_TO_TREAT:
