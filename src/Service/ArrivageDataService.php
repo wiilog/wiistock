@@ -551,4 +551,56 @@ class ArrivageDataService
 
         return $location;
     }
+
+    public function putArrivalLine($handle,
+                                    CSVExportService $csvService,
+                                    FreeFieldService $freeFieldService,
+                                    array $ffConfig,
+                                    array $arrival,
+                                    array $buyersByArrival,
+                                    array $natureLabels,
+                                    array $packs,
+                                    array $fieldsParam) {
+        $id = (int)$arrival['id'];
+
+        $line = [
+            $arrival['numeroArrivage'] ?: '',
+            $arrival['recipientUsername'] ?: '',
+            $arrival['fournisseurName'] ?: '',
+            $arrival['transporteurLabel'] ?: '',
+            (!empty($arrival['chauffeurFirstname']) && !empty($arrival['chauffeurSurname']))
+                ? $arrival['chauffeurFirstname'] . ' ' . $arrival['chauffeurSurname']
+                : ($arrival['chauffeurFirstname'] ?: $arrival['chauffeurSurname'] ?: ''),
+            $arrival['noTracking'] ?: '',
+            !empty($arrival['numeroCommandeList']) ? implode(' / ', $arrival['numeroCommandeList']) : '',
+            $arrival['type'] ?: '',
+            $buyersByArrival[$id] ?? '',
+            $arrival['customs'] ? 'oui' : 'non',
+            $arrival['frozen'] ? 'oui' : 'non',
+            $arrival['statusName'] ?: '',
+            $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '',
+            $arrival['date'] ? $arrival['date']->format('d/m/Y H:i:s') : '',
+            $arrival['userUsername'] ?: '',
+            $arrival['projectNumber'] ?: '',
+            $arrival['businessUnit'] ?: '',
+            $arrival['dropLocation'] ?: '',
+        ];
+        if ($this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsCreate')
+            || $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsEdit')) {
+            $columns[] = ['title' => 'Emplacement de dépose', 'name' => 'dropLocation'];
+        }
+
+        foreach($natureLabels as $natureLabel) {
+            $line[] = $packs[$id][$natureLabel] ?? 0;
+        }
+
+        foreach($ffConfig["freeFieldIds"] as $freeFieldId) {
+            $line[] = $freeFieldService->serializeValue([
+                "typage" => $ffConfig["freeFieldsIdToTyping"][$freeFieldId],
+                "valeur" => $arrival["freeFields"][$freeFieldId] ?? ""
+            ]);
+        }
+
+        $csvService->putLine($handle, $line);
+    }
 }
