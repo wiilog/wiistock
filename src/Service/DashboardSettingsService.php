@@ -140,6 +140,9 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::ONGOING_PACKS:
                 $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example, $meter);
                 break;
+            case Dashboard\ComponentType::DAILY_HANDLING_INDICATOR:
+                $values += $this->serializeDailyHandlingIndicator($componentType, $config, $example, $meter);
+                break;
             case Dashboard\ComponentType::CARRIER_TRACKING:
                 $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
                 break;
@@ -175,7 +178,8 @@ class DashboardSettingsService {
                 $values += $this->serializeDailyDispatches($componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::DAILY_HANDLING:
-                $values += $this->serializeDailyHandling($componentType, $config, $example, $meter);
+            case Dashboard\ComponentType::DAILY_OPERATIONS:
+                $values += $this->serializeDailyHandlingOrOperations($componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::REQUESTS_TO_TREAT:
             case Dashboard\ComponentType::ORDERS_TO_TREAT:
@@ -379,6 +383,44 @@ class DashboardSettingsService {
         return $values;
     }
 
+    private function serializeDailyHandlingIndicator(Dashboard\ComponentType $componentType,
+                                                     array $config,
+                                                     bool $example = false,
+                                                     DashboardMeter\Indicator $meter = null): array {
+        $shouldShowOperations = isset($config['displayOperations']) && $config['displayOperations'];
+        $shouldShowEmergencies = isset($config['displayEmergency']) && $config['displayEmergency'];
+        if ($example) {
+            $values = $componentType->getExampleValues();
+        } else {
+            if ($meter) {
+                $values = [
+                    'subCounts' => $meter->getSubCounts(),
+                    'delay' => $meter->getDelay(),
+                    'count' => $meter->getCount(),
+                ];
+            } else {
+                $values = [
+                    'subtitle' => '-',
+                    'subCounts' => [
+                        '<span class="text-wii-green">-</span> <span class="text-wii-black">lignes</span>',
+                        '<span class="text-wii-red">-</span> <span class="text-wii-black">urgences</span>'
+                    ],
+                    'count' => '-',
+                ];
+            }
+        }
+        if (!$shouldShowOperations && isset($values['subCounts'][0])) {
+            unset($values['subCounts'][0]);
+        }
+        if (!$shouldShowEmergencies && isset($values['subCounts'][1])) {
+            unset($values['subCounts'][1]);
+        }
+
+        $values['subCounts'] = array_values($values['subCounts']);
+
+        return $values;
+    }
+
     private function serializeOngoingPacks(EntityManagerInterface $manager,
                                            Dashboard\ComponentType $componentType,
                                            array $config,
@@ -571,10 +613,11 @@ class DashboardSettingsService {
      * @param DashboardMeter\Chart|null $chart
      * @return array
      */
-    private function serializeDailyHandling(Dashboard\ComponentType $componentType,
-                                            array $config,
-                                            bool $example = false,
-                                            DashboardMeter\Chart $chart = null): array {
+    private function serializeDailyHandlingOrOperations(Dashboard\ComponentType $componentType,
+                                                        array $config,
+                                                        bool $example = false,
+                                                        DashboardMeter\Chart $chart = null): array {
+        $separateType = isset($config['separateType']) && $config['separateType'];
 
         if (!$example) {
             if ($chart) {
@@ -586,8 +629,7 @@ class DashboardSettingsService {
             $values = $componentType->getExampleValues();
 
             $scale = $config['daysNumber'] ?? DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE;
-
-            $chartData = $values['chartData'] ?? [];
+            $chartData = $separateType ? ($values['chartDataMultiple'] ?? []) : ($values['chartData'] ?? []);
             $keysToKeep = array_slice(array_keys($chartData), 0, $scale);
             $chartData = Stream::from($keysToKeep)
                 ->reduce(function(array $carry, string $key) use ($chartData) {
@@ -596,9 +638,9 @@ class DashboardSettingsService {
                     }
                     return $carry;
                 }, []);
-
             $values['chartData'] = $chartData;
         }
+        $values['multiple'] = $separateType;
         return $values;
     }
 
