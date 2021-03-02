@@ -44,6 +44,7 @@ class FieldsParam
     const FIELD_CODE_CHAUFFEUR_ARRIVAGE = 'chauffeur';
     const FIELD_CODE_NUMERO_TRACKING_ARRIVAGE = 'noTracking';
     const FIELD_CODE_NUM_COMMANDE_ARRIVAGE = 'numeroCommandeList';
+    const FIELD_CODE_DROP_LOCATION_ARRIVAGE = 'dropLocation';
     const FIELD_CODE_TARGET_ARRIVAGE = 'destinataire';
     const FIELD_CODE_BUYERS_ARRIVAGE = 'acheteurs';
     const FIELD_CODE_PRINT_ARRIVAGE = 'imprimerArrivage';
@@ -68,6 +69,7 @@ class FieldsParam
 	const FIELD_LABEL_FROZEN_ARRIVAGE = 'congelé';
     const FIELD_LABEL_PROJECT_NUMBER = 'numéro projet';
     const FIELD_LABEL_BUSINESS_UNIT = 'business unit';
+    const FIELD_LABEL_DROP_LOCATION_ARRIVAGE = 'emplacement de dépose';
 
     const ENTITY_CODE_DISPATCH = 'acheminements';
 
@@ -98,12 +100,14 @@ class FieldsParam
     const FIELD_CODE_LOADING_ZONE = 'loadingZone';
     const FIELD_CODE_UNLOADING_ZONE = 'unloadingZone';
     const FIELD_CODE_CARRIED_OUT_OPERATION_COUNT = 'carriedOutOperationCount';
+    const FIELD_CODE_RECEIVERS_HANDLING = 'receivers';
 
     const FIELD_LABEL_LOADING_ZONE = 'chargement';
     const FIELD_LABEL_UNLOADING_ZONE = 'déchargement';
     const FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT = 'nombre d\'opération(s) réalisée(s)';
+    const FIELD_LABEL_RECEIVERS_HANDLING = 'destinataires';
 
-	/**
+    /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")

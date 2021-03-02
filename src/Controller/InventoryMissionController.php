@@ -265,7 +265,7 @@ class InventoryMissionController extends AbstractController
             $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
 
             $mission = $inventoryMissionRepository->find($data['missionId']);
-
+            $barcodeErrors = [];
             Stream::explode([",", " ", ";", "\t"], $data['articles'])
                 ->filterMap(function($barcode) use ($articleRepository, $refArtRepository, $mission) {
                     $barcode = trim($barcode);
@@ -276,26 +276,42 @@ class InventoryMissionController extends AbstractController
                             && $article->getArticleFournisseur()->getReferenceArticle()->getStatut()->getNom() === ReferenceArticle::STATUT_ACTIF
                             && !$this->inventoryService->isInMissionInSamePeriod($article, $mission, false);
 
-                        return $checkForArt ? $article : null;
+                        return $checkForArt ? $article : $article->getBarCode();
                     } else if($reference = $refArtRepository->findOneBy(["barCode" => $barcode])) {
 
                         $checkForRef = $reference instanceof ReferenceArticle
                             && $reference->getStatut()->getNom() === ReferenceArticle::STATUT_ACTIF
                             && !$this->inventoryService->isInMissionInSamePeriod($reference, $mission, true);
 
-                        return $checkForRef ? $reference : null;
+                        return $checkForRef ? $reference : $reference->getBarCode();
                     } else {
-                        return null;
+                        return $barcode;
                     }
                 })
-                ->each(function($refOrArt) use ($mission) {
-                    $refOrArt->addInventoryMission($mission);
+                ->each(function($refOrArt) use ($mission, &$barcodeErrors) {
+                    if ($refOrArt instanceof ReferenceArticle || $refOrArt instanceof Article) {
+                        $refOrArt->addInventoryMission($mission);
+                    } else {
+                        $barcodeErrors[] = $refOrArt;
+                    }
                 });
 
             $entityManager->flush();
-
+            $success = count($barcodeErrors) === 0;
+            $errorMsg = "";
+            if (!$success) {
+                $errorMsg = '<span class="pl-2">Les codes-barres suivants sont en erreur :</span><ul class="list-group my-2">';
+                $errorMsg .= (
+                    Stream::from($barcodeErrors)
+                    ->map(function(string $barcode) {
+                        return '<li class="list-group-item">' . $barcode . '</li>';
+                    })
+                    ->join("") . "</ul><span class='text-dark pl-2'>Les autres codes-barres ont bien été ajoutés à la mission.</span>"
+                );
+            }
             return new JsonResponse([
-                'success' => true,
+                'success' => $success,
+                'msg' => $errorMsg
             ]);
         } else {
             throw new BadRequestHttpException();

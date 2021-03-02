@@ -804,7 +804,7 @@ class ApiController extends AbstractFOSRestController {
                     && $newStatus
                     && ($oldStatus->getId() !== $newStatus->getId())
                 )) {
-                $handlingService->sendEmailsAccordingToStatus($handling);
+                $handlingService->sendEmailsAccordingToStatus($entityManager, $handling);
             }
 
             $data['success'] = true;

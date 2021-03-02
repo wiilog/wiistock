@@ -6,6 +6,7 @@ use App\Entity\AverageRequestTime;
 use App\Entity\Handling;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -125,7 +126,7 @@ class HandlingRepository extends EntityRepository
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
         $queryBuilder = $this->createQueryBuilder('handling')
-            ->select('handling.id')
+            ->select('handling.id AS id')
             ->addSelect('handling.number AS number')
             ->addSelect('handling.creationDate AS creationDate')
             ->addSelect('join_requester.username AS requester')
@@ -218,6 +219,13 @@ class HandlingRepository extends EntityRepository
                 case 'subject':
                     $qb->andWhere('handling.subject LIKE :filter_subject')
                         ->setParameter('filter_subject', "%{$filter['value']}%");
+                    break;
+                case 'receivers':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('handling.receivers', 'filter_receivers')
+                        ->andWhere("filter_receivers.id in (:filter_receivers_username_value)")
+                        ->setParameter('filter_receivers_username_value', $value);
                     break;
             }
         }
@@ -344,6 +352,7 @@ class HandlingRepository extends EntityRepository
             ->select('handling.number')
             ->where('handling.number LIKE :value')
             ->orderBy('handling.creationDate', 'DESC')
+            ->addOrderBy('handling.number', 'DESC')
             ->setParameter('value', Handling::PREFIX_NUMBER . '-' . $date . '%')
             ->getQuery()
             ->execute();
@@ -353,24 +362,41 @@ class HandlingRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @param array $handlingStatusesFilter
-     * @param array $handlingTypesFilter
+     * @param array $options
      * @return int
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function countByDates(DateTime $dateMin,
                                  DateTime $dateMax,
-                                 array $handlingStatusesFilter = [],
-                                 array $handlingTypesFilter = []): int
+                                 array $options)
     {
+
+        $groupByTypes = $options['groupByTypes'] ?? false;
+        $isOperations = $options['isOperations'] ?? false;
+        $emergency = $options['emergency'] ?? false;
+        $handlingStatusesFilter = $options['handlingStatusesFilter'] ?? [];
+        $handlingTypesFilter = $options['handlingTypesFilter'] ?? [];
+
         $qb = $this->createQueryBuilder('handling')
-            ->select('COUNT(handling)')
+            ->select(($isOperations ? 'SUM(handling.carriedOutOperationCount) AS count' : ('COUNT(handling) ' . ($groupByTypes ? ' AS count' : ''))))
             ->where('handling.desiredDate BETWEEN :dateMin AND :dateMax')
+            ->join('handling.type', 'type')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
             ]);
+
+        if ($groupByTypes) {
+            $qb
+                ->groupBy('type.id')
+                ->addSelect('type.label as typeLabel');
+        }
+
+        if ($emergency) {
+            $qb
+                ->andWhere("handling.emergency NOT LIKE ''");
+        }
 
         if (!empty($handlingStatusesFilter)) {
             $qb
@@ -384,9 +410,7 @@ class HandlingRepository extends EntityRepository
                 ->setParameter('handlingTypes', $handlingTypesFilter);
         }
 
-        return $qb
-            ->getQuery()
-            ->getSingleScalarResult();
+        return $groupByTypes ? $qb->getQuery()->getResult() : $qb->getQuery()->getSingleScalarResult();
     }
 
     public function getOlderDateToTreat(array $types = [],
@@ -413,5 +437,39 @@ class HandlingRepository extends EntityRepository
         else {
             return null;
         }
+    }
+
+    public function getReceiversByDates(DateTime $dateMin,
+                                        DateTime $dateMax) {
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+
+        $queryBuilder = $this->createQueryBuilder('handling')
+            ->select('handling.id AS id')
+            ->addSelect('join_receiver.username AS username')
+            ->join('handling.receivers', 'join_receiver')
+            ->where('handling.creationDate BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        $res = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
+        return Stream::from($res)
+            ->reduce(function (array $carry, array $handling) {
+                $id = $handling['id'];
+                $username = $handling['username'];
+
+                if (!isset($carry[$id])) {
+                    $carry[$id] = [];
+                }
+
+                $carry[$id][] = $username;
+
+                return $carry;
+            }, []);
     }
 }

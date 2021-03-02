@@ -15,8 +15,10 @@ const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
 const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
 const REQUESTS_TO_TREAT = 'requests_to_treat';
+const DAILY_HANDLING_INDICATOR = 'daily_handling_indicator';
 const ORDERS_TO_TREAT = 'orders_to_treat';
 const DAILY_HANDLING = 'daily_handling';
+const DAILY_OPERATIONS = 'daily_operations';
 const MONETARY_RELIABILITY_GRAPH = 'monetary_reliability_graph';
 const MONETARY_RELIABILITY_INDICATOR = 'monetary_reliability_indicator';
 const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
@@ -92,7 +94,13 @@ const creators = {
     [ORDERS_TO_TREAT]: {
         callback: createIndicatorElement
     },
+    [DAILY_HANDLING_INDICATOR]: {
+        callback: createIndicatorElement
+    },
     [DAILY_HANDLING]: {
+        callback: createChart
+    },
+    [DAILY_OPERATIONS]: {
         callback: createChart
     },
     [MONETARY_RELIABILITY_INDICATOR]: {
@@ -132,9 +140,8 @@ function renderComponent(component, $container, data) {
             const isCardExample = $container.parents('#modalComponentTypeSecondStep').length > 0;
             const $canvas = $element.find('canvas');
             const $table = $element.find('table');
-
             if($canvas.length > 0) {
-                if(!$canvas.hasClass('multiple')) {
+                if(!$canvas.hasClass('multiple') && !data.multiple) {
                     createAndUpdateSimpleChart(
                         $canvas,
                         null,
@@ -452,7 +459,7 @@ function createCarrierTrackingElement(data) {
                 ${title}
             </div>
             ${createTooltip(data.tooltip)}
-            <p>${carriers}</p>
+            <h1>${carriers}</h1>
         </div>
     `);
 }
@@ -471,7 +478,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
 
     customContainerClass = customContainerClass || '';
 
-    const {title, subtitle, tooltip, count, delay, componentLink} = data;
+    const {title, subtitle, tooltip, count, delay, componentLink, emergency, subCounts} = data;
     const element = componentLink ? '<a/>' : '<div/>';
     const customAttributes = componentLink
         ? {
@@ -480,15 +487,22 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
         }
         : {};
     const clickableClass = componentLink ? 'pointer' : '';
+    const needsEmergencyDisplay = emergency && count > 0;
+    const $emergencyIcon = needsEmergencyDisplay ? '<i class="fa fa-exclamation-triangle red"></i>' : '';
 
     return $(element, Object.assign({
-        class: `dashboard-box dashboard-box-indicator text-center justify-content-around dashboard-stats-container ${customContainerClass}`,
+        class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
         html: [
             createTooltip(tooltip),
             title
                 ? $('<div/>', {
                     class: `text-center title ${meterKey === ENTRIES_TO_HANDLE ? '' : 'ellipsis'}`,
-                    html: `${title.split('(')[0]}<p class="small ellipsis location-label">${subtitle || ''}</p>`
+                    html: [
+                        $emergencyIcon,
+                        `<span class="${needsEmergencyDisplay ? 'mx-3' : ''}">${title.split('(')[0]}</span>`,
+                        $emergencyIcon,
+                        `<p class="small ellipsis location-label">${subtitle || ''}</p>`
+                    ]
                 })
                 : undefined,
             subtitle && !title
@@ -499,8 +513,8 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
                 : undefined,
             count !== undefined
                 ? $('<div/>', {
-                    class: 'align-items-center',
-                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter">${(count || count === '0' || count === 0) ? count : '-'}</div>`
+                    class: `align-items-center`,
+                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter ${needsEmergencyDisplay ? 'red' : ''}">${(count || count === '0' || count === 0) ? count : '-'}</div>`
                 })
                 : undefined,
             delay
@@ -517,6 +531,14 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
                     text: !isNaN(Math.abs(delay)) ? renderMillisecondsToDelay(Math.abs(delay), 'display') : delay
                 })
                 : undefined,
+            ...((subCounts || [])
+                .filter(Boolean)
+                .map((subCount) => (
+                    $('<div/>', {
+                        class: `${clickableClass} dashboard-stats`,
+                        html: subCount || ''
+                    })
+                )))
         ].filter(Boolean)
     }, customAttributes));
 }

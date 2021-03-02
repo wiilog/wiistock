@@ -122,7 +122,6 @@ function processSubmitAction($modal,
             })
             .then((data) => {
                 $submit.popLoader();
-
                 if (data.success === false) {
                     displayFormErrors($modal, {
                         $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,

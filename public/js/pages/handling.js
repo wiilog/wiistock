@@ -1,58 +1,17 @@
-$('.select2').select2();
-
-let pathHandling = Routing.generate('handling_api', true);
-let tableHandlingConfig = {
-    serverSide: true,
-    processing: true,
-    order: [['creationDate', 'desc']],
-    rowConfig: {
-        needsRowClickAction: true,
-        needsColor: true,
-        color: 'danger',
-        dataToCheck: 'emergency'
-    },
-    drawConfig: {
-        needsSearchOverride: true,
-    },
-    ajax: {
-        "url": pathHandling,
-        "type": "POST",
-        'data' : {
-            'filterStatus': $('#filterStatus').val()
-        },
-    },
-    columns: [
-        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
-        { "data": 'number', 'name': 'number', 'title': 'Numéro de demande' },
-        { "data": 'creationDate', 'name': 'creationDate', 'title': 'Date demande' },
-        { "data": 'type', 'name': 'type', 'title': 'Type' },
-        { "data": 'requester', 'name': 'requester', 'title': 'Demandeur' },
-        { "data": 'subject', 'name': 'subject', 'title': 'services.Objet', translated: true },
-        { "data": 'desiredDate', 'name': 'desiredDate', 'title': 'Date attendue' },
-        { "data": 'validationDate', 'name': 'validationDate', 'title': 'Date de réalisation' },
-        { "data": 'status', 'name': 'status', 'title': 'Statut' },
-        { "data": 'emergency', 'name': 'emergency', 'title': 'Urgence' },
-        // {
-        //     "data": 'treatmentDelay',
-        //     'name': 'treatmentDelay',
-        //     'title': 'Temps de traitement opérateur',
-        //     'tooltip': "Temps entre l’ouverture de la demande sur la nomade et la validation de cette dernière."
-        // },
-        { "data": 'carriedOutOperationCount', 'name': 'carriedOutOperationCount', 'title': 'services.Nombre d\'opération(s) réalisée(s)', translated: true },
-        { "data": 'treatedBy', 'name': 'treatedBy', 'title': 'Traité par' },
-    ]
-};
-let tableHandling = initDataTable('tableHandling_id', tableHandlingConfig);
-
 $(function() {
+    $('.select2').select2();
+
+    const tableHandling = initDatatable();
+    initModals(tableHandling);
+
     initDateTimePicker();
     Select2.init($('.filter-select2[name="statut"]'), 'Statuts');
-    Select2.user('Demandeurs');
+    Select2.user($('.filter-select2[name="utilisateurs"]'), 'Demandeurs');
+    Select2.user($('.filter-select2[name="receivers"]'), 'Destinataires');
     Select2.init($('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
 
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
-
 
     if (val && val.length > 0) {
         let valuesStr = val.split(',');
@@ -70,28 +29,12 @@ $(function() {
         }, 'json');
     }
 
-    const $modalNewHandling = $('#modalNewHandling');
+    const $modalNewHandling = $("#modalNewHandling");
     $modalNewHandling.on('show.bs.modal', function () {
         initNewHandlingEditor("#modalNewHandling");
     });
 });
 
-// filtres de recheches
-
-let $modalNewHandling = $("#modalNewHandling");
-let $submitNewHandling = $("#submitNewHandling");
-let urlNewHandling = Routing.generate('handling_new', true);
-InitModal($modalNewHandling, $submitNewHandling, urlNewHandling, {tables: [tableHandling]});
-
-let $modalModifyHandling = $('#modalEditHandling');
-let $submitModifyHandling = $('#submitEditHandling');
-let urlModifyHandling = Routing.generate('handling_edit', true);
-InitModal($modalModifyHandling, $submitModifyHandling, urlModifyHandling, {tables: [tableHandling]});
-
-let $modalDeleteHandling = $('#modalDeleteHandling');
-let $submitDeleteHandling = $('#submitDeleteHandling');
-let urlDeleteHandling = Routing.generate('handling_delete', true);
-InitModal($modalDeleteHandling, $submitDeleteHandling, urlDeleteHandling, {tables: [tableHandling]});
 
 //initialisation editeur de texte une seule fois
 let editorNewHandlingAlreadyDone = false;
@@ -133,4 +76,75 @@ function callbackSaveFilter() {
     if (str[5]) {
         window.location.href = Routing.generate('handling_index');
     }
+}
+
+function initDatatable() {
+    const showReceiversColumn = Number($('#showReceiversColumn').val()) === 1;
+    const receiversColumn = showReceiversColumn
+        ? [{ "data":  'receivers', 'name': 'receivers', 'title': 'Destinataires', orderable: false}]
+        : [];
+
+    let pathHandling = Routing.generate('handling_api', true);
+    let tableHandlingConfig = {
+        serverSide: true,
+        processing: true,
+        order: [['creationDate', 'desc']],
+        rowConfig: {
+            needsRowClickAction: true,
+            needsColor: true,
+            color: 'danger',
+            dataToCheck: 'emergency'
+        },
+        drawConfig: {
+            needsSearchOverride: true,
+        },
+        ajax: {
+            "url": pathHandling,
+            "type": "POST",
+            'data' : {
+                'filterStatus': $('#filterStatus').val()
+            },
+        },
+        columns: [
+            { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
+            { "data": 'number', 'name': 'number', 'title': 'Numéro de demande' },
+            { "data": 'creationDate', 'name': 'creationDate', 'title': 'Date demande' },
+            { "data": 'type', 'name': 'type', 'title': 'Type' },
+            { "data": 'requester', 'name': 'requester', 'title': 'Demandeur' },
+            { "data": 'subject', 'name': 'subject', 'title': 'services.Objet', translated: true },
+            { "data": 'desiredDate', 'name': 'desiredDate', 'title': 'Date attendue' },
+            { "data": 'validationDate', 'name': 'validationDate', 'title': 'Date de réalisation' },
+            { "data": 'status', 'name': 'status', 'title': 'Statut' },
+            { "data": 'emergency', 'name': 'emergency', 'title': 'Urgence' },
+            // {
+            //     "data": 'treatmentDelay',
+            //     'name': 'treatmentDelay',
+            //     'title': 'Temps de traitement opérateur',
+            //     'tooltip': "Temps entre l’ouverture de la demande sur la nomade et la validation de cette dernière."
+            // },
+            { "data": 'carriedOutOperationCount', 'name': 'carriedOutOperationCount', 'title': 'services.Nombre d\'opération(s) réalisée(s)', translated: true },
+            { "data": 'treatedBy', 'name': 'treatedBy', 'title': 'Traité par' },
+            ...receiversColumn
+        ]
+    };
+    return initDataTable('tableHandling_id', tableHandlingConfig);
+}
+
+function initModals(tableHandling) {
+    let $modalNewHandling = $("#modalNewHandling");
+    let $submitNewHandling = $("#submitNewHandling");
+    let urlNewHandling = Routing.generate('handling_new', true);
+    InitModal($modalNewHandling, $submitNewHandling, urlNewHandling, {tables: [tableHandling]});
+
+    let $modalModifyHandling = $('#modalEditHandling');
+    let $submitModifyHandling = $('#submitEditHandling');
+    let urlModifyHandling = Routing.generate('handling_edit', true);
+    InitModal($modalModifyHandling, $submitModifyHandling, urlModifyHandling, {tables: [tableHandling]});
+
+    let $modalDeleteHandling = $('#modalDeleteHandling');
+    let $submitDeleteHandling = $('#submitDeleteHandling');
+    let urlDeleteHandling = Routing.generate('handling_delete', true);
+    InitModal($modalDeleteHandling, $submitDeleteHandling, urlDeleteHandling, {tables: [tableHandling]});
+
+    Select2.user($modalNewHandling.find('.ajax-autocomplete-user[name=receivers]'))
 }

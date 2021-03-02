@@ -8,6 +8,7 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Chauffeur;
 use App\Entity\Pack;
@@ -28,6 +29,7 @@ use App\Helper\Stream;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\DispatchService;
+use App\Service\FieldsParamService;
 use App\Service\TrackingMovementService;
 use App\Service\PackService;
 use App\Service\CSVExportService;
@@ -53,6 +55,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -227,6 +230,7 @@ class ArrivageController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -239,12 +243,14 @@ class ArrivageController extends AbstractController
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
+        $dropLocation = !empty($data['dropLocation']) ? $emplacementRepository->find($data['dropLocation']) : null;
 
         $arrivage = new Arrivage();
         $arrivage
             ->setIsUrgent(false)
             ->setDate($date)
             ->setUtilisateur($currentUser)
+            ->setDropLocation($dropLocation)
             ->setNumeroArrivage($numeroArrivage)
             ->setCustoms(isset($data['customs']) ? $data['customs'] == 'true' : false)
             ->setFrozen(isset($data['frozen']) ? $data['frozen'] == 'true' : false)
@@ -544,6 +550,7 @@ class ArrivageController extends AbstractController
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
@@ -556,11 +563,13 @@ class ArrivageController extends AbstractController
         $transporteurId = $post->get('transporteur');
         $destinataireId = $post->get('destinataire');
         $statutId = $post->get('statut');
+        $dropLocationId = $post->get('dropLocation');
         $chauffeurId = $post->get('chauffeur');
         $type = $post->get('type');
         $newDestinataire = $destinataireId ? $utilisateurRepository->find($destinataireId) : null;
         $destinataireChanged = $newDestinataire && $newDestinataire !== $arrivage->getDestinataire();
         $numeroCommadeListStr = $post->get('numeroCommandeList');
+        $dropLocation = $dropLocationId ? $emplacementRepository->find($dropLocationId) : null;
 
         $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
@@ -568,6 +577,7 @@ class ArrivageController extends AbstractController
             ->setCommentaire($post->get('commentaire'))
             ->setNoTracking(substr($post->get('noTracking'), 0, 64))
             ->setNumeroCommandeList(explode(',', $numeroCommadeListStr))
+            ->setDropLocation($dropLocation)
             ->setFournisseur($fournisseurId ? $fournisseurRepository->find($fournisseurId) : null)
             ->setTransporteur($transporteurId ? $transporteurRepository->find($transporteurId) : null)
             ->setChauffeur($chauffeurId ? $chauffeurRepository->find($chauffeurId) : null)
@@ -646,7 +656,6 @@ class ArrivageController extends AbstractController
 
             if ($canBeDeleted) {
                 foreach ($arrivage->getPacks() as $pack) {
-                    $entityManager->remove($pack);
                     foreach ($pack->getTrackingMovements() as $arrivageMvtTraca) {
                         $entityManager->remove($arrivageMvtTraca);
                     }
@@ -658,6 +667,8 @@ class ArrivageController extends AbstractController
                         $entityManager->remove($litige);
                     }
                     $pack->getLitiges()->clear();
+
+                    $entityManager->remove($pack);
                 }
                 $arrivage->getPacks()->clear();
 
@@ -727,10 +738,19 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $csvService
+     * @param FieldsParamService $fieldsParamService
+     * @param ArrivageDataService $arrivageDataService
+     * @param FreeFieldService $freeFieldService
+     * @return JsonResponse|StreamedResponse
      */
     public function exportArrivals(Request $request,
                                    EntityManagerInterface $entityManager,
                                    CSVExportService $csvService,
+                                   FieldsParamService $fieldsParamService,
+                                   ArrivageDataService $arrivageDataService,
                                    FreeFieldService $freeFieldService) {
         $FORMAT = "Y-m-d H:i:s";
 
@@ -738,6 +758,7 @@ class ArrivageController extends AbstractController
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $packRepository = $entityManager->getRepository(Pack::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         try {
             $from = DateTime::createFromFormat($FORMAT, $request->query->get("dateMin") . " 00:00:00");
@@ -756,8 +777,9 @@ class ArrivageController extends AbstractController
         $packs = $packRepository->countColisByArrivageAndNature($from->format($FORMAT), $to->format($FORMAT));
         $buyersByArrival = $utilisateurRepository->getUsernameBuyersGroupByArrival();
         $natureLabels = $natureRepository->findAllLabels();
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
-        $header = array_merge([
+        $baseHeader = [
             "n° arrivage",
             "destinataire",
             "fournisseur",
@@ -775,62 +797,24 @@ class ArrivageController extends AbstractController
             "utilisateur",
             "numéro de projet",
             "business unit",
-        ], $natureLabels, $ffConfig["freeFieldsHeader"]);
+
+        ];
+
+        if ($fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsCreate')
+            || $fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsEdit')) {
+            $columns[] = 'Emplacement de dépose';
+        }
+
+        $header = array_merge($baseHeader, $natureLabels, $ffConfig["freeFieldsHeader"]);
 
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
 
-        return $csvService->streamResponse(function($output) use ($csvService, $freeFieldService, $ffConfig, $arrivals, $buyersByArrival, $natureLabels, $packs) {
+        return $csvService->streamResponse(function($output) use ($arrivageDataService, $csvService, $fieldsParam, $freeFieldService, $ffConfig, $arrivals, $buyersByArrival, $natureLabels, $packs) {
             foreach($arrivals as $arrival) {
-                $this->putArrivageLine($output, $csvService, $freeFieldService, $ffConfig, $arrival, $buyersByArrival, $natureLabels, $packs);
+                $arrivageDataService->putArrivalLine($output, $csvService, $freeFieldService, $ffConfig, $arrival, $buyersByArrival, $natureLabels, $packs, $fieldsParam);
             }
         }, "export-arrivages-$today.csv", $header);
-    }
-
-    private function putArrivageLine($handle,
-                                     CSVExportService $csvService,
-                                     FreeFieldService $freeFieldService,
-                                     array $ffConfig,
-                                     array $arrival,
-                                     array $buyersByArrival,
-                                     array $natureLabels,
-                                     array $packs) {
-        $id = (int)$arrival['id'];
-
-        $line = [
-            $arrival['numeroArrivage'] ?: '',
-            $arrival['recipientUsername'] ?: '',
-            $arrival['fournisseurName'] ?: '',
-            $arrival['transporteurLabel'] ?: '',
-            (!empty($arrival['chauffeurFirstname']) && !empty($arrival['chauffeurSurname']))
-                ? $arrival['chauffeurFirstname'] . ' ' . $arrival['chauffeurSurname']
-                : ($arrival['chauffeurFirstname'] ?: $arrival['chauffeurSurname'] ?: ''),
-            $arrival['noTracking'] ?: '',
-            !empty($arrival['numeroCommandeList']) ? implode(' / ', $arrival['numeroCommandeList']) : '',
-            $arrival['type'] ?: '',
-            $buyersByArrival[$id] ?? '',
-            $arrival['customs'] ? 'oui' : 'non',
-            $arrival['frozen'] ? 'oui' : 'non',
-            $arrival['statusName'] ?: '',
-            $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '',
-            $arrival['date'] ? $arrival['date']->format('d/m/Y H:i:s') : '',
-            $arrival['userUsername'] ?: '',
-            $arrival['projectNumber'] ?: '',
-            $arrival['businessUnit'] ?: '',
-        ];
-
-        foreach($natureLabels as $natureLabel) {
-            $line[] = $packs[$id][$natureLabel] ?? 0;
-        }
-
-        foreach($ffConfig["freeFieldIds"] as $freeFieldId) {
-            $line[] = $freeFieldService->serializeValue([
-                "typage" => $ffConfig["freeFieldsIdToTyping"][$freeFieldId],
-                "valeur" => $arrival["freeFields"][$freeFieldId] ?? ""
-            ]);
-        }
-
-        $csvService->putLine($handle, $line);
     }
 
     /**

@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Statut;
 use App\Entity\TransferOrder;
-use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
@@ -163,6 +162,7 @@ class TransferOrderRepository extends EntityRepository {
             ->select('transfer_order.number')
             ->where('transfer_order.number LIKE :value')
             ->orderBy('transfer_order.creationDate', 'DESC')
+            ->addOrderBy('transfer_order.number', 'DESC')
             ->setParameter('value', TransferOrder::NUMBER_PREFIX . '-' . $date . '%')
             ->getQuery()
             ->getResult();

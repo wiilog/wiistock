@@ -197,7 +197,14 @@ function renderCurrentDashboard() {
         Object.keys(currentDashboard.rows)
             .map((key) => currentDashboard.rows[key])
             .map(renderRow)
-            .forEach((row) => $dashboard.append(row));
+            .forEach((row) => {
+                const $dashboardCurrentRow = $dashboard.find(`.dashboard-row[data-row-index="${row.data('row-index')}"]`);
+                if ($dashboardCurrentRow.length > 0) {
+                    $dashboardCurrentRow.replaceWith(row);
+                } else {
+                    $dashboard.append(row);
+                }
+            });
     }
 
     if(mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
@@ -335,7 +342,7 @@ function renderCardComponent({columnIndex, cellIndex, component}) {
                         html: [
                             '<i class="fas fa-cog" data-toggle="dropdown"></i>',
                             $(`<div/>`, {
-                                class: 'dropdown-menu dropdown-menu-right pointer',
+                                class: 'dropdown-menu dropdown-follow-gt dropdown-menu-right pointer',
                                 html: [
                                     $editButton,
                                     $deleteButton
@@ -431,7 +438,7 @@ function createDashboardSelectorItem(dashboard) {
                 <span class="pointer" data-toggle="dropdown">
                     <i class="fas fa-cog"></i>
                 </span>
-                <div class="dropdown-menu pointer">
+                <div class="dropdown-menu dropdown-follow-gt pointer">
                     <a class="dropdown-item rename-dashboard" role="button" data-dashboard-index="${dashboard.dashboardIndex}"
                          data-toggle="modal" data-target="#rename-dashboard-modal">
                         <i class="fas fa-edit mr-2"></i>Renommer

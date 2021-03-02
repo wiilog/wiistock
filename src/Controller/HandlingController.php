@@ -18,6 +18,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
+use App\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DateService;
@@ -171,6 +172,7 @@ class HandlingController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+            $userRepository = $entityManager->getRepository(Utilisateur::class);
 
             $post = $request->request;
 
@@ -207,6 +209,17 @@ class HandlingController extends AbstractController
                 $handling->setValidationDate($date);
                 $handling->setTreatedByHandling($requester);
             }
+            $receivers = $post->get('receivers');
+            if(!empty($receivers)) {
+                $ids = explode("," , $receivers);
+
+                foreach ($ids as $id) {
+                    $receiver = $id ? $userRepository->find($id) : null;
+                    if ($receiver) {
+                        $handling->addReceiver($receiver);
+                    }
+                }
+            }
 
             $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
 
@@ -237,7 +250,7 @@ class HandlingController extends AbstractController
                 ]);
             }
 
-            $handlingService->sendEmailsAccordingToStatus($handling, !$status->isTreated());
+            $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, !$status->isTreated());
 
             return new JsonResponse([
                 'success' => true,
@@ -290,7 +303,8 @@ class HandlingController extends AbstractController
                     : [],
                 'attachments' => $attachmentsRepository->findBy(['handling' => $handling]),
                 'fieldsParam' => $fieldsParam,
-                'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY)
+                'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
+                'receivers' => $handling->getReceivers()->toArray(),
             ]);
 
             return new JsonResponse($json);
@@ -320,7 +334,7 @@ class HandlingController extends AbstractController
                          HandlingService $handlingService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
-
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
         $post = $request->request;
 
         $handling = $handlingRepository->find($post->get('id'));
@@ -328,8 +342,25 @@ class HandlingController extends AbstractController
         $date = (new DateTime('now', new DateTimeZone('Europe/Paris')));
         $desiredDateStr = $post->get('desired-date');
         $desiredDate = $desiredDateStr ? FormatHelper::parseDatetime($desiredDateStr) : null;
+
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
+        $receivers = $post->get('receivers')
+            ? explode(",", $post->get('receivers') ?? '')
+            : [];
+
+        $existingReceivers = $handling->getReceivers();
+        /** @var Utilisateur $receiver */
+        foreach($existingReceivers as $receiver) {
+            $handling->removeReceiver($receiver);
+        }
+
+        foreach ($receivers as $receiverId) {
+            $receiver = $receiverId ? $userRepository->find($receiverId) : null;
+            if ($receiver) {
+                $handling->addReceiver($receiver);
+            }
+        }
 
         $oldStatus = $handling->getStatus();
 
@@ -385,7 +416,7 @@ class HandlingController extends AbstractController
                 && $newStatus
                 && ($oldStatus->getId() !== $newStatus->getId())
             )) {
-            $handlingService->sendEmailsAccordingToStatus($handling);
+            $handlingService->sendEmailsAccordingToStatus($entityManager, $handling);
         }
 
         return new JsonResponse([
@@ -485,30 +516,42 @@ class HandlingController extends AbstractController
         if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $handlingsRepository = $entityManager->getRepository(Handling::class);
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
             $includeDesiredTime = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
 
+            $handlingParameters = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
+            $receiversParameters = $handlingParameters[FieldsParam::FIELD_CODE_RECEIVERS_HANDLING];
+
             $handlings = $handlingsRepository->getByDates($dateTimeMin, $dateTimeMax);
+            $receivers = $handlingsRepository->getReceiversByDates($dateTimeMin, $dateTimeMax);
             $currentDate = new DateTime('now');
+
+            $csvHeaderBase = [
+                'numéro de demande',
+                'date création',
+                'demandeur',
+                'type',
+                $translator->trans('services.Objet'),
+                'chargement',
+                'déchargement',
+                'date attendue',
+                'date de réalisation',
+                'statut',
+                'commentaire',
+                'urgence',
+                $translator->trans('services.Nombre d\'opération(s) réalisée(s)'),
+                'traité par',
+            ];
+
             $csvHeader = array_merge(
-                [
-                    'numéro de demande',
-                    'date création',
-                    'demandeur',
-                    'type',
-                    $translator->trans('services.Objet'),
-                    'chargement',
-                    'déchargement',
-                    'date attendue',
-                    'date de réalisation',
-                    'statut',
-                    'commentaire',
-                    'urgence',
-                    $translator->trans('services.Nombre d\'opération(s) réalisée(s)'),
-                    'traité par',
-                    //'Temps de traitement opérateur'
-                ],
+                $csvHeaderBase,
+                ($receiversParameters['displayedFormsCreate'] ?? false
+                    || $receiversParameters['displayedFormsEdit'] ?? false
+                    ||  $receiversParameters['displayedFilters'] ?? false)
+                    ? ['destinataire(s)']
+                    : [],
                 $freeFieldsConfig['freeFieldsHeader']
             );
 
@@ -517,10 +560,13 @@ class HandlingController extends AbstractController
                 $globalTitle,
                 $handlings,
                 $csvHeader,
-                function ($handling) use ($freeFieldService, $freeFieldsConfig, $dateService, $includeDesiredTime) {
+                function ($handling) use ($freeFieldService, $freeFieldsConfig, $dateService, $includeDesiredTime, $receivers) {
 //                    $treatmentDelay = $handling['treatmentDelay'];
 //                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
 //                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
+                    $id = $handling['id'];
+                    $receiversStr = Stream::from($receivers[$id] ?? [])
+                        ->join(", ");
                     $row = [];
                     $row[] = $handling['number'] ?? '';
                     $row[] = FormatHelper::datetime($handling['creationDate']);
@@ -538,6 +584,7 @@ class HandlingController extends AbstractController
                     $row[] = $handling['emergency'] ?? '';
                     $row[] = $handling['carriedOutOperationCount'] ?? '';
                     $row[] = $handling['treatedBy'] ?? '';
+                    $row[] = $receiversStr ?? '';
 //                    $row[] = $treatmentDelayStr;
 
                     foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {

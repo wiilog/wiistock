@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\Nature;
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 
 /**

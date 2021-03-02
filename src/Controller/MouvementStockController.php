@@ -14,7 +14,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\MouvementStockService;
 use App\Service\TrackingMovementService;

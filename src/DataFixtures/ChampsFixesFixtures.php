@@ -47,6 +47,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_FROZEN_ARRIVAGE, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true, 'hidden' => true],
                 ['code' => FieldsParam::FIELD_CODE_PROJECT_NUMBER, 'label' => FieldsParam::FIELD_LABEL_PROJECT_NUMBER, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true, 'default' => false],
                 ['code' => FieldsParam::FIELD_CODE_BUSINESS_UNIT, 'label' => FieldsParam::FIELD_LABEL_BUSINESS_UNIT, 'values' => [], 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true, 'default' => false],
+                ['code' => FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_DROP_LOCATION_ARRIVAGE, 'displayedFormsCreate' => false, 'displayedFormsEdit' => false, 'displayedFilters' => false],
             ],
 
             FieldsParam::ENTITY_CODE_DISPATCH => [
@@ -68,7 +69,8 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_LOADING_ZONE, 'label' => FieldsParam::FIELD_LABEL_LOADING_ZONE, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_UNLOADING_ZONE, 'label' => FieldsParam::FIELD_LABEL_UNLOADING_ZONE, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => true],
-                ['code' => FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, 'label' => FieldsParam::FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => false]
+                ['code' => FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, 'label' => FieldsParam::FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT, 'displayedFormsCreate' => true, 'displayedFormsEdit' => true, 'displayedFilters' => false],
+                ['code' => FieldsParam::FIELD_CODE_RECEIVERS_HANDLING, 'label' => FieldsParam::FIELD_LABEL_RECEIVERS_HANDLING, 'displayedFormsCreate' => false, 'displayedFormsEdit' => false, 'displayedFilters' => true]
             ]
         ];
 

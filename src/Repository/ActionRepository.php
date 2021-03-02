@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Action;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
 
 /**
  * @method Action|null find($id, $lockMode = null, $lockVersion = null)

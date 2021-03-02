@@ -3,8 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
-use App\Entity\Collecte;
-use App\Entity\Demande;
 use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
@@ -227,6 +225,7 @@ class DispatchRepository extends EntityRepository
             ->select('dispatch.number')
             ->where('dispatch.number LIKE :value')
             ->orderBy('dispatch.creationDate', 'DESC')
+            ->addOrderBy('dispatch.number', 'DESC')
             ->setParameter('value', Dispatch::PREFIX_NUMBER . '-' . $date . '%')
             ->getQuery()
             ->execute();
@@ -412,7 +411,6 @@ class DispatchRepository extends EntityRepository
             ->where('dispatch.endDate BETWEEN :dateMin AND :dateMax')
             ->setParameter('dateMin', $dateMin)
             ->setParameter('dateMax', $dateMax);
-
         if (!empty($dispatchStatusesFilter)) {
             $qb
                 ->andWhere('dispatch.statut IN (:dispatchStatuses)')

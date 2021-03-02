@@ -102,13 +102,11 @@
                 <span class="slider round"></span>
             </label>
         </div>
-        {% set hideSendNotifToBuyer = (
-            status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING')
-            or status.categorie.nom == constant('App\\Entity\\CategorieStatut::ARRIVAGE')
+        {% set hideSendNotifToBuyer = ( status.categorie.nom == constant('App\\Entity\\CategorieStatut::ARRIVAGE')
             or status.categorie.nom == constant('App\\Entity\\CategorieStatut::LITIGE_RECEPT')
         ) %}
         <div class="col-12 form-group {{ hideSendNotifToBuyer ? 'd-none' }}">
-            <label>Envoi de mails au destinataire ?</label>
+            <label>Envoi de mails aux destinataires ?</label>
             <label class="switch">
                 <input class="checkbox" type="checkbox" name="sendMailsRecipient" {{ status.sendNotifToRecipient ? 'checked' }}/>
                 <span class="slider round"></span>

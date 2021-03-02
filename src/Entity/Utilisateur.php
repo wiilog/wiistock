@@ -308,6 +308,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $referencesArticle;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=Handling::class, mappedBy="receivers")
+     */
+    private $receivedHandlings;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -351,6 +356,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
+        $this->receivedHandlings = new ArrayCollection();
     }
 
     public function getId()
@@ -1618,6 +1624,35 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     public function setPhone(?string $phone): self {
         $this->phone = $phone;
+        return $this;
+    }
+
+    /**
+     * @return Collection|Handling[]
+     */
+    public function getReceivedHandlings(): Collection
+    {
+        return $this->receivedHandlings;
+    }
+
+    public function addReceivedHandling(Handling $handling): self
+    {
+        if (!$this->receivedHandlings->contains($handling)) {
+            $this->receivedHandlings[] = $handling;
+            if (!$handling->getReceivers()->contains($this)) {
+                $handling->addReceiver($this);
+            }
+        }
+
+        return $this;
+    }
+
+    public function removeReceivedHandling(Handling $handling): self
+    {
+        if ($this->receivedHandlings->removeElement($handling)) {
+            $handling->removeReceiver($this);
+        }
+
         return $this;
     }
 }

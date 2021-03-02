@@ -1573,11 +1573,14 @@ class DispatchController extends AbstractController {
             $typeAndStatus = explode(';', $overConsumptionBill);
             $typeId = intval($typeAndStatus[0]);
             $statutsId = intval($typeAndStatus[1]);
-            if($dispatch->getType()->getId() === $typeId) {
+
+            if ($dispatch->getType()->getId() === $typeId) {
                 $untreatedStatus = $statutRepository->find($statutsId);
                 $dispatch
-                    ->setStatut($untreatedStatus)
-                    ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                    ->setStatut($untreatedStatus);
+                if (!$dispatch->getValidationDate()) {
+                    $dispatch->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                }
 
                 $entityManager->flush();
                 $dispatchService->sendEmailsAccordingToStatus($dispatch, true);

@@ -87,6 +87,18 @@
             {% endfor %}
         </select>
     </div>
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
+        <div class="form-group w-100 col-4">
+            <label for="destination">Emplacement de dépose{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
+            <select name="dropLocation"
+                    class="form-control data ajax-autocomplete-location d-block {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }}">
+                {% if arrivage.dropLocation is defined and arrivage.dropLocation != null %}
+                    <option value="{{arrivage.dropLocation.id}}" selected>{{arrivage.dropLocation.label}}</option>
+                {% endif %}
+            </select>
+        </div>
+    {% endif %}
 </div>
 
 <div class="row">

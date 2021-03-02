@@ -2,10 +2,6 @@
 
 namespace App\Helper;
 
-use App\Entity\Demande;
-use App\Entity\Dispatch;
-use App\Entity\TransferOrder;
-use App\Entity\TransferRequest;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
