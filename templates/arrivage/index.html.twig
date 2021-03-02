@@ -21,13 +21,6 @@
     <input type="hidden" id="statutFilter">
     <input type="hidden" id="usersFilter">
 
-    {% set fieldCodeDropLocationArrival = constant('App\\Entity\\FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
-    <input type="hidden"
-           id="showDropLocationColumn"
-           value="{{ (fieldsParam|isFieldRequired(fieldCodeDropLocationArrival, 'displayedFormsCreate')
-                   or fieldsParam|isFieldRequired(fieldCodeDropLocationArrival, 'displayedFormsEdit')
-                   or fieldsParam|isFieldRequired(fieldCodeDropLocationArrival, 'displayedFilters')) ? 1 : 0 }}"/>
-
     <div class="m-4 wii-page-card">
         <div class="d-none justify-content-center" id="spinner">
             <div class="spinner-border sizeLoader" role="status">
