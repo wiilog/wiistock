@@ -232,7 +232,7 @@ class DispatchRepository extends EntityRepository
         return $result ? $result[0]['number'] : null;
     }
 
-    public function getMobileDispatches(Utilisateur $user, callable $customFieldsFactory)
+    public function getMobileDispatches(Utilisateur $user)
     {
         $queryBuilder = $this->createQueryBuilder('dispatch');
         $queryBuilder
@@ -258,16 +258,7 @@ class DispatchRepository extends EntityRepository
             ->setParameter('untreatedStates', [Statut::NOT_TREATED, Statut::PARTIAL])
             ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds());
 
-        return array_map(
-            function (array $dispatch) use ($customFieldsFactory): array {
-                $customFields = $customFieldsFactory($dispatch);
-                $dispatch['startDate'] = $dispatch['startDate'] ? $dispatch['startDate']->format('d/m/Y') : null;
-                $dispatch['endDate'] = $dispatch['endDate'] ? $dispatch['endDate']->format('d/m/Y') : null;
-                $dispatch += $customFields;
-                return $dispatch;
-            },
-            $queryBuilder->getQuery()->getResult()
-        );
+        return $queryBuilder->getQuery()->getResult();
     }
 
     public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {

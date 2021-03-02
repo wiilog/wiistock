@@ -61,7 +61,7 @@ class HandlingRepository extends EntityRepository
      * @param callable $customFieldsFactory
      * @return int|mixed|string
      */
-    public function getMobileHandlingsByUserTypes(array $typeIds, callable $customFieldsFactory) {
+    public function getMobileHandlingsByUserTypes(array $typeIds) {
 
         $queryBuilder = $this->createQueryBuilder('handling');
         $queryBuilder
