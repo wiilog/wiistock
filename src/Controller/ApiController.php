@@ -1410,13 +1410,9 @@ class ApiController extends AbstractFOSRestController
             $handlings = $handlingRepository->getMobileHandlingsByUserTypes($user->getHandlingTypeIds());
             $handlings = Stream::from($handlings)
                 ->map(function (array $handling) use ($handlingExpectedDateColors) {
-                    $customFields = [
-                        'color' => $this->expectedDateColor($handling['desiredDate'], $handlingExpectedDateColors)
-                    ];
-
+                    $handling['color'] = $this->expectedDateColor($handling['desiredDate'], $handlingExpectedDateColors);
                     $handling['desiredDate'] = $handling['desiredDate'] ? $handling['desiredDate']->format('d/m/Y H:i:s') : null;
                     $handling['comment'] = $handling['comment'] ? strip_tags($handling['comment']) : null;
-                    $handling += $customFields;
                     return $handling;
                 })->toArray();
 
@@ -1467,12 +1463,9 @@ class ApiController extends AbstractFOSRestController
             $dispatches = $dispatchRepository->getMobileDispatches($user);
             $dispatches = Stream::from($dispatches)
                 ->map(function (array $dispatch) use ($dispatchExpectedDateColors) {
-                    $customFields = [
-                        'color' => $this->expectedDateColor($dispatch['endDate'] ?? null, $dispatchExpectedDateColors)
-                    ];
+                    $dispatch['color'] = $this->expectedDateColor($dispatch['endDate'] ?? null, $dispatchExpectedDateColors);
                     $dispatch['startDate'] = $dispatch['startDate'] ? $dispatch['startDate']->format('d/m/Y') : null;
                     $dispatch['endDate'] = $dispatch['endDate'] ? $dispatch['endDate']->format('d/m/Y') : null;
-                    $dispatch += $customFields;
                     return $dispatch;
                 })->toArray();
             $dispatchPacks = $dispatchPackRepository->getMobilePacksFromDispatches(array_map(function ($dispatch) {

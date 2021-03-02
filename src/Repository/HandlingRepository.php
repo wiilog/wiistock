@@ -87,17 +87,7 @@ class HandlingRepository extends EntityRepository
             ->setParameter('userTypes', $typeIds)
             ->setParameter('treatedId', Statut::TREATED);
 
-        return array_map(
-            function (array $handling) use ($customFieldsFactory): array {
-                $customFields = $customFieldsFactory($handling);
-
-                $handling['desiredDate'] = $handling['desiredDate'] ? $handling['desiredDate']->format('d/m/Y H:i:s') : null;
-                $handling['comment'] = $handling['comment'] ? strip_tags($handling['comment']) : null;
-                $handling += $customFields;
-                return $handling;
-            },
-            $queryBuilder->getQuery()->getResult()
-        );
+        return $queryBuilder->getQuery()->getResult();
     }
 
     /**
