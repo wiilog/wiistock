@@ -211,6 +211,7 @@ function editRowArrivage(button) {
         modal.find('.list-multiple').select2();
         initDateTimePicker('.date-cl');
         Select2.initFree($('.select2-free'));
+        Select2.location(modal.find('.ajax-autocomplete-location'));
     }, 'json');
 
     modal.find(submit).attr('value', id);

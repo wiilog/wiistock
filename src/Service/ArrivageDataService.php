@@ -12,6 +12,7 @@ use App\Entity\FiltreSup;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -154,6 +155,7 @@ class ArrivageDataService
             'emergency' => $arrival->getIsUrgent() ? 'oui' : 'non',
             'projectNumber' => $arrival->getProjectNumber() ?? '',
             'businessUnit' => $arrival->getBusinessUnit() ?? '',
+            'dropLocation' => FormatHelper::location($arrival->getDropLocation()),
             'url' => $url,
             'actions' => $this->templating->render(
                 'arrivage/datatableArrivageRow.html.twig',
@@ -366,6 +368,7 @@ class ArrivageDataService
         $status = $arrivage->getStatut();
         $type = $arrivage->getType();
         $destinataire = $arrivage->getDestinataire();
+        $dropLocation = $arrivage->getDropLocation();
         $buyers = $arrivage->getAcheteurs();
         $comment = $arrivage->getCommentaire();
         $attachments = $arrivage->getAttachments();
@@ -390,6 +393,11 @@ class ArrivageDataService
                 'label' => 'Fournisseur',
                 'value' => $provider ? $provider->getNom() : '',
                 'show' => [ 'fieldName' => 'fournisseur' ]
+            ],
+            [
+                'label' => 'Emplacement de dépose',
+                'value' => $dropLocation ? $dropLocation->getLabel() : '',
+                'show' => [ 'fieldName' => FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE ]
             ],
             [
                 'label' => 'Transporteur',
@@ -481,6 +489,7 @@ class ArrivageDataService
 
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $columnsVisible = $currentUser->getColumnsVisibleForArrivage();
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARRIVAGE);
@@ -508,6 +517,12 @@ class ArrivageDataService
             ['title' => 'Business Unit', 'name' => 'businessUnit'],
         ];
 
+        $arrivalFieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+        if ($this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsCreate')
+            || $this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsEdit')) {
+            $columns[] = ['title' => 'Emplacement de dépose', 'name' => 'dropLocation'];
+        }
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
@@ -525,8 +540,9 @@ class ArrivageDataService
         }
         else if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) && $arrivage->getDestinataire()) {
             $location = $emplacementRepository->findOneByLabel(SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE);
-        }
-        else if($defaultArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION)) {
+        } else if ($arrivage->getDropLocation()) {
+            $location = $arrivage->getDropLocation();
+        } else if($defaultArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION)) {
             $location = $emplacementRepository->find($defaultArrivalsLocation);
         }
         else {
@@ -534,5 +550,57 @@ class ArrivageDataService
         }
 
         return $location;
+    }
+
+    public function putArrivalLine($handle,
+                                    CSVExportService $csvService,
+                                    FreeFieldService $freeFieldService,
+                                    array $ffConfig,
+                                    array $arrival,
+                                    array $buyersByArrival,
+                                    array $natureLabels,
+                                    array $packs,
+                                    array $fieldsParam) {
+        $id = (int)$arrival['id'];
+
+        $line = [
+            $arrival['numeroArrivage'] ?: '',
+            $arrival['recipientUsername'] ?: '',
+            $arrival['fournisseurName'] ?: '',
+            $arrival['transporteurLabel'] ?: '',
+            (!empty($arrival['chauffeurFirstname']) && !empty($arrival['chauffeurSurname']))
+                ? $arrival['chauffeurFirstname'] . ' ' . $arrival['chauffeurSurname']
+                : ($arrival['chauffeurFirstname'] ?: $arrival['chauffeurSurname'] ?: ''),
+            $arrival['noTracking'] ?: '',
+            !empty($arrival['numeroCommandeList']) ? implode(' / ', $arrival['numeroCommandeList']) : '',
+            $arrival['type'] ?: '',
+            $buyersByArrival[$id] ?? '',
+            $arrival['customs'] ? 'oui' : 'non',
+            $arrival['frozen'] ? 'oui' : 'non',
+            $arrival['statusName'] ?: '',
+            $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '',
+            $arrival['date'] ? $arrival['date']->format('d/m/Y H:i:s') : '',
+            $arrival['userUsername'] ?: '',
+            $arrival['projectNumber'] ?: '',
+            $arrival['businessUnit'] ?: '',
+            $arrival['dropLocation'] ?: '',
+        ];
+        if ($this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsCreate')
+            || $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsEdit')) {
+            $columns[] = ['title' => 'Emplacement de dépose', 'name' => 'dropLocation'];
+        }
+
+        foreach($natureLabels as $natureLabel) {
+            $line[] = $packs[$id][$natureLabel] ?? 0;
+        }
+
+        foreach($ffConfig["freeFieldIds"] as $freeFieldId) {
+            $line[] = $freeFieldService->serializeValue([
+                "typage" => $ffConfig["freeFieldsIdToTyping"][$freeFieldId],
+                "valeur" => $arrival["freeFields"][$freeFieldId] ?? ""
+            ]);
+        }
+
+        $csvService->putLine($handle, $line);
     }
 }
