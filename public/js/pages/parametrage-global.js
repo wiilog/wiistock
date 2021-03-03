@@ -33,7 +33,19 @@ const resetLogos = {
     mailLogo: false,
     nomadeAccueil: false,
     nomadeHeader: false,
-}
+};
+
+const dispatchColorHasChanged = {
+    after: false,
+    DDay: false,
+    before: false
+};
+
+const handlingColorHasChanged = {
+    after: false,
+    DDay: false,
+    before: false
+};
 
 $(function () {
     Select2.init($('#locationArrivageDest'));
@@ -481,24 +493,31 @@ function deleteWorkFreeDay(id, date) {
 }
 
 function saveDispatchesParam() {
-    const $overconsumptionLogo = $('#upload-overconsumption-logo');
+    const $form = $('#dispatchSettings');
+
+    const $overconsumptionLogo = $form.find('#upload-overconsumption-logo');
 
     let data = new FormData();
     if ($overconsumptionLogo[0].files && $overconsumptionLogo[0].files[0]) {
         data.append("overconsumption-logo", $overconsumptionLogo[0].files[0]);
     }
 
+
+    const $expectedDateColorAfter = $form.find('[name="expectedDateColorAfter"]');
+    const $expectedDateColorDDay = $form.find('[name="expectedDateColorDDay"]');
+    const $expectedDateColorBefore = $form.find('[name="expectedDateColorBefore"]');
+
     Promise.all([
-        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_CARRIER', val: $('[name="waybillCarrier"]').val()})),
-        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_CONSIGNER', val: $('[name="waybillConsigner"]').val()})),
-        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_RECEIVER', val: $('[name="waybillReceiver"]').val()})),
-        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_LOCATION_FROM', val: $('[name="waybillLocationFrom"]').val()})),
-        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_LOCATION_TO', val: $('[name="waybillLocationTo"]').val()})),
-        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL', val: $('[name="waybillContactPhoneMail"]').val()})),
-        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_CONTACT_NAME', val: $('[name="waybillContactName"]').val()})),
+        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_CARRIER', val: $form.find('[name="waybillCarrier"]').val()})),
+        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_CONSIGNER', val: $form.find('[name="waybillConsigner"]').val()})),
+        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_RECEIVER', val: $form.find('[name="waybillReceiver"]').val()})),
+        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_LOCATION_FROM', val: $form.find('[name="waybillLocationFrom"]').val()})),
+        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_LOCATION_TO', val: $form.find('[name="waybillLocationTo"]').val()})),
+        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL', val: $form.find('[name="waybillContactPhoneMail"]').val()})),
+        $.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_WAYBILL_CONTACT_NAME', val: $form.find('[name="waybillContactName"]').val()})),
         $.post(Routing.generate('toggle_params'), JSON.stringify({
             param: 'DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS',
-            val: $('[name="overconsumptionBillType"]').val() + ';' + $('[name="overconsumptionBillStatut"]').val()
+            val: $('[name="overconsumptionBillType"]').val() + ';' + $form.find('[name="overconsumptionBillStatut"]').val()
         })),
         $.ajax(Routing.generate('edit_overconsumption_logo'), {
             data: data,
@@ -507,6 +526,15 @@ function saveDispatchesParam() {
             processData: false,
             dataType: 'json',
         }),
+        ...(dispatchColorHasChanged.after
+            ? [$.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_EXPECTED_DATE_COLOR_AFTER', val: $expectedDateColorAfter.val()}))]
+            : []),
+        ...(dispatchColorHasChanged.DDay
+            ? [$.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_EXPECTED_DATE_COLOR_D_DAY', val: $expectedDateColorDDay.val()}))]
+            : []),
+        ...(dispatchColorHasChanged.before
+            ? [$.post(Routing.generate('toggle_params'), JSON.stringify({param: 'DISPATCH_EXPECTED_DATE_COLOR_BEFORE', val: $expectedDateColorBefore.val()}))]
+            : [])
     ])
         .then((res) => {
             if (res.every((success) => success)) {
@@ -538,4 +566,32 @@ function onResetLogoClicked($button) {
     const name = $button.data('name');
     resetLogos[name] = true;
 
+}
+
+function saveHandlingParams() {
+    const $form = $('#handlingSettings');
+
+    const $removeHoursDateTimeSwitch = $form.find('[name="removeHoursDateTime"]');
+    const $expectedDateColorAfter = $form.find('[name="expectedDateColorAfter"]');
+    const $expectedDateColorDDay = $form.find('[name="expectedDateColorDDay"]');
+    const $expectedDateColorBefore = $form.find('[name="expectedDateColorBefore"]');
+
+    Promise.all([
+        $.post(Routing.generate('toggle_params', true), JSON.stringify({val: $removeHoursDateTimeSwitch.is(':checked'), param: $removeHoursDateTimeSwitch.data('param')})),
+        ...(handlingColorHasChanged.after
+            ? [$.post(Routing.generate('toggle_params'), JSON.stringify({param: 'HANDLING_EXPECTED_DATE_COLOR_AFTER', val: $expectedDateColorAfter.val()}))]
+            : []),
+        ...(handlingColorHasChanged.DDay
+            ? [$.post(Routing.generate('toggle_params'), JSON.stringify({param: 'HANDLING_EXPECTED_DATE_COLOR_D_DAY', val: $expectedDateColorDDay.val()}))]
+            : []),
+        ...(handlingColorHasChanged.before
+            ? [$.post(Routing.generate('toggle_params'), JSON.stringify({param: 'HANDLING_EXPECTED_DATE_COLOR_BEFORE', val: $expectedDateColorBefore.val()}))]
+            : [])
+    ]).then(function (responses) {
+        if (responses.every(result => result)) {
+            showBSAlert('La modification du paramétrage a bien été prise en compte.', 'success');
+        } else {
+            showBSAlert('Une erreur est survenue lors de la modification du paramétrage.', 'danger');
+        }
+    });
 }
