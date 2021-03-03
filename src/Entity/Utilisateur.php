@@ -128,7 +128,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $handlings;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="receiver")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Dispatch", mappedBy="receivers")
      */
     private $receivedDispatches;
 
@@ -1184,7 +1184,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     {
         if (!$this->receivedDispatches->contains($receivedDispatch)) {
             $this->receivedDispatches[] = $receivedDispatch;
-            $receivedDispatch->setReceiver($this);
+            $receivedDispatch->addReceiver($this);
         }
 
         return $this;
@@ -1195,8 +1195,8 @@ class Utilisateur implements UserInterface, EquatableInterface
         if ($this->receivedDispatches->contains($receivedDispatch)) {
             $this->receivedDispatches->removeElement($receivedDispatch);
             // set the owning side to null (unless already changed)
-            if ($receivedDispatch->getReceiver() === $this) {
-                $receivedDispatch->setReceiver(null);
+            if ($receivedDispatch->getReceivers()->contains($this)) {
+                $receivedDispatch->removeReceiver($this);
             }
         }
 

@@ -22,6 +22,7 @@ class DispatchPackRepository extends EntityRepository {
         $queryBuilder
             ->select('dispatch_pack.id AS id')
             ->addSelect('pack.code AS code')
+            ->addSelect('pack.comment AS comment')
             ->addSelect('nature.id AS natureId')
             ->addSelect('dispatch_pack.quantity AS quantity')
             ->addSelect('dispatch.id AS dispatchId')

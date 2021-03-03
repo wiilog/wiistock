@@ -123,13 +123,13 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
         <div class="form-group col-md-4 col-12">
-            <label for="destinataire">Destinataire{{ required ? '*' }}</label>
-            <select class="destinataire form-control data ajax-autocomplete-user-edit w-100 {{ required ? 'needed' }}" name="receiver">
-                {% if dispatch.receiver is not null %}
-                    <option value="{{ dispatch.receiver.id }}" selected>{{ dispatch.receiver.username }}</option>
-                {% else %}
-                    <option value=""></option>
-                {% endif %}
+            <label for="destinataire">Destinataire(s){{ required ? '*' }}</label>
+            <select class="destinataire form-control data ajax-autocomplete-user-edit w-100 {{ required ? 'needed' }}"
+                    name="receivers"
+                    multiple>
+                {% for receiver in dispatch.receivers %}
+                    <option value="{{ receiver.id }}" selected>{{ receiver.username }}</option>
+                {% endfor %}
             </select>
         </div>
     {% endif %}

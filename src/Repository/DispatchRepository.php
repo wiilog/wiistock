@@ -60,9 +60,9 @@ class DispatchRepository extends EntityRepository
                 case FiltreSup::FIELD_RECEIVERS:
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('dispatch.receiver', 'filter_receiver')
-                        ->andWhere('filter_receiver.id in (:filter_receiver_values)')
-                        ->setParameter('filter_receiver_values', $value);
+                        ->join('dispatch.receivers', 'filter_receivers')
+                        ->andWhere('filter_receivers.id in (:filter_receivers_values)')
+                        ->setParameter('filter_receivers_values', $value);
                     break;
                 case FiltreSup::FIELD_CARRIERS:
                     $value = explode(',', $filter['value']);
@@ -106,7 +106,7 @@ class DispatchRepository extends EntityRepository
                             "DATE_FORMAT(dispatch.endDate, '%e/%m/%Y') LIKE :search_value",
                             'search_type.label LIKE :search_value',
                             'search_requester.username LIKE :search_value',
-                            'search_receiver.username LIKE :search_value',
+                            'search_receivers.username LIKE :search_value',
                             'dispatch.number LIKE :search_value',
                             'search_locationFrom.label LIKE :search_value',
                             'search_locationTo.label LIKE :search_value',
@@ -118,7 +118,7 @@ class DispatchRepository extends EntityRepository
                         ->leftJoin('dispatch.statut', 'search_statut')
                         ->leftJoin('dispatch.type', 'search_type')
                         ->leftJoin('dispatch.requester','search_requester')
-                        ->leftJoin('dispatch.receiver', 'search_receiver')
+                        ->leftJoin('dispatch.receivers', 'search_receivers')
                         ->setParameter('search_value', '%' . $search . '%');
                 }
             }
@@ -134,10 +134,6 @@ class DispatchRepository extends EntityRepository
                         $qb
                             ->leftJoin('dispatch.requester', 'sort_requester')
                             ->orderBy('sort_requester.username', $order);
-                    } else if ($column === 'receiver') {
-                        $qb
-                            ->leftJoin('dispatch.receiver', 'sort_receiver')
-                            ->orderBy('sort_receiver.username', $order);
                     } else if ($column === 'type') {
                         $qb
                             ->leftJoin('dispatch.type', 'sort_type')
@@ -194,9 +190,9 @@ class DispatchRepository extends EntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT COUNT(a)
-            FROM App\Entity\Dispatch a
-            WHERE a.receiver = :user OR a.requester = :user"
+            "SELECT COUNT(d)
+            FROM App\Entity\Dispatch d
+            WHERE d.receivers = :user OR d.requester = :user"
         )->setParameter('user', $user);
 
         return $query->getSingleScalarResult();
@@ -207,10 +203,10 @@ class DispatchRepository extends EntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT COUNT(a)
-            FROM App\Entity\Dispatch a
-            WHERE a.locationFrom = :emplacementId
-            OR a.locationTo = :emplacementId"
+            "SELECT COUNT(d)
+            FROM App\Entity\Dispatch d
+            WHERE d.locationFrom = :emplacementId
+            OR d.locationTo = :emplacementId"
         )->setParameter('emplacementId', $emplacementId);
 
         return $query->getSingleScalarResult();
@@ -258,9 +254,7 @@ class DispatchRepository extends EntityRepository
             ->setParameter('untreatedStates', [Statut::NOT_TREATED, Statut::PARTIAL])
             ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds());
 
-        return $queryBuilder
-            ->getQuery()
-            ->getResult();
+        return $queryBuilder->getQuery()->getResult();
     }
 
     public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
@@ -303,7 +297,6 @@ class DispatchRepository extends EntityRepository
             ->addSelect('dispatch.endDate AS endDate')
             ->addSelect('join_type.label AS type')
             ->addSelect('join_requester.username AS requester')
-            ->addSelect('join_receiver.username AS receiver')
             ->addSelect('join_locationFrom.label AS locationFrom')
             ->addSelect('join_locationTo.label AS locationTo')
             ->addSelect('join_dispatchPack.quantity AS dispatchQuantity')
@@ -328,7 +321,6 @@ class DispatchRepository extends EntityRepository
 
             ->leftJoin('dispatch.type', 'join_type')
             ->leftJoin('dispatch.requester', 'join_requester')
-            ->leftJoin('dispatch.receiver', 'join_receiver')
             ->leftJoin('dispatch.treatedBy', 'join_treatedBy')
             ->leftJoin('dispatch.locationFrom', 'join_locationFrom')
             ->leftJoin('dispatch.locationTo', 'join_locationTo')
@@ -476,5 +468,39 @@ class DispatchRepository extends EntityRepository
         else {
             return null;
         }
+    }
+
+    public function getReceiversByDates(DateTime $dateMin,
+                                        DateTime $dateMax) {
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+
+        $queryBuilder = $this->createQueryBuilder('dispatch')
+            ->select('dispatch.id AS id')
+            ->addSelect('join_receivers.username AS username')
+            ->join('dispatch.receivers', 'join_receivers')
+            ->where('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        $res = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
+        return Stream::from($res)
+            ->reduce(function (array $carry, array $dispatch) {
+                $id = $dispatch['id'];
+                $username = $dispatch['username'];
+
+                if (!isset($carry[$id])) {
+                    $carry[$id] = [];
+                }
+
+                $carry[$id][] = $username;
+
+                return $carry;
+            }, []);
     }
 }

@@ -31,6 +31,7 @@ use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
 use Twig\Environment as Twig_Environment;
+use App\Helper\Stream;
 
 class DispatchService {
 
@@ -122,6 +123,7 @@ class DispatchService {
      * @throws Twig_Error_Syntax
      */
     public function dataRowDispatch(Dispatch $dispatch) {
+
         $url = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
 
         $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
@@ -130,6 +132,14 @@ class DispatchService {
         $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
         $category = CategoryType::DEMANDE_DISPATCH;
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
+        $receivers = $dispatch->getReceivers() ?? null;
+        if ($receivers) {
+            $receiversUsernames = Stream::from($receivers->toArray())
+                ->map(function (Utilisateur $receiver) {
+                   return $receiver->getUsername();
+                })
+                ->join(', ');
+        }
 
         $row = [
             'id' => $dispatch->getId() ?? 'Non défini',
@@ -141,7 +151,7 @@ class DispatchService {
             'validationDate' => $dispatch->getValidationDate() ? $dispatch->getValidationDate()->format('d/m/Y H:i:s') : '',
             'endDate' => $dispatch->getEndDate() ? $dispatch->getEndDate()->format('d/m/Y') : '',
             'requester' => $dispatch->getRequester() ? $dispatch->getRequester()->getUserName() : '',
-            'receiver' => $dispatch->getReceiver() ? $dispatch->getReceiver()->getUserName() : '',
+            'receivers' => $receiversUsernames ?? '',
             'locationFrom' => $dispatch->getLocationFrom() ? $dispatch->getLocationFrom()->getLabel() : '',
             'locationTo' => $dispatch->getLocationTo() ? $dispatch->getLocationTo()->getLabel() : '',
             'nbPacks' => $dispatch->getDispatchPacks()->count(),
@@ -212,7 +222,7 @@ class DispatchService {
         $carrierTrackingNumber = $dispatch->getCarrierTrackingNumber();
         $commandNumber = $dispatch->getCommandNumber();
         $requester = $dispatch->getRequester();
-        $receiver = $dispatch->getReceiver();
+        $receivers = $dispatch->getReceivers();
         $locationFrom = $dispatch->getLocationFrom();
         $locationTo = $dispatch->getLocationTo();
         $creationDate = $dispatch->getCreationDate();
@@ -233,22 +243,26 @@ class DispatchService {
             CategorieCL::DEMANDE_DISPATCH,
             CategoryType::DEMANDE_DISPATCH
         );
-
         $receiverDetails = [
-            "label" => "Destinataire",
-            "value" => $receiver ? $receiver->getUsername() : "",
+            "label" => "Destinataire(s)",
+            "value" => "",
+            "isRaw" => true
         ];
-
-        if ($receiver && $receiver->getAddress()) {
-            $receiverDetails["value"] .= '
-                <span class="pl-2"
-                      data-toggle="popover"
-                      data-trigger="click hover"
-                      title="Adresse du destinataire"
-                      data-content="' . htmlspecialchars($receiver->getAddress()) . '">
-                    <i class="fas fa-search"></i>
-                </span>';
-            $receiverDetails["isRaw"] = true;
+        foreach ($receivers as $receiver) {
+            $receiverLine = "<div>";
+            $receiverLine .= $receiver ? $receiver->getUsername() : "";
+            if ($receiver && $receiver->getAddress()) {
+                $receiverLine .= '
+                    <span class="pl-2"
+                          data-toggle="popover"
+                          data-trigger="click hover"
+                          title="Adresse du destinataire"
+                          data-content="' . htmlspecialchars($receiver->getAddress()) . '">
+                        <i class="fas fa-search"></i>
+                    </span>';
+            }
+            $receiverLine .= '</div>';
+            $receiverDetails['value'] .= $receiverLine;
         }
 
         $config = [
@@ -276,7 +290,7 @@ class DispatchService {
                 'label' => 'Demandeur',
                 'value' => $requester ? $requester->getUsername() : ''
             ],
-            $receiverDetails,
+            $receiverDetails ?? [],
             [
                 'label' => $this->translator->trans('acheminement.Numéro de projet'),
                 'title' => 'Numéro de projet',
@@ -363,23 +377,32 @@ class DispatchService {
         return $date ?: null;
     }
 
-    public function sendEmailsAccordingToStatus(Dispatch $dispatch, bool $isUpdate) {
+    public function sendEmailsAccordingToStatus(Dispatch $dispatch, bool $isUpdate)
+    {
         $status = $dispatch->getStatut();
         $recipientAbleToReceivedMail = $status ? $status->getSendNotifToRecipient() : false;
         $requesterAbleToReceivedMail = $status ? $status->getSendNotifToDeclarant() : false;
 
         if ($recipientAbleToReceivedMail || $requesterAbleToReceivedMail) {
             $type = $dispatch->getType() ? $dispatch->getType()->getLabel() : '';
-            $receiverEmails = $dispatch->getReceiver() ? $dispatch->getReceiver()->getMainAndSecondaryEmails() : [];
+
             $requesterEmails = $dispatch->getRequester() ? $dispatch->getRequester()->getMainAndSecondaryEmails() : [];
+            $receiverEmails = Stream::from($dispatch->getReceivers() ?
+                $dispatch->getReceivers() : [])
+                ->map(function ($receiver) {
+                    return $receiver->getMainAndSecondaryEmails();
+                })
+                ->flatten()
+                ->unique();
+
 
             $partialDispatch = !(
-            $dispatch
-                ->getDispatchPacks()
-                ->filter(function(DispatchPack $dispatchPack) {
-                    return !$dispatchPack->isTreated();
-                })
-                ->isEmpty()
+                $dispatch
+                    ->getDispatchPacks()
+                    ->filter(function(DispatchPack $dispatchPack) {
+                        return !$dispatchPack->isTreated();
+                    })
+                    ->isEmpty()
             );
 
             $translatedTitle = $partialDispatch
@@ -422,6 +445,7 @@ class DispatchService {
             );
 
             if (!empty($emails)) {
+                $emails = Stream::from($emails)->unique()->toarray();
                 $this->mailerService->sendMail(
                     $subject,
                     $this->templating->render('mails/contents/mailDispatch.html.twig', [
@@ -525,7 +549,7 @@ class DispatchService {
             ['title' => 'Date d\'échéance', 'name' => 'endDate'],
             ['title' => 'Type', 'name' => 'type'],
             ['title' => 'Demandeur', 'name' => 'requester'],
-            ['title' => 'Destinataire', 'name' => 'receiver'],
+            ['title' => 'Destinataires', 'name' => 'receivers','orderable' => false],
             ['title' => 'acheminement.Emplacement prise', 'name' => 'locationFrom', 'translated' => true],
             ['title' => 'acheminement.Emplacement dépose', 'name' => 'locationTo', 'translated' => true],
             ['title' => 'acheminement.Nb colis', 'name' => 'nbPacks', 'translated' => true, 'orderable' => false],
