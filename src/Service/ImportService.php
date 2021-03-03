@@ -853,7 +853,7 @@ class ImportService
             $user = $userRepository->find($user->getId());
         }
 
-        $reception = $this->getAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate']);
+        $reception = $this->getAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], $stats);
         $newEntity = !isset($reception);
         if (!$reception) {
             try {
@@ -1513,14 +1513,42 @@ class ImportService
         $this->currentImport = $this->em->find(Import::class, $this->currentImport->getId());
     }
 
-    private function getAlreadySavedReception(array $collection, ?string $orderNumber, ?string $expectedDate): ?Reception {
+    private function getAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, array &$stats): ?Reception {
+        $reception = null;
         foreach($collection as $receptionIntel) {
             if ($orderNumber === $receptionIntel['orderNumber']
                 && $expectedDate === $receptionIntel['expectedDate']) {
-                return $receptionIntel['reception'];
+                $reception = $receptionIntel['reception'];
+                break;
             }
         }
-        return null;
+
+        if (!$reception) {
+            $receptionRepository = $this->em->getRepository(Reception::class);
+            $receptions = $receptionRepository->findBy(
+                [
+                    'orderNumber' => $orderNumber,
+                    'dateAttendue' => $expectedDate
+                        ? DateTime::createFromFormat('d/m/Y', $expectedDate, new DateTimeZone("Europe/Paris")) ?: null
+                        : null
+                ],
+                [
+                    'id' => 'DESC'
+                ]);
+
+            if (!empty($receptions)) {
+                $reception = $receptions[0];
+                $collection[] = [
+                    'orderNumber' => $orderNumber,
+                    'expectedDate' => $expectedDate,
+                    'reception' => $reception
+                ];
+
+                $this->updateStats($stats, false);
+            }
+        }
+
+        return $reception;
     }
 
     private function setAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, Reception $reception): void {
