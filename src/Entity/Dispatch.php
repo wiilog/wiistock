@@ -194,10 +194,10 @@ class Dispatch extends FreeFieldEntity
     private $deliveryNoteData;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="receivedDispatches")
-     * @ORM\JoinColumn(nullable=true)
+     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", inversedBy="receivedDispatches")
+     * @ORM\JoinTable(name="dispatch_receiver")
      */
-    private $receiver;
+    private $receivers;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="requestedDispatches")
@@ -217,6 +217,7 @@ class Dispatch extends FreeFieldEntity
         $this->attachements = new ArrayCollection();
         $this->waybillData = [];
         $this->deliveryNoteData = [];
+        $this->receivers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -236,15 +237,30 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
-    public function getReceiver(): ?Utilisateur
+    /**
+     * @return Collection|Utilisateur[]
+     */
+    public function getReceivers(): ?Collection
     {
-        return $this->receiver;
+        return $this->receivers;
     }
 
-    public function setReceiver(?Utilisateur $receiver): self
+    public function addReceiver(?Utilisateur $receiver): self
     {
-        $this->receiver = $receiver;
+        if(!$this->receivers->contains($receiver)) {
+            $this->receivers[] = $receiver;
+            if(!$receiver->getReceivedDispatches()->contains($this)) {
+                $receiver->addReceivedDispatch($this);
+            }
+        }
+        return $this;
+    }
 
+    public function removeReceiver(Utilisateur $receiver): self
+    {
+        if ($this->receivers->removeElement($receiver)) {
+            $receiver->removeReceivedDispatch($this);
+        }
         return $this;
     }
 

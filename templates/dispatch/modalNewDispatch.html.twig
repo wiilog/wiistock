@@ -167,7 +167,9 @@
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                             <div class="form-group">
                                 <label for="destinataire">Destinataire{{ required ? '*' }}</label>
-                                <select class="destinataire form-control data ajax-autocomplete-user w-100 {{ required ? 'needed' }}" name="receiver">
+                                <select name="receivers"
+                                        class="destinataire form-control data ajax-autocomplete-user w-100 {{ required ? 'needed' }}"
+                                        multiple>
                                 </select>
                             </div>
                         {% endif %}
