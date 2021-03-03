@@ -1195,8 +1195,8 @@ class Utilisateur implements UserInterface, EquatableInterface
         if ($this->receivedDispatches->contains($receivedDispatch)) {
             $this->receivedDispatches->removeElement($receivedDispatch);
             // set the owning side to null (unless already changed)
-            if ($receivedDispatch->getReceivers() === $this) {
-                $receivedDispatch->addReceiver(null);
+            if ($receivedDispatch->getReceivers()->contains($this)) {
+                $receivedDispatch->removeReceiver($this);
             }
         }
 

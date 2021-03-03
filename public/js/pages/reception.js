@@ -31,7 +31,7 @@ $(function () {
             {"data": 'dateAttendue', 'name': 'dateAttendue', 'title': 'Date attendue'},
             {"data": 'DateFin', 'name': 'dateFin', 'title': 'Date fin'},
             {"data": 'orderNumber', 'name': 'orderNumber', 'title': 'Numéro commande'},
-            {"data": 'receiver', 'name': 'receiver', 'title': 'Destinataire(s)', orderable: false},
+            {"data": 'receivers', 'name': 'receivers', 'title': 'Destinataire(s)', orderable: false},
             {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
             {"data": 'Statut', 'name': 'statut', 'title': 'Statut'},
             {"data": 'storageLocation', 'name': 'storageLocation', 'title': 'Emplacement de stockage'},

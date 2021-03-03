@@ -328,12 +328,14 @@ class DispatchController extends AbstractController {
             }
 
             if(!empty($receivers)) {
-                $ids = explode("," , $receivers);
+                $receiverIds = explode("," , $receivers);
 
-                foreach ($ids as $id) {
-                    $receiver = $id ? $utilisateurRepository->find($id) : null;
-                    if($receiver) {
-                        $dispatch->addReceiver($receiver);
+                foreach ($receiverIds as $receiverId) {
+                    if (!empty($receiverId)) {
+                        $receiver = $receiverId ? $utilisateurRepository->find($receiverId) : null;
+                        if ($receiver) {
+                            $dispatch->addReceiver($receiver);
+                        }
                     }
                 }
             }
@@ -493,7 +495,7 @@ class DispatchController extends AbstractController {
                         'Date de validation' => $dispatch->getValidationDate() ? $dispatch->getValidationDate()->format('d/m/Y H:i:s') : '',
                         'Date de traitement' => $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate()->format('d/m/Y H:i:s') : '',
                         'Demandeur' => $dispatch->getRequester() ? $dispatch->getRequester()->getUsername() : '',
-                        'Destinataire' => $dispatch->getReceivers() ?
+                        'Destinataire(s)' => $dispatch->getReceivers() ?
                             Stream::from($dispatch->getReceivers())
                             ->map(function (Utilisateur $receiver) {
                                 return $receiver->getUsername();
@@ -590,10 +592,12 @@ class DispatchController extends AbstractController {
         foreach($existingReceivers as $receiver) {
             $dispatch->removeReceiver($receiver);
         }
-        foreach ($receiversids as $id) {
-            $receiver = $id ? $utilisateurRepository->find($id) : null;
-            if ($receiver) {
-                $dispatch->addReceiver($receiver);
+        foreach ($receiversids as $receiverId) {
+            if (!empty($receiverId)) {
+                $receiver = $receiverId ? $utilisateurRepository->find($receiverId) : null;
+                if ($receiver) {
+                    $dispatch->addReceiver($receiver);
+                }
             }
         }
         $dispatch
@@ -1146,7 +1150,7 @@ class DispatchController extends AbstractController {
                     $row[] = $dispatch['treatmentDate'] ? $dispatch['treatmentDate']->format('d/m/Y H:i:s') : '';
                     $row[] = $dispatch['type'] ?? '';
                     $row[] = $dispatch['requester'] ?? '';
-                    $row[] = $receiversStr ;
+                    $row[] = $receiversStr;
                     $row[] = $dispatch['locationFrom'] ?? '';
                     $row[] = $dispatch['locationTo'] ?? '';
                     $row[] = $nbPacksByDispatch[$number] ?? '';

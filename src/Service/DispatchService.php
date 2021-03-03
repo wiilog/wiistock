@@ -134,10 +134,11 @@ class DispatchService {
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
         $receivers = $dispatch->getReceivers() ?? null;
         if ($receivers) {
-            $receiversUsernames = Stream::from($receivers)
+            $receiversUsernames = Stream::from($receivers->toArray())
                 ->map(function (Utilisateur $receiver) {
                    return $receiver->getUsername();
-                })->join(', ' );
+                })
+                ->join(', ');
         }
 
         $row = [
@@ -381,10 +382,11 @@ class DispatchService {
         $status = $dispatch->getStatut();
         $recipientAbleToReceivedMail = $status ? $status->getSendNotifToRecipient() : false;
         $requesterAbleToReceivedMail = $status ? $status->getSendNotifToDeclarant() : false;
-        $requesterEmails = $dispatch->getRequester() ? $dispatch->getRequester()->getMainAndSecondaryEmails() : [];
 
         if ($recipientAbleToReceivedMail || $requesterAbleToReceivedMail) {
             $type = $dispatch->getType() ? $dispatch->getType()->getLabel() : '';
+
+            $requesterEmails = $dispatch->getRequester() ? $dispatch->getRequester()->getMainAndSecondaryEmails() : [];
             $receiverEmails = Stream::from($dispatch->getReceivers() ?
                 $dispatch->getReceivers() : [])
                 ->map(function ($receiver) {
@@ -395,12 +397,12 @@ class DispatchService {
 
 
             $partialDispatch = !(
-            $dispatch
-                ->getDispatchPacks()
-                ->filter(function(DispatchPack $dispatchPack) {
-                    return !$dispatchPack->isTreated();
-                })
-                ->isEmpty()
+                $dispatch
+                    ->getDispatchPacks()
+                    ->filter(function(DispatchPack $dispatchPack) {
+                        return !$dispatchPack->isTreated();
+                    })
+                    ->isEmpty()
             );
 
             $translatedTitle = $partialDispatch
