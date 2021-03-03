@@ -203,7 +203,33 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ParametrageGlobal::DASHBOARD_PACKAGING_RPA => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_KITTING => [],
             ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE => [],
-            ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE => []
+            ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE => [],
+
+            ParametrageGlobal::DISPATCH_EXPECTED_DATE_COLOR_AFTER => [
+                'default' => null,
+                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#2b78e4'
+            ],
+            ParametrageGlobal::DISPATCH_EXPECTED_DATE_COLOR_D_DAY => [
+                'default' => null,
+                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#009e0f'
+            ],
+            ParametrageGlobal::DISPATCH_EXPECTED_DATE_COLOR_BEFORE => [
+                'default' => null,
+                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#cf2a27'
+            ],
+
+            ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_AFTER => [
+                'default' => null,
+                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#2b78e4'
+            ],
+            ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_D_DAY => [
+                'default' => null,
+                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#009e0f'
+            ],
+            ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_BEFORE => [
+                'default' => null,
+                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#cf2a27'
+            ]
         ];
 
         foreach ($globalParameterLabels as $globalParameterLabel => $values) {

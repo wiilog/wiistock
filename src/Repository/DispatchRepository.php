@@ -254,9 +254,7 @@ class DispatchRepository extends EntityRepository
             ->setParameter('untreatedStates', [Statut::NOT_TREATED, Statut::PARTIAL])
             ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds());
 
-        return $queryBuilder
-            ->getQuery()
-            ->getResult();
+        return $queryBuilder->getQuery()->getResult();
     }
 
     public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
