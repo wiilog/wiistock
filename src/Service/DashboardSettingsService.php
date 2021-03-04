@@ -621,7 +621,7 @@ class DashboardSettingsService {
 
         if (!$example) {
             if ($chart) {
-                $values = ["chartData" => $chart->getData()];
+                $values = ["chartData" => $chart->getData(), 'chartColors' => $chart->getChartColors()];
             } else {
                 $values = ["chartData" => []];
             }
