@@ -163,6 +163,7 @@ class DemandeLivraisonService
 
         $requestStatus = $demande->getStatut() ? $demande->getStatut()->getNom() : '';
         $demandeType = $demande->getType() ? $demande->getType()->getLabel() : '';
+        $href = $this->router->generate('demande_show', ['id' => $demande->getId()]);
 
         if ($requestStatus === Demande::STATUT_A_TRAITER && $hasRightToSeePrepaOrders && !$demande->getPreparations()->isEmpty()) {
             $href = $this->router->generate('preparation_index', ['demandId' => $demande->getId()]);
@@ -176,9 +177,6 @@ class DemandeLivraisonService
             && $hasRightToSeeDeliveryOrders && !$demande->getLivraisons()->isEmpty()
         ) {
             $href = $this->router->generate('livraison_index', ['demandId' => $demande->getId()]);
-        }
-        else if ($hasRightToSeeRequest) {
-            $href = $this->router->generate('demande_show', ['id' => $demande->getId()]);
         }
 
         $articlesCounter = ($demande->getArticles()->count() + $demande->getLigneArticle()->count());
