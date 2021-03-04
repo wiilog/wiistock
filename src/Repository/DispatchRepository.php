@@ -248,7 +248,7 @@ class DispatchRepository extends EntityRepository
             ->leftJoin('dispatch.locationTo', 'locationTo')
             ->join('dispatch.type', 'type')
             ->join('dispatch.statut', 'status')
-            ->where('status.needsMobileSync = 1')
+            ->where('status.needsMobileSync = true')
             ->andWhere('status.state IN (:untreatedStates)')
             ->andWhere('type.id IN (:dispatchTypeIds)')
             ->setParameter('untreatedStates', [Statut::NOT_TREATED, Statut::PARTIAL])
