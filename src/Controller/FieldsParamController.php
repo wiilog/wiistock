@@ -27,6 +27,7 @@ class FieldsParamController extends AbstractController
         FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE,
         FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE,
         FieldsParam::FIELD_CODE_FOURNISSEUR,
+        FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE,
         FieldsParam::FIELD_CODE_TRANSPORTEUR,
         FieldsParam::FIELD_CODE_TARGET_ARRIVAGE,
 

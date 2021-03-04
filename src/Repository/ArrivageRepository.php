@@ -322,6 +322,13 @@ class ArrivageRepository extends EntityRepository
                         ->andWhere("f2.id in (:fournisseurId)")
                         ->setParameter('fournisseurId', $value);
                     break;
+                case 'emplacement':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('a.dropLocation', 'filter_drop_location')
+                        ->andWhere("filter_drop_location.id in (:locationId)")
+                        ->setParameter('locationId', $value);
+                    break;
                 case 'carriers':
                     $value = explode(',', $filter['value']);
                     $qb
@@ -396,7 +403,7 @@ class ArrivageRepository extends EntityRepository
                             OR search_type.label LIKE :value
                             OR a.businessUnit LIKE :value
                             OR a.projectNumber LIKE :value
-                            OR dropLocation.label LIKE :value
+                            OR search_dropLocation.label LIKE :value
                             OR DATE_FORMAT(a.date, '%d/%m/%Y') LIKE :value
                             OR JSON_SEARCH(a.freeFields, 'one', '$searchValue') IS NOT NULL
                         )")
