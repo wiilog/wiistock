@@ -829,8 +829,10 @@ class DashboardService {
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter
-            ->setChartColors($chartColors)
             ->setData($chartData);
+        if ($chartColors) {
+            $meter->setChartColors($chartColors);
+        }
         return $chartData;
     }
 
