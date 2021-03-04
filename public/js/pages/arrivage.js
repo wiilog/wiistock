@@ -9,7 +9,7 @@ $(function () {
     const $filtersContainer = $('.filters-container');
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
     Select2.init($('#statut'), 'Statuts');
-    Select2.location($('#emplacement'), {}, 'Emplacements de déposes');
+    Select2.location($('#emplacement'), {}, 'Emplacement de dépose');
     Select2.init($filtersContainer.find('[name="carriers"]'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));
 
