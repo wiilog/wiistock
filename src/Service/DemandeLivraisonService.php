@@ -149,22 +149,12 @@ class DemandeLivraisonService
      */
     public function parseRequestForCard(Demande $demande,
                                         DateService $dateService,
-                                        array $averageRequestTimesByType,
-                                        ?int $mode = null) {
-        if(!$mode || $mode !== DashboardSettingsService::MODE_EXTERNAL) {
-            $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR);
-            $hasRightToSeePrepaOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA);
-            $hasRightToSeeDeliveryOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR);
-        } else {
-            $hasRightToSeeRequest = false;
-            $hasRightToSeePrepaOrders =  false;
-            $hasRightToSeeDeliveryOrders =  false;
-        }
+                                        array $averageRequestTimesByType) {
 
         $requestStatus = $demande->getStatut() ? $demande->getStatut()->getNom() : '';
         $demandeType = $demande->getType() ? $demande->getType()->getLabel() : '';
 
-        if ($requestStatus === Demande::STATUT_A_TRAITER && $hasRightToSeePrepaOrders && !$demande->getPreparations()->isEmpty()) {
+        if ($requestStatus === Demande::STATUT_A_TRAITER && !$demande->getPreparations()->isEmpty()) {
             $href = $this->router->generate('preparation_index', ['demandId' => $demande->getId()]);
         }
         else if (
@@ -173,7 +163,7 @@ class DemandeLivraisonService
                 $requestStatus === Demande::STATUT_INCOMPLETE ||
                 $requestStatus === Demande::STATUT_PREPARE
             )
-            && $hasRightToSeeDeliveryOrders && !$demande->getLivraisons()->isEmpty()
+            && !$demande->getLivraisons()->isEmpty()
         ) {
             $href = $this->router->generate('livraison_index', ['demandId' => $demande->getId()]);
         }

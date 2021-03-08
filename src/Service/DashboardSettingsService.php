@@ -217,8 +217,8 @@ class DashboardSettingsService {
                 $demandeRepository = $entityManager->getRepository(Demande::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingDeliveries = Stream::from($demandeRepository->findRequestToTreatByUser($loggedUser, 50))
-                        ->map(function(Demande $demande) use ($averageRequestTimesByType, $mode) {
-                            return $this->demandeLivraisonService->parseRequestForCard($demande, $this->dateService, $averageRequestTimesByType, $mode);
+                        ->map(function(Demande $demande) use ($averageRequestTimesByType) {
+                            return $this->demandeLivraisonService->parseRequestForCard($demande, $this->dateService, $averageRequestTimesByType);
                         })
                         ->toArray();
                 }
@@ -228,8 +228,8 @@ class DashboardSettingsService {
                 $collecteRepository = $entityManager->getRepository(Collecte::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingCollects = Stream::from($collecteRepository->findRequestToTreatByUser($loggedUser, 50))
-                        ->map(function(Collecte $collecte) use ($averageRequestTimesByType, $mode) {
-                            return $this->demandeCollecteService->parseRequestForCard($collecte, $this->dateService, $averageRequestTimesByType, $mode);
+                        ->map(function(Collecte $collecte) use ($averageRequestTimesByType) {
+                            return $this->demandeCollecteService->parseRequestForCard($collecte, $this->dateService, $averageRequestTimesByType);
                         })
                         ->toArray();
                 }
@@ -250,8 +250,8 @@ class DashboardSettingsService {
                 $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingTransfers = Stream::from($transferRequestRepository->findRequestToTreatByUser($loggedUser, 50))
-                        ->map(function(TransferRequest $transfer) use ($averageRequestTimesByType, $mode) {
-                            return $this->transferRequestService->parseRequestForCard($transfer, $this->dateService, $averageRequestTimesByType, $mode);
+                        ->map(function(TransferRequest $transfer) use ($averageRequestTimesByType) {
+                            return $this->transferRequestService->parseRequestForCard($transfer, $this->dateService, $averageRequestTimesByType);
                         })
                         ->toArray();
                 }
