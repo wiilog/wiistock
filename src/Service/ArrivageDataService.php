@@ -583,11 +583,10 @@ class ArrivageDataService
             $arrival['userUsername'] ?: '',
             $arrival['projectNumber'] ?: '',
             $arrival['businessUnit'] ?: '',
-            $arrival['dropLocation'] ?: '',
         ];
         if ($this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsCreate')
             || $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsEdit')) {
-            $columns[] = ['title' => 'Emplacement de dépose', 'name' => 'dropLocation'];
+            $line[] = $arrival['dropLocation'] ?: '';
         }
 
         foreach($natureLabels as $natureLabel) {

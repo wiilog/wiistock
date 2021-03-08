@@ -224,7 +224,7 @@ function renderRequest(request, rowSize) {
         6: 'col-12',
     }
     const cardSize = cardSizeRowSizeMatching[rowSize] || defaultCardSize;
-    const link = mode !== MODE_EDIT ? `href="${request.href}" onclick="${onCardClick}"` : ``;
+    const link = mode !== MODE_EDIT && request.href ? `href="${request.href}" onclick="${onCardClick}"` : ``;
     const cursor = mode === MODE_EDIT ? `cursor-default` : ``;
 
     return `
@@ -499,7 +499,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
                     class: `text-center title ${meterKey === ENTRIES_TO_HANDLE ? '' : 'ellipsis'}`,
                     html: [
                         $emergencyIcon,
-                        `<span class="${needsEmergencyDisplay ? 'mx-3' : ''}">${title.split('(')[0]}</span>`,
+                        `<span class="title ${needsEmergencyDisplay ? 'mx-3' : ''}">${title.split('(')[0]}</span>`,
                         $emergencyIcon,
                         `<p class="small ellipsis location-label">${subtitle || ''}</p>`
                     ]

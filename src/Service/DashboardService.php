@@ -313,7 +313,7 @@ class DashboardService {
             $nowMorning,
             $nowEvening,
             [
-                'isOperation' => true,
+                'isOperations' => true,
                 'handlingStatusesFilter' => $handlingStatusesFilter,
                 'handlingTypesFilter' => $handlingTypesFilter
             ]
@@ -803,7 +803,7 @@ class DashboardService {
             $workFreeDays,
             $period
         );
-
+        $chartColors = null;
         if ($separateType) {
             $types = $typeRepository->findBy(['id' => $handlingTypesFilter]);
             $chartData = Stream::from($chartData)
@@ -818,11 +818,21 @@ class DashboardService {
                     }
                     return $carry;
                 }, []);
+            $chartColors = Stream::from($chartData)
+                ->reduce(function($carry, $data) {
+                    foreach ($data as $key => $datum) {
+                        $carry[$key] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
+                    }
+                    return $carry;
+                }, []);
         }
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter
             ->setData($chartData);
+        if ($chartColors) {
+            $meter->setChartColors($chartColors);
+        }
         return $chartData;
     }
 

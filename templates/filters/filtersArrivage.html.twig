@@ -22,4 +22,8 @@
         {% include 'filters/filter_item/filterCarrier.html.twig' %}
     {% endif %}
     {% include 'filters/filter_item/filterUser.html.twig' %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterLocation.html.twig' %}
+    {% endif %}
 {% endblock %}

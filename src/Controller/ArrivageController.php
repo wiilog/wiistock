@@ -136,6 +136,7 @@ class ArrivageController extends AbstractController
     {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
@@ -154,7 +155,8 @@ class ArrivageController extends AbstractController
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
 
         $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
-
+        $defaultLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+        $defaultLocation = $defaultLocation ? $emplacementRepository->find($defaultLocation) : null;
         return $this->render('arrivage/index.html.twig', [
             'carriers' => $transporteurRepository->findAllSorted(),
             'chauffeurs' => $chauffeurRepository->findAllSorted(),
@@ -172,6 +174,7 @@ class ArrivageController extends AbstractController
             'pageLengthForArrivage' => $user->getPageLengthForArrivage() ?: 10,
             'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
             'fields' => $fields,
+            'defaultLocation' => $defaultLocation,
             'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
             'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
             'modalNewConfig' => [
@@ -802,14 +805,12 @@ class ArrivageController extends AbstractController
 
         if ($fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsCreate')
             || $fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsEdit')) {
-            $columns[] = 'Emplacement de dépose';
+            $baseHeader[] = 'Emplacement de dépose';
         }
 
         $header = array_merge($baseHeader, $natureLabels, $ffConfig["freeFieldsHeader"]);
-
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
-
         return $csvService->streamResponse(function($output) use ($arrivageDataService, $csvService, $fieldsParam, $freeFieldService, $ffConfig, $arrivals, $buyersByArrival, $natureLabels, $packs) {
             foreach($arrivals as $arrival) {
                 $arrivageDataService->putArrivalLine($output, $csvService, $freeFieldService, $ffConfig, $arrival, $buyersByArrival, $natureLabels, $packs, $fieldsParam);

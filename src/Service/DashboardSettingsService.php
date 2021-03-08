@@ -239,8 +239,8 @@ class DashboardSettingsService {
                 $handlingRepository = $entityManager->getRepository(Handling::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingHandlings = Stream::from($handlingRepository->findRequestToTreatByUser($loggedUser, 50))
-                        ->map(function(Handling $handling) use ($averageRequestTimesByType, $mode) {
-                            return $this->handlingService->parseRequestForCard($handling, $this->dateService, $averageRequestTimesByType, $mode);
+                        ->map(function(Handling $handling) use ($averageRequestTimesByType) {
+                            return $this->handlingService->parseRequestForCard($handling, $this->dateService, $averageRequestTimesByType);
                         })
                         ->toArray();
                 }
@@ -260,8 +260,8 @@ class DashboardSettingsService {
                 $dispatchRepository = $entityManager->getRepository(Dispatch::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUser($loggedUser, 50))
-                        ->map(function(Dispatch $dispatch) use ($averageRequestTimesByType, $mode) {
-                            return $this->dispatchService->parseRequestForCard($dispatch, $this->dateService, $averageRequestTimesByType, $mode);
+                        ->map(function(Dispatch $dispatch) use ($averageRequestTimesByType) {
+                            return $this->dispatchService->parseRequestForCard($dispatch, $this->dateService, $averageRequestTimesByType);
                         })
                         ->toArray();
                 }
@@ -621,7 +621,7 @@ class DashboardSettingsService {
 
         if (!$example) {
             if ($chart) {
-                $values = ["chartData" => $chart->getData()];
+                $values = ["chartData" => $chart->getData(), 'chartColors' => $chart->getChartColors()];
             } else {
                 $values = ["chartData" => []];
             }
