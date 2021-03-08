@@ -161,8 +161,8 @@ class TransferRequestService {
 
         if ($requestStatus !== TransferRequest::DRAFT && $hasRightToSeeOrder && $request->getOrder()) {
             $href = $this->router->generate('transfer_order_show', ['id' => $request->getOrder()->getId()]);
-        } else  {
-        $href = $this->router->generate('transfer_request_show', ['id' => $request->getId()]);
+        } else {
+            $href = $this->router->generate('transfer_request_show', ['id' => $request->getId()]);
         }
 
         $articlesCounter = ($request->getArticles()->count() + $request->getReferences()->count());

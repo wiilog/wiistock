@@ -290,12 +290,14 @@ class DemandeCollecteService
         /** @var OrdreCollecte $order */
         $order = $request->getOrdresCollecte()->last();
 
-            $href = $this->router->generate('collecte_show', ['id' => $request->getId()]);
          if (in_array($requestStatus, [Collecte::STATUT_INCOMPLETE, Collecte::STATUT_A_TRAITER])
                    && $hasRightToSeeOrder
                    && $order) {
             $href = $this->router->generate('ordre_collecte_show', ['id' => $order->getId()]);
-        }
+         }
+         else {
+             $href = $this->router->generate('collecte_show', ['id' => $request->getId()]);
+         }
 
         $articlesCounter = $order
             ? ($order->getArticles()->count() + $order->getOrdreCollecteReferences()->count())
