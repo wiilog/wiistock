@@ -108,8 +108,13 @@ class ReceptionService
         $ransporteurRepository = $entityManager->getRepository(Transporteur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         if(!empty($data['anomalie'])) {
-            $anomaly = filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN);
-
+            $anomaly = (
+                isset($data['anomalie'])
+                && (
+                    filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN)
+                    || in_array($data['anomalie'], ['oui', 'Oui', 'OUI'])
+                )
+            );
             $statusCode = $anomaly
                 ? Reception::STATUT_ANOMALIE
                 : Reception::STATUT_EN_ATTENTE;
@@ -170,12 +175,17 @@ class ReceptionService
         }
 
         if(!empty($data['manualUrgent'])) {
-            $reception->setManualUrgent(filter_var($data['manualUrgent'], FILTER_VALIDATE_BOOLEAN));
+            $reception->setManualUrgent(
+                isset($data['manualUrgent'])
+                && (
+                    filter_var($data['manualUrgent'], FILTER_VALIDATE_BOOLEAN)
+                    || in_array($data['manualUrgent'], ['oui', 'Oui', 'OUI'])
+                )
+            );
         }
 
         $reception
             ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
-            ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null)
             ->setStatut($statut)
             ->setNumber($numero)
             ->setDate($date)

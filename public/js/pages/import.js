@@ -149,7 +149,8 @@ function displayConfirmationModal(importId, data) {
     $submitNewImport.off();
 
     $submitNewImport.click(() => {
-        launchImport(importId);
+        wrapLoadingOnActionButton($submitNewImport, () => launchImport(importId));
+
     });
 }
 
@@ -221,7 +222,7 @@ function launchImport(importId, force = false) {
             force: Number(Boolean(force))
         };
 
-        $.post(Routing.generate('import_launch'), params, (resp) => {
+        return $.post(Routing.generate('import_launch'), params, (resp) => {
             if (!force) {
                 $modalNewImport.modal('hide');
             }
@@ -232,6 +233,7 @@ function launchImport(importId, force = false) {
         });
     } else {
         showBSAlert('Une erreur est survenue lors du lancement de votre import. Veuillez recharger la page et réessayer.', 'danger');
+        return new Promise(() => {});
     }
 }
 

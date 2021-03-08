@@ -888,23 +888,12 @@ class ImportService
 
             if($refArt) {
                 if(isset($data['quantité à recevoir'])) {
-                    $manualEmergency = false;
-                    if (isset($data['manualUrgent'])) {
-                        $value = strtolower($data['manualUrgent']);
-                        if ($value !== 'oui' && $value !== 'non') {
-                            $this->throwError('La valeur saisie pour le champ urgence est invalide (autorisé : "oui" ou "non")');
-                        }
-                        $manualEmergency = $value === 'oui';
-                    }
-
                     $receptionRefArticle = new ReceptionReferenceArticle();
                     $receptionRefArticle
                         ->setReception($reception)
                         ->setReferenceArticle($refArt)
                         ->setQuantiteAR($data['quantité à recevoir'])
-                        ->setEmergencyTriggered($manualEmergency)
                         ->setCommande($reception->getOrderNumber())
-                        ->setEmergencyTriggered($manualEmergency)
                         ->setQuantite(0);
                     $this->em->persist($receptionRefArticle);
                 } else {
