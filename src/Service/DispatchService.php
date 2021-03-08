@@ -562,25 +562,19 @@ class DispatchService {
     }
 
     /**
-     * @param Dispatch $request
+     * @param Dispatch $dispatch
      * @param DateService $dateService
      * @param array $averageRequestTimesByType
      * @return array
      */
-    public function parseRequestForCard(Dispatch $request,
+    public function parseRequestForCard(Dispatch $dispatch,
                                         DateService $dateService,
-                                        array $averageRequestTimesByType,
-                                        ?int $mode = null) {
-        if(!$mode || $mode !== DashboardSettingsService::MODE_EXTERNAL) {
-            $hasRightToSeeRequest = $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE);
-        } else {
-            $hasRightToSeeRequest = false;
-        }
+                                        array $averageRequestTimesByType): array {
 
-        $requestStatus = $request->getStatut() ? $request->getStatut()->getNom() : '';
-        $requestType = $request->getType() ? $request->getType()->getLabel() : '';
-        $typeId = $request->getType() ? $request->getType()->getId() : null;
-        $requestState = $request->getStatut() ? $request->getStatut()->getState() : null;
+        $requestStatus = $dispatch->getStatut() ? $dispatch->getStatut()->getNom() : '';
+        $requestType = $dispatch->getType() ? $dispatch->getType()->getLabel() : '';
+        $typeId = $dispatch->getType() ? $dispatch->getType()->getId() : null;
+        $requestState = $dispatch->getStatut() ? $dispatch->getStatut()->getState() : null;
 
         $averageTime = $averageRequestTimesByType[$typeId] ?? null;
 
@@ -589,7 +583,7 @@ class DispatchService {
         $today = new DateTime();
 
         if (isset($averageTime)) {
-            $expectedDate = (clone $request->getCreationDate())
+            $expectedDate = (clone $dispatch->getCreationDate())
                 ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
             if ($expectedDate >= $today) {
                 $estimatedFinishTimeLabel = 'Date et heure d\'acheminement prévue';
@@ -600,11 +594,10 @@ class DispatchService {
                 }
             }
         }
-        if ($hasRightToSeeRequest) {
-            $href = $this->router->generate('dispatch_show', ['id' => $request->getId()]);
-        }
-        $bodyTitle = $request->getDispatchPacks()->count() . ' colis' . ' - ' . $requestType;
-        $requestDate = $request->getCreationDate();
+        $href = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
+
+        $bodyTitle = $dispatch->getDispatchPacks()->count() . ' colis' . ' - ' . $requestType;
+        $requestDate = $dispatch->getCreationDate();
         $requestDateStr = $requestDate
             ? (
                 $requestDate->format('d ')
@@ -627,10 +620,10 @@ class DispatchService {
             'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
             'requestStatus' => $requestStatus,
             'requestBodyTitle' => $bodyTitle,
-            'requestLocation' => $request->getLocationTo() ? $request->getLocationTo()->getLabel() : 'Non défini',
-            'requestNumber' => $request->getNumber(),
+            'requestLocation' => $dispatch->getLocationTo() ? $dispatch->getLocationTo()->getLabel() : 'Non défini',
+            'requestNumber' => $dispatch->getNumber(),
             'requestDate' => $requestDateStr,
-            'requestUser' => $request->getRequester() ? $request->getRequester()->getUsername() : 'Non défini',
+            'requestUser' => $dispatch->getRequester() ? $dispatch->getRequester()->getUsername() : 'Non défini',
             'cardColor' => $requestState === Statut::DRAFT ? 'lightGrey' : 'white',
             'bodyColor' => $requestState === Statut::DRAFT ? 'white' : 'lightGrey',
             'topRightIcon' => 'livreur.svg',

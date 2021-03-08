@@ -177,7 +177,7 @@ class DemandeLivraisonService
         ) {
             $href = $this->router->generate('livraison_index', ['demandId' => $demande->getId()]);
         }
-        else if ($hasRightToSeeRequest) {
+        else {
             $href = $this->router->generate('demande_show', ['id' => $demande->getId()]);
         }
 
