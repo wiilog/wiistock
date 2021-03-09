@@ -204,18 +204,7 @@ $rowNumberToDatatableHeight: (
 
     &.dashboard-box-indicator {
         display: flex;
-        @supports (justify-content: space-evenly) {
-            justify-content: space-evenly;
-        }
-        @supports not (justify-content: space-evenly) {
-            justify-content: space-between;
-
-            &:before,
-            &:after {
-                content: '';
-                display: block;
-            }
-        }
+        justify-content: space-around;
     }
 
     @media (max-width: $responsive-breakpoint) {
