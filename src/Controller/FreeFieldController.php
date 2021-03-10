@@ -14,6 +14,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -159,7 +160,10 @@ class FreeFieldController extends AbstractController {
             }
 
 			if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
-			    $elements = array_filter(explode(';', $data['elem']));
+			    $elements = Stream::from(explode(';', $data['elem']))
+                    ->filter(fn ($elem) => $elem)
+                    ->unique()
+                    ->toArray();
 				$champLibre->setElements($elements);
 
 				if($champLibre->getTypage() == FreeField::TYPE_LIST
@@ -240,15 +244,18 @@ class FreeFieldController extends AbstractController {
             $champLibre->setCategorieCL($categorieCL);
         }
 
-		$champLibre
-			->setLabel($data['label'])
-			->setRequiredCreate($data['displayedCreate'] ? $data['requiredCreate'] : false)
-			->setRequiredEdit($data['requiredEdit'])
-			->setDisplayedCreate($data['displayedCreate'])
-			->setTypage($data['typage']);
+        $champLibre
+            ->setLabel($data['label'])
+            ->setRequiredCreate($data['displayedCreate'] ? $data['requiredCreate'] : false)
+            ->setRequiredEdit($data['requiredEdit'])
+            ->setDisplayedCreate($data['displayedCreate'])
+            ->setTypage($data['typage']);
 
-		if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
-		    $elements = array_filter(explode(';', $data['elem']));
+        if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
+            $elements = Stream::from(explode(';', $data['elem']))
+                ->filter(fn($elem) => $elem)
+                ->unique()
+                ->toArray();
             $champLibre->setElements($elements);
 
             if ($champLibre->getTypage() == FreeField::TYPE_LIST
