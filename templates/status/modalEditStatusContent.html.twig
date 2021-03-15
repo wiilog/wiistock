@@ -50,11 +50,9 @@
             <select name="state" class="data form-control needed" onchange="statusStateChanged($(this))">
                 {% for state in states %}
                     <option value="{{ state.id }}"
-                            class="{{
-                                state.id == constant('App\\Entity\\Statut::DRAFT') ? 'dispatch-fields' :
-                                state.id == constant('App\\Entity\\Statut::DISPUTE') ? 'arrival-fields'
-                            }}"
-                            {{ state.id == status.state ? 'selected' }}>
+                            class="{{ (state.id == constant('App\\Entity\\Statut::DRAFT') or state.id == constant('App\\Entity\\Statut::PARTIAL')) ? 'dispatch-fields' :
+                            state.id == constant('App\\Entity\\Statut::DISPUTE') ? 'arrival-fields' }}"
+                        {{ state.id == status.state ? 'selected' }}>
                         {{ state.label }}
                     </option>
                 {% endfor %}
