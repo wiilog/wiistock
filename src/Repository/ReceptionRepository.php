@@ -106,7 +106,7 @@ class ReceptionRepository extends EntityRepository
             ->addSelect('referenceArticle.quantiteStock AS referenceArticleQuantiteStock')
             ->addSelect('referenceArticleType.label AS referenceArticleTypeLabel')
             ->addSelect('referenceArticle.barCode AS referenceArticleBarcode')
-            ->addSelect('article.reference AS articleReference')
+            ->addSelect('articleReferenceArticle.reference AS articleReference')
             ->addSelect('article.label AS articleLabel')
             ->addSelect('article.quantite AS articleQuantity')
             ->addSelect('articleType.label AS articleTypeLabel')
