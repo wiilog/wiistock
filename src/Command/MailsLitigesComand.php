@@ -1,10 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: c.gazaniol
- * Date: 07/06/2019
- * Time: 16:23
- */
+// At 8:00
+// 0 8 * * *
 
 namespace App\Command;
 

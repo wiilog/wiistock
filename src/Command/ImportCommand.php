@@ -1,7 +1,6 @@
 <?php
-/**
- * Commande Cron exécutée toute les 30 min
- */
+// At every 5th minute
+// */5 * * * *
 
 namespace App\Command;
 

@@ -1,4 +1,6 @@
 <?php
+// At 20:00
+// 0 20 * * *
 
 namespace App\Command;
 

@@ -1,9 +1,7 @@
 <?php
-/**
- * Commande Cron exécutée tous les jours à 20h :
- *
- */
-// 0 20 * * 1-6
+// At 20:00
+// 0 20 * * *
+
 namespace App\Command;
 
 use App\Entity\AverageRequestTime;
