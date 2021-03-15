@@ -16,6 +16,11 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentFixtureInterface {
 
     /**
+     * @Required
+     */
+    public CacheService $cacheService;
+
+    /**
      * @param ObjectManager $manager
      * @throws NonUniqueResultException
      */
@@ -51,14 +56,13 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentF
         }
         $manager->flush();
 
-        $cache = CacheHelper::create(RoleService::PERMISSIONS_CACHE_POOL);
         $menuPrefix = RoleService::MENU_CACHE_PREFIX;
         $permissionsPrefix = RoleService::PERMISSIONS_CACHE_PREFIX;
 
         $roles = $roleRepository->findAll();
         foreach($roles as $role) {
-            $cache->delete("{$menuPrefix}.{$role->getId()}");
-            $cache->delete("{$permissionsPrefix}.{$role->getId()}");
+            $this->cacheService->delete(CacheService::PERMISSIONS, "{$menuPrefix}.{$role->getId()}");
+            $this->cacheService->delete(CacheService::PERMISSIONS, "{$permissionsPrefix}.{$role->getId()}");
         }
     }
 

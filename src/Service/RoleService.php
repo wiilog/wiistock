@@ -21,15 +21,12 @@ class RoleService
 
     public const PERMISSIONS_CACHE_PREFIX = 'permissions';
     public const MENU_CACHE_PREFIX = 'menu';
-    public const PERMISSIONS_CACHE_POOL = 'wiistock.app.cache.permissions';
 
-    private $entityManager;
-    private $cache;
+    /** @Required  */
+    public EntityManagerInterface $entityManager;
 
-    public function __construct(EntityManagerInterface $entityManager) {
-        $this->entityManager = $entityManager;
-        $this->cache = CacheHelper::create(RoleService::PERMISSIONS_CACHE_POOL);
-    }
+    /** @Required  */
+    public CacheService $cacheService;
 
     /**
      * @param Role $role
@@ -97,7 +94,7 @@ class RoleService
     public function getPermissions(Utilisateur $user, $bool = false): array {
         $role = $user->getRole();
         $permissionsPrefix = self::PERMISSIONS_CACHE_PREFIX;
-        return $this->cache->get("{$permissionsPrefix}.{$role->getId()}", function() use ($role, $bool) {
+        return $this->cacheService->get(CacheService::PERMISSIONS, "{$permissionsPrefix}.{$role->getId()}", function() use ($role, $bool) {
             return Stream::from($role->getActions())
                 ->keymap(function(Action $action) use ($bool) {
                     $key = $this->getPermissionKey($action->getMenu()->getLabel(), $action->getLabel());
@@ -118,7 +115,7 @@ class RoleService
     public function onRoleUpdate(int $roleId): void {
         $menuPrefix = self::MENU_CACHE_PREFIX;
         $permissionsPrefix = self::PERMISSIONS_CACHE_PREFIX;
-        $this->cache->delete("{$menuPrefix}.{$roleId}");
-        $this->cache->delete("{$permissionsPrefix}.{$roleId}");
+        $this->cacheService->delete(CacheService::PERMISSIONS, "{$menuPrefix}.{$roleId}");
+        $this->cacheService->delete(CacheService::PERMISSIONS, "{$permissionsPrefix}.{$roleId}");
     }
 }
