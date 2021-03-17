@@ -118,11 +118,11 @@ class Pack
     }
 
     public function getCode(): ?string {
-        return $this->code;
+        return trim($this->code);
     }
 
     public function setCode(?string $code): self {
-        $this->code = $code;
+        $this->code = trim($code);
         return $this;
     }
 
