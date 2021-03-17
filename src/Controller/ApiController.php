@@ -274,7 +274,8 @@ class ApiController extends AbstractFOSRestController
                                     $status = $statutRepository->findOneByCategorieNameAndStatutCode($configStatus[0], $configStatus[1]);
                                     $article->setStatut($status);
                                 }
-                            } else { // MouvementTraca::TYPE_DEPOSE
+                            }
+                            else { // MouvementTraca::TYPE_DEPOSE
                                 $mouvementTracaPrises = $trackingMovementRepository->findLastTakingNotFinished($mvt['ref_article']);
                                 /** @var TrackingMovement|null $mouvementTracaPrise */
                                 $mouvementTracaPrise = count($mouvementTracaPrises) > 0 ? $mouvementTracaPrises[0] : null;
@@ -312,7 +313,8 @@ class ApiController extends AbstractFOSRestController
                                     }
                                 }
                             }
-                        } else {
+                        }
+                        else {
                             $options['natureId'] = $mvt['nature_id'] ?? null;
                             $options['quantity'] = $mvt['quantity'] ?? null;
                         }
