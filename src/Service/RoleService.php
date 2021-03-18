@@ -9,7 +9,6 @@ use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
-use App\Helper\CacheHelper;
 use App\Helper\Stream;
 use App\Helper\StringHelper;
 use Doctrine\ORM\EntityManagerInterface;

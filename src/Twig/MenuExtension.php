@@ -2,7 +2,6 @@
 
 namespace App\Twig;
 
-use App\Helper\CacheHelper;
 use App\Service\CacheService;
 use App\Service\RoleService;
 use App\Service\SpecificService;
