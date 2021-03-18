@@ -4,7 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Action;
 use App\Entity\Role;
-use App\Helper\CacheHelper;
+use App\Service\CacheService;
 use App\Service\RoleService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;

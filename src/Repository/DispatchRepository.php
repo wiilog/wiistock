@@ -187,15 +187,16 @@ class DispatchRepository extends EntityRepository
      */
     public function countByUser($user)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(d)
-            FROM App\Entity\Dispatch d
-            WHERE d.receivers = :user OR d.requester = :user"
-        )->setParameter('user', $user);
+        $queryBuilder = $this->createQueryBuilder('dispatch')
+            ->select('COUNT(dispatch)')
+            ->leftJoin('dispatch.receivers', 'receiver')
+            ->where('receiver = :user')
+            ->orWhere('dispatch.requester = :user')
+            ->setParameter('user', $user);
 
-        return $query->getSingleScalarResult();
+        return $queryBuilder
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function countByEmplacement($emplacementId)
