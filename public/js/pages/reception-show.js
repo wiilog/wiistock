@@ -162,9 +162,9 @@ function initEditReception() {
     initDateTimePickerReception();
     initOnTheFlyCopies($('.copyOnTheFly'));
 
-    Select2.provider($('.ajax-autocomplete-fournisseur-edit'));
-    Select2.location($('.ajax-autocomplete-location-edit'));
-    Select2.carrier($('.ajax-autocomplete-transporteur-edit'));
+    Select2Old.provider($('.ajax-autocomplete-fournisseur-edit'));
+    Select2Old.location($('.ajax-autocomplete-location-edit'));
+    Select2Old.carrier($('.ajax-autocomplete-transporteur-edit'));
 }
 
 function initDateTimePickerReception() {
@@ -188,7 +188,7 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {}, recept
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        Select2.articleReception(modal.find('.select2-autocomplete-articles'));
+        Select2Old.articleReception(modal.find('.select2-autocomplete-articles'));
         fillDemandeurField(modal);
         let values = [];
         data.colis.forEach(val => {
@@ -306,7 +306,7 @@ function initModalCondit(tableFromArticle) {
 function initNewArticleEditor(modal) {
     const $modal = $(modal);
     let $select2refs = $modal.find('[name="referenceArticle"]');
-    Select2.articleReference($select2refs);
+    Select2Old.articleReference($select2refs);
 
     if (!editorNewArticleAlreadyDone) {
         initEditorInModal(modal);
@@ -329,7 +329,7 @@ function initNewArticleEditor(modal) {
     $quantiteAR.val(0);
 
     setTimeout(() => {
-        Select2.open($select2refs);
+        Select2Old.open($select2refs);
     }, 400);
 }
 
@@ -386,9 +386,9 @@ function initNewReferenceArticleEditor() {
         initEditor('.editor-container-new');
         editorNewReferenceArticleAlreadyDone = true;
     }
-    Select2.provider($('.ajax-autocomplete-fournisseur'));
-    Select2.provider($('.ajax-autocomplete-fournisseurLabel'), '', 'demande_label_by_fournisseur');
-    Select2.location($('.ajax-autocomplete-location'));
+    Select2Old.provider($('.ajax-autocomplete-fournisseur'));
+    Select2Old.provider($('.ajax-autocomplete-fournisseurLabel'), '', 'demande_label_by_fournisseur');
+    Select2Old.location($('.ajax-autocomplete-location'));
     let modalRefArticleNew = $("#new-ref-inner-body");
     let submitNewRefArticle = $("#submitNewRefArticleFromRecep");
     let urlRefArticleNew = Routing.generate('reference_article_new', true);
@@ -549,7 +549,7 @@ function demandeurChanged($select) {
         }
         $locationInput.data('id', idEmp);
         $locationInput.data('text', textEmp);
-        Select2.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'), true);
+        Select2Old.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'), true);
         $locationInput.data('id', originalValues.id);
         $locationInput.data('text', originalValues.text);
     }
@@ -560,25 +560,25 @@ function initNewLigneReception($button) {
         initEditorInModal(modalNewLigneReception);
         editorNewLivraisonAlreadyDoneForDL = true;
     }
-    Select2.init($modalNewLigneReception.find('.ajax-autocomplete-location'), '', 1, {route: 'get_emplacement'});
-    Select2.location($('.ajax-autocomplete-location-edit'));
-    Select2.init($('.select2-type'));
-    Select2.user($modalNewLigneReception.find('.select2-user'));
-    Select2.initValues($('#demandeurDL'), $( '#currentUser'));
-    Select2.init($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {
+    Select2Old.init($modalNewLigneReception.find('.ajax-autocomplete-location'), '', 1, {route: 'get_emplacement'});
+    Select2Old.location($('.ajax-autocomplete-location-edit'));
+    Select2Old.init($('.select2-type'));
+    Select2Old.user($modalNewLigneReception.find('.select2-user'));
+    Select2Old.initValues($('#demandeurDL'), $( '#currentUser'));
+    Select2Old.init($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {
         route: 'get_ref_article_reception',
         param: {reception: $('#receptionId').val()}
     });
 
     if ($('#locationDemandeLivraison').length > 0) {
-        Select2.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
+        Select2Old.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
     }
     if ($('#storageTransfer').length > 0) {
-        Select2.initValues($('#storage'), $('#storageTransfer'));
+        Select2Old.initValues($('#storage'), $('#storageTransfer'));
     }
 
     if ($('#originTransfer').length > 0) {
-        Select2.initValues($('#origin'), $('#originTransfer'));
+        Select2Old.initValues($('#origin'), $('#originTransfer'));
     }
 
     let urlNewLigneReception = Routing.generate(
@@ -788,7 +788,7 @@ function initConditionnementArticleFournisseurDefault() {
 
     if (referenceArticle) {
         resetDefaultArticleFournisseur(true);
-        Select2.init(
+        Select2Old.init(
             $selectArticleFournisseur,
             '',
             1,

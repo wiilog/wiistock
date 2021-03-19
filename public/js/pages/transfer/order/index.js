@@ -2,10 +2,10 @@ $(document).ready(() => {
     const $statusSelector = $('.filterService select[name="statut"]');
 
     initDateTimePicker();
-    Select2.init($statusSelector, 'Statuts');
-    Select2.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
-    Select2.user($('.filterService select[name="requesters"]'), "Demandeurs");
-    Select2.user($('.filterService select[name="operators"]'), "Opérateurs");
+    Select2Old.init($statusSelector, 'Statuts');
+    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
+    Select2Old.user($('.filterService select[name="requesters"]'), "Demandeurs");
+    Select2Old.user($('.filterService select[name="operators"]'), "Opérateurs");
 
     // sinon, filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');

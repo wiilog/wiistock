@@ -3,7 +3,7 @@ $(function () {
     let $modalDeleteDelivery = $('#modal-select-location');
 
     const $selectDeleteDeliveryLocation = $modalDeleteDelivery.find('select[name="location"]')
-    Select2.location($selectDeleteDeliveryLocation);
+    Select2Old.location($selectDeleteDeliveryLocation);
 
     let pathArticle = Routing.generate('livraison_article_api', {id: deliveryId});
     let tableArticleConfig = {

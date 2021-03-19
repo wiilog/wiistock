@@ -17,7 +17,7 @@ let tableChauffeurConfig = {
     },
 };
 let tableChauffeur = initDataTable('tableChauffeur_id', tableChauffeurConfig);
-Select2.carrier($('.ajax-autocomplete-transporteur'));
+Select2Old.carrier($('.ajax-autocomplete-transporteur'));
 
 let $modalNewChauffeur = $("#modalNewChauffeur");
 let $submitNewChauffeur = $("#submitNewChauffeur");

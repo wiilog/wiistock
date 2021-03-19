@@ -13,7 +13,7 @@ $(function () {
         displayFiltersSup(data);
     }, 'json');
 
-    Select2.user('Utilisateurs');
+    Select2Old.user('Utilisateurs');
 });
 
 let pathRecep = Routing.generate('reception_traca_api', true);

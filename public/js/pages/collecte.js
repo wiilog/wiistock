@@ -74,8 +74,8 @@ $.fn.dataTable.ext.search.push(
 
 $(function() {
     initDateTimePicker();
-    Select2.init($('#statut'), 'Statuts');
-    Select2.user('Demandeurs');
+    Select2Old.init($('#statut'), 'Statuts');
+    Select2Old.user('Demandeurs');
 
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
@@ -111,7 +111,7 @@ function initNewCollecteEditor(modal) {
         initEditorInModal(modal);
         editorNewCollecteAlreadyDone = true;
     }
-    Select2.location($('.ajax-autocomplete-location'))
+    Select2Old.location($('.ajax-autocomplete-location'))
 }
 
 function callbackSaveFilter() {

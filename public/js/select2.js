@@ -1,5 +1,5 @@
 
-class Select2 {
+class Select2Old {
 
     /**
      * @param $select

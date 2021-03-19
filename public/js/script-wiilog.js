@@ -139,13 +139,13 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         const $modalBody = modal.find('.modal-body');
         $modalBody.html(resp);
         modal.find('.select2').select2();
-        Select2.initFree(modal.find('.select2-free'));
-        Select2.provider(modal.find('.ajax-autocomplete-fournisseur-edit'));
-        Select2.frequency(modal.find('.ajax-autocomplete-frequency'));
-        Select2.articleReference(modal.find('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
-        Select2.location(modal.find('.ajax-autocomplete-location-edit'));
-        Select2.carrier(modal.find('.ajax-autocomplete-transporteur-edit'));
-        Select2.user(modal.find('.ajax-autocomplete-user-edit'));
+        Select2Old.initFree(modal.find('.select2-free'));
+        Select2Old.provider(modal.find('.ajax-autocomplete-fournisseur-edit'));
+        Select2Old.frequency(modal.find('.ajax-autocomplete-frequency'));
+        Select2Old.articleReference(modal.find('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
+        Select2Old.location(modal.find('.ajax-autocomplete-location-edit'));
+        Select2Old.carrier(modal.find('.ajax-autocomplete-transporteur-edit'));
+        Select2Old.user(modal.find('.ajax-autocomplete-user-edit'));
         modal.find('.list-multiple').select2();
         if (wantsFreeFieldsRequireCheck) {
             toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');

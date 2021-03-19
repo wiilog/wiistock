@@ -1,7 +1,7 @@
 $(function() {
-    Select2.user();
-    Select2.provider($('.ajax-autocomplete-fournisseur'));
-    Select2.carrier($('.ajax-autocomplete-transporteur'));
+    Select2Old.user();
+    Select2Old.provider($('.ajax-autocomplete-fournisseur'));
+    Select2Old.carrier($('.ajax-autocomplete-transporteur'));
     initPage();
     initDateTimePicker('#dateMin, #dateMax');
     initDateTimePicker('#dateStart', 'DD/MM/YYYY HH:mm', true, 0, 0);
@@ -88,9 +88,9 @@ function callbackEditFormLoading($modal, buyerId, buyerName) {
     $dateStartInput.val(moment(dateStart, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
     $dateEndInput.val(moment(dateEnd, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
 
-    Select2.user($modal.find('.ajax-autocomplete-user'));
-    Select2.provider($modal.find('.ajax-autocomplete-fournisseur'));
-    Select2.carrier($modal.find('.ajax-autocomplete-transporteur'));
+    Select2Old.user($modal.find('.ajax-autocomplete-user'));
+    Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
+    Select2Old.carrier($modal.find('.ajax-autocomplete-transporteur'));
 
     if (buyerId && buyerName) {
         let option = new Option(buyerName, buyerId, true, true);

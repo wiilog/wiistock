@@ -5,10 +5,10 @@ $(function() {
     initModals(tableHandling);
 
     initDateTimePicker();
-    Select2.init($('.filter-select2[name="statut"]'), 'Statuts');
-    Select2.user($('.filter-select2[name="utilisateurs"]'), 'Demandeurs');
-    Select2.user($('.filter-select2[name="receivers"]'), 'Destinataires');
-    Select2.init($('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
+    Select2Old.init($('.filter-select2[name="statut"]'), 'Statuts');
+    Select2Old.user($('.filter-select2[name="utilisateurs"]'), 'Demandeurs');
+    Select2Old.user($('.filter-select2[name="receivers"]'), 'Destinataires');
+    Select2Old.init($('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
 
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
@@ -43,7 +43,7 @@ function initNewHandlingEditor(modal) {
         initEditor('.editor-container-new');
         editorNewHandlingAlreadyDone = true;
     }
-    Select2.location($('.ajax-autocomplete-location'));
+    Select2Old.location($('.ajax-autocomplete-location'));
     onTypeChange($(modal).find('select[name="type"]'));
 }
 
@@ -146,5 +146,5 @@ function initModals(tableHandling) {
     let urlDeleteHandling = Routing.generate('handling_delete', true);
     InitModal($modalDeleteHandling, $submitDeleteHandling, urlDeleteHandling, {tables: [tableHandling]});
 
-    Select2.user($modalNewHandling.find('.ajax-autocomplete-user[name=receivers]'))
+    Select2Old.user($modalNewHandling.find('.ajax-autocomplete-user[name=receivers]'))
 }

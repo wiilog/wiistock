@@ -14,9 +14,11 @@ import 'arrive';
 import BrowserSupport from './support';
 import Wiistock from './general';
 import {LOADING_CLASS, wrapLoadingOnActionButton} from './loading';
-import './tooltips';
 
 import '../scss/app.scss';
+
+import './tooltips';
+import './select2';
 
 ///////////////// Main
 
@@ -38,6 +40,10 @@ function importWiistock() {
 
 function importJquery() {
     global.$ = global.jQuery = $;
+
+    jQuery.fn.exists = function() {
+        return this.length !== 0;
+    }
 }
 
 function importChart() {

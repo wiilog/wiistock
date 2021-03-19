@@ -1,5 +1,5 @@
 $(function() {
-    Select2.frequency($('.ajax-autocomplete-frequency'));
+    Select2Old.frequency($('.ajax-autocomplete-frequency'));
     let pathCategories = Routing.generate('invParam_api', true);
     let tableCategoriesConfig = {
         ajax: {

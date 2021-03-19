@@ -2,10 +2,10 @@ let tableArticles;
 
 $(document).ready(() => {
     $('#modalDeleteTransferWithLocation').on('show.bs.modal', function (e) {
-        Select2.location($('.ajax-autocomplete-location'));
+        Select2Old.location($('.ajax-autocomplete-location'));
     })
 
-    Select2.articleReference($(".ajax-autocomplete"));
+    Select2Old.articleReference($(".ajax-autocomplete"));
 
     tableArticle = initDataTable('tableArticle', {
         ajax: {

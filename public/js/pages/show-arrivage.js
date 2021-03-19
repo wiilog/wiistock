@@ -210,8 +210,8 @@ function editRowArrivage(button) {
         modal.find('#acheteursEdit').val(data.acheteurs).select2();
         modal.find('.list-multiple').select2();
         initDateTimePicker('.date-cl');
-        Select2.initFree($('.select2-free'));
-        Select2.location(modal.find('.ajax-autocomplete-location'));
+        Select2Old.initFree($('.select2-free'));
+        Select2Old.location(modal.find('.ajax-autocomplete-location'));
     }, 'json');
 
     modal.find(submit).attr('value', id);

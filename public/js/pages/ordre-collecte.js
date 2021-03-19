@@ -30,9 +30,9 @@ let tableCollecteConfig = {
 let tableCollecte = initDataTable('tableCollecte', tableCollecteConfig);
 $(function () {
     initDateTimePicker();
-    Select2.init($('#statut'), 'Statuts');
-    Select2.collect($('.ajax-autocomplete-dem-collecte'));
-    Select2.user('Opérateurs');
+    Select2Old.init($('#statut'), 'Statuts');
+    Select2Old.collect($('.ajax-autocomplete-dem-collecte'));
+    Select2Old.user('Opérateurs');
 
     // cas d'un filtre par demande de collecte
     let $filterDemand = $('.filters-container .filter-demand');

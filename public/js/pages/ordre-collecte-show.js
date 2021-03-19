@@ -83,7 +83,7 @@ function openLocationModal() {
         $tbody.append($newTr);
     });
     $('#modalFinishCollecte').modal('show');
-    Select2.location($tbody.find('.ajax-autocomplete-location'));
+    Select2Old.location($tbody.find('.ajax-autocomplete-location'));
 }
 
 function finishCollecte($button, withoutLocation = false) {

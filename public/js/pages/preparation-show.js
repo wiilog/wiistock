@@ -8,7 +8,7 @@ let pathArticle = Routing.generate('preparation_article_api', {'preparation': $p
 
 $(function () {
     const $locationSelect = $modalSubmitPreparation.find('select[name="location"]');
-    Select2.location($locationSelect);
+    Select2Old.location($locationSelect);
 
     $(document).on('hidden.bs.modal','#modalSplitting', function () {
         $('.action-on-click-single').data('clicked', false);
