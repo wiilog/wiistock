@@ -874,7 +874,7 @@ class ImportService
                     case ReceptionService::INVALID_LOCATION:
                         $this->throwError('Emplacement renseigné invalide');
                         break;
-                    case ReceptionService::INVALID_STORAGELOCATION:
+                    case ReceptionService::INVALID_STORAGE_LOCATION:
                         $this->throwError('Emplacement de stockage renseigné invalide');
                         break;
                     case ReceptionService::INVALID_CARRIER:
