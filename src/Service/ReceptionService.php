@@ -35,6 +35,7 @@ class ReceptionService
     public const INVALID_EXPECTED_DATE = 'invalid-expected-date';
     public const INVALID_ORDER_DATE = 'invalid-order-date';
     public const INVALID_LOCATION = 'invalid-location';
+    public const INVALID_STORAGELOCATION = 'invalid-storage-location';
     public const INVALID_CARRIER = 'invalid-carrier';
     public const INVALID_PROVIDER = 'invalid-provider';
 
@@ -170,8 +171,16 @@ class ReceptionService
         }
 
         if(!empty($data['storageLocation'])) {
-            $storageLocation = $emplacementRepository->find(intval($data['storageLocation']));
-            $reception->setStorageLocation($storageLocation);
+            if($fromImport) {
+                $storageLocation = $emplacementRepository->findOneBy(['label' => $data['storageLocation']]);
+            if (!isset($storageLocation)) {
+                    throw new InvalidArgumentException(self::INVALID_STORAGELOCATION);
+                }
+            } else {
+                $storageLocation = $emplacementRepository->find(intval($data['storageLocation']));
+            }
+            $reception
+                ->setStorageLocation($storageLocation);
         }
 
         if(!empty($data['manualUrgent'])) {
