@@ -112,7 +112,8 @@ class ReceptionRepository extends EntityRepository
             ->addSelect('articleType.label AS articleTypeLabel')
             ->addSelect('articleReferenceArticle.barCode AS articleReferenceArticleBarcode')
             ->addSelect('article.barCode as articleBarcode')
-            ->addSelect('reception.manualUrgent AS emergency')
+            ->addSelect('reception.manualUrgent AS receptionEmergency')
+            ->addSelect('reception.urgentArticles AS referenceEmergency')
             ->addSelect('join_storageLocation.label AS storageLocation')
             ->addSelect('join_request_user.username AS requesterUsername')
 
