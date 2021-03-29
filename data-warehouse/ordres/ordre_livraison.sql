@@ -19,10 +19,10 @@ FROM (
            reference_article.quantite_stock   AS quantite_en_stock,
            reference_article.bar_code         AS code_barre,
 
-           IF(demande_livraison.date IS NOT NULL AND ordre_livraison.date IS NOT NULL,
-              ROUND(TIME_FORMAT(TIMEDIFF(ordre_livraison.date, demande_livraison.date), '%H')
-                        + TIME_FORMAT(TIMEDIFF(ordre_livraison.date, demande_livraison.date), '%i') / 60
-                        + TIME_FORMAT(TIMEDIFF(ordre_livraison.date, demande_livraison.date), '%s') / 3600, 4), NULL) AS delta_date
+           IF(ordre_livraison.date_fin IS NOT NULL AND preparation.date IS NOT NULL,
+              ROUND(TIME_FORMAT(TIMEDIFF(ordre_livraison.date_fin, preparation.date), '%H')
+                        + TIME_FORMAT(TIMEDIFF(ordre_livraison.date_fin, preparation.date), '%i') / 60
+                        + TIME_FORMAT(TIMEDIFF(ordre_livraison.date_fin, preparation.date), '%s') / 3600, 4), NULL) AS delta_date
 
     FROM livraison AS ordre_livraison
         LEFT JOIN statut ON ordre_livraison.statut_id = statut.id
@@ -56,10 +56,10 @@ FROM (
         article.quantite                   AS quantite_en_stock,
         article.bar_code                   AS code_barre,
 
-        IF(demande_livraison.date IS NOT NULL AND ordre_livraison.date IS NOT NULL,
-           ROUND(TIME_FORMAT(TIMEDIFF(ordre_livraison.date, demande_livraison.date), '%H')
-                     + TIME_FORMAT(TIMEDIFF(ordre_livraison.date, demande_livraison.date), '%i') / 60
-                     + TIME_FORMAT(TIMEDIFF(ordre_livraison.date, demande_livraison.date), '%s') / 3600, 4), NULL) AS delta_date
+        IF(ordre_livraison.date_fin IS NOT NULL AND preparation.date IS NOT NULL,
+           ROUND(TIME_FORMAT(TIMEDIFF(ordre_livraison.date_fin, preparation.date), '%H')
+                     + TIME_FORMAT(TIMEDIFF(ordre_livraison.date_fin, preparation.date), '%i') / 60
+                     + TIME_FORMAT(TIMEDIFF(ordre_livraison.date_fin, preparation.date), '%s') / 3600, 4), NULL) AS delta_date
 
     FROM livraison AS ordre_livraison
         LEFT JOIN statut ON ordre_livraison.statut_id = statut.id

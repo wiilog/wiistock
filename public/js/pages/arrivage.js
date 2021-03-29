@@ -57,13 +57,6 @@ $(function () {
     pageLength = Number($('#pageLengthForArrivage').val());
     Select2Old.user($('.filters .ajax-autocomplete-user'), 'Destinataires');
     Select2Old.provider($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
-    $('select[name="arrivalsTable_length"]').on('change', function () {
-        let newValue = Number($(this).val());
-        if (newValue && newValue !== pageLength) {
-            $.post(Routing.generate('update_user_page_length_for_arrivage'), JSON.stringify(newValue));
-            pageLength = newValue;
-        }
-    });
 });
 
 function initTableArrival() {
@@ -108,6 +101,7 @@ function initTableArrival() {
                     tableFilter: 'arrivalsTable'
                 },
                 lengthMenu: [10, 25, 50, 100],
+                initComplete: updateArrivalPageLength
             };
 
             const arrivalsTable = initDataTable('arrivalsTable', tableArrivageConfig);
@@ -133,7 +127,6 @@ function listColis(elem) {
 }
 
 let editorNewArrivageAlreadyDone = false;
-let quillNew;
 
 function initNewArrivageEditor(modal) {
     let $modal = $(modal);
@@ -142,10 +135,7 @@ function initNewArrivageEditor(modal) {
     onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
     onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
     onFlyFormToggle('chauffeurDisplay', 'addChauffeur', true);
-    if (!editorNewArrivageAlreadyDone) {
-        quillNew = initEditor(modal + ' .editor-container-new');
-        editorNewArrivageAlreadyDone = true;
-    }
+
     Select2Old.init($modal.find('.ajax-autocomplete-fournisseur'));
     Select2Old.init($modal.find('.ajax-autocomplete-transporteur'));
     Select2Old.init($modal.find('.ajax-autocomplete-chauffeur'));
@@ -153,4 +143,16 @@ function initNewArrivageEditor(modal) {
     Select2Old.init($modal.find('.ajax-autocomplete-user'), '', 1);
     $modal.find('.list-multiple').select2();
     Select2Old.initFree($('.select2-free'));
+}
+
+function updateArrivalPageLength() {
+    pageLength = Number($('#pageLengthForArrivage').val());
+
+    $('select[name="arrivalsTable_length"]').on('change', function () {
+        let newValue = Number($(this).val());
+        if (newValue && newValue !== pageLength) {
+            $.post(Routing.generate('update_user_page_length_for_arrivage'), JSON.stringify(newValue));
+            pageLength = newValue;
+        }
+    });
 }
