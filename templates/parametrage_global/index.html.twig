@@ -67,6 +67,10 @@
         <div class="row">
             {% include 'parametrage_global/workFreeDaysSettings.html.twig' %}
         </div>
+
+        <div class="row {{ currentEnvironment ? 'd-none' }}">
+            {% include 'parametrage_global/clientSettings.html.twig' %}
+        </div>
     </div>
 {% endblock %}
 {% block javascripts %}

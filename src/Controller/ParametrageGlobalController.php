@@ -20,13 +20,16 @@ use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\WorkFreeDay;
 use App\Entity\ParametrageGlobal;
+use App\Kernel;
 use App\Service\AlertService;
 use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
+use App\Service\SpecificService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -38,7 +41,8 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @Route("/parametrage-global")
  */
-class ParametrageGlobalController extends AbstractController {
+class ParametrageGlobalController extends AbstractController
+{
 
     private $engDayToFr = [
         'monday' => 'Lundi',
@@ -61,7 +65,10 @@ class ParametrageGlobalController extends AbstractController {
 
     public function index(UserService $userService,
                           GlobalParamService $globalParamService,
-                          EntityManagerInterface $entityManager): Response {
+                          EntityManagerInterface $entityManager,
+                          SpecificService $specificService,
+                          Kernel $kernel): Response
+    {
 
         if(!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
@@ -196,6 +203,8 @@ class ParametrageGlobalController extends AbstractController {
                 'wantsBatchNumberArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL),
                 'wantsExpirationDateArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL),
                 'wantsPackCount' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL),
+                'currentClient' => $specificService->getAppClient(),
+                'currentEnvironment' => $kernel->getEnvironment() != 'test'
             ]);
     }
 
@@ -1220,5 +1229,38 @@ class ParametrageGlobalController extends AbstractController {
                 $location->addCluster($cluster);
             }
         }
+    }
+
+    /**
+     * @Route("/modifier-client", name="toggle_app_client", options={"expose"=true}, methods="GET|POST")
+     */
+    public function toggleAppClient(Request $request,
+                                    SpecificService $specificService,
+                                    Kernel $kernel): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $projectDirectory = $kernel->getProjectDir();
+            $envPath = '/.env.local';
+
+            try {
+                $env = file_get_contents($projectDirectory . $envPath);
+                $newAppClient = 'APP_CLIENT=' . $data;
+                $replaceAppClient = str_replace('APP_CLIENT=' . $specificService->getAppClient(), $newAppClient, $env);
+                file_put_contents($projectDirectory . $envPath, $replaceAppClient);
+                $response = [
+                    "success" => true,
+                    "msg" => "Le client de l'application a bien été modifié.",
+                ];
+            } catch (Exception $exception) {
+                $response = [
+                    "success" => false,
+                    "msg" => "Une erreur est survenue lors du changement du client",
+                ];
+            }
+
+        return $this->json($response);
+
+        }
+        throw new BadRequestHttpException();
     }
 }
