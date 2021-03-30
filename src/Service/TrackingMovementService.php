@@ -285,7 +285,7 @@ class TrackingMovementService
             $pack = new Pack();
             $pack
                 ->setQuantity($quantity)
-                ->setCode($codePack);
+                ->setCode(str_replace("    ", " ", $codePack));
             $entityManager->persist($pack);
         }
 
