@@ -102,7 +102,19 @@ class Entity {
 
         return $this;
     }
-    
+
+    public function setExamples(?array $examples): self {
+        foreach($this->getExamples()->toArray() as $example) {
+            $this->removeExample($example);
+        }
+
+        $this->examples = new ArrayCollection();
+        foreach($examples as $example) {
+            $this->addExample($example);
+        }
+        
+        return $this;
+    }
 }
 ```
 
@@ -136,6 +148,19 @@ class Entity {
             $example->removeClient($this);
         }
 
+        return $this;
+    }
+
+    public function setExamples(?array $examples): self {
+        foreach($this->getExamples()->toArray() as $example) {
+            $this->removeExample($example);
+        }
+
+        $this->examples = new ArrayCollection();
+        foreach($examples as $example) {
+            $this->addExample($example);
+        }
+        
         return $this;
     }
     

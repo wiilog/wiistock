@@ -180,6 +180,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ParametrageGlobal::MVT_DEPOSE_DESTINATION => [],
             ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS => [],
             ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY => [],
+            ParametrageGlobal::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS => [
+                "default" => json_encode(["provider", "commande"]),
+            ],
             ParametrageGlobal::LABEL_LOGO => [],
             ParametrageGlobal::EMERGENCY_ICON => [],
             ParametrageGlobal::CUSTOM_ICON => [],

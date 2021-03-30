@@ -92,6 +92,12 @@ $(function () {
     $('#locationDemandeLivraison').on('change', function() {
         editParamLocations($(this), $('#locationDemandeLivraisonValue'));
     });
+    console.log("fuck");
+
+    $('select[name="arrival-emergency-triggering-fields"]').on('change', function() {
+        console.log("oke");
+        editMultipleSelect($(this), `ARRIVAL_EMERGENCY_TRIGGERING_FIELDS`);
+    });
     // config tableau de bord : transporteurs
 
     const inputWorkFreeDayAlreadyAdd = JSON.parse($('#workFreeDays input[type="hidden"][name="already-work-free-days"]').val());
@@ -594,4 +600,16 @@ function saveHandlingParams() {
             showBSAlert('Une erreur est survenue lors de la modification du paramétrage.', 'danger');
         }
     });
+}
+
+function editMultipleSelect($select, paramName) {
+    const val = $select.val() || [];
+    const valStr = JSON.stringify(val);
+    $.post(Routing.generate('toggle_params'), JSON.stringify({param: paramName, val: valStr})).then((resp) => {
+        if (resp) {
+            showBSAlert("La valeur a bien été mise à jour", "success");
+        } else {
+            showBSAlert("Une erreur est survenue lors de la mise à jour de la valeur", "success");
+        }
+    })
 }

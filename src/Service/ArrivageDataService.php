@@ -17,6 +17,7 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Twig\Environment;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -25,12 +26,7 @@ use Twig\Error\SyntaxError;
 
 class ArrivageDataService
 {
-    private $templating;
-    private $router;
     private $userService;
-    private $security;
-    private $mailerService;
-    private $entityManager;
     private $specificService;
     private $stringService;
     private $translator;
@@ -38,31 +34,38 @@ class ArrivageDataService
     private $fieldsParamService;
     private $visibleColumnService;
 
+    /** @Required */
+    public Environment $templating;
+
+    /** @Required */
+    public RouterInterface $router;
+
+    /** @Required */
+    public Security $security;
+
+    /** @Required */
+    public EntityManagerInterface $entityManager;
+
+    /** @Required */
+    public MailerService $mailerService;
+
+    /** @Required */
+    public UrgenceService $urgenceService;
+
     public function __construct(UserService $userService,
-                                RouterInterface $router,
-                                MailerService $mailerService,
                                 SpecificService $specificService,
                                 StringService $stringService,
                                 FreeFieldService $champLibreService,
                                 FieldsParamService $fieldsParamService,
                                 TranslatorInterface $translator,
-                                Twig_Environment $templating,
-                                EntityManagerInterface $entityManager,
-                                VisibleColumnService $visibleColumnService,
-                                Security $security)
+                                VisibleColumnService $visibleColumnService)
     {
 
-        $this->templating = $templating;
         $this->freeFieldService = $champLibreService;
         $this->fieldsParamService = $fieldsParamService;
         $this->translator = $translator;
         $this->stringService = $stringService;
-        $this->stringService = $stringService;
-        $this->router = $router;
-        $this->entityManager = $entityManager;
         $this->userService = $userService;
-        $this->security = $security;
-        $this->mailerService = $mailerService;
         $this->specificService = $specificService;
         $this->visibleColumnService = $visibleColumnService;
     }
@@ -325,9 +328,8 @@ class ArrivageDataService
             $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
 
             foreach ($numeroCommandeList as $numeroCommande) {
-                $urgencesMatching = $urgenceRepository->findUrgencesMatching(
-                    $arrival->getDate(),
-                    $arrival->getFournisseur(),
+                $urgencesMatching = $this->urgenceService->matchingEmergencies(
+                    $arrival,
                     $numeroCommande,
                     null,
                     $isSEDCurrentClient
