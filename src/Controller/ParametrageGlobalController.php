@@ -1234,33 +1234,43 @@ class ParametrageGlobalController extends AbstractController
     /**
      * @Route("/modifier-client", name="toggle_app_client", options={"expose"=true}, methods="GET|POST")
      */
-    public function toggleAppClient(Request $request,
-                                    SpecificService $specificService,
-                                    Kernel $kernel): Response
-    {
+    public function toggleAppClient(Request $request, Kernel $kernel): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $projectDirectory = $kernel->getProjectDir();
-            $envPath = '/.env.local';
+            $config = "/etc/php7/php-fpm.conf";
 
-            try {
-                $env = file_get_contents($projectDirectory . $envPath);
-                $newAppClient = 'APP_CLIENT=' . $data;
-                $replaceAppClient = str_replace('APP_CLIENT=' . $specificService->getAppClient(), $newAppClient, $env);
-                file_put_contents($projectDirectory . $envPath, $replaceAppClient);
-                $response = [
-                    "success" => true,
-                    "msg" => "Le client de l'application a bien été modifié.",
-                ];
-            } catch (Exception $exception) {
-                $response = [
+            //if we're not on a kubernetes pod => file doesn't exist => ignore
+            if(!file_exists($config)) {
+                return $this->json([
                     "success" => false,
-                    "msg" => "Une erreur est survenue lors du changement du client",
-                ];
+                    "msg" => "Le client ne peut pas être modifié sur cette instance",
+                ]);
             }
 
-        return $this->json($response);
+            try {
+                $config = file_get_contents($projectDirectory . $config);
+                $newAppClient = "env[APP_CLIENT] = $data";
 
+                $config = preg_replace("/^env\[APP_CLIENT\] = .*$/gmi", $newAppClient, $config);
+                file_put_contents($projectDirectory . $config, $config);
+
+                //magie noire qui recharge la config php fpm sur les pods kubernetes :
+                //pgrep recherche l'id du processus de php fpm
+                //kill envoie un message USER2 (qui veut dire "recharge la configuration") à phpfpm
+                exec("kill -USR2 $(pgrep -o php-fpm7)");
+
+                return $this->json([
+                    "success" => true,
+                    "msg" => "Le client de l'application a bien été modifié",
+                ]);
+            } catch (Exception $exception) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Une erreur est survenue lors du changement du client",
+                ]);
+            }
         }
+
         throw new BadRequestHttpException();
     }
 }
