@@ -56,19 +56,11 @@ class ParametrageGlobalController extends AbstractController
 
     /**
      * @Route("/", name="global_param_index")
-     * @param UserService $userService
-     * @param GlobalParamService $globalParamService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
      */
-
     public function index(UserService $userService,
                           GlobalParamService $globalParamService,
                           EntityManagerInterface $entityManager,
-                          SpecificService $specificService,
-                          Kernel $kernel): Response
-    {
+                          SpecificService $specificService): Response {
 
         if(!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
@@ -204,7 +196,7 @@ class ParametrageGlobalController extends AbstractController
                 'wantsExpirationDateArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL),
                 'wantsPackCount' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL),
                 'currentClient' => $specificService->getAppClient(),
-                'currentEnvironment' => $kernel->getEnvironment() != 'test'
+                'isClientChangeAllowed' => $_SERVER["APP_ENV"] === "preprod"
             ]);
     }
 
@@ -1234,13 +1226,12 @@ class ParametrageGlobalController extends AbstractController
     /**
      * @Route("/modifier-client", name="toggle_app_client", options={"expose"=true}, methods="GET|POST")
      */
-    public function toggleAppClient(Request $request, Kernel $kernel): Response {
+    public function toggleAppClient(Request $request): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $projectDirectory = $kernel->getProjectDir();
-            $config = "/etc/php7/php-fpm.conf";
+            $configPath = "/etc/php7/php-fpm.conf";
 
             //if we're not on a kubernetes pod => file doesn't exist => ignore
-            if(!file_exists($config)) {
+            if(!file_exists($configPath)) {
                 return $this->json([
                     "success" => false,
                     "msg" => "Le client ne peut pas être modifié sur cette instance",
@@ -1248,11 +1239,11 @@ class ParametrageGlobalController extends AbstractController
             }
 
             try {
-                $config = file_get_contents($projectDirectory . $config);
+                $config = file_get_contents($configPath);
                 $newAppClient = "env[APP_CLIENT] = $data";
 
-                $config = preg_replace("/^env\[APP_CLIENT\] = .*$/gmi", $newAppClient, $config);
-                file_put_contents($projectDirectory . $config, $config);
+                $config = preg_replace("/^env\[APP_CLIENT\] = .*$/mi", $newAppClient, $config);
+                file_put_contents($configPath, $config);
 
                 //magie noire qui recharge la config php fpm sur les pods kubernetes :
                 //pgrep recherche l'id du processus de php fpm
