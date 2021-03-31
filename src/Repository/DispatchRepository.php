@@ -179,7 +179,7 @@ class DispatchRepository extends EntityRepository
         ];
     }
 
-    public function countByUser(User $user): int {
+    public function countByUser($user): int {
         return $this->createQueryBuilder("dispatch")
             ->select("COUNT(dispatch)")
             ->where(":user MEMBER OF dispatch.receivers")

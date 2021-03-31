@@ -21,14 +21,16 @@ class CacheService {
     public function get(string $namespace, $key, ?callable $callback = null) {
         if($callback === null) {
             $callback = $key;
+            $originalKey = "";
             $key = "";
         } else {
+            $originalKey = $key;
             $key = ".$key";
         }
 
         $cache = $this->getCacheDirectory();
         if (!file_exists("$cache/$namespace$key")) {
-            $this->set($namespace, $callback());
+            $this->set($namespace, $originalKey, $callback());
         }
 
         return unserialize(file_get_contents("$cache/$namespace$key"));
@@ -63,7 +65,9 @@ class CacheService {
             mkdir($cache);
         }
 
-        unlink("$cache/$namespace.$key");
+        if(file_exists("$cache/$namespace$key")) {
+            unlink("$cache/$namespace$key");
+        }
     }
 
 }
