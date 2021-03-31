@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by VisualStudioCode.
- * User: jv.Sicot
- * Date: 03/04/2019
- * Time: 15:09
- */
 
 namespace App\Service;
 
@@ -19,6 +13,20 @@ class SpecificService
 	const CLIENT_EMERSON = 'emerson';
 	const CLIENT_ARCELOR = 'arcelor';
 	const CLIENT_ARKEMA_SERQUIGNY = 'arkema-serquigny';
+	const CLIENT_WIILOG = 'wiilog';
+
+	const CLIENTS = [
+        self::CLIENT_COLLINS => 'Collins',
+        self::CLIENT_CEA_LETI => 'CEA Leti',
+        self::CLIENT_SAFRAN_CS => 'Safran CS',
+        self::CLIENT_SAFRAN_ED => 'Safran ED',
+        self::CLIENT_TEREGA => 'Terega',
+        self::CLIENT_AIA => 'AIA',
+        self::CLIENT_EMERSON => 'Emerson',
+        self::CLIENT_ARCELOR => 'Arcelor',
+        self::CLIENT_ARKEMA_SERQUIGNY => 'Arkema Serquigny',
+        self::CLIENT_WIILOG => 'Wiilog',
+    ];
 
 	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT COLIS';
 

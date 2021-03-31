@@ -299,6 +299,20 @@ function updateStockParam() {
         });
 }
 
+function updateAppClient() {
+    const appClient = $('select[name=appClient]').val();
+
+    $.post(Routing.generate('toggle_app_client'), JSON.stringify(appClient))
+        .then(data => {
+            if (data.success) {
+                showBSAlert(data.msg, 'success');
+                window.location.reload();
+            } else {
+                showBSAlert(data.msg, 'danger');
+            }
+        });
+}
+
 function getPrefixDemand(select) {
     let typeDemande = select.val();
 
