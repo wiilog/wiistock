@@ -14,7 +14,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
-
+use Symfony\Component\Security\Core\User\User;
 
 /**
  * @method Dispatch|null find($id, $lockMode = null, $lockVersion = null)
@@ -179,22 +179,12 @@ class DispatchRepository extends EntityRepository
         ];
     }
 
-    /**
-     * @param Utilisateur $user
-     * @return int
-     * @throws NonUniqueResultException
-     * @throws NoResultException
-     */
-    public function countByUser($user)
-    {
-        $queryBuilder = $this->createQueryBuilder('dispatch')
-            ->select('COUNT(dispatch)')
-            ->leftJoin('dispatch.receivers', 'receiver')
-            ->where('receiver = :user')
-            ->orWhere('dispatch.requester = :user')
-            ->setParameter('user', $user);
-
-        return $queryBuilder
+    public function countByUser(User $user): int {
+        return $this->createQueryBuilder("dispatch")
+            ->select("COUNT(dispatch)")
+            ->where(":user MEMBER OF dispatch.receivers")
+            ->orWhere("dispatch.requester = :user")
+            ->setParameter("user", $user)
             ->getQuery()
             ->getSingleScalarResult();
     }
