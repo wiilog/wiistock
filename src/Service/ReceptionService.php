@@ -11,12 +11,14 @@ use App\Entity\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Service\GlobalParamService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
@@ -64,6 +66,10 @@ class ReceptionService
     /** @Required */
     public FormService $formService;
 
+    /** @Required  */
+    public GlobalParamService $globalParamService;
+
+
     public function getDataForDatatable(Utilisateur $user, $params = null)
     {
 
@@ -95,8 +101,6 @@ class ReceptionService
      * @param bool $fromImport
      * @param $rowIndex
      * @return Reception
-     * @throws NonUniqueResultException
-     * @throws Exception
      */
     public function createAndPersistReception(EntityManagerInterface $entityManager,
                                               ?Utilisateur $currentUser,
@@ -142,6 +146,15 @@ class ReceptionService
             }
             $reception
                 ->setFournisseur($fournisseur);
+        }
+
+        if ($fromImport && (!isset($data['location']) || empty($data['location']))) {
+            $defaultLocation = $this->globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION);
+            if (isset($defaultLocation)) {
+                $location = $emplacementRepository->find(intval($defaultLocation['id']));
+                $reception
+                    ->setLocation($location);
+            }
         }
 
         if(!empty($data['location'])) {
