@@ -499,6 +499,10 @@ class ImportService
                         'needed' => $this->fieldIsNeeded('location', Import::ENTITY_RECEPTION),
                         'value' => isset($corresp['location']) ? $corresp['location'] : null
                     ],
+                    'storageLocation' => [
+                        'needed' => $this->fieldIsNeeded('storageLocation', Import::ENTITY_RECEPTION),
+                        'value' => isset($corresp['storageLocation']) ? $corresp['storageLocation'] : null
+                    ],
                     'fournisseur' => [
                         'needed' => $this->fieldIsNeeded('fournisseur', Import::ENTITY_RECEPTION),
                         'value' => isset($corresp['fournisseur']) ? $corresp['fournisseur'] : null
@@ -869,6 +873,9 @@ class ImportService
                         break;
                     case ReceptionService::INVALID_LOCATION:
                         $this->throwError('Emplacement renseigné invalide');
+                        break;
+                    case ReceptionService::INVALID_STORAGE_LOCATION:
+                        $this->throwError('Emplacement de stockage renseigné invalide');
                         break;
                     case ReceptionService::INVALID_CARRIER:
                         $this->throwError('Transporteur renseigné invalide');
