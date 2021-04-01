@@ -4,8 +4,10 @@
 namespace App\Service;
 
 
+use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
@@ -135,4 +137,26 @@ class UrgenceService
 
         return $urgence;
     }
+
+    /**
+     * @return Urgence[]
+     */
+    public function matchingEmergencies(Arrivage $arrival, ?string $orderNumber, ?string $post, bool $excludeTriggered = false) {
+        $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
+
+        if(!isset($this->__arrival_emergency_fields)) {
+            $this->__arrival_emergency_fields = json_decode($this->entityManager
+                ->getRepository(ParametrageGlobal::class)
+                ->getOneParamByLabel(ParametrageGlobal::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS));
+        }
+
+        return $urgenceRepository->findUrgencesMatching(
+            $this->__arrival_emergency_fields,
+            $arrival,
+            $orderNumber,
+            $post,
+            $excludeTriggered,
+        );
+    }
+
 }

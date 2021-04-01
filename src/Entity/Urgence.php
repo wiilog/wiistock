@@ -8,8 +8,15 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UrgenceRepository")
  */
-class Urgence
-{
+class Urgence {
+
+    public const ARRIVAL_EMERGENCY_TRIGGERING_FIELDS = [
+        "provider" => "Fournisseur",
+        "carrier" => "Transporteur",
+        "commande" => "Numéro de commande"
+    ];
+
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

@@ -32,11 +32,16 @@ class StatutRepository extends EntityRepository {
         $qb = $this->createQueryBuilder("s")
             ->select("COUNT(s)")
             ->where("s.categorie = :category")
-            ->andWhere("s.type = :type")
             ->andWhere("s.state = :draftId")
             ->setParameter("category", $category)
-            ->setParameter("type", $type)
             ->setParameter('draftId', Statut::DRAFT);
+
+        if($type) {
+            $qb->andWhere("s.type = :type")
+                ->setParameter("type", $type);
+        } else {
+            $qb->andWhere("s.type IS NULL");
+        }
 
         if ($current) {
             $qb->andWhere("s.id != :current")
@@ -68,10 +73,15 @@ class StatutRepository extends EntityRepository {
         $qb = $this->createQueryBuilder("s")
             ->select("COUNT(s)")
             ->where("s.categorie = :category")
-            ->andWhere("s.type = :type")
             ->andWhere("s.defaultForCategory = 1")
-            ->setParameter("category", $category)
-            ->setParameter("type", $type);
+            ->setParameter("category", $category);
+
+        if($type) {
+            $qb->andWhere("s.type = :type")
+                ->setParameter("type", $type);
+        } else {
+            $qb->andWhere("s.type IS NULL");
+        }
 
         if ($current) {
             $qb->andWhere("s.id != :current")
