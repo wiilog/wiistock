@@ -16,18 +16,14 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for name, field in fields|sort((a,b) => ((a.displayedTitle is defined)
-                        ? a.displayedTitle
-                        : a.title) <=> ((b.displayedTitle is defined)
-                        ? b.displayedTitle
-                        : b.title)) %}
+                    {% for name, field in fields|sort((a,b) => (a.displayedTitle ?? a.title) | capitalize <=> (b.displayedTitle ?? b.title) | capitalize) %}
                         {% if (field.alwaysVisible is not defined or not field.alwaysVisible)
                               and (field.hiddenColumn is not defined or not field.hiddenColumn) %}
                             {% set title = (
                                 (field.title is defined and field.title is not empty) ? field.title :
                                 ((field.hiddenTitle is defined and field.hiddenTitle is not empty) ? field.hiddenTitle)
                             ) %}
-                            {% set name = field.name is defined ? field.name : name %}
+                            {% set name = field.name ?? name %}
 
                             <tr class="pointer" onclick="toggleInputRadioOnRow(this)">
                                 {% set label = ((field.displayedTitle is defined)
