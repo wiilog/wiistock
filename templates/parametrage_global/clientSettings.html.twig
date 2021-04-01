@@ -1,0 +1,24 @@
+<a data-toggle="collapse" href="#clientSettings" role="button" aria-expanded="false"
+   aria-controls="clientSettings" class="col-12 mb-4">
+    <h1 class="btn btn-primary m-0 w-100 border-radius-light">
+        Paramétrage client application
+        <i class="fas fa-arrow-alt-circle-down ml-2"></i>
+    </h1>
+</a>
+<div class="collapse col-12" id="clientSettings">
+    <div class="float-right btn btn-success" onclick="updateAppClient()">
+        <i class='fas fa-check'></i>
+    </div>
+    <div class="row mt-2">
+        <div class="form-group col-12 p-0">
+            <div class="form-group w-fit-content">
+                <label>Client courant</label>
+                <select name="appClient" class="data form-control">
+                    {% for index, client in constant('App\\Service\\SpecificService::CLIENTS') %}
+                        <option value="{{ index }}" {{ currentClient == index ? 'selected' }}>{{ client }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+</div>

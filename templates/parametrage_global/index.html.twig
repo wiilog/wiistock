@@ -67,6 +67,12 @@
         <div class="row">
             {% include 'parametrage_global/workFreeDaysSettings.html.twig' %}
         </div>
+
+        {% if isClientChangeAllowed %}
+            <div class="row">
+                {% include 'parametrage_global/clientSettings.html.twig' %}
+            </div>
+        {% endif %}
     </div>
 {% endblock %}
 {% block javascripts %}
