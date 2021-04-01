@@ -92,12 +92,7 @@ $(function () {
     $('#locationDemandeLivraison').on('change', function() {
         editParamLocations($(this), $('#locationDemandeLivraisonValue'));
     });
-    console.log("fuck");
 
-    $('select[name="arrival-emergency-triggering-fields"]').on('change', function() {
-        console.log("oke");
-        editMultipleSelect($(this), `ARRIVAL_EMERGENCY_TRIGGERING_FIELDS`);
-    });
     // config tableau de bord : transporteurs
 
     const inputWorkFreeDayAlreadyAdd = JSON.parse($('#workFreeDays input[type="hidden"][name="already-work-free-days"]').val());
@@ -614,6 +609,17 @@ function saveHandlingParams() {
             showBSAlert('Une erreur est survenue lors de la modification du paramétrage.', 'danger');
         }
     });
+}
+
+function saveEmergencyTriggeringFields() {
+    const $select = $(`select[name="arrival-emergency-triggering-fields"]`);
+    const value = $select.val() || [];
+
+    if(value.length === 0) {
+        showBSAlert(`Au moins un champ déclencheur d'urgence doit être renseigné`, `danger`);
+    } else {
+        editMultipleSelect($select, `ARRIVAL_EMERGENCY_TRIGGERING_FIELDS`);
+    }
 }
 
 function editMultipleSelect($select, paramName) {
