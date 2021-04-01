@@ -40,17 +40,16 @@ class UrgenceRepository extends EntityRepository {
             ->where(':date BETWEEN u.dateStart AND u.dateEnd')
             ->setParameter('date', $arrival->getDate());
 
-        /** @noinspection PhpUnusedLocalVariableInspection */
-        {
-            $provider = $arrival->getFournisseur();
-            $carrier = $arrival->getTransporteur();
-            $commande = $numeroCommande;
+        $values = [
+            'provider' => $arrival->getFournisseur(),
+            'carrier' => $arrival->getTransporteur(),
+            'commande' => $numeroCommande,
+        ];
 
-            foreach ($fields as $field) {
-                if(!empty($$field)) {
-                    $queryBuilder->andWhere("u.$field = :$field")
-                        ->setParameter("$field", $$field);
-                }
+        foreach ($fields as $field) {
+            if(!empty($values[$field])) {
+                $queryBuilder->andWhere("u.$field = :$field")
+                    ->setParameter("$field", $values[$field]);
             }
         }
 
