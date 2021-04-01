@@ -59,25 +59,3 @@ function switchDisplayByMust($checkbox) {
         $('.checkbox[name="displayed-forms-edit"]').prop('checked', true);
     }
 }
-
-function editDispatchEmergencies() {
-    $.post(Routing.generate('set_dispatch_emergencies'), {value: $(this).val()}, (resp) => {
-        if (resp) {
-            showBSAlert("La liste urgences d'acheminements a bien été mise à jour.");
-        } else {
-            showBSAlert("Une erreur est survenue lors de la mise à jour de la liste urgences d'acheminements.");
-        }
-    });
-}
-
-function editBusinessUnit($select, paramName) {
-    const val = $select.val() || [];
-    const valStr = JSON.stringify(val);
-    $.post(Routing.generate('toggle_params'), JSON.stringify({param: paramName, val: valStr})).then((resp) => {
-        if (resp) {
-            showBSAlert("La liste business unit a bien été mise à jour.");
-        } else {
-            showBSAlert("Une erreur est survenue lors de la mise à jour de la liste business unit.");
-        }
-    })
-}
