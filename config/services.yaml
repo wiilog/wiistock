@@ -6,7 +6,7 @@ parameters:
     locale: '%env(APP_LOCALE)%'
     web_version: '4.1.2'
     nomade_versions: '=4.1.2'
-    nomade_apk: 'http://wiilog.fr/dl/wiistock/app-4-1-1.apk'
+    nomade_apk: 'http://wiilog.fr/dl/wiistock/recette/app-4-1-2.apk'
     client: '%env(APP_CLIENT)%'
     appLocale: '%env(APP_LOCALE)%'
 
