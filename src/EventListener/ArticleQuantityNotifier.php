@@ -155,11 +155,11 @@ class ArticleQuantityNotifier {
                         return $user->getEmail();
                     })
                     ->toArray();
-                if ($article->getStatut()->getCode() != Article::STATUT_INACTIF) {
+                if ($article->getStatut()->getCode() !== Article::STATUT_INACTIF) {
                     $this->alertService->sendExpiryMails($managers, $article, $this->expiryDelay);
-                } else if ($now < $article->getExpiryDate() && $existing) {
-                    $entityManager->remove($existing[0]);
                 }
+            } else if ($now < $article->getExpiryDate() && $existing) {
+                $entityManager->remove($existing[0]);
             }
         }
     }
