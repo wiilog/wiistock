@@ -150,6 +150,7 @@ CREATE TABLE dw_service
     emplacement_depose varchar(255),
     numero             varchar(255),
     statut             varchar(255),
+    urgence            varchar(255),
     delta_date         float
 );
 
