@@ -1199,7 +1199,7 @@ class DispatchController extends AbstractController {
                                     Dispatch $dispatch): JsonResponse {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
-        $maxNumberOfPacks = 7;
+        $maxNumberOfPacks = 10;
 
         if($dispatch->getDispatchPacks()->count() === 0) {
             $errorMessage = $translator->trans('acheminement.Des colis sont nécessaires pour générer un bon de livraison') . '.';
