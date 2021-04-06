@@ -5,6 +5,11 @@ CREATE TABLE dw_acheminement_champs_libres
     valeur          text
 );
 
+CREATE TABLE dw_jours_non_travailles
+(
+    date date
+);
+
 CREATE TABLE dw_arrivage_champs_libres
 (
     arrivage_id integer,
