@@ -375,7 +375,7 @@
                         <div class="form-group col-2">
                             <label>{{ 'arrivage.douane'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
-                                <input class="checkbox no-clear" type="checkbox" name="customs">
+                                <input class="checkbox {{ not isClientSafranED ? 'no-clear'}}" type="checkbox" name="customs">
                                 <span class="slider round"></span>
                             </label>
                         </div>
