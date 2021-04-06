@@ -4,9 +4,9 @@ $(function () {
     $('.select2').select2();
 
     initDateTimePicker();
-    Select2.init($('#statut'), 'Statuts');
-    Select2.articleReference($('.ajax-autocomplete'));
-    Select2.user('Utilisateurs');
+    Select2Old.init($('#statut'), 'Statuts');
+    Select2Old.articleReference($('.ajax-autocomplete'));
+    Select2Old.user('Utilisateurs');
 
     if (!$('#receptionFilter').val()) {
         // applique les filtres si pré-remplis
@@ -43,8 +43,8 @@ function initNewLivraisonEditor(modal) {
         editorNewLivraisonAlreadyDone = true;
     }
     clearModal(modal);
-    Select2.location($('.ajax-autocomplete-location'));
-    Select2.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
+    Select2Old.location($('.ajax-autocomplete-location'));
+    Select2Old.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
 }
 
 function callbackSaveFilter() {

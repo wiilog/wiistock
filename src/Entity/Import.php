@@ -50,7 +50,7 @@ class Import
             'orderNumber',
             'expectedDate',
             'quantity',
-            'reference'
+            'reference',
         ]
     ];
 
@@ -63,6 +63,7 @@ class Import
     ];
 
 	const FIELDS_ENTITY = [
+	    'storageLocation' => 'Emplacement de stockage',
         'reference' => 'référence',
         'barCode' => 'code barre',
         'quantite' => 'quantité',

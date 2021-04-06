@@ -5,13 +5,13 @@ $(function() {
 
     const filtersContainer = $('.filters-container');
 
-    Select2.init($('#statut'), 'Statuts');
-    Select2.init(filtersContainer.find('.filter-select2[name="carriers"]'), 'Transporteurs');
-    Select2.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
-    Select2.dispatch(filtersContainer.find('.filter-select2[name="dispatchNumber"]'), 'Numéro de demande');
-    Select2.user(filtersContainer.find('.ajax-autocomplete-user[name=receivers]'), 'Destinataires');
-    Select2.user(filtersContainer.find('.ajax-autocomplete-user[name=requesters]'), 'Demandeurs');
-    Select2.init(filtersContainer.find('.filter-select2[name="multipleTypes"]'), 'Types');
+    Select2Old.init($('#statut'), 'Statuts');
+    Select2Old.init(filtersContainer.find('.filter-select2[name="carriers"]'), 'Transporteurs');
+    Select2Old.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
+    Select2Old.dispatch(filtersContainer.find('.filter-select2[name="dispatchNumber"]'), 'Numéro de demande');
+    Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=receivers]'), 'Destinataires');
+    Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=requesters]'), 'Demandeurs');
+    Select2Old.init(filtersContainer.find('.filter-select2[name="multipleTypes"]'), 'Types');
     initDateTimePicker();
 
     // filtres enregistrés en base pour chaque utilisateur

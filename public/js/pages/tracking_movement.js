@@ -1,5 +1,4 @@
 let tableMvt;
-let quillNew;
 
 $(function () {
     $('.select2').select2();
@@ -7,8 +6,8 @@ $(function () {
     $modalNewMvtTraca.find('.list-multiple').select2();
 
     initDateTimePicker();
-    Select2.init($('#statut'), 'Types');
-    Select2.init($('#emplacement'), 'Emplacements');
+    Select2Old.init($('#statut'), 'Types');
+    Select2Old.init($('#emplacement'), 'Emplacements');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -17,8 +16,8 @@ $(function () {
         displayFiltersSup(data);
     }, 'json');
 
-    Select2.user('Opérateurs');
-    Select2.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
+    Select2Old.user('Opérateurs');
+    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     initNewModal($modalNewMvtTraca);
 
     $.post(Routing.generate('tracking_movement_api_columns'))
@@ -96,12 +95,8 @@ function initPageModal(tableMvt) {
 }
 
 function initNewModal($modal) {
-    if (!quillNew) {
-        quillNew = initEditor('#' + $modal.attr('id') + ' .editor-container-new');
-    }
-
     const $operatorSelect = $modal.find('.ajax-autocomplete-user');
-    Select2.user($operatorSelect, 'Opérateur');
+    Select2Old.user($operatorSelect, 'Opérateur');
 
     // Init mouvement fields if already loaded
     const $moreMassMvtContainer = $modal.find('.form-mass-mvt-container');
@@ -109,9 +104,9 @@ function initNewModal($modal) {
         const $emplacementPrise = $moreMassMvtContainer.find('.ajax-autocomplete-location[name="emplacement-prise"]');
         const $emplacementDepose = $moreMassMvtContainer.find('.ajax-autocomplete-location[name="emplacement-depose"]');
         const $colis = $moreMassMvtContainer.find('.select2-free[name="colis"]');
-        Select2.location($emplacementPrise, {autoSelect: true, $nextField: $colis});
-        Select2.initFree($colis);
-        Select2.location($emplacementDepose, {autoSelect: true});
+        Select2Old.location($emplacementPrise, {autoSelect: true, $nextField: $colis});
+        Select2Old.initFree($colis);
+        Select2Old.location($emplacementDepose, {autoSelect: true});
     }
 }
 
@@ -150,8 +145,8 @@ function switchMvtCreationType($input) {
             $modal.find('.more-body-new-mvt-traca').html(response.modalBody);
             $modal.find('.new-mvt-common-body').removeClass('d-none');
             $modal.find('.more-body-new-mvt-traca').removeClass('d-none');
-            Select2.location($modal.find('.ajax-autocomplete-location'));
-            Select2.initFree($modal.find('.select2-free'));
+            Select2Old.location($modal.find('.ajax-autocomplete-location'));
+            Select2Old.initFree($modal.find('.select2-free'));
         }
     });
 }

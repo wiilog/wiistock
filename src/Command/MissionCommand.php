@@ -1,5 +1,6 @@
 <?php
-
+// At 23:00 on Sunday
+// 0 23 * * 0
 
 namespace App\Command;
 

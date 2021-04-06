@@ -14,7 +14,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
-
+use Symfony\Component\Security\Core\User\User;
 
 /**
  * @method Dispatch|null find($id, $lockMode = null, $lockVersion = null)

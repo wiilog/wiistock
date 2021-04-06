@@ -20,13 +20,16 @@ use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\WorkFreeDay;
 use App\Entity\ParametrageGlobal;
+use App\Kernel;
 use App\Service\AlertService;
 use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
+use App\Service\SpecificService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -38,7 +41,8 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @Route("/parametrage-global")
  */
-class ParametrageGlobalController extends AbstractController {
+class ParametrageGlobalController extends AbstractController
+{
 
     private $engDayToFr = [
         'monday' => 'Lundi',
@@ -52,16 +56,11 @@ class ParametrageGlobalController extends AbstractController {
 
     /**
      * @Route("/", name="global_param_index")
-     * @param UserService $userService
-     * @param GlobalParamService $globalParamService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
      */
-
     public function index(UserService $userService,
                           GlobalParamService $globalParamService,
-                          EntityManagerInterface $entityManager): Response {
+                          EntityManagerInterface $entityManager,
+                          SpecificService $specificService): Response {
 
         if(!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
@@ -126,6 +125,7 @@ class ParametrageGlobalController extends AbstractController {
                     'defaultArrivalsLocation' => $globalParamService->getParamLocation(ParametrageGlobal::MVT_DEPOSE_DESTINATION),
                     'customsArrivalsLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS),
                     'emergenciesArrivalsLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY),
+                    'emergencyTriggeringFields' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS)),
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
                     'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
                     'printTwice' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PRINT_TWICE_CUSTOMS),
@@ -196,6 +196,8 @@ class ParametrageGlobalController extends AbstractController {
                 'wantsBatchNumberArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL),
                 'wantsExpirationDateArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL),
                 'wantsPackCount' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL),
+                'currentClient' => $specificService->getAppClient(),
+                'isClientChangeAllowed' => $_SERVER["APP_ENV"] === "preprod"
             ]);
     }
 
@@ -1220,5 +1222,47 @@ class ParametrageGlobalController extends AbstractController {
                 $location->addCluster($cluster);
             }
         }
+    }
+
+    /**
+     * @Route("/modifier-client", name="toggle_app_client", options={"expose"=true}, methods="GET|POST")
+     */
+    public function toggleAppClient(Request $request): Response {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $configPath = "/etc/php7/php-fpm.conf";
+
+            //if we're not on a kubernetes pod => file doesn't exist => ignore
+            if(!file_exists($configPath)) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Le client ne peut pas être modifié sur cette instance",
+                ]);
+            }
+
+            try {
+                $config = file_get_contents($configPath);
+                $newAppClient = "env[APP_CLIENT] = $data";
+
+                $config = preg_replace("/^env\[APP_CLIENT\] = .*$/mi", $newAppClient, $config);
+                file_put_contents($configPath, $config);
+
+                //magie noire qui recharge la config php fpm sur les pods kubernetes :
+                //pgrep recherche l'id du processus de php fpm
+                //kill envoie un message USER2 (qui veut dire "recharge la configuration") à phpfpm
+                exec("kill -USR2 $(pgrep -o php-fpm7)");
+
+                return $this->json([
+                    "success" => true,
+                    "msg" => "Le client de l'application a bien été modifié",
+                ]);
+            } catch (Exception $exception) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Une erreur est survenue lors du changement du client",
+                ]);
+            }
+        }
+
+        throw new BadRequestHttpException();
     }
 }

@@ -48,7 +48,7 @@ let resetNewArticle = function (element) {
 };
 
 function init() {
-    Select2.provider($('.ajax-autocomplete-fournisseur'));
+    Select2Old.provider($('.ajax-autocomplete-fournisseur'));
     let $modalEditArticle = $("#modalEditArticle");
     let $submitEditArticle = $("#submitEditArticle");
     let urlEditArticle = Routing.generate('article_edit', true);
@@ -92,7 +92,7 @@ function loadAndDisplayInfos(select) {
             $('#newContent').html(data);
             $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
             initNewArticleEditor("#modalNewArticle");
-            Select2.location($('.ajax-autocomplete-location'));
+            Select2Old.location($('.ajax-autocomplete-location'));
         })
     }
 }
@@ -111,7 +111,7 @@ let getArticleFournisseur = function () {
                 $articleFourn.html(data.content);
                 registerNumberInputProtection($articleFourn.find('input[type="number"]'));
                 $('.error-msg').html('')
-                Select2.location($('.ajax-autocomplete-location'));
+                Select2Old.location($('.ajax-autocomplete-location'));
                 initNewArticleEditor("#modalNewArticle");
             } else if (data.error) {
                 $('.error-msg').html(data.error)

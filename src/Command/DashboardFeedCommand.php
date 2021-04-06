@@ -1,10 +1,7 @@
 <?php
-/**
- * Commande Cron exécutée toute les minutes tous les jours de 7h a 19h excepté le dimanche :
- *
- */
+// At every 5th minute
+// */5 * * * *
 
-// */1 6-18 * * 1-6
 namespace App\Command;
 
 use App\Entity\DaysWorked;

@@ -6,7 +6,6 @@ $(document)
     .ready(_ => $(".has-tooltip").tooltip(tooltipConfig)) //existing elements
     .arrive(".has-tooltip", function() {
         $(this).tooltip(tooltipConfig);
-
     }); //apply to new elements
 
 const popoverConfig = {

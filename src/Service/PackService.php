@@ -204,7 +204,7 @@ Class PackService
      */
     public function createPackWithCode(string $code): Pack {
         $pack = new Pack();
-        $pack->setCode($code);
+        $pack->setCode(str_replace("    ", " ", $code));
         return $pack;
     }
 

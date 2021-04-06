@@ -8,11 +8,11 @@ $(function () {
         displayFiltersSup(data);
     }, 'json');
 
-    Select2.user('Opérateur');
+    Select2Old.user('Opérateur');
 
     initSearchDate(tableEntries);
-    Select2.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
-    Select2.articleReference($('.ajax-autocomplete-inv-entries'), {
+    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
+    Select2Old.articleReference($('.ajax-autocomplete-inv-entries'), {
         placeholder: `Référence article`,
         activeOnly: 1,
     });

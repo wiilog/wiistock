@@ -2,7 +2,7 @@ let tableArticles;
 
 $(function() {
     const transferOriginId = $('#transfer-origin-id').val();
-    Select2.articleReference($('#add-article-reference'), {
+    Select2Old.articleReference($('#add-article-reference'), {
         locationFilter: transferOriginId,
     });
 

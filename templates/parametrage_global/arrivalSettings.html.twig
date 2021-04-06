@@ -93,4 +93,19 @@
                    data-label="{{ constant('App\\Entity\\ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY') }}"/>
         </div>
     </div>
+
+    <div class="row mt-2">
+        <div class="form-group col-4">
+            <label for="arrival-emergency-triggering-fields" class="d-block">Champs déclenchant une urgence</label>
+            <select class="form-control data w-100" data-s2 multiple name="arrival-emergency-triggering-fields">
+                {% for field, label in constant('App\\Entity\\Urgence::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS') %}
+                    <option value="{{ field }}" {{ field in emergencyTriggeringFields ? 'selected' }}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-4">
+            <label class="text-white">Champs déclenchant une urgence</label>
+            <button class="btn btn-success d-block" onclick="saveEmergencyTriggeringFields()"><i class='fas fa-check'></i></button>
+        </div>
+    </div>
 </div>

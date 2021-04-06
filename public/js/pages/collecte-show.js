@@ -60,7 +60,7 @@ function ajaxGetCollecteArticle(select) {
             }
             $(modalNewArticle).find('.modal-footer').removeClass('d-none');
             toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
-            Select2.location($('.ajax-autocomplete-location-edit'));
+            Select2Old.location($('.ajax-autocomplete-location-edit'));
             initEditor(modalNewArticle + ' .editor-container-edit');
             $('.list-multiple').select2();
         }
@@ -108,7 +108,7 @@ let ajaxEditArticle = function (select) {
 
     $.post(path, JSON.stringify(params), function(data) {
         $('#editNewArticle').html(data);
-        Select2.location($('.ajax-autocomplete-location-edit'));
+        Select2Old.location($('.ajax-autocomplete-location-edit'));
         initEditor('.editor-container-edit');
     }, 'json');
 }

@@ -35,8 +35,8 @@ function addArticleFournisseurReferenceArticle($plusButton) {
             dataType: "json"
         }).then((response) => {
             $(response).insertBefore($plusButton.parent());
-            Select2.provider($('.ajax-autocomplete-fournisseur'));
-            Select2.provider($('.ajax-autocomplete-fournisseurLabel'), '', 'demande_label_by_fournisseur');
+            Select2Old.provider($('.ajax-autocomplete-fournisseur'));
+            Select2Old.provider($('.ajax-autocomplete-fournisseurLabel'), '', 'demande_label_by_fournisseur');
         });
     }
 }

@@ -39,6 +39,7 @@ use App\Service\LitigeService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
 use App\Service\UniqueNumberService;
+use App\Service\UrgenceService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use App\Service\FreeFieldService;
@@ -449,16 +450,15 @@ class ArrivageController extends AbstractController
     public function patchUrgentArrival(Arrivage $arrival,
                                        Request $request,
                                        ArrivageDataService $arrivageDataService,
+                                       UrgenceService $urgenceService,
                                        EntityManagerInterface $entityManager): Response
     {
-        $urgenceRepository = $entityManager->getRepository(Urgence::class);
         $numeroCommande = $request->request->get('numeroCommande');
         $postNb = $request->request->get('postNb');
 
         $urgencesMatching = !empty($numeroCommande)
-            ? $urgenceRepository->findUrgencesMatching(
-                $arrival->getDate(),
-                $arrival->getFournisseur(),
+            ? $urgenceService->matchingEmergencies(
+                $arrival,
                 $numeroCommande,
                 $postNb,
                 true

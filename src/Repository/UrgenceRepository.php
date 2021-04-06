@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Arrivage;
 use App\Entity\Fournisseur;
 use App\Entity\Urgence;
 use App\Helper\QueryCounter;
@@ -19,8 +20,7 @@ use Exception;
  * @method Urgence[]    findAll()
  * @method Urgence[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class UrgenceRepository extends EntityRepository
-{
+class UrgenceRepository extends EntityRepository {
 
     private const DtToDbLabels = [
         "start" => 'dateStart',
@@ -31,45 +31,41 @@ class UrgenceRepository extends EntityRepository
     ];
 
     /**
-     * @param DateTime $arrivalDate
-     * @param Fournisseur|null $arrivalProvider
-     * @param string|null $numeroCommande
-     * @param string|null $postNb
-     * @param bool $excludeTriggered
      * @return Urgence[]
      */
-    public function findUrgencesMatching(DateTime $arrivalDate,
-                                         ?Fournisseur $arrivalProvider,
-                                         ?string $numeroCommande,
-                                         ?string $postNb,
-                                         $excludeTriggered = false): array
-    {
-        $res = [];
-        if (!empty($arrivalProvider)
-            && !empty($numeroCommande)) {
-            $queryBuilder = $this->createQueryBuilder('u')
-                ->where(':date BETWEEN u.dateStart AND u.dateEnd')
-                ->andWhere('u.commande = :numeroCommande')
-                ->andWhere('u.provider IS NULL OR u.provider = :provider')
-                ->setParameter('date', $arrivalDate)
-                ->setParameter('provider', $arrivalProvider)
-                ->setParameter('numeroCommande', $numeroCommande);
+    public function findUrgencesMatching(array $fields, Arrivage $arrival,
+                                         ?string $numeroCommande, ?string $postNb,
+                                         $excludeTriggered = false): array {
+        $queryBuilder = $this->createQueryBuilder('u')
+            ->where(':date BETWEEN u.dateStart AND u.dateEnd')
+            ->setParameter('date', $arrival->getDate());
 
-            if (!empty($postNb)) {
-                $queryBuilder
-                    ->andWhere('u.postNb = :postNb')
-                    ->setParameter('postNb', $postNb);
-            }
+        $values = [
+            'provider' => $arrival->getFournisseur(),
+            'carrier' => $arrival->getTransporteur(),
+            'commande' => $numeroCommande,
+        ];
 
-            if ($excludeTriggered) {
-                $queryBuilder->andWhere('u.lastArrival IS NULL');
+        foreach ($fields as $field) {
+            if(!empty($values[$field])) {
+                $queryBuilder->andWhere("u.$field = :$field")
+                    ->setParameter("$field", $values[$field]);
             }
-            $res = $queryBuilder
-                ->getQuery()
-                ->getResult();
         }
 
-        return $res;
+        if (!empty($postNb)) {
+            $queryBuilder
+                ->andWhere('u.postNb = :postNb')
+                ->setParameter('postNb', $postNb);
+        }
+
+        if ($excludeTriggered) {
+            $queryBuilder->andWhere('u.lastArrival IS NULL');
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
     }
 
     /**
@@ -88,8 +84,7 @@ class UrgenceRepository extends EntityRepository
                                          ?Fournisseur $provider,
                                          ?string $numeroCommande,
                                          ?string $numeroPoste,
-                                         array $urgenceIdsExcluded = []): int
-    {
+                                         array $urgenceIdsExcluded = []): int {
 
         $queryBuilder = $this->createQueryBuilder('u');
 
@@ -133,8 +128,7 @@ class UrgenceRepository extends EntityRepository
      * @throws NonUniqueResultException
      * @throws Exception
      */
-    public function countUnsolved(bool $daily = false)
-    {
+    public function countUnsolved(bool $daily = false) {
         $queryBuilder = $this->createQueryBuilder('urgence')
             ->select('COUNT(urgence)')
             ->where('urgence.dateStart < :now')
@@ -158,8 +152,7 @@ class UrgenceRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function findByParamsAndFilters($params, $filters)
-    {
+    public function findByParamsAndFilters($params, $filters) {
         $qb = $this->createQueryBuilder("u");
 
         $countTotal = QueryCounter::count($qb, 'u');
@@ -192,16 +185,16 @@ class UrgenceRepository extends EntityRepository
                         ->leftJoin('u.buyer', 'b_search')
                         ->leftJoin('u.provider', 'p_search')
                         ->leftJoin('u.carrier', 'c_search')
-                        ->leftJoin('u.lastArrival', 'a_search' )
+                        ->leftJoin('u.lastArrival', 'a_search')
                         ->andWhere('(' . $exprBuilder->orX(
-                            'u.commande LIKE :value',
-                            'u.postNb LIKE :value',
-                            'u.trackingNb LIKE :value',
-                            'b_search.username LIKE :value',
-                            'p_search.nom LIKE :value',
-                            'c_search.label LIKE :value',
-                            'a_search.numeroArrivage LIKE :value'
-                        ) . ')')
+                                'u.commande LIKE :value',
+                                'u.postNb LIKE :value',
+                                'u.trackingNb LIKE :value',
+                                'b_search.username LIKE :value',
+                                'p_search.nom LIKE :value',
+                                'c_search.label LIKE :value',
+                                'a_search.numeroArrivage LIKE :value'
+                            ) . ')')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -256,13 +249,11 @@ class UrgenceRepository extends EntityRepository
         ];
     }
 
-
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
      */
-    public function iterateByDates($dateMin, $dateMax)
-    {
+    public function iterateByDates($dateMin, $dateMax) {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
@@ -276,9 +267,10 @@ class UrgenceRepository extends EntityRepository
             ->getQuery()
             ->iterate();
 
-        foreach($iterator as $item) {
+        foreach ($iterator as $item) {
             // $item [index => urgence]
             yield array_pop($item);
         }
     }
+
 }

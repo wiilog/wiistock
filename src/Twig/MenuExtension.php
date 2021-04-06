@@ -2,7 +2,7 @@
 
 namespace App\Twig;
 
-use App\Helper\CacheHelper;
+use App\Service\CacheService;
 use App\Service\RoleService;
 use App\Service\SpecificService;
 use App\Service\UserService;
@@ -12,22 +12,22 @@ use Twig\Extension\AbstractExtension;
 class MenuExtension extends AbstractExtension
 {
 
-    private $userService;
-    private $roleService;
-    private $specificService;
-    private $cache;
-    private $menuConfig;
+    /** @Required  */
+    public UserService $userService;
 
+    /** @Required  */
+    public RoleService $roleService;
 
-    public function __construct(SpecificService $specificService,
-                                UserService $userService,
-                                RoleService $roleService,
-                                array $menuConfig)
+    /** @Required  */
+    public SpecificService $specificService;
+
+    /** @Required  */
+    public CacheService $cache;
+
+    private array $menuConfig;
+
+    public function __construct(array $menuConfig)
     {
-        $this->userService = $userService;
-        $this->roleService = $roleService;
-        $this->specificService = $specificService;
-        $this->cache = CacheHelper::create(RoleService::PERMISSIONS_CACHE_POOL);
         $this->menuConfig = $menuConfig;
     }
 
@@ -42,7 +42,7 @@ class MenuExtension extends AbstractExtension
         $user = $this->userService->getUser();
         $role = $user->getRole();
         $menuPrefix = RoleService::MENU_CACHE_PREFIX;
-        return $this->cache->get("{$menuPrefix}.{$role->getId()}", function() use ($user) {
+        return $this->cache->get(CacheService::PERMISSIONS, "{$menuPrefix}.{$role->getId()}", function() use ($user) {
             $menuWithRight = [];
             $permissions = $this->roleService->getPermissions($this->userService->getUser(), true);
 

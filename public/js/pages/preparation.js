@@ -2,10 +2,10 @@ $('.select2').select2();
 
 $(function () {
     initDateTimePicker();
-    Select2.init($('#statut'), 'Statuts');
+    Select2Old.init($('#statut'), 'Statuts');
 
-    Select2.demand($('.ajax-autocomplete-demande'));
-    Select2.user('Opérateurs');
+    Select2Old.demand($('.ajax-autocomplete-demande'));
+    Select2Old.user('Opérateurs');
 
     let $filterDemand = $('.filters-container .filter-demand');
     $filterDemand.attr('name', 'demande');

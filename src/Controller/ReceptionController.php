@@ -1741,7 +1741,8 @@ class ReceptionController extends AbstractController {
                 'quantité à recevoir',
                 'quantité reçue',
                 'emplacement de stockage',
-                'urgent',
+                'réception urgente',
+                'référence urgente',
                 'destinataire',
                 'référence',
                 'libellé',
@@ -1817,7 +1818,8 @@ class ReceptionController extends AbstractController {
                 : ($reception['receptionRefArticleQuantite']
                     ?: 0)),
             $reception['storageLocation'] ?: '',
-            $reception['emergency'] ? 'oui' : 'non'
+            $reception['receptionEmergency'] ? 'oui' : 'non',
+            $reception['referenceEmergency'] ? 'oui' : 'non'
         ];
     }
 

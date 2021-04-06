@@ -8,9 +8,9 @@ let arrivalsTable;
 $(function () {
     const $filtersContainer = $('.filters-container');
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
-    Select2.init($('#statut'), 'Statuts');
-    Select2.location($('#emplacement'), {}, 'Emplacement de dépose');
-    Select2.init($filtersContainer.find('[name="carriers"]'), 'Transporteurs');
+    Select2Old.init($('#statut'), 'Statuts');
+    Select2Old.location($('#emplacement'), {}, 'Emplacement de dépose');
+    Select2Old.init($filtersContainer.find('[name="carriers"]'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));
 
     initTableArrival().then((returnedArrivalsTable) => {
@@ -55,15 +55,8 @@ $(function () {
         displayFiltersSup(data);
     }, 'json');
     pageLength = Number($('#pageLengthForArrivage').val());
-    Select2.user($('.filters .ajax-autocomplete-user'), 'Destinataires');
-    Select2.provider($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
-    $('select[name="arrivalsTable_length"]').on('change', function () {
-        let newValue = Number($(this).val());
-        if (newValue && newValue !== pageLength) {
-            $.post(Routing.generate('update_user_page_length_for_arrivage'), JSON.stringify(newValue));
-            pageLength = newValue;
-        }
-    });
+    Select2Old.user($('.filters .ajax-autocomplete-user'), 'Destinataires');
+    Select2Old.provider($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 });
 
 function initTableArrival() {
@@ -108,6 +101,7 @@ function initTableArrival() {
                     tableFilter: 'arrivalsTable'
                 },
                 lengthMenu: [10, 25, 50, 100],
+                initCompleteCallback: updateArrivalPageLength
             };
 
             const arrivalsTable = initDataTable('arrivalsTable', tableArrivageConfig);
@@ -133,7 +127,6 @@ function listColis(elem) {
 }
 
 let editorNewArrivageAlreadyDone = false;
-let quillNew;
 
 function initNewArrivageEditor(modal) {
     let $modal = $(modal);
@@ -142,15 +135,24 @@ function initNewArrivageEditor(modal) {
     onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
     onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
     onFlyFormToggle('chauffeurDisplay', 'addChauffeur', true);
-    if (!editorNewArrivageAlreadyDone) {
-        quillNew = initEditor(modal + ' .editor-container-new');
-        editorNewArrivageAlreadyDone = true;
-    }
-    Select2.init($modal.find('.ajax-autocomplete-fournisseur'));
-    Select2.init($modal.find('.ajax-autocomplete-transporteur'));
-    Select2.init($modal.find('.ajax-autocomplete-chauffeur'));
-    Select2.location($modal.find('.ajax-autocomplete-location'));
-    Select2.init($modal.find('.ajax-autocomplete-user'), '', 1);
+
+    Select2Old.init($modal.find('.ajax-autocomplete-fournisseur'));
+    Select2Old.init($modal.find('.ajax-autocomplete-transporteur'));
+    Select2Old.init($modal.find('.ajax-autocomplete-chauffeur'));
+    Select2Old.location($modal.find('.ajax-autocomplete-location'));
+    Select2Old.init($modal.find('.ajax-autocomplete-user'), '', 1);
     $modal.find('.list-multiple').select2();
-    Select2.initFree($('.select2-free'));
+    Select2Old.initFree($('.select2-free'));
+}
+
+function updateArrivalPageLength() {
+    pageLength = Number($('#pageLengthForArrivage').val());
+
+    $('select[name="arrivalsTable_length"]').on('change', function () {
+        let newValue = Number($(this).val());
+        if (newValue && newValue !== pageLength) {
+            $.post(Routing.generate('update_user_page_length_for_arrivage'), JSON.stringify(newValue));
+            pageLength = newValue;
+        }
+    });
 }

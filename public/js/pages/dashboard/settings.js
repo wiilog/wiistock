@@ -893,8 +893,8 @@ function initSecondStep(html) {
     }
 
     $modalComponentTypeSecondStep.find(`.select2`).select2();
-    Select2.location($modalComponentTypeSecondStep.find('.ajax-autocomplete-location'));
-    Select2.carrier($modalComponentTypeSecondStep.find('.ajax-autocomplete-carrier'));
+    Select2Old.location($modalComponentTypeSecondStep.find('.ajax-autocomplete-location'));
+    Select2Old.carrier($modalComponentTypeSecondStep.find('.ajax-autocomplete-carrier'));
 
     const $submitButton = $modalComponentTypeSecondStep.find('button[type="submit"]');
     $submitButton.off('click');

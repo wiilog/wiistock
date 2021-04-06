@@ -11,12 +11,14 @@ use App\Entity\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Service\GlobalParamService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
@@ -35,6 +37,7 @@ class ReceptionService
     public const INVALID_EXPECTED_DATE = 'invalid-expected-date';
     public const INVALID_ORDER_DATE = 'invalid-order-date';
     public const INVALID_LOCATION = 'invalid-location';
+    public const INVALID_STORAGE_LOCATION = 'invalid-storage-location';
     public const INVALID_CARRIER = 'invalid-carrier';
     public const INVALID_PROVIDER = 'invalid-provider';
 
@@ -62,6 +65,10 @@ class ReceptionService
 
     /** @Required */
     public FormService $formService;
+
+    /** @Required  */
+    public GlobalParamService $globalParamService;
+
 
     public function getDataForDatatable(Utilisateur $user, $params = null)
     {
@@ -94,8 +101,6 @@ class ReceptionService
      * @param bool $fromImport
      * @param $rowIndex
      * @return Reception
-     * @throws NonUniqueResultException
-     * @throws Exception
      */
     public function createAndPersistReception(EntityManagerInterface $entityManager,
                                               ?Utilisateur $currentUser,
@@ -143,6 +148,15 @@ class ReceptionService
                 ->setFournisseur($fournisseur);
         }
 
+        if ($fromImport && (!isset($data['location']) || empty($data['location']))) {
+            $defaultLocation = $this->globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION);
+            if (isset($defaultLocation)) {
+                $location = $emplacementRepository->find(intval($defaultLocation['id']));
+                $reception
+                    ->setLocation($location);
+            }
+        }
+
         if(!empty($data['location'])) {
             if($fromImport) {
                 $location = $emplacementRepository->findOneBy(['label' => $data['location']]);
@@ -170,8 +184,16 @@ class ReceptionService
         }
 
         if(!empty($data['storageLocation'])) {
-            $storageLocation = $emplacementRepository->find(intval($data['storageLocation']));
-            $reception->setStorageLocation($storageLocation);
+            if($fromImport) {
+                $storageLocation = $emplacementRepository->findOneBy(['label' => $data['storageLocation']]);
+            if (!isset($storageLocation)) {
+                    throw new InvalidArgumentException(self::INVALID_STORAGE_LOCATION);
+                }
+            } else {
+                $storageLocation = $emplacementRepository->find(intval($data['storageLocation']));
+            }
+            $reception
+                ->setStorageLocation($storageLocation);
         }
 
         if(!empty($data['manualUrgent'])) {

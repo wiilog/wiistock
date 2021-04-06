@@ -1,7 +1,7 @@
 $(function () {
     initDateTimePicker('#dateMin, #dateMax');
-    Select2.init($('#statut'), 'Statuts');
-    Select2.user($('.filters .ajax-autocomplete-user'), 'Utilisateurs');
+    Select2Old.init($('#statut'), 'Statuts');
+    Select2Old.user($('.filters .ajax-autocomplete-user'), 'Utilisateurs');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -248,7 +248,7 @@ function importTemplateChanged($dataTypeImport = null) {
         REF: {label: 'références', url: `${templateDirectory}/modele-import-references.csv`},
         FOU: {label: 'fournisseurs', url: `${templateDirectory}/modele-import-fournisseurs.csv`},
         ART_FOU: {label: 'articles fournisseurs', url: `${templateDirectory}/modele-import-articles-fournisseurs.csv`},
-        RECEP: {label: 'réceptions', url: `${templateDirectory}/modele-import-réceptions.csv`}
+        RECEP: {label: 'réceptions', url: `${templateDirectory}/modele-import-receptions.csv`}
     };
 
     const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : '';
