@@ -7,7 +7,7 @@ CREATE TABLE dw_acheminement_champs_libres
 
 CREATE TABLE dw_jours_non_travailles
 (
-    day date
+    jour date
 );
 
 CREATE TABLE dw_arrivage_champs_libres
