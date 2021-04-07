@@ -27,7 +27,7 @@ class PatchCollinsFixtures extends Fixture implements FixtureGroupInterface
 
 	public function load(ObjectManager $manager)
     {
-    	$isCollins = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS);
+    	$isCollins = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS_VERNON || SpecificService::CLIENT_COLLINS_SOA);
 
     	if ($isCollins) {
 			// spécifique collins champ libre 'BL' (numéro BL d'un article, à afficher sur étiquette)
