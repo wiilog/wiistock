@@ -254,7 +254,7 @@ class StatusController extends AbstractController {
 
             $defaults = $statusRepository->countDefaults($category, $type, $status);
             $drafts = $statusRepository->countDrafts($category, $type, $status);
-dump($defaults);
+
             if ($statusRepository->countSimilarLabels($category, $data['label'], $data['type'], $status)) {
                 $success = false;
                 $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
