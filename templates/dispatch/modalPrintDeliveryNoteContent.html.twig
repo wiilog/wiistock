@@ -376,7 +376,8 @@
             <label class="col-6">Commentaire</label>
         </div>
         {% for dispatchPack in packs %}
-            <div class="form-group row"
+            {% set isHidden = loop.index0 > 6 %}
+            <div class="form-group row {{ isHidden ? 'd-none' }}"
                  data-multiple-key="packs"
                  data-multiple-object-index="{{ loop.index0 }}">
                 <div class="col-3">
@@ -398,11 +399,11 @@
                 </div>
                 <div class="col-6">
                     <label class="sr-only">Commentaire / Comment</label>
-                    <textarea class="form-control data needed"
+                    <textarea class="form-control data {{ not isHidden ? 'needed' }}"
                               name="comment"
                               title="Commentaire / Comment"
                               rows="1"
-                              oninput="limitTextareaLength($(this), 7, 100)">{{ dispatchPack.comment|striptags }}</textarea>
+                              oninput="limitTextareaLength($(this), 7, 100)">{{ (dispatchPack.comment|striptags) ? (dispatchPack.comment|striptags) : ' ' }}</textarea>
                 </div>
             </div>
         {% endfor %}
