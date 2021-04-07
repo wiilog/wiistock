@@ -60,6 +60,7 @@ class Action {
     const GENERATE_WAY_BILL = 'générer une lettre de voiture';
     const GENERATE_DISPATCH_BILL = "générer un bon d'acheminement";
     const DELETE_PROCESSED_DISPATCH = 'supprimer acheminements traités';
+    const DELETE_PROCESSED_HANDLING = 'supprimer services traités';
 
     // menu ordre
     const DISPLAY_ORDRE_COLL = 'afficher collectes';
