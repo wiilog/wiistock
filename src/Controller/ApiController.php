@@ -821,7 +821,8 @@ class ApiController extends AbstractFOSRestController
             }
 
             $data['success'] = true;
-            $data['state'] = $statusService->getStatusStateLabel($handling->getStatus()->getState());
+            $data['state'] = $statusService->getStatusStateCode($handling->getStatus()->getState());
+            $data['freeFields'] = json_encode($handling->getFreeFields());
         } else {
             $data['success'] = false;
             $data['message'] = "Cette demande de service a déjà été prise en charge par un opérateur.";
