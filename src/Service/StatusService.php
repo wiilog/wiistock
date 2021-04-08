@@ -104,14 +104,14 @@ class StatusService {
                 'code' => 'draft'
             ],
             [
-                'label' => 'En cours',
-                'id' => Statut::IN_PROGRESS,
-                'code' => 'inProgress'
-            ],
-            [
                 'label' => 'À traiter',
                 'id' => Statut::NOT_TREATED,
                 'code' => 'notTreated'
+            ],
+            [
+                'label' => 'En cours',
+                'id' => Statut::IN_PROGRESS,
+                'code' => 'inProgress'
             ],
             [
                 'label' => 'Traité',

@@ -39,7 +39,7 @@
     {% endif %}
 
     <div>Date attendue :
-        <strong>{{ handling.desiredDate ? handling.desiredDate|date({{ viewHoursOnExpectedDate ? 'd/m/Y à H:i:s' : 'd/m/Y'}}) }}</strong>
+        <strong>{{ handling.desiredDate ? handling.desiredDate|date(viewHoursOnExpectedDate ? 'd/m/Y à H:i:s' : 'd/m/Y') }}</strong>
     </div>
     <div>Date de réalisation :
         <strong>{{ handling.validationDate ? handling.validationDate|date('d/m/Y à H:i:s') }}</strong>
