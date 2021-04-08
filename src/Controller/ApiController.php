@@ -758,6 +758,7 @@ class ApiController extends AbstractFOSRestController
 
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $data = [];
 
@@ -803,8 +804,7 @@ class ApiController extends AbstractFOSRestController
             $freeFieldService->manageFreeFields($handling, $freeFieldValuesStr, $entityManager);
 
             if (!$handling->getValidationDate()
-                && $newStatus
-                && $newStatus->isTreated()) {
+                && $newStatus) {
                 $handling
                     ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')))
                     ->setTreatedByHandling($nomadUser);
@@ -817,7 +817,8 @@ class ApiController extends AbstractFOSRestController
                     && $newStatus
                     && ($oldStatus->getId() !== $newStatus->getId())
                 )) {
-                $handlingService->sendEmailsAccordingToStatus($entityManager, $handling);
+                $viewHoursOnExpectedDate = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+                $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate);
             }
 
             $data['success'] = true;

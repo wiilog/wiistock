@@ -141,12 +141,14 @@ class HandlingService
      * @param EntityManagerInterface $entityManager
      * @param Handling $handling
      * @param bool $isNewHandlingAndNotTreated
+     * @param bool $viewHoursOnExpectedDate
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
     public function sendEmailsAccordingToStatus(EntityManagerInterface $entityManager,
                                                 Handling $handling,
+                                                $viewHoursOnExpectedDate = false,
                                                 $isNewHandlingAndNotTreated = false): void {
         $status = $handling->getStatus();
         $requester = $status->getSendNotifToDeclarant() ? $handling->getRequester() : null;
@@ -181,7 +183,8 @@ class HandlingService
                 $this->templating->render('mails/contents/mailHandlingTreated.html.twig', [
                     'handling' => $handling,
                     'title' => $title,
-                    'fieldsParam' => $fieldsParam
+                    'fieldsParam' => $fieldsParam,
+                    'viewHoursOnExpectedDate' => $viewHoursOnExpectedDate
                 ]),
                 $emails
             );
