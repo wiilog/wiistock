@@ -470,6 +470,7 @@ class StatutRepository extends EntityRepository {
                 ->select('status.id AS id')
                 ->addSelect('status.nom AS label')
                 ->addSelect('status_category.nom AS category')
+                ->addSelect('status.commentNeeded AS commentNeeded')
                 ->addSelect('type.id AS typeId')
                 ->addSelect("(
                     CASE
