@@ -25,15 +25,19 @@
             <strong>{{ handling.receivers|map(receiver => receiver.username)|join(', ') }}</strong>
         </div>
     {% endif %}
-    <div>Objet :
+    <div> {{ isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_COLLINS_SOA')) ?  'services.Objet'|trans  ~':' : 'Objet :'  }}
         <strong>{{ handling.subject }}</strong>
     </div>
-    <div>Chargement :
-        <strong>{{ handling.source }}</strong>
-    </div>
-    <div>Déchargement :
-        <strong>{{ handling.destination }}</strong>
-    </div>
+
+    {% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_COLLINS_SOA')) %}
+        <div>Chargement :
+            <strong>{{ handling.source }}</strong>
+        </div>
+        <div>Déchargement :
+            <strong>{{ handling.destination }}</strong>
+        </div>
+    {% endif %}
+
     <div>Date attendue :
         <strong>{{ handling.desiredDate ? handling.desiredDate|date('d/m/Y à H:i:s') }}</strong>
     </div>
@@ -46,18 +50,20 @@
     <div>Urgence :
         <strong>{{ emergency }}</strong>
     </div>
-    <div>Nombre d'opération(s) réalisée(s) :
+
+    <div>{{ 'services.Nombre d\'opération(s) réalisée(s)' | trans }}
         <strong>{{ handling.carriedOutOperationCount }}</strong>
     </div>
     <div>Traité par :
         <strong>{{ treatedBy }}</strong>
     </div>
-{#    <div>Temps de traitement opérateur :#}
-{#        <strong>{{ handling.treatmentDelay ? handling.treatmentDelay|date('H\\h i\\m s\\s') : '' }}</strong>#}
-{#    </div>#}
-    {% if (handling.comment is not empty and handling.comment != '<p><br></p>') %}
-        <div>Commentaire : {{ handling.comment|raw }}</div>
+
+    {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_COLLINS_SOA')) %}
+        {% if (handling.comment is not empty and handling.comment != '<p><br></p>') %}
+            <div>Commentaire : {{ handling.comment|raw }}</div>
+        {% endif %}
     {% endif %}
+
     <div>
         Pièces jointes :
         <ul>

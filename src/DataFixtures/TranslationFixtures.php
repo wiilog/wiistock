@@ -167,7 +167,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Service' => 'Service',
                 'service' => 'service',
                 'Objet' => 'Objet',
-                'Nombre d\'opération(s) réalisée(s)' => 'Nombre d\'opération(s) réalisée(s)',
+                "Nombre d'opération(s) réalisée(s)" => "Nombre d'opération(s) réalisée(s)",
                 'Demande de service' => 'Demande de service',
                 'Supprimer la demande de service' => 'Supprimer la demande de service',
                 'La demande de service {numéro} a bien été supprimée' => 'La demande de service {numéro} a bien été supprimée',

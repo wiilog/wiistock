@@ -55,7 +55,11 @@ class AppExtension extends AbstractExtension {
         return $this->userService->hasRightFunction($menuCode, $actionLabel);
     }
 
-    public function isCurrentClientNameFunction(string $clientName) {
+    /**
+     * @param string[]|string $clientName
+     * @return bool
+     */
+    public function isCurrentClientNameFunction($clientName) {
         return $this->specificService->isCurrentClientNameFunction($clientName);
     }
 

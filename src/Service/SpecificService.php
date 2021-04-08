@@ -4,7 +4,8 @@ namespace App\Service;
 
 class SpecificService
 {
-	const CLIENT_COLLINS = 'collins';
+	const CLIENT_COLLINS_VERNON = 'collins-vernon';
+	const CLIENT_COLLINS_SOA = 'collins-soa';
 	const CLIENT_CEA_LETI = 'cea-leti';
 	const CLIENT_SAFRAN_CS = 'safran-cs';
 	const CLIENT_SAFRAN_ED = 'safran-ed';
@@ -16,7 +17,8 @@ class SpecificService
 	const CLIENT_WIILOG = 'wiilog';
 
 	const CLIENTS = [
-        self::CLIENT_COLLINS => 'Collins',
+        self::CLIENT_COLLINS_VERNON => 'Collins Vernon',
+        self::CLIENT_COLLINS_SOA => 'Collins SOA',
         self::CLIENT_CEA_LETI => 'CEA Leti',
         self::CLIENT_SAFRAN_CS => 'Safran CS',
         self::CLIENT_SAFRAN_ED => 'Safran ED',
@@ -30,9 +32,17 @@ class SpecificService
 
 	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT COLIS';
 
-	public function isCurrentClientNameFunction(string $clientName): bool
+    /**
+     * @param string[]|string $clientName
+     * @return bool
+     */
+	public function isCurrentClientNameFunction($clientName): bool
 	{
-		return (isset($_SERVER['APP_CLIENT']) && $_SERVER['APP_CLIENT'] == $clientName);
+	    if(!is_array($clientName)) {
+	        $clientName = [$clientName];
+        }
+
+        return in_array($this->getAppClient(), $clientName);
 	}
 
 	public function getAppClient(): string {
