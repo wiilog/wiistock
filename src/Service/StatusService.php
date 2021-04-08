@@ -104,6 +104,11 @@ class StatusService {
                 'code' => 'draft'
             ],
             [
+                'label' => 'En cours',
+                'id' => Statut::IN_PROGRESS,
+                'code' => 'inProgress'
+            ],
+            [
                 'label' => 'À traiter',
                 'id' => Statut::NOT_TREATED,
                 'code' => 'notTreated'
@@ -117,11 +122,6 @@ class StatusService {
                 'label' => 'Litige',
                 'id' => Statut::DISPUTE,
                 'code' => 'dispute'
-            ],
-            [
-                'label' => 'En cours',
-                'id' => Statut::IN_PROGRESS,
-                'code' => 'inProgress'
             ],
             [
                 'label' => 'Partiel',
