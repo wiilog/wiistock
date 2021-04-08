@@ -60,7 +60,8 @@
                                         data-needs-nomad-sync="{{ state.id == constant('App\\Entity\\Statut::NOT_TREATED') or state.id == constant('App\\Entity\\Statut::PARTIAL') }}"
                                         class="{{
                                             (state.id == constant('App\\Entity\\Statut::DRAFT') or state.id == constant('App\\Entity\\Statut::PARTIAL')) ? 'dispatch-fields' :
-                                            state.id == constant('App\\Entity\\Statut::DISPUTE') ? 'arrival-fields'
+                                            (state.id == constant('App\\Entity\\Statut::DISPUTE')) ? 'arrival-fields' :
+                                            (state.id == constant('App\\Entity\\Statut::IN_PROGRESS')) ? 'handling-fields'
                                         }}">
                                     {{ state.label }}
                                 </option>
@@ -105,6 +106,13 @@
                         <label>Synchronisation nomade ?</label>
                         <label class="switch">
                             <input class="checkbox" type="checkbox" name="needsMobileSync">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="col-12 form-group handling-fields">
+                        <label>Commentaire obligatoire sur nomade ?</label>
+                        <label class="switch">
+                            <input class="checkbox" type="checkbox" name="commentNeeded">
                             <span class="slider round"></span>
                         </label>
                     </div>

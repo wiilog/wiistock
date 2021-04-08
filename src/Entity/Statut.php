@@ -17,6 +17,7 @@ class Statut
     const TREATED = 2;
     const DISPUTE = 3;
     const PARTIAL = 4;
+    const IN_PROGRESS = 5;
 
     /**
      * @ORM\Id()
@@ -109,6 +110,11 @@ class Statut
      * @ORM\Column(type="boolean", nullable=true)
      */
     private $sendNotifToBuyer;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $commentNeeded;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="statut")
@@ -618,6 +624,18 @@ class Statut
     public function setSendNotifToBuyer(?bool $sendNotifToBuyer): self
     {
         $this->sendNotifToBuyer = $sendNotifToBuyer;
+
+        return $this;
+    }
+
+    public function getCommentNeeded(): ?bool
+    {
+        return $this->commentNeeded;
+    }
+
+    public function setCommentNeeded(?bool $commentNeeded): self
+    {
+        $this->commentNeeded = $commentNeeded;
 
         return $this;
     }

@@ -115,6 +115,10 @@ class StatusService {
                 'id' => Statut::DISPUTE
             ],
             [
+                'label' => 'En cours',
+                'id' => Statut::IN_PROGRESS
+            ],
+            [
                 'label' => 'Partiel',
                 'id' => Statut::PARTIAL
             ]
