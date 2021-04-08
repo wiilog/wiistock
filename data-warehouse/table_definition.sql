@@ -14,7 +14,10 @@ CREATE TABLE dw_jours_horaires_travailles
 (
     jour      varchar(255),
     travaille varchar(3),
-    horaires  varchar(255)
+    horaire1  varchar(255),
+    horaire2  varchar(255),
+    horaire3  varchar(255),
+    horaire4  varchar(255)
 );
 
 CREATE TABLE dw_arrivage_champs_libres

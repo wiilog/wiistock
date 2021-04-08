@@ -6,6 +6,15 @@ SELECT IF(days_worked.day = 'monday', 'lundi',
                       IF(days_worked.day = 'saturday', 'samedi',
                          IF(days_worked.day = 'sunday', 'dimanche', NULL))))))) AS jour,
        IF(days_worked.worked = 1, 'oui', 'non')                                 AS travaille,
-       days_worked.times                                                        AS horaires
+       IF(days_worked.times != '',
+          IF(LOCATE(';', days_worked.times) > 0, SUBSTRING_INDEX(SUBSTRING_INDEX(days_worked.times, ';', 1), '-', 1),
+             SUBSTRING_INDEX(days_worked.times, '-', 1)), NULL)                 AS horaire1,
+       IF(days_worked.times != '',
+          IF(LOCATE(';', days_worked.times) > 0, SUBSTRING_INDEX(SUBSTRING_INDEX(days_worked.times, ';', 1), '-', -1),
+             SUBSTRING_INDEX(days_worked.times, '-', -1)), NULL)                AS horaire2,
+       IF(LOCATE(';', days_worked.times) > 0, SUBSTRING_INDEX(SUBSTRING_INDEX(days_worked.times, ';', -1), '-', 1),
+          NULL)                                                                 AS horaire3,
+       IF(LOCATE(';', days_worked.times) > 0, SUBSTRING_INDEX(SUBSTRING_INDEX(days_worked.times, ';', -1), '-', -1),
+          NULL)                                                                 AS horaire4
 
 FROM days_worked
