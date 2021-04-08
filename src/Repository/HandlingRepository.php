@@ -81,6 +81,7 @@ class HandlingRepository extends EntityRepository
             ->leftJoin('handling.requester', 'handling_requester')
             ->leftJoin('handling.status', 'status')
             ->leftJoin('handling.type', 'handling_type')
+            ->addSelect('status.id', 'statusId')
             ->andWhere('status.needsMobileSync = true')
             ->andWhere('status.state != :treatedId')
             ->andWhere('handling_type.id IN (:userTypes)')
