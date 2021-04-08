@@ -49,6 +49,7 @@ use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
 use App\Service\HandlingService;
 use App\Service\MouvementStockService;
+use App\Service\StatusService;
 use App\Service\TrackingMovementService;
 use App\Service\NatureService;
 use App\Service\PreparationsManagerService;
@@ -739,6 +740,7 @@ class ApiController extends AbstractFOSRestController
      * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $freeFieldService
+     * @param StatusService $statusService
      * @param HandlingService $handlingService
      * @return JsonResponse
      * @throws LoaderError
@@ -749,6 +751,7 @@ class ApiController extends AbstractFOSRestController
                                   AttachmentService $attachmentService,
                                   EntityManagerInterface $entityManager,
                                   FreeFieldService $freeFieldService,
+                                  StatusService $statusService,
                                   HandlingService $handlingService)
     {
         $nomadUser = $this->getUser();
@@ -818,6 +821,7 @@ class ApiController extends AbstractFOSRestController
             }
 
             $data['success'] = true;
+            $data['state'] = $statusService->getStatusStateLabel($handling->getStatus()->getState());
         } else {
             $data['success'] = false;
             $data['message'] = "Cette demande de service a déjà été prise en charge par un opérateur.";
