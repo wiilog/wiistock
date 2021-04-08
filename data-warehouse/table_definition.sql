@@ -10,6 +10,13 @@ CREATE TABLE dw_jours_non_travailles
     jour date
 );
 
+CREATE TABLE dw_jours_horaires_travailles
+(
+    jour      varchar(255),
+    travaille varchar(3),
+    horaires  varchar(255)
+);
+
 CREATE TABLE dw_arrivage_champs_libres
 (
     arrivage_id integer,
