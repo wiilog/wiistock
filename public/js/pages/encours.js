@@ -16,6 +16,7 @@ $(function () {
             if (!isPreFilledFilter) {
                 displayFiltersSup(data);
             }
+            extendsDateSort('date');
             loadPage();
         }, 'json');
     });
@@ -82,7 +83,13 @@ function loadEncoursDatatable($table) {
             domConfig: {
                 removeInfo: true,
             },
-            "order": [[2, "desc"]]
+            order: [[2, "desc"]],
+            columnDefs: [
+                {
+                    type: "date",
+                    targets: 1
+                }
+            ],
         };
         initDataTable(tableId, tableConfig);
     }
