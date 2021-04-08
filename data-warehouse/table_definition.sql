@@ -185,6 +185,13 @@ CREATE TABLE dw_tracabilite
     acheminement_id             integer
 );
 
+CREATE TABLE dw_tracabilite_champs_libres
+(
+    mouvement_traca_id integer,
+    libelle            varchar(255),
+    valeur             text
+);
+
 CREATE TABLE dw_urgence
 (
     id                     integer,
