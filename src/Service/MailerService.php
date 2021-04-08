@@ -10,6 +10,7 @@ namespace App\Service;
 
 
 use App\Entity\MailerServer;
+use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 
@@ -33,8 +34,16 @@ class MailerService
     public function sendMail($subject, $content, $to)
     {
         if (isset($_SERVER['APP_NO_MAIL']) && $_SERVER['APP_NO_MAIL'] == 1) {
-    		return true;
-		}
+            return true;
+        }
+
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
+        foreach ($to as $userMail) {
+            if ($userRepository->findOneBy(['email' => $userMail, 'status' => "0"])) {
+                $to = array_diff($to, [$userMail]);
+            }
+        }
+
         $mailerServerRepository = $this->entityManager->getRepository(MailerServer::class);
         $mailerServer = $mailerServerRepository->findOneMailerServer();
         if ($mailerServer) {
@@ -45,7 +54,6 @@ class MailerService
             $protocole = $mailerServer->getProtocol() ?? '';
             $senderName = $mailerServer->getSenderName() ?? '';
             $senderMail = $mailerServer->getSenderMail() ?? '';
-
         } else {
             return false;
         }
@@ -61,7 +69,7 @@ class MailerService
             if (!is_array($to)) {
                 $content .= $to;
             } else {
-                foreach($to as $dest) {
+                foreach ($to as $dest) {
                     $content .= $dest . ', ';
                 }
             }
@@ -75,7 +83,7 @@ class MailerService
 
         $message = (new \Swift_Message());
 
-		$message
+        $message
             ->setFrom($senderMail, $senderName)
             ->setTo($to)
             ->setSubject($subject)
