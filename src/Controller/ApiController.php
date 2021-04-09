@@ -805,10 +805,12 @@ class ApiController extends AbstractFOSRestController
 
             if (!$handling->getValidationDate()
                 && $newStatus) {
-                $handling
-                    ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')))
-                    ->setTreatedByHandling($nomadUser);
-            };
+                if ($newStatus->isTreated()) {
+                    $handling
+                        ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                }
+                $handling->setTreatedByHandling($nomadUser);
+            }
             $entityManager->flush();
 
             if ((!$oldStatus && $newStatus)
