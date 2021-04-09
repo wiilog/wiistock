@@ -206,7 +206,7 @@ class HandlingController extends AbstractController
                 ->setEmergency($post->get('emergency'))
                 ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
 
-            $handling->setValidationDate($date);
+            if ($status->isTreated()) $handling->setValidationDate($date);
             $handling->setTreatedByHandling($requester);
             $receivers = $post->get('receivers');
             if (!empty($receivers)) {
@@ -387,7 +387,7 @@ class HandlingController extends AbstractController
                         ? $handling->getCarriedOutOperationCount()
                         : null)
             ));
-        $handling->setValidationDate($date);
+        if ($newStatus & $newStatus->isTreated()) $handling->setValidationDate($date);
         $handling->setTreatedByHandling($currentUser);
 
         $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
