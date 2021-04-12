@@ -1416,10 +1416,15 @@ class ApiController extends AbstractFOSRestController
             ];
 
             $handlings = $handlingRepository->getMobileHandlingsByUserTypes($user->getHandlingTypeIds());
+            $removeHoursDesiredDate = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
             $handlings = Stream::from($handlings)
-                ->map(function (array $handling) use ($handlingExpectedDateColors) {
+                ->map(function (array $handling) use ($handlingExpectedDateColors, $removeHoursDesiredDate) {
                     $handling['color'] = $this->expectedDateColor($handling['desiredDate'], $handlingExpectedDateColors);
-                    $handling['desiredDate'] = $handling['desiredDate'] ? $handling['desiredDate']->format('d/m/Y H:i:s') : null;
+                    $handling['desiredDate'] = $handling['desiredDate']
+                        ? $handling['desiredDate']->format($removeHoursDesiredDate
+                            ? 'd/m/Y'
+                            : 'd/m/Y H:i:s')
+                        : null;
                     $handling['comment'] = $handling['comment'] ? strip_tags($handling['comment']) : null;
                     return $handling;
                 })->toArray();
