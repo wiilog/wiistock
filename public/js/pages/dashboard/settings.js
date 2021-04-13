@@ -93,26 +93,27 @@ function loadDashboards(m) {
 }
 
 function onArrowNavigation(e) {
-    const LEFT = 37;
-    const RIGHT = 39;
-    let requestedDashboardIndex;
+    if (!$('.modal.show').exists()) {
+        const LEFT = 37;
+        const RIGHT = 39;
+        let requestedDashboardIndex;
 
-    if (e.which === LEFT) {
-        requestedDashboardIndex = currentDashboard.dashboardIndex - 1;
-    }
-    else if (e.which === RIGHT) {
-        requestedDashboardIndex = currentDashboard.dashboardIndex + 1;
-    }
+        if (e.which === LEFT) {
+            requestedDashboardIndex = currentDashboard.dashboardIndex - 1;
+        } else if (e.which === RIGHT) {
+            requestedDashboardIndex = currentDashboard.dashboardIndex + 1;
+        }
 
-    const requestedDashboard = dashboards[requestedDashboardIndex];
+        const requestedDashboard = dashboards[requestedDashboardIndex];
 
-    if (requestedDashboard) {
-        currentDashboard = requestedDashboard;
-        location.hash = `#${requestedDashboardIndex + 1}`;
-        renderCurrentDashboard();
-        updateAddRowButton();
-        renderDashboardPagination();
-        e.preventDefault(); // prevent the default action (scroll / move caret)
+        if (requestedDashboard) {
+            currentDashboard = requestedDashboard;
+            location.hash = `#${requestedDashboardIndex + 1}`;
+            renderCurrentDashboard();
+            updateAddRowButton();
+            renderDashboardPagination();
+            e.preventDefault(); // prevent the default action (scroll / move caret)
+        }
     }
 }
 
