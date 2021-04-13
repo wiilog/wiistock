@@ -58,11 +58,11 @@
         <strong>{{ treatedBy }}</strong>
     </div>
 
-    {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_COLLINS_SOA')) %}
+
         {% if (handling.comment is not empty and handling.comment != '<p><br></p>') %}
             <div>Commentaire : {{ handling.comment|raw }}</div>
         {% endif %}
-    {% endif %}
+
 
     <div>
         Pièces jointes :
