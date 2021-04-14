@@ -1,0 +1,23 @@
+<div class="row">
+    <div id="accordion" class="customization-tools-accordion">
+    <div class="card my-3">
+        <div class="card-header" id="headingOneBackgroundColor">
+            <h5 class="toggle-collapsible"
+                data-toggle="collapse"
+                data-target="#collapseBackgroundColor"
+                aria-expanded='false'
+                aria-controls="collapseBackgroundColor">
+                <div class="btn btn-link btn-menu-label">
+                    <span>Couleur fond composant</span>
+                </div>
+            </h5>
+        </div>
+        <div id="collapseBackgroundColor" class="collapse" aria-labelledby="headingOneBackgroundColor"
+             data-parent="#accordion">
+            <div class="card-body">
+                <input type="color" class="data form-control needed" name="backgroundColor" value="{{ values.backgroundColor ?? '#FFFFFF' }}">
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
