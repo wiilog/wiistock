@@ -204,10 +204,10 @@ class DashboardSettingsService {
                                               ?int $mode): array {
         if ($mode === self::MODE_EDIT) {
             $values = $componentType->getExampleValues();
-            if(isset($config['backgroundColor']) && $config['backgroundColor'] !== '#ffffff') {
+            if(isset($config['cardBackgroundColor']) && $config['cardBackgroundColor'] !== '#ffffff') {
                 foreach ($values as &$requests) {
                     foreach ($requests as &$request) {
-                        $request['backgroundColor'] = $config['backgroundColor'];
+                        $request['cardBackgroundColor'] = $config['cardBackgroundColor'];
                     }
                 }
             }

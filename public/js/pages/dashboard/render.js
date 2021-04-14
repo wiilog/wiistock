@@ -187,7 +187,7 @@ function createPendingRequests(data, {rowSize}) {
     }
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container h-100">
+        <div class="dashboard-box dashboard-stats-container h-100" style="${data.backgroundColor ? ('background-color:' + data.backgroundColor) : ''}">
             <div class="title">
                 ${title}
             </div>
@@ -229,7 +229,7 @@ function renderRequest(request, rowSize) {
 
     return `
         <div class="d-flex ${cardSize} p-1">
-            <a class="card wii-card request-card pointer p-3 my-2 shadow-sm flex-grow-1 ${cursor} bg-${request.cardColor}" ${link} style="${request.backgroundColor ? ('background-color:' + request.backgroundColor + '!important') : ''}">
+            <a class="card wii-card request-card pointer p-3 my-2 shadow-sm flex-grow-1 ${cursor} bg-${request.cardColor}" ${link} style="${request.cardBackgroundColor ? ('background-color:' + request.cardBackgroundColor + '!important') : ''}">
                 <div class="wii-card-header">
                     <div class="row">
                         <div class="col-10 mb-2">
