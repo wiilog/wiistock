@@ -1,6 +1,7 @@
 <div class="d-flex">
     {% set target = isRef ? '#modalShowRefArticle' : '#modalShowArticle' %}
     {% set path = isRef ? 'reference_article_show' : 'article_show' %}
+    {% set canEdit = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT'))  %}
     <div class="dropdown dropright">
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt pointer">
@@ -22,7 +23,7 @@
                     {% set action = ", editRow($(this), Routing.generate('prepa_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'))" %}
                     {% set attr = 'data-target=#modalEditLigneArticle data-toggle=modal' %}
                 {% endif %}
-                <div class="action-on-click d-none action-on-click-single"
+                <div class="{{ canEdit ? 'action-on-click d-none action-on-click-single' : ' ' }}"
                     {{ attr }}
                      data-barcode='{{ barcode }}'
                      data-id='{{ id }}'
