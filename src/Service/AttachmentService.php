@@ -122,6 +122,14 @@ class AttachmentService {
     }
 
     /**
+     * @param Attachment $attachment
+     * @return string
+     */
+	public function getAttachmentDirectory(): string {
+	    return $this->attachmentDirectory;
+    }
+
+    /**
      * @param string $fileName
      * @param array $content
      * @param callable $mapper
@@ -132,11 +140,20 @@ class AttachmentService {
 
         $logCsvFilePathOpened = fopen($csvFilePath, 'w');
 
-        foreach ($content as $row) {
-            fputcsv($logCsvFilePathOpened, $mapper($row), ';');
-        }
+        $this->putCSVLines($logCsvFilePathOpened, $content, $mapper);
 
         fclose($logCsvFilePathOpened);
+    }
+
+    /**
+     * @param resource $file
+     * @param callable $mapper
+     * @return void
+     */
+	public function putCSVLines($file, array $content, callable $mapper): void {
+        foreach ($content as $row) {
+            fputcsv($file, $mapper($row), ';');
+        }
     }
 
     /**
