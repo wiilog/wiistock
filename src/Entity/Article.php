@@ -611,7 +611,8 @@ class Article extends FreeFieldEntity
      * @return Article
      */
     public function setTrackingPack(?Pack $pack): self {
-        if ($this->trackingPack && $this->trackingPack === $pack) {
+        if ($this->trackingPack
+            && $this->trackingPack->getArticle() === $this) {
             $this->trackingPack->setArticle(null);
         }
         $this->trackingPack = $pack;
