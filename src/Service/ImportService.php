@@ -294,7 +294,6 @@ class ImportService
             if ($smallFile) {
                 $this->currentImport->setFlash(true);
             }
-
             // les premières lignes <= MAX_LINES_AUTO_FORCED_IMPORT
             $index = 0;
             foreach ($firstRows as $row) {
@@ -315,6 +314,14 @@ class ImportService
             $this->clearEntityManagerAndRetrieveImport();
             if (!$smallFile) {
                 // on fait la suite du fichier
+                if (!file_exists('./uploads/temp')) {
+                    mkdir('./uploads/temp', 0777, true);
+                }
+                $path = '../public/uploads/temp/';
+                $nameFile = uniqid() . ".csv";
+                $uri = $path . $nameFile;
+                $myFile = fopen($uri, "w");
+
                 while (($row = fgetcsv($file, 0, ';')) !== false) {
                     $logRows[] = $this->treatImportRow(
                         $row,
@@ -323,11 +330,18 @@ class ImportService
                         $colChampsLibres,
                         $refToUpdate,
                         $stats,
-                        ($index % 500 === 0),
+                        ($index % 100 === 0),
                         $receptionsWithCommand,
                         $user,
                         $index
                     );
+                    if ($index % 100 === 0) {
+                        $this->clearEntityManagerAndRetrieveImport();
+                        foreach ($logRows as $row) {
+                            fwrite($myFile, $row);
+                        }
+                        $logRows = [];
+                    }
                     $index++;
                 }
             }
