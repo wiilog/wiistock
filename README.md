@@ -26,7 +26,7 @@ class Entity {
     }
     
     public function setExample(?Example $example): self {
-        if($this->example && $this->example->getEntity() === $this) {
+        if($this->example && $this->example->getEntity() === $this && $example) {
             $this->example->setEntity(null);
         }
         $this->example = $example;
