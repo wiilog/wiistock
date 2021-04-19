@@ -342,10 +342,6 @@ function toggleRequiredChampsLibres($select, require, $freeFieldContainer = null
     }
 }
 
-function clearDiv() {
-    $('.clear').html('');
-}
-
 function clearErrorMsg($div) {
     $div.closest('.modal').find('.error-msg').html('');
 }
