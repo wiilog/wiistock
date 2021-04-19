@@ -202,9 +202,8 @@ $rowNumberToDatatableHeight: (
         padding: 0.20rem;
     }
 
-    &.dashboard-box-indicator {
-        display: flex;
-        justify-content: space-around;
+    &.dashboard-box-indicator > * {
+        margin: auto 0;
     }
 
     @media (max-width: $responsive-breakpoint) {
@@ -309,6 +308,7 @@ $rowNumberToDatatableHeight: (
 
         .dashboard-stats-delay-title {
             font-weight: normal !important;
+            margin-top: 0 !important;
         }
 
         .dashboard-stats {
