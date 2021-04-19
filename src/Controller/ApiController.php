@@ -424,7 +424,6 @@ class ApiController extends AbstractFOSRestController
                     $successData['data']['errors'][$mvt['ref_article']] = ($mvt['ref_article'] . " doit être déposé sur l'emplacement \"$invalidLocationTo\"");
                 } else {
                     $exceptionLoggerService->sendLog($throwable, $request);
-                    dump($throwable);
                     $successData['data']['errors'][$mvt['ref_article']] = 'Une erreur s\'est produite lors de l\'enregistrement de ' . $mvt['ref_article'];
                 }
             }
