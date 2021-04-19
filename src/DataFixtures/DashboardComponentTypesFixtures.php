@@ -43,7 +43,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 ],
             ],
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
-            'template' => null,
+            'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS,
         ],
         'Colis en retard' => [
@@ -56,7 +56,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 ],
             ],
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
-            'template' => null,
+            'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::LATE_PACKS,
         ],
         'Nombre d\'arrivages et de colis quotidiens' => [
@@ -125,7 +125,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 ]
             ],
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
-            'template' => null,
+            'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::RECEIPT_ASSOCIATION,
         ],
         'Nombre d\'arrivages et de colis hebdomadaires' => [
@@ -323,7 +323,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Urgences à recevoir' => [
             'hint' => 'Nombre d\'urgences sur arrivage encore non réceptionnées',
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
-            'template' => null,
+            'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE,
             'exampleValues' => [
                 'count' => 7
@@ -332,7 +332,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Urgences du jour' => [
             'hint' => 'Nombre d\'urgences sur arrivage devant être réceptionnées dans la journée',
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
-            'template' => null,
+            'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES,
             'exampleValues' => [
                 'count' => 3
@@ -341,7 +341,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Fiabilité monétaire (graphique)' => [
             'hint' => 'Somme des quantités corrigées suite à un inventaire',
             'category' => Dashboard\ComponentType::CATEGORY_STOCK,
-            'template' => null,
+            'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY_GRAPH,
             'exampleValues' => [
                 'chartData' => [
@@ -357,7 +357,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Alertes de stock' => [
             'hint' => 'Nombre d\'alertes de péremption, seuil de sécurité et alerte en cours',
             'category' => Dashboard\ComponentType::CATEGORY_STOCK,
-            'template' => null,
+            'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS,
             'exampleValues' => [
                 'count' => 11
@@ -468,7 +468,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Fiabilité monétaire (indicateur)' => [
             'hint' => 'Quantité corrigée sur une référence ou article * prix unitaire de la référence ou référence liée',
             'category' => Dashboard\ComponentType::CATEGORY_STOCK,
-            'template' => null,
+            'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR,
             'exampleValues' => [
                 'count' => 84
@@ -494,7 +494,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Fiabilité par référence' => [
             'hint' => 'Nombre de mouvements de correction d’inventaire / le nombre d’articles de référence ou articles du stock',
             'category' => Dashboard\ComponentType::CATEGORY_STOCK,
-            'template' => null,
+            'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::REFERENCE_RELIABILITY,
             'exampleValues' => [
                 'count' => 25

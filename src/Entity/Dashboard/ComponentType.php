@@ -49,6 +49,8 @@ class ComponentType
     public const REQUESTS_TO_TREAT_DISPATCH = 'requests_to_treat_dispatch';
     public const REQUESTS_TO_TREAT_TRANSFER = 'requests_to_treat_transfer';
 
+    public const GENERIC_TEMPLATE = 'generic_template';
+
     public const REQUESTS_SELF = 'self';
     public const REQUESTS_EVERYONE = 'everyone';
 

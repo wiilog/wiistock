@@ -163,6 +163,12 @@ function renderComponent(component, $container, data) {
     }
 }
 
+function generateAttributes(data, classes) {
+    const background = data.backgroundColor ? `background-color:${data.backgroundColor}!important;` : ``;
+
+    return `class="${classes}" style="${background}"`
+}
+
 function createTooltip(text) {
     const trimmedText = (text || "").trim();
     if (mode === MODE_EDIT
@@ -187,7 +193,7 @@ function createPendingRequests(data, {rowSize}) {
     }
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container h-100">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container h-100')}>
             <div class="title">
                 ${title}
             </div>
@@ -229,7 +235,7 @@ function renderRequest(request, rowSize) {
 
     return `
         <div class="d-flex ${cardSize} p-1">
-            <a class="card wii-card request-card pointer p-3 my-2 shadow-sm flex-grow-1 ${cursor} bg-${request.cardColor}" ${link}>
+            <a class="card wii-card request-card pointer p-3 my-2 shadow-sm flex-grow-1 ${cursor} bg-${request.cardColor}" ${link} style="${request.cardBackgroundColor ? ('background-color:' + request.cardBackgroundColor + '!important') : ''}">
                 <div class="wii-card-header">
                     <div class="row">
                         <div class="col-10 mb-2">
@@ -301,7 +307,8 @@ function createEntriesToHandleElement(data, {meterKey}) {
                 title: 'Nombre de lignes à traiter',
                 tooltip: data.linesCountTooltip,
                 count: data.count,
-                componentLink: data.componentLink
+                componentLink: data.componentLink,
+                backgroundColor: data.backgroundColor ?? undefined
             },
             {
                 meterKey,
@@ -316,7 +323,8 @@ function createEntriesToHandleElement(data, {meterKey}) {
                 title: 'Prochain emplacement à traiter',
                 tooltip: data.nextLocationTooltip,
                 count: data.nextLocation,
-                componentLink: data.componentLink
+                componentLink: data.componentLink,
+                backgroundColor: data.backgroundColor ?? undefined
             },
             {
                 meterKey,
@@ -372,7 +380,7 @@ function createLatePacksElement(data) {
     const title = data.title || "";
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
                 ${title}
             </div>
@@ -427,7 +435,7 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
 
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container ${dashboardBoxContainerClass}">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container' + dashboardBoxContainerClass)}>
             <div class="title">
                 ${title.split('(')[0]}
             </div>
@@ -454,7 +462,7 @@ function createCarrierTrackingElement(data) {
     const title = data.title || "";
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
                 ${title}
             </div>
@@ -478,7 +486,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
 
     customContainerClass = customContainerClass || '';
 
-    const {title, subtitle, tooltip, count, delay, componentLink, emergency, subCounts} = data;
+    const {title, subtitle, tooltip, count, delay, componentLink, emergency, subCounts, backgroundColor} = data;
     const element = componentLink ? '<a/>' : '<div/>';
     const customAttributes = componentLink
         ? {
@@ -492,6 +500,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
 
     return $(element, Object.assign({
         class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
+        style: `${backgroundColor ? 'background-color:' + backgroundColor : ''}`,
         html: [
             createTooltip(tooltip),
             title
