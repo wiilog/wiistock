@@ -163,6 +163,12 @@ function renderComponent(component, $container, data) {
     }
 }
 
+function generateAttributes(data, classes) {
+    const background = data.backgroundColor ? `background-color:${data.backgroundColor}!important;` : ``;
+
+    return `class="${classes}" style="${background}"`
+}
+
 function createTooltip(text) {
     const trimmedText = (text || "").trim();
     if (mode === MODE_EDIT
@@ -187,7 +193,7 @@ function createPendingRequests(data, {rowSize}) {
     }
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container h-100" style="${data.backgroundColor ? ('background-color:' + data.backgroundColor) : ''}">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container h-100')}>
             <div class="title">
                 ${title}
             </div>
@@ -374,7 +380,7 @@ function createLatePacksElement(data) {
     const title = data.title || "";
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container" style="${data.backgroundColor ? 'background-color:' + data.backgroundColor : ''}">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
                 ${title}
             </div>
@@ -429,7 +435,7 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
 
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container ${dashboardBoxContainerClass}" style="${data.backgroundColor ? 'background-color:' + data.backgroundColor : ''}">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container' + dashboardBoxContainerClass)}>
             <div class="title">
                 ${title.split('(')[0]}
             </div>
@@ -456,7 +462,7 @@ function createCarrierTrackingElement(data) {
     const title = data.title || "";
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container" style="${data.backgroundColor ? 'background-color:' + data.backgroundColor : ''}">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
                 ${title}
             </div>
