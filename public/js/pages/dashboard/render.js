@@ -119,7 +119,28 @@ const creators = {
  * @return {boolean}
  */
 function renderComponent(component, $container, data) {
+    const $chartColorPickers = $('.chart-color-pickers');
     $container.empty();
+    $chartColorPickers.empty();
+
+    console.log(data);
+    if(data.chartColors && data.separateType) {
+        console.log(data.chartColors);
+        if($chartColorPickers.find('>*').length > 1) {
+            $chartColorPickers.empty();
+        }
+        let counter = 0;
+        for(let key in data.chartColors) {
+            const $colorPicker = $(`<input/>`, {
+                type: `color`,
+                class: `data form-control needed`,
+                name: `chartColor${counter}`,
+                value: `${data.chartColors[key]}`
+            })
+            $chartColorPickers.append($colorPicker);
+            counter++;
+        }
+    }
 
     if(!creators[component.meterKey]) {
         console.error(`No creator function for ${component.meterKey} key.`);
@@ -627,7 +648,7 @@ function drawChartWithHisto($button, path, beforeAfter = 'now') {
 
 
 function updateSimpleChartData(chart, data, label, stack = false,
-                               {data: subData, label: lineChartLabel} = {data: undefined, label: undefined}) {
+                               {data: subData, label: lineChartLabel} = {data: undefined, label: undefined}, chartColor) {
     chart.data.datasets = [{data: [], label}];
     chart.data.labels = [];
     const dataKeys = Object.keys(data).filter((key) => key !== 'stack');
@@ -639,7 +660,7 @@ function updateSimpleChartData(chart, data, label, stack = false,
     const dataLength = chart.data.datasets[0].data.length;
     if(dataLength > 0) {
         chart.data.datasets[0].backgroundColor = new Array(dataLength);
-        chart.data.datasets[0].backgroundColor.fill('#A3D1FF');
+        chart.data.datasets[0].backgroundColor.fill(chartColor !== '#ffffff' ? chartColor : '#A3D1FF');
     }
 
     if(subData) {
@@ -676,7 +697,8 @@ function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false,
             {
                 data: data.subCounters,
                 label: data.subLabel
-            }
+            },
+            data.chartColor || ''
         );
     }
 
@@ -906,7 +928,7 @@ function updateMultipleChartData(chart, data) {
         const dataSubKeys = Object.keys(chartData[key]);
         chart.data.labels.push(key);
         for(const subKey of dataSubKeys) {
-            let dataset = chart.data.datasets.find(({label}) => (label === subKey));
+            let dataset = chart.data.datasets.find(({label}) => (label === subKey)); // TODO
             if(!dataset) {
                 dataset = {
                     label: subKey,

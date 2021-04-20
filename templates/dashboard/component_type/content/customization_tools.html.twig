@@ -20,6 +20,28 @@
             </div>
         </div>
     </div>
+    {% if componentType.exampleValues.chartData is defined %}
+        <div id="accordion" class="customization-tools-accordion">
+            <div class="card my-3">
+                <div class="card-header" id="headingOneChartColor">
+                    <h5 class="toggle-collapsible"
+                        data-toggle="collapse"
+                        data-target="#collapseChartColor"
+                        aria-expanded='false'
+                        aria-controls="collapseChartColor">
+                        <div class="btn btn-link btn-menu-label">
+                            <span>Couleur graphique</span>
+                        </div>
+                    </h5>
+                </div>
+                <div id="collapseChartColor" class="collapse" aria-labelledby="headingOneChartColor"
+                     data-parent="#accordion">
+                    <div class="card-body chart-color-pickers">
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
     {% if componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::PENDING_REQUESTS') %}
         <div id="accordion" class="customization-tools-accordion">
             <div class="card my-3">

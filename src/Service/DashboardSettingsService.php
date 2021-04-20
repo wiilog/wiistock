@@ -13,6 +13,7 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Helper\Stream;
@@ -20,6 +21,7 @@ use App\Entity\Dashboard as Dashboard;
 use App\Entity\Dashboard\Meter as DashboardMeter;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
+use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\Routing\RouterInterface;
 
 class DashboardSettingsService {
@@ -134,6 +136,10 @@ class DashboardSettingsService {
             $values['backgroundColor'] = $config['backgroundColor'];
         }
 
+        if (!empty($config['chartColor'])) {
+            $values['chartColor'] = $config['chartColor'];
+        }
+
         $redirect = $config['redirect'] ?? false;
 
         if (!$example && $redirect) {
@@ -183,7 +189,7 @@ class DashboardSettingsService {
                 break;
             case Dashboard\ComponentType::DAILY_HANDLING:
             case Dashboard\ComponentType::DAILY_OPERATIONS:
-                $values += $this->serializeDailyHandlingOrOperations($componentType, $config, $example, $meter);
+                $values += $this->serializeDailyHandlingOrOperations($entityManager, $componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::REQUESTS_TO_TREAT:
             case Dashboard\ComponentType::ORDERS_TO_TREAT:
@@ -380,9 +386,9 @@ class DashboardSettingsService {
         $values = $componentType->getExampleValues();
         if (!$example) {
             $chartValues = $this->dashboardService->getWeekArrival(
-                isset($config['firstDay']) ? $config['firstDay'] : date("d/m/Y", strtotime('monday this week')),
-                isset($config['lastDay']) ? $config['lastDay'] : date("d/m/Y", strtotime('sunday this week')),
-                isset($config['beforeAfter']) ? $config['beforeAfter'] : 'now'
+                $config['firstDay'] ?? date("d/m/Y", strtotime('monday this week')),
+                $config['lastDay'] ?? date("d/m/Y", strtotime('sunday this week')),
+                $config['beforeAfter'] ?? 'now'
             );
             $chartData = Stream::from($chartValues['data'])
                 ->map(function(array $value) {
@@ -625,7 +631,8 @@ class DashboardSettingsService {
      * @param DashboardMeter\Chart|null $chart
      * @return array
      */
-    private function serializeDailyHandlingOrOperations(Dashboard\ComponentType $componentType,
+    private function serializeDailyHandlingOrOperations(EntityManagerInterface $entityManager,
+                                                        Dashboard\ComponentType $componentType,
                                                         array $config,
                                                         bool $example = false,
                                                         DashboardMeter\Chart $chart = null): array {
@@ -639,6 +646,32 @@ class DashboardSettingsService {
             }
         } else {
             $values = $componentType->getExampleValues();
+            $values['separateType'] = $config['separateType'] ?? '';
+            if(!empty($config['handlingTypes']) && $config['separateType']) {
+                $handlingTypes = $entityManager->getRepository(Type::class)->findBy(['id' => $config['handlingTypes']]);
+                $values['toolsCount'] = count($handlingTypes);
+
+                $counter = 0;
+                $chartColors = Stream::from($handlingTypes)
+                    ->reduce(function (array $carry, Type $type) use ($config, &$counter) {
+                        $carry[$type->getLabel()] = $config['chartColor' . $counter] ?? '#AD4RF2';
+                        $counter++;
+                        return $carry;
+                    }, []);
+                $values['chartColors'] = $chartColors;
+
+                $chartValues = Stream::from($handlingTypes)
+                    ->reduce(function (array $carry, Type $type) {
+                        $carry[$type->getLabel()] = rand(5, 25);
+                        return $carry;
+                    }, []);
+
+                $chartDataMultiple = Stream::from($values['chartDataMultiple'])
+                    ->map(function ($chartData) use ($chartValues) {
+                        return $chartData[] = $chartValues;
+                    })->toArray();
+                $values['chartDataMultiple'] = $chartDataMultiple;
+            }
 
             $scale = $config['daysNumber'] ?? DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE;
             $chartData = $separateType ? ($values['chartDataMultiple'] ?? []) : ($values['chartData'] ?? []);
@@ -653,6 +686,9 @@ class DashboardSettingsService {
             $values['chartData'] = $chartData;
         }
         $values['multiple'] = $separateType;
+
+        dump($config);
+        dump($values);
         return $values;
     }
 
