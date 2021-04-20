@@ -311,7 +311,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
                 tooltip: data.linesCountTooltip,
                 count: data.count,
                 componentLink: data.componentLink,
-                backgroundColor: data.backgroundColor ?? undefined
+                backgroundColor: data.backgroundColor || undefined
             },
             {
                 meterKey,
@@ -328,7 +328,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
                 tooltip: data.nextLocationTooltip,
                 count: data.nextLocation,
                 componentLink: data.componentLink,
-                backgroundColor: data.backgroundColor ?? undefined
+                backgroundColor: data.backgroundColor || undefined
             },
             {
                 meterKey,

@@ -1,0 +1,24 @@
+$max: 50;
+$step: 10;
+
+@for $i from 1 through $max {
+    $value: $i * $step;
+    .w-px-#{$value} {
+        width: #{$value}px !important;
+    }
+    .max-w-px-#{$value} {
+        max-width: #{$value}px !important;
+    }
+    .min-w-px-#{$value} {
+        min-width: #{$value}px !important;
+    }
+    .h-px-#{$value} {
+        height: #{$value}px !important;
+    }
+    .max-h-px-#{$value} {
+        max-height: #{$value}px !important;
+    }
+    .min-h-px-#{$value} {
+        min-height: #{$value}px !important;
+    }
+}

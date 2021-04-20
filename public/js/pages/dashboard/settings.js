@@ -38,9 +38,9 @@ const $dashboardRowSelector = $('.dashboard-row-selector');
 const $modalComponentTypeFirstStep = $('#modalComponentTypeFistStep');
 const $modalComponentTypeSecondStep = $('#modalComponentTypeSecondStep');
 
-$(window).resize(function () {
+$(window).resize(function() {
     clearTimeout(window.resizedFinished);
-    window.resizedFinished = setTimeout(function(){
+    window.resizedFinished = setTimeout(function() {
         renderCurrentDashboard();
     }, 100);
 });
@@ -63,6 +63,7 @@ function loadDashboards(m) {
     $(document).keydown(onArrowNavigation);
     $addRowButton.on('click', onRowAdded);
     $dashboard.on(`click`, `.delete-row`, onRowDeleted);
+    $dashboard.on(`click`, `.edit-row`, onRowEdit);
 
     $modalComponentTypeSecondStep.on(`click`, `.select-all-types`, onSelectAll);
     $modalComponentTypeSecondStep.on(`click`, `.select-all-statuses`, onSelectAll);
@@ -98,15 +99,15 @@ function onArrowNavigation(e) {
         const RIGHT = 39;
         let requestedDashboardIndex;
 
-        if (e.which === LEFT) {
+        if(e.which === LEFT) {
             requestedDashboardIndex = currentDashboard.dashboardIndex - 1;
-        } else if (e.which === RIGHT) {
+        } else if(e.which === RIGHT) {
             requestedDashboardIndex = currentDashboard.dashboardIndex + 1;
         }
 
         const requestedDashboard = dashboards[requestedDashboardIndex];
 
-        if (requestedDashboard) {
+        if(requestedDashboard) {
             currentDashboard = requestedDashboard;
             location.hash = `#${requestedDashboardIndex + 1}`;
             renderCurrentDashboard();
@@ -200,7 +201,7 @@ function renderCurrentDashboard() {
             .map(renderRow)
             .forEach((row) => {
                 const $dashboardCurrentRow = $dashboard.find(`.dashboard-row[data-row-index="${row.data('row-index')}"]`);
-                if ($dashboardCurrentRow.length > 0) {
+                if($dashboardCurrentRow.length > 0) {
                     $dashboardCurrentRow.replaceWith(row);
                 } else {
                     $dashboard.append(row);
@@ -217,7 +218,7 @@ function renderCurrentDashboard() {
 function updateCurrentDashboardSize() {
     const currentSize = $dashboard.data('size');
     const prefixSize = `dashboard-size-`;
-    if (currentSize) {
+    if(currentSize) {
         $dashboard.removeClass(`${prefixSize}${currentSize}`);
     }
 
@@ -235,7 +236,7 @@ function renderRow(row) {
     const $rowWrapper = $(`<div/>`, {class: `dashboard-row-wrapper`});
     const flexFill = mode !== MODE_EXTERNAL ? 'flex-fill' : '';
     const $row = $(`<div/>`, {
-        class: `dashboard-row dashboard-row-size-${row.size} ${flexFill}`,
+        class: `dashboard-row ${flexFill}`,
         'data-row-index': `${row.rowIndex}`,
         'data-size': `${row.size}`,
         html: $rowWrapper
@@ -243,10 +244,10 @@ function renderRow(row) {
 
     const orderedComponent = getRowComponentsGroupedByColumn(row);
 
-    for (let columnIndex = 0; columnIndex < orderedComponent.length; columnIndex++) {
+    for(let columnIndex = 0; columnIndex < orderedComponent.length; columnIndex++) {
         const cellComponents = orderedComponent[columnIndex];
         let $component;
-        if (cellComponents.length === 0
+        if(cellComponents.length === 0
             || (
                 cellComponents.length === 1
                 && (
@@ -258,11 +259,10 @@ function renderRow(row) {
                 component: $.deepCopy(cellComponents[0]),
                 columnIndex
             });
-        }
-        else {
+        } else {
             $component = createComponentContainer(columnIndex);
             $component.addClass('dashboard-component-split');
-            for (let cellIndex = 0; cellIndex < cellComponents.length; cellIndex++) {
+            for(let cellIndex = 0; cellIndex < cellComponents.length; cellIndex++) {
                 const component = cellComponents[cellIndex];
                 const $cardComponent = renderCardComponent({
                     component: $.deepCopy(component),
@@ -278,14 +278,19 @@ function renderRow(row) {
 
     if(mode === MODE_EDIT) {
         $row.append(`
-            <div class="delete-row-container"><i class="fa fa-trash ml-1 delete-row pointer"></i></div>
+            <div class="action-row-container">
+                <div class="bg-white w-px-25 rounded">
+                    <i class="icon fa fa-trash ml-1 delete-row"></i>
+                    <i class="icon fa fa-pen ml-1 edit-row"></i>
+                </div>
+            </div>
         `);
     }
 
     return $row;
 }
 
-function createComponentContainer(columnIndex, cellIndex) {
+function createComponentContainer(columnIndex, cellIndex = null) {
     const $container = $('<div/>', {
         class: `dashboard-component`,
         'data-column-index': columnIndex
@@ -293,7 +298,7 @@ function createComponentContainer(columnIndex, cellIndex) {
 
     cellIndex = convertIndex(cellIndex);
 
-    if (cellIndex !== null) {
+    if(cellIndex !== null) {
         $container
             .data('cell-index', cellIndex)
             .attr('data-cell-index', cellIndex);
@@ -353,10 +358,9 @@ function renderCardComponent({columnIndex, cellIndex, component}) {
                     }));
                 }
             });
-    }
-    else {
+    } else {
         $componentContainer.addClass('empty');
-        if (mode === MODE_EDIT) {
+        if(mode === MODE_EDIT) {
             const isSplitCell = cellIndex !== null;
             const $addComponent = $('<button/>', {
                 class: 'btn btn-light',
@@ -629,6 +633,74 @@ function onRowDeleted() {
     updateCurrentDashboardSize();
 }
 
+function onRowEdit() {
+    const $row = $(this).parents('.dashboard-row');
+    const rowIndex = $row.data(`row-index`);
+    const row = currentDashboard.rows[rowIndex];
+
+    const $modal = $(`#edit-row-modal`);
+
+    $modal.find(`.dashboard-row-selector`).removeClass(`selected`);
+    $modal.find(`.dashboard-row-selector[data-columns="${row.size}"]`).addClass(`selected`);
+    $modal.find(`input[name="new-row-columns-count"]`).val(row.size);
+
+    $modal.modal(`show`);
+    $modal.find(`button[type="submit"]`).off(`click`).click(function() {
+        const $selected = $modal.find(`.dashboard-row-selector.selected`);
+        if($selected.exists()) {
+            const columns = $selected.data(`columns`);
+
+            if(row.size > columns) {
+                const $selectionModal = $(`#choose-components-modal`);
+                const $rowWrapper = $selectionModal.find(`.dashboard-row-wrapper`);
+                $selectionModal.find(`.dashboard-row`).attr(`data-size`, row.size);
+                $rowWrapper.empty();
+
+                for(let i = 0; i < row.size; i++) {
+                    const component = row.components.find(c => c.columnIndex === i) || null;
+                    const $component = $(`<div class="dashboard-component-placeholder" data-index="${i}"></div>`);
+                    if(component) {
+                        $component.addClass(`not-selected`);
+                    } else {
+                        $component.addClass(`not-selectable`);
+                    }
+
+                    $component.click(function() {
+                        $(this).toggleClass(`not-selected selected`);
+                    });
+                    $rowWrapper.append($component);
+                }
+
+                $selectionModal.find(`button[type="submit"]`).off(`click`).click(function() {
+                    const kept = $selectionModal.find(`.dashboard-component-placeholder.selected`)
+                        .map(function() {
+                            return Number($(this).data(`index`));
+                        })
+                        .toArray();
+
+                    if(kept.length > columns) {
+                        showBSAlert(`Vous ne pouvez pas sélectionner plus de ${columns} composants`, `danger`);
+                        return;
+                    }
+
+                    row.components = row.components.filter(c => kept.indexOf(c.columnIndex) !== -1);
+                    for(let i = 0; i < row.components.length; i++) {
+                        row.components[i].columnIndex = i;
+                    }
+
+                    row.size = columns;
+                    $selectionModal.modal(`hide`);
+                    renderCurrentDashboard();
+                });
+                $selectionModal.modal(`show`);
+            } else {
+                row.size = columns;
+                renderCurrentDashboard();
+            }
+        }
+    });
+}
+
 function onComponentEdited() {
     const $button = $(this);
     const {row, component} = getComponentFromTooltipButton($button);
@@ -641,7 +713,7 @@ function onComponentDeleted() {
     const $component = $button.closest('.dashboard-component');
 
     const {row, component} = getComponentFromTooltipButton($button);
-    if (component) {
+    if(component) {
         const columnIndex = convertIndex(component.columnIndex);
         const cellIndex = convertIndex(component.cellIndex);
 
@@ -655,7 +727,7 @@ function onComponentDeleted() {
                 && (component.cellIndex === cellIndex)
             ));
 
-        if (indexOfComponentToDelete !== -1) {
+        if(indexOfComponentToDelete !== -1) {
             row.components.splice(indexOfComponentToDelete, 1);
         }
 
@@ -681,11 +753,10 @@ function openModalComponentTypeFirstStep($button, isSplitCell = false) {
 
     const $componentButtonsInSplitCell = $modalComponentTypeFirstStep.find('[data-component-in-split-cell="0"]');
     const $componentButtonsHint = $componentButtonsInSplitCell.siblings('.points');
-    if (isSplitCell) {
+    if(isSplitCell) {
         $componentButtonsInSplitCell.addClass('d-none');
         $componentButtonsHint.addClass('d-none');
-    }
-    else {
+    } else {
         $componentButtonsInSplitCell.removeClass('d-none');
         $componentButtonsHint.removeClass('d-none');
     }
@@ -868,10 +939,9 @@ function editComponent(rowIndex, columnIndex, cellIndex, {config, type, meterKey
             .find(`.dashboard-row[data-row-index="${rowIndex}"]`)
             .find(`.dashboard-component[data-column-index="${columnIndex}"]`);
 
-        if (cellIndex === null) {
+        if(cellIndex === null) {
             $currentComponent = $currentComponent.filter(`:not([data-cell-index])`);
-        }
-        else {
+        } else {
             $currentComponent = $currentComponent.filter(`[data-cell-index="${cellIndex}"]`);
         }
 
@@ -889,7 +959,7 @@ function initSecondStep(html) {
     $modalComponentTypeSecondStepContent.html(html);
 
     const $entitySelect = $modalComponentTypeSecondStepContent.find('select[name="entity"].init-entity-change');
-    if ($entitySelect.length > 0) {
+    if($entitySelect.length > 0) {
         onEntityChange($entitySelect, true);
     }
 
@@ -919,17 +989,17 @@ function initSecondStep(html) {
 
 function getRowComponent(row, columnIndex, cellIndex = null) {
     cellIndex = convertIndex(cellIndex);
-    if (row
+    if(row
         && columnIndex < row.size
         && row.components
         && Array.isArray(row.components)) {
         let component;
-        for(let currentIndex = 0; currentIndex < row.components.length; currentIndex++){
+        for(let currentIndex = 0; currentIndex < row.components.length; currentIndex++) {
             const currentComponent = row.components[currentIndex];
-            if (currentComponent) {
+            if(currentComponent) {
                 const {columnIndex: currentColumnIndex, cellIndex: currentCellIndex} = currentComponent;
                 // noinspection EqualityComparisonWithCoercionJS
-                if (currentColumnIndex == columnIndex
+                if(currentColumnIndex == columnIndex
                     && currentCellIndex == cellIndex) {
                     component = currentComponent;
                     break;
@@ -937,8 +1007,7 @@ function getRowComponent(row, columnIndex, cellIndex = null) {
             }
         }
         return component;
-    }
-    else {
+    } else {
         return undefined;
     }
 }
@@ -946,26 +1015,26 @@ function getRowComponent(row, columnIndex, cellIndex = null) {
 function getRowComponentsGroupedByColumn(row) {
     const size = row.size || 0;
     const res = new Array(size);
-    for (let columnIndex = 0; columnIndex < size; columnIndex++) {
+    for(let columnIndex = 0; columnIndex < size; columnIndex++) {
         res[columnIndex] = [];
 
-        for (let cellIndex = 0; cellIndex < MAX_COMPONENTS_IN_CELL; cellIndex++) {
+        for(let cellIndex = 0; cellIndex < MAX_COMPONENTS_IN_CELL; cellIndex++) {
             const component = getRowComponent(row, columnIndex, cellIndex);
-            if (component) {
+            if(component) {
                 res[columnIndex][cellIndex] = component;
             }
         }
 
         // if cell was not split we check if a component existing in
-        if (res[columnIndex].length === 0) {
+        if(res[columnIndex].length === 0) {
             const uniqueComponent = getRowComponent(row, columnIndex);
-            if (uniqueComponent) {
+            if(uniqueComponent) {
                 res[columnIndex][0] = uniqueComponent;
             }
         }
 
         // wee add an empty component
-        if (res[columnIndex].length === 0
+        if(res[columnIndex].length === 0
             || (
                 res[columnIndex].length === 1
                 && res[columnIndex][0].cellIndex !== null
@@ -1084,7 +1153,7 @@ function addEntryTimeInterval($button, time = null, notEmptySegment = false) {
         const lastSegmentLabel = $('.segment-container label').last().text();
 
         if(!lastSegmentHourEndValue) {
-            showBSAlert('Le <strong>' + lastSegmentLabel.toLowerCase() + '</strong> doit contenir une valeur de fin' , 'danger');
+            showBSAlert('Le <strong>' + lastSegmentLabel.toLowerCase() + '</strong> doit contenir une valeur de fin', 'danger');
             return false;
         }
     }
@@ -1211,18 +1280,18 @@ function onEntityChange($select, onInit = false) {
     $otherTypes.prop('disabled', true);
     $otherStatuses.prop('disabled', true);
 
-    if (!onInit) {
+    if(!onInit) {
         $selectType.val(null);
         $selectStatus.val(null);
 
-        if (!disabledSelect) {
+        if(!disabledSelect) {
             $correspondingTypes.prop('disabled', false);
             $correspondingStatuses.prop('disabled', false);
 
-            if ($correspondingTypes.length === 1) {
+            if($correspondingTypes.length === 1) {
                 $selectType.val($correspondingTypes[0].value);
             }
-            if ($correspondingStatuses.length === 1) {
+            if($correspondingStatuses.length === 1) {
                 $selectStatus.val($correspondingStatuses[0].value);
             }
         }
