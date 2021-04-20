@@ -7,7 +7,7 @@
     {% set startDate = dispatch.startDate %}
     {% set endDate = dispatch.endDate %}
     {% set startDateStr = startDate ? startDate.format('d/m/Y') : '-' %}
-    {% set endDateStr = endDate ? startDate.format('d/m/Y') : '-' %}
+    {% set endDateStr = endDate ? endDate.format('d/m/Y') : '-' %}
     {% set emergency = dispatch.emergency ?? 'Non' %}
     {% set receivers = dispatch.receivers ? dispatch.receivers|map(receiver => receiver.username)|join(", ") : '' %}
     {% set comment = dispatch.commentaire ? dispatch.commentaire|raw : '' %}
