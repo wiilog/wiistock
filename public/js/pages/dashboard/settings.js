@@ -902,6 +902,7 @@ function processSecondModalForm($modal) {
             };
         }
     });
+    console.log(processFormResult);
     const data = processFormResult.data;
     const remaining = Object.assign({}, processFormResult);
     delete remaining.data;
@@ -984,6 +985,35 @@ function initSecondStep(html) {
         } else {
             addEntryTimeInterval($segmentsList.find('.add-time-interval'));
         }
+    }
+
+
+    const $preview = $modalComponentTypeSecondStep.find('.preview-component-image');
+    const $input = $modalComponentTypeSecondStep.find('.upload-component-image');
+    if($preview.exists()) {
+        if ($modalComponentTypeSecondStep.find('.logo-icon > img').attr('src')) {
+            $modalComponentTypeSecondStep.find('img').addClass('d-none');
+            $modalComponentTypeSecondStep.find('.delete-logo').addClass('d-none');
+        }
+
+        $modalComponentTypeSecondStep.find(`.choose-image`).click(function() {
+            $input.click();
+        })
+
+        $input.change(async function() {
+            if(this.files.length >= 1 && this.files[0]) {
+                const reader = new FileReader();
+                reader.readAsDataURL(this.files[0]);
+                reader.onload = () =>  {
+                    console.log("ok :)");
+                    $modalComponentTypeSecondStep.find(`.external-image-content`)
+                        .val(reader.result)
+                        .trigger(`change`);
+                };
+            }
+        });
+
+        updateImagePreview($preview, $input);
     }
 }
 

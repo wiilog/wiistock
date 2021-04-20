@@ -145,6 +145,12 @@ $rowNumberToDatatableHeight: (
     }
 }
 
+.dashboard-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .dashboard-component {
     position: relative;
     border-radius: 8px;

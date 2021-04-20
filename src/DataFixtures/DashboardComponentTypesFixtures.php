@@ -17,6 +17,15 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
     private $output;
 
     private const COMPONENT_TYPES = [
+        'Image externe' => [
+            'hint' => 'Image statique',
+            'exampleValues' => [
+                'url' => '/img/mobile_logo_header.svg',
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_OTHER,
+            'template' => Dashboard\ComponentType::EXTERNAL_IMAGE,
+            'meterKey' => Dashboard\ComponentType::EXTERNAL_IMAGE,
+        ],
         'Quantité en cours sur n emplacement(s)' => [
             'hint' => 'Nombre de colis en encours sur les emplacements sélectionnés',
             'exampleValues' => [

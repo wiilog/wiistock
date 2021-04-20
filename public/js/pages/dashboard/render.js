@@ -24,6 +24,7 @@ const MONETARY_RELIABILITY_INDICATOR = 'monetary_reliability_indicator';
 const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
 const REFERENCE_RELIABILITY = 'reference_reliability';
 const DAILY_DISPATCHES = 'daily_dispatches';
+const EXTERNAL_IMAGE = 'external_image';
 
 $(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -108,6 +109,9 @@ const creators = {
     },
     [REFERENCE_RELIABILITY]: {
         callback: createIndicatorElement
+    },
+    [EXTERNAL_IMAGE]: {
+        callback: createExternalImage
     },
 };
 
@@ -422,7 +426,6 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
 
     const title = data.title || "";
 
-
     const pagination = hasRangeButton
         ? `
             <div class="range-buttons">
@@ -486,7 +489,7 @@ function createCarrierTrackingElement(data) {
  * @param {undefined|string} customContainerClass
  * @return {boolean|jQuery}
  */
-function createIndicatorElement(data, {meterKey, customContainerClass}, redefinedNumberingConfig = null) { // TODO
+function createIndicatorElement(data, {meterKey, customContainerClass}, redefinedNumberingConfig = null) {
     if(!data || data.count === undefined) {
         console.error('Invalid data for ' + (meterKey || '-').replaceAll('_', ' ') + ' element.');
         return false;
@@ -568,6 +571,26 @@ function createIndicatorElement(data, {meterKey, customContainerClass}, redefine
                 )))
         ].filter(Boolean)
     }, customAttributes));
+}
+
+function createExternalImage(data, config) {
+    if(!data) {
+        console.error('Invalid data for external image element.');
+        return false;
+    }
+
+    let url;
+    if(config.component.config) {
+        url = config.component.config.url;
+    } else {
+        url = '/img/mobile_logo_header.svg';
+    }
+
+    return $(`
+        <div ${generateAttributes(data, 'dashboard-box dashboard-image-container')}>
+            <img src="${url}" style="width:100%;height:auto;max-height:100%;object-fit: contain;" alt="Composant image">
+        </div>
+    `);
 }
 
 
