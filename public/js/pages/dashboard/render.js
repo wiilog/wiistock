@@ -185,28 +185,30 @@ function createTooltip(text) {
 }
 
 function createPendingRequests(data, {rowSize}) {
-    const title = data.title || "";
     const numberingConfig = {numbering: 0};
 
     let content = ``;
+    let renderNumberingOnce = true;
+    let numberedTitle = data.title ? (incrementNumbering(numberingConfig) + data.title) : '';
     for(let request of data.requests) {
-        content += renderRequest(request, rowSize);
+        content += renderRequest(request, rowSize, renderNumberingOnce ? numberingConfig : undefined);
+        renderNumberingOnce = false;
     }
 
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container h-100')}>
             <div class="title">
-                ${incrementNumbering(numberingConfig) + title}
+                ${numberedTitle}
             </div>
             ${createTooltip(data.tooltip)}
             <div class="d-flex row no-gutters h-100 overflow-auto overflow-x-hidden pending-request-wrapper">
-                ${incrementNumbering(numberingConfig) + content}
+                ${content}
             </div>
         </div>
     `);
 }
 
-function renderRequest(request, rowSize) {
+function renderRequest(request, rowSize, redefinedNumberingConfig) {
     let onCardClick = ``;
     if(!request.href && request.errorMessage) {
         onCardClick = `showBSAlert('${request.errorMessage}', 'danger'); event.preventDefault()`;
@@ -240,8 +242,8 @@ function renderRequest(request, rowSize) {
                 <div class="wii-card-header">
                     <div class="row">
                         <div class="col-10 mb-2">
-                            <p class="mb-2 small">${request.estimatedFinishTimeLabel}</p>
-                            <strong>${request.estimatedFinishTime}</strong>
+                            <p class="mb-2 small">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.estimatedFinishTimeLabel}</p>
+                            <strong>${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.estimatedFinishTime}</strong>
                         </div>
                         <div class="col-2 d-flex justify-content-end align-items-start">
                             ${request.emergencyText} ${topRightIcon}
@@ -258,21 +260,21 @@ function renderRequest(request, rowSize) {
                             </div>
                         </div>
                         <div class="col-12">
-                            <p>${$.capitalize(request.requestStatus)}</p>
+                            <p>${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + $.capitalize(request.requestStatus)}</p>
                         </div>
                     </div>
                 </div>
                 <div class="wii-card-body p-2">
                     <div class="row">
                         <div class="col-12 card-title text-center">
-                            <strong>${request.requestBodyTitle}</strong>
+                            <strong>${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestBodyTitle}</strong>
                         </div>
                         <div class="col-12">
                             <div class="w-100 d-inline-flex justify-content-center">
                                 <strong class="card-title m-0 mr-2">
                                     <i class="fa fa-map-marker-alt "></i>
                                 </strong>
-                                <strong class="ellipsis">${request.requestLocation}</strong>
+                                <strong class="ellipsis">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestLocation}</strong>
                             </div>
                         </div>
                     </div>
@@ -280,12 +282,12 @@ function renderRequest(request, rowSize) {
                 <div class="wii-card-footer">
                     <div class="row align-items-end">
                         <div class="col-6 text-left ellipsis">
-                            <span class="bold">${request.requestNumber}</span><br/>
-                            <span class="text-secondary">${request.requestDate}</span>
+                            <span class="bold">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestNumber}</span><br/>
+                            <span class="text-secondary">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestDate}</span>
                         </div>
                         <div class="col-6 text-right ellipsis">
                             <div class="profile-picture" style="background-color: #EEE">${requestUserFirstLetter}</div>
-                            <span class="bold">${request.requestUser}</span>
+                            <span class="bold">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestUser}</span>
                         </div>
                     </div>
                 </div>
@@ -484,7 +486,7 @@ function createCarrierTrackingElement(data) {
  * @param {undefined|string} customContainerClass
  * @return {boolean|jQuery}
  */
-function createIndicatorElement(data, {meterKey, customContainerClass}, redefinedNumberingConfig = null) {
+function createIndicatorElement(data, {meterKey, customContainerClass}, redefinedNumberingConfig = null) { // TODO
     if(!data || data.count === undefined) {
         console.error('Invalid data for ' + (meterKey || '-').replaceAll('_', ' ') + ' element.');
         return false;
@@ -926,7 +928,7 @@ function updateMultipleChartData(chart, data) {
 }
 
 function incrementNumbering(numberingConfig) {
-    if($('.component-example-container').length > 0) {
+    if($('#modalComponentTypeSecondStep').hasClass('show')) {
         numberingConfig.numbering += 1;
         return '<sup>(' + numberingConfig.numbering + ')</sup>';
     } else {

@@ -452,10 +452,15 @@ $rowNumberToDatatableHeight: (
     top: 10px;
 
     .card-header {
-        padding: 5px;
+        padding: 0px;
     }
 
     .card-body {
-        padding: 5px;
+        padding: 0px;
+    }
+
+    .toggle-collapsible::before {
+        padding-left: 8px;
+        padding-top: 4px;
     }
 }
