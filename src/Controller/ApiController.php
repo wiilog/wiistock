@@ -57,6 +57,7 @@ use App\Service\OrdreCollecteService;
 use App\Service\TransferOrderService;
 use App\Service\UserService;
 use App\Service\FreeFieldService;
+use DateTimeInterface;
 use DateTimeZone;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -243,7 +244,7 @@ class ApiController extends AbstractFOSRestController
 
                         $dateArray = explode('_', $mvt['date']);
 
-                        $date = DateTime::createFromFormat(DateTime::ATOM, $dateArray[0], new DateTimeZone('Europe/Paris'));
+                        $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0], new DateTimeZone('Europe/Paris'));
 
                         // set mouvement de stock
                         if (isset($mvt['fromStock']) && $mvt['fromStock']) {

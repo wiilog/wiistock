@@ -398,6 +398,13 @@ $rowNumberToDatatableHeight: (
         min-height: 250px;
     }
 
+    sup {
+        font-size: 10px !important;
+        color: black !important;
+        font-weight: 100 !important;
+        margin-right: 2px;
+    }
+
     .dashboard-box {
         min-width: 250px;
     }
@@ -437,4 +444,18 @@ $rowNumberToDatatableHeight: (
 
 .select2-container--default .select2-results__option[aria-disabled=true] {
     display: none;
+}
+
+.customization-tools {
+    position: absolute;
+    right: 150px;
+    top: 10px;
+
+    .card-header {
+        padding: 5px;
+    }
+
+    .card-body {
+        padding: 5px;
+    }
 }

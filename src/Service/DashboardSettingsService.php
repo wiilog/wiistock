@@ -130,6 +130,10 @@ class DashboardSettingsService {
             $values['tooltip'] = $config['tooltip'];
         }
 
+        if (!empty($config['backgroundColor'])/* && ($componentType->getMeterKey() !== Dashboard\ComponentType::EXTERNAL_IMAGE)*/) { // TODO uncomment when external image component is done
+            $values['backgroundColor'] = $config['backgroundColor'];
+        }
+
         $redirect = $config['redirect'] ?? false;
 
         if (!$example && $redirect) {
@@ -200,6 +204,13 @@ class DashboardSettingsService {
                                               ?int $mode): array {
         if ($mode === self::MODE_EDIT) {
             $values = $componentType->getExampleValues();
+            if(isset($config['cardBackgroundColor']) && $config['cardBackgroundColor'] !== '#ffffff') {
+                foreach ($values as &$requests) {
+                    foreach ($requests as &$request) {
+                        $request['cardBackgroundColor'] = $config['cardBackgroundColor'];
+                    }
+                }
+            }
         } else {
             $loggedUser = $config["shown"] === Dashboard\ComponentType::REQUESTS_SELF ? $this->userService->getUser() : null;
             $averageRequestTimeRepository = $entityManager->getRepository(AverageRequestTime::class);
@@ -227,9 +238,10 @@ class DashboardSettingsService {
             if ($config["kind"] == "collect" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)))) {
                 $collecteRepository = $entityManager->getRepository(Collecte::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
+                    $backgroundColor = $config['backgroundColor'] ?? '';
                     $pendingCollects = Stream::from($collecteRepository->findRequestToTreatByUser($loggedUser, 50))
-                        ->map(function(Collecte $collecte) use ($averageRequestTimesByType) {
-                            return $this->demandeCollecteService->parseRequestForCard($collecte, $this->dateService, $averageRequestTimesByType);
+                        ->map(function(Collecte $collecte) use ($averageRequestTimesByType, $backgroundColor) {
+                            return $this->demandeCollecteService->parseRequestForCard($collecte, $this->dateService, $averageRequestTimesByType, $backgroundColor);
                         })
                         ->toArray();
                 }
@@ -896,5 +908,4 @@ class DashboardSettingsService {
 
         return $link;
     }
-
 }

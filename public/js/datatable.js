@@ -193,8 +193,8 @@ function overrideSearch($input, table, callback = null) {
     $input.attr('placeholder', 'Entrée pour valider');
 }
 
-function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $tableDom}) {
-    let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
+function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $table}) {
+    let $searchInputContainer = $table.parents('.dataTables_wrapper ').find('.dataTables_filter');
     let $searchInput = $searchInputContainer.find('input');
 
     if (needsSearchOverride && $searchInput.length > 0) {
@@ -236,7 +236,7 @@ function moveSearchInputToHeader($searchInputContainer) {
     }
 }
 
-function initDataTable(dtId, options) {
+function initDataTable($table, options) {
     const domConfig = options.domConfig;
     const rowConfig = options.rowConfig;
     const drawConfig = options.drawConfig;
@@ -286,14 +286,14 @@ function initDataTable(dtId, options) {
     }
 
     let datatableToReturn = null;
-    let $tableDom = $('#' + dtId);
-    $tableDom
+    $table = typeof $table === 'string' ? $('#' + $table) : $table;
+    $table
         .addClass('wii-table')
         .addClass('w-100');
 
-    datatableToReturn = $tableDom
+    datatableToReturn = $table
         .on('error.dt', function (e, settings, techNote, message) {
-            console.log('An error has been reported by DataTables: ', message, e, dtId);
+            console.log('An error has been reported by DataTables: ', message, e, $table.attr('id'));
         })
         .DataTable(Object.assign({
             fixedColumns:   {
@@ -311,17 +311,17 @@ function initDataTable(dtId, options) {
                 datatableDrawCallback(Object.assign({
                     table: datatableToReturn,
                     response,
-                    $tableDom
+                    $table
                 }, drawConfig || {}));
             },
             initComplete: () => {
-                let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
+                let $searchInputContainer = $table.parents('.dataTables_wrapper').find('.dataTables_filter');
                 moveSearchInputToHeader($searchInputContainer);
                 tableCallback(hideColumnConfig || {}, datatableToReturn);
                 if (initCompleteCallback) {
                     initCompleteCallback();
                 }
-                attachDropdownToBodyOnDropdownOpening($tableDom);
+                attachDropdownToBodyOnDropdownOpening($table);
             }
         }, config));
     return datatableToReturn;

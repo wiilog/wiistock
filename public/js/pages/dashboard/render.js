@@ -163,6 +163,12 @@ function renderComponent(component, $container, data) {
     }
 }
 
+function generateAttributes(data, classes) {
+    const background = data.backgroundColor ? `background-color:${data.backgroundColor}!important;` : ``;
+
+    return `class="${classes}" style="${background}"`
+}
+
 function createTooltip(text) {
     const trimmedText = (text || "").trim();
     if (mode === MODE_EDIT
@@ -180,6 +186,7 @@ function createTooltip(text) {
 
 function createPendingRequests(data, {rowSize}) {
     const title = data.title || "";
+    const numberingConfig = {numbering: 0};
 
     let content = ``;
     for(let request of data.requests) {
@@ -187,13 +194,13 @@ function createPendingRequests(data, {rowSize}) {
     }
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container h-100">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container h-100')}>
             <div class="title">
-                ${title}
+                ${incrementNumbering(numberingConfig) + title}
             </div>
             ${createTooltip(data.tooltip)}
             <div class="d-flex row no-gutters h-100 overflow-auto overflow-x-hidden pending-request-wrapper">
-                ${content}
+                ${incrementNumbering(numberingConfig) + content}
             </div>
         </div>
     `);
@@ -229,7 +236,7 @@ function renderRequest(request, rowSize) {
 
     return `
         <div class="d-flex ${cardSize} p-1">
-            <a class="card wii-card request-card pointer p-3 my-2 shadow-sm flex-grow-1 ${cursor} bg-${request.cardColor}" ${link}>
+            <a class="card wii-card request-card pointer p-3 my-2 shadow-sm flex-grow-1 ${cursor} bg-${request.cardColor}" ${link} style="${request.cardBackgroundColor ? ('background-color:' + request.cardBackgroundColor + '!important') : ''}">
                 <div class="wii-card-header">
                     <div class="row">
                         <div class="col-10 mb-2">
@@ -292,8 +299,8 @@ function createEntriesToHandleElement(data, {meterKey}) {
         console.error(`Invalid data for entries element.`);
         return false;
     }
-
-    const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'});
+    const numberingConfig = {numbering: 0};
+    const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'}, true, numberingConfig);
     const $firstComponent = $('<div/>', {
         class: `w-100 pb-1 flex-fill dashboard-component h-100 mx-0 mt-0`,
         html: createIndicatorElement(
@@ -301,12 +308,14 @@ function createEntriesToHandleElement(data, {meterKey}) {
                 title: 'Nombre de lignes à traiter',
                 tooltip: data.linesCountTooltip,
                 count: data.count,
-                componentLink: data.componentLink
+                componentLink: data.componentLink,
+                backgroundColor: data.backgroundColor ?? undefined
             },
             {
                 meterKey,
                 customContainerClass: 'overflow-hidden'
-            }
+            },
+            numberingConfig
         )
     });
     const $secondComponent = $('<div/>', {
@@ -316,12 +325,14 @@ function createEntriesToHandleElement(data, {meterKey}) {
                 title: 'Prochain emplacement à traiter',
                 tooltip: data.nextLocationTooltip,
                 count: data.nextLocation,
-                componentLink: data.componentLink
+                componentLink: data.componentLink,
+                backgroundColor: data.backgroundColor ?? undefined
             },
             {
                 meterKey,
                 customContainerClass: 'overflow-hidden'
-            }
+            },
+            numberingConfig
         )
     });
 
@@ -370,11 +381,12 @@ function createLatePacksElement(data) {
         return false;
     }
     const title = data.title || "";
+    const numberingConfig = {numbering: 0};
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
-                ${title}
+                ${incrementNumbering(numberingConfig) + title}
             </div>
             ${createTooltip(data.tooltip)}
             <table class="table display retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
@@ -393,7 +405,7 @@ function calculateChartsFontSize() {
  * @param {{route: string|null, variable: string|null}} pagination
  * @return {boolean|jQuery}
  */
-function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass: null, hideRange: false}) {
+function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass: null, hideRange: false}, redefinedNumbering = false, redefinedNumberingConfig = null) {
     if(!data) {
         console.error(`Invalid data for "${data.title}"`);
         return false;
@@ -404,6 +416,7 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
     const dashboardBoxContainerClass = hasRangeButton
         ? 'dashboard-box-container-title-content'
         : 'dashboard-box-container-title-content-rangeButton';
+    const numberingConfig = {numbering: 0};
 
     const title = data.title || "";
 
@@ -427,9 +440,9 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
 
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container ${dashboardBoxContainerClass}">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container' + dashboardBoxContainerClass)}>
             <div class="title">
-                ${title.split('(')[0]}
+                ${(!redefinedNumbering ? incrementNumbering(numberingConfig) : incrementNumbering(redefinedNumberingConfig)) + title.split('(')[0]}
             </div>
             ${createTooltip(data.tooltip)}
             <div class="flex-fill content">
@@ -452,14 +465,15 @@ function createCarrierTrackingElement(data) {
 
     const carriers = Array.isArray(data.carriers) ? data.carriers.join(', ') : data.carriers;
     const title = data.title || "";
+    const numberingConfig = {numbering: 0};
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
-                ${title}
+                ${incrementNumbering(numberingConfig) + title}
             </div>
             ${createTooltip(data.tooltip)}
-            <h1>${carriers}</h1>
+            <h1>${incrementNumbering(numberingConfig) + carriers}</h1>
         </div>
     `);
 }
@@ -470,7 +484,7 @@ function createCarrierTrackingElement(data) {
  * @param {undefined|string} customContainerClass
  * @return {boolean|jQuery}
  */
-function createIndicatorElement(data, {meterKey, customContainerClass}) {
+function createIndicatorElement(data, {meterKey, customContainerClass}, redefinedNumberingConfig = null) {
     if(!data || data.count === undefined) {
         console.error('Invalid data for ' + (meterKey || '-').replaceAll('_', ' ') + ' element.');
         return false;
@@ -478,7 +492,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
 
     customContainerClass = customContainerClass || '';
 
-    const {title, subtitle, tooltip, count, delay, componentLink, emergency, subCounts} = data;
+    const {title, subtitle, tooltip, count, delay, componentLink, emergency, subCounts, backgroundColor} = data;
     const element = componentLink ? '<a/>' : '<div/>';
     const customAttributes = componentLink
         ? {
@@ -489,9 +503,11 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
     const clickableClass = componentLink ? 'pointer' : '';
     const needsEmergencyDisplay = emergency && count > 0;
     const $emergencyIcon = needsEmergencyDisplay ? '<i class="fa fa-exclamation-triangle red"></i>' : '';
-
+    const numberingConfig = {numbering: 0};
+    const smartNumberingConfig = redefinedNumberingConfig ? redefinedNumberingConfig : numberingConfig
     return $(element, Object.assign({
         class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
+        style: `${backgroundColor ? 'background-color:' + backgroundColor : ''}`,
         html: [
             createTooltip(tooltip),
             title
@@ -499,36 +515,45 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
                     class: `text-center title ${meterKey === ENTRIES_TO_HANDLE ? '' : 'ellipsis'}`,
                     html: [
                         $emergencyIcon,
-                        `<span class="title ${needsEmergencyDisplay ? 'mx-3' : ''}">${title.split('(')[0]}</span>`,
+                        `<span class="title ${needsEmergencyDisplay
+                            ? 'mx-3'
+                            : ''}">
+                        ${incrementNumbering(smartNumberingConfig)}${title.split('(')[0]}</span>`,
                         $emergencyIcon,
-                        `<p class="small ellipsis location-label">${subtitle || ''}</p>`
+                        `<p class="small ellipsis location-label">${subtitle
+                            ? incrementNumbering(smartNumberingConfig) + subtitle
+                            : ''}
+                        </p>`
                     ]
                 })
                 : undefined,
             subtitle && !title
                 ? $('<div/>', {
                     class: 'location-label ellipsis small',
-                    text: subtitle
+                    html: incrementNumbering(smartNumberingConfig) + subtitle
                 })
                 : undefined,
             count !== undefined
                 ? $('<div/>', {
                     class: `align-items-center`,
-                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter ${needsEmergencyDisplay ? 'red' : ''}">${(count || count === '0' || count === 0) ? count : '-'}</div>`
+                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter ${needsEmergencyDisplay ? 'red' : ''}">
+                        ${((count || count === '0' || count === 0) ? incrementNumbering(smartNumberingConfig) + count : '-')}</div>`
                 })
                 : undefined,
             delay
                 ? $('<div/>', {
                     class: `text-center title dashboard-stats-delay-title ${delay < 0 ? 'red' : ''}`,
-                    text: delay < 0
-                        ? 'Retard : '
-                        : 'A traiter sous :'
+                    html: delay < 0
+                        ? incrementNumbering(smartNumberingConfig) + 'Retard : '
+                        : incrementNumbering(smartNumberingConfig) + 'A traiter sous :'
                 })
                 : undefined,
             delay
                 ? $('<div/>', {
                     class: `${clickableClass} dashboard-stats dashboard-stats-delay ${delay < 0 ? 'red' : ''}`,
-                    text: !isNaN(Math.abs(delay)) ? renderMillisecondsToDelay(Math.abs(delay), 'display') : delay
+                    html: !isNaN(Math.abs(delay))
+                        ? (incrementNumbering(smartNumberingConfig) + renderMillisecondsToDelay(Math.abs(delay), 'display'))
+                        : (incrementNumbering(smartNumberingConfig) + delay)
                 })
                 : undefined,
             ...((subCounts || [])
@@ -536,7 +561,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
                 .map((subCount) => (
                     $('<div/>', {
                         class: `${clickableClass} dashboard-stats`,
-                        html: subCount || ''
+                        html: subCount ? incrementNumbering(smartNumberingConfig) + subCount : ''
                     })
                 )))
         ].filter(Boolean)
@@ -898,4 +923,13 @@ function updateMultipleChartData(chart, data) {
         }
     }
     chart.update();
+}
+
+function incrementNumbering(numberingConfig) {
+    if($('.component-example-container').length > 0) {
+        numberingConfig.numbering += 1;
+        return '<sup>(' + numberingConfig.numbering + ')</sup>';
+    } else {
+        return '';
+    }
 }

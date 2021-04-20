@@ -273,7 +273,8 @@ class DemandeCollecteService
      */
     public function parseRequestForCard(Collecte $request,
                                         DateService $dateService,
-                                        array $averageRequestTimesByType) {
+                                        array $averageRequestTimesByType,
+                                        string $backgroundColor) {
 
         $requestStatus = $request->getStatut() ? $request->getStatut()->getNom() : '';
         $requestType = $request->getType() ? $request->getType()->getLabel() : '';
@@ -350,6 +351,7 @@ class DemandeCollecteService
             'progress' => $statusesToProgress[$requestStatus] ?? 0,
             'progressBarColor' => '#2ec2ab',
             'progressBarBGColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'white' : 'lightGrey',
+            'backgroundColor' => $backgroundColor
         ];
     }
 }
