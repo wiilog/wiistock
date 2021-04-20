@@ -358,7 +358,11 @@ $rowNumberToDatatableHeight: (
                 &.dashboard-stats-counter {
                     font-size: 5vw;
                 }
+                &.dashboard-stats-delay {
+                    font-size : 4vw
+                }
             }
+
         }
     }
 }
