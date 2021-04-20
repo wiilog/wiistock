@@ -213,7 +213,7 @@ class DashboardSettingsService {
                     return $carry;
                 }, []);
 
-            if ($config["kind"] == "delivery" && ($mode === self::MODE_EXTERNAL || $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR))) {
+            if ($config["kind"] == "delivery" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)))) {
                 $demandeRepository = $entityManager->getRepository(Demande::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingDeliveries = Stream::from($demandeRepository->findRequestToTreatByUser($loggedUser, 50))
@@ -224,7 +224,7 @@ class DashboardSettingsService {
                 }
             }
 
-            if ($config["kind"] == "collect" && ($mode === self::MODE_EXTERNAL || $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL))) {
+            if ($config["kind"] == "collect" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)))) {
                 $collecteRepository = $entityManager->getRepository(Collecte::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingCollects = Stream::from($collecteRepository->findRequestToTreatByUser($loggedUser, 50))
@@ -235,7 +235,7 @@ class DashboardSettingsService {
                 }
             }
 
-            if ($config["kind"] == "handling" && ($mode === self::MODE_EXTERNAL || $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND))) {
+            if ($config["kind"] == "handling" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND)))) {
                 $handlingRepository = $entityManager->getRepository(Handling::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingHandlings = Stream::from($handlingRepository->findRequestToTreatByUser($loggedUser, 50))
@@ -246,7 +246,7 @@ class DashboardSettingsService {
                 }
             }
 
-            if ($config["kind"] == "transfer" && ($mode === self::MODE_EXTERNAL || $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ))) {
+            if ($config["kind"] == "transfer" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)))) {
                 $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingTransfers = Stream::from($transferRequestRepository->findRequestToTreatByUser($loggedUser, 50))
@@ -256,7 +256,7 @@ class DashboardSettingsService {
                         ->toArray();
                 }
             }
-            if ($config["kind"] == "dispatch" && ($mode === self::MODE_EXTERNAL || $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE))) {
+            if ($config["kind"] == "dispatch" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)))) {
                 $dispatchRepository = $entityManager->getRepository(Dispatch::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUser($loggedUser, 50))
