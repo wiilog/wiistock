@@ -1074,7 +1074,6 @@ function updateImagePreview(preview, upload) {
     let $upload = $(upload)[0];
 
     $(upload).change(() => {
-        console.log("hello :)");
         if ($upload.files && $upload.files[0]) {
             let fileNameWithExtension = $upload.files[0].name.split('.');
             let extension = fileNameWithExtension[fileNameWithExtension.length - 1];

@@ -902,7 +902,6 @@ function processSecondModalForm($modal) {
             };
         }
     });
-    console.log(processFormResult);
     const data = processFormResult.data;
     const remaining = Object.assign({}, processFormResult);
     delete remaining.data;
@@ -1005,7 +1004,6 @@ function initSecondStep(html) {
                 const reader = new FileReader();
                 reader.readAsDataURL(this.files[0]);
                 reader.onload = () =>  {
-                    console.log("ok :)");
                     $modalComponentTypeSecondStep.find(`.external-image-content`)
                         .val(reader.result)
                         .trigger(`change`);
