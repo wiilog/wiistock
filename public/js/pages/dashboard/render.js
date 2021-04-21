@@ -355,7 +355,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
                 html: $graph
             }),
             $('<div/>', {
-                class: 'col-12 col-lg-3 pl-lg-2 dashboard-component-column dashboard-component dashboard-component-split m-0',
+                class: 'col-12 col-lg-3 pl-lg-2 dashboard-component-column dashboard-component dashboard-component-split-horizontally m-0',
                 html: $('<div/>', {
                     class: 'h-100 d-flex flex-column',
                     html: [

@@ -42,6 +42,11 @@ class Component
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
+    private ?int $direction = null;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
     private ?int $cellIndex = null;
 
     /**
@@ -96,6 +101,18 @@ class Component
     public function setColumnIndex(int $columnIndex): self
     {
         $this->columnIndex = $columnIndex;
+
+        return $this;
+    }
+
+    public function getDirection(): ?int
+    {
+        return $this->direction;
+    }
+
+    public function setDirection(?int $direction): self
+    {
+        $this->direction = $direction;
 
         return $this;
     }

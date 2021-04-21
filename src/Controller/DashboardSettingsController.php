@@ -298,6 +298,7 @@ class DashboardSettingsController extends AbstractController {
                     'templateName' => $templateName,
                     'rowIndex' => $request->request->get('rowIndex'),
                     'columnIndex' => $request->request->get('columnIndex'),
+                    'direction' => $request->request->get('direction'),
                     'cellIndex' => $request->request->get('cellIndex'),
                     'arrivalTypes' => $arrivalTypes,
                     'handlingTypes' => $handlingTypes,

@@ -9,6 +9,10 @@ $rowNumberToDatatableHeight: (
     4: 8vh
 );
 
+.dashboard-button {
+    line-height: normal;
+}
+
 .refresh-date {
     &.display {
         position: fixed;
@@ -168,9 +172,9 @@ $rowNumberToDatatableHeight: (
         margin-left: map-get($spacers, 2);
         margin-right: map-get($spacers, 2);
 
-        &.dashboard-component-split {
-            flex-direction: column;
+        &.dashboard-component-split-horizontally {
             display: flex;
+            flex-direction: column;
 
             & > .dashboard-component {
                 margin-left: 0;
@@ -180,6 +184,21 @@ $rowNumberToDatatableHeight: (
             }
             &> .dashboard-component:not(:last-child) {
                 margin-bottom: 10px;
+            }
+        }
+
+        &.dashboard-component-split-vertically {
+            display: flex;
+            flex-direction: row;
+
+            & > .dashboard-component {
+                margin-top: 0;
+                margin-bottom: 0;
+                flex: 1 1 50%;
+                width: 50%;
+            }
+            &> .dashboard-component:not(:last-child) {
+                margin-right: 10px;
             }
         }
 

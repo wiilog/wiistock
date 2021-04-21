@@ -261,9 +261,15 @@ function renderRow(row) {
             });
         } else {
             $component = createComponentContainer(columnIndex);
-            $component.addClass('dashboard-component-split');
+
             for(let cellIndex = 0; cellIndex < cellComponents.length; cellIndex++) {
                 const component = cellComponents[cellIndex];
+                if(component && component.direction === 0) {
+                    $component.addClass('dashboard-component-split-horizontally');
+                } else if(component && component.direction === 1) {
+                    $component.addClass('dashboard-component-split-vertically');
+                }
+
                 const $cardComponent = renderCardComponent({
                     component: $.deepCopy(component),
                     columnIndex,
@@ -279,7 +285,7 @@ function renderRow(row) {
     if(mode === MODE_EDIT) {
         $row.append(`
             <div class="action-row-container">
-                <div class="bg-white w-px-25 rounded">
+                <div class="bg-white w-px-30 rounded">
                     <i class="icon fa fa-trash ml-1 delete-row"></i>
                     <i class="icon fa fa-pen ml-1 edit-row"></i>
                 </div>
@@ -361,27 +367,34 @@ function renderCardComponent({columnIndex, cellIndex, component}) {
     } else {
         $componentContainer.addClass('empty');
         if(mode === MODE_EDIT) {
-            const isSplitCell = cellIndex !== null;
+            const isCellSplit = cellIndex !== null;
             const $addComponent = $('<button/>', {
-                class: 'btn btn-light',
+                class: 'btn btn-light dashboard-button',
                 name: 'add-component-button',
-                click: ({target} = {}) => openModalComponentTypeFirstStep($(target), isSplitCell),
+                click: ({target} = {}) => openModalComponentTypeFirstStep($(target), isCellSplit),
                 html: `<i class="fas fa-plus mr-2"></i> Ajouter un composant`
             });
 
-            const $splitCell = !isSplitCell
-                ? $('<button/>', {
-                    class: 'btn btn-light mt-2',
-                    click: splitCell,
-                    html: `<i class="fas fa-cut"></i> Diviser`,
-                })
-                : ``;
+            const $splitCells = [];
+            if(!isCellSplit) {
+                $splitCells.push($('<button/>', {
+                    class: 'btn btn-light split-cell mt-2 dashboard-button',
+                    click: splitCellHorizontally,
+                    html: `<i class="fas fa-cut"></i> Diviser en hauteur`,
+                }));
+
+                $splitCells.push($('<button/>', {
+                    class: 'btn btn-light split-cell mt-2 dashboard-button',
+                    click: splitCellVertically,
+                    html: `<i class="fas fa-cut"></i> Diviser en largeur`,
+                }));
+            }
 
             $componentContainer.html($('<div/>', {
                 class: 'd-flex flex-column align-content-center',
                 html: [
                     $addComponent,
-                    $splitCell,
+                    ...$splitCells,
                 ],
             }));
         }
@@ -770,6 +783,10 @@ function openModalComponentTypeFirstStep($button, isSplitCell = false) {
         .val($component.data(`cell-index`));
 
     $modalComponentTypeFirstStep
+        .find(`input[name="direction"]`)
+        .val($component.data(`direction`));
+
+    $modalComponentTypeFirstStep
         .find(`input[name="rowIndex"]`)
         .val($row.data(`row-index`));
 
@@ -782,6 +799,7 @@ function openModalComponentTypeNextStep($button) {
         const componentTypeId = $button.data('component-type-id');
         const $form = $button.closest('.form');
         const rowIndex = $form.find('[name="rowIndex"]').val();
+        const direction = $form.find('[name="direction"]').val();
         const columnIndex = $form.find('[name="columnIndex"]').val();
         const cellIndex = $form.find('[name="cellIndex"]').val();
         const componentTypeName = $button.data('component-type-name');
@@ -791,6 +809,7 @@ function openModalComponentTypeNextStep($button) {
         openModalComponentTypeSecondStep($button, rowIndex, {
             columnIndex,
             cellIndex,
+            direction,
             config: {
                 title: componentTypeName,
             },
@@ -806,6 +825,7 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
     const content = {
         rowIndex,
         columnIndex: component.columnIndex,
+        direction: component.direction,
         cellIndex: component.cellIndex,
         values: JSON.stringify(component.config || {})
     };
@@ -814,7 +834,8 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
         if(data.html) {
             initSecondStep(data.html);
         } else {
-            editComponent(convertIndex(rowIndex), convertIndex(component.columnIndex), convertIndex(component.cellIndex), {
+            //TODO: plus utilisé du coup ?
+            editComponent(convertIndex(rowIndex), convertIndex(component.columnIndex), component.direction, convertIndex(component.cellIndex), {
                 config: component.config,
                 type: component.type,
                 meterKey: component.meterKey,
@@ -838,6 +859,7 @@ function onComponentSaved($modal) {
         const columnIndex = data.columnIndex;
         const meterKey = data.meterKey;
         const componentType = data.componentType;
+        const direction = data.direction;
         const cellIndex = data.cellIndex;
         const template = data.template;
         const config = Object.assign({}, data);
@@ -848,7 +870,7 @@ function onComponentSaved($modal) {
         delete config.cellIndex;
         delete config.template;
 
-        editComponent(convertIndex(rowIndex), convertIndex(columnIndex), convertIndex(cellIndex), {
+        editComponent(convertIndex(rowIndex), convertIndex(columnIndex), direction, convertIndex(cellIndex), {
             config,
             type: componentType,
             meterKey,
@@ -913,7 +935,7 @@ function processSecondModalForm($modal) {
     return Object.assign({}, remaining, {data});
 }
 
-function editComponent(rowIndex, columnIndex, cellIndex, {config, type, meterKey, template = null}) {
+function editComponent(rowIndex, columnIndex, direction, cellIndex, {config, type, meterKey, template = null}) {
     const currentRow = getCurrentDashboardRow(rowIndex);
     cellIndex = convertIndex(cellIndex);
 
@@ -929,6 +951,7 @@ function editComponent(rowIndex, columnIndex, cellIndex, {config, type, meterKey
         }
 
         currentComponent.updated = true;
+        currentComponent.direction = direction;
         currentComponent.config = config;
         currentComponent.type = type;
         currentComponent.meterKey = meterKey;
@@ -1340,10 +1363,11 @@ function toggleTreatmentDelay($checkbox) {
     }
 }
 
-function splitCell() {
+function splitCellHorizontally() {
     const $button = $(this);
     const $componentContainer = $button.closest('.dashboard-component');
 
+    $button.siblings(`.split-cell`).remove();
     $button.remove();
     const $addComponentButton = $componentContainer.find('button[name="add-component-button"]');
     $addComponentButton.off('click');
@@ -1351,17 +1375,51 @@ function splitCell() {
 
     const $first = $componentContainer.clone(true);
     $first
+        .data('direction', 0)
+        .attr('data-direction', 0)
         .data('cell-index', 0)
         .attr('data-cell-index', 0);
 
     const $last = $componentContainer.clone(true);
     $last
+        .data('direction', 0)
+        .attr('data-direction', 0)
         .data('cell-index', 1)
         .attr('data-cell-index', 1);
 
     $componentContainer.html([$first, $last]);
     $componentContainer
-        .addClass('dashboard-component-split')
+        .addClass('dashboard-component-split-horizontally')
+        .removeClass('empty');
+}
+
+function splitCellVertically() {
+    const $button = $(this);
+    const $componentContainer = $button.closest('.dashboard-component');
+
+    $button.siblings(`.split-cell`).remove();
+    $button.remove();
+    const $addComponentButton = $componentContainer.find('button[name="add-component-button"]');
+    $addComponentButton.off('click');
+    $addComponentButton.on('click', ({target} = {}) => openModalComponentTypeFirstStep($(target), true));
+
+    const $first = $componentContainer.clone(true);
+    $first
+        .data('direction', 1)
+        .attr('data-direction', 1)
+        .data('cell-index', 0)
+        .attr('data-cell-index', 0);
+
+    const $last = $componentContainer.clone(true);
+    $last
+        .data('direction', 1)
+        .attr('data-direction', 1)
+        .data('cell-index', 1)
+        .attr('data-cell-index', 1);
+
+    $componentContainer.html([$first, $last]);
+    $componentContainer
+        .addClass('dashboard-component-split-vertically')
         .removeClass('empty');
 }
 
