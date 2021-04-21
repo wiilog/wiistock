@@ -1,4 +1,6 @@
 <div class="customization-tools">
+    {% include 'dashboard/component_type/content/text_customization.html.twig' with {lines: 5} %}
+
     <div id="accordion" class="customization-tools-accordion">
         <div class="card my-3">
             <div class="card-header" id="headingOneBackgroundColor">
@@ -20,6 +22,7 @@
             </div>
         </div>
     </div>
+
     {% if componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::PENDING_REQUESTS') %}
         <div id="accordion" class="customization-tools-accordion">
             <div class="card my-3">
