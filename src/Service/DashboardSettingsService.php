@@ -444,7 +444,7 @@ class DashboardSettingsService {
         $emergency = isset($config['emergency']) && $config['emergency'];
         if ($example) {
             $values = $componentType->getExampleValues();
-
+            $values['logoURL'] = $config['logoURL'];
             if ($shouldShowLocationLabels && !empty($config['locations'])) {
                 $locationRepository = $manager->getRepository(Emplacement::class);
                 $locations = $locationRepository->findBy(['id' => $config['locations']]);
@@ -466,6 +466,7 @@ class DashboardSettingsService {
             }
         }
         $values['emergency'] = $emergency;
+        $values['logoURL'] = $config['logoURL'];
         if (!$shouldShowLocationLabels) {
             unset($values['subtitle']);
         } else if (empty($values['subtitle'])) {

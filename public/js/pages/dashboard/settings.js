@@ -1012,10 +1012,12 @@ function initSecondStep(html) {
 
     const $preview = $modalComponentTypeSecondStep.find('.preview-component-image');
     const $input = $modalComponentTypeSecondStep.find('.upload-component-image');
+    const $title = $modalComponentTypeSecondStep.find('.title-component-image');
+    const $delete = $modalComponentTypeSecondStep.find('.delete-logo');
     if($preview.exists()) {
-        if ($modalComponentTypeSecondStep.find('.logo-icon > img').attr('src')) {
+        if (!$modalComponentTypeSecondStep.find('.logo-icon > img').attr('src')) {
             $modalComponentTypeSecondStep.find('img').addClass('d-none');
-            $modalComponentTypeSecondStep.find('.delete-logo').addClass('d-none');
+            $delete.addClass('d-none');
         }
 
         $modalComponentTypeSecondStep.find(`.choose-image`).click(function() {
@@ -1034,7 +1036,7 @@ function initSecondStep(html) {
             }
         });
 
-        updateImagePreview($preview, $input);
+        updateImagePreview($preview, $input, $title, $delete);
     }
 }
 
@@ -1425,4 +1427,27 @@ function splitCellVertically() {
 
 function convertIndex(indexStr) {
     return (indexStr === undefined || indexStr === null || indexStr === '') ? null : Number(indexStr);
+}
+
+function removeUploadedFile($element) {
+    const $modal = $element.closest('.modal');
+    const $previewTypeLogo = $modal.find('.preview-component-image');
+    const $uploadTypeLogo = $modal.find('.upload-component-image');
+    const $titleTypeLogo = $modal.find('.title-component-image');
+    const $logoContent = $modal.find('.external-image-content');
+
+    const uploadedFile = $uploadTypeLogo[0];
+    $previewTypeLogo.addClass('d-none');
+    showBSAlert(`Le fichier a bien été supprimé`, `success`);
+
+    $logoContent.val('');
+    if(uploadedFile.files.length > 0) {
+        delete uploadedFile.files[0];
+        $previewTypeLogo.attr('src', '');
+        $uploadTypeLogo.val('');
+        $titleTypeLogo.text('');
+        $titleTypeLogo.attr('title', '');
+
+        droppedFiles = [];
+    }
 }

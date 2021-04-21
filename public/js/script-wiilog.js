@@ -1070,7 +1070,7 @@ function getBSAlertModal() {
     return $('#alert-modal');
 }
 
-function updateImagePreview(preview, upload) {
+function updateImagePreview(preview, upload, $title = null, $delete = null) {
     let $upload = $(upload)[0];
 
     $(upload).change(() => {
@@ -1081,11 +1081,16 @@ function updateImagePreview(preview, upload) {
             if ($upload.files[0].size < MAX_UPLOAD_FILE_SIZE) {
 
                 if (ALLOWED_IMAGE_EXTENSIONS.indexOf(extension) !== -1) {
+                    if ($title) {
+                        $title.text(fileNameWithExtension.join('.').substr(0, 5) + '...');
+                        $title.attr('title', fileNameWithExtension.join('.'));
+                    }
                     let reader = new FileReader();
                     reader.onload = function (e) {
                         $(preview)
                             .attr('src', e.target.result)
                             .removeClass('d-none');
+                        $delete.removeClass('d-none');
                     };
 
                     reader.readAsDataURL($upload.files[0]);
