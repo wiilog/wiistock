@@ -3,6 +3,7 @@
 <input type="hidden" class="data" name="template" value="{{ componentType.template }}"/>
 <input type="hidden" class="data" name="rowIndex" value="{{ rowIndex }}"/>
 <input type="hidden" class="data" name="columnIndex" value="{{ columnIndex }}"/>
+<input type="hidden" class="data" name="direction" value="{{ direction }}"/>
 <input type="hidden" class="data" name="cellIndex" value="{{ cellIndex }}"/>
 {% include ('dashboard/component_type/content/' ~ templateName ~ '.html.twig') %}
 

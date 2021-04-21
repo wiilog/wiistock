@@ -90,6 +90,7 @@ class DashboardSettingsService {
                                         "id" => $component->getId(),
                                         "type" => $type->getId(),
                                         "columnIndex" => $component->getColumnIndex(),
+                                        "direction" => $component->getDirection(),
                                         "cellIndex" => $component->getCellIndex(),
                                         "template" => $type->getTemplate(),
                                         "config" => $config,
@@ -764,6 +765,7 @@ class DashboardSettingsService {
                                         $component->setType($type);
                                         $component->setRow($row);
                                         $component->setColumnIndex($jsonComponent["columnIndex"]);
+                                        $component->setDirection($jsonComponent["direction"] ?? null);
                                         $component->setCellIndex($jsonComponent["cellIndex"] ?? null);
                                         $this->validateComponentConfig($type, $jsonComponent["config"]);
                                         $component->setConfig($jsonComponent["config"]);
