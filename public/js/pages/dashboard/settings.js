@@ -264,7 +264,6 @@ function renderRow(row) {
 
             for(let cellIndex = 0; cellIndex < cellComponents.length; cellIndex++) {
                 const component = cellComponents[cellIndex];
-                console.log(component);
                 if(component && component.direction === 0) {
                     $component.addClass('dashboard-component-split-horizontally');
                 } else if(component && component.direction === 1) {
@@ -286,7 +285,7 @@ function renderRow(row) {
     if(mode === MODE_EDIT) {
         $row.append(`
             <div class="action-row-container">
-                <div class="bg-white w-px-25 rounded">
+                <div class="bg-white w-px-30 rounded">
                     <i class="icon fa fa-trash ml-1 delete-row"></i>
                     <i class="icon fa fa-pen ml-1 edit-row"></i>
                 </div>
@@ -370,23 +369,22 @@ function renderCardComponent({columnIndex, cellIndex, component}) {
         if(mode === MODE_EDIT) {
             const isCellSplit = cellIndex !== null;
             const $addComponent = $('<button/>', {
-                class: 'btn btn-light',
+                class: 'btn btn-light dashboard-button',
                 name: 'add-component-button',
                 click: ({target} = {}) => openModalComponentTypeFirstStep($(target), isCellSplit),
                 html: `<i class="fas fa-plus mr-2"></i> Ajouter un composant`
             });
 
-            console.log(isCellSplit);
             const $splitCells = [];
             if(!isCellSplit) {
                 $splitCells.push($('<button/>', {
-                    class: 'btn btn-light split-cell mt-2',
+                    class: 'btn btn-light split-cell mt-2 dashboard-button',
                     click: splitCellHorizontally,
                     html: `<i class="fas fa-cut"></i> Diviser en hauteur`,
                 }));
 
                 $splitCells.push($('<button/>', {
-                    class: 'btn btn-light split-cell mt-2',
+                    class: 'btn btn-light split-cell mt-2 dashboard-button',
                     click: splitCellVertically,
                     html: `<i class="fas fa-cut"></i> Diviser en largeur`,
                 }));

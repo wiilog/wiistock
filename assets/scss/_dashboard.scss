@@ -9,6 +9,10 @@ $rowNumberToDatatableHeight: (
     4: 8vh
 );
 
+.dashboard-button {
+    line-height: normal;
+}
+
 .refresh-date {
     &.display {
         position: fixed;

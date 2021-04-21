@@ -740,7 +740,6 @@ class DashboardSettingsService {
         $pagesToDelete = $this->byId($pageRepository->findAll());
         $pageRowsToDelete = $this->byId($pageRowRepository->findAll());
         $componentsToDelete = $this->byId($componentRepository->findAll());
-
         foreach ($jsonDashboard as $jsonPage) {
             [$updatePage, $page] = $this->getEntity($entityManager, Dashboard\Page::class, $jsonPage);
             if ($page) {
@@ -756,17 +755,15 @@ class DashboardSettingsService {
 
                                 foreach ($jsonRow["components"] as $jsonComponent) {
                                     [$updateComponent, $component] = $this->getEntity($entityManager, Dashboard\Component::class, $jsonComponent);
-
                                     if ($updateComponent && $component) {
                                         $type = $componentTypeRepository->find($jsonComponent["type"]);
                                         if (!$type) {
                                             throw new InvalidArgumentException(self::UNKNOWN_COMPONENT . '-' . $jsonComponent["type"]);
                                         }
-
                                         $component->setType($type);
                                         $component->setRow($row);
                                         $component->setColumnIndex($jsonComponent["columnIndex"]);
-                                        $component->setDirection($jsonComponent["direction"] ?: null);
+                                        $component->setDirection($jsonComponent["direction"] !== "" ? $jsonComponent["direction"] : null);
                                         $component->setCellIndex($jsonComponent["cellIndex"] ?? null);
                                         $this->validateComponentConfig($type, $jsonComponent["config"]);
                                         $component->setConfig($jsonComponent["config"]);
