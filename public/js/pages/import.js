@@ -31,6 +31,7 @@ let tableImportConfig = {
         {"data": 'updatedEntries', 'title': 'Mises à jour'},
         {"data": 'nbErrors', 'title': "Nombre d'erreurs"},
         {"data": 'user', 'title': 'Utilisateur'},
+        {"data" : 'entity','title' : 'Type de données importées'},
     ],
     rowConfig: {
         needsRowClickAction: true

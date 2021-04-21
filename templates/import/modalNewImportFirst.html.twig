@@ -10,11 +10,9 @@
                 name="entity"
                 onchange="importTemplateChanged($(this))">
             <option></option>
-            <option value="{{ constant('App\\Entity\\Import::ENTITY_ART') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_ART') ? 'selected' }}>Articles</option>
-            <option value="{{ constant('App\\Entity\\Import::ENTITY_REF') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_REF') ? 'selected' }}>Références</option>
-            <option value="{{ constant('App\\Entity\\Import::ENTITY_FOU') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_FOU') ? 'selected' }}>Fournisseurs</option>
-            <option value="{{ constant('App\\Entity\\Import::ENTITY_ART_FOU') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_ART_FOU') ? 'selected' }}>Articles fournisseurs</option>
-            <option value="{{ constant('App\\Entity\\Import::ENTITY_RECEPTION') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_RECEPTION') ? 'selected' }}>Réceptions</option>
+            {% for value, label in constant('App\\Entity\\Import::ENTITY_LABEL') %}
+                <option value="{{ value }}" {{ import and import.entity == value ? 'selected'}} >{{ label }}</option>
+            {% endfor %}
         </select>
     </div>
 </div>

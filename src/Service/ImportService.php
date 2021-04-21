@@ -169,6 +169,7 @@ class ImportService
             'nbErrors' => $import->getNbErrors(),
             'status' => '<span class="' . $statusClass . '" data-id="' . $importId . '" title="' . $statusTitle . '">' . $statusLabel . '</span>',
             'user' => $import->getUser() ? $import->getUser()->getUsername() : '',
+            'entity' => Import::ENTITY_LABEL[$import->getEntity()] ?? "Non défini",
             'actions' => $this->templating->render('import/datatableImportRow.html.twig', [
                 'url' => $url,
                 'importId' => $importId,
