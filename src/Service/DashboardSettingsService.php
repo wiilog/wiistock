@@ -762,10 +762,11 @@ class DashboardSettingsService {
                                         if (!$type) {
                                             throw new InvalidArgumentException(self::UNKNOWN_COMPONENT . '-' . $jsonComponent["type"]);
                                         }
+
                                         $component->setType($type);
                                         $component->setRow($row);
                                         $component->setColumnIndex($jsonComponent["columnIndex"]);
-                                        $component->setDirection($jsonComponent["direction"] ?? null);
+                                        $component->setDirection($jsonComponent["direction"] ?: null);
                                         $component->setCellIndex($jsonComponent["cellIndex"] ?? null);
                                         $this->validateComponentConfig($type, $jsonComponent["config"]);
                                         $component->setConfig($jsonComponent["config"]);

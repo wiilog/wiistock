@@ -376,16 +376,17 @@ function renderCardComponent({columnIndex, cellIndex, component}) {
                 html: `<i class="fas fa-plus mr-2"></i> Ajouter un composant`
             });
 
+            console.log(isCellSplit);
             const $splitCells = [];
             if(!isCellSplit) {
                 $splitCells.push($('<button/>', {
-                    class: 'btn btn-light mt-2',
+                    class: 'btn btn-light split-cell mt-2',
                     click: splitCellHorizontally,
                     html: `<i class="fas fa-cut"></i> Diviser en hauteur`,
                 }));
 
                 $splitCells.push($('<button/>', {
-                    class: 'btn btn-light mt-2',
+                    class: 'btn btn-light split-cell mt-2',
                     click: splitCellVertically,
                     html: `<i class="fas fa-cut"></i> Diviser en largeur`,
                 }));
@@ -826,6 +827,7 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
     const content = {
         rowIndex,
         columnIndex: component.columnIndex,
+        direction: component.direction,
         cellIndex: component.cellIndex,
         values: JSON.stringify(component.config || {})
     };
@@ -834,7 +836,8 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
         if(data.html) {
             initSecondStep(data.html);
         } else {
-            editComponent(convertIndex(rowIndex), convertIndex(component.columnIndex), convertIndex(component.cellIndex), {
+            //TODO: plus utilisé du coup ?
+            editComponent(convertIndex(rowIndex), convertIndex(component.columnIndex), component.direction, convertIndex(component.cellIndex), {
                 config: component.config,
                 type: component.type,
                 meterKey: component.meterKey,
@@ -858,6 +861,7 @@ function onComponentSaved($modal) {
         const columnIndex = data.columnIndex;
         const meterKey = data.meterKey;
         const componentType = data.componentType;
+        const direction = data.direction;
         const cellIndex = data.cellIndex;
         const template = data.template;
         const config = Object.assign({}, data);
@@ -868,7 +872,7 @@ function onComponentSaved($modal) {
         delete config.cellIndex;
         delete config.template;
 
-        editComponent(convertIndex(rowIndex), convertIndex(columnIndex), convertIndex(cellIndex), {
+        editComponent(convertIndex(rowIndex), convertIndex(columnIndex), direction, convertIndex(cellIndex), {
             config,
             type: componentType,
             meterKey,
@@ -933,7 +937,7 @@ function processSecondModalForm($modal) {
     return Object.assign({}, remaining, {data});
 }
 
-function editComponent(rowIndex, columnIndex, cellIndex, {config, type, meterKey, template = null}) {
+function editComponent(rowIndex, columnIndex, direction, cellIndex, {config, type, meterKey, template = null}) {
     const currentRow = getCurrentDashboardRow(rowIndex);
     cellIndex = convertIndex(cellIndex);
 
@@ -949,6 +953,7 @@ function editComponent(rowIndex, columnIndex, cellIndex, {config, type, meterKey
         }
 
         currentComponent.updated = true;
+        currentComponent.direction = direction;
         currentComponent.config = config;
         currentComponent.type = type;
         currentComponent.meterKey = meterKey;
@@ -1364,6 +1369,7 @@ function splitCellHorizontally() {
     const $button = $(this);
     const $componentContainer = $button.closest('.dashboard-component');
 
+    $button.siblings(`.split-cell`).remove();
     $button.remove();
     const $addComponentButton = $componentContainer.find('button[name="add-component-button"]');
     $addComponentButton.off('click');
@@ -1393,6 +1399,7 @@ function splitCellVertically() {
     const $button = $(this);
     const $componentContainer = $button.closest('.dashboard-component');
 
+    $button.siblings(`.split-cell`).remove();
     $button.remove();
     const $addComponentButton = $componentContainer.find('button[name="add-component-button"]');
     $addComponentButton.off('click');
