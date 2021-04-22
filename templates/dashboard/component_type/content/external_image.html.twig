@@ -1,0 +1,19 @@
+{% set url = url ?? null %}
+
+<div class="row">
+    <div class="form-group col-12">
+        <label>Image externe*</label>
+        <div class="d-flex p-1 mr-2">
+            <img src="{{ url }}"
+                 class="preview-component-image logo {{ not url ? 'd-none' }}"
+                 alt="Logo choisi"
+                 height="100px"/>
+        </div>
+        <button type="button" class="btn btn-primary choose-image">{{ url ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo' }}</button>
+
+        <input type="file" class="upload-component-image"
+               name="url" accept="image/png, image/jpeg, image/jpg, image/svg+xml"
+               hidden>
+        <input type="hidden" name="url" class="external-image-content data needed" value="{{ url }}">
+    </div>
+</div>

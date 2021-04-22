@@ -92,6 +92,7 @@ class DashboardSettingsService {
                                         "id" => $component->getId(),
                                         "type" => $type->getId(),
                                         "columnIndex" => $component->getColumnIndex(),
+                                        "direction" => $component->getDirection(),
                                         "cellIndex" => $component->getCellIndex(),
                                         "template" => $type->getTemplate(),
                                         "config" => $config,
@@ -125,6 +126,17 @@ class DashboardSettingsService {
                                     $meter = null): array {
         $values = [];
         $meterKey = $componentType->getMeterKey();
+
+        Stream::from($config)
+            ->each(function($conf, $key) use (&$values) {
+                if (str_starts_with($key, 'fontSize-')
+                    || str_starts_with($key, 'textColor-')
+                    || str_starts_with($key, 'textBold-')
+                    || str_starts_with($key, 'textItalic-')
+                    || str_starts_with($key, 'textUnderline-')) {
+                    $values[$key] = $conf;
+                }
+            });
 
         $values['title'] = !empty($config['title']) ? $config['title'] : $componentType->getName();
 
@@ -448,6 +460,7 @@ class DashboardSettingsService {
         $shouldShowLocationLabels = isset($config['withLocationLabels']) && $config['withLocationLabels'];
         $emergency = isset($config['emergency']) && $config['emergency'];
         if ($example) {
+            dump('gfgd');
             $values = $componentType->getExampleValues();
 
             if ($shouldShowLocationLabels && !empty($config['locations'])) {
@@ -788,7 +801,6 @@ class DashboardSettingsService {
         $pagesToDelete = $this->byId($pageRepository->findAll());
         $pageRowsToDelete = $this->byId($pageRowRepository->findAll());
         $componentsToDelete = $this->byId($componentRepository->findAll());
-
         foreach ($jsonDashboard as $jsonPage) {
             [$updatePage, $page] = $this->getEntity($entityManager, Dashboard\Page::class, $jsonPage);
             if ($page) {
@@ -804,7 +816,6 @@ class DashboardSettingsService {
 
                                 foreach ($jsonRow["components"] as $jsonComponent) {
                                     [$updateComponent, $component] = $this->getEntity($entityManager, Dashboard\Component::class, $jsonComponent);
-
                                     if ($updateComponent && $component) {
                                         $type = $componentTypeRepository->find($jsonComponent["type"]);
                                         if (!$type) {
@@ -813,6 +824,7 @@ class DashboardSettingsService {
                                         $component->setType($type);
                                         $component->setRow($row);
                                         $component->setColumnIndex($jsonComponent["columnIndex"]);
+                                        $component->setDirection($jsonComponent["direction"] !== "" ? $jsonComponent["direction"] : null);
                                         $component->setCellIndex($jsonComponent["cellIndex"] ?? null);
                                         $this->validateComponentConfig($type, $jsonComponent["config"]);
                                         $component->setConfig($jsonComponent["config"]);

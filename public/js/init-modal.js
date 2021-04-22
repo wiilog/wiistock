@@ -526,7 +526,6 @@ function processFilesForm($modal, data) {
 }
 
 /**
- *
  * @param $modal jQuery modal
  * @param {Object.<*,*>} data
  * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}

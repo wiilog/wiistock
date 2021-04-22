@@ -24,6 +24,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ImportException;
 use App\Helper\Stream;
+use Closure;
 use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
@@ -169,6 +170,7 @@ class ImportService
             'nbErrors' => $import->getNbErrors(),
             'status' => '<span class="' . $statusClass . '" data-id="' . $importId . '" title="' . $statusTitle . '">' . $statusLabel . '</span>',
             'user' => $import->getUser() ? $import->getUser()->getUsername() : '',
+            'entity' => Import::ENTITY_LABEL[$import->getEntity()] ?? "Non défini",
             'actions' => $this->templating->render('import/datatableImportRow.html.twig', [
                 'url' => $url,
                 'importId' => $importId,
@@ -294,11 +296,14 @@ class ImportService
             if ($smallFile) {
                 $this->currentImport->setFlash(true);
             }
-
             // les premières lignes <= MAX_LINES_AUTO_FORCED_IMPORT
             $index = 0;
+
+            ['resource' => $logFile, 'fileName' => $logFileName] = $this->fopenLogFile();
+            $logFileMapper = $this->getLogFileMapper();
+
             foreach ($firstRows as $row) {
-                $logRows[] = $this->treatImportRow(
+                $logRow = $this->treatImportRow(
                     $row,
                     $headers,
                     $dataToCheck,
@@ -311,12 +316,13 @@ class ImportService
                     $index
                 );
                 $index++;
+
+                $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
             }
             $this->clearEntityManagerAndRetrieveImport();
             if (!$smallFile) {
-                // on fait la suite du fichier
                 while (($row = fgetcsv($file, 0, ';')) !== false) {
-                    $logRows[] = $this->treatImportRow(
+                    $logRow = $this->treatImportRow(
                         $row,
                         $headers,
                         $dataToCheck,
@@ -329,8 +335,11 @@ class ImportService
                         $index
                     );
                     $index++;
+                    $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
                 }
             }
+
+            fclose($logFile);
 
             // mise à jour des quantités sur références par article
             foreach ($refToUpdate as $ref) {
@@ -341,13 +350,13 @@ class ImportService
             $this->em->flush();
 
             // création du fichier de log
-            $pieceJointeForLogFile = $this->persistLogFilePieceJointe($logRows);
+            $logAttachment = $this->persistLogAttachment($logFileName);
 
             $statutRepository = $this->em->getRepository(Statut::class);
             $statusFinished = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
 
             $this->currentImport
-                ->setLogFile($pieceJointeForLogFile)
+                ->setLogFile($logAttachment)
                 ->setNewEntries($stats['news'])
                 ->setUpdatedEntries($stats['updates'])
                 ->setNbErrors($stats['errors'])
@@ -680,34 +689,28 @@ class ImportService
         return $dataToCheck;
     }
 
-    /**
-     * @param array $logRows
-     * @return string
-     */
-    private function buildLogFile(array $logRows)
-    {
+    private function fopenLogFile() {
         $fileName = uniqid() . '.csv';
+        $completeFileName = $this->attachmentService->getAttachmentDirectory() . '/' . $fileName;
+        return [
+            'fileName' => $fileName,
+            'resource' => fopen($completeFileName, 'w')
+        ];
+    }
 
+    private function getLogFileMapper(): Closure {
         $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
-
         $wantsUFT8 = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::USES_UTF8) ?? true;
 
-        $this->attachmentService->saveCSVFile($fileName, $logRows, function ($row) use ($wantsUFT8) {
+        return function ($row) use ($wantsUFT8) {
             return !$wantsUFT8
                 ? array_map('utf8_decode', $row)
                 : $row;
-        });
-        return $fileName;
+        };
     }
 
-    /**
-     * @param array $logRows
-     * @return Attachment
-     */
-    private function persistLogFilePieceJointe(array $logRows)
+    private function persistLogAttachment(string $createdLogFile): Attachment
     {
-        $createdLogFile = $this->buildLogFile($logRows);
-
         $pieceJointeForLogFile = new Attachment();
         $pieceJointeForLogFile
             ->setOriginalName($createdLogFile)

@@ -1,3 +1,6 @@
+const MAX_UPLOAD_FILE_SIZE = 10000000;
+const ALLOWED_IMAGE_EXTENSIONS = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg','svg'];
+
 const PAGE_TRANSFER_REQUEST = 'rtransfer';
 const PAGE_TRANSFER_ORDER = 'otransfer';
 const PAGE_DEM_COLLECTE = 'dcollecte';
@@ -1065,4 +1068,33 @@ function onTypeChange($select) {
 
 function getBSAlertModal() {
     return $('#alert-modal');
+}
+
+function updateImagePreview(preview, upload) {
+    let $upload = $(upload)[0];
+
+    $(upload).change(() => {
+        if ($upload.files && $upload.files[0]) {
+            let fileNameWithExtension = $upload.files[0].name.split('.');
+            let extension = fileNameWithExtension[fileNameWithExtension.length - 1];
+
+            if ($upload.files[0].size < MAX_UPLOAD_FILE_SIZE) {
+
+                if (ALLOWED_IMAGE_EXTENSIONS.indexOf(extension) !== -1) {
+                    let reader = new FileReader();
+                    reader.onload = function (e) {
+                        $(preview)
+                            .attr('src', e.target.result)
+                            .removeClass('d-none');
+                    };
+
+                    reader.readAsDataURL($upload.files[0]);
+                } else {
+                    showBSAlert('Veuillez choisir une image valide (png, jpeg, jpg, svg).', 'danger')
+                }
+            } else {
+                showBSAlert('La taille du fichier est supérieure à 10 mo.', 'danger')
+            }
+        }
+    })
 }

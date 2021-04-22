@@ -17,13 +17,52 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
     private $output;
 
     private const COMPONENT_TYPES = [
+        'Image externe' => [
+            'hint' => 'Image statique',
+            'exampleValues' => [
+                'url' => '/img/mobile_logo_header.svg',
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_OTHER,
+            'template' => Dashboard\ComponentType::EXTERNAL_IMAGE,
+            'meterKey' => Dashboard\ComponentType::EXTERNAL_IMAGE,
+        ],
         'Quantité en cours sur n emplacement(s)' => [
             'hint' => 'Nombre de colis en encours sur les emplacements sélectionnés',
             'exampleValues' => [
                 'title' => 'Litige en cours',
                 'count' => 5,
                 'subtitle' => 'Litige',
-                'delay' => 20634860
+                'delay' => 20634860,
+
+                'fontSize-1' => 12,
+                'fontSize-2' => 12,
+                'fontSize-3' => 12,
+                'fontSize-4' => 12,
+                'fontSize-5' => 12,
+
+                'textColor-1' => "#000000",
+                'textColor-2' => "#000000",
+                'textColor-3' => "#0000CC",
+                'textColor-4' => "#000000",
+                'textColor-5' => "#0000CC",
+
+                'textBold-1' => false,
+                'textBold-2' => false,
+                'textBold-3' => false,
+                'textBold-4' => false,
+                'textBold-5' => false,
+
+                'textItalic-1' => false,
+                'textItalic-2' => false,
+                'textItalic-3' => false,
+                'textItalic-4' => false,
+                'textItalic-5' => false,
+
+                'textUnderline-1' => false,
+                'textUnderline-2' => false,
+                'textUnderline-3' => false,
+                'textUnderline-4' => false,
+                'textUnderline-5' => false,
             ],
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::ONGOING_PACKS,
