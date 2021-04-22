@@ -100,23 +100,33 @@ class StatusService {
         return [
             [
                 'label' => 'Brouillon',
-                'id' => Statut::DRAFT
+                'id' => Statut::DRAFT,
+                'code' => 'draft'
             ],
             [
                 'label' => 'À traiter',
-                'id' => Statut::NOT_TREATED
+                'id' => Statut::NOT_TREATED,
+                'code' => 'notTreated'
+            ],
+            [
+                'label' => 'En cours',
+                'id' => Statut::IN_PROGRESS,
+                'code' => 'inProgress'
             ],
             [
                 'label' => 'Traité',
-                'id' => Statut::TREATED
+                'id' => Statut::TREATED,
+                'code' => 'treated'
             ],
             [
                 'label' => 'Litige',
-                'id' => Statut::DISPUTE
+                'id' => Statut::DISPUTE,
+                'code' => 'dispute'
             ],
             [
                 'label' => 'Partiel',
-                'id' => Statut::PARTIAL
+                'id' => Statut::PARTIAL,
+                'code' => 'partial'
             ]
         ];
     }
@@ -127,6 +137,18 @@ class StatusService {
         foreach ($states as $state) {
             if ($state['id'] === $stateId) {
                 $label = $state['label'];
+                break;
+            }
+        }
+        return $label;
+    }
+
+    public function getStatusStateCode(int $stateId): ?string {
+        $states = $this->getStatusStatesValues();
+        $label = null;
+        foreach ($states as $state) {
+            if ($state['id'] === $stateId) {
+                $label = $state['code'];
                 break;
             }
         }

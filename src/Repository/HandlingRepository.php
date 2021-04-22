@@ -78,6 +78,7 @@ class HandlingRepository extends EntityRepository
             ->addSelect('handling.emergency AS emergency')
             ->addSelect('handling.carriedOutOperationCount AS carriedOutOperationCount')
             ->addSelect('handling.freeFields AS freeFields')
+            ->addSelect('status.id AS statusId')
             ->leftJoin('handling.requester', 'handling_requester')
             ->leftJoin('handling.status', 'status')
             ->leftJoin('handling.type', 'handling_type')

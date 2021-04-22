@@ -24,6 +24,7 @@ const MONETARY_RELIABILITY_INDICATOR = 'monetary_reliability_indicator';
 const ACTIVE_REFERENCE_ALERTS = 'active_reference_alerts';
 const REFERENCE_RELIABILITY = 'reference_reliability';
 const DAILY_DISPATCHES = 'daily_dispatches';
+const EXTERNAL_IMAGE = 'external_image';
 
 $(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -109,6 +110,9 @@ const creators = {
     [REFERENCE_RELIABILITY]: {
         callback: createIndicatorElement
     },
+    [EXTERNAL_IMAGE]: {
+        callback: createExternalImage
+    },
 };
 
 /**
@@ -163,6 +167,12 @@ function renderComponent(component, $container, data) {
     }
 }
 
+function generateAttributes(data, classes) {
+    const background = data.backgroundColor ? `background-color:${data.backgroundColor}!important;` : ``;
+
+    return `class="${classes}" style="${background}"`
+}
+
 function createTooltip(text) {
     const trimmedText = (text || "").trim();
     if (mode === MODE_EDIT
@@ -179,17 +189,20 @@ function createTooltip(text) {
 }
 
 function createPendingRequests(data, {rowSize}) {
-    const title = data.title || "";
+    const numberingConfig = {numbering: 0};
 
     let content = ``;
+    let renderNumberingOnce = true;
+    let numberedTitle = data.title ? (incrementNumbering(numberingConfig) + data.title) : '';
     for(let request of data.requests) {
-        content += renderRequest(request, rowSize);
+        content += renderRequest(request, rowSize, renderNumberingOnce ? numberingConfig : undefined);
+        renderNumberingOnce = false;
     }
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container h-100">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container h-100')}>
             <div class="title">
-                ${title}
+                ${numberedTitle}
             </div>
             ${createTooltip(data.tooltip)}
             <div class="d-flex row no-gutters h-100 overflow-auto overflow-x-hidden pending-request-wrapper">
@@ -199,7 +212,7 @@ function createPendingRequests(data, {rowSize}) {
     `);
 }
 
-function renderRequest(request, rowSize) {
+function renderRequest(request, rowSize, redefinedNumberingConfig) {
     let onCardClick = ``;
     if(!request.href && request.errorMessage) {
         onCardClick = `showBSAlert('${request.errorMessage}', 'danger'); event.preventDefault()`;
@@ -229,12 +242,12 @@ function renderRequest(request, rowSize) {
 
     return `
         <div class="d-flex ${cardSize} p-1">
-            <a class="card wii-card request-card pointer p-3 my-2 shadow-sm flex-grow-1 ${cursor} bg-${request.cardColor}" ${link}>
+            <a class="card wii-card request-card pointer p-3 my-2 shadow-sm flex-grow-1 ${cursor} bg-${request.cardColor}" ${link} style="${request.cardBackgroundColor ? ('background-color:' + request.cardBackgroundColor + '!important') : ''}">
                 <div class="wii-card-header">
                     <div class="row">
                         <div class="col-10 mb-2">
-                            <p class="mb-2 small">${request.estimatedFinishTimeLabel}</p>
-                            <strong>${request.estimatedFinishTime}</strong>
+                            <p class="mb-2 small">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.estimatedFinishTimeLabel}</p>
+                            <strong>${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.estimatedFinishTime}</strong>
                         </div>
                         <div class="col-2 d-flex justify-content-end align-items-start">
                             ${request.emergencyText} ${topRightIcon}
@@ -251,21 +264,21 @@ function renderRequest(request, rowSize) {
                             </div>
                         </div>
                         <div class="col-12">
-                            <p>${$.capitalize(request.requestStatus)}</p>
+                            <p>${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + $.capitalize(request.requestStatus)}</p>
                         </div>
                     </div>
                 </div>
                 <div class="wii-card-body p-2">
                     <div class="row">
                         <div class="col-12 card-title text-center">
-                            <strong>${request.requestBodyTitle}</strong>
+                            <strong>${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestBodyTitle}</strong>
                         </div>
                         <div class="col-12">
                             <div class="w-100 d-inline-flex justify-content-center">
                                 <strong class="card-title m-0 mr-2">
                                     <i class="fa fa-map-marker-alt "></i>
                                 </strong>
-                                <strong class="ellipsis">${request.requestLocation}</strong>
+                                <strong class="ellipsis">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestLocation}</strong>
                             </div>
                         </div>
                     </div>
@@ -273,12 +286,12 @@ function renderRequest(request, rowSize) {
                 <div class="wii-card-footer">
                     <div class="row align-items-end">
                         <div class="col-6 text-left ellipsis">
-                            <span class="bold">${request.requestNumber}</span><br/>
-                            <span class="text-secondary">${request.requestDate}</span>
+                            <span class="bold">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestNumber}</span><br/>
+                            <span class="text-secondary">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestDate}</span>
                         </div>
                         <div class="col-6 text-right ellipsis">
                             <div class="profile-picture" style="background-color: #EEE">${requestUserFirstLetter}</div>
-                            <span class="bold">${request.requestUser}</span>
+                            <span class="bold">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestUser}</span>
                         </div>
                     </div>
                 </div>
@@ -292,8 +305,8 @@ function createEntriesToHandleElement(data, {meterKey}) {
         console.error(`Invalid data for entries element.`);
         return false;
     }
-
-    const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'});
+    const numberingConfig = {numbering: 0};
+    const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'}, true, numberingConfig);
     const $firstComponent = $('<div/>', {
         class: `w-100 pb-1 flex-fill dashboard-component h-100 mx-0 mt-0`,
         html: createIndicatorElement(
@@ -301,12 +314,14 @@ function createEntriesToHandleElement(data, {meterKey}) {
                 title: 'Nombre de lignes à traiter',
                 tooltip: data.linesCountTooltip,
                 count: data.count,
-                componentLink: data.componentLink
+                componentLink: data.componentLink,
+                backgroundColor: data.backgroundColor || undefined
             },
             {
                 meterKey,
                 customContainerClass: 'overflow-hidden'
-            }
+            },
+            numberingConfig
         )
     });
     const $secondComponent = $('<div/>', {
@@ -316,12 +331,14 @@ function createEntriesToHandleElement(data, {meterKey}) {
                 title: 'Prochain emplacement à traiter',
                 tooltip: data.nextLocationTooltip,
                 count: data.nextLocation,
-                componentLink: data.componentLink
+                componentLink: data.componentLink,
+                backgroundColor: data.backgroundColor || undefined
             },
             {
                 meterKey,
                 customContainerClass: 'overflow-hidden'
-            }
+            },
+            numberingConfig
         )
     });
 
@@ -338,7 +355,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
                 html: $graph
             }),
             $('<div/>', {
-                class: 'col-12 col-lg-3 pl-lg-2 dashboard-component-column dashboard-component dashboard-component-split m-0',
+                class: 'col-12 col-lg-3 pl-lg-2 dashboard-component-column dashboard-component dashboard-component-split-horizontally m-0',
                 html: $('<div/>', {
                     class: 'h-100 d-flex flex-column',
                     html: [
@@ -370,11 +387,12 @@ function createLatePacksElement(data) {
         return false;
     }
     const title = data.title || "";
+    const numberingConfig = {numbering: 0};
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
-                ${title}
+                ${incrementNumbering(numberingConfig) + title}
             </div>
             ${createTooltip(data.tooltip)}
             <table class="table display retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
@@ -393,7 +411,7 @@ function calculateChartsFontSize() {
  * @param {{route: string|null, variable: string|null}} pagination
  * @return {boolean|jQuery}
  */
-function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass: null, hideRange: false}) {
+function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass: null, hideRange: false}, redefinedNumbering = false, redefinedNumberingConfig = null) {
     if(!data) {
         console.error(`Invalid data for "${data.title}"`);
         return false;
@@ -404,9 +422,9 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
     const dashboardBoxContainerClass = hasRangeButton
         ? 'dashboard-box-container-title-content'
         : 'dashboard-box-container-title-content-rangeButton';
+    const numberingConfig = {numbering: 0};
 
     const title = data.title || "";
-
 
     const pagination = hasRangeButton
         ? `
@@ -427,9 +445,9 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
 
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container ${dashboardBoxContainerClass}">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container' + dashboardBoxContainerClass)}>
             <div class="title">
-                ${title.split('(')[0]}
+                ${(!redefinedNumbering ? incrementNumbering(numberingConfig) : incrementNumbering(redefinedNumberingConfig)) + title.split('(')[0]}
             </div>
             ${createTooltip(data.tooltip)}
             <div class="flex-fill content">
@@ -452,14 +470,15 @@ function createCarrierTrackingElement(data) {
 
     const carriers = Array.isArray(data.carriers) ? data.carriers.join(', ') : data.carriers;
     const title = data.title || "";
+    const numberingConfig = {numbering: 0};
 
     return $(`
-        <div class="dashboard-box dashboard-stats-container">
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
-                ${title}
+                ${incrementNumbering(numberingConfig) + title}
             </div>
             ${createTooltip(data.tooltip)}
-            <h1>${carriers}</h1>
+            <h1>${incrementNumbering(numberingConfig) + carriers}</h1>
         </div>
     `);
 }
@@ -470,7 +489,7 @@ function createCarrierTrackingElement(data) {
  * @param {undefined|string} customContainerClass
  * @return {boolean|jQuery}
  */
-function createIndicatorElement(data, {meterKey, customContainerClass}) {
+function createIndicatorElement(data, {meterKey, customContainerClass}, redefinedNumberingConfig = null) {
     if(!data || data.count === undefined) {
         console.error('Invalid data for ' + (meterKey || '-').replaceAll('_', ' ') + ' element.');
         return false;
@@ -478,7 +497,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
 
     customContainerClass = customContainerClass || '';
 
-    const {title, subtitle, tooltip, count, delay, componentLink, emergency, subCounts} = data;
+    const {title, subtitle, tooltip, count, delay, componentLink, emergency, subCounts, backgroundColor} = data;
     const element = componentLink ? '<a/>' : '<div/>';
     const customAttributes = componentLink
         ? {
@@ -489,9 +508,11 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
     const clickableClass = componentLink ? 'pointer' : '';
     const needsEmergencyDisplay = emergency && count > 0;
     const $emergencyIcon = needsEmergencyDisplay ? '<i class="fa fa-exclamation-triangle red"></i>' : '';
-
+    const numberingConfig = {numbering: 0};
+    const smartNumberingConfig = redefinedNumberingConfig ? redefinedNumberingConfig : numberingConfig
     return $(element, Object.assign({
         class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
+        style: `${backgroundColor ? 'background-color:' + backgroundColor : ''}`,
         html: [
             createTooltip(tooltip),
             title
@@ -499,36 +520,45 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
                     class: `text-center title ${meterKey === ENTRIES_TO_HANDLE ? '' : 'ellipsis'}`,
                     html: [
                         $emergencyIcon,
-                        `<span class="title ${needsEmergencyDisplay ? 'mx-3' : ''}">${title.split('(')[0]}</span>`,
+                        `<span class="title ${needsEmergencyDisplay
+                            ? 'mx-3'
+                            : ''}">
+                        ${incrementNumbering(smartNumberingConfig)}${title.split('(')[0]}</span>`,
                         $emergencyIcon,
-                        `<p class="small ellipsis location-label">${subtitle || ''}</p>`
+                        `<p class="small ellipsis location-label">${subtitle
+                            ? incrementNumbering(smartNumberingConfig) + subtitle
+                            : ''}
+                        </p>`
                     ]
                 })
                 : undefined,
             subtitle && !title
                 ? $('<div/>', {
                     class: 'location-label ellipsis small',
-                    text: subtitle
+                    html: incrementNumbering(smartNumberingConfig) + subtitle
                 })
                 : undefined,
             count !== undefined
                 ? $('<div/>', {
                     class: `align-items-center`,
-                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter ${needsEmergencyDisplay ? 'red' : ''}">${(count || count === '0' || count === 0) ? count : '-'}</div>`
+                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter ${needsEmergencyDisplay ? 'red' : ''}">
+                        ${((count || count === '0' || count === 0) ? incrementNumbering(smartNumberingConfig) + count : '-')}</div>`
                 })
                 : undefined,
             delay
                 ? $('<div/>', {
                     class: `text-center title dashboard-stats-delay-title ${delay < 0 ? 'red' : ''}`,
-                    text: delay < 0
-                        ? 'Retard : '
-                        : 'A traiter sous :'
+                    html: delay < 0
+                        ? incrementNumbering(smartNumberingConfig) + 'Retard : '
+                        : incrementNumbering(smartNumberingConfig) + 'A traiter sous :'
                 })
                 : undefined,
             delay
                 ? $('<div/>', {
                     class: `${clickableClass} dashboard-stats dashboard-stats-delay ${delay < 0 ? 'red' : ''}`,
-                    text: !isNaN(Math.abs(delay)) ? renderMillisecondsToDelay(Math.abs(delay), 'display') : delay
+                    html: !isNaN(Math.abs(delay))
+                        ? (incrementNumbering(smartNumberingConfig) + renderMillisecondsToDelay(Math.abs(delay), 'display'))
+                        : (incrementNumbering(smartNumberingConfig) + delay)
                 })
                 : undefined,
             ...((subCounts || [])
@@ -536,11 +566,31 @@ function createIndicatorElement(data, {meterKey, customContainerClass}) {
                 .map((subCount) => (
                     $('<div/>', {
                         class: `${clickableClass} dashboard-stats`,
-                        html: subCount || ''
+                        html: subCount ? incrementNumbering(smartNumberingConfig) + subCount : ''
                     })
                 )))
         ].filter(Boolean)
     }, customAttributes));
+}
+
+function createExternalImage(data, config) {
+    if(!data) {
+        console.error('Invalid data for external image element.');
+        return false;
+    }
+
+    let url;
+    if(config.component.config) {
+        url = config.component.config.url;
+    } else {
+        url = '/img/mobile_logo_header.svg';
+    }
+
+    return $(`
+        <div ${generateAttributes(data, 'dashboard-box dashboard-image-container')}>
+            <img src="${url}" style="width:100%;height:auto;max-height:100%;object-fit: contain;" alt="Composant image">
+        </div>
+    `);
 }
 
 
@@ -898,4 +948,13 @@ function updateMultipleChartData(chart, data) {
         }
     }
     chart.update();
+}
+
+function incrementNumbering(numberingConfig) {
+    if($('#modalComponentTypeSecondStep').hasClass('show')) {
+        numberingConfig.numbering += 1;
+        return '<sup>(' + numberingConfig.numbering + ')</sup>';
+    } else {
+        return '';
+    }
 }

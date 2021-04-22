@@ -50,8 +50,11 @@
             <select name="state" class="data form-control needed" onchange="statusStateChanged($(this))">
                 {% for state in states %}
                     <option value="{{ state.id }}"
-                            class="{{ (state.id == constant('App\\Entity\\Statut::DRAFT') or state.id == constant('App\\Entity\\Statut::PARTIAL')) ? 'dispatch-fields' :
-                            state.id == constant('App\\Entity\\Statut::DISPUTE') ? 'arrival-fields' }}"
+                            class="{{
+                                (state.id == constant('App\\Entity\\Statut::DRAFT') or state.id == constant('App\\Entity\\Statut::PARTIAL')) ? 'dispatch-fields' :
+                                (state.id == constant('App\\Entity\\Statut::DISPUTE')) ? 'arrival-fields' :
+                                (state.id == constant('App\\Entity\\Statut::IN_PROGRESS')) ? 'handling-fields'
+                            }}"
                         {{ state.id == status.state ? 'selected' }}>
                         {{ state.label }}
                     </option>
@@ -125,6 +128,13 @@
             <label>Synchronisation nomade ?</label>
             <label class="switch">
                 <input class="checkbox" type="checkbox" name="needsMobileSync" {{ status.needsMobileSync ? 'checked' }}/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="col-12 form-group handling-fields">
+            <label>Commentaire obligatoire sur nomade ?</label>
+            <label class="switch">
+                <input class="checkbox" type="checkbox" name="commentNeeded" {{ status.commentNeeded ? 'checked' }}>
                 <span class="slider round"></span>
             </label>
         </div>

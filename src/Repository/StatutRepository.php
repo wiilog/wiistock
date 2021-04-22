@@ -470,12 +470,14 @@ class StatutRepository extends EntityRepository {
                 ->select('status.id AS id')
                 ->addSelect('status.nom AS label')
                 ->addSelect('status_category.nom AS category')
+                ->addSelect('status.commentNeeded AS commentNeeded')
                 ->addSelect('type.id AS typeId')
                 ->addSelect("(
                     CASE
                         WHEN status.state = :treatedState THEN 'treated'
                         WHEN status.state = :partialState THEN 'partial'
                         WHEN status.state = :notTreatedState THEN 'notTreated'
+                        WHEN status.state = :inProgressState THEN 'inProgress'
                         ELSE ''
                     END
                 ) AS state")
@@ -485,6 +487,7 @@ class StatutRepository extends EntityRepository {
                 ->orderBy('status.displayOrder', 'ASC')
                 ->setParameter('treatedState', Statut::TREATED)
                 ->setParameter('partialState', Statut::PARTIAL)
+                ->setParameter('inProgressState', Statut::IN_PROGRESS)
                 ->setParameter('notTreatedState', Statut::NOT_TREATED);
 
             if ($dispatchStatus) {

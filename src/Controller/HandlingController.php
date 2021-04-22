@@ -173,6 +173,7 @@ class HandlingController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $userRepository = $entityManager->getRepository(Utilisateur::class);
+            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
             $post = $request->request;
 
@@ -209,8 +210,9 @@ class HandlingController extends AbstractController
                 $handling->setValidationDate($date);
                 $handling->setTreatedByHandling($requester);
             }
+
             $receivers = $post->get('receivers');
-            if(!empty($receivers)) {
+            if (!empty($receivers)) {
                 $ids = explode("," , $receivers);
 
                 foreach ($ids as $id) {
@@ -249,8 +251,8 @@ class HandlingController extends AbstractController
                     'msg' => $translator->trans('services.Une autre demande de service est en cours de création, veuillez réessayer').'.'
                 ]);
             }
-
-            $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, !$status->isTreated());
+            $viewHoursOnExpectedDate = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+            $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate, !$status->isTreated());
 
             return new JsonResponse([
                 'success' => true,
@@ -335,6 +337,7 @@ class HandlingController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $post = $request->request;
 
         $handling = $handlingRepository->find($post->get('id'));
@@ -416,7 +419,8 @@ class HandlingController extends AbstractController
                 && $newStatus
                 && ($oldStatus->getId() !== $newStatus->getId())
             )) {
-            $handlingService->sendEmailsAccordingToStatus($entityManager, $handling);
+            $viewHoursOnExpectedDate = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+            $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate);
         }
 
         return new JsonResponse([

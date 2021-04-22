@@ -16,6 +16,7 @@ $(function () {
             if (!isPreFilledFilter) {
                 displayFiltersSup(data);
             }
+            extendsDateSort('date');
             loadPage();
         }, 'json');
     });
@@ -25,15 +26,10 @@ function loadPage() {
     let idLocationsToDisplay = $('#emplacement').val();
     const locationFiltersCounter = idLocationsToDisplay.length;
     const min = Number($('#encours-min-location-filter').val());
-    const max = Number($('#encours-max-location-filter').val());
-    if (locationFiltersCounter < min || locationFiltersCounter > max) {
+
+    if (locationFiltersCounter < min ) {
         $('.block-encours').addClass('d-none');
-        if (locationFiltersCounter < min) {
-            showBSAlert('Vous devez sélectionner au moins un emplacement dans les filtres', 'danger')
-        }
-        else { // locationFiltersCounter > max
-            showBSAlert(`Le nombre maximum d\'emplacements dans les filtres est de ${max}`, 'danger')
-        }
+        showBSAlert('Vous devez sélectionner au moins un emplacement dans les filtres', 'danger')
     }
     else {
         $('.block-encours').each(function () {
@@ -82,7 +78,13 @@ function loadEncoursDatatable($table) {
             domConfig: {
                 removeInfo: true,
             },
-            "order": [[2, "desc"]]
+            order: [[2, "desc"]],
+            columnDefs: [
+                {
+                    type: "date",
+                    targets: 1
+                }
+            ],
         };
         initDataTable(tableId, tableConfig);
     }

@@ -11,6 +11,7 @@ SELECT
     handling.destination AS emplacement_depose,
     handling.number AS numero,
     statut.nom AS statut,
+    handling.emergency AS urgence,
     IF(handling.validation_date IS NOT NULL AND handling.desired_date IS NOT NULL,
        ROUND(TIME_FORMAT(TIMEDIFF(handling.validation_date, handling.desired_date), '%H')
                  + TIME_FORMAT(TIMEDIFF(handling.validation_date, handling.desired_date), '%i') / 60

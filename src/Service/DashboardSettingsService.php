@@ -90,6 +90,7 @@ class DashboardSettingsService {
                                         "id" => $component->getId(),
                                         "type" => $type->getId(),
                                         "columnIndex" => $component->getColumnIndex(),
+                                        "direction" => $component->getDirection(),
                                         "cellIndex" => $component->getCellIndex(),
                                         "template" => $type->getTemplate(),
                                         "config" => $config,
@@ -128,6 +129,10 @@ class DashboardSettingsService {
 
         if (!empty($config['tooltip'])) {
             $values['tooltip'] = $config['tooltip'];
+        }
+
+        if (!empty($config['backgroundColor'])/* && ($componentType->getMeterKey() !== Dashboard\ComponentType::EXTERNAL_IMAGE)*/) { // TODO uncomment when external image component is done
+            $values['backgroundColor'] = $config['backgroundColor'];
         }
 
         $redirect = $config['redirect'] ?? false;
@@ -200,6 +205,13 @@ class DashboardSettingsService {
                                               ?int $mode): array {
         if ($mode === self::MODE_EDIT) {
             $values = $componentType->getExampleValues();
+            if(isset($config['cardBackgroundColor']) && $config['cardBackgroundColor'] !== '#ffffff') {
+                foreach ($values as &$requests) {
+                    foreach ($requests as &$request) {
+                        $request['cardBackgroundColor'] = $config['cardBackgroundColor'];
+                    }
+                }
+            }
         } else {
             $loggedUser = $config["shown"] === Dashboard\ComponentType::REQUESTS_SELF ? $this->userService->getUser() : null;
             $averageRequestTimeRepository = $entityManager->getRepository(AverageRequestTime::class);
@@ -213,7 +225,7 @@ class DashboardSettingsService {
                     return $carry;
                 }, []);
 
-            if ($config["kind"] == "delivery" && ($mode === self::MODE_EXTERNAL || $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR))) {
+            if ($config["kind"] == "delivery" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)))) {
                 $demandeRepository = $entityManager->getRepository(Demande::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingDeliveries = Stream::from($demandeRepository->findRequestToTreatByUser($loggedUser, 50))
@@ -224,18 +236,19 @@ class DashboardSettingsService {
                 }
             }
 
-            if ($config["kind"] == "collect" && ($mode === self::MODE_EXTERNAL || $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL))) {
+            if ($config["kind"] == "collect" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)))) {
                 $collecteRepository = $entityManager->getRepository(Collecte::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
+                    $backgroundColor = $config['backgroundColor'] ?? '';
                     $pendingCollects = Stream::from($collecteRepository->findRequestToTreatByUser($loggedUser, 50))
-                        ->map(function(Collecte $collecte) use ($averageRequestTimesByType) {
-                            return $this->demandeCollecteService->parseRequestForCard($collecte, $this->dateService, $averageRequestTimesByType);
+                        ->map(function(Collecte $collecte) use ($averageRequestTimesByType, $backgroundColor) {
+                            return $this->demandeCollecteService->parseRequestForCard($collecte, $this->dateService, $averageRequestTimesByType, $backgroundColor);
                         })
                         ->toArray();
                 }
             }
 
-            if ($config["kind"] == "handling" && ($mode === self::MODE_EXTERNAL || $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND))) {
+            if ($config["kind"] == "handling" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND)))) {
                 $handlingRepository = $entityManager->getRepository(Handling::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingHandlings = Stream::from($handlingRepository->findRequestToTreatByUser($loggedUser, 50))
@@ -246,7 +259,7 @@ class DashboardSettingsService {
                 }
             }
 
-            if ($config["kind"] == "transfer" && ($mode === self::MODE_EXTERNAL || $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ))) {
+            if ($config["kind"] == "transfer" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)))) {
                 $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingTransfers = Stream::from($transferRequestRepository->findRequestToTreatByUser($loggedUser, 50))
@@ -256,7 +269,7 @@ class DashboardSettingsService {
                         ->toArray();
                 }
             }
-            if ($config["kind"] == "dispatch" && ($mode === self::MODE_EXTERNAL || $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE))) {
+            if ($config["kind"] == "dispatch" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)))) {
                 $dispatchRepository = $entityManager->getRepository(Dispatch::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUser($loggedUser, 50))
@@ -727,7 +740,6 @@ class DashboardSettingsService {
         $pagesToDelete = $this->byId($pageRepository->findAll());
         $pageRowsToDelete = $this->byId($pageRowRepository->findAll());
         $componentsToDelete = $this->byId($componentRepository->findAll());
-
         foreach ($jsonDashboard as $jsonPage) {
             [$updatePage, $page] = $this->getEntity($entityManager, Dashboard\Page::class, $jsonPage);
             if ($page) {
@@ -743,7 +755,6 @@ class DashboardSettingsService {
 
                                 foreach ($jsonRow["components"] as $jsonComponent) {
                                     [$updateComponent, $component] = $this->getEntity($entityManager, Dashboard\Component::class, $jsonComponent);
-
                                     if ($updateComponent && $component) {
                                         $type = $componentTypeRepository->find($jsonComponent["type"]);
                                         if (!$type) {
@@ -752,6 +763,7 @@ class DashboardSettingsService {
                                         $component->setType($type);
                                         $component->setRow($row);
                                         $component->setColumnIndex($jsonComponent["columnIndex"]);
+                                        $component->setDirection($jsonComponent["direction"] !== "" ? $jsonComponent["direction"] : null);
                                         $component->setCellIndex($jsonComponent["cellIndex"] ?? null);
                                         $this->validateComponentConfig($type, $jsonComponent["config"]);
                                         $component->setConfig($jsonComponent["config"]);
@@ -896,5 +908,4 @@ class DashboardSettingsService {
 
         return $link;
     }
-
 }

@@ -35,6 +35,7 @@ class ComponentType
     public const DAILY_HANDLING = 'daily_handling';
     public const DAILY_OPERATIONS = 'daily_operations';
     public const PENDING_REQUESTS = 'pending_requests';
+    public const EXTERNAL_IMAGE = 'external_image';
 
     public const ORDERS_TO_TREAT = 'orders_to_treat';
     public const ORDERS_TO_TREAT_COLLECT = 'orders_to_treat_collect';
@@ -49,6 +50,8 @@ class ComponentType
     public const REQUESTS_TO_TREAT_DISPATCH = 'requests_to_treat_dispatch';
     public const REQUESTS_TO_TREAT_TRANSFER = 'requests_to_treat_transfer';
 
+    public const GENERIC_TEMPLATE = 'generic_template';
+
     public const REQUESTS_SELF = 'self';
     public const REQUESTS_EVERYONE = 'everyone';
 
@@ -58,6 +61,7 @@ class ComponentType
     public const CATEGORY_REQUESTS = "Demandes";
     public const CATEGORY_ORDERS = "Ordres";
     public const CATEGORY_STOCK = "Stock";
+    public const CATEGORY_OTHER = "Autre";
 
     /**
      * @ORM\Id

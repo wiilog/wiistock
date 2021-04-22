@@ -9,6 +9,10 @@ $rowNumberToDatatableHeight: (
     4: 8vh
 );
 
+.dashboard-button {
+    line-height: normal;
+}
+
 .refresh-date {
     &.display {
         position: fixed;
@@ -31,7 +35,7 @@ $rowNumberToDatatableHeight: (
         .dashboard-row-wrapper {
             width: 97% !important;
         }
-        .delete-row-container {
+        .action-row-container {
             width: 3%;
         }
     }
@@ -39,7 +43,7 @@ $rowNumberToDatatableHeight: (
         .dashboard-row-wrapper {
             width: 98% !important;
         }
-        .delete-row-container {
+        .action-row-container {
             width: 2%;
         }
     }
@@ -74,49 +78,81 @@ $rowNumberToDatatableHeight: (
             }
         }
     }
+}
 
-    .dashboard-row {
+.dashboard-row {
+    display: flex;
+    width: 100%;
+    position: relative;
+
+    @media (min-width: $responsive-breakpoint) {
+        margin-top: map-get($spacers, 2);
+        margin-bottom: map-get($spacers, 2);
+
+        @for $columnIndex from 1 through $maxColumnOnRow {
+            &[data-size="#{$columnIndex}"] > .dashboard-row-wrapper > .dashboard-component {
+                flex: 1 1 calc(#{percentage(1 / $columnIndex)} - #{$spacer});
+                max-width: calc(#{percentage(1 / $columnIndex)} - #{$spacer});
+            }
+        }
+    }
+
+    .dashboard-row-wrapper {
         display: flex;
+        flex: 1;
         width: 100%;
-        position: relative;
+
+        .dashboard-settings & {
+            width: 98% !important;
+        }
 
         @media (min-width: $responsive-breakpoint) {
-            margin-top: map-get($spacers, 2);
-            margin-bottom: map-get($spacers, 2);
-
-            @for $columnIndex from 1 through $maxColumnOnRow {
-                &.dashboard-row-size-#{$columnIndex} > .dashboard-row-wrapper > .dashboard-component {
-                    flex: 1 1 calc(#{percentage(1 / $columnIndex)} - #{$spacer});
-                    max-width: calc(#{percentage(1 / $columnIndex)} - #{$spacer});
-                }
-            }
+            flex-direction: row;
         }
 
-        .dashboard-row-wrapper {
-            display: flex;
-            flex: 1;
-            width: 100%;
-
-            .dashboard-settings & {
-                width: 98% !important;
-            }
-
-            @media (min-width: $responsive-breakpoint) {
-                flex-direction: row;
-            }
-
-            @media (max-width: $responsive-breakpoint) {
-                flex-direction: column;
-            }
-        }
-
-        .delete-row-container {
-            display: flex;
-            justify-content: center;
-            align-content: center;
+        @media (max-width: $responsive-breakpoint) {
             flex-direction: column;
         }
     }
+
+    .action-row-container {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        flex-direction: column;
+
+        .icon {
+            cursor: pointer;
+            margin: 3px 0;
+        }
+    }
+}
+
+.dashboard-component-placeholder {
+    background: #FFF;
+    border-radius: 16px;
+    flex: 1 1 auto;
+    height: 100px;
+    margin: 0 8px;
+
+    &.not-selected {
+        border: 4px solid #000;
+    }
+
+    &.selected {
+        border: 4px solid #00c2f1;
+    }
+
+    &.not-selectable {
+        border: 4px dashed #808080;
+        background: #e7e7e7;
+    }
+}
+
+.dashboard-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .dashboard-component {
@@ -136,9 +172,9 @@ $rowNumberToDatatableHeight: (
         margin-left: map-get($spacers, 2);
         margin-right: map-get($spacers, 2);
 
-        &.dashboard-component-split {
-            flex-direction: column;
+        &.dashboard-component-split-horizontally {
             display: flex;
+            flex-direction: column;
 
             & > .dashboard-component {
                 margin-left: 0;
@@ -148,6 +184,21 @@ $rowNumberToDatatableHeight: (
             }
             &> .dashboard-component:not(:last-child) {
                 margin-bottom: 10px;
+            }
+        }
+
+        &.dashboard-component-split-vertically {
+            display: flex;
+            flex-direction: row;
+
+            & > .dashboard-component {
+                margin-top: 0;
+                margin-bottom: 0;
+                flex: 1 1 50%;
+                width: 50%;
+            }
+            &> .dashboard-component:not(:last-child) {
+                margin-right: 10px;
             }
         }
 
@@ -202,9 +253,8 @@ $rowNumberToDatatableHeight: (
         padding: 0.20rem;
     }
 
-    &.dashboard-box-indicator {
-        display: flex;
-        justify-content: space-around;
+    &.dashboard-box-indicator > * {
+        margin: auto 0;
     }
 
     @media (max-width: $responsive-breakpoint) {
@@ -309,6 +359,7 @@ $rowNumberToDatatableHeight: (
 
         .dashboard-stats-delay-title {
             font-weight: normal !important;
+            margin-top: 0 !important;
         }
 
         .dashboard-stats {
@@ -332,7 +383,11 @@ $rowNumberToDatatableHeight: (
                 &.dashboard-stats-counter {
                     font-size: 5vw;
                 }
+                &.dashboard-stats-delay {
+                    font-size : 4vw
+                }
             }
+
         }
     }
 }
@@ -398,6 +453,13 @@ $rowNumberToDatatableHeight: (
         min-height: 250px;
     }
 
+    sup {
+        font-size: 10px !important;
+        color: black !important;
+        font-weight: 100 !important;
+        margin-right: 2px;
+    }
+
     .dashboard-box {
         min-width: 250px;
     }
@@ -437,4 +499,23 @@ $rowNumberToDatatableHeight: (
 
 .select2-container--default .select2-results__option[aria-disabled=true] {
     display: none;
+}
+
+.customization-tools {
+    position: absolute;
+    right: 150px;
+    top: 10px;
+
+    .card-header {
+        padding: 0px;
+    }
+
+    .card-body {
+        padding: 0px;
+    }
+
+    .toggle-collapsible::before {
+        padding-left: 8px;
+        padding-top: 4px;
+    }
 }

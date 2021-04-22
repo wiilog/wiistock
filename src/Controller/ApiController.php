@@ -49,6 +49,7 @@ use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
 use App\Service\HandlingService;
 use App\Service\MouvementStockService;
+use App\Service\StatusService;
 use App\Service\TrackingMovementService;
 use App\Service\NatureService;
 use App\Service\PreparationsManagerService;
@@ -56,6 +57,7 @@ use App\Service\OrdreCollecteService;
 use App\Service\TransferOrderService;
 use App\Service\UserService;
 use App\Service\FreeFieldService;
+use DateTimeInterface;
 use DateTimeZone;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -242,7 +244,7 @@ class ApiController extends AbstractFOSRestController
 
                         $dateArray = explode('_', $mvt['date']);
 
-                        $date = DateTime::createFromFormat(DateTime::ATOM, $dateArray[0], new DateTimeZone('Europe/Paris'));
+                        $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0], new DateTimeZone('Europe/Paris'));
 
                         // set mouvement de stock
                         if (isset($mvt['fromStock']) && $mvt['fromStock']) {
@@ -739,6 +741,7 @@ class ApiController extends AbstractFOSRestController
      * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $freeFieldService
+     * @param StatusService $statusService
      * @param HandlingService $handlingService
      * @return JsonResponse
      * @throws LoaderError
@@ -749,12 +752,14 @@ class ApiController extends AbstractFOSRestController
                                   AttachmentService $attachmentService,
                                   EntityManagerInterface $entityManager,
                                   FreeFieldService $freeFieldService,
+                                  StatusService $statusService,
                                   HandlingService $handlingService)
     {
         $nomadUser = $this->getUser();
 
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $data = [];
 
@@ -800,12 +805,13 @@ class ApiController extends AbstractFOSRestController
             $freeFieldService->manageFreeFields($handling, $freeFieldValuesStr, $entityManager);
 
             if (!$handling->getValidationDate()
-                && $newStatus
-                && $newStatus->isTreated()) {
-                $handling
-                    ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')))
-                    ->setTreatedByHandling($nomadUser);
-            };
+                && $newStatus) {
+                if ($newStatus->isTreated()) {
+                    $handling
+                        ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                }
+                $handling->setTreatedByHandling($nomadUser);
+            }
             $entityManager->flush();
 
             if ((!$oldStatus && $newStatus)
@@ -814,10 +820,13 @@ class ApiController extends AbstractFOSRestController
                     && $newStatus
                     && ($oldStatus->getId() !== $newStatus->getId())
                 )) {
-                $handlingService->sendEmailsAccordingToStatus($entityManager, $handling);
+                $viewHoursOnExpectedDate = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+                $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate);
             }
 
             $data['success'] = true;
+            $data['state'] = $statusService->getStatusStateCode($handling->getStatus()->getState());
+            $data['freeFields'] = json_encode($handling->getFreeFields());
         } else {
             $data['success'] = false;
             $data['message'] = "Cette demande de service a déjà été prise en charge par un opérateur.";
@@ -1410,10 +1419,15 @@ class ApiController extends AbstractFOSRestController
             ];
 
             $handlings = $handlingRepository->getMobileHandlingsByUserTypes($user->getHandlingTypeIds());
+            $removeHoursDesiredDate = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
             $handlings = Stream::from($handlings)
-                ->map(function (array $handling) use ($handlingExpectedDateColors) {
+                ->map(function (array $handling) use ($handlingExpectedDateColors, $removeHoursDesiredDate) {
                     $handling['color'] = $this->expectedDateColor($handling['desiredDate'], $handlingExpectedDateColors);
-                    $handling['desiredDate'] = $handling['desiredDate'] ? $handling['desiredDate']->format('d/m/Y H:i:s') : null;
+                    $handling['desiredDate'] = $handling['desiredDate']
+                        ? $handling['desiredDate']->format($removeHoursDesiredDate
+                            ? 'd/m/Y'
+                            : 'd/m/Y H:i:s')
+                        : null;
                     $handling['comment'] = $handling['comment'] ? strip_tags($handling['comment']) : null;
                     return $handling;
                 })->toArray();

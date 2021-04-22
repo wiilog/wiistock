@@ -359,13 +359,13 @@ class Pack
     }
 
     public function setArticle(?Article $article): self {
-        if (isset($this->article)
-            && $this->article !== $article) {
-            $this->article->setTrackingPack(null);
+        if ($this->article && $this->article->getTrackingPack() !== $this) {
+            $oldArticle = $this->article;
+            $this->article = null;
+            $oldArticle->setTrackingPack(null);
         }
         $this->article = $article;
-        if (isset($this->article)
-            && $this->article->getTrackingPack() !== $article->getTrackingPack()) {
+        if ($this->article && $this->article->getTrackingPack() !== $this) {
             $this->article->setTrackingPack($this);
         }
         return $this;

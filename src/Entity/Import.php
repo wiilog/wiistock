@@ -6,6 +6,7 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use phpDocumentor\Reflection\Types\String_;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ImportRepository")
@@ -23,6 +24,14 @@ class Import
 	const ENTITY_FOU = 'FOU';
     const ENTITY_ART_FOU = 'ART_FOU';
     const ENTITY_RECEPTION = 'RECEP';
+
+    const ENTITY_LABEL = [
+        self::ENTITY_ART=>"Articles",
+        self::ENTITY_REF=>"Références",
+        self::ENTITY_FOU=>"Fournisseurs",
+        self::ENTITY_RECEPTION=>"Réceptions",
+        self::ENTITY_ART_FOU=>"Articles fournisseurs",
+    ];
 
 	const FIELDS_NEEDED = [
         self::ENTITY_ART_FOU => [

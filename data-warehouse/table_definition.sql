@@ -10,6 +10,16 @@ CREATE TABLE dw_jours_non_travailles
     jour date
 );
 
+CREATE TABLE dw_jours_horaires_travailles
+(
+    jour      varchar(255),
+    travaille varchar(3),
+    horaire1  varchar(255),
+    horaire2  varchar(255),
+    horaire3  varchar(255),
+    horaire4  varchar(255)
+);
+
 CREATE TABLE dw_arrivage_champs_libres
 (
     arrivage_id integer,
@@ -155,6 +165,7 @@ CREATE TABLE dw_service
     emplacement_depose varchar(255),
     numero             varchar(255),
     statut             varchar(255),
+    urgence            varchar(255),
     delta_date         float
 );
 
@@ -176,6 +187,13 @@ CREATE TABLE dw_tracabilite
     mouvement_traca_id          integer,
     arrivage_id                 integer,
     acheminement_id             integer
+);
+
+CREATE TABLE dw_tracabilite_champs_libres
+(
+    mouvement_traca_id integer,
+    libelle            varchar(255),
+    valeur             text
 );
 
 CREATE TABLE dw_urgence
