@@ -507,7 +507,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}, redefine
         : {};
     const clickableClass = componentLink ? 'pointer' : '';
     const needsEmergencyDisplay = emergency && count > 0;
-    const $logoTag = data.logoURL ? `<img src="${data.logoURL}" class="w-px-30 h-px-30"/>` : '';
+    const $logoTag = data.logoURL ? `<img src="${data.logoURL}" class="w-px-30 h-px-30" style="object-fit: contain"/>` : '';
     const $emergencyIcon = needsEmergencyDisplay ? '<i class="fa fa-exclamation-triangle red"></i>' : $logoTag;
     const numberingConfig = {numbering: 0};
     const smartNumberingConfig = redefinedNumberingConfig ? redefinedNumberingConfig : numberingConfig
