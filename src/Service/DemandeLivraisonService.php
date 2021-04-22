@@ -513,7 +513,7 @@ class DemandeLivraisonService
                         . $nowDate->format('d/m/Y \à H:i')
                         . '.',
                 ]),
-                $demande->getUtilisateur()->getMainAndSecondaryEmails()
+                $demande->getUtilisateur()
             );
         }
         $entityManager->flush();
