@@ -386,14 +386,16 @@ class DispatchService {
         if ($recipientAbleToReceivedMail || $requesterAbleToReceivedMail) {
             $type = $dispatch->getType() ? $dispatch->getType()->getLabel() : '';
 
-            $requesterEmails = $dispatch->getRequester() ? $dispatch->getRequester()->getMainAndSecondaryEmails() : [];
-            $receiverEmails = Stream::from($dispatch->getReceivers() ?
-                $dispatch->getReceivers() : [])
-                ->map(function ($receiver) {
-                    return $receiver->getMainAndSecondaryEmails();
-                })
-                ->flatten()
-                ->unique();
+            if ($recipientAbleToReceivedMail && !$dispatch->getReceivers()->isEmpty()) {
+                $receiverEmailUses = $dispatch->getReceivers()->toArray();
+            }
+            else {
+                $receiverEmailUses = [];
+            }
+
+            if ($requesterAbleToReceivedMail && $dispatch->getRequester()) {
+                $receiverEmailUses[] = $dispatch->getRequester();
+            }
 
 
             $partialDispatch = !(
@@ -424,16 +426,6 @@ class DispatchService {
                     ? ('FOLLOW GT // Création d\'un(e) ' . $translatedCategory)
                     : 'FOLLOW GT // Changement de statut d\'un(e) ' . $translatedCategory . '.');
 
-            $emails = [];
-
-            if ($recipientAbleToReceivedMail && !empty($receiverEmails)) {
-                array_push($emails, ...$receiverEmails);
-            }
-
-            if ($requesterAbleToReceivedMail && !empty($requesterEmails)) {
-                array_push($emails, ...$requesterEmails);
-            }
-
             $isTreatedStatus = $dispatch->getStatut() && $dispatch->getStatut()->isTreated();
             $isTreatedByOperator = $dispatch->getTreatedBy() && $dispatch->getTreatedBy()->getUsername();
 
@@ -444,8 +436,7 @@ class DispatchService {
                 CategoryType::DEMANDE_DISPATCH
             );
 
-            if (!empty($emails)) {
-                $emails = Stream::from($emails)->unique()->toarray();
+            if (!empty($receiverEmailUses)) {
                 $this->mailerService->sendMail(
                     $subject,
                     $this->templating->render('mails/contents/mailDispatch.html.twig', [
@@ -457,7 +448,7 @@ class DispatchService {
                         'hideTreatedBy' => $isTreatedByOperator,
                         'totalCost' => $freeFieldArray
                     ]),
-                    $emails
+                    $receiverEmailUses
                 );
             }
         }

@@ -2081,16 +2081,16 @@ class ReceptionController extends AbstractController {
                 $userThatTriggeredEmergency = $ref->getUserThatTriggeredEmergency();
                 if($userThatTriggeredEmergency) {
                     if(isset($demande) && $demande->getUtilisateur()) {
-                        $destinataires = array_merge(
-                            $userThatTriggeredEmergency->getMainAndSecondaryEmails(),
-                            $demande->getUtilisateur()->getMainAndSecondaryEmails()
-                        );
+                        $destinataires = [
+                            $userThatTriggeredEmergency,
+                            $demande->getUtilisateur()
+                        ];
                     } else {
-                        $destinataires = $userThatTriggeredEmergency->getMainAndSecondaryEmails();
+                        $destinataires = [$userThatTriggeredEmergency];
                     }
                 } else {
                     if(isset($demande) && $demande->getUtilisateur()) {
-                        $destinataires = $demande->getUtilisateur()->getMainAndSecondaryEmails();
+                        $destinataires = [$demande->getUtilisateur()];
                     }
                 }
 
@@ -2126,7 +2126,7 @@ class ReceptionController extends AbstractController {
                             . $nowDate->format('d/m/Y \à H:i')
                             . '.',
                     ]),
-                    $demande->getUtilisateur()->getMainAndSecondaryEmails()
+                    $demande->getUtilisateur()
                 );
             }
             $entityManager->flush();

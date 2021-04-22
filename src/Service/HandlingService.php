@@ -154,14 +154,11 @@ class HandlingService
         $requester = $status->getSendNotifToDeclarant() ? $handling->getRequester() : null;
         $receivers = $status->getSendNotifToRecipient() ? $handling->getReceivers() : [];
 
-        $requesterEmails = $requester ? $requester->getMainAndSecondaryEmails() : [];
-        $emails = Stream::from($receivers)
-            ->map(fn(Utilisateur $receiver) => $receiver->getEmail())
-            ->concat($requesterEmails)
+        $emailReceivers = Stream::from($receivers, [$requester])
             ->unique()
             ->toArray();
 
-        if (!empty($emails)) {
+        if (!empty($emailReceivers)) {
             $statusTreated = $status->isTreated();
             if ($isNewHandlingAndNotTreated) {
                 $subject = $this->translator->trans('services.Création d\'une demande de service');
@@ -186,7 +183,7 @@ class HandlingService
                     'fieldsParam' => $fieldsParam,
                     'viewHoursOnExpectedDate' => $viewHoursOnExpectedDate
                 ]),
-                $emails
+                $emailReceivers
             );
         }
     }

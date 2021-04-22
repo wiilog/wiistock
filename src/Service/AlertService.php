@@ -69,34 +69,23 @@ class AlertService {
                 ->getManagers();
 
             foreach($recipients as $recipient) {
-                $this->addArticle($managers, $recipient->getEmail(), $article);
-                $this->addArticle($managers, $recipient->getSecondaryEmails(), $article);
+                $id = $recipient->getId();
+                if(!isset($managers[$id])) {
+                    $managers[$id] = [
+                        'articles' => [],
+                        'user' => $recipient
+                    ];
+                }
+
+                $managers[$id]['articles'][] = $article;
             }
         }
 
-        foreach($managers as $managerString => $articles) {
-            $this->sendExpiryMails($managerString, $articles, $expiry);
+        foreach($managers as $emailConfig) {
+            $this->sendExpiryMails($emailConfig['user'], $emailConfig['articles'], $expiry);
         }
 
         $manager->flush();
-    }
-
-    private function addArticle(array &$emails, $recipients, Article $article) {
-        if(!is_array($recipients)) {
-            $recipients = [$recipients];
-        }
-
-        foreach($recipients as $email) {
-            if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                continue;
-            }
-
-            if(!isset($emails[$email])) {
-                $emails[$email] = [];
-            }
-
-            $emails[$email][] = $article;
-        }
     }
 
     /**
@@ -116,20 +105,13 @@ class AlertService {
             return;
         }
 
-        Stream::from($reference->getManagers())
-            ->map(fn(Utilisateur $manager) => [$manager->getEmail(), $manager->getSecondaryEmails()])
-            ->flatten()
-            ->filter(fn($email) => !empty($email))
-            ->unique()
-            ->each(function($email) use ($reference, $type, $freeFieldValue) {
-                $content = $this->templating->render("mails/contents/mailThresholdReached.html.twig", [
-                    "reference" => $reference,
-                    "type" => $type,
-                    'machinePDTValue' => $freeFieldValue
-                ]);
+        $content = $this->templating->render("mails/contents/mailThresholdReached.html.twig", [
+            "reference" => $reference,
+            "type" => $type,
+            'machinePDTValue' => $freeFieldValue
+        ]);
 
-                $this->mailer->sendMail("FOLLOW GT // $type atteint", $content, $email);
-            });
+        $this->mailer->sendMail("FOLLOW GT // $type atteint", $content, $reference->getManagers()->toArray());
     }
 
     /**
