@@ -12,16 +12,7 @@
             </h5>
         </div>
         <div id="collapse-text" class="collapse" aria-labelledby="headingOneBackgroundColor" data-parent="#text-accordion">
-            <div class="card-body">
-                {% for i in 0..lines %}
-                    <div class="d-flex">
-                        <input type="number" class="data form-control needed w-px-50" name="fontSize" value="{{ values.fontSize ?? '#FFFFFF' }}">
-                        <input type="color" class="data form-control needed w-px-50" name="textColor" value="{{ values.textColor ?? '#FFFFFF' }}">
-                        <input type="checkbox" name="textBold" class="data">
-                        <input type="checkbox" name="textItalic" class="data">
-                        <input type="checkbox" name="textUnderline" class="data">
-                    </div>
-                {% endfor %}
+            <div class="card-body component-numbering">
             </div>
         </div>
     </div>

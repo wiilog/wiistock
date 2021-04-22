@@ -125,6 +125,11 @@ const creators = {
 function renderComponent(component, $container, data) {
     $container.empty();
 
+    const $modal = $container.closest(`.modal`);
+    if($modal.exists()) {
+        $modal.find(`.component-numbering`).empty();
+    }
+
     if(!creators[component.meterKey]) {
         console.error(`No creator function for ${component.meterKey} key.`);
         return false;
@@ -193,9 +198,9 @@ function createPendingRequests(data, {rowSize}) {
 
     let content = ``;
     let renderNumberingOnce = true;
-    let numberedTitle = data.title ? (incrementNumbering(numberingConfig) + data.title) : '';
+    let numberedTitle = data.title ? (incrementNumbering(data, numberingConfig, 1) + data.title) : '';
     for(let request of data.requests) {
-        content += renderRequest(request, rowSize, renderNumberingOnce ? numberingConfig : undefined);
+        content += renderRequest(data, request, rowSize, renderNumberingOnce ? numberingConfig : undefined);
         renderNumberingOnce = false;
     }
 
@@ -212,7 +217,7 @@ function createPendingRequests(data, {rowSize}) {
     `);
 }
 
-function renderRequest(request, rowSize, redefinedNumberingConfig) {
+function renderRequest(data, request, rowSize, redefinedNumberingConfig) {
     let onCardClick = ``;
     if(!request.href && request.errorMessage) {
         onCardClick = `showBSAlert('${request.errorMessage}', 'danger'); event.preventDefault()`;
@@ -246,8 +251,8 @@ function renderRequest(request, rowSize, redefinedNumberingConfig) {
                 <div class="wii-card-header">
                     <div class="row">
                         <div class="col-10 mb-2">
-                            <p class="mb-2 small">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.estimatedFinishTimeLabel}</p>
-                            <strong>${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.estimatedFinishTime}</strong>
+                            <p class="mb-2 small">${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 2) : '') + request.estimatedFinishTimeLabel}</p>
+                            <strong>${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 3) : '') + request.estimatedFinishTime}</strong>
                         </div>
                         <div class="col-2 d-flex justify-content-end align-items-start">
                             ${request.emergencyText} ${topRightIcon}
@@ -264,21 +269,21 @@ function renderRequest(request, rowSize, redefinedNumberingConfig) {
                             </div>
                         </div>
                         <div class="col-12">
-                            <p>${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + $.capitalize(request.requestStatus)}</p>
+                            <p>${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 4) : '') + $.capitalize(request.requestStatus)}</p>
                         </div>
                     </div>
                 </div>
                 <div class="wii-card-body p-2">
                     <div class="row">
                         <div class="col-12 card-title text-center">
-                            <strong>${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestBodyTitle}</strong>
+                            <strong>${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 5) : '') + request.requestBodyTitle}</strong>
                         </div>
                         <div class="col-12">
                             <div class="w-100 d-inline-flex justify-content-center">
                                 <strong class="card-title m-0 mr-2">
                                     <i class="fa fa-map-marker-alt "></i>
                                 </strong>
-                                <strong class="ellipsis">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestLocation}</strong>
+                                <strong class="ellipsis">${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 6) : '') + request.requestLocation}</strong>
                             </div>
                         </div>
                     </div>
@@ -286,12 +291,12 @@ function renderRequest(request, rowSize, redefinedNumberingConfig) {
                 <div class="wii-card-footer">
                     <div class="row align-items-end">
                         <div class="col-6 text-left ellipsis">
-                            <span class="bold">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestNumber}</span><br/>
-                            <span class="text-secondary">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestDate}</span>
+                            <span class="bold">${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 7) : '') + request.requestNumber}</span><br/>
+                            <span class="text-secondary">${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 8) : '') + request.requestDate}</span>
                         </div>
                         <div class="col-6 text-right ellipsis">
                             <div class="profile-picture" style="background-color: #EEE">${requestUserFirstLetter}</div>
-                            <span class="bold">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestUser}</span>
+                            <span class="bold">${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 9) : '') + request.requestUser}</span>
                         </div>
                     </div>
                 </div>
@@ -392,7 +397,7 @@ function createLatePacksElement(data) {
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
-                ${incrementNumbering(numberingConfig) + title}
+                ${incrementNumbering(data, numberingConfig, 1) + title}
             </div>
             ${createTooltip(data.tooltip)}
             <table class="table display retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
@@ -447,7 +452,7 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container' + dashboardBoxContainerClass)}>
             <div class="title">
-                ${(!redefinedNumbering ? incrementNumbering(numberingConfig) : incrementNumbering(redefinedNumberingConfig)) + title.split('(')[0]}
+                ${incrementNumbering(data, redefinedNumberingConfig || numberingConfig, 1) + title.split('(')[0]}
             </div>
             ${createTooltip(data.tooltip)}
             <div class="flex-fill content">
@@ -475,10 +480,10 @@ function createCarrierTrackingElement(data) {
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
-                ${incrementNumbering(numberingConfig) + title}
+                ${incrementNumbering(data, numberingConfig, 1) + title}
             </div>
             ${createTooltip(data.tooltip)}
-            <h1>${incrementNumbering(numberingConfig) + carriers}</h1>
+            <h1>${incrementNumbering(data, numberingConfig, 2) + carriers}</h1>
         </div>
     `);
 }
@@ -487,6 +492,7 @@ function createCarrierTrackingElement(data) {
  * @param {*} data
  * @param {string} meterKey
  * @param {undefined|string} customContainerClass
+ * @param redefinedNumberingConfig
  * @return {boolean|jQuery}
  */
 function createIndicatorElement(data, {meterKey, customContainerClass}, redefinedNumberingConfig = null) {
@@ -523,10 +529,10 @@ function createIndicatorElement(data, {meterKey, customContainerClass}, redefine
                         `<span class="title ${needsEmergencyDisplay
                             ? 'mx-3'
                             : ''}">
-                        ${incrementNumbering(smartNumberingConfig)}${title.split('(')[0]}</span>`,
+                        ${incrementNumbering(data, smartNumberingConfig, 1)}${title.split('(')[0]}</span>`,
                         $emergencyIcon,
                         `<p class="small ellipsis location-label">${subtitle
-                            ? incrementNumbering(smartNumberingConfig) + subtitle
+                            ? incrementNumbering(data, smartNumberingConfig, 2) + subtitle
                             : ''}
                         </p>`
                     ]
@@ -535,30 +541,30 @@ function createIndicatorElement(data, {meterKey, customContainerClass}, redefine
             subtitle && !title
                 ? $('<div/>', {
                     class: 'location-label ellipsis small',
-                    html: incrementNumbering(smartNumberingConfig) + subtitle
+                    html: incrementNumbering(data, smartNumberingConfig, 3) + subtitle
                 })
                 : undefined,
             count !== undefined
                 ? $('<div/>', {
                     class: `align-items-center`,
                     html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter ${needsEmergencyDisplay ? 'red' : ''}">
-                        ${((count || count === '0' || count === 0) ? incrementNumbering(smartNumberingConfig) + count : '-')}</div>`
+                        ${((count || count === '0' || count === 0) ? incrementNumbering(data, smartNumberingConfig, 4) + count : '-')}</div>`
                 })
                 : undefined,
             delay
                 ? $('<div/>', {
                     class: `text-center title dashboard-stats-delay-title ${delay < 0 ? 'red' : ''}`,
                     html: delay < 0
-                        ? incrementNumbering(smartNumberingConfig) + 'Retard : '
-                        : incrementNumbering(smartNumberingConfig) + 'A traiter sous :'
+                        ? incrementNumbering(data, smartNumberingConfig, 5) + 'Retard : '
+                        : incrementNumbering(data, smartNumberingConfig, 6) + 'A traiter sous :'
                 })
                 : undefined,
             delay
                 ? $('<div/>', {
                     class: `${clickableClass} dashboard-stats dashboard-stats-delay ${delay < 0 ? 'red' : ''}`,
                     html: !isNaN(Math.abs(delay))
-                        ? (incrementNumbering(smartNumberingConfig) + renderMillisecondsToDelay(Math.abs(delay), 'display'))
-                        : (incrementNumbering(smartNumberingConfig) + delay)
+                        ? (incrementNumbering(data, smartNumberingConfig, 7) + renderMillisecondsToDelay(Math.abs(delay), 'display'))
+                        : (incrementNumbering(data, smartNumberingConfig, 8) + delay)
                 })
                 : undefined,
             ...((subCounts || [])
@@ -566,7 +572,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}, redefine
                 .map((subCount) => (
                     $('<div/>', {
                         class: `${clickableClass} dashboard-stats`,
-                        html: subCount ? incrementNumbering(smartNumberingConfig) + subCount : ''
+                        html: subCount ? incrementNumbering(data, smartNumberingConfig, 9) + subCount : ''
                     })
                 )))
         ].filter(Boolean)
@@ -950,11 +956,33 @@ function updateMultipleChartData(chart, data) {
     chart.update();
 }
 
-function incrementNumbering(numberingConfig) {
+function incrementNumbering(data, numberingConfig, backendNumber) {
+    let text = ``;
     if($('#modalComponentTypeSecondStep').hasClass('show')) {
         numberingConfig.numbering += 1;
-        return '<sup>(' + numberingConfig.numbering + ')</sup>';
-    } else {
-        return '';
+        text = `<sup>(${numberingConfig.numbering})</sup>`;
     }
+
+    const $container = $(`.modal.show .component-numbering`);
+    $container.append(`
+        <div class="d-flex align-items-center p-1" data-number="${backendNumber}">
+            <sup class="pt-2">(${numberingConfig.numbering})</sup>
+            <input type="number" class="data form-control needed w-px-70 mr-2" name="fontSize" value="{{ values.fontSize ?? '#FFFFFF' }}">
+            <input type="color" class="data form-control needed w-px-50 mr-2" name="textColor" value="{{ values.textColor ?? '#FFFFFF' }}">
+            <label class="text-bold-selector">
+                <input type="checkbox" name="textBold" class="data">
+                <i></i>
+            </label>
+            <label class="text-italic-selector">
+                <input type="checkbox" name="textItalic" class="data">
+                <i></i>
+            </label>
+            <label class="text-underline-selector">
+                <input type="checkbox" name="textUnderline" class="data">
+                <i></i>
+            </label>
+        </div>
+    `);
+
+    return text;
 }
