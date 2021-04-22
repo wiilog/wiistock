@@ -703,6 +703,7 @@ function onRowEdit() {
                         const component = row.components[i];
 
                         if(columnMapping[component.columnIndex] !== undefined) {
+                            component.updated = 1;
                             component.columnIndex = columnMapping[component.columnIndex];
                         } else {
                             columnMapping[component.columnIndex] = i;
