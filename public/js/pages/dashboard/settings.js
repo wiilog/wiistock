@@ -697,9 +697,15 @@ function onRowEdit() {
                         return;
                     }
 
+                    const columnMapping = {};
                     row.components = row.components.filter(c => kept.indexOf(c.columnIndex) !== -1);
                     for (let i = 0; i < row.components.length; i++) {
-                        row.components[i].columnIndex = i;
+                        if(columnMapping[row.components[i].columnIndex] !== undefined) {
+                            row.components[i].columnIndex = columnMapping[row.components[i].columnIndex];
+                        } else {
+                            columnMapping[row.components[i].columnIndex] = i;
+                            row.components[i].columnIndex = i;
+                        }
                     }
 
                     currentDashboard.updated = true;
