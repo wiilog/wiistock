@@ -205,13 +205,6 @@ class DashboardSettingsService {
                                               ?int $mode): array {
         if ($mode === self::MODE_EDIT) {
             $values = $componentType->getExampleValues();
-            if(isset($config['cardBackgroundColor']) && $config['cardBackgroundColor'] !== '#ffffff') {
-                foreach ($values as &$requests) {
-                    foreach ($requests as &$request) {
-                        $request['cardBackgroundColor'] = $config['cardBackgroundColor'];
-                    }
-                }
-            }
         } else {
             $loggedUser = $config["shown"] === Dashboard\ComponentType::REQUESTS_SELF ? $this->userService->getUser() : null;
             $averageRequestTimeRepository = $entityManager->getRepository(AverageRequestTime::class);
@@ -281,6 +274,14 @@ class DashboardSettingsService {
             }
 
             $values["requests"] = array_merge($pendingDeliveries ?? [], $pendingCollects ?? [], $pendingHandlings ?? [], $pendingTransfers ?? [], $pendingDispatches ?? []);
+        }
+
+        if(isset($config['cardBackgroundColor']) && $config['cardBackgroundColor'] !== '#ffffff') {
+            foreach ($values as &$requests) {
+                foreach ($requests as &$request) {
+                    $request['cardBackgroundColor'] = $config['cardBackgroundColor'];
+                }
+            }
         }
 
         return $values;
