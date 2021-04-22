@@ -672,7 +672,7 @@ function onRowEdit() {
 
                 for (let i = 0; i < row.size; i++) {
                     const component = row.components.find(c => c.columnIndex === i) || null;
-                    const $component = $(`<div class="dashboard-component-placeholder" data-index="${i}"></div>`);
+                    const $component = $(`<div class="dashboard-component-placeholder pointer" data-index="${i}"></div>`);
                     if (component) {
                         $component.addClass(`not-selected`);
                     } else {
