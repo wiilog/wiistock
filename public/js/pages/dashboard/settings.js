@@ -702,6 +702,8 @@ function onRowEdit() {
                         row.components[i].columnIndex = i;
                     }
 
+                    currentDashboard.updated = true;
+                    row.updated = true;
                     row.size = columns;
                     $selectionModal.modal(`hide`);
                     renderCurrentDashboard();
@@ -709,6 +711,8 @@ function onRowEdit() {
                 $row.prepend('<div class="col-12">Sélectionner les composants à conserver</div>');
                 $selectionModal.modal(`show`);
             } else {
+                currentDashboard.updated = true;
+                row.updated = true;
                 row.size = columns;
                 renderCurrentDashboard();
             }
