@@ -700,11 +700,14 @@ function onRowEdit() {
                     const columnMapping = {};
                     row.components = row.components.filter(c => kept.indexOf(c.columnIndex) !== -1);
                     for (let i = 0; i < row.components.length; i++) {
-                        if(columnMapping[row.components[i].columnIndex] !== undefined) {
-                            row.components[i].columnIndex = columnMapping[row.components[i].columnIndex];
+                        const component = row.components[i];
+
+                        if(columnMapping[component.columnIndex] !== undefined) {
+                            component.columnIndex = columnMapping[component.columnIndex];
                         } else {
-                            columnMapping[row.components[i].columnIndex] = i;
-                            row.components[i].columnIndex = i;
+                            columnMapping[component.columnIndex] = i;
+                            component.updated = 1;
+                            component.columnIndex = i;
                         }
                     }
 
@@ -714,7 +717,7 @@ function onRowEdit() {
                     $selectionModal.modal(`hide`);
                     renderCurrentDashboard();
                 });
-                $row.prepend('<div class="col-12">Sélectionner les composants à conserver</div>');
+
                 $selectionModal.modal(`show`);
             } else {
                 currentDashboard.updated = true;
