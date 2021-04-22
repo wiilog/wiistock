@@ -666,7 +666,8 @@ function onRowEdit() {
             if(row.size > columns) {
                 const $selectionModal = $(`#choose-components-modal`);
                 const $rowWrapper = $selectionModal.find(`.dashboard-row-wrapper`);
-                $selectionModal.find(`.dashboard-row`).attr(`data-size`, row.size);
+                const $row = $selectionModal.find(`.dashboard-row`);
+                $row.attr(`data-size`, row.size);
                 $rowWrapper.empty();
 
                 for(let i = 0; i < row.size; i++) {
@@ -705,6 +706,7 @@ function onRowEdit() {
                     $selectionModal.modal(`hide`);
                     renderCurrentDashboard();
                 });
+                $row.prepend('<div class="col-12">Sélectionner les composants à conserver</div>');
                 $selectionModal.modal(`show`);
             } else {
                 row.size = columns;
@@ -1022,10 +1024,10 @@ function initSecondStep(html) {
             $input.click();
         })
 
-        $input.change(async function() {
-            if(this.files.length >= 1 && this.files[0]) {
+        updateImagePreview($preview, $input, async function($input) {
+            if($input.files.length >= 1 && $input.files[0]) {
                 const reader = new FileReader();
-                reader.readAsDataURL(this.files[0]);
+                reader.readAsDataURL($input.files[0]);
                 reader.onload = () =>  {
                     $modalComponentTypeSecondStep.find(`.external-image-content`)
                         .val(reader.result)
@@ -1033,8 +1035,6 @@ function initSecondStep(html) {
                 };
             }
         });
-
-        updateImagePreview($preview, $input);
     }
 }
 
