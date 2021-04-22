@@ -315,7 +315,6 @@ function createComponentContainer(columnIndex, cellIndex = null) {
 function renderCardComponent({columnIndex, cellIndex, component}) {
     const $componentContainer = createComponentContainer(columnIndex, cellIndex);
     cellIndex = convertIndex(cellIndex);
-
     if(component && typeof component === 'object') {
         $componentContainer.pushLoader('black', 'normal');
         renderComponentWithData(
@@ -717,7 +716,6 @@ function onRowEdit() {
 function onComponentEdited() {
     const $button = $(this);
     const {row, component} = getComponentFromTooltipButton($button);
-
     openModalComponentTypeSecondStep($button, row.rowIndex, component);
 }
 
@@ -829,7 +827,6 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
         cellIndex: component.cellIndex,
         values: JSON.stringify(component.config || {})
     };
-
     wrapLoadingOnActionButton($button, () => $.post(route, content, function(data) {
         if(data.html) {
             initSecondStep(data.html);

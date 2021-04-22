@@ -335,6 +335,21 @@ class DashboardSettingsController extends AbstractController {
                                             Dashboard\ComponentType $componentType): Response {
         if($request->request->has("values")) {
             $values = json_decode($request->request->get("values"), true);
+            if (isset($values['jsonConfig'])) {
+                $values = json_decode($values['jsonConfig'], true);
+            }
+            Stream::from($componentType->getExampleValues())
+                ->each(function($conf, $key) use (&$values) {
+                    if (str_starts_with($key, 'fontSize-')
+                        || str_starts_with($key, 'textColor-')
+                        || str_starts_with($key, 'textBold-')
+                        || str_starts_with($key, 'textItalic-')
+                        || str_starts_with($key, 'textUnderline-')) {
+                        if (!isset($values[$key])) {
+                            $values[$key] = $conf;
+                        }
+                    }
+                });
         } else {
             $values = $componentType->getExampleValues();
         }

@@ -124,7 +124,7 @@ const creators = {
  */
 function renderComponent(component, $container, data) {
     $container.empty();
-
+    $('input[name="jsonConfig"]').remove();
     const $modal = $container.closest(`.modal`);
     if($modal.exists()) {
         $modal.find(`.component-numbering`).empty();
@@ -541,30 +541,30 @@ function createIndicatorElement(data, {meterKey, customContainerClass}, redefine
             subtitle && !title
                 ? $('<div/>', {
                     class: 'location-label ellipsis small',
-                    html: incrementNumbering(data, smartNumberingConfig, 3) + subtitle
+                    html: incrementNumbering(data, smartNumberingConfig, 2) + subtitle
                 })
                 : undefined,
             count !== undefined
                 ? $('<div/>', {
                     class: `align-items-center`,
                     html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter ${needsEmergencyDisplay ? 'red' : ''}">
-                        ${((count || count === '0' || count === 0) ? incrementNumbering(data, smartNumberingConfig, 4) + count : '-')}</div>`
+                        ${((count || count === '0' || count === 0) ? incrementNumbering(data, smartNumberingConfig, 3) + count : '-')}</div>`
                 })
                 : undefined,
             delay
                 ? $('<div/>', {
                     class: `text-center title dashboard-stats-delay-title ${delay < 0 ? 'red' : ''}`,
                     html: delay < 0
-                        ? incrementNumbering(data, smartNumberingConfig, 5) + 'Retard : '
-                        : incrementNumbering(data, smartNumberingConfig, 6) + 'A traiter sous :'
+                        ? incrementNumbering(data, smartNumberingConfig, 4) + 'Retard : '
+                        : incrementNumbering(data, smartNumberingConfig, 4) + 'A traiter sous :'
                 })
                 : undefined,
             delay
                 ? $('<div/>', {
                     class: `${clickableClass} dashboard-stats dashboard-stats-delay ${delay < 0 ? 'red' : ''}`,
                     html: !isNaN(Math.abs(delay))
-                        ? (incrementNumbering(data, smartNumberingConfig, 7) + renderMillisecondsToDelay(Math.abs(delay), 'display'))
-                        : (incrementNumbering(data, smartNumberingConfig, 8) + delay)
+                        ? (incrementNumbering(data, smartNumberingConfig, 5) + renderMillisecondsToDelay(Math.abs(delay), 'display'))
+                        : (incrementNumbering(data, smartNumberingConfig, 5) + delay)
                 })
                 : undefined,
             ...((subCounts || [])
@@ -964,21 +964,26 @@ function incrementNumbering(data, numberingConfig, backendNumber) {
     }
 
     const $container = $(`.modal.show .component-numbering`);
+    const fontSize = data['fontSize-' + backendNumber] || 12;
+    const textColor = data['textColor-' + backendNumber] || "#FFFFFF";
+    const textBold = data['textBold-' + backendNumber]  ? 'checked' : '';
+    const textItalic = data['textItalic-' + backendNumber] ? 'checked' : '';
+    const textUnderline = data['textUnderline-' + backendNumber] ? 'checked' : '';
     $container.append(`
         <div class="d-flex align-items-center p-1" data-number="${backendNumber}">
             <sup class="pt-2">(${numberingConfig.numbering})</sup>
-            <input type="number" class="data form-control needed w-px-70 mr-2" name="fontSize" value="{{ values.fontSize ?? '#FFFFFF' }}">
-            <input type="color" class="data form-control needed w-px-50 mr-2" name="textColor" value="{{ values.textColor ?? '#FFFFFF' }}">
+            <input type="number" class="data form-control needed w-px-70 mr-2" name="fontSize-${backendNumber}" value="${fontSize}">
+            <input type="color" class="data form-control needed w-px-50 mr-2" name="textColor-${backendNumber}" value="${textColor}">
             <label class="text-bold-selector">
-                <input type="checkbox" name="textBold" class="data">
+                <input type="checkbox" name="textBold-${backendNumber}" class="data checkbox" ${textBold}>
                 <i></i>
             </label>
             <label class="text-italic-selector">
-                <input type="checkbox" name="textItalic" class="data">
+                <input type="checkbox" name="textItalic-${backendNumber}" class="data checkbox" ${textItalic}>
                 <i></i>
             </label>
             <label class="text-underline-selector">
-                <input type="checkbox" name="textUnderline" class="data">
+                <input type="checkbox" name="textUnderline-${backendNumber}" class="data checkbox" ${textUnderline}>
                 <i></i>
             </label>
         </div>

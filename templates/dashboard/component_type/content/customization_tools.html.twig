@@ -1,4 +1,5 @@
 <div class="customization-tools">
+    <input type="hidden" name="jsonConfig" value="{{ values | json_encode }}" class="data">
     {% include 'dashboard/component_type/content/text_customization.html.twig' %}
 
     <div id="accordion" class="customization-tools-accordion">

@@ -125,6 +125,17 @@ class DashboardSettingsService {
         $values = [];
         $meterKey = $componentType->getMeterKey();
 
+        Stream::from($config)
+            ->each(function($conf, $key) use (&$values) {
+                if (str_starts_with($key, 'fontSize-')
+                    || str_starts_with($key, 'textColor-')
+                    || str_starts_with($key, 'textBold-')
+                    || str_starts_with($key, 'textItalic-')
+                    || str_starts_with($key, 'textUnderline-')) {
+                    $values[$key] = $conf;
+                }
+            });
+
         $values['title'] = !empty($config['title']) ? $config['title'] : $componentType->getName();
 
         if (!empty($config['tooltip'])) {
@@ -443,6 +454,7 @@ class DashboardSettingsService {
         $shouldShowLocationLabels = isset($config['withLocationLabels']) && $config['withLocationLabels'];
         $emergency = isset($config['emergency']) && $config['emergency'];
         if ($example) {
+            dump('gfgd');
             $values = $componentType->getExampleValues();
 
             if ($shouldShowLocationLabels && !empty($config['locations'])) {
