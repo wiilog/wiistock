@@ -701,14 +701,15 @@ function onRowEdit() {
                     row.components = row.components.filter(c => kept.indexOf(c.columnIndex) !== -1);
                     for (let i = 0; i < row.components.length; i++) {
                         const component = row.components[i];
+                        const newIndex =  kept.indexOf(component.columnIndex);
 
                         if(columnMapping[component.columnIndex] !== undefined) {
                             component.updated = 1;
                             component.columnIndex = columnMapping[component.columnIndex];
                         } else {
-                            columnMapping[component.columnIndex] = i;
+                            columnMapping[component.columnIndex] = newIndex;
                             component.updated = 1;
-                            component.columnIndex = i;
+                            component.columnIndex = newIndex;
                         }
                     }
 
