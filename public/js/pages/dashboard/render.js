@@ -275,10 +275,11 @@ function renderRequest(request, rowSize, redefinedNumberingConfig) {
                         </div>
                         <div class="col-12">
                             <div class="w-100 d-inline-flex justify-content-center">
+                                ${redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : ''}
                                 <strong class="card-title m-0 mr-2">
                                     <i class="fa fa-map-marker-alt "></i>
                                 </strong>
-                                <strong class="ellipsis">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestLocation}</strong>
+                                <strong class="ellipsis">${request.requestLocation}</strong>
                             </div>
                         </div>
                     </div>
