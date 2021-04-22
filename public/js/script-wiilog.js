@@ -1071,7 +1071,7 @@ function getBSAlertModal() {
     return $('#alert-modal');
 }
 
-function updateImagePreview(preview, upload, $callback = null) {
+function updateImagePreview(preview, upload, $title = null, $delete = null, $callback = null) {
     let $upload = $(upload)[0];
 
     $(upload).change(() => {
@@ -1081,6 +1081,11 @@ function updateImagePreview(preview, upload, $callback = null) {
 
             if ($upload.files[0].size < MAX_UPLOAD_FILE_SIZE) {
                 if (ALLOWED_IMAGE_EXTENSIONS.indexOf(extension) !== -1) {
+                    if ($title) {
+                        $title.text(fileNameWithExtension.join('.').substr(0, 5) + '...');
+                        $title.attr('title', fileNameWithExtension.join('.'));
+                    }
+
                     let reader = new FileReader();
                     reader.onload = function (e) {
                         let image = new Image();
@@ -1094,6 +1099,7 @@ function updateImagePreview(preview, upload, $callback = null) {
                                 $(preview)
                                     .attr('src', e.target.result)
                                     .removeClass('d-none');
+                                $delete.removeClass('d-none');
                             } else {
                                 showBSAlert('Veuillez choisir une image ne faisant pas plus de 1000x1000.', 'danger');
                             }

@@ -497,7 +497,6 @@ function createIndicatorElement(data, {meterKey, customContainerClass}, redefine
     }
 
     customContainerClass = customContainerClass || '';
-
     const {title, subtitle, tooltip, count, delay, componentLink, emergency, subCounts, backgroundColor} = data;
     const element = componentLink ? '<a/>' : '<div/>';
     const customAttributes = componentLink
@@ -508,7 +507,8 @@ function createIndicatorElement(data, {meterKey, customContainerClass}, redefine
         : {};
     const clickableClass = componentLink ? 'pointer' : '';
     const needsEmergencyDisplay = emergency && count > 0;
-    const $emergencyIcon = needsEmergencyDisplay ? '<i class="fa fa-exclamation-triangle red"></i>' : '';
+    const $logoTag = data.logoURL ? `<img src="${data.logoURL}" class="w-px-30 h-px-30" style="object-fit: contain"/>` : '';
+    const $emergencyIcon = needsEmergencyDisplay ? '<i class="fa fa-exclamation-triangle red"></i>' : $logoTag;
     const numberingConfig = {numbering: 0};
     const smartNumberingConfig = redefinedNumberingConfig ? redefinedNumberingConfig : numberingConfig
     return $(element, Object.assign({
@@ -521,9 +521,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}, redefine
                     class: `text-center title ${meterKey === ENTRIES_TO_HANDLE ? '' : 'ellipsis'}`,
                     html: [
                         $emergencyIcon,
-                        `<span class="title ${needsEmergencyDisplay
-                            ? 'mx-3'
-                            : ''}">
+                        `<span class="title mx-3">
                         ${incrementNumbering(smartNumberingConfig)}${title.split('(')[0]}</span>`,
                         $emergencyIcon,
                         `<p class="small ellipsis location-label">${subtitle
