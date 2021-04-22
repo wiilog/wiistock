@@ -242,7 +242,7 @@ function renderRequest(request, rowSize, redefinedNumberingConfig) {
 
     return `
         <div class="d-flex ${cardSize} p-1">
-            <a class="card wii-card request-card pointer p-3 my-2 shadow-sm flex-grow-1 ${cursor} bg-${request.cardColor}" ${link} style="${request.cardBackgroundColor ? ('background-color:' + request.cardBackgroundColor + '!important') : ''}">
+            <a class="card wii-card request-card pointer p-3 my-2 shadow-sm flex-grow-1 ${cursor} bg-${request.cardColor}" ${link} style="${request.cardBackgroundColor ? (`background-color: ${request.cardBackgroundColor}!important`) : ''}">
                 <div class="wii-card-header">
                     <div class="row">
                         <div class="col-10 mb-2">
@@ -275,10 +275,11 @@ function renderRequest(request, rowSize, redefinedNumberingConfig) {
                         </div>
                         <div class="col-12">
                             <div class="w-100 d-inline-flex justify-content-center">
+                                ${redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : ''}
                                 <strong class="card-title m-0 mr-2">
                                     <i class="fa fa-map-marker-alt "></i>
                                 </strong>
-                                <strong class="ellipsis">${(redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : '') + request.requestLocation}</strong>
+                                <strong class="ellipsis">${request.requestLocation}</strong>
                             </div>
                         </div>
                     </div>

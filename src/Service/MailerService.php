@@ -10,33 +10,45 @@ namespace App\Service;
 
 
 use App\Entity\MailerServer;
+use App\Entity\Utilisateur;
+use App\Helper\Stream;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 
 class MailerService
 {
+    /** @Required */
+    public ?EntityManagerInterface $entityManager = null;
 
     /**
-     * @var Twig_Environment
+     * @param $subject
+     * @param $content
+     * @param Utilisateur[]|string[]|Utilisateur|string $to
+     * @return bool
      */
-    private $templating;
-    private $entityManager;
-
-
-    public function __construct(EntityManagerInterface $entityManager,
-                                Twig_Environment $templating)
-    {
-        $this->entityManager = $entityManager;
-        $this->templating = $templating;
-    }
-
-    public function sendMail($subject, $content, $to)
-    {
+    public function sendMail($subject, $content, $to): bool {
         if (isset($_SERVER['APP_NO_MAIL']) && $_SERVER['APP_NO_MAIL'] == 1) {
-    		return true;
-		}
+            return true;
+        }
+
+        if (!is_array($to)) {
+            $to = [$to];
+        }
+
+        $to = Stream::from($to)
+            ->filter(fn($user) => $user && (is_string($user) || $user->getStatus()))
+            ->flatMap(fn($user) => is_string($user) ? [$user] : $user->getMainAndSecondaryEmails())
+            ->unique()
+            ->filter(fn($email) => filter_var($email, FILTER_VALIDATE_EMAIL))
+            ->toArray();
+
+        if (empty($to)) {
+            return false;
+        }
+
         $mailerServerRepository = $this->entityManager->getRepository(MailerServer::class);
         $mailerServer = $mailerServerRepository->findOneMailerServer();
+
         if ($mailerServer) {
             $user = $mailerServer->getUser() ?? '';
             $password = $mailerServer->getPassword() ?? '';
@@ -45,11 +57,9 @@ class MailerService
             $protocole = $mailerServer->getProtocol() ?? '';
             $senderName = $mailerServer->getSenderName() ?? '';
             $senderMail = $mailerServer->getSenderMail() ?? '';
-
         } else {
             return false;
         }
-
 
         if (empty($user) || empty($password) || empty($host) || empty($port)) {
             return false;
@@ -61,7 +71,7 @@ class MailerService
             if (!is_array($to)) {
                 $content .= $to;
             } else {
-                foreach($to as $dest) {
+                foreach ($to as $dest) {
                     $content .= $dest . ', ';
                 }
             }
@@ -75,7 +85,7 @@ class MailerService
 
         $message = (new \Swift_Message());
 
-		$message
+        $message
             ->setFrom($senderMail, $senderName)
             ->setTo($to)
             ->setSubject($subject)
@@ -84,5 +94,6 @@ class MailerService
 
         $mailer = (new \Swift_Mailer($transport));
         $mailer->send($message);
+        return true;
     }
 }

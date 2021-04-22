@@ -1,4 +1,5 @@
 const MAX_UPLOAD_FILE_SIZE = 10000000;
+const MAX_IMAGE_PIXELS = 1000000;
 const ALLOWED_IMAGE_EXTENSIONS = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg','svg'];
 
 const PAGE_TRANSFER_REQUEST = 'rtransfer';
@@ -1070,7 +1071,7 @@ function getBSAlertModal() {
     return $('#alert-modal');
 }
 
-function updateImagePreview(preview, upload, $title = null, $delete = null) {
+function updateImagePreview(preview, upload, $title = null, $delete = null, $callback = null) {
     let $upload = $(upload)[0];
 
     $(upload).change(() => {
@@ -1079,18 +1080,32 @@ function updateImagePreview(preview, upload, $title = null, $delete = null) {
             let extension = fileNameWithExtension[fileNameWithExtension.length - 1];
 
             if ($upload.files[0].size < MAX_UPLOAD_FILE_SIZE) {
-
                 if (ALLOWED_IMAGE_EXTENSIONS.indexOf(extension) !== -1) {
                     if ($title) {
                         $title.text(fileNameWithExtension.join('.').substr(0, 5) + '...');
                         $title.attr('title', fileNameWithExtension.join('.'));
                     }
+
                     let reader = new FileReader();
                     reader.onload = function (e) {
-                        $(preview)
-                            .attr('src', e.target.result)
-                            .removeClass('d-none');
-                        $delete.removeClass('d-none');
+                        let image = new Image();
+
+                        image.onload = function() {
+                            const pixels = image.height * image.width;
+                            if (pixels <= MAX_IMAGE_PIXELS) {
+                                if ($callback) {
+                                    $callback($upload);
+                                }
+                                $(preview)
+                                    .attr('src', e.target.result)
+                                    .removeClass('d-none');
+                                $delete.removeClass('d-none');
+                            } else {
+                                showBSAlert('Veuillez choisir une image ne faisant pas plus de 1000x1000.', 'danger');
+                            }
+                        };
+
+                        image.src = e.target.result;
                     };
 
                     reader.readAsDataURL($upload.files[0]);

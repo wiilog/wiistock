@@ -180,7 +180,7 @@ $rowNumberToDatatableHeight: (
                 margin-left: 0;
                 margin-right: 0;
                 flex: 1 1 50%;
-                height: 50%;
+                height: calc(50% - 5px);
             }
             &> .dashboard-component:not(:last-child) {
                 margin-bottom: 10px;
@@ -195,7 +195,7 @@ $rowNumberToDatatableHeight: (
                 margin-top: 0;
                 margin-bottom: 0;
                 flex: 1 1 50%;
-                width: 50%;
+                width: calc(50% - 5px);
             }
             &> .dashboard-component:not(:last-child) {
                 margin-right: 10px;
@@ -492,7 +492,7 @@ $rowNumberToDatatableHeight: (
             justify-content: center;
             align-items: center;
             width: 100%;
-            height: 70px;
+            min-height: 70px;
         }
     }
 }
@@ -514,8 +514,12 @@ $rowNumberToDatatableHeight: (
         padding: 0px;
     }
 
+    .toggle-collapsible .btn-menu-label {
+        padding-left: 0;
+    }
+
     .toggle-collapsible::before {
-        padding-left: 8px;
+        padding-left: 16px;
         padding-top: 4px;
     }
 }

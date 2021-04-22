@@ -178,27 +178,24 @@ class ArrivageDataService
      */
     public function sendArrivalEmails(Arrivage $arrival, array $emergencies = []): void {
         $isUrgentArrival = !empty($emergencies);
-        $finalRecipents = [];
+        $finalRecipients = [];
         if ($isUrgentArrival) {
-            $finalRecipents = array_reduce(
+            $finalRecipients = array_reduce(
                 $emergencies,
                 function (array $carry, Urgence $emergency) {
-                    $emails = $emergency->getBuyer()->getMainAndSecondaryEmails();
-                    foreach ($emails as $email) {
-                        if (!in_array($email, $carry)) {
-                            $carry[] = $email;
-                        }
-                    }
+                    $buyer = $emergency->getBuyer();
+                    $buyerId = $buyer->getId();
+                    $carry[$buyerId] = $buyer;
                     return $carry;
                 },
                 []
             );
         } else if ($arrival->getDestinataire()) {
             $recipient = $arrival->getDestinataire();
-            $finalRecipents = $recipient ? $recipient->getMainAndSecondaryEmails() : [];
+            $finalRecipients = $recipient ? [$recipient] : [];
         }
 
-        if (!empty($finalRecipents)) {
+        if (!empty($finalRecipients)) {
             $title = 'Arrivage reçu : ' . $arrival->getNumeroArrivage() . ', le ' . $arrival->getDate()->format('d/m/Y à H:i');
 
             $freeFields = $this->freeFieldService->getFilledFreeFieldArray(
@@ -221,7 +218,7 @@ class ArrivageDataService
                         'urlSuffix' => $this->router->generate("arrivage_show", ["id" => $arrival->getId()])
                     ]
                 ),
-                $finalRecipents
+                $finalRecipients
             );
         }
     }
