@@ -484,22 +484,24 @@ class ReceptionController extends AbstractController {
 
             $reception = $receptionRepository->find($data['receptionId']);
 
-            foreach($reception->getReceptionReferenceArticles() as $receptionArticle) {
-                $entityManager->remove($receptionArticle);
-                $articleRepository->setNullByReception($receptionArticle);
+            if ($reception) {
+                foreach ($reception->getReceptionReferenceArticles() as $receptionArticle) {
+                    $entityManager->remove($receptionArticle);
+                    $articleRepository->setNullByReception($receptionArticle);
+                }
+
+                foreach ($reception->getTrackingMovements() as $receptionMvtTraca) {
+                    $entityManager->remove($receptionMvtTraca);
+                }
+                $entityManager->flush();
+
+                $entityManager->remove($reception);
+                $entityManager->flush();
             }
 
-            foreach($reception->getTrackingMovements() as $receptionMvtTraca) {
-                $entityManager->remove($receptionMvtTraca);
-            }
-            $entityManager->flush();
-
-            $entityManager->remove($reception);
-            $entityManager->flush();
-            $data = [
+            return $this->json([
                 "redirect" => $this->generateUrl('reception_index')
-            ];
-            return new JsonResponse($data);
+            ]);
         }
         throw new BadRequestHttpException();
     }
