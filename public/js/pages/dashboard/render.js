@@ -403,11 +403,23 @@ function createLatePacksElement(data) {
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
-                ${incrementNumbering(data, numberingConfig, 1) + title}
+                ${incrementNumbering(data, numberingConfig, 1) + '<span>&nbsp&nbsp</span>' + title}
             </div>
             ${createTooltip(data.tooltip)}
-            <table class="table display retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
-            </table>
+            <div class="row mx-0">
+                <div class="col-auto pr-0">
+                    <div class="row mb-5 mt-3">
+                        ${incrementNumbering(data, numberingConfig, 2)}
+                    </div>
+                    <div class="row">
+                        ${incrementNumbering(data, numberingConfig, 3)}
+                    </div>
+                </div>
+                <div class="col pl-0">
+                    <table class="table display retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
+                    </table>
+                </div>
+            </div>
         </div>
     `);
 }

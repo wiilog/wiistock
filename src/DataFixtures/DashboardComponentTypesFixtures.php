@@ -104,6 +104,18 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textBold-1' => false,
                 'textItalic-1' => false,
                 'textUnderline-1' => false,
+
+                'fontSize-2' => 12,
+                'textColor-2' => "#000000",
+                'textBold-2' => false,
+                'textItalic-2' => false,
+                'textUnderline-2' => false,
+
+                'fontSize-3' => 12,
+                'textColor-3' => "#000000",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
             ],
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
