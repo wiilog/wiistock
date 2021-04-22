@@ -119,26 +119,34 @@ const creators = {
  * @return {boolean}
  */
 function renderComponent(component, $container, data) {
-    const $chartColorPickers = $('.chart-color-pickers');
-    $container.empty();
-    $chartColorPickers.empty();
+    const $chartColorPickersContainer = $('.chart-color-pickers');
+    const $colorPickerAccordion = $('.color-picker-accordion');
 
+    $container.empty();
+    $chartColorPickersContainer.empty();
+    $colorPickerAccordion.removeClass('d-none');
     console.log(data);
-    if(data.chartColors && data.separateType) {
-        console.log(data.chartColors);
-        if($chartColorPickers.find('>*').length > 1) {
-            $chartColorPickers.empty();
+
+    if(data.separateType) {
+        if (data.chartColors && data.handlingTypes) {
+            let counter = 0;
+            for (let key in data.chartColors) {
+                $chartColorPickersContainer.append(generateColorPickerElement(data, key, counter));
+                counter++;
+            }
+        } else {
+            $colorPickerAccordion.addClass('d-none');
         }
+    } else if(!data.separateType && data.chartColor) {
+        $chartColorPickersContainer.append(generateColorPickerElement(data));
+    } else if(!data.separateType && data.chartColors) {
         let counter = 0;
-        for(let key in data.chartColors) {
-            const $colorPicker = $(`<input/>`, {
-                type: `color`,
-                class: `data form-control needed`,
-                name: `chartColor${counter}`,
-                value: `${data.chartColors[key]}`
-            })
-            $chartColorPickers.append($colorPicker);
+        for (let key in data.chartColors) {
+            $chartColorPickersContainer.append(generateColorPickerElement(data, key, counter));
             counter++;
+        }
+        if(data.colorsFilled) {
+            $chartColorPickersContainer.children().last().remove();
         }
     }
 
@@ -648,7 +656,7 @@ function drawChartWithHisto($button, path, beforeAfter = 'now') {
 
 
 function updateSimpleChartData(chart, data, label, stack = false,
-                               {data: subData, label: lineChartLabel} = {data: undefined, label: undefined}, chartColor) {
+                               {data: subData, label: lineChartLabel} = {data: undefined, label: undefined}, chartColor = '', chartColors = []) {
     chart.data.datasets = [{data: [], label}];
     chart.data.labels = [];
     const dataKeys = Object.keys(data).filter((key) => key !== 'stack');
@@ -659,8 +667,9 @@ function updateSimpleChartData(chart, data, label, stack = false,
 
     const dataLength = chart.data.datasets[0].data.length;
     if(dataLength > 0) {
+        const color = chartColors.length > 0 ? chartColors[0] : chartColor;
         chart.data.datasets[0].backgroundColor = new Array(dataLength);
-        chart.data.datasets[0].backgroundColor.fill(chartColor !== '#ffffff' ? chartColor : '#A3D1FF');
+        chart.data.datasets[0].backgroundColor.fill(color);
     }
 
     if(subData) {
@@ -676,8 +685,12 @@ function updateSimpleChartData(chart, data, label, stack = false,
     if(stack) {
         chart.options.scales.yAxes[0].stacked = true;
         chart.options.scales.xAxes[0].stacked = true;
-        (data.stack || []).forEach((stack) => {
-            chart.data.datasets.push($.deepCopy(stack));
+        (data.stack || []).forEach((stack, index) => {
+            let stackCopied = $.deepCopy(stack);
+            if (chartColors[index+1] && !data.colorsFilled) {
+                stackCopied.backgroundColor = chartColors[index+1];
+            }
+            chart.data.datasets.push(stackCopied);
         });
     }
 
@@ -698,7 +711,8 @@ function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false,
                 data: data.subCounters,
                 label: data.subLabel
             },
-            data.chartColor || ''
+            data.chartColor || '',
+            data.chartColors || []
         );
     }
 
@@ -956,4 +970,13 @@ function incrementNumbering(numberingConfig) {
     } else {
         return '';
     }
+}
+
+function generateColorPickerElement(data, key = undefined, counter = '') {
+    return $(`<input/>`, {
+        type: `color`,
+        class: `data form-control needed`,
+        name: `chartColor${counter}`,
+        value: `${key && counter !== '' ? data.chartColors[key] : data.chartColor}`
+    })
 }

@@ -175,7 +175,7 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS:
             case Dashboard\ComponentType::PACK_TO_TREAT_FROM:
             case Dashboard\ComponentType::MONETARY_RELIABILITY_GRAPH:
-                $values += $this->serializeSimpleChart($componentType, $example, $meter);
+                $values += $this->serializeSimpleChart($componentType, $example, $config, $meter);
                 break;
             case Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES:
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
@@ -514,7 +514,7 @@ class DashboardSettingsService {
     public function serializeArrivalsAndPacks(Dashboard\ComponentType $componentType,
                                               array $config,
                                               bool $example = false,
-                                              DashboardMeter\Chart $meterChart = null): array {
+                                              DashboardMeter\Chart $meterChart = null): array { // TODO
         $values = $example ? $componentType->getExampleValues() : [];
 
         $displayPackNatures = $config['displayPackNatures'] ?? false;
@@ -544,10 +544,20 @@ class DashboardSettingsService {
                     return $carry;
                 }, []);
 
+            $counter = 0;
+            $chartColors = Stream::from(array_flip($values['chartColors']))
+                ->reduce(function (array $carry, string $label) use ($config, &$counter, $values) {
+                    $carry[$label] = $config['chartColor' . $counter] ?? array_values($values['chartColors'])[$counter];
+                    $counter++;
+                    return $carry;
+                }, []);
+            $values['chartColors'] = $chartColors;
+            $values['colorsFilled'] = true;
             // packs column
             if (isset($chartData['stack'])) {
                 if ($scale) {
                     if (!$displayPackNatures) {
+                        $values['colorsFilled'] = false;
                         $chartData['stack'] = array_slice($chartData['stack'], 0, 1);
                         $chartData['stack'][0] = [
                             'label' => 'Colis',
@@ -566,12 +576,12 @@ class DashboardSettingsService {
 
             $values['chartData'] = $chartData;
         }
-
         return $values;
     }
 
     private function serializeSimpleChart(Dashboard\ComponentType $componentType,
                                           bool $example = false,
+                                          $config = [],
                                           ?DashboardMeter\Chart $chart = null): array {
 
         if (!$example) {
@@ -584,7 +594,14 @@ class DashboardSettingsService {
                 return ["chartData" => []];
             }
         } else {
-            return $componentType->getExampleValues();
+            $values = $componentType->getExampleValues();
+            if ($componentType->getMeterKey() === Dashboard\ComponentType::PACK_TO_TREAT_FROM && isset($config['chartColor0']) && isset($config['chartColor1'])) {
+                $values['chartColors'] = [
+                    'Legende1' => $config['chartColor0'],
+                    'Legende2' => $config['chartColor1']
+                ];
+            }
+            return $values;
         }
     }
 
@@ -647,14 +664,13 @@ class DashboardSettingsService {
         } else {
             $values = $componentType->getExampleValues();
             $values['separateType'] = $config['separateType'] ?? '';
+            $values['handlingTypes'] = $config['handlingTypes'] ?? '';
             if(!empty($config['handlingTypes']) && $config['separateType']) {
                 $handlingTypes = $entityManager->getRepository(Type::class)->findBy(['id' => $config['handlingTypes']]);
-                $values['toolsCount'] = count($handlingTypes);
-
                 $counter = 0;
                 $chartColors = Stream::from($handlingTypes)
-                    ->reduce(function (array $carry, Type $type) use ($config, &$counter) {
-                        $carry[$type->getLabel()] = $config['chartColor' . $counter] ?? '#AD4RF2';
+                    ->reduce(function (array $carry, Type $type) use ($config, &$counter, $values) {
+                        $carry[$type->getLabel()] = $config['chartColor' . $counter] ?? array_values($values['chartColors'])[$counter];
                         $counter++;
                         return $carry;
                     }, []);
@@ -662,7 +678,7 @@ class DashboardSettingsService {
 
                 $chartValues = Stream::from($handlingTypes)
                     ->reduce(function (array $carry, Type $type) {
-                        $carry[$type->getLabel()] = rand(5, 25);
+                        $carry[$type->getLabel()] = rand(10, 18);
                         return $carry;
                     }, []);
 
@@ -686,9 +702,6 @@ class DashboardSettingsService {
             $values['chartData'] = $chartData;
         }
         $values['multiple'] = $separateType;
-
-        dump($config);
-        dump($values);
         return $values;
     }
 

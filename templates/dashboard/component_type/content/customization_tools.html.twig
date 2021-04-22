@@ -21,7 +21,7 @@
         </div>
     </div>
     {% if componentType.exampleValues.chartData is defined %}
-        <div id="accordion" class="customization-tools-accordion">
+        <div id="accordion" class="customization-tools-accordion color-picker-accordion">
             <div class="card my-3">
                 <div class="card-header" id="headingOneChartColor">
                     <h5 class="toggle-collapsible"
@@ -36,7 +36,8 @@
                 </div>
                 <div id="collapseChartColor" class="collapse" aria-labelledby="headingOneChartColor"
                      data-parent="#accordion">
-                    <div class="card-body chart-color-pickers">
+                    <div class="card-body chart-color-pickers">{#
+                        <input type="color" class="data form-control needed" name="chartColor" value="{{ values.chartColor ?? '#FFFFFF' }}">#}
                     </div>
                 </div>
             </div>
