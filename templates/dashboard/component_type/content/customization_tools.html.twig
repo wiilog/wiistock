@@ -21,7 +21,7 @@
         </div>
     </div>
     {% if componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::PENDING_REQUESTS') %}
-        <div id="accordion" class="customization-tools-accordion">
+        <div id="accordion-label" class="customization-tools-accordion">
             <div class="card my-3">
                 <div class="card-header" id="headingOneCardBackgroundColor">
                     <h5 class="toggle-collapsible"
@@ -35,7 +35,7 @@
                     </h5>
                 </div>
                 <div id="collapseCardBackgroundColor" class="collapse" aria-labelledby="headingOneCardBackgroundColor"
-                     data-parent="#accordion">
+                     data-parent="#accordion-label">
                     <div class="card-body">
                         <input type="color" class="data form-control needed" name="cardBackgroundColor"
                                value="{{ values.cardBackgroundColor ?? '#FFFFFF' }}">
