@@ -180,7 +180,7 @@ $rowNumberToDatatableHeight: (
                 margin-left: 0;
                 margin-right: 0;
                 flex: 1 1 50%;
-                height: 50%;
+                height: calc(50% - 5px);
             }
             &> .dashboard-component:not(:last-child) {
                 margin-bottom: 10px;
@@ -195,7 +195,7 @@ $rowNumberToDatatableHeight: (
                 margin-top: 0;
                 margin-bottom: 0;
                 flex: 1 1 50%;
-                width: 50%;
+                width: calc(50% - 5px);
             }
             &> .dashboard-component:not(:last-child) {
                 margin-right: 10px;
