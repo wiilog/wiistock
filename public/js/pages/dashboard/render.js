@@ -320,11 +320,14 @@ function createEntriesToHandleElement(data, {meterKey}) {
                 tooltip: data.linesCountTooltip,
                 count: data.count,
                 componentLink: data.componentLink,
-                backgroundColor: data.backgroundColor || undefined
+                backgroundColor: data.backgroundColor || undefined,
+                ...data
             },
             {
                 meterKey,
-                customContainerClass: 'overflow-hidden'
+                customContainerClass: 'overflow-hidden',
+                titleBackendNumber: 2,
+                valueNumber: 3,
             },
             numberingConfig
         )
@@ -337,11 +340,14 @@ function createEntriesToHandleElement(data, {meterKey}) {
                 tooltip: data.nextLocationTooltip,
                 count: data.nextLocation,
                 componentLink: data.componentLink,
-                backgroundColor: data.backgroundColor || undefined
+                backgroundColor: data.backgroundColor || undefined,
+                ...data
             },
             {
                 meterKey,
-                customContainerClass: 'overflow-hidden'
+                customContainerClass: 'overflow-hidden',
+                titleBackendNumber: 4,
+                valueNumber: 5,
             },
             numberingConfig
         )
@@ -495,7 +501,7 @@ function createCarrierTrackingElement(data) {
  * @param redefinedNumberingConfig
  * @return {boolean|jQuery}
  */
-function createIndicatorElement(data, {meterKey, customContainerClass}, redefinedNumberingConfig = null) {
+function createIndicatorElement(data, {meterKey, customContainerClass, ...remainingConfig}, redefinedNumberingConfig = null) {
     if(!data || data.count === undefined) {
         console.error('Invalid data for ' + (meterKey || '-').replaceAll('_', ' ') + ' element.');
         return false;
@@ -529,7 +535,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}, redefine
                         `<span class="title ${needsEmergencyDisplay
                             ? 'mx-3'
                             : ''}">
-                        ${incrementNumbering(data, smartNumberingConfig, 1)}${title.split('(')[0]}</span>`,
+                        ${incrementNumbering(data, smartNumberingConfig, remainingConfig.titleBackendNumber || 1)}${title.split('(')[0]}</span>`,
                         $emergencyIcon,
                         `<p class="small ellipsis location-label">${subtitle
                             ? incrementNumbering(data, smartNumberingConfig, 2) + subtitle
@@ -548,7 +554,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass}, redefine
                 ? $('<div/>', {
                     class: `align-items-center`,
                     html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter ${needsEmergencyDisplay ? 'red' : ''}">
-                        ${((count || count === '0' || count === 0) ? incrementNumbering(data, smartNumberingConfig, 3) + count : '-')}</div>`
+                        ${((count || count === '0' || count === 0) ? incrementNumbering(data, smartNumberingConfig, remainingConfig.valueNumber || 3) + count : '-')}</div>`
                 })
                 : undefined,
             delay
