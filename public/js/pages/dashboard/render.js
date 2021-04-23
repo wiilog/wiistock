@@ -198,16 +198,20 @@ function createPendingRequests(data, {rowSize}) {
 
     let content = ``;
     let renderNumberingOnce = true;
-    let numberedTitle = data.title ? (incrementNumbering(data, numberingConfig, 1) + data.title) : '';
+
+    generateEditor(data, numberingConfig, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+    let firstIteration = true;
     for(let request of data.requests) {
-        content += renderRequest(data, request, rowSize, renderNumberingOnce ? numberingConfig : undefined);
-        renderNumberingOnce = false;
+        console.log("oke?");
+        content += renderRequest(data, request, rowSize, numberingConfig, firstIteration);
+        firstIteration = false;
     }
 
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container h-100')}>
             <div class="title">
-                ${numberedTitle}
+                ${applyStyle(data, numberingConfig, 1, data.title)}
             </div>
             ${createTooltip(data.tooltip)}
             <div class="d-flex row no-gutters h-100 overflow-auto overflow-x-hidden pending-request-wrapper">
@@ -217,7 +221,7 @@ function createPendingRequests(data, {rowSize}) {
     `);
 }
 
-function renderRequest(data, request, rowSize, redefinedNumberingConfig) {
+function renderRequest(data, request, rowSize, redefinedNumberingConfig, firstIteration) {
     let onCardClick = ``;
     if(!request.href && request.errorMessage) {
         onCardClick = `showBSAlert('${request.errorMessage}', 'danger'); event.preventDefault()`;
@@ -251,8 +255,8 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig) {
                 <div class="wii-card-header">
                     <div class="row">
                         <div class="col-10 mb-2">
-                            <p class="mb-2 small">${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 2) : '') + request.estimatedFinishTimeLabel}</p>
-                            <strong>${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 3) : '') + request.estimatedFinishTime}</strong>
+                            <p class="mb-2 small">${applyStyle(data, redefinedNumberingConfig, 2, request.estimatedFinishTimeLabel, firstIteration)}</p>
+                            <strong>${applyStyle(data, redefinedNumberingConfig, 3, request.estimatedFinishTime, firstIteration)}</strong>
                         </div>
                         <div class="col-2 d-flex justify-content-end align-items-start">
                             ${request.emergencyText} ${topRightIcon}
@@ -269,22 +273,18 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig) {
                             </div>
                         </div>
                         <div class="col-12">
-                            <p>${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 4) : '') + $.capitalize(request.requestStatus)}</p>
+                            <p>${applyStyle(data, redefinedNumberingConfig, 4, $.capitalize(request.requestStatus), firstIteration)}</p>
                         </div>
                     </div>
                 </div>
                 <div class="wii-card-body p-2">
                     <div class="row">
                         <div class="col-12 card-title text-center">
-                            <strong>${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 5) : '') + request.requestBodyTitle}</strong>
+                            <strong>${applyStyle(data, redefinedNumberingConfig, 5, request.requestBodyTitle, firstIteration)}</strong>
                         </div>
                         <div class="col-12">
                             <div class="w-100 d-inline-flex justify-content-center">
-                                ${redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 6) : ''}
-                                <strong class="card-title m-0 mr-2">
-                                    <i class="fa fa-map-marker-alt "></i>
-                                </strong>
-                                <strong class="ellipsis">${request.requestLocation}</strong>
+                                ${applyStyle(data, redefinedNumberingConfig, 6, '<strong class="card-title m-0 mr-2"><i class="fa fa-map-marker-alt"></i></strong><strong class="ellipsis">' + request.requestLocation + '</strong>', firstIteration)}
                             </div>
                         </div>
                     </div>
@@ -292,12 +292,12 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig) {
                 <div class="wii-card-footer">
                     <div class="row align-items-end">
                         <div class="col-6 text-left ellipsis">
-                            <span class="bold">${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 7) : '') + request.requestNumber}</span><br/>
-                            <span class="text-secondary">${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 8) : '') + request.requestDate}</span>
+                            <span class="bold">${applyStyle(data, redefinedNumberingConfig, 7, request.requestNumber, firstIteration)}</span><br/>
+                            <span class="text-secondary">${applyStyle(data, redefinedNumberingConfig, 8, request.requestDate, firstIteration)}</span>
                         </div>
                         <div class="col-6 text-right ellipsis">
                             <div class="profile-picture" style="background-color: #EEE">${requestUserFirstLetter}</div>
-                            <span class="bold">${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 9) : '') + request.requestUser}</span>
+                            <span class="bold">${applyStyle(data, redefinedNumberingConfig, 9, request.requestUser, firstIteration)}</span>
                         </div>
                     </div>
                 </div>
@@ -316,14 +316,13 @@ function createEntriesToHandleElement(data, {meterKey}) {
     const $firstComponent = $('<div/>', {
         class: `w-100 pb-1 flex-fill dashboard-component h-100 mx-0 mt-0`,
         html: createIndicatorElement(
-            {
+            Object.assign({
                 title: 'Nombre de lignes à traiter',
                 tooltip: data.linesCountTooltip,
                 count: data.count,
                 componentLink: data.componentLink,
                 backgroundColor: data.backgroundColor || undefined,
-                ...data
-            },
+            }, data || {}),
             {
                 meterKey,
                 customContainerClass: 'overflow-hidden',
@@ -336,14 +335,13 @@ function createEntriesToHandleElement(data, {meterKey}) {
     const $secondComponent = $('<div/>', {
         class: `w-100 pt-1 flex-fill dashboard-component h-100 mx-0 mb-0`,
         html: createIndicatorElement(
-            {
+            Object.assign({
                 title: 'Prochain emplacement à traiter',
                 tooltip: data.nextLocationTooltip,
                 count: data.nextLocation,
                 componentLink: data.componentLink,
                 backgroundColor: data.backgroundColor || undefined,
-                ...data
-            },
+            }, data || {}),
             {
                 meterKey,
                 customContainerClass: 'overflow-hidden',
@@ -404,16 +402,16 @@ function createLatePacksElement(data) {
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
-                ${incrementNumbering(data, numberingConfig, 1) + '<span>&nbsp&nbsp</span>' + title}
+                ${withStyle(data, numberingConfig, 1, '<span>&nbsp&nbsp</span>' + title)}
             </div>
             ${createTooltip(data.tooltip)}
             <div class="row mx-0">
                 <div class="col-auto pr-0">
                     <div class="row mb-5 mt-3">
-                        ${incrementNumbering(data, numberingConfig, 2)}
+                        ${withStyle(data, numberingConfig, 2)}
                     </div>
                     <div class="row">
-                        ${incrementNumbering(data, numberingConfig, 3)}
+                        ${withStyle(data, numberingConfig, 3)}
                     </div>
                 </div>
                 <div class="col pl-0">
@@ -471,7 +469,7 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container' + dashboardBoxContainerClass)}>
             <div class="title">
-                ${incrementNumbering(data, redefinedNumberingConfig || numberingConfig, 1) + title.split('(')[0]}
+                ${withStyle(data, redefinedNumberingConfig || numberingConfig, 1, title.split('(')[0])}
             </div>
             ${createTooltip(data.tooltip)}
             <div class="flex-fill content">
@@ -499,22 +497,27 @@ function createCarrierTrackingElement(data) {
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
-                ${incrementNumbering(data, numberingConfig, 1) + title}
+                ${withStyle(data, numberingConfig, 1, title)}
             </div>
             ${createTooltip(data.tooltip)}
-            <h1>${incrementNumbering(data, numberingConfig, 2) + carriers}</h1>
+            <h1>${withStyle(data, numberingConfig, 2, carriers)}</h1>
         </div>
     `);
 }
 
 /**
  * @param {*} data
- * @param {string} meterKey
- * @param {undefined|string} customContainerClass
+ * @param config
  * @param redefinedNumberingConfig
  * @return {boolean|jQuery}
  */
-function createIndicatorElement(data, {meterKey, customContainerClass, ...remainingConfig}, redefinedNumberingConfig = null) {
+function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
+    let meterKey = config.meterKey;
+    let customContainerClass = config.customContainerClass;
+    let remainingConfig = Object.assign({}, config);
+    delete remainingConfig.meterKey;
+    delete remainingConfig.customContainerClass;
+
     if(!data || data.count === undefined) {
         console.error('Invalid data for ' + (meterKey || '-').replaceAll('_', ' ') + ' element.');
         return false;
@@ -546,10 +549,10 @@ function createIndicatorElement(data, {meterKey, customContainerClass, ...remain
                     html: [
                         $emergencyIcon,
                         `<span class="title mx-3">
-                        ${incrementNumbering(data, smartNumberingConfig, remainingConfig.titleBackendNumber || 1)}${title.split('(')[0]}</span>`,
+                        ${withStyle(data, smartNumberingConfig, remainingConfig.titleBackendNumber || 1, title.split('(')[0])}</span>`,
                         $emergencyIcon,
                         `<p class="small ellipsis location-label">${subtitle
-                            ? incrementNumbering(data, smartNumberingConfig, 2) + subtitle
+                            ? withStyle(data, smartNumberingConfig, 2, subtitle)
                             : ''}
                         </p>`
                     ]
@@ -558,30 +561,32 @@ function createIndicatorElement(data, {meterKey, customContainerClass, ...remain
             subtitle && !title
                 ? $('<div/>', {
                     class: 'location-label ellipsis small',
-                    html: incrementNumbering(data, smartNumberingConfig, 2) + subtitle
+                    html: withStyle(data, smartNumberingConfig, 2, subtitle)
                 })
                 : undefined,
-            count !== undefined
-                ? $('<div/>', {
+            (() => {
+                if(count === undefined) {
+                    return undefined;
+                }
+
+                generateEditor(data, smartNumberingConfig, remainingConfig.valueNumber || 3, count);
+
+                return $('<div/>', {
                     class: `align-items-center`,
                     html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter ${needsEmergencyDisplay ? 'red' : ''}">
-                        ${((count || count === '0' || count === 0) ? incrementNumbering(data, smartNumberingConfig, remainingConfig.valueNumber || 3) + count : '-')}</div>`
-                })
-                : undefined,
+                    ${((count || count === '0' || count === 0) ? (needsEmergencyDisplay ? count : applyStyle(data, smartNumberingConfig, remainingConfig.valueNumber || 3, count))  : '-')}</div>`,
+                });
+            })(),
             delay
                 ? $('<div/>', {
                     class: `text-center title dashboard-stats-delay-title ${delay < 0 ? 'red' : ''}`,
-                    html: delay < 0
-                        ? incrementNumbering(data, smartNumberingConfig, 4) + 'Retard : '
-                        : incrementNumbering(data, smartNumberingConfig, 4) + 'A traiter sous :'
+                    html: withStyle(data, smartNumberingConfig, 4, delay < 0 ? 'Retard : ' : 'A traiter sous : '),
                 })
                 : undefined,
             delay
                 ? $('<div/>', {
                     class: `${clickableClass} dashboard-stats dashboard-stats-delay ${delay < 0 ? 'red' : ''}`,
-                    html: !isNaN(Math.abs(delay))
-                        ? (incrementNumbering(data, smartNumberingConfig, 5) + renderMillisecondsToDelay(Math.abs(delay), 'display'))
-                        : (incrementNumbering(data, smartNumberingConfig, 5) + delay)
+                    html: withStyle(data, smartNumberingConfig, 5, !isNaN(Math.abs(delay)) ? renderMillisecondsToDelay(Math.abs(delay), 'display') : delay)
                 })
                 : undefined,
             ...((subCounts || [])
@@ -589,7 +594,7 @@ function createIndicatorElement(data, {meterKey, customContainerClass, ...remain
                 .map((subCount) => (
                     $('<div/>', {
                         class: `${clickableClass} dashboard-stats`,
-                        html: subCount ? incrementNumbering(data, smartNumberingConfig, 9) + subCount : ''
+                        html: subCount ? withStyle(data, smartNumberingConfig, 9, subCount) : ''
                     })
                 )))
         ].filter(Boolean)
@@ -973,38 +978,103 @@ function updateMultipleChartData(chart, data) {
     chart.update();
 }
 
-function incrementNumbering(data, numberingConfig, backendNumber) {
-    let text = ``;
-    if($('#modalComponentTypeSecondStep').hasClass('show')) {
-        numberingConfig.numbering += 1;
-        text = `<sup>(${numberingConfig.numbering})</sup>`;
+/**
+ * Applies the style without adding font editors
+ * to the component edition modal.
+ * Useful for stylable elements that are displayed
+ * multiple times in the same component.
+ */
+function applyStyle(data, numberingConfig, backendNumber, value, generateSuperscript = true) {
+    if(!numberingConfig) {
+        return value;
     }
 
-    const $container = $(`.modal.show .component-numbering`);
     const fontSize = data['fontSize-' + backendNumber] || 12;
     const textColor = data['textColor-' + backendNumber] || "#FFFFFF";
     const textBold = data['textBold-' + backendNumber]  ? 'checked' : '';
     const textItalic = data['textItalic-' + backendNumber] ? 'checked' : '';
     const textUnderline = data['textUnderline-' + backendNumber] ? 'checked' : '';
-    $container.append(`
-        <div class="d-flex align-items-center p-1" data-number="${backendNumber}">
-            <sup class="pt-2">(${numberingConfig.numbering})</sup>
-            <input type="number" data-no-arrow class="data form-control needed w-px-70 mr-2" name="fontSize-${backendNumber}" value="${fontSize}">
-            <input type="color" class="data form-control needed w-px-50 mr-2" name="textColor-${backendNumber}" value="${textColor}">
-            <label class="text-bold-selector">
-                <input type="checkbox" name="textBold-${backendNumber}" class="data checkbox" ${textBold}>
-                <i></i>
-            </label>
-            <label class="text-italic-selector">
-                <input type="checkbox" name="textItalic-${backendNumber}" class="data checkbox" ${textItalic}>
-                <i></i>
-            </label>
-            <label class="text-underline-selector">
-                <input type="checkbox" name="textUnderline-${backendNumber}" class="data checkbox" ${textUnderline}>
-                <i></i>
-            </label>
-        </div>
-    `);
 
-    return text;
+    let text = ``;
+    if(generateSuperscript && $('#modalComponentTypeSecondStep').hasClass('show')) {
+        text = `<sup>(${numberingConfig.associations[backendNumber]})</sup>`;
+    }
+
+    let style = ``;
+    style += `font-size: ${fontSize}pt;`;
+    style += `color: ${textColor};`;
+
+    if(textBold === `checked`) {
+        style += `font-weight: bold;`;
+    }
+
+    if(textItalic === `checked`) {
+        style += `font-style: italic;`;
+    }
+
+    if(textUnderline === `checked`) {
+        style += `text-decoration: underline;`;
+    }
+
+    return text + `<span style="${style}">${value}</span>`;
+}
+
+/**
+ * Create the editor elements in the edition modal.
+ */
+function generateEditor(data, numberingConfig, backendNumbers) {
+    if(!numberingConfig) {
+        return;
+    }
+
+    if(!numberingConfig.associations) {
+        numberingConfig.associations = {};
+    }
+
+    if(!Array.isArray(backendNumbers)) {
+        backendNumbers = [backendNumbers];
+    }
+
+    for(const number of backendNumbers) {
+        const $container = $(`.modal.show .component-numbering`);
+        const fontSize = data['fontSize-' + number] || 12;
+        const textColor = data['textColor-' + number] || "#FFFFFF";
+        const textBold = data['textBold-' + number] ? 'checked' : '';
+        const textItalic = data['textItalic-' + number] ? 'checked' : '';
+        const textUnderline = data['textUnderline-' + number] ? 'checked' : '';
+
+        numberingConfig.numbering += 1;
+        numberingConfig.associations[number] = numberingConfig.numbering;
+
+        $container.append(`
+            <div class="d-flex align-items-center p-1" data-number="${number}">
+                <sup class="pt-2">(${numberingConfig.numbering})</sup>
+                <input type="number" data-no-arrow class="data form-control needed w-px-70 mr-2" name="fontSize-${number}" value="${fontSize}">
+                <input type="color" class="data form-control needed w-px-50 mr-2" name="textColor-${number}" value="${textColor}">
+                <label class="text-bold-selector">
+                    <input type="checkbox" name="textBold-${number}" class="data checkbox" ${textBold}>
+                    <i></i>
+                </label>
+                <label class="text-italic-selector">
+                    <input type="checkbox" name="textItalic-${number}" class="data checkbox" ${textItalic}>
+                    <i></i>
+                </label>
+                <label class="text-underline-selector">
+                    <input type="checkbox" name="textUnderline-${number}" class="data checkbox" ${textUnderline}>
+                    <i></i>
+                </label>
+            </div>
+        `);
+    }
+}
+
+/**
+ * Applies the style and add font editors
+ * to the component edition modal.
+ * Useful for text that is only rendered once
+ * such as title.
+ */
+function withStyle(data, numberingConfig, backendNumber, value) {
+   generateEditor(data, numberingConfig, backendNumber);
+   return applyStyle(data, numberingConfig, backendNumber, value);
 }

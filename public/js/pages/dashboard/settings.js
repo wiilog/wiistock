@@ -1040,7 +1040,7 @@ function initSecondStep(html) {
             $input.click();
         })
 
-        updateImagePreview($preview, $input, $title, $delete, async function ($input) {
+        updateImagePreview($preview, $input, $title, $delete, function ($input) {
             if ($input.files.length >= 1 && $input.files[0]) {
                 const reader = new FileReader();
                 reader.readAsDataURL($input.files[0]);
