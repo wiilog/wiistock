@@ -32,6 +32,7 @@ DashboardController extends AbstractController {
                                EntityManagerInterface $manager): Response {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
+
         return $this->render("dashboard/dashboards.html.twig", [
             "dashboards" => $dashboardSettingsService->serialize($manager, $loggedUser, DashboardSettingsService::MODE_DISPLAY),
             "refreshed" => $dashboardService->refreshDate($manager),

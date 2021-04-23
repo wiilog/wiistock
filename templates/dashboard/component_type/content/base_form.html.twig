@@ -4,27 +4,35 @@
 {% block header %}{% endblock %}
 
 <div class="row">
-    <div class="form-group col-6">
-    <label>Titre*</label>
-    <input class="data form-control w-100 needed"
-           name="title"
-           type="text"
-           title="Titre du composant"
-           value="{{ title }}"/>
+    <div class="col-6">
+        <div class="row">
+            <div class="form-group col-12">
+                <label>Titre*</label>
+                <input class="data form-control w-100 needed"
+                       name="title"
+                       type="text"
+                       title="Titre du composant"
+                       value="{{ title }}"/>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col-12">
+                <label>Infobulle</label>
+                <input class="data form-control w-100"
+                       name="tooltip"
+                       type="text"
+                       title="Infobulle"
+                       value="{{ tooltip }}"/>
+            </div>
+        </div>
+        {% block content %}{% endblock %}
+    </div>
+    <div class="col-6">
+        {% block content_right %}{% endblock %}
+
+        {% include 'dashboard/component_type/content/customization_tools.html.twig' %}
     </div>
 </div>
 
-<div class="row">
-    <div class="form-group col-6">
-    <label>Infobulle</label>
-    <input class="data form-control w-100"
-           name="tooltip"
-           type="text"
-           title="Infobulle"
-           value="{{ tooltip }}"/>
-    </div>
-</div>
 
-{% include('dashboard/component_type/content/customization_tools.html.twig') %}
-
-{% block content %}{% endblock %}

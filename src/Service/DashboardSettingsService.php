@@ -125,6 +125,17 @@ class DashboardSettingsService {
         $values = [];
         $meterKey = $componentType->getMeterKey();
 
+        Stream::from($config)
+            ->each(function($conf, $key) use (&$values) {
+                if (str_starts_with($key, 'fontSize-')
+                    || str_starts_with($key, 'textColor-')
+                    || str_starts_with($key, 'textBold-')
+                    || str_starts_with($key, 'textItalic-')
+                    || str_starts_with($key, 'textUnderline-')) {
+                    $values[$key] = $conf;
+                }
+            });
+
         $values['title'] = !empty($config['title']) ? $config['title'] : $componentType->getName();
 
         if (!empty($config['tooltip'])) {
@@ -205,6 +216,11 @@ class DashboardSettingsService {
                                               ?int $mode): array {
         if ($mode === self::MODE_EDIT) {
             $values = $componentType->getExampleValues();
+            if(isset($config['cardBackgroundColor']) && $config['cardBackgroundColor'] !== '#ffffff') {
+                foreach ($values["requests"] ?? [] as &$request) {
+                    $request['cardBackgroundColor'] = $config['cardBackgroundColor'];
+                }
+            }
         } else {
             $loggedUser = $config["shown"] === Dashboard\ComponentType::REQUESTS_SELF ? $this->userService->getUser() : null;
             $averageRequestTimeRepository = $entityManager->getRepository(AverageRequestTime::class);

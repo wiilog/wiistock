@@ -453,16 +453,16 @@ $rowNumberToDatatableHeight: (
         min-height: 250px;
     }
 
-    sup {
-        font-size: 10px !important;
-        color: black !important;
-        font-weight: 100 !important;
-        margin-right: 2px;
-    }
-
     .dashboard-box {
         min-width: 250px;
     }
+}
+
+sup {
+    font-size: 10px !important;
+    color: black !important;
+    font-weight: 100 !important;
+    margin-right: 2px;
 }
 
 .component-type-container {
@@ -502,9 +502,7 @@ $rowNumberToDatatableHeight: (
 }
 
 .customization-tools {
-    position: absolute;
-    right: 100px;
-    top: 10px;
+    width: 100%;
 
     .card-header {
         padding: 0px;
@@ -522,4 +520,40 @@ $rowNumberToDatatableHeight: (
         padding-left: 16px;
         padding-top: 4px;
     }
+}
+
+@mixin font-style-selector ($path) {
+    width: 30px;
+    height: 30px;
+    margin: 0 3px;
+
+    i {
+        display: inline-block;
+        background: url($path) no-repeat center;
+        background-size: 20px 20px;
+        width: 30px;
+        height: 30px;
+        border: 2px solid black;
+        border-radius: 4px;
+    }
+
+    input:checked ~ i {
+        border-color: #008ccd;
+    }
+
+    input {
+        display: none;
+    }
+}
+
+.text-bold-selector {
+    @include font-style-selector('../img/bold.svg');
+}
+
+.text-italic-selector {
+    @include font-style-selector('../img/italic.svg');
+}
+
+.text-underline-selector {
+    @include font-style-selector('../img/underline.svg');
 }

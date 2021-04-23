@@ -2,7 +2,7 @@
 {% block content %}
     {% set category = componentType.category == constant('App\\Entity\\Dashboard\\ComponentType::CATEGORY_REQUESTS') %}
     <div class="row">
-        <div class="form-group col-6">
+        <div class="form-group col-12">
             <label>{{ category ? 'Demande' : 'Ordre' }}*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
@@ -26,7 +26,7 @@
     </div>
 
     <div class="row">
-        <div class="form-group col-6">
+        <div class="form-group col-12">
             <label>Type(s) de {{ category ? 'la demande' : 'l\'ordre' }}*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
@@ -50,7 +50,7 @@
     </div>
 
     <div class="row">
-        <div class="form-group col-6">
+        <div class="form-group col-12">
             <label>Statut(s) de {{ category ? 'la demande' : 'l\'ordre' }}*</label>
             <div class="input-group flex-nowrap no-gutters">
                 <div class="flex-fill">
@@ -84,7 +84,7 @@
     </div>
 
     <div class="row">
-        <div class="form-group col-6">
+        <div class="form-group col-12">
             <input class="data form-control h-100 w-100 needed"
                    name="treatmentDelay"
                    type="text"

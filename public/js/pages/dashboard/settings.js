@@ -733,7 +733,6 @@ function onRowEdit() {
 function onComponentEdited() {
     const $button = $(this);
     const {row, component} = getComponentFromTooltipButton($button);
-
     openModalComponentTypeSecondStep($button, row.rowIndex, component);
 }
 
@@ -849,10 +848,13 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
     wrapLoadingOnActionButton($button, () => $.post(route, content, function (data) {
         $modalComponentTypeFirstStep.modal(`hide`);
         if (data.html) {
+            $modalComponentTypeSecondStep
+                .off('shown.bs.modal')
+                .on('shown.bs.modal', function() {
+                    initSecondStep(data.html);
+                })
+
             $modalComponentTypeSecondStep.modal(`show`);
-            setTimeout(() => {
-                initSecondStep(data.html);
-            }, 500);
         } else {
             //TODO: plus utilisé du coup ?
             editComponent(convertIndex(rowIndex), convertIndex(component.columnIndex), component.direction, convertIndex(component.cellIndex), {
