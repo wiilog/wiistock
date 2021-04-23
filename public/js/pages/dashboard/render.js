@@ -402,7 +402,7 @@ function createLatePacksElement(data) {
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
-                ${withStyle(data, numberingConfig, 1, '<span>&nbsp&nbsp</span>' + title)}
+                <span>&nbsp&nbsp</span> ${withStyle(data, numberingConfig, 1, title)}
             </div>
             ${createTooltip(data.tooltip)}
             <div class="row mx-0">
@@ -984,7 +984,7 @@ function updateMultipleChartData(chart, data) {
  * Useful for stylable elements that are displayed
  * multiple times in the same component.
  */
-function applyStyle(data, numberingConfig, backendNumber, value, generateSuperscript = true) {
+function applyStyle(data, numberingConfig, backendNumber, value = ``, generateSuperscript = true) {
     if(!numberingConfig) {
         return value;
     }
