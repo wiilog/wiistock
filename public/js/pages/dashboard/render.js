@@ -280,11 +280,11 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig) {
                         </div>
                         <div class="col-12">
                             <div class="w-100 d-inline-flex justify-content-center">
-                                ${redefinedNumberingConfig ? incrementNumbering(redefinedNumberingConfig) : ''}
+                                ${redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 6) : ''}
                                 <strong class="card-title m-0 mr-2">
                                     <i class="fa fa-map-marker-alt "></i>
                                 </strong>
-                                <strong class="ellipsis">${(redefinedNumberingConfig ? incrementNumbering(data, redefinedNumberingConfig, 6) : '') + request.requestLocation}</strong>
+                                <strong class="ellipsis">${request.requestLocation}</strong>
                             </div>
                         </div>
                     </div>
