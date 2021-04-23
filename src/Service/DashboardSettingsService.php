@@ -217,10 +217,8 @@ class DashboardSettingsService {
         if ($mode === self::MODE_EDIT) {
             $values = $componentType->getExampleValues();
             if(isset($config['cardBackgroundColor']) && $config['cardBackgroundColor'] !== '#ffffff') {
-                foreach ($values as &$requests) {
-                    foreach ($requests as &$request) {
-                        $request['cardBackgroundColor'] = $config['cardBackgroundColor'];
-                    }
+                foreach ($values["requests"] as &$request) {
+                    $request['cardBackgroundColor'] = $config['cardBackgroundColor'];
                 }
             }
         } else {
@@ -454,7 +452,6 @@ class DashboardSettingsService {
         $shouldShowLocationLabels = isset($config['withLocationLabels']) && $config['withLocationLabels'];
         $emergency = isset($config['emergency']) && $config['emergency'];
         if ($example) {
-            dump('gfgd');
             $values = $componentType->getExampleValues();
 
             if ($shouldShowLocationLabels && !empty($config['locations'])) {

@@ -990,7 +990,7 @@ function incrementNumbering(data, numberingConfig, backendNumber) {
     $container.append(`
         <div class="d-flex align-items-center p-1" data-number="${backendNumber}">
             <sup class="pt-2">(${numberingConfig.numbering})</sup>
-            <input type="number" class="data form-control needed w-px-70 mr-2" name="fontSize-${backendNumber}" value="${fontSize}">
+            <input type="number" data-no-arrow class="data form-control needed w-px-70 mr-2" name="fontSize-${backendNumber}" value="${fontSize}">
             <input type="color" class="data form-control needed w-px-50 mr-2" name="textColor-${backendNumber}" value="${textColor}">
             <label class="text-bold-selector">
                 <input type="checkbox" name="textBold-${backendNumber}" class="data checkbox" ${textBold}>
