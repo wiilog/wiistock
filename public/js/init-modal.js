@@ -545,30 +545,28 @@ function processDataArrayForm($modal, data) {
         const $input = $(this);
         const type = $input.attr('type')
         const name = $input.attr('name');
-        if (type === 'number') {
-            const val = Number($input.val());
+        const val = type === 'number' ? Number($input.val()) : $input.val();
+        if ($input.data('id')) {
             if (val) {
                 if (!dataArray[name]) {
                     dataArray[name] = {};
                 }
                 dataArray[name][$input.data('id')] = val;
             }
-
-            if ($input.hasClass('needed-positiv')) {
-                if (!dataArrayNeedPositive[name]) {
-                    dataArrayNeedPositive[name] = 0;
-                }
-                dataArrayNeedPositive[name] += val;
-            }
-        }
-        else {
+        } else {
             const name = $input.attr("name");
-            const val = $input.val();
             if (!dataArray[name]) {
                 dataArray[name] = [];
             }
             dataArray[name].push(val);
         }
+        if (type === 'number' && $input.hasClass('needed-positiv')) {
+            if (!dataArrayNeedPositive[name]) {
+                dataArrayNeedPositive[name] = 0;
+            }
+            dataArrayNeedPositive[name] += val;
+        }
+
     });
 
     const dataArrayNeedPositiveNames = Object.keys(dataArrayNeedPositive).reduce(

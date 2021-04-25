@@ -148,10 +148,6 @@ class DashboardSettingsService {
             $values['backgroundColor'] = $config['backgroundColor'];
         }
 
-        if (!empty($config['chartColor'])) {
-            $values['chartColor'] = $config['chartColor'];
-        }
-
         $redirect = $config['redirect'] ?? false;
 
         if (!$example && $redirect) {
@@ -213,6 +209,14 @@ class DashboardSettingsService {
                 break;
         }
 
+        // must be after component serialization
+        if (!isset($values['chartColors']) && !empty($config['chartColors'])) {
+            $values['chartColors'] = $config['chartColors'];
+        }
+
+        if (!isset($values['chartColorsLabels']) && !empty($config['chartColorsLabels'])) {
+            $values['chartColorsLabels'] = $config['chartColorsLabels'];
+        }
         return $values;
     }
 
@@ -460,7 +464,6 @@ class DashboardSettingsService {
         $shouldShowLocationLabels = isset($config['withLocationLabels']) && $config['withLocationLabels'];
         $emergency = isset($config['emergency']) && $config['emergency'];
         if ($example) {
-            dump('gfgd');
             $values = $componentType->getExampleValues();
 
             if ($shouldShowLocationLabels && !empty($config['locations'])) {
@@ -527,8 +530,20 @@ class DashboardSettingsService {
     public function serializeArrivalsAndPacks(Dashboard\ComponentType $componentType,
                                               array $config,
                                               bool $example = false,
-                                              DashboardMeter\Chart $meterChart = null): array { // TODO
+                                              DashboardMeter\Chart $meterChart = null): array {
         $values = $example ? $componentType->getExampleValues() : [];
+
+        if (!empty($config['chartColors'])) {
+            $exampleChartColors = $values['chartColors'] ?? null;
+            $values['chartColors'] = $config['chartColors'];
+            if (isset($exampleChartColors)) {
+                foreach ($exampleChartColors as $index => $color) {
+                    if (!isset($values['chartColors'][$index])) {
+                        $values['chartColors'][$index] = $color;
+                    }
+                }
+            }
+        }
 
         $displayPackNatures = $config['displayPackNatures'] ?? false;
 
@@ -557,20 +572,11 @@ class DashboardSettingsService {
                     return $carry;
                 }, []);
 
-            $counter = 0;
-            $chartColors = Stream::from(array_flip($values['chartColors']))
-                ->reduce(function (array $carry, string $label) use ($config, &$counter, $values) {
-                    $carry[$label] = $config['chartColor' . $counter] ?? array_values($values['chartColors'])[$counter];
-                    $counter++;
-                    return $carry;
-                }, []);
-            $values['chartColors'] = $chartColors;
-            $values['colorsFilled'] = true;
+            $values['colorsFilled'] = $displayPackNatures;
             // packs column
             if (isset($chartData['stack'])) {
                 if ($scale) {
                     if (!$displayPackNatures) {
-                        $values['colorsFilled'] = false;
                         $chartData['stack'] = array_slice($chartData['stack'], 0, 1);
                         $chartData['stack'][0] = [
                             'label' => 'Colis',
@@ -584,6 +590,15 @@ class DashboardSettingsService {
                     }
                 } else if (isset($chartData['stack'])) {
                     unset($chartData['stack']);
+                }
+            }
+
+            if ($values['colorsFilled']
+                && is_array($values['chartColors'])
+                && !empty($values['chartColors'])) {
+                $countChartColors = count($values['chartColors']);
+                if ($countChartColors > 1) {
+                    unset($values['chartColors'][$countChartColors - 1]);
                 }
             }
 
@@ -608,11 +623,13 @@ class DashboardSettingsService {
             }
         } else {
             $values = $componentType->getExampleValues();
-            if ($componentType->getMeterKey() === Dashboard\ComponentType::PACK_TO_TREAT_FROM && isset($config['chartColor0']) && isset($config['chartColor1'])) {
+            if ($componentType->getMeterKey() === Dashboard\ComponentType::PACK_TO_TREAT_FROM && isset($config['chartColors'])) {
                 $values['chartColors'] = [
-                    'Legende1' => $config['chartColor0'],
-                    'Legende2' => $config['chartColor1']
+                    'Legende1' => $config['chartColors']['Legende1'] ?? '',
+                    'Legende2' => $config['chartColors']['Legende2'] ?? ''
                 ];
+            } else {
+                $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'];
             }
             return $values;
         }
@@ -625,9 +642,9 @@ class DashboardSettingsService {
         $values = $componentType->getExampleValues();
         if (!$example) {
             $chartValues = $this->dashboardService->getWeekAssoc(
-                isset($config['firstDay']) ? $config['firstDay'] : date("d/m/Y", strtotime('monday this week')),
-                isset($config['lastDay']) ? $config['lastDay'] : date("d/m/Y", strtotime('sunday this week')),
-                isset($config['beforeAfter']) ? $config['beforeAfter'] : 'now'
+                $config['firstDay'] ?? date("d/m/Y", strtotime('monday this week')),
+                $config['lastDay'] ?? date("d/m/Y", strtotime('sunday this week')),
+                $config['beforeAfter'] ?? 'now'
             );
 
             $values['chartData'] = $chartValues['data'];
@@ -667,7 +684,6 @@ class DashboardSettingsService {
                                                         bool $example = false,
                                                         DashboardMeter\Chart $chart = null): array {
         $separateType = isset($config['separateType']) && $config['separateType'];
-
         if (!$example) {
             if ($chart) {
                 $values = ["chartData" => $chart->getData(), 'chartColors' => $chart->getChartColors()];
@@ -678,16 +694,22 @@ class DashboardSettingsService {
             $values = $componentType->getExampleValues();
             $values['separateType'] = $config['separateType'] ?? '';
             $values['handlingTypes'] = $config['handlingTypes'] ?? '';
-            if(!empty($config['handlingTypes']) && $config['separateType']) {
+            if (!empty($config['handlingTypes']) && $config['separateType']) {
                 $handlingTypes = $entityManager->getRepository(Type::class)->findBy(['id' => $config['handlingTypes']]);
                 $counter = 0;
                 $chartColors = Stream::from($handlingTypes)
                     ->reduce(function (array $carry, Type $type) use ($config, &$counter, $values) {
-                        $carry[$type->getLabel()] = $config['chartColor' . $counter] ?? array_values($values['chartColors'])[$counter];
+                        $carry[$type->getLabel()] = $config['chartColors'][$type->getLabel()] ?? Dashboard\ComponentType::DEFAULT_CHART_COLOR;
                         $counter++;
                         return $carry;
                     }, []);
                 $values['chartColors'] = $chartColors;
+
+                $chartColorsLabels = Stream::from($handlingTypes)
+                    ->map(function (Type $type) {
+                        return $type->getLabel();
+                    })->toArray();
+                $values['chartColorsLabels'] = $chartColorsLabels;
 
                 $chartValues = Stream::from($handlingTypes)
                     ->reduce(function (array $carry, Type $type) {
@@ -696,10 +718,12 @@ class DashboardSettingsService {
                     }, []);
 
                 $chartDataMultiple = Stream::from($values['chartDataMultiple'])
-                    ->map(function ($chartData) use ($chartValues) {
-                        return $chartData[] = $chartValues;
+                    ->map(function () use ($chartValues) {
+                        return $chartValues;
                     })->toArray();
                 $values['chartDataMultiple'] = $chartDataMultiple;
+            } else {
+                $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'];
             }
 
             $scale = $config['daysNumber'] ?? DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE;
@@ -750,6 +774,8 @@ class DashboardSettingsService {
                     }
                     return $carry;
                 }, []);
+
+            $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'];
 
             $values['chartData'] = $chartData;
         }

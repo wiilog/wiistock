@@ -71,7 +71,12 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Nombre d\'arrivages quotidiens' => [
             'hint' => 'Nombre d\'arrivages créés par jour',
             'exampleValues' => [
-                'chartColor' => Dashboard\ComponentType::DEFAULT_CHART_COLOR,
+                'chartColors' => [
+                    Dashboard\ComponentType::DEFAULT_CHART_COLOR
+                ],
+                'chartColorsLabels' => [
+                    'Arrivages'
+                ],
                 'chartData' => [
                     '04' => 5,
                     '05' => 12,
@@ -107,6 +112,10 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'chartColors' => [
                     '#77933C',
                     '#003871'
+                ],
+                'chartColorsLabels' => [
+                    'Arrivages',
+                    'Colis'
                 ],
                 'chartData' => [
                     '04/01' => 5,
@@ -158,7 +167,12 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Nombre d\'associations Arrivages - Réceptions' => [
             'hint' => 'Nombre de réceptions de traçabilité par jour',
             'exampleValues' => [
-                'chartColor' => Dashboard\ComponentType::DEFAULT_CHART_COLOR,
+                'chartColors' => [
+                    Dashboard\ComponentType::DEFAULT_CHART_COLOR
+                ],
+                'chartColorsLabels' => [
+                    'Association A-R'
+                ],
                 'chartData' => [
                     '04' => 4,
                     '05' => 8,
@@ -178,6 +192,14 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'exampleValues' => [
                 'stack' => true,
                 'label' => 'Arrivages',
+                'chartColors' => [
+                    '#77933C',
+                    '#003871'
+                ],
+                'chartColorsLabels' => [
+                    'Arrivages',
+                    'Colis'
+                ],
                 'chartData' => [
                     'S01' => 102,
                     'S02' => 60,
@@ -255,7 +277,12 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Nombre de colis distribués en dépose' => [
             'hint' => 'Nombre de colis présents sur les emplacements de dépose paramétrés',
             'exampleValues' => [
-                'chartColor' => Dashboard\ComponentType::DEFAULT_CHART_COLOR,
+                'chartColors' => [
+                    Dashboard\ComponentType::DEFAULT_CHART_COLOR
+                ],
+                'chartColorsLabels' => [
+                    'Colis'
+                ],
                 'chartData' => [
                     '04/01' => 6,
                     '05/01' => 5,
@@ -390,7 +417,12 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY_GRAPH,
             'exampleValues' => [
-                'chartColor' => Dashboard\ComponentType::DEFAULT_CHART_COLOR,
+                'chartColors' => [
+                    Dashboard\ComponentType::DEFAULT_CHART_COLOR
+                ],
+                'chartColorsLabels' => [
+                    'Fiabilité monétaire'
+                ],
                 'chartData' => [
                     'Août' => 243,
                     'Septembre' => 145,
@@ -414,10 +446,11 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'hint' => 'Nombre de services ayant leur date attendue sur les jours présentés',
             'exampleValues' => [
                 'chartColors' => [
-                    'Type1' => '#77933C',
-                    'Type2' => '#003871'
+                    Dashboard\ComponentType::DEFAULT_CHART_COLOR,
                 ],
-                'chartColor' => Dashboard\ComponentType::DEFAULT_CHART_COLOR,
+                'chartColorsLabels' => [
+                    'Services'
+                ],
                 'chartData' => [
                     '04/01' => 6,
                     '05/01' => 8,
@@ -466,10 +499,11 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'hint' => 'Nombre d\'opérations quotidiennes sur les services ayant leur date attendue sur les jours présentés',
             'exampleValues' => [
                 'chartColors' => [
-                    'Type1' => '#77933C',
-                    'Type2' => '#003871'
+                    Dashboard\ComponentType::DEFAULT_CHART_COLOR,
                 ],
-                'chartColor' => Dashboard\ComponentType::DEFAULT_CHART_COLOR,
+                'chartColorsLabels' => [
+                    'Opérations'
+                ],
                 'chartData' => [
                     '04/01' => 6,
                     '05/01' => 8,
@@ -526,7 +560,12 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Nombre d\'acheminements quotidiens' => [
             'hint' => 'Nombre d\'acheminements ayant leurs dates d\'échéances sur les jours présentés',
             'exampleValues' => [
-                'chartColor' => Dashboard\ComponentType::DEFAULT_CHART_COLOR,
+                'chartColors' => [
+                    Dashboard\ComponentType::DEFAULT_CHART_COLOR
+                ],
+                'chartColorsLabels' => [
+                    'Acheminements'
+                ],
                 'chartData' => [
                     '04/01' => 2,
                     '05/01' => 6,

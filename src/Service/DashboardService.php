@@ -394,6 +394,7 @@ class DashboardService {
     public function persistMonetaryReliabilityGraph(EntityManagerInterface $entityManager,
                                                     Dashboard\Component $component): void {
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
+        $config = $component->getConfig();
 
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
 
@@ -426,9 +427,11 @@ class DashboardService {
             $idx += 1;
         }
         $values = array_reverse($value['data']);
+        $chartColors = $config['chartColors'] ?? [];
 
         $meter
-            ->setData($values);
+            ->setData($values)
+            ->setChartColors($chartColors);
     }
 
     /**
@@ -799,7 +802,6 @@ class DashboardService {
             $workFreeDays,
             $period
         );
-        $chartColors = null;
         if ($separateType) {
             $types = $typeRepository->findBy(['id' => $handlingTypesFilter]);
             $chartData = Stream::from($chartData)
@@ -814,15 +816,8 @@ class DashboardService {
                     }
                     return $carry;
                 }, []);
-            $handlingTypes = $entityManager->getRepository(Type::class)->findBy(['id' => $config['handlingTypes']]);
-            $counter = 0;
-            $chartColors = Stream::from($handlingTypes)
-                ->reduce(function (array $carry, Type $type) use ($config, &$counter) {
-                    $carry[$type->getLabel()] = $config['chartColor' . $counter];
-                    $counter++;
-                    return $carry;
-                }, []);
         }
+        $chartColors = $config['chartColors'] ?? [];
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter

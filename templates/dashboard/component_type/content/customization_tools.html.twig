@@ -23,7 +23,7 @@
             </div>
         </div>
     </div>
-    {% if componentType.exampleValues.chartData is defined %}
+    {% if componentType.exampleValues.chartData is defined and componentType.meterKey is not constant('App\\Entity\\Dashboard\\ComponentType::ENTRIES_TO_HANDLE') %}
         <div id="accordion" class="customization-tools-accordion color-picker-accordion">
             <div class="card my-3">
                 <div class="card-header" id="headingOneChartColor">
@@ -39,8 +39,7 @@
                 </div>
                 <div id="collapseChartColor" class="collapse" aria-labelledby="headingOneChartColor"
                      data-parent="#accordion">
-                    <div class="card-body chart-color-pickers">{#
-                        <input type="color" class="data form-control needed" name="chartColor" value="{{ values.chartColor ?? '#FFFFFF' }}">#}
+                    <div class="card-body chart-color-pickers">
                     </div>
                 </div>
             </div>

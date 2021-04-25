@@ -123,44 +123,7 @@ const creators = {
  * @return {boolean}
  */
 function renderComponent(component, $container, data) {
-    const $chartColorPickersContainer = $('.chart-color-pickers');
-    const $colorPickerAccordion = $('.color-picker-accordion');
-
     $container.empty();
-    /*TODO
-
-    $('input[name="jsonConfig"]').remove();
-    const $modal = $container.closest(`.modal`);
-    if($modal.exists()) {
-        $modal.find(`.component-numbering`).empty();
-    }
-     */
-    $chartColorPickersContainer.empty();
-    $colorPickerAccordion.removeClass('d-none');
-    console.log(data);
-
-    if(data.separateType) {
-        if (data.chartColors && data.handlingTypes) {
-            let counter = 0;
-            for (let key in data.chartColors) {
-                $chartColorPickersContainer.append(generateColorPickerElement(data, key, counter));
-                counter++;
-            }
-        } else {
-            $colorPickerAccordion.addClass('d-none');
-        }
-    } else if(!data.separateType && data.chartColor) {
-        $chartColorPickersContainer.append(generateColorPickerElement(data));
-    } else if(!data.separateType && data.chartColors) {
-        let counter = 0;
-        for (let key in data.chartColors) {
-            $chartColorPickersContainer.append(generateColorPickerElement(data, key, counter));
-            counter++;
-        }
-        if(data.colorsFilled) {
-            $chartColorPickersContainer.children().last().remove();
-        }
-    }
 
     if(!creators[component.meterKey]) {
         console.error(`No creator function for ${component.meterKey} key.`);
@@ -178,9 +141,17 @@ function renderComponent(component, $container, data) {
 
         if($element) {
             $container.html($element);
-            const isCardExample = $container.parents('#modalComponentTypeSecondStep').length > 0;
+            const $modal = $container.closest('.modal');
+            const isCardExample = $modal.exists();
             const $canvas = $element.find('canvas');
             const $table = $element.find('table');
+            if (isCardExample) {
+                resetColorPickersElementsToForm($modal, data);
+                $modal.find('input[name="jsonConfig"]').remove();
+                if ($modal.exists()) {
+                    $modal.find(`.component-numbering`).empty();
+                }
+            }
             if($canvas.length > 0) {
                 if(!$canvas.hasClass('multiple') && !data.multiple) {
                     createAndUpdateSimpleChart(
@@ -193,6 +164,7 @@ function renderComponent(component, $container, data) {
                 } else {
                     createAndUpdateMultipleCharts($canvas, null, data, false, true, isCardExample);
                 }
+
             } else if($table.length > 0) {
                 if($table.hasClass('retards-table')) {
                     loadLatePacks($table, data);
@@ -974,7 +946,7 @@ function updateMultipleChartData(chart, data) {
         const dataSubKeys = Object.keys(chartData[key]);
         chart.data.labels.push(key);
         for(const subKey of dataSubKeys) {
-            let dataset = chart.data.datasets.find(({label}) => (label === subKey)); // TODO
+            let dataset = chart.data.datasets.find(({label}) => (label === subKey));
             if(!dataset) {
                 dataset = {
                     label: subKey,
@@ -1031,11 +1003,42 @@ function incrementNumbering(data, numberingConfig, backendNumber) {
     return text;
 }
 
-function generateColorPickerElement(data, key = undefined, counter = '') {
-    return $(`<input/>`, {
-        type: `color`,
-        class: `data form-control needed`,
-        name: `chartColor${counter}`,
-        value: `${key && counter !== '' ? data.chartColors[key] : data.chartColor}`
-    })
+function generateColorPickerElement(data, key = 0) {
+    return $(`<div/>`, {
+        class: 'd-flex justify-content-between align-items-center mx-5',
+        text: 'ISAUHAIHSIAUSHIU',
+        html: $(`<input/>`, {
+            type: `color`,
+            class: `data-array form-control needed w-50`,
+            'data-id': key,
+            name: `chartColors`,
+            value: data.chartColors[key]
+        })
+    }).prepend($(`<span/>`, {
+        text: (data.chartColorsLabels && data.chartColorsLabels[key] !== undefined) ? data.chartColorsLabels[key] : key
+    }));
+}
+
+function resetColorPickersElementsToForm($modal, data) {
+    const $chartColorPickersContainer = $modal.find('.chart-color-pickers');
+    const $colorPickerAccordion = $modal.find('.color-picker-accordion');
+
+    $chartColorPickersContainer.empty();
+    $colorPickerAccordion.removeClass('d-none');
+
+    if(data.separateType) {
+        if (data.chartColors && data.handlingTypes) {
+            for (let key in data.chartColors) {
+                $chartColorPickersContainer.append(generateColorPickerElement(data, key));
+            }
+        } else {
+            $colorPickerAccordion.addClass('d-none');
+        }
+    } else {
+        if (data.chartColors) {
+            for (let key in data.chartColors) {
+                $chartColorPickersContainer.append(generateColorPickerElement(data, key));
+            }
+        }
+    }
 }

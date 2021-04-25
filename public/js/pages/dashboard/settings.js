@@ -928,6 +928,12 @@ function processSecondModalForm($modal) {
     if(meterKey === ENTRIES_TO_HANDLE && data.segments) {
         data.segments = data.segments.map(clearSegmentHourValues);
     }
+    if (data.chartColors && !Array.isArray(data.chartColors)) {
+        try {
+            data.chartColors = JSON.parse(data.chartColors);
+        }
+        catch(e) {}
+    }
 
     return Object.assign({}, remaining, {data});
 }
