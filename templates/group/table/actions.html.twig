@@ -10,14 +10,12 @@
                      onclick="editRow($(this), Routing.generate('group_edit_api', true), $('#modalEditGroup'), $('#submitEditGroup'), true)">
                     <i class='fas fa-edit mr-2'></i>Modifier
                 </div>
-            {% endif %}
-            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE')) %}
                 <div class="dropdown-item"
-                     data-target="#modalDeleteGroup"
+                     data-target="#modalUngroup"
                      data-toggle="modal"
                      data-id="{{ group.id }}"
-                     onclick="deleteRow($(this), $('#modalDeleteGroup'), $('#submitDeleteGroup'))">
-                    <i class="fas fa-trash mr-2"></i>Supprimer
+                     onclick="editRow($(this), Routing.generate('group_ungroup_api', true), $('#modalUngroup'), $('#submitUngroup'), true)">
+                    <i class="fas fa-trash mr-2"></i>Dégrouper
                 </div>
             {% endif %}
         </div>

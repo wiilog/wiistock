@@ -69,16 +69,6 @@ $(function() {
     switchPacks();
     $(`#to-packs`).click(switchPacks);
     $(`#to-groups`).click(switchGroups);
-
-    const $modalEditPack = $('#modalEditPack');
-    const $submitEditPack = $('#submitEditPack');
-    const urlEditPack = Routing.generate('pack_edit', true);
-    InitModal($modalEditPack, $submitEditPack, urlEditPack, {tables: [packsTable]});
-
-    let modalDeletePack = $("#modalDeletePack");
-    let SubmitDeletePack = $("#submitDeletePack");
-    let urlDeletePack = Routing.generate('pack_delete', true);
-    InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [packsTable], clearOnClose: true});
 });
 
 function switchPacks() {
@@ -86,6 +76,16 @@ function switchPacks() {
 
     if(!packsTable) {
         packsTable = initDataTable(`packsTable`, packsTableConfig);
+
+        const $modalEditPack = $('#modalEditPack');
+        const $submitEditPack = $('#submitEditPack');
+        const urlEditPack = Routing.generate('pack_edit', true);
+        InitModal($modalEditPack, $submitEditPack, urlEditPack, {tables: [packsTable]});
+
+        let modalDeletePack = $("#modalDeletePack");
+        let SubmitDeletePack = $("#submitDeletePack");
+        let urlDeletePack = Routing.generate('pack_delete', true);
+        InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [packsTable], clearOnClose: true});
     }
 
     $(`#to-packs`).addClass(`active`);
@@ -97,10 +97,15 @@ function switchPacks() {
 }
 
 function switchGroups() {
-    selectedTab = TAB_PACKS;
+    selectedTab = TAB_GROUPS;
 
     if(!groupsTable) {
         groupsTable = initDataTable(`groupsTable`, groupsTableConfig);
+
+        const $modalEditGroup = $('#modalEditGroup');
+        const $submitEditGroup = $('#submitEditGroup');
+        const urlEditGroup = Routing.generate('group_edit', true);
+        InitModal($modalEditGroup, $submitEditGroup, urlEditGroup, {tables: [groupsTable]});
     }
 
     $(`#to-packs`).removeClass(`active`);
@@ -113,8 +118,8 @@ function switchGroups() {
 
 function toExport() {
     if(selectedTab === TAB_PACKS) {
-        saveExportFile(`print_csv_packs`);
+        saveExportFile(`export_packs`);
     } else {
-        saveExportFile(`print_csv_groups`);
+        saveExportFile(`export_groups`);
     }
 }

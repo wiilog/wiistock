@@ -4,8 +4,10 @@ namespace App\Repository;
 
 use App\Entity\Group;
 use App\Helper\QueryCounter;
+use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query;
 
 /**
  * @method Group|null find($id, $lockMode = null, $lockVersion = null)
@@ -33,6 +35,34 @@ class GroupRepository extends EntityRepository {
             'count' => $countFiltered,
             'total' => $countTotal
         ];
+    }
+
+    public function getByDates(DateTime $dateMin, DateTime $dateMax) {
+        $iterator =  $this->createQueryBuilder("grp")
+            ->distinct()
+            ->select("grp.code AS code")
+            ->addSelect("nat.label AS nature")
+            ->addSelect("COUNT(children.id) AS packs")
+            ->addSelect("grp.weight AS weight")
+            ->addSelect("grp.volume AS volume")
+            ->addSelect("movement.datetime AS lastMvtDate")
+            ->addSelect("movement.id AS fromTo")
+            ->addSelect("emplacement.label AS location")
+            ->leftJoin("grp.lastTracking", "movement")
+            ->leftJoin("movement.emplacement","emplacement")
+            ->leftJoin("grp.nature","nat")
+            ->leftJoin("grp.packs","children")
+            ->where("movement.datetime BETWEEN :dateMin AND :dateMax")
+            ->groupBy("grp")
+            ->setParameter("dateMin", $dateMin)
+            ->setParameter("dateMax", $dateMax)
+            ->getQuery()
+            ->iterate(null, Query::HYDRATE_ARRAY);
+
+        foreach($iterator as $item) {
+            // $item [index => article array]
+            yield array_pop($item);
+        }
     }
 
 }

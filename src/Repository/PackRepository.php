@@ -82,11 +82,6 @@ class PackRepository extends EntityRepository
             : $query->getSingleScalarResult();
     }
 
-    /**
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
-     * @return Arrivage[]|null
-     */
     public function getByDates(DateTime $dateMin, DateTime $dateMax)
     {
         $iterator =  $this->createQueryBuilder('pack')
