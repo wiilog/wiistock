@@ -20,6 +20,14 @@ CREATE TABLE dw_jours_horaires_travailles
     horaire4  varchar(255)
 );
 
+CREATE TABLE dw_association_br
+(
+    date        timestamp(0),
+    arrivage    varchar(255),
+    reception   varchar(255),
+    utilisateur varchar(255)
+);
+
 CREATE TABLE dw_arrivage_champs_libres
 (
     arrivage_id integer,
