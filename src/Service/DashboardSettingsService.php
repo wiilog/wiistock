@@ -694,7 +694,7 @@ class DashboardSettingsService {
             $values = $componentType->getExampleValues();
             $values['separateType'] = $config['separateType'] ?? '';
             $values['handlingTypes'] = $config['handlingTypes'] ?? '';
-            if (!empty($config['handlingTypes']) && $config['separateType']) {
+            if (!empty($config['handlingTypes']) && !empty($config['separateType'])) {
                 $handlingTypes = $entityManager->getRepository(Type::class)->findBy(['id' => $config['handlingTypes']]);
                 $counter = 0;
                 $chartColors = Stream::from($handlingTypes)
