@@ -5,6 +5,7 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
+use App\Entity\Group;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
@@ -58,7 +59,7 @@ Class PackService
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
         $queryResult = $packRepository->findByParamsAndFilters($params, $filters);
 
-        $packs = $queryResult['data'];
+        $packs = $queryResult["data"];
 
         $rows = [];
         foreach ($packs as $pack) {
@@ -66,9 +67,9 @@ Class PackService
         }
 
         return [
-            'data' => $rows,
-            'recordsFiltered' => $queryResult['count'],
-            'recordsTotal' => $queryResult['total'],
+            "data" => $rows,
+            "recordsFiltered" => $queryResult['count'],
+            "recordsTotal" => $queryResult['total'],
         ];
     }
 

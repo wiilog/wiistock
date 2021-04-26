@@ -1,0 +1,118 @@
+table.wii-list {
+    border-spacing: 0 4px;
+
+    thead {
+        display: none;
+    }
+
+    tr {
+        td {
+            padding: 12px;
+            background-color: #F8F8F8;
+            border: none !important;
+
+            &:first-child {
+                border-bottom-left-radius: 4px;
+                border-top-left-radius: 4px;
+            }
+
+            &:last-child {
+                border-bottom-right-radius: 4px;
+                border-top-right-radius: 4px;
+            }
+
+            .row {
+                max-width: initial;
+            }
+
+            a:not(.pack-dispute) {
+                text-decoration: underline !important;
+            }
+        }
+    }
+}
+
+.pack-dispute {
+    display: block;
+    padding: 4px 8px;
+    background-color: #EEEEEE;
+    border-radius: 4px;
+    height: 26px;
+    line-height: 12px;
+    margin-top: 3px;
+    text-align: center;
+    border: 2px solid rgba(51, 51, 51, 0.2);
+
+    &.ongoing {
+        background-color: #fff176;
+        color: #bc5100;
+
+        &:hover {
+            background-color: lighten(#fff176, 2);
+            color: lighten(#bc5100, 2) !important;
+        }
+    }
+
+    &.treated {
+        background-color: #b2fab4;
+        color: #00600f;
+
+        &:hover {
+            background-color: lighten(#b2fab4, 2);
+            color: lighten(#00600f, 2) !important;
+        }
+    }
+
+    &:hover {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+}
+
+.pack-references, .group-packs {
+    display: flex;
+    flex-wrap: wrap;
+
+    .pack-reference, .group-pack {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        background-color: white;
+        border-radius: 8px;
+        padding: 6px 20px;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+        margin-top: 8px;
+        margin-right: 12px;
+        min-width: 300px;
+        max-width: calc(33% - 12px);
+
+        &.small-container {
+            min-width: 100px;
+            max-width: calc(50% - 12px);
+        }
+
+        .pack-header {
+            flex: 1 1 auto;
+            width: 100%;
+        }
+
+        .pack-article {
+            display: inline-block;
+            background: #F8F8F8;
+            border-radius: 4px;
+            padding: 3px 10px;
+            margin-right: 3px;
+            margin-bottom: 3px;
+        }
+
+        .icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+}
+
+.text-highlight {
+    background: yellow;
+    box-shadow: 0 0 3px white;
+}

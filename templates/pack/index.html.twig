@@ -9,16 +9,26 @@
     } %}
 {% endblock %}
 
+{% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
+
 {% block page_content %}
-    {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
     <div class="m-4 wii-page-card">
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <button id="to-packs" class="nav-link active">Colis</button>
+            </li>
+            <li class="nav-item">
+                <button id="to-groups" class="nav-link">Groupe</button>
+            </li>
+        </ul>
+
+        <hr>
+
         {% if hasRightExport %}
             <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
                     <div class="btn-group">
-                        <button type="button"
-                                class="btn btn-primary btn-ripple"
-                                onclick="saveExportFile('print_csv_packs')">
+                        <button type="button" class="btn btn-primary btn-ripple" onclick="toExport()">
                             <i class="fa fa-file-csv mr-2"></i>
                             Exporter au format CSV
                         </button>
@@ -26,9 +36,13 @@
                 </div>
             </div>
         {% endif %}
+
         <div class="row">
-            <div class="col-12">
+            <div class="col-12 packsTableContainer">
                 <table id="packsTable" class="table w-100"></table>
+            </div>
+            <div class="col-12 groupsTableContainer">
+                <table id="groupsTable" class="table wii-list w-100"></table>
             </div>
         </div>
     </div>

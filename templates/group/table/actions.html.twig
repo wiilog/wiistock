@@ -1,0 +1,25 @@
+<div class="d-flex">
+    <div class="dropdown dropright">
+        {{ include('datatable/dotsRow.html.twig') }}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
+                <div class="dropdown-item"
+                     data-toggle="modal"
+                     data-target="#modalEditGroup"
+                     data-id="{{ group.id }}"
+                     onclick="editRow($(this), Routing.generate('group_edit_api', true), $('#modalEditGroup'), $('#submitEditGroup'), true)">
+                    <i class='fas fa-edit mr-2'></i>Modifier
+                </div>
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE')) %}
+                <div class="dropdown-item"
+                     data-target="#modalDeleteGroup"
+                     data-toggle="modal"
+                     data-id="{{ group.id }}"
+                     onclick="deleteRow($(this), $('#modalDeleteGroup'), $('#submitDeleteGroup'))">
+                    <i class="fas fa-trash mr-2"></i>Supprimer
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
