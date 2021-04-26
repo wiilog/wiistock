@@ -129,6 +129,13 @@ function renderComponent(component, $container, data) {
         console.error(`No creator function for ${component.meterKey} key.`);
         return false;
     } else {
+        const $modal = $container.closest('.modal');
+        const isCardExample = $modal.exists();
+        if(isCardExample && $modal.exists()) {
+            resetColorPickersElementsToForm($modal, data);
+            $modal.find(`.component-numbering`).empty();
+        }
+
         const {callback, arguments} = creators[component.meterKey];
         const $element = callback(
             data,
@@ -141,17 +148,13 @@ function renderComponent(component, $container, data) {
 
         if($element) {
             $container.html($element);
-            const $modal = $container.closest('.modal');
-            const isCardExample = $modal.exists();
             const $canvas = $element.find('canvas');
             const $table = $element.find('table');
-            if (isCardExample) {
-                resetColorPickersElementsToForm($modal, data);
+
+            if(isCardExample) {
                 $modal.find('input[name="jsonConfig"]').remove();
-                if ($modal.exists()) {
-                    $modal.find(`.component-numbering`).empty();
-                }
             }
+
             if($canvas.length > 0) {
                 if(!$canvas.hasClass('multiple') && !data.multiple) {
                     createAndUpdateSimpleChart(
@@ -402,12 +405,10 @@ function createLatePacksElement(data) {
     const title = data.title || "";
     const numberingConfig = {numbering: 0};
 
-    return $(`
-        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
-            <div class="title">
-                <span>&nbsp&nbsp</span> ${withStyle(data, numberingConfig, 1, title)}
-            </div>
-            ${createTooltip(data.tooltip)}
+    const table = `<table class="table display retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}"></table>`;
+    let content = table;
+    if ($('.modal.show').exists()) {
+        content = `
             <div class="row mx-0">
                 <div class="col-auto pr-0">
                     <div class="row mb-5 mt-3">
@@ -418,10 +419,18 @@ function createLatePacksElement(data) {
                     </div>
                 </div>
                 <div class="col pl-0">
-                    <table class="table display retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}">
-                    </table>
+                    ${table}
                 </div>
+            </div>`;
+    }
+
+    return $(`
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
+            <div class="title">
+                <span>&nbsp&nbsp</span> ${withStyle(data, numberingConfig, 1, title)}
             </div>
+            ${createTooltip(data.tooltip)}
+            ${content}
         </div>
     `);
 }
@@ -888,15 +897,30 @@ function loadLatePacks($table, data) {
         processing: true,
         order: [['delay', 'desc']],
         columns: [
-            {"data": 'pack', 'name': 'pack', 'title': 'Colis'},
-            {"data": 'date', 'name': 'date', 'title': 'Dépose'},
             {
-                "data": 'delay',
-                'name': 'delay',
-                'title': 'Délai',
-                render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)
+                data: 'pack',
+                name: 'pack',
+                title: applyStyle(data, null, 2, 'Colis', false),
+                render: text => applyStyle(data, null, 3, text, false),
             },
-            {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
+            {
+                data: 'date',
+                name: 'date',
+                title: applyStyle(data, null, 2, 'Dépose', false),
+                render: text => applyStyle(data, null, 3, text, false),
+            },
+            {
+                data: 'delay',
+                name: 'delay',
+                title: applyStyle(data, null, 2, 'Délai', false),
+                render: (milliseconds, type) => applyStyle(data, null, 3, renderMillisecondsToDelay(milliseconds, type), false)
+            },
+            {
+                data: 'location',
+                name: 'location',
+                title: applyStyle(data, null, 2, 'Emplacement', false),
+                render: text => applyStyle(data, null, 3, text, false)
+            },
         ],
         "drawCallback": function() {
             let $dataTable = $table.dataTable();
@@ -912,7 +936,7 @@ function loadLatePacks($table, data) {
             //
             let $dataTableWrapper = $table.closest(".dataTables_wrapper");
             let panelHeight = $dataTableWrapper.parent().height();
-
+console.log($table);
             let toolbarHeights = 0;
             $dataTableWrapper.find(".fg-toolbar").each(function(i, obj) {
                 toolbarHeights = toolbarHeights + $(obj).height();
@@ -995,28 +1019,27 @@ function updateMultipleChartData(chart, data) {
  * multiple times in the same component.
  */
 function applyStyle(data, numberingConfig, backendNumber, value = ``, generateSuperscript = true) {
-    if(!numberingConfig) {
-        return value;
-    }
-
     const fontSize = data['fontSize-' + backendNumber] || null;
-    const textColor = data['textColor-' + backendNumber] || "#FFFFFF";
+    const textColor = data['textColor-' + backendNumber] || null;
     const textBold = data['textBold-' + backendNumber]  ? 'checked' : '';
     const textItalic = data['textItalic-' + backendNumber] ? 'checked' : '';
     const textUnderline = data['textUnderline-' + backendNumber] ? 'checked' : '';
 
     let text = ``;
-    if(generateSuperscript && $('#modalComponentTypeSecondStep').hasClass('show')) {
+    if(generateSuperscript && numberingConfig && $('#modalComponentTypeSecondStep').hasClass('show')) {
         text = `<sup>(${numberingConfig.associations[backendNumber]})</sup>`;
     }
 
     let style = ``;
-    style += `color: ${textColor};`;
 
     if(fontSize !== null) {
         style += `font-size: ${fontSize}pt;`;
     } else {
         style += `font-size: inherit;`;
+    }
+
+    if(textColor !== null) {
+        style += `color: ${textColor};`;
     }
 
     if(textBold === `checked`) {
@@ -1038,6 +1061,7 @@ function applyStyle(data, numberingConfig, backendNumber, value = ``, generateSu
  * Create the editor elements in the edition modal.
  */
 function generateEditor(data, numberingConfig, backendNumbers) {
+    console.log(data, numberingConfig, backendNumbers);
     if(!numberingConfig) {
         return;
     }
