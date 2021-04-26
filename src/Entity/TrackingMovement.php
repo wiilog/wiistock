@@ -109,6 +109,12 @@ class TrackingMovement extends FreeFieldEntity
     private $linkedPackLastTracking;
 
     /**
+     * @var Group|null
+     * @ORM\OneToOne(targetEntity="App\Entity\Group", mappedBy="lastTracking")
+     */
+    private $linkedGroupLastTracking;
+
+    /**
      * @var ArrayCollection|null
      * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="firstDrop")
      */
@@ -123,6 +129,11 @@ class TrackingMovement extends FreeFieldEntity
      * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="trackingMovements")
      */
     private $receptionReferenceArticle;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Group::class, inversedBy="trackingMovements")
+     */
+    private $packGroup;
 
     public function __construct()
     {
@@ -335,6 +346,22 @@ class TrackingMovement extends FreeFieldEntity
     /**
      * @return Pack|null
      */
+    public function getLinkedGroupLastTracking(): ?Group {
+        return $this->linkedGroupLastTracking;
+    }
+
+    /**
+     * @param Pack|null $linkedGroupLastTracking
+     * @return TrackingMovement
+     */
+    public function setLinkedGroupLastTracking(?Group $linkedGroupLastTracking): TrackingMovement {
+        $this->linkedGroupLastTracking = $linkedGroupLastTracking;
+        return $this;
+    }
+
+    /**
+     * @return Pack|null
+     */
     public function getLinkedPackLastTracking(): ?Pack {
         return $this->linkedPackLastTracking;
     }
@@ -466,6 +493,18 @@ class TrackingMovement extends FreeFieldEntity
         if ($this->lastTrackingRecords->contains($record)) {
             $this->lastTrackingRecords->removeElement($record);
         }
+
+        return $this;
+    }
+
+    public function getPackGroup(): ?Group
+    {
+        return $this->packGroup;
+    }
+
+    public function setPackGroup(?Group $packGroup): self
+    {
+        $this->packGroup = $packGroup;
 
         return $this;
     }

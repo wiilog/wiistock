@@ -41,6 +41,11 @@ class Pack
     private $nature;
 
     /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Group", inversedBy="packs", )
+     */
+    private $packGroup;
+
+    /**
      * @var TrackingMovement
      * @ORM\OneToOne(targetEntity=TrackingMovement::class, inversedBy="linkedPackLastDrop")
      * @ORM\JoinColumn(nullable=true)
@@ -174,6 +179,18 @@ class Pack
     public function setNature(?Nature $nature): self
     {
         $this->nature = $nature;
+
+        return $this;
+    }
+
+    public function getGroup(): ?Group
+    {
+        return $this->packGroup;
+    }
+
+    public function setGroup(?Group $group): self
+    {
+        $this->packGroup = $group;
 
         return $this;
     }
