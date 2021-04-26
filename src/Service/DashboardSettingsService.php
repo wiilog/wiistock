@@ -413,6 +413,9 @@ class DashboardSettingsService {
             unset($chartValues['data']);
             $values += $chartValues;
         }
+
+        $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'];
+
         return $values;
     }
 
@@ -652,6 +655,9 @@ class DashboardSettingsService {
             unset($chartValues['data']);
             $values += $chartValues;
         }
+
+        $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'];
+
         return $values;
     }
 
