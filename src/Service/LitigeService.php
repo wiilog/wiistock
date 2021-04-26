@@ -184,30 +184,25 @@ class LitigeService {
         }
 
         if ($wantSendToDeclarantMailStatusChange && $litige->getDeclarant()) {
-            $mainAndSecondaryEmails = $litige->getDeclarant()->getMainAndSecondaryEmails();
-            if (!empty($mainAndSecondaryEmails)) {
-                array_push($recipients, ...$mainAndSecondaryEmails);
+            $translatedCategory = $isArrival ? $category : $this->translator->trans('réception.une réception');
+            $title = !$isUpdate
+                ? ('Un litige a été déclaré sur ' . $translatedCategory . ' vous concernant :')
+                : ('Changement de statut d\'un litige sur ' . $translatedCategory . ' vous concernant :');
+            $subject = !$isUpdate
+                ? ('FOLLOW GT // Litige sur ' . $translatedCategory)
+                : 'FOLLOW GT // Changement de statut d\'un litige sur ' . $translatedCategory;
+
+            if (!empty($recipients)) {
+                $this->mailerService->sendMail(
+                    $subject,
+                    $this->templating->render('mails/contents/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig', [
+                        'litiges' => [$litige],
+                        'title' => $title,
+                        'urlSuffix' => ($isArrival ? '/arrivage' : '/reception')
+                    ]),
+                    $litige->getDeclarant()
+                );
             }
-        }
-
-        $translatedCategory = $isArrival ? $category : $this->translator->trans('réception.une réception');
-        $title = !$isUpdate
-            ? ('Un litige a été déclaré sur ' . $translatedCategory . ' vous concernant :')
-            : ('Changement de statut d\'un litige sur ' . $translatedCategory . ' vous concernant :');
-        $subject = !$isUpdate
-            ? ('FOLLOW GT // Litige sur ' . $translatedCategory)
-            : 'FOLLOW GT // Changement de statut d\'un litige sur ' . $translatedCategory;
-
-        if (!empty($recipients)) {
-            $this->mailerService->sendMail(
-                $subject,
-                $this->templating->render('mails/contents/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig', [
-                    'litiges' => [$litige],
-                    'title' => $title,
-                    'urlSuffix' => ($isArrival ? '/arrivage' : '/reception')
-                ]),
-                $recipients
-            );
         }
     }
 

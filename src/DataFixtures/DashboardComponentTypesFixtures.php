@@ -34,31 +34,26 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'subtitle' => 'Litige',
                 'delay' => 20634860,
 
-                'fontSize-1' => 12,
-                'fontSize-2' => 12,
-                'fontSize-3' => 12,
-                'fontSize-4' => 12,
-                'fontSize-5' => 12,
-
                 'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+
                 'textColor-2' => "#000000",
                 'textColor-3' => "#0000CC",
                 'textColor-4' => "#000000",
                 'textColor-5' => "#0000CC",
 
-                'textBold-1' => false,
                 'textBold-2' => false,
                 'textBold-3' => false,
                 'textBold-4' => false,
                 'textBold-5' => false,
 
-                'textItalic-1' => false,
                 'textItalic-2' => false,
                 'textItalic-3' => false,
                 'textItalic-4' => false,
                 'textItalic-5' => false,
 
-                'textUnderline-1' => false,
                 'textUnderline-2' => false,
                 'textUnderline-3' => false,
                 'textUnderline-4' => false,
@@ -86,6 +81,10 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     '09' => 9,
                     '10' => 7,
                 ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
             ],
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
@@ -99,6 +98,20 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     ['pack' => 'COLIS1', 'date' => '06/04/2020 10:27:09', 'delay' => '10000', 'location' => "EMP1"],
                     ['pack' => 'COLIS2', 'date' => '06/08/2020 20:57:89', 'delay' => '10000', 'location' => "EMP2"]
                 ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+
+                'textColor-2' => "#000000",
+                'textBold-2' => false,
+                'textItalic-2' => false,
+                'textUnderline-2' => false,
+
+                'textColor-3' => "#000000",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
             ],
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
@@ -145,7 +158,11 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                             'data' => [15, 0, 5, 4, 7, 12, 4]
                         ]
                     ]
-                ]
+                ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
             ],
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
@@ -158,7 +175,15 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     'TRANS1',
                     'TRANS2',
                     'TRANS3',
-                ]
+                ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+                'textColor-2' => "#000000",
+                'textBold-2' => false,
+                'textItalic-2' => false,
+                'textUnderline-2' => false,
             ],
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::CARRIER_TRACKING,
@@ -181,7 +206,11 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     '08' => 8,
                     '09' => 0,
                     '10' => 13
-                ]
+                ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
             ],
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
@@ -226,7 +255,11 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                             'data' => [10, 9, 36, 23, 12]
                         ]
                     ]
-                ]
+                ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
             ],
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS,
@@ -269,6 +302,10 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                         'Legende2' => 47,
                     ]
                 ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
             ],
             'category' => Dashboard\ComponentType::CATEGORY_ORDERS,
             'meterKey' => Dashboard\ComponentType::PACK_TO_TREAT_FROM,
@@ -292,6 +329,10 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     '09/01' => 12,
                     '10/01' => 3,
                 ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
             ],
             'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
             'template' => Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS,
@@ -306,7 +347,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                         'estimatedFinishTimeLabel' => 'Heure de livraison estimée',
                         'requestStatus' => 'À traiter',
                         'requestBodyTitle' => '0 article - LIV - BCO',
-                        'requestLocation' => 'MAG 0003 - EXPEDITION',
+                        'requestLocation' => 'MAG 003 - EXPEDITION',
                         'requestNumber' => 'DL21010005',
                         'requestDate' => '18 Janv. (12h01)',
                         'requestUser' => 'mbenoukaiss',
@@ -322,7 +363,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                         'estimatedFinishTimeLabel' => 'Date de livraison non estimée',
                         'requestStatus' => 'Brouillon',
                         'requestBodyTitle' => '1 article - standard',
-                        'requestLocation' => 'MAG 0003 - EXPEDITION',
+                        'requestLocation' => 'MAG 003 - EXPEDITION',
                         'requestNumber' => 'DL21010001',
                         'requestDate' => '07 Janv. (12h55)',
                         'requestUser' => 'mbenoukaiss',
@@ -334,7 +375,51 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                         'emergencyText' => '',
                         'progressBarBGColor' => 'white',
                     ],
-                ]
+                ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+
+                'textColor-2' => "#000000",
+                'textBold-2' => false,
+                'textItalic-2' => false,
+                'textUnderline-2' => false,
+
+                'textColor-3' => "#000000",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
+
+                'textColor-4' => "#000000",
+                'textBold-4' => false,
+                'textItalic-4' => false,
+                'textUnderline-4' => false,
+
+                'textColor-5' => "#5867DD",
+                'textBold-5' => false,
+                'textItalic-5' => false,
+                'textUnderline-5' => false,
+
+                'textColor-6' => "#000000",
+                'textBold-6' => false,
+                'textItalic-6' => false,
+                'textUnderline-6' => false,
+
+                'textColor-7' => "#000000",
+                'textBold-7' => false,
+                'textItalic-7' => false,
+                'textUnderline-7' => false,
+
+                'textColor-8' => "#EEEEEE",
+                'textBold-8' => false,
+                'textItalic-8' => false,
+                'textUnderline-8' => false,
+
+                'textColor-9' => "#000000",
+                'textBold-9' => false,
+                'textItalic-9' => false,
+                'textUnderline-9' => false,
             ],
             'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
             'template' => Dashboard\ComponentType::PENDING_REQUESTS,
@@ -388,6 +473,30 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                         'Consommable' => 0,
                     ],
                 ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+
+                'textColor-2' => "#000000",
+                'textBold-2' => false,
+                'textItalic-2' => false,
+                'textUnderline-2' => false,
+
+                'textColor-3' => "#0000CC",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
+
+                'textColor-4' => "#000000",
+                'textBold-4' => false,
+                'textItalic-4' => false,
+                'textUnderline-4' => false,
+
+                'textColor-5' => "#0000CC",
+                'textBold-5' => false,
+                'textItalic-5' => false,
+                'textUnderline-5' => false,
             ],
             'category' => Dashboard\ComponentType::CATEGORY_ORDERS,
             'template' => Dashboard\ComponentType::ENTRIES_TO_HANDLE,
@@ -399,7 +508,15 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE,
             'exampleValues' => [
-                'count' => 7
+                'count' => 7,
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+                'textColor-3' => "#0000CC",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
             ],
         ],
         'Urgences du jour' => [
@@ -408,7 +525,15 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES,
             'exampleValues' => [
-                'count' => 3
+                'count' => 3,
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+                'textColor-3' => "#0000CC",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
             ],
         ],
         'Fiabilité monétaire (graphique)' => [
@@ -430,7 +555,11 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     'Novembre' => -177,
                     'Décembre' => -67,
                     'Janvier' => 198
-                ]
+                ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
             ],
         ],
         'Alertes de stock' => [
@@ -439,7 +568,15 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS,
             'exampleValues' => [
-                'count' => 11
+                'count' => 11,
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+                'textColor-3' => "#0000CC",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
             ],
         ],
         'Nombre de services quotidiens' => [
@@ -489,7 +626,11 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                         'Type1' => 23,
                         'Type2' => 8,
                     ]
-                ]
+                ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
             ],
             'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
             'template' => Dashboard\ComponentType::DAILY_HANDLING,
@@ -542,7 +683,11 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                         'Type1' => 23,
                         'Type2' => 8,
                     ]
-                ]
+                ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
             ],
             'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
             'template' => Dashboard\ComponentType::DAILY_HANDLING,
@@ -554,7 +699,15 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR,
             'exampleValues' => [
-                'count' => 84
+                'count' => 84,
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+                'textColor-3' => "#0000CC",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
             ],
         ],
         'Nombre d\'acheminements quotidiens' => [
@@ -575,6 +728,10 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     '09/01' => 8,
                     '10/01' => 5,
                 ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
             ],
             'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
             'template' => Dashboard\ComponentType::DAILY_DISPATCHES,
@@ -586,7 +743,15 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
             'meterKey' => Dashboard\ComponentType::REFERENCE_RELIABILITY,
             'exampleValues' => [
-                'count' => 25
+                'count' => 25,
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+                'textColor-3' => "#0000CC",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
             ]
         ],
         'Demandes à traiter' => [
@@ -597,7 +762,15 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'exampleValues' => [
                 'title' => 'Services à traiter',
                 'count' => 5,
-                'delay' => 51025698
+                'delay' => 51025698,
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+                'textColor-3' => "#0000CC",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
             ]
         ],
         'Nombre de services du jour' => [
@@ -609,6 +782,14 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'title' => 'Services',
                 'hint' => 'Services du jour',
                 'count' => 5,
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+                'textColor-3' => "#0000CC",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
                 'subCounts' => [
                     '<span class="text-wii-green">150</span> <span class="text-wii-black">lignes</span>',
                     '<span class="text-wii-red">3/5</span> <span class="text-wii-black">urgences</span>'
@@ -623,7 +804,15 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'exampleValues' => [
                 'title' => 'Ordre de collecte à traiter',
                 'count' => 3,
-                'delay' => 42622697
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+                'delay' => 42622697,
+                'textColor-3' => "#0000CC",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
             ]
         ]
     ];

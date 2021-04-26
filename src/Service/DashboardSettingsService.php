@@ -226,13 +226,6 @@ class DashboardSettingsService {
                                               ?int $mode): array {
         if ($mode === self::MODE_EDIT) {
             $values = $componentType->getExampleValues();
-            if(isset($config['cardBackgroundColor']) && $config['cardBackgroundColor'] !== '#ffffff') {
-                foreach ($values as &$requests) {
-                    foreach ($requests as &$request) {
-                        $request['cardBackgroundColor'] = $config['cardBackgroundColor'];
-                    }
-                }
-            }
         } else {
             $loggedUser = $config["shown"] === Dashboard\ComponentType::REQUESTS_SELF ? $this->userService->getUser() : null;
             $averageRequestTimeRepository = $entityManager->getRepository(AverageRequestTime::class);
@@ -246,7 +239,7 @@ class DashboardSettingsService {
                     return $carry;
                 }, []);
 
-            if ($config["kind"] == "delivery" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)))) {
+            if ($config["kind"] == "delivery" && ($mode === self::MODE_EXTERNAL || ($this->userService->getUser() && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)))) {
                 $demandeRepository = $entityManager->getRepository(Demande::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingDeliveries = Stream::from($demandeRepository->findRequestToTreatByUser($loggedUser, 50))
@@ -257,7 +250,7 @@ class DashboardSettingsService {
                 }
             }
 
-            if ($config["kind"] == "collect" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)))) {
+            if ($config["kind"] == "collect" && ($mode === self::MODE_EXTERNAL || ($this->userService->getUser() && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)))) {
                 $collecteRepository = $entityManager->getRepository(Collecte::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $backgroundColor = $config['backgroundColor'] ?? '';
@@ -269,7 +262,7 @@ class DashboardSettingsService {
                 }
             }
 
-            if ($config["kind"] == "handling" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND)))) {
+            if ($config["kind"] == "handling" && ($mode === self::MODE_EXTERNAL || ($this->userService->getUser() && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND)))) {
                 $handlingRepository = $entityManager->getRepository(Handling::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingHandlings = Stream::from($handlingRepository->findRequestToTreatByUser($loggedUser, 50))
@@ -280,7 +273,7 @@ class DashboardSettingsService {
                 }
             }
 
-            if ($config["kind"] == "transfer" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)))) {
+            if ($config["kind"] == "transfer" && ($mode === self::MODE_EXTERNAL || ($this->userService->getUser() && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)))) {
                 $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingTransfers = Stream::from($transferRequestRepository->findRequestToTreatByUser($loggedUser, 50))
@@ -290,7 +283,7 @@ class DashboardSettingsService {
                         ->toArray();
                 }
             }
-            if ($config["kind"] == "dispatch" && ($mode === self::MODE_EXTERNAL || ($loggedUser && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)))) {
+            if ($config["kind"] == "dispatch" && ($mode === self::MODE_EXTERNAL || ($this->userService->getUser() && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)))) {
                 $dispatchRepository = $entityManager->getRepository(Dispatch::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUser($loggedUser, 50))
@@ -302,6 +295,12 @@ class DashboardSettingsService {
             }
 
             $values["requests"] = array_merge($pendingDeliveries ?? [], $pendingCollects ?? [], $pendingHandlings ?? [], $pendingTransfers ?? [], $pendingDispatches ?? []);
+        }
+
+        if(isset($config['cardBackgroundColor']) && $config['cardBackgroundColor'] !== '#ffffff') {
+            foreach ($values["requests"] ?? [] as &$request) {
+                $request['cardBackgroundColor'] = $config['cardBackgroundColor'];
+            }
         }
 
         return $values;
@@ -465,7 +464,7 @@ class DashboardSettingsService {
         $emergency = isset($config['emergency']) && $config['emergency'];
         if ($example) {
             $values = $componentType->getExampleValues();
-
+            $values['logoURL'] = $config['logoURL'] ?? null;
             if ($shouldShowLocationLabels && !empty($config['locations'])) {
                 $locationRepository = $manager->getRepository(Emplacement::class);
                 $locations = $locationRepository->findBy(['id' => $config['locations']]);
@@ -487,6 +486,7 @@ class DashboardSettingsService {
             }
         }
         $values['emergency'] = $emergency;
+        $values['logoURL'] = $config['logoURL'] ?? null;
         if (!$shouldShowLocationLabels) {
             unset($values['subtitle']);
         } else if (empty($values['subtitle'])) {

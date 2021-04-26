@@ -48,7 +48,6 @@ class EnCoursController extends AbstractController
         $natureRepository = $entityManager->getRepository(Nature::class);
 
         $minLocationFilter = 1;
-        $maxLocationFilter = 10;
 
         $locationsFilterStr = $request->query->get('locations', '');
         if (!empty($locationsFilterStr)) {
@@ -65,7 +64,6 @@ class EnCoursController extends AbstractController
             'locationsFilter' => $locationsFilter,
             'natures' => $natureRepository->findAll(),
             'minLocationFilter' => $minLocationFilter,
-            'maxLocationFilter' => $maxLocationFilter,
             'multiple' => true
         ]);
     }

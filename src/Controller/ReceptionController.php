@@ -484,22 +484,24 @@ class ReceptionController extends AbstractController {
 
             $reception = $receptionRepository->find($data['receptionId']);
 
-            foreach($reception->getReceptionReferenceArticles() as $receptionArticle) {
-                $entityManager->remove($receptionArticle);
-                $articleRepository->setNullByReception($receptionArticle);
+            if ($reception) {
+                foreach ($reception->getReceptionReferenceArticles() as $receptionArticle) {
+                    $entityManager->remove($receptionArticle);
+                    $articleRepository->setNullByReception($receptionArticle);
+                }
+
+                foreach ($reception->getTrackingMovements() as $receptionMvtTraca) {
+                    $entityManager->remove($receptionMvtTraca);
+                }
+                $entityManager->flush();
+
+                $entityManager->remove($reception);
+                $entityManager->flush();
             }
 
-            foreach($reception->getTrackingMovements() as $receptionMvtTraca) {
-                $entityManager->remove($receptionMvtTraca);
-            }
-            $entityManager->flush();
-
-            $entityManager->remove($reception);
-            $entityManager->flush();
-            $data = [
+            return $this->json([
                 "redirect" => $this->generateUrl('reception_index')
-            ];
-            return new JsonResponse($data);
+            ]);
         }
         throw new BadRequestHttpException();
     }
@@ -2079,16 +2081,16 @@ class ReceptionController extends AbstractController {
                 $userThatTriggeredEmergency = $ref->getUserThatTriggeredEmergency();
                 if($userThatTriggeredEmergency) {
                     if(isset($demande) && $demande->getUtilisateur()) {
-                        $destinataires = array_merge(
-                            $userThatTriggeredEmergency->getMainAndSecondaryEmails(),
-                            $demande->getUtilisateur()->getMainAndSecondaryEmails()
-                        );
+                        $destinataires = [
+                            $userThatTriggeredEmergency,
+                            $demande->getUtilisateur()
+                        ];
                     } else {
-                        $destinataires = $userThatTriggeredEmergency->getMainAndSecondaryEmails();
+                        $destinataires = [$userThatTriggeredEmergency];
                     }
                 } else {
                     if(isset($demande) && $demande->getUtilisateur()) {
-                        $destinataires = $demande->getUtilisateur()->getMainAndSecondaryEmails();
+                        $destinataires = [$demande->getUtilisateur()];
                     }
                 }
 
@@ -2124,7 +2126,7 @@ class ReceptionController extends AbstractController {
                             . $nowDate->format('d/m/Y \à H:i')
                             . '.',
                     ]),
-                    $demande->getUtilisateur()->getMainAndSecondaryEmails()
+                    $demande->getUtilisateur()
                 );
             }
             $entityManager->flush();

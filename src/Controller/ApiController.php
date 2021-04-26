@@ -379,11 +379,10 @@ class ApiController extends AbstractFOSRestController
                                 && $colis->getArrivage()
                                 && $location->getIsDeliveryPoint()) {
                                 $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-                                $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
                                 $fournisseur = $fournisseurRepository->findOneByColis($colis);
                                 $arrivage = $colis->getArrivage();
                                 $destinataire = $arrivage->getDestinataire();
-                                if ($mailerServerRepository->findOneMailerServer()) {
+                                if ($destinataire) {
                                     $mailerService->sendMail(
                                         'FOLLOW GT // Dépose effectuée',
                                         $this->renderView(
@@ -398,10 +397,8 @@ class ApiController extends AbstractFOSRestController
                                                 'pjs' => $arrivage->getAttachments()
                                             ]
                                         ),
-                                        $destinataire->getMainAndSecondaryEmails()
+                                        $destinataire
                                     );
-                                } else {
-                                    $exceptionLoggerService->sendLog(new Exception('Undefined email parameters'), $request);
                                 }
                             }
                         }

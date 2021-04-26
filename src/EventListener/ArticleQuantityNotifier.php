@@ -148,14 +148,11 @@ class ArticleQuantityNotifier {
 
                 $entityManager->persist($alert);
 
-                $managers = $article->getArticleFournisseur()
-                    ->getReferenceArticle()
-                    ->getManagers()
-                    ->map(function (Utilisateur $user) {
-                        return $user->getEmail();
-                    })
-                    ->toArray();
                 if ($article->getStatut()->getCode() !== Article::STATUT_INACTIF) {
+                    $managers = $article->getArticleFournisseur()
+                        ->getReferenceArticle()
+                        ->getManagers()
+                        ->toArray();
                     $this->alertService->sendExpiryMails($managers, $article, $this->expiryDelay);
                 }
             } else if ($now < $article->getExpiryDate() && $existing) {

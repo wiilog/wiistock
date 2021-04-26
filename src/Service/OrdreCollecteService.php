@@ -245,22 +245,20 @@ class OrdreCollecteService
 
 		$partialCollect = !empty($rowsToRemove);
 
-		if ($mailerServerRepository->findAll()) {
-            $this->mailerService->sendMail(
-                'FOLLOW GT // Collecte effectuée',
-                $this->templating->render(
-                    'mails/contents/mailCollecteDone.html.twig',
-                    [
-                        'title' => $partialCollect ?
-							'Votre demande de collecte a été partiellement effectuée.' :
-							'Votre demande de collecte a bien été effectuée.',
-                        'collecte' => $ordreCollecte,
-						'demande' => $demandeCollecte,
-                    ]
-                ),
-                $demandeCollecte->getDemandeur()->getMainAndSecondaryEmails()
-            );
-        }
+        $this->mailerService->sendMail(
+            'FOLLOW GT // Collecte effectuée',
+            $this->templating->render(
+                'mails/contents/mailCollecteDone.html.twig',
+                [
+                    'title' => $partialCollect
+                        ? 'Votre demande de collecte a été partiellement effectuée.'
+                        : 'Votre demande de collecte a bien été effectuée.',
+                    'collecte' => $ordreCollecte,
+                    'demande' => $demandeCollecte,
+                ]
+            ),
+            $demandeCollecte->getDemandeur()
+        );
 
 		return $newCollecte ?? null;
 	}
