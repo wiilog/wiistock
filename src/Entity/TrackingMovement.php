@@ -115,6 +115,11 @@ class TrackingMovement extends FreeFieldEntity
     private $linkedGroupLastTracking;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $groupIteration;
+
+    /**
      * @var ArrayCollection|null
      * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="firstDrop")
      */
@@ -372,6 +377,18 @@ class TrackingMovement extends FreeFieldEntity
      */
     public function setLinkedPackLastTracking(?Pack $linkedPackLastTracking): TrackingMovement {
         $this->linkedPackLastTracking = $linkedPackLastTracking;
+        return $this;
+    }
+
+    public function getGroupIteration(): ?int
+    {
+        return $this->groupIteration;
+    }
+
+    public function setGroupIteration(int $groupIteration): self
+    {
+        $this->groupIteration = $groupIteration;
+
         return $this;
     }
 

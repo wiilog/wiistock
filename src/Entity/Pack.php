@@ -41,7 +41,7 @@ class Pack
     private $nature;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Group", inversedBy="packs", )
+     * @ORM\ManyToOne(targetEntity="App\Entity\Group", inversedBy="packs")
      */
     private $packGroup;
 
