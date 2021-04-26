@@ -350,6 +350,9 @@ class DashboardSettingsController extends AbstractController {
                         }
                     }
                 });
+            if ($values && isset($values['chartColors']) && is_string($values['chartColors'])){
+                $values['chartColors'] = json_decode($values['chartColors'], true);
+            }
         } else {
             $values = $componentType->getExampleValues();
         }

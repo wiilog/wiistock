@@ -17,12 +17,10 @@ class EmplacementRepository extends EntityRepository
 {
 
     private const DtToDbLabels = [
-        'Nom' => 'label',
-        'Description' => 'description',
-        'Point de livraison' => 'isDeliveryPoint',
-        'Délai maximum' => 'dateMaxTime',
-        'Actif / Inactif' => 'isActive',
-        'allowed-natures' => 'allowed-natures',
+        'name' => 'label',
+        'deliveryPoint' => 'isDeliveryPoint',
+        'maxDelay' => 'dateMaxTime',
+        'active' => 'isActive',
     ];
 
     public function getLocationsArray()
