@@ -203,7 +203,6 @@ function createPendingRequests(data, {rowSize}) {
 
     let firstIteration = true;
     for(let request of data.requests) {
-        console.log("oke?");
         content += renderRequest(data, request, rowSize, numberingConfig, firstIteration);
         firstIteration = false;
     }
@@ -1005,6 +1004,8 @@ function applyStyle(data, numberingConfig, backendNumber, value = ``, generateSu
 
     if(fontSize !== null) {
         style += `font-size: ${fontSize}pt;`;
+    } else {
+        style += `font-size: inherit;`;
     }
 
     if(textBold === `checked`) {
