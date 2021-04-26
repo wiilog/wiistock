@@ -22,8 +22,8 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-class EmplacementDataService
-{
+class EmplacementDataService {
+
     const PAGE_EMPLACEMENT = 'emplacement';
     /**
      * @var Twig_Environment
@@ -35,9 +35,9 @@ class EmplacementDataService
      */
     private $router;
 
-	/**
-	 * @var UserService
-	 */
+    /**
+     * @var UserService
+     */
     private $userService;
 
     private $security;
@@ -48,8 +48,7 @@ class EmplacementDataService
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                Security $security)
-    {
+                                Security $security) {
 
         $this->templating = $templating;
         $this->entityManager = $entityManager;
@@ -58,25 +57,23 @@ class EmplacementDataService
         $this->security = $security;
     }
 
-	/**
-	 * @param null $params
-	 * @return array
-	 * @throws LoaderError
+    /**
+     * @param null $params
+     * @return array
+     * @throws LoaderError
      * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
-    public function getEmplacementDataByParams($params = null)
-    {
+     * @throws SyntaxError
+     */
+    public function getEmplacementDataByParams($params = null) {
         $user = $this->security->getUser();
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
 
-		$filterStatus = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, self::PAGE_EMPLACEMENT, $user);
-		$active = $filterStatus ? $filterStatus->getValue() : false;
+        $filterStatus = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, self::PAGE_EMPLACEMENT, $user);
+        $active = $filterStatus ? $filterStatus->getValue() : false;
 
-
-    	$queryResult = $emplacementRepository->findByParamsAndExcludeInactive($params, $active);
+        $queryResult = $emplacementRepository->findByParamsAndExcludeInactive($params, $active);
 
         $emplacements = $queryResult['data'];
         $listId = $queryResult['allEmplacementDataTable'];
@@ -98,35 +95,38 @@ class EmplacementDataService
         ];
     }
 
-	/**
-	 * @param Emplacement $emplacement
-	 * @return array
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
-    public function dataRowEmplacement($emplacement)
-    {
+    /**
+     * @param Emplacement $emplacement
+     * @return array
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function dataRowEmplacement($emplacement) {
         $url['edit'] = $this->router->generate('emplacement_edit', ['id' => $emplacement->getId()]);
         $allowedNatures = implode(
             ';',
             array_map(
-                function(Nature $nature) { return $nature->getLabel(); },
+                function(Nature $nature) {
+                    return $nature->getLabel();
+                },
                 $emplacement->getAllowedNatures()->toArray()
             )
         );
         return [
             'id' => ($emplacement->getId() ? $emplacement->getId() : 'Non défini'),
-            'Nom' => ($emplacement->getLabel() ? $emplacement->getLabel() : 'Non défini'),
-            'Description' => ($emplacement->getDescription() ? $emplacement->getDescription() : 'Non défini'),
-            'Point de livraison' => $emplacement->getIsDeliveryPoint() ? 'oui' : 'non',
-            'Délai maximum' => $emplacement->getDateMaxTime() ?? '',
-            'Actif / Inactif' => $emplacement->getIsActive() ? 'actif' : 'inactif',
-            'Actions' => $this->templating->render('emplacement/datatableEmplacementRow.html.twig', [
+            'name' => ($emplacement->getLabel() ? $emplacement->getLabel() : 'Non défini'),
+            'description' => ($emplacement->getDescription() ? $emplacement->getDescription() : 'Non défini'),
+            'deliveryPoint' => $emplacement->getIsDeliveryPoint() ? 'oui' : 'non',
+            'ongoingVisibleOnMobile' => $emplacement->isOngoingVisibleOnMobile() ? 'oui' : 'non',
+            'maxDelay' => $emplacement->getDateMaxTime() ?? '',
+            'active' => $emplacement->getIsActive() ? 'actif' : 'inactif',
+            'allowedNatures' => $allowedNatures,
+            'actions' => $this->templating->render('emplacement/datatableEmplacementRow.html.twig', [
                 'url' => $url,
                 'emplacementId' => $emplacement->getId(),
             ]),
-            'allowed-natures' => $allowedNatures
         ];
     }
+
 }
