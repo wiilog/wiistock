@@ -4,7 +4,7 @@ let tableEmplacementConfig = {
     processing: true,
     serverSide: true,
     "lengthMenu": [10, 25, 50, 100, 1000],
-    order: [['Nom', 'desc']],
+    order: [['name', 'desc']],
     ajax: {
         "url": pathEmplacement,
         "type": "POST",
@@ -20,13 +20,14 @@ let tableEmplacementConfig = {
         needsRowClickAction: true,
     },
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
-        {"data": 'Nom', 'name': 'Nom', 'title': 'Nom'},
-        {"data": 'Description', 'name': 'Description', 'title': 'Description'},
-        {"data": 'Point de livraison', 'name': 'Point de livraison', 'title': 'Point de livraison'},
-        {"data": 'Délai maximum', 'name': 'Délai maximum', 'title': 'Délai maximum'},
-        {"data": 'Actif / Inactif', 'name': 'Actif / Inactif', 'title': 'Actif / Inactif'},
-        {"data": 'allowed-natures', 'name': 'allowed-natures', 'title': 'natures.Natures de colis autorisées', translated: true, orderable: false},
+        {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
+        {"data": 'name', 'name': 'name', 'title': 'Nom'},
+        {"data": 'description', 'name': 'description', 'title': 'Description'},
+        {"data": 'deliveryPoint', 'name': 'deliveryPoint', 'title': 'Point de livraison'},
+        {"data": 'ongoingVisibleOnMobile', 'name': 'ongoingVisibleOnMobile', 'title': 'Encours visible'},
+        {"data": 'maxDelay', 'name': 'maxDelay', 'title': 'Délai maximum'},
+        {"data": 'active', 'name': 'active', 'title': 'Actif / Inactif'},
+        {"data": 'allowedNatures', 'name': 'allowedNatures', 'title': 'natures.Natures de colis autorisées', translated: true, orderable: false},
     ]
 };
 let tableEmplacement = initDataTable('tableEmplacement_id', tableEmplacementConfig);
