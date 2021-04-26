@@ -394,6 +394,7 @@ class DashboardService {
     public function persistMonetaryReliabilityGraph(EntityManagerInterface $entityManager,
                                                     Dashboard\Component $component): void {
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
+        $config = $component->getConfig();
 
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
 
@@ -426,9 +427,11 @@ class DashboardService {
             $idx += 1;
         }
         $values = array_reverse($value['data']);
+        $chartColors = $config['chartColors'] ?? [];
 
         $meter
-            ->setData($values);
+            ->setData($values)
+            ->setChartColors($chartColors);
     }
 
     /**
@@ -480,8 +483,8 @@ class DashboardService {
             && $component->getLocationCluster('firstOriginLocation')->getLocations()->count() > 0;
         $data = [
             'chartColors' => [
-                $legend1 => '#77933C',
-                $legend2 => '#003871'
+                $legend1 => $config['chartColor0'],
+                $legend2 => $config['chartColor1']
             ],
             'chartData' => $this->getDailyObjectsStatistics($entityManager, DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE, function (DateTime $date) use (
                 $legend1,
@@ -755,19 +758,15 @@ class DashboardService {
             if ($natureData) {
                 $chartData['stack'] = $natureData;
             }
+            if(!$displayPackNatures && isset($config['chartColor1'])) {
+                $chartData['stack'][0]['backgroundColor'] = $config['chartColor1'];
+            }
         }
-
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
-
         $meter
             ->setData($chartData);
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Dashboard\Component $component
-     * @return
-     */
     public function persistDailyHandlingOrOperations(EntityManagerInterface $entityManager,
                                                      Dashboard\Component $component) {
         $config = $component->getConfig();
@@ -803,7 +802,6 @@ class DashboardService {
             $workFreeDays,
             $period
         );
-        $chartColors = null;
         if ($separateType) {
             $types = $typeRepository->findBy(['id' => $handlingTypesFilter]);
             $chartData = Stream::from($chartData)
@@ -818,14 +816,8 @@ class DashboardService {
                     }
                     return $carry;
                 }, []);
-            $chartColors = Stream::from($chartData)
-                ->reduce(function($carry, $data) {
-                    foreach ($data as $key => $datum) {
-                        $carry[$key] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
-                    }
-                    return $carry;
-                }, []);
         }
+        $chartColors = $config['chartColors'] ?? [];
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter
@@ -935,8 +927,6 @@ class DashboardService {
         $entityTypes = $config['entityTypes'];
         $entityStatuses = $config['entityStatuses'];
         $treatmentDelay = $config['treatmentDelay'];
-
-        $convertedDelay = null;
 
         $entityToClass = [
             Dashboard\ComponentType::REQUESTS_TO_TREAT_HANDLING => Handling::class,

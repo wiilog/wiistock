@@ -518,9 +518,9 @@ function onDashboardSaved() {
     };
 
     return $.post(Routing.generate(`save_dashboard_settings`), content)
-        .then(function (data) {
-            if (data.success) {
-                showBSAlert("Modifications enregistrés avec succès", "success");
+        .then(function(data) {
+            if(data.success) {
+                showBSAlert("Modifications enregistrées avec succès", "success");
                 dashboards = JSON.parse(data.dashboards);
                 loadCurrentDashboard(false);
             } else if (data.msg) {
@@ -947,6 +947,12 @@ function processSecondModalForm($modal) {
     if (meterKey === ENTRIES_TO_HANDLE && data.segments) {
         data.segments = data.segments.map(clearSegmentHourValues);
     }
+    if (data.chartColors && !Array.isArray(data.chartColors)) {
+        try {
+            data.chartColors = JSON.parse(data.chartColors);
+        }
+        catch(e) {}
+    }
 
     return Object.assign({}, remaining, {data});
 }
@@ -1040,7 +1046,7 @@ function initSecondStep(html) {
             $input.click();
         })
 
-        updateImagePreview($preview, $input, $title, $delete, async function ($input) {
+        updateImagePreview($preview, $input, $title, $delete, function ($input) {
             if ($input.files.length >= 1 && $input.files[0]) {
                 const reader = new FileReader();
                 reader.readAsDataURL($input.files[0]);

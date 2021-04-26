@@ -101,6 +101,8 @@ class Action {
     // menu nomade
     const MODULE_ACCESS_STOCK = 'Accès Stock';
     const MODULE_ACCESS_TRACA = 'Accès Traçabilité';
+    const MODULE_ACCESS_GROUP = 'Accès Groupage';
+    const MODULE_ACCESS_UNGROUP = 'Accès Dégroupage';
     const MODULE_ACCESS_HAND = 'Accès Demande';
     const DEMO_MODE = 'Mode découverte';
 
