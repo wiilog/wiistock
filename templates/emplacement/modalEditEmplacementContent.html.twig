@@ -1,32 +1,21 @@
-<div class="form-group col-12">
-    <div class="input-group">
-        <div class="input-group-prepend">
-            <label class="input-group-text" for="Label">Nom</label>
-        </div>
-        <input class="form-control data needed is-barcode" maxlength="21" type="text" value='{{ emplacement.label }}' name="Label" id="Label">
-    </div>
-</div>
-<div class="form-group col-12">
-    <div class="input-group">
-        <div class="input-group-prepend">
-            <label class="input-group-text" for="inputGroupSelect01">Description*</label>
-        </div>
-        <input class="form-control data needed" type="text" value='{{ emplacement.description }}' name="Description"
-               id="Description">
-    </div>
-</div>
-<div class="form-group col-12">
-    <div class="input-group">
-        <div class="input-group-prepend">
-            <label class="input-group-text" for="inputGroupSelect01">Délais Traça HH:MM</label>
-        </div>
-        <input class="form-control data" type="text" value='{{ emplacement.dateMaxTime }}' name="dateMaxTime"
-               id="dateMaxTime">
-    </div>
+<div class="form-group">
+    <label>Nom</label>
+    <input class="form-control data needed is-barcode" maxlength="21" type="text" value='{{ emplacement.label }}' name="Label" id="Label">
 </div>
 
-<div class="form-group col-12">
-    <label for="Description" title="Natures de colis autorisées">{{ 'natures.Natures de colis autorisées'|trans }}</label>
+<div class="form-group">
+    <label>Description*</label>
+    <input class="form-control data needed" type="text" value='{{ emplacement.description }}' name="Description"
+           id="Description">
+</div>
+<div class="form-group">
+    <label>Délais Traça HH:MM</label>
+    <input class="form-control data" type="text" value='{{ emplacement.dateMaxTime }}' name="dateMaxTime"
+           id="dateMaxTime">
+</div>
+
+<div class="form-group">
+    <label title="Natures de colis autorisées">{{ 'natures.Natures de colis autorisées'|trans }}</label>
     <select name="allowed-natures" class="form-control data select2 w-100" multiple>
         {% for nature in natures %}
             {% set selected = (nature in emplacement.allowedNatures ? 'selected') %}
@@ -35,25 +24,25 @@
     </select>
 </div>
 
-<div class="form-group col-12">
-    <label class="col-6">Point de livraison ?</label>
-    <label class="switch col-6">
+<div class="form-group">
+    <label>Point de livraison ?</label>
+    <label class="switch ml-2">
         <input class="checkbox data needed" type="checkbox" {{ emplacement.isDeliveryPoint ? 'checked' }} name="isDeliveryPoint">
         <span class="slider round"></span>
     </label>
 </div>
 
-<div class="form-group col-12">
-    <label class="col-6">Encours visible nomade ?</label>
-    <label class="switch col-6">
+<div class="form-group d-flex align-content-center">
+    <label>Encours visible nomade ?</label>
+    <label class="switch ml-2">
         <input class="checkbox data needed" type="checkbox" {{ emplacement.isOngoingVisibleOnMobile ? 'checked' }} name="isOngoingVisibleOnMobile">
         <span class="slider round"></span>
     </label>
 </div>
 
-<div class="form-group col-12">
-    <label class="col-6">Actif ?</label>
-    <label class="switch col-6">
+<div class="form-group d-flex align-content-center">
+    <label>Actif ?</label>
+    <label class="switch ml-2">
         {% set isActiveChecked = emplacement.isActive ? 'checked' : '' %}
         <input class="checkbox data needed" type="checkbox" {{ isActiveChecked }} name="isActive">
         <span class="slider round"></span>
