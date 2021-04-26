@@ -96,7 +96,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'exampleValues' => [
                 'tableData' => [
                     ['pack' => 'COLIS1', 'date' => '06/04/2020 10:27:09', 'delay' => '10000', 'location' => "EMP1"],
-                    ['pack' => 'COLIS2', 'date' => '06/08/2020 20:57:89', 'delay' => '10000', 'location' => "EMP2"]
+                    ['pack' => 'COLIS2', 'date' => '06/08/2020 20:57:29', 'delay' => '10000', 'location' => "EMP2"]
                 ],
                 'textColor-1' => "#000000",
                 'textBold-1' => false,

@@ -405,6 +405,8 @@ function createLatePacksElement(data) {
     const title = data.title || "";
     const numberingConfig = {numbering: 0};
 
+    generateEditor(data, numberingConfig, [1, 2, 3]);
+
     const table = `<table class="table display retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}"></table>`;
     let content = table;
     if ($('.modal.show').exists()) {
@@ -412,10 +414,10 @@ function createLatePacksElement(data) {
             <div class="row mx-0">
                 <div class="col-auto pr-0">
                     <div class="row mb-5 mt-3">
-                        ${withStyle(data, numberingConfig, 2)}
+                        ${applyStyle(data, numberingConfig, 2)}
                     </div>
                     <div class="row">
-                        ${withStyle(data, numberingConfig, 3)}
+                        ${applyStyle(data, numberingConfig, 3)}
                     </div>
                 </div>
                 <div class="col pl-0">
@@ -423,11 +425,10 @@ function createLatePacksElement(data) {
                 </div>
             </div>`;
     }
-
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
-                <span>&nbsp&nbsp</span> ${withStyle(data, numberingConfig, 1, title)}
+                <span>&nbsp&nbsp</span> ${applyStyle(data, numberingConfig, 1, title)}
             </div>
             ${createTooltip(data.tooltip)}
             ${content}
@@ -936,7 +937,6 @@ function loadLatePacks($table, data) {
             //
             let $dataTableWrapper = $table.closest(".dataTables_wrapper");
             let panelHeight = $dataTableWrapper.parent().height();
-console.log($table);
             let toolbarHeights = 0;
             $dataTableWrapper.find(".fg-toolbar").each(function(i, obj) {
                 toolbarHeights = toolbarHeights + $(obj).height();
@@ -1024,7 +1024,6 @@ function applyStyle(data, numberingConfig, backendNumber, value = ``, generateSu
     const textBold = data['textBold-' + backendNumber]  ? 'checked' : '';
     const textItalic = data['textItalic-' + backendNumber] ? 'checked' : '';
     const textUnderline = data['textUnderline-' + backendNumber] ? 'checked' : '';
-
     let text = ``;
     if(generateSuperscript && numberingConfig && $('#modalComponentTypeSecondStep').hasClass('show')) {
         text = `<sup>(${numberingConfig.associations[backendNumber]})</sup>`;
@@ -1061,7 +1060,6 @@ function applyStyle(data, numberingConfig, backendNumber, value = ``, generateSu
  * Create the editor elements in the edition modal.
  */
 function generateEditor(data, numberingConfig, backendNumbers) {
-    console.log(data, numberingConfig, backendNumbers);
     if(!numberingConfig) {
         return;
     }
@@ -1073,7 +1071,6 @@ function generateEditor(data, numberingConfig, backendNumbers) {
     if(!Array.isArray(backendNumbers)) {
         backendNumbers = [backendNumbers];
     }
-
     for(const number of backendNumbers) {
         const $container = $(`.modal.show .component-numbering`);
         const fontSize = data['fontSize-' + number] || ``;
@@ -1114,8 +1111,8 @@ function generateEditor(data, numberingConfig, backendNumbers) {
  * such as title.
  */
 function withStyle(data, numberingConfig, backendNumber, value) {
-   generateEditor(data, numberingConfig, backendNumber);
-   return applyStyle(data, numberingConfig, backendNumber, value);
+    generateEditor(data, numberingConfig, backendNumber);
+    return applyStyle(data, numberingConfig, backendNumber, value);
 }
 
 function generateColorPickerElement(data, key = 0) {
