@@ -108,3 +108,7 @@ button:focus {
         box-shadow: none;
     }
 }
+
+.nav-pills .nav-link.active {
+    color: white !important;
+}
