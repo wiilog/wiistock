@@ -314,6 +314,7 @@ class TrackingMovementService
          * @var Group $group
          */
         $group = $options['group'] ?? null;
+        $removeFromGroup = $options['removeFromGroup'] ?? false;
 
         $pack = $this->getPack($entityManager, $packOrCode, $quantity, $natureId);
 
@@ -330,14 +331,34 @@ class TrackingMovementService
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
 
         $pack->addTrackingMovement($tracking);
+        $this->managePackLinksWithTracking($entityManager, $tracking);
+        $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
+        $this->manageTrackingFiles($tracking, $fileBag);
+
         if ($group) {
             $group->addTrackingMovement($tracking);
             $group->addPack($pack);
             $tracking->setGroupIteration($group->getIteration());
+        } else if ($pack->getGroup() && !in_array($type->getNom(), [TrackingMovement::TYPE_UNGROUP, TrackingMovement::TYPE_GROUP])) {
+            $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
+
+            $trackingUngroup = new TrackingMovement();
+            $trackingUngroup
+                ->setQuantity($quantity)
+                ->setOperateur($user)
+                ->setUniqueIdForMobile($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null)
+                ->setDatetime($date)
+                ->setFinished($finished)
+                ->setType($type)
+                ->setPackGroup($pack->getGroup())
+                ->setMouvementStock($mouvementStock)
+                ->setCommentaire(!empty($commentaire) ? $commentaire : null);
+            $pack->addTrackingMovement($trackingUngroup);
+            if ($removeFromGroup) {
+                $pack->setGroup(null);
+            }
+            $entityManager->persist($trackingUngroup);
         }
-        $this->managePackLinksWithTracking($entityManager, $tracking);
-        $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
-        $this->manageTrackingFiles($tracking, $fileBag);
 
         return $tracking;
     }

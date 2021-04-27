@@ -337,7 +337,9 @@ class ApiController extends AbstractFOSRestController
                                 $options['fileBag'][] = $photoFile;
                             }
                         }
-
+                        $options = [
+                            'removeFromGroup' => true
+                        ];
                         $createdMvt = $trackingMovementService->createTrackingMovement(
                             $mvt['ref_article'],
                             $location,
@@ -346,7 +348,7 @@ class ApiController extends AbstractFOSRestController
                             true,
                             $mvt['finished'],
                             $type,
-                            $options
+                            $options,
                         );
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                         $entityManager->persist($createdMvt);
