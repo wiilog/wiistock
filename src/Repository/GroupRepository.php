@@ -5,9 +5,9 @@ namespace App\Repository;
 use App\Entity\Group;
 use App\Helper\QueryCounter;
 use DateTime;
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query;
+use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Group|null find($id, $lockMode = null, $lockVersion = null)
@@ -17,24 +17,38 @@ use Doctrine\ORM\Query;
  */
 class GroupRepository extends EntityRepository {
 
-    public function findByParamsAndFilters($params, $filters) {
+    public function findByParamsAndFilters($params)
+    {
         $qb = $this->createQueryBuilder("grp");
 
         $countTotal = QueryCounter::count($qb, "grp");
 
-        $countFiltered = QueryCounter::count($qb, "grp");
-
         if ($params) {
+            if (!empty($params->get('search'))) {
+                $search = $params->get('search')['value'];
+                if (!empty($search)) {
+                    $exprBuilder = $qb->expr();
+                    $qb->andWhere($exprBuilder->orX(
+                        'grp.code LIKE :value',
+                        'search_nature.label LIKE :value',
+                    ))
+                        ->leftJoin('grp.nature', 'search_nature')
+                        ->setParameter('value', '%' . $search . '%');
+                }
+            }
+
+            $countFiltered = QueryCounter::count($qb, "grp");
+
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
 
-        $query = $qb->getQuery();
-        return [
-            'data' => $query ? $query->getResult() : null,
-            'count' => $countFiltered,
-            'total' => $countTotal
-        ];
+            $query = $qb->getQuery();
+            return [
+                'data' => $query ? $query->getResult() : null,
+                'count' => $countFiltered,
+                'total' => $countTotal
+            ];
+        }
     }
 
     public function getByDates(DateTime $dateMin, DateTime $dateMax) {
