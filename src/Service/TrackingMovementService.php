@@ -224,9 +224,11 @@ class TrackingMovementService
                     'success' => false,
                     'msg' => 'Les colis '
                         . implode(', ', $errors)
-                        . ' sont des groupages ou sont déjà présents dans un groupe, veuillez choisir des colis valide.'
+                        . ' sont des groupages ou sont déjà présents dans un groupe, veuillez choisir des colis valides.'
                 ];
-            } else {
+            }
+            else {
+                $createdMovements = [];
                 $group = $groupRepository->findOneBy(['code' => $group]);
                 if (!$group) {
                     $group = $this->groupService->createGroup($data);
@@ -234,26 +236,26 @@ class TrackingMovementService
                 } else if ($group->getPacks()->isEmpty()) {
                     $group->incrementIteration();
                 }
-                Stream::from($colisArray)
-                    ->each(function($colis) use ($groupRepository, $packRepository, &$group, $operator, $entityManager) {
-                        $createdMovements[] = $groupingTrackingMovement = $this->createTrackingMovement(
-                            $colis,
-                            null,
-                            $operator,
-                            new DateTime('now', new \DateTimeZone('Europe/Paris')),
-                            $data['fromNomade'] ?? false,
-                            true,
-                            TrackingMovement::TYPE_GROUP,
-                            [
-                                'group' => $group
-                            ]
-                        );
-                        $entityManager->persist($groupingTrackingMovement);
-                    });
-
+                foreach ($colisArray as $colis) {
+                    $groupingTrackingMovement = $this->createTrackingMovement(
+                        $colis,
+                        null,
+                        $operator,
+                        new DateTime('now', new \DateTimeZone('Europe/Paris')),
+                        $data['fromNomade'] ?? false,
+                        true,
+                        TrackingMovement::TYPE_GROUP,
+                        [
+                            'group' => $group
+                        ]
+                    );
+                    $entityManager->persist($groupingTrackingMovement);
+                    $createdMovements[] = $groupingTrackingMovement;
+                }
                 return [
                     'success' => true,
-                    'msg' => 'OK'
+                    'msg' => 'OK',
+                    'createdMovements' => $createdMovements
                 ];
             }
         }

@@ -175,14 +175,15 @@ class Group
 
     public function getLastTracking(): ?TrackingMovement
     {
-        return $this->trackingMovements->matching(
-            Criteria::create()
-                ->orderBy([
-                    'datetime' => 'DESC',
-                    'id' => 'DESC'
-                ])
-                ->setMaxResults(1)
-        )->first() ?: null;
+        $criteria = Criteria::create()
+            ->orderBy([
+                'datetime' => Criteria::DESC,
+                'id' => Criteria::DESC
+            ])
+            ->setMaxResults(1);
+        return $this->trackingMovements
+            ->matching($criteria)
+            ->first() ?: null;
     }
 
     /**

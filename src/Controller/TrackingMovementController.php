@@ -236,7 +236,10 @@ class TrackingMovementController extends AbstractController
                 if (!$groupTreatment['success']) {
                     return $this->json($groupTreatment);
                 }
-            } else {
+
+                $createdMouvements = $groupTreatment['createdMovements'];
+            }
+            else {
                 if (empty($post->get('is-mass'))) {
                     $emplacement = $emplacementRepository->find($post->get('emplacement'));
                     $createdMvt = $trackingMovementService->createTrackingMovement(
@@ -333,12 +336,13 @@ class TrackingMovementController extends AbstractController
                     $this->persistAttachments($mouvement, $this->attachmentService, $fileNames, $entityManager);
                 }
             }
+
             foreach ($createdMouvements as $mouvement) {
                 $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager);
             }
-            $entityManager->flush();
-
             $countCreatedMouvements = count($createdMouvements);
+
+            $entityManager->flush();
 
             return new JsonResponse([
                 'success' => $countCreatedMouvements > 0,
@@ -621,26 +625,30 @@ class TrackingMovementController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $templateDirectory = 'mouvement_traca';
+
             if ($typeId === 'fromStart') {
                 $currentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
-                $fileToRender = 'mouvement_traca/' . (
+                $fileToRender = "$templateDirectory/" . (
                     $currentClient
                         ? 'newMassMvtTraca.html.twig'
                         : 'newSingleMvtTraca.html.twig'
                     );
             } else {
                 $appropriateType = $statutRepository->find($typeId);
-                $fileToRender = 'mouvement_traca/' . (
-                    $appropriateType
-                        ? ($appropriateType->getNom() === TrackingMovement::TYPE_PRISE_DEPOSE
-                            ? 'newMassMvtTraca.html.twig'
-                            : ($appropriateType->getNom() === TrackingMovement::TYPE_GROUP
-                                ? 'newGroupMvtTraca.html.twig' : 'newSingleMvtTraca.html.twig')
-                            )
-                        : 'newSingleMvtTraca.html.twig');
+                if ($appropriateType && $appropriateType->getNom() === TrackingMovement::TYPE_PRISE_DEPOSE) {
+                    $fileToRender = "$templateDirectory/newMassMvtTraca.html.twig";
+                }
+                else if ($appropriateType && $appropriateType->getNom() === TrackingMovement::TYPE_GROUP) {
+                    $fileToRender = "$templateDirectory/newGroupMvtTraca.html.twig";
+                }
+                else {
+                    $fileToRender = "$templateDirectory/newSingleMvtTraca.html.twig";
+                }
             }
             return new JsonResponse([
-                'modalBody' => $fileToRender === 'mouvement_traca/' ? false : $this->renderView($fileToRender, [])
+                'modalBody' => $fileToRender === 'mouvement_traca/' ? false : $this->renderView($fileToRender, []),
             ]);
         }
         throw new BadRequestHttpException();
