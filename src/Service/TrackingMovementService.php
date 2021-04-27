@@ -164,6 +164,7 @@ class TrackingMovementService
             'date' => $movement->getDatetime() ? $movement->getDatetime()->format('d/m/Y H:i') : '',
             'code' => $packCode,
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
+            'group' => $movement->getPackGroup() ? $movement->getPackGroup()->getCode() . '-' . ($movement->getGroupIteration() ?? '1') : '',
             'location' => $movement->getEmplacement() ? $movement->getEmplacement()->getLabel() : '',
             'reference' => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getReference()
@@ -332,6 +333,7 @@ class TrackingMovementService
         if ($group) {
             $group->addTrackingMovement($tracking);
             $group->addPack($pack);
+            $tracking->setGroupIteration($group->getIteration());
         }
         $this->managePackLinksWithTracking($entityManager, $tracking);
         $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
@@ -580,6 +582,7 @@ class TrackingMovementService
             ['title' => 'mouvement de traçabilité.Colis', 'name' => 'code', 'translated' => true],
             ['title' => 'Référence', 'name' => 'reference'],
             ['title' => 'Libellé',  'name' => 'label'],
+            ['title' => 'Groupe',  'name' => 'group'],
             ['title' => 'Quantité', 'name' => 'quantity'],
             ['title' => 'Emplacement', 'name' => 'location'],
             ['title' => 'Type', 'name' => 'type'],
