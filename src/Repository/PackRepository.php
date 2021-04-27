@@ -399,7 +399,7 @@ class PackRepository extends EntityRepository
             ->addSelect('join_last_drop.quantity AS quantity')
             ->addSelect('join_nature.id AS nature_id')
             ->join('pack.lastDrop', 'join_last_drop')
-            ->join('pack.nature', 'join_nature')
+            ->leftJoin('pack.nature', 'join_nature')
             ->join('join_last_drop.type', 'join_type_last_drop')
             ->join('join_last_drop.emplacement', 'join_location')
             ->andWhere($exprBuilder->in('pack.id', ':packIds'))
