@@ -84,7 +84,7 @@ class PackController extends AbstractController
     }
 
     /**
-     * @Route("/csv", name="print_csv_packs", options={"expose"=true}, methods={"GET"})
+     * @Route("/csv", name="export_packs", options={"expose"=true}, methods={"GET"})
      * @param Request $request
      * @param CSVExportService $CSVExportService
      * @param UserService $userService
