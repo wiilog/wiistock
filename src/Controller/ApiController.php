@@ -1788,11 +1788,14 @@ class ApiController extends AbstractFOSRestController
      */
     public function getPackNature(Request $request,
                                   EntityManagerInterface $entityManager,
-                                  NatureService $natureService): Response
+                                  NatureService $natureService,
+                                  string $entityTypes): Response
     {
         $code = $request->query->get('code');
 
-        $repository = $entityManager->getRepository(Pack::class);
+        $repository = $entityTypes === 'packs'
+            ? $entityManager->getRepository(Pack::class)
+            : $entityManager->getRepository(Group::class);
 
         $packs = !empty($code)
             ? $repository->findBy(['code' => $code])
