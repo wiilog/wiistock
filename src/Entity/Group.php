@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Helper\Stream;
 use App\Repository\GroupRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -223,5 +224,15 @@ class Group
         }
 
         return $this;
+    }
+
+    public function serialize(): array {
+        return [
+            "code" => $this->getCode(),
+            "natureId" => $this->getNature() ? $this->getNature()->getId() : null,
+            "packs" => $this->getPacks()
+                ->map(fn(Pack $pack) => $pack->serialize())
+                ->toArray()
+        ];
     }
 }

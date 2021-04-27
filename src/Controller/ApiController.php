@@ -9,6 +9,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
+use App\Entity\Group;
 use App\Entity\MailerServer;
 use App\Entity\Nature;
 use App\Entity\Pack;
@@ -1776,7 +1777,7 @@ class ApiController extends AbstractFOSRestController
     }
 
     /**
-     * @Rest\Get("/api/packs/nature", name="api_pack_nature", condition="request.isXmlHttpRequest()")
+     * @Rest\Get("/api/{entityTypes}/nature", name="api_pack_nature", condition="request.isXmlHttpRequest()", requirements={"currentIndex": "(packs)|(pack-groups)"})
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      *
@@ -1791,10 +1792,10 @@ class ApiController extends AbstractFOSRestController
     {
         $code = $request->query->get('code');
 
-        $packRepository = $entityManager->getRepository(Pack::class);
+        $repository = $entityManager->getRepository(Pack::class);
 
         $packs = !empty($code)
-            ? $packRepository->findBy(['code' => $code])
+            ? $repository->findBy(['code' => $code])
             : [];
 
         if (!empty($packs)) {
@@ -1807,6 +1808,45 @@ class ApiController extends AbstractFOSRestController
             "nature" => !empty($nature)
                 ? $natureService->serializeNature($nature)
                 : null
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/pack-groups", name="api_get_pack_groups", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param NatureService $natureService
+     * @return JsonResponse
+     */
+    public function getPacksGroups(Request $request,
+                                   EntityManagerInterface $entityManager): Response
+    {
+        $code = $request->query->get('code');
+
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $pack = !empty($code)
+            ? $packRepository->findOneBy(['code' => $code])
+            : null;
+
+        if ($pack) {
+            $isPack = true;
+        }
+        else {
+            $packGroupRepository = $entityManager->getRepository(Group::class);
+            $packGroup = $packGroupRepository->findOneBy(['code' => $code]);
+            if ($packGroup) {
+                $packGroupSerialized = $packGroup->serialize();
+            }
+        }
+
+        return $this->json([
+            "success" => true,
+            "isPack" => $isPack ?? false,
+            "packGroup" => $packGroupSerialized ?? null
         ]);
     }
 
