@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Service;
 
 use App\Entity\Arrivage;
@@ -20,6 +19,8 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 use Twig\Environment as Twig_Environment;
+use Twig\Environment;
+
 
 
 Class GroupService
@@ -42,10 +43,7 @@ Class GroupService
         $this->security = $security;
         $this->template = $template;
     }
-    /**
-     * @param array $options Either ['arrival' => Arrivage, 'nature' => Nature] or ['code' => string]
-     * @return Group
-     */
+
     public function createGroup(array $options = []): Group {
         $group = $this->createGroupWithCode($options['group']);
         $group
@@ -65,5 +63,38 @@ Class GroupService
         $group = new Group();
         $group->setCode(str_replace("    ", " ", $code));
         return $group;
+    }
+
+    public function getDataForDatatable($params = null) {
+        $filtreSupRepository = $this->manager->getRepository(FiltreSup::class);
+        $groupRepository = $this->manager->getRepository(Group::class);
+
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
+        $queryResult = $groupRepository->findByParamsAndFilters($params, $filters);
+
+        $packs = $queryResult['data'];
+
+        $rows = [];
+        foreach ($packs as $pack) {
+            $rows[] = $this->dataRowGroup($pack);
+        }
+
+        return [
+            'data' => $rows,
+            'recordsFiltered' => $queryResult['count'],
+            'recordsTotal' => $queryResult['total'],
+        ];
+    }
+
+    public function dataRowGroup(Group $group) {
+        return [
+            "actions" => $this->template->render('group/table/actions.html.twig', [
+                "group" => $group
+            ]),
+            "details" => $this->template->render("group/table/details.html.twig", [
+                "group" => $group,
+                "last_movement" => $group->getLastTracking(),
+            ]),
+        ];
     }
 }

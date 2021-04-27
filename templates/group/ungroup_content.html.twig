@@ -1,0 +1,18 @@
+<form>
+    <div class="row">
+        <div class="col-12">
+            Vous êtes sur le point de dégrouper le groupe
+            <strong>{{ group.code }}</strong>. Les colis suivant seront déposés sur l'emplacement sélectionné :
+            {% for pack in group.packs %}
+                <strong>{{ pack.code }}</strong>{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="form-group col-12">
+            <label>Emplacement de dépose</label>
+            <select class="ajax-autocomplete-location-edit data form-control w-100 needed"
+                    name="location" title="Emplacement de dépose">
+            </select>
+        </div>
+</form>
