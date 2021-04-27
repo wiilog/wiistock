@@ -73,6 +73,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use DateTime;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Throwable;
 use Twig\Error\LoaderError;
@@ -1793,9 +1794,13 @@ class ApiController extends AbstractFOSRestController
     {
         $code = $request->query->get('code');
 
-        $repository = $entityTypes === 'packs'
-            ? $entityManager->getRepository(Pack::class)
-            : $entityManager->getRepository(Group::class);
+        if($entityTypes === "packs") {
+            $repository = $entityManager->getRepository(Pack::class);
+        } else if($entityTypes === "pack-groups") {
+            $repository = $entityManager->getRepository(Group::class);
+        } else {
+            throw new NotFoundHttpException();
+        }
 
         $packs = !empty($code)
             ? $repository->findBy(['code' => $code])
@@ -1824,9 +1829,7 @@ class ApiController extends AbstractFOSRestController
      * @param NatureService $natureService
      * @return JsonResponse
      */
-    public function getPacksGroups(Request $request,
-                                   EntityManagerInterface $entityManager): Response
-    {
+    public function getPacksGroups(Request $request, EntityManagerInterface $entityManager): Response {
         $code = $request->query->get('code');
 
         $packRepository = $entityManager->getRepository(Pack::class);
