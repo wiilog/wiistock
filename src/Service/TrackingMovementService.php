@@ -314,9 +314,9 @@ class TrackingMovementService
          * @var Group $group
          */
         $group = $options['group'] ?? null;
-        $addPack = $options['addPack'] ?? true;
 
         $pack = $this->getPack($entityManager, $packOrCode, $quantity, $natureId);
+
         $tracking = new TrackingMovement();
         $tracking
             ->setQuantity($quantity)
@@ -332,9 +332,7 @@ class TrackingMovementService
         $pack->addTrackingMovement($tracking);
         if ($group) {
             $group->addTrackingMovement($tracking);
-            if ($addPack) {
-                $group->addPack($pack);
-            }
+            $group->addPack($pack);
             $tracking->setGroupIteration($group->getIteration());
         }
         $this->managePackLinksWithTracking($entityManager, $tracking);
