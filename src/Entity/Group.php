@@ -22,11 +22,6 @@ class Group
     private $id;
 
     /**
-     * @ORM\Column(type="string")
-     */
-    private $code;
-
-    /**
      * @ORM\ManyToOne(targetEntity=Nature::class, inversedBy="groups")
      */
     private $nature;
@@ -57,11 +52,6 @@ class Group
     private $comment;
 
     /**
-     * @ORM\OneToOne(targetEntity=TrackingMovement::class, cascade={"persist", "remove"}, inversedBy="linkedGroupLastTracking")
-     */
-    private $lastTracking;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Pack", mappedBy="packGroup")
      */
     private $packs;
@@ -83,18 +73,6 @@ class Group
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getCode(): ?string
-    {
-        return $this->code;
-    }
-
-    public function setCode(string $code): self
-    {
-        $this->code = $code;
-
-        return $this;
     }
 
     public function getNature(): ?Nature

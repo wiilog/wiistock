@@ -4,29 +4,20 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
-use App\Entity\Arrivage;
-use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Group;
 use App\Entity\Menu;
 use App\Entity\Nature;
-use App\Entity\Pack;
 
 use App\Entity\TrackingMovement;
-use App\Entity\Type;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\GroupService;
 use App\Service\PackService;
 use App\Service\TrackingMovementService;
-use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
