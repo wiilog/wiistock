@@ -42,7 +42,9 @@
                                             onchange="switchMvtCreationType($(this))">
                                         <option disabled selected></option>
                                         {% for statut in statuts %}
-                                            <option value="{{ statut.id }}">{{ statut.nom }}</option>
+                                            {% if statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_UNGROUP') %}
+                                                <option value="{{ statut.id }}">{{ statut.nom }}</option>
+                                            {% endif %}
                                         {% endfor %}
                                     </select>
                                 </div>

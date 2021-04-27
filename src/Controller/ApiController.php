@@ -1787,7 +1787,6 @@ class ApiController extends AbstractFOSRestController
      */
     public function getPackData(Request $request,
                                 EntityManagerInterface $entityManager,
-                                ReceptionService $receptionService,
                                 NatureService $natureService): Response
     {
         $code = $request->query->get('code');
