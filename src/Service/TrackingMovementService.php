@@ -164,12 +164,16 @@ class TrackingMovementService
                 ? $movement->getReferenceArticle()->getReference()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
-                    : ''),
+                    : ($movement->getPack()->getLastTracking()->getMouvementStock()->getArticle()
+                        ? $movement->getPack()->getLastTracking()->getMouvementStock()->getArticle()->getReference()
+                        : '')),
             "label" => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getLibelle()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getLabel()
-                    : ''),
+                    : ($movement->getPack()->getLastTracking()->getMouvementStock()->getArticle()
+                        ? $movement->getPack()->getLastTracking()->getMouvementStock()->getArticle()->getLabel()
+                        : '')),
             "quantity" => $movement->getQuantity() ? $movement->getQuantity() : '',
             "type" => $movement->getType() ? $movement->getType()->getNom() : '',
             "operator" => $movement->getOperateur() ? $movement->getOperateur()->getUsername() : '',
