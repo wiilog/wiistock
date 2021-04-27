@@ -351,6 +351,27 @@ class ApiController extends AbstractFOSRestController
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                         $entityManager->persist($createdMvt);
                         $numberOfRowsInserted++;
+
+                        $associatedPack = $createdMvt->getPack();
+                        if ($associatedPack->getGroup()) {
+                            $group = $associatedPack->getGroup();
+                            $group->removePack($associatedPack);
+                            $options['group'] = $group;
+                            $options['addPack'] = false;
+                            $createdMvt = $trackingMovementService->createTrackingMovement(
+                                $mvt['ref_article'],
+                                null,
+                                $nomadUser,
+                                $date,
+                                true,
+                                $mvt['finished'],
+                                TrackingMovement::TYPE_UNGROUP,
+                                $options
+                            );
+                            $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
+                            $entityManager->persist($createdMvt);
+                            $numberOfRowsInserted++;
+                        }
                         if ((!isset($mvt['fromStock']) || !$mvt['fromStock'])
                             && $mvt['freeFields']) {
                             $givenFreeFields = json_decode($mvt['freeFields'], true);
