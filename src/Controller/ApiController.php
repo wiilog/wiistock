@@ -1748,11 +1748,25 @@ class ApiController extends AbstractFOSRestController
         }
 
         if (!empty($location)) {
-            $resData['success'] = true;
-            $resData['trackingDrops'] = [];
-            // TODO AB : mettre en place la pagination si volume de données tro volumineux
-            // $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-            // $resData['trackingDrops'] = $mouvementTracaRepository->getLastTrackingMovementsOnLocations([$location]);
+            if ($location instanceof Emplacement && $location->isOngoingVisibleOnMobile()) {
+                $resData['success'] = true;
+                $packMaxNumber = 50;
+                $packRepository = $entityManager->getRepository(Pack::class);
+                $ongoingPackIds = Stream::from($packRepository->getCurrentPackOnLocations(
+                    [$location],
+                    [
+                        'order' => 'asc',
+                        'isCount' => false,
+                        'limit' => $packMaxNumber
+                    ]
+                ))
+                    ->map(fn(array $pack) => $pack['id'])
+                    ->toArray();
+
+                $resData['trackingDrops'] = $packRepository->getPacksById($ongoingPackIds);
+            } else {
+                $resData['trackingDrops'] = [];
+            }
         } else {
             $resData['success'] = true;
             $resData['trackingDrops'] = [];

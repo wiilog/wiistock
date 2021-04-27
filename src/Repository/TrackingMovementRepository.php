@@ -371,26 +371,6 @@ class TrackingMovementRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    /**
-     * @param MouvementStock $stockMovement
-     * @return int
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function countByMouvementStock($stockMovement)
-    {
-        $qb = $this->createQueryBuilder('tracking_movement');
-
-        $qb
-            ->select('COUNT(tracking_movement)')
-            ->where('tracking_movement.mouvementStock = :stockMovement')
-            ->setParameter('stockMovement', $stockMovement);
-
-        return $qb
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
     public function findLastTakingNotFinished(string $code) {
         return $this->createQueryBuilder('tracking_movement')
             ->join('tracking_movement.pack', 'join_pack')

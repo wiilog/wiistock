@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Arrivage;
 use App\Entity\Pack;
+use App\Helper\FormatHelper;
+use App\Helper\Stream;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -290,7 +292,7 @@ class PackRepository extends EntityRepository
         $queryBuilder = $this->createQueryBuilder('colis');
         $queryBuilderExpr = $queryBuilder->expr();
         $queryBuilder
-            ->select($isCount ? ($queryBuilderExpr->count($field)) : $field)
+            ->select($isCount ? $queryBuilderExpr->count($field) : $field)
             ->leftJoin('colis.nature', 'nature')
             ->join('colis.lastDrop', 'lastDrop')
             ->join('lastDrop.emplacement', 'emplacement');
@@ -318,8 +320,7 @@ class PackRepository extends EntityRepository
                 ->setParameter('natures', $natures);
         }
 
-        $queryBuilder
-            ->orderBy('lastDrop.datetime', $order);
+        $queryBuilder->orderBy('lastDrop.datetime', $order);
 
         if ($onlyLate) {
             $queryBuilder
@@ -329,18 +330,19 @@ class PackRepository extends EntityRepository
         }
 
         if ($start) {
-            $queryBuilder
-                ->setFirstResult($start);
+            $queryBuilder->setFirstResult($start);
         }
+
         if ($limit) {
-            $queryBuilder
-                ->setMaxResults($limit);
+            $queryBuilder->setMaxResults($limit);
         }
+
         if ($isCount) {
             return $queryBuilder
                 ->getQuery()
                 ->getSingleScalarResult();
         }
+
         return $queryBuilder
             ->getQuery()
             ->execute();
@@ -383,5 +385,32 @@ class PackRepository extends EntityRepository
             },
             []
         );
+    }
+
+    public function getPacksById(array $packIds): array {
+        $queryBuilder = $this->createQueryBuilder('pack');
+        $exprBuilder = $queryBuilder->expr();
+        return Stream::from(
+            $queryBuilder
+            ->select('pack.code AS ref_article')
+            ->addSelect('join_type_last_drop.code AS type')
+            ->addSelect('join_location.label AS ref_emplacement')
+            ->addSelect('join_last_drop.datetime AS date')
+            ->addSelect('join_last_drop.quantity AS quantity')
+            ->addSelect('join_nature.id AS nature_id')
+            ->join('pack.lastDrop', 'join_last_drop')
+            ->leftJoin('pack.nature', 'join_nature')
+            ->join('join_last_drop.type', 'join_type_last_drop')
+            ->join('join_last_drop.emplacement', 'join_location')
+            ->andWhere($exprBuilder->in('pack.id', ':packIds'))
+            ->setParameter('packIds', $packIds)
+            ->getQuery()
+            ->getResult()
+        )
+            ->map(function($pack) {
+                $pack['date'] = isset($pack['date']) ? FormatHelper::datetime($pack['date']) : null;
+                return $pack;
+            })
+            ->toArray();
     }
 }
