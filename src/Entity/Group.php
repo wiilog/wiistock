@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\GroupRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -26,17 +27,22 @@ class Group
     private $nature;
 
     /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $code;
+
+    /**
      * @ORM\Column(type="integer")
      */
     private $iteration;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
      */
     private $weight;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
      */
     private $volume;
 
@@ -44,11 +50,6 @@ class Group
      * @ORM\Column(type="text", nullable=true)
      */
     private $comment;
-
-    /**
-     * @ORM\OneToOne(targetEntity=TrackingMovement::class, cascade={"persist", "remove"}, inversedBy="linkedPackLastTracking")
-     */
-    private $lastTracking;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Pack", mappedBy="packGroup")
@@ -94,6 +95,13 @@ class Group
     public function setIteration(int $iteration): self
     {
         $this->iteration = $iteration;
+
+        return $this;
+    }
+
+    public function incrementIteration(): self
+    {
+        $this->iteration++;
 
         return $this;
     }
@@ -167,14 +175,15 @@ class Group
 
     public function getLastTracking(): ?TrackingMovement
     {
-        return $this->lastTracking;
-    }
-
-    public function setLastTracking(?TrackingMovement $lastTracking): self
-    {
-        $this->lastTracking = $lastTracking;
-
-        return $this;
+        $criteria = Criteria::create()
+            ->orderBy([
+                'datetime' => Criteria::DESC,
+                'id' => Criteria::DESC
+            ])
+            ->setMaxResults(1);
+        return $this->trackingMovements
+            ->matching($criteria)
+            ->first() ?: null;
     }
 
     /**
@@ -192,6 +201,15 @@ class Group
             $trackingMovement->setPackGroup($this);
         }
 
+        return $this;
+    }
+
+    public function getCode(): ?string {
+        return trim($this->code);
+    }
+
+    public function setCode(?string $code): self {
+        $this->code = trim($code);
         return $this;
     }
 
