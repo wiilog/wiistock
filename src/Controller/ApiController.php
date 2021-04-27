@@ -1748,21 +1748,25 @@ class ApiController extends AbstractFOSRestController
         }
 
         if (!empty($location)) {
-            $resData['success'] = true;
-            $packMaxNumber = 50;
-            $packRepository = $entityManager->getRepository(Pack::class);
-            $ongoingPackIds = Stream::from($packRepository->getCurrentPackOnLocations(
-                [$location],
-                [
-                    'order' => 'asc',
-                    'isCount' => false,
-                    'limit' => $packMaxNumber
-                ]
-            ))
-                ->map(fn (array $pack) => $pack['id'])
-                ->toArray();
+            if ($location instanceof Emplacement && $location->isOngoingVisibleOnMobile()) {
+                $resData['success'] = true;
+                $packMaxNumber = 50;
+                $packRepository = $entityManager->getRepository(Pack::class);
+                $ongoingPackIds = Stream::from($packRepository->getCurrentPackOnLocations(
+                    [$location],
+                    [
+                        'order' => 'asc',
+                        'isCount' => false,
+                        'limit' => $packMaxNumber
+                    ]
+                ))
+                    ->map(fn(array $pack) => $pack['id'])
+                    ->toArray();
 
-            $resData['trackingDrops'] = $packRepository->getPacksById($ongoingPackIds);
+                $resData['trackingDrops'] = $packRepository->getPacksById($ongoingPackIds);
+            } else {
+                $resData['trackingDrops'] = [];
+            }
         } else {
             $resData['success'] = true;
             $resData['trackingDrops'] = [];
