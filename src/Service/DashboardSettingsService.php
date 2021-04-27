@@ -414,7 +414,7 @@ class DashboardSettingsService {
             $values += $chartValues;
         }
 
-        $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'];
+        $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'] ?? [];
 
         return $values;
     }
@@ -632,7 +632,7 @@ class DashboardSettingsService {
                     'Legende2' => $config['chartColors']['Legende2'] ?? ''
                 ];
             } else {
-                $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'];
+                $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'] ?? [];
             }
             return $values;
         }
@@ -656,7 +656,7 @@ class DashboardSettingsService {
             $values += $chartValues;
         }
 
-        $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'];
+        $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'] ?? [];
 
         return $values;
     }
@@ -729,7 +729,7 @@ class DashboardSettingsService {
                     })->toArray();
                 $values['chartDataMultiple'] = $chartDataMultiple;
             } else {
-                $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'];
+                $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'] ?? [];
             }
 
             $scale = $config['daysNumber'] ?? DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE;
@@ -781,7 +781,7 @@ class DashboardSettingsService {
                     return $carry;
                 }, []);
 
-            $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'];
+            $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'] ?? [];
 
             $values['chartData'] = $chartData;
         }
