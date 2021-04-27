@@ -45,6 +45,7 @@ use App\Service\DispatchService;
 use App\Service\AttachmentService;
 use App\Service\DemandeLivraisonService;
 use App\Service\ExceptionLoggerService;
+use App\Service\GroupService;
 use App\Service\InventoryService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
@@ -1853,6 +1854,28 @@ class ApiController extends AbstractFOSRestController
             "success" => true,
             "isPack" => $isPack ?? false,
             "packGroup" => $packGroupSerialized ?? null
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/ungroup", name="api_ungroup", methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function ungroup(Request $request, EntityManagerInterface $manager, GroupService $groupService): Response {
+        $locationRepository = $manager->getRepository(Emplacement::class);
+        $groupRepository = $manager->getRepository(Group::class);
+
+        $date = DateTime::createFromFormat("d/m/Y H:i:s", $request->request->get("date"));
+        $location = $locationRepository->find($request->request->get("location"));
+        $group = $groupRepository->find($request->request->get("group"));
+
+        $groupService->ungroup($manager, $group, $location, $this->getUser(), $date);
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Dégroupage synchronisé",
         ]);
     }
 

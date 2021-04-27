@@ -2,34 +2,29 @@
 
 namespace App\Service;
 
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Group;
+use App\Entity\TrackingMovement;
+use App\Entity\Utilisateur;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
 
+class GroupService {
 
+    /** @Required */
+    public EntityManagerInterface $manager;
 
-Class GroupService
-{
+    /** @Required */
+    public Twig_Environment $template;
 
-    private $manager;
-    private $security;
-    private $template;
-    private $arrivageDataService;
-    private $specificService;
+    /** @Required */
+    public Security $security;
 
-    public function __construct(ArrivageDataService $arrivageDataService,
-                                SpecificService $specificService,
-                                Security $security,
-                                Twig_Environment $template,
-                                EntityManagerInterface $manager) {
-        $this->manager = $manager;
-        $this->specificService = $specificService;
-        $this->arrivageDataService = $arrivageDataService;
-        $this->security = $security;
-        $this->template = $template;
-    }
+    /** @Required */
+    public TrackingMovementService $trackingMovementService;
 
     public function createGroup(array $options = []): Group {
         $group = $this->createGroupWithCode($options['group']);
@@ -80,4 +75,36 @@ Class GroupService
             ]),
         ];
     }
+
+    public function ungroup(EntityManagerInterface $manager, Group $group, Emplacement $destination, ?Utilisateur $user = null, ?DateTime $date = null) {
+        foreach ($group->getPacks() as $pack) {
+            $pack->setGroup(null);
+
+            $deposit = $this->trackingMovementService->createTrackingMovement(
+                $pack,
+                $destination,
+                $user ?? $this->security->getUser(),
+                $date ?? new DateTime(),
+                false,
+                null,
+                TrackingMovement::TYPE_DEPOSE,
+                []
+            );
+
+            $ungroup = $this->trackingMovementService->createTrackingMovement(
+                $pack,
+                $destination,
+                $user ?? $this->security->getUser(),
+                $date ?? new DateTime(),
+                false,
+                null,
+                TrackingMovement::TYPE_UNGROUP,
+                []
+            );
+
+            $manager->persist($deposit);
+            $manager->persist($ungroup);
+        }
+    }
+
 }

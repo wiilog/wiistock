@@ -111,7 +111,7 @@ class GroupController extends AbstractController {
      */
     public function ungroup(Request $request,
                             EntityManagerInterface $manager,
-                            TrackingMovementService $trackingMovementService): Response {
+                            GroupService $groupService): Response {
         $data = json_decode($request->getContent(), true);
 
         $groupRepository = $manager->getRepository(Group::class);
@@ -121,35 +121,7 @@ class GroupController extends AbstractController {
         if ($group) {
             $location = $locationRepository->find($data["location"]);
 
-            foreach ($group->getPacks() as $pack) {
-                $pack->setGroup(null);
-
-                $deposit = $trackingMovementService->createTrackingMovement(
-                    $pack,
-                    $location,
-                    $this->getUser(),
-                    new DateTime(),
-                    false,
-                    null,
-                    TrackingMovement::TYPE_DEPOSE,
-                    []
-                );
-
-                $ungroup = $trackingMovementService->createTrackingMovement(
-                    $pack,
-                    $location,
-                    $this->getUser(),
-                    new DateTime(),
-                    false,
-                    null,
-                    TrackingMovement::TYPE_UNGROUP,
-                    []
-                );
-
-                $manager->persist($deposit);
-                $manager->persist($ungroup);
-            }
-
+            $groupService->ungroup($manager, $group, $location);
             $manager->flush();
 
             return $this->json([

@@ -228,6 +228,7 @@ class Group
 
     public function serialize(): array {
         return [
+            "id" => $this->getId(),
             "code" => $this->getCode(),
             "natureId" => $this->getNature() ? $this->getNature()->getId() : null,
             "packs" => $this->getPacks()
