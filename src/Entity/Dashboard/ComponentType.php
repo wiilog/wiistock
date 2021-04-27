@@ -63,6 +63,8 @@ class ComponentType
     public const CATEGORY_STOCK = "Stock";
     public const CATEGORY_OTHER = "Autre";
 
+    public const DEFAULT_CHART_COLOR = '#A3D1FF';
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue

@@ -149,7 +149,8 @@ class EmplacementController extends AbstractController
 				->setDescription($data["Description"])
 				->setIsActive(true)
                 ->setDateMaxTime($dateMaxTime)
-				->setIsDeliveryPoint($data["isDeliveryPoint"]);
+				->setIsDeliveryPoint($data["isDeliveryPoint"])
+                ->setIsOngoingVisibleOnMobile($data["isDeliveryPoint"]);
 
             if (!empty($data['allowed-natures'])) {
                 foreach ($data['allowed-natures'] as $allowedNatureId) {
@@ -226,6 +227,7 @@ class EmplacementController extends AbstractController
                 ->setLabel($data["Label"])
                 ->setDescription($data["Description"])
             	->setIsDeliveryPoint($data["isDeliveryPoint"])
+                ->setIsOngoingVisibleOnMobile($data["isOngoingVisibleOnMobile"])
                 ->setDateMaxTime($dateMaxTime)
 				->setIsActive($data['isActive']);
 

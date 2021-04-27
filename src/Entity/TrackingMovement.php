@@ -15,6 +15,7 @@ class TrackingMovement extends FreeFieldEntity
 
     const TYPE_PRISE = 'prise';
     const TYPE_DEPOSE = 'depose';
+    const TYPE_GROUP = 'groupage';
     const TYPE_PRISE_DEPOSE = 'prises et deposes';
 
     /**
@@ -107,12 +108,6 @@ class TrackingMovement extends FreeFieldEntity
      * @ORM\OneToOne(targetEntity="App\Entity\Pack", mappedBy="lastTracking")
      */
     private $linkedPackLastTracking;
-
-    /**
-     * @var Group|null
-     * @ORM\OneToOne(targetEntity="App\Entity\Group", mappedBy="lastTracking")
-     */
-    private $linkedGroupLastTracking;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -346,22 +341,6 @@ class TrackingMovement extends FreeFieldEntity
         return isset($this->pack)
             ? $this->pack->getArticle()
             : null;
-    }
-
-    /**
-     * @return Pack|null
-     */
-    public function getLinkedGroupLastTracking(): ?Group {
-        return $this->linkedGroupLastTracking;
-    }
-
-    /**
-     * @param Pack|null $linkedGroupLastTracking
-     * @return TrackingMovement
-     */
-    public function setLinkedGroupLastTracking(?Group $linkedGroupLastTracking): TrackingMovement {
-        $this->linkedGroupLastTracking = $linkedGroupLastTracking;
-        return $this;
     }
 
     /**

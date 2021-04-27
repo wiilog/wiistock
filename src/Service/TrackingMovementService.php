@@ -9,6 +9,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Dispatch;
+use App\Entity\Group;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
 use App\Entity\Nature;
@@ -20,6 +21,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\Stream;
 use DateTime;
 use Exception;
 use Symfony\Component\Security\Core\Security;
@@ -43,6 +45,7 @@ class TrackingMovementService
     private $freeFieldService;
     private $locationClusterService;
     private $visibleColumnService;
+    private $groupService;
 
     public function __construct(UserService $userService,
                                 RouterInterface $router,
@@ -51,6 +54,7 @@ class TrackingMovementService
                                 Twig_Environment $templating,
                                 FreeFieldService $freeFieldService,
                                 Security $security,
+                                GroupService $groupService,
                                 VisibleColumnService $visibleColumnService,
                                 AttachmentService $attachmentService)
     {
@@ -63,6 +67,7 @@ class TrackingMovementService
         $this->locationClusterService = $locationClusterService;
         $this->freeFieldService = $freeFieldService;
         $this->visibleColumnService = $visibleColumnService;
+        $this->groupService = $groupService;
     }
 
     /**
@@ -159,6 +164,7 @@ class TrackingMovementService
             'date' => $movement->getDatetime() ? $movement->getDatetime()->format('d/m/Y H:i') : '',
             'code' => $packCode,
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
+            'group' => $movement->getPackGroup() ? $movement->getPackGroup()->getCode() . '-' . ($movement->getGroupIteration() ?? '1') : '',
             'location' => $movement->getEmplacement() ? $movement->getEmplacement()->getLabel() : '',
             'reference' => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getReference()
@@ -188,6 +194,72 @@ class TrackingMovementService
         }
 
         return $rows;
+    }
+
+    public function handleGroups(array $data, EntityManagerInterface $entityManager, Utilisateur $operator, array &$createdMovements): array {
+        $groupRepository = $entityManager->getRepository(Group::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $group = $data['group'];
+
+        $chosenGroupIsPack = $packRepository->findOneBy(['code' => $group]);
+
+        if ($chosenGroupIsPack) {
+            return [
+                'success' => false,
+                'msg' => 'Le colis contenant choisi est un colis, veuillez choisir un groupage valide.'
+            ];
+        } else {
+            $errors = [];
+            $colisArray = explode(',', $data['colis']);
+            Stream::from($colisArray)
+                ->each(function($colis) use ($groupRepository, $packRepository, &$errors) {
+                    $isGroup = $groupRepository->findOneBy(['code' => $colis]);
+                    $pack = $packRepository->findOneBy(['code' => $colis]);
+
+                    if ($isGroup || ($pack && $pack->getGroup())) {
+                        $errors[] = $colis;
+                    }
+                });
+            if (!empty($errors)) {
+                return [
+                    'success' => false,
+                    'msg' => 'Les colis '
+                        . implode(', ', $errors)
+                        . ' sont des groupages ou sont déjà présents dans un groupe, veuillez choisir des colis valides.'
+                ];
+            }
+            else {
+                $createdMovements = [];
+                $group = $groupRepository->findOneBy(['code' => $group]);
+                if (!$group) {
+                    $group = $this->groupService->createGroup($data);
+                    $entityManager->persist($group);
+                } else if ($group->getPacks()->isEmpty()) {
+                    $group->incrementIteration();
+                }
+                foreach ($colisArray as $colis) {
+                    $groupingTrackingMovement = $this->createTrackingMovement(
+                        $colis,
+                        null,
+                        $operator,
+                        new DateTime('now', new \DateTimeZone('Europe/Paris')),
+                        $data['fromNomade'] ?? false,
+                        true,
+                        TrackingMovement::TYPE_GROUP,
+                        [
+                            'group' => $group
+                        ]
+                    );
+                    $entityManager->persist($groupingTrackingMovement);
+                    $createdMovements[] = $groupingTrackingMovement;
+                }
+                return [
+                    'success' => true,
+                    'msg' => 'OK',
+                    'createdMovements' => $createdMovements
+                ];
+            }
+        }
     }
 
     /**
@@ -238,6 +310,10 @@ class TrackingMovementService
         $receptionReferenceArticle = $options['receptionReferenceArticle'] ?? null;
         $uniqueIdForMobile = $options['uniqueIdForMobile'] ?? null;
         $natureId = $options['natureId'] ?? null;
+        /**
+         * @var Group $group
+         */
+        $group = $options['group'] ?? null;
 
         $pack = $this->getPack($entityManager, $packOrCode, $quantity, $natureId);
 
@@ -254,7 +330,11 @@ class TrackingMovementService
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
 
         $pack->addTrackingMovement($tracking);
-
+        if ($group) {
+            $group->addTrackingMovement($tracking);
+            $group->addPack($pack);
+            $tracking->setGroupIteration($group->getIteration());
+        }
         $this->managePackLinksWithTracking($entityManager, $tracking);
         $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
         $this->manageTrackingFiles($tracking, $fileBag);
@@ -502,6 +582,7 @@ class TrackingMovementService
             ['title' => 'mouvement de traçabilité.Colis', 'name' => 'code', 'translated' => true],
             ['title' => 'Référence', 'name' => 'reference'],
             ['title' => 'Libellé',  'name' => 'label'],
+            ['title' => 'Groupe',  'name' => 'group'],
             ['title' => 'Quantité', 'name' => 'quantity'],
             ['title' => 'Emplacement', 'name' => 'location'],
             ['title' => 'Type', 'name' => 'type'],

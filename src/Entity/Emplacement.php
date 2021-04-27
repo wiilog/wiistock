@@ -61,6 +61,11 @@ class Emplacement
      */
     private $isDeliveryPoint;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=false, options={"default": false})
+     */
+    private $isOngoingVisibleOnMobile;
+
 	/**
 	 * @ORM\Column(type="boolean", nullable=false, options={"default": true})
 	 */
@@ -328,6 +333,17 @@ class Emplacement
     {
         $this->isDeliveryPoint = $isDeliveryPoint;
 
+        return $this;
+    }
+
+    public function isOngoingVisibleOnMobile(): ?bool
+    {
+        return $this->isOngoingVisibleOnMobile;
+    }
+
+    public function setIsOngoingVisibleOnMobile(?bool $isOngoingVisibleOnMobile): self
+    {
+        $this->isOngoingVisibleOnMobile = $isOngoingVisibleOnMobile;
         return $this;
     }
 
