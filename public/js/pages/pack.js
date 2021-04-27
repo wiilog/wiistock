@@ -49,6 +49,9 @@ const groupsTableConfig = {
 const TAB_PACKS = 1;
 const TAB_GROUPS = 2;
 
+const HASH_PACKS = `#colis`;
+const HASH_GROUPS = `#groupes`;
+
 let selectedTab = TAB_PACKS;
 let packsTable;
 let groupsTable;
@@ -66,13 +69,28 @@ $(function() {
         displayFiltersSup(data);
     }, 'json');
 
-    switchPacks();
+    switchPageBasedOnHash();
+    $(window).on("hashchange", switchPageBasedOnHash);
+
     $(`#to-packs`).click(switchPacks);
     $(`#to-groups`).click(switchGroups);
 });
 
+function switchPageBasedOnHash() {
+    let hash = window.location.hash;
+    if (hash === HASH_PACKS) {
+        switchPacks();
+    } else if(hash === HASH_GROUPS) {
+        switchGroups();
+    } else if(hash) {
+        switchPacks();
+        window.location.hash = HASH_PACKS;
+    }
+}
+
 function switchPacks() {
     selectedTab = TAB_GROUPS;
+    window.location.hash = HASH_PACKS;
 
     if(!packsTable) {
         packsTable = initDataTable(`packsTable`, packsTableConfig);
@@ -98,6 +116,7 @@ function switchPacks() {
 
 function switchGroups() {
     selectedTab = TAB_GROUPS;
+    window.location.hash = HASH_GROUPS;
 
     if(!groupsTable) {
         groupsTable = initDataTable(`groupsTable`, groupsTableConfig);
