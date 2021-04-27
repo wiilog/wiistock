@@ -1805,7 +1805,7 @@ class ApiController extends AbstractFOSRestController
             $pack = $packs[0];
             $nature = $pack->getNature();
             if ($includeGroup) {
-                $res['group'] = $pack->getGroup();
+                $res['group'] = $pack->getGroup() ? $pack->getGroup()->getCode() : null;
             }
         }
         if ($includeExisting) {
