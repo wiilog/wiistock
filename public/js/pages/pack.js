@@ -71,9 +71,6 @@ $(function() {
 
     switchPageBasedOnHash();
     $(window).on("hashchange", switchPageBasedOnHash);
-
-    $(`#to-packs`).click(switchPacks);
-    $(`#to-groups`).click(switchGroups);
 });
 
 function switchPageBasedOnHash() {
@@ -86,6 +83,9 @@ function switchPageBasedOnHash() {
         switchPacks();
         window.location.hash = HASH_PACKS;
     }
+
+    $(`.pack-tabs a`).removeClass(`active`);
+    $(`.pack-tabs a[href="${hash}"]`).addClass(`active`);
 }
 
 function switchPacks() {
@@ -106,8 +106,6 @@ function switchPacks() {
         InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [packsTable], clearOnClose: true});
     }
 
-    $(`#to-packs`).addClass(`active`);
-    $(`#to-groups`).removeClass(`active`);
     $(`.packsTableContainer`).show();
     $(`.groupsTableContainer`).hide();
     $(`#packsTable_filter`).parent().show();
@@ -125,10 +123,13 @@ function switchGroups() {
         const $submitEditGroup = $('#submitEditGroup');
         const urlEditGroup = Routing.generate('group_edit', true);
         InitModal($modalEditGroup, $submitEditGroup, urlEditGroup, {tables: [groupsTable]});
+
+        const $modalUngroup = $('#modalUngroup');
+        const $submitUngroup = $('#submitUngroup');
+        const urlUngroup = Routing.generate('group_ungroup', true);
+        InitModal($modalUngroup, $submitUngroup, urlUngroup, {tables: [groupsTable]});
     }
 
-    $(`#to-packs`).removeClass(`active`);
-    $(`#to-groups`).addClass(`active`);
     $(`.packsTableContainer`).hide();
     $(`.groupsTableContainer`).show();
     $(`#packsTable_filter`).parent().hide();

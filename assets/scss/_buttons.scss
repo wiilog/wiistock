@@ -109,7 +109,6 @@ button:focus {
     }
 }
 
-.nav-link {
-    border: none;
-    margin: 0 4px;
+.nav-pills .nav-link.active {
+    color: white !important;
 }

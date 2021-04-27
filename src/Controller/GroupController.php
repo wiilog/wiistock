@@ -6,6 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\CategoryType;
+use App\Entity\Emplacement;
 use App\Entity\Group;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -97,7 +98,7 @@ class GroupController extends AbstractController {
     }
 
     /**
-     * @Route("/api-modifier", name="group_ungroup_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-degrouper", name="group_ungroup_api", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function ungroupApi(Request $request, EntityManagerInterface $manager): Response {
@@ -114,24 +115,51 @@ class GroupController extends AbstractController {
     }
 
     /**
-     * @Route("/modifier", name="group_ungroup", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @Route("/degrouper", name="group_ungroup", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function ungroup(Request $request,
-                            EntityManagerInterface $entityManager,
-                            PackService $packService,
-                            TranslatorInterface $translator): Response {
+                            EntityManagerInterface $manager,
+                            TrackingMovementService $trackingMovementService): Response {
         $data = json_decode($request->getContent(), true);
 
-        $groupRepository = $entityManager->getRepository(Group::class);
+        $groupRepository = $manager->getRepository(Group::class);
+        $locationRepository = $manager->getRepository(Emplacement::class);
 
-        $group = $groupRepository->find($data['id']);
-        if($group) {
-            foreach($group->getPacks() as $pack) {
+        $group = $groupRepository->find($data["id"]);
+        if ($group) {
+            $location = $locationRepository->find($data["location"]);
+
+            foreach ($group->getPacks() as $pack) {
                 $pack->setGroup(null);
+
+                $deposit = $trackingMovementService->createTrackingMovement(
+                    $pack,
+                    $location,
+                    $this->getUser(),
+                    new DateTime(),
+                    false,
+                    null,
+                    TrackingMovement::TYPE_DEPOSE,
+                    []
+                );
+
+                $ungroup = $trackingMovementService->createTrackingMovement(
+                    $pack,
+                    $location,
+                    $this->getUser(),
+                    new DateTime(),
+                    false,
+                    null,
+                    TrackingMovement::TYPE_UNGROUP,
+                    []
+                );
+
+                $manager->persist($deposit);
+                $manager->persist($ungroup);
             }
 
-
+            $manager->flush();
 
             return $this->json([
                 "success" => true,
@@ -147,10 +175,10 @@ class GroupController extends AbstractController {
      * @HasPermission({Menu::TRACA, Action::EXPORT})
      */
     public function exportGroups(Request $request,
-                                  CSVExportService $CSVExportService,
-                                  TrackingMovementService $trackingMovementService,
-                                  TranslatorInterface $translator,
-                                  EntityManagerInterface $entityManager): Response {
+                                 CSVExportService $CSVExportService,
+                                 TrackingMovementService $trackingMovementService,
+                                 TranslatorInterface $translator,
+                                 EntityManagerInterface $entityManager): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -193,7 +221,7 @@ class GroupController extends AbstractController {
         }
     }
 
-    private function putPackLine($handle, CSVExportService $csvService, array $group)    {
+    private function putPackLine($handle, CSVExportService $csvService, array $group) {
         $csvService->putLine($handle, [
             $group["code"],
             $group["nature"],

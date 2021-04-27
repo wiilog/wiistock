@@ -13,12 +13,12 @@
 
 {% block page_content %}
     <div class="m-4 wii-page-card">
-        <ul class="nav nav-pills">
+        <ul class="nav nav-pills pack-tabs">
             <li class="nav-item">
-                <button id="to-packs" class="nav-link active">Colis</button>
+                <a href="#colis" class="nav-link active">Colis</a>
             </li>
             <li class="nav-item">
-                <button id="to-groups" class="nav-link">Groupe</button>
+                <a href="#groupes" class="nav-link">Groupe</a>
             </li>
         </ul>
 
@@ -50,6 +50,7 @@
     {% include 'pack/modalEditPack.html.twig' %}
     {% include 'pack/modalDeletePack.html.twig' %}
     {% include 'group/edit.html.twig' %}
+    {% include 'group/ungroup.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
