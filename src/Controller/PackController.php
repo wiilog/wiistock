@@ -331,4 +331,15 @@ class PackController extends AbstractController
         ];
         $csvService->putLine($handle, $line);
     }
+
+    /**
+     * @Route("/group_history/{pack}", name="group_history_api", options={"expose"=true}, methods="GET|POST")
+     */
+    public function groupHistory(Request $request, PackService $packService, $pack): Response {
+        if ($request->isXmlHttpRequest()) {
+            $data = $packService->getGroupHistoryForDatatable($pack);
+            return $this->json($data);
+        }
+        throw new BadRequestHttpException();
+    }
 }
