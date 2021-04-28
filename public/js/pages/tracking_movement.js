@@ -95,6 +95,7 @@ function initPageModal(tableMvt) {
                     displayConfirmationModal(group);
                 } else {
                     displayOnSuccessCreation(success, trackingMovementsCounter);
+                    clearModal($('#modalNewMvtTraca'));
                 }
             }
         });
@@ -173,7 +174,7 @@ function displayConfirmationModal(group) {
         undefined,
         $('<div/>', {
             class: 'text-center',
-            text: `Ce colis est contenu dans le groupe ${group}. Confirmer la prise l\'enlèvera du groupe.`
+            text: `Ce ou ces colis sont présents dans le groupe ${group}. Confirmer la prise l\'enlèvera du groupe.`
         }),
         [
             {
@@ -190,6 +191,7 @@ function displayConfirmationModal(group) {
                 action: ($modal) => {
                     $('input[name="forced"]').val(1);
                     $('#submitNewMvtTraca').click();
+                    $modal.modal('hide');
                 }
             },
         ],
@@ -215,7 +217,6 @@ function displayOnSuccessCreation(success, trackingMovementsCounter) {
                 action: ($modal) => {
                     $modal.modal('hide');
                     $('input[name="forced"]').val("0");
-                    clearModal($('#modalNewMvtTraca'));
                 }
             }
         ],

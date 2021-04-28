@@ -301,7 +301,18 @@ class TrackingMovementController extends AbstractController
                                 'quantity' => $quantity
                             ]
                         );
+                        $associatedPack = $createdMvt->getPack();
+                        $associatedGroup = $associatedPack->getGroup();
 
+                        if (!$forced && $associatedGroup) {
+                            return $this->json([
+                                'group' => $associatedGroup->getCode(),
+                                'success' => true,
+                            ]);
+                        } else if ($forced) {
+                            $associatedPack->setGroup(null);
+                            $countCreatedMouvements++;
+                        }
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                         $entityManager->persist($createdMvt);
                         $createdMouvements[] = $createdMvt;

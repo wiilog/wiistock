@@ -196,6 +196,8 @@ class ApiController extends AbstractFOSRestController
             'errors' => []
         ];
 
+        $emptyGroups = [];
+
         foreach ($mouvementsNomade as $index => $mvt) {
             $invalidLocationTo = '';
             try {
@@ -337,9 +339,6 @@ class ApiController extends AbstractFOSRestController
                                 $options['fileBag'][] = $photoFile;
                             }
                         }
-                        $options = [
-                            'removeFromGroup' => true
-                        ];
                         $createdMvt = $trackingMovementService->createTrackingMovement(
                             $mvt['ref_article'],
                             $location,
@@ -350,6 +349,16 @@ class ApiController extends AbstractFOSRestController
                             $type,
                             $options,
                         );
+                        $associatedPack = $createdMvt->getPack();
+                        $associatedGroup = $associatedPack->getGroup();
+
+                        if ($associatedGroup) {
+                            $associatedGroup->removePack($associatedPack);
+                            if ($associatedGroup->getPacks()->isEmpty()) {
+                                $emptyGroups[] = $associatedGroup->getCode();
+                            }
+                        }
+
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                         $entityManager->persist($createdMvt);
                         $numberOfRowsInserted++;
@@ -429,9 +438,8 @@ class ApiController extends AbstractFOSRestController
         }
 
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-
         // Pour tous les mouvement de prise envoyés, on les marques en fini si un mouvement de dépose a été donné
-        foreach ($mouvementsNomade as $index => $mvt) {
+        foreach ($mouvementsNomade as $mvt) {
             /** @var TrackingMovement $mouvementTracaPriseToFinish */
             $mouvementTracaPriseToFinish = $trackingMovementRepository->findOneByUniqueIdForMobile($mvt['date']);
 
@@ -452,6 +460,10 @@ class ApiController extends AbstractFOSRestController
         $successData['data']['status'] = ($numberOfRowsInserted === 0)
             ? 'Aucun mouvement à synchroniser.'
             : ($numberOfRowsInserted . ' mouvement' . $s . ' synchronisé' . $s);
+
+        if (!empty($emptyGroups)) {
+            $successData['data']['emptyGroups'] = implode(", ", $emptyGroups);
+        }
 
         $response->setContent(json_encode($successData));
         return $response;
