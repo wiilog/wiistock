@@ -112,7 +112,7 @@ class Group
         return $this->weight;
     }
 
-    public function setWeight(int $weight): self
+    public function setWeight(?int $weight): self
     {
         $this->weight = $weight;
 
@@ -124,7 +124,7 @@ class Group
         return $this->volume;
     }
 
-    public function setVolume(int $volume): self
+    public function setVolume(?int $volume): self
     {
         $this->volume = $volume;
 

@@ -8,6 +8,7 @@ use App\Entity\Group;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
@@ -84,22 +85,22 @@ class GroupService {
                 $pack,
                 $destination,
                 $user ?? $this->security->getUser(),
-                $date ?? new DateTime(),
+                $date ?? new DateTime("now", new DateTimeZone("Europe/Paris")),
                 false,
                 null,
                 TrackingMovement::TYPE_DEPOSE,
-                []
+                ["group" => $group]
             );
 
             $ungroup = $this->trackingMovementService->createTrackingMovement(
                 $pack,
                 $destination,
                 $user ?? $this->security->getUser(),
-                $date ?? new DateTime(),
+                $date ?? new DateTime("now", new DateTimeZone("Europe/Paris")),
                 false,
                 null,
                 TrackingMovement::TYPE_UNGROUP,
-                []
+                ["group" => $group]
             );
 
             $manager->persist($deposit);

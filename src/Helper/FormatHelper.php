@@ -74,7 +74,7 @@ class FormatHelper {
     }
 
     public static function datetime(?DateTimeInterface $date, $else = "") {
-        return $date ? $date->format("d/m/Y H:i") : $else;
+        return $date ? $date->format("d/m/Y H:i:s") : $else;
     }
 
     public static function time(?DateTimeInterface $date, $else = "") {

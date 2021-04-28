@@ -1841,6 +1841,7 @@ class ApiController extends AbstractFOSRestController
 
         if ($pack) {
             $isPack = true;
+            $packSerialized = $pack->serialize();
         }
         else {
             $packGroupRepository = $entityManager->getRepository(Group::class);
@@ -1853,7 +1854,65 @@ class ApiController extends AbstractFOSRestController
         return $this->json([
             "success" => true,
             "isPack" => $isPack ?? false,
-            "packGroup" => $packGroupSerialized ?? null
+            "pack" => $packSerialized ?? null,
+            "packGroup" => $packGroupSerialized ?? null,
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/group", name="api_group", methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function group(Request $request, EntityManagerInterface $manager, TrackingMovementService $trackingMovementService): Response {
+        $groupRepository = $manager->getRepository(Group::class);
+        $packRepository = $manager->getRepository(Pack::class);
+        $natureRepository = $manager->getRepository(Nature::class);
+
+        $group = $groupRepository->find($request->request->get("id"));
+        if (!$group) {
+            $group = (new Group())
+                ->setCode($request->request->get("code"))
+                ->setIteration(1);
+
+            $manager->persist($group);
+        } else if ($group->getPacks()->isEmpty()) {
+            $group->setIteration($group->getIteration() + 1);
+        }
+
+        $packs = json_decode($request->request->get("packs"), true);
+        foreach ($packs as $data) {
+            if (isset($data["id"])) {
+                $pack = $packRepository->find($data["id"]);
+            } else {
+                $pack = (new Pack())->setCode($data["code"]);
+                $manager->persist($pack);
+            }
+
+            $pack->setNature($data["nature_id"] ? $natureRepository->find($data["nature_id"]) : null)
+                ->setQuantity($data["quantity"]);
+
+            $group->addPack($pack);
+
+            $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
+                $pack,
+                null,
+                $this->getUser(),
+                DateTime::createFromFormat("d/m/Y H:i:s", $data["date"]),
+                true,
+                true,
+                TrackingMovement::TYPE_GROUP,
+                ["group" => $group]
+            );
+
+            $manager->persist($groupingTrackingMovement);
+        }
+
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Groupage synchronisé",
         ]);
     }
 
