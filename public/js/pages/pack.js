@@ -79,7 +79,7 @@ function switchPageBasedOnHash() {
         switchPacks();
     } else if(hash === HASH_GROUPS) {
         switchGroups();
-    } else if(hash) {
+    } else {
         switchPacks();
         window.location.hash = HASH_PACKS;
     }
