@@ -216,7 +216,8 @@ class ApiController extends AbstractFOSRestController
                     &$finishMouvementTraca,
                     $entityManager,
                     $exceptionLoggerService,
-                    $trackingMovementService
+                    $trackingMovementService,
+                    $emptyGroups
                 ) {
                     $emplacementRepository = $entityManager->getRepository(Emplacement::class);
                     $articleRepository = $entityManager->getRepository(Article::class);
