@@ -26,7 +26,7 @@ const REFERENCE_RELIABILITY = 'reference_reliability';
 const DAILY_DISPATCHES = 'daily_dispatches';
 const EXTERNAL_IMAGE = 'external_image';
 
-$(function () {
+$(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
     Chart.defaults.global.responsive = true;
     Chart.defaults.global.maintainAspectRatio = false;
@@ -34,15 +34,13 @@ $(function () {
     fontSizeYAxes = currentChartsFontSize * 0.5;
 })
 
-$(document).arrive('.scroll', function () {
-    setTimeout(() => {
-        const $element = $(this);
-        const $mainParent = $element.closest('.dashboard-component');
-        if ($mainParent.width() < $element[0].scrollWidth) {
-               $element.html( "<marquee behavior=\"alternate\">"+$(this).html()+"</marquee>" );
-       }
-    }, 1000);
-})
+$(document).arrive('.scroll', function() {
+    const $element = $(this);
+    const $mainParent = $element.closest(`.dashboard-component`);
+    if($mainParent.width() < $element[0].scrollWidth) {
+        $element.html(`<marquee behavior="alternate">${$element.html()}</marquee>`);
+    }
+});
 
 const creators = {
     [ONGOING_PACK]: {
