@@ -89,8 +89,14 @@ function initPageModal(tableMvt) {
         {
             tables: [tableMvt],
             keepModal: !Number($('#redirectAfterTrackingMovementCreation').val()),
-            success: ({success, trackingMovementsCounter}) => {
-                displayOnSuccessCreation(success, trackingMovementsCounter);
+            keepForm: true,
+            success: ({success, trackingMovementsCounter, group}) => {
+                if (group) {
+                    displayConfirmationModal(group);
+                } else {
+                    displayOnSuccessCreation(success, trackingMovementsCounter);
+                    clearModal($('#modalNewMvtTraca'));
+                }
             }
         });
 }
@@ -163,6 +169,36 @@ function clearURL() {
     window.history.pushState({}, document.title, `${window.location.pathname}`);
 }
 
+function displayConfirmationModal(group) {
+    displayAlertModal(
+        undefined,
+        $('<div/>', {
+            class: 'text-center',
+            text: `Ce ou ces colis sont présents dans le groupe ${group}. Confirmer la prise l\'enlèvera du groupe.`
+        }),
+        [
+            {
+                class: 'btn btn-secondary m-0',
+                text: 'Annuler',
+                action: ($modal) => {
+                    $('input[name="forced"]').val("0");
+                    $modal.modal('hide');
+                }
+            },
+            {
+                class: 'btn btn-primary m-0',
+                text: 'Valider',
+                action: ($modal) => {
+                    $('input[name="forced"]').val(1);
+                    $('#submitNewMvtTraca').click();
+                    $modal.modal('hide');
+                }
+            },
+        ],
+        'error'
+    );
+}
+
 function displayOnSuccessCreation(success, trackingMovementsCounter) {
     displayAlertModal(
         undefined,
@@ -179,7 +215,8 @@ function displayOnSuccessCreation(success, trackingMovementsCounter) {
                 class: 'btn btn-primary m-0',
                 text: 'Continuer',
                 action: ($modal) => {
-                    $modal.modal('hide')
+                    $modal.modal('hide');
+                    $('input[name="forced"]').val("0");
                 }
             }
         ],

@@ -196,6 +196,8 @@ class ApiController extends AbstractFOSRestController
             'errors' => []
         ];
 
+        $emptyGroups = [];
+
         foreach ($mouvementsNomade as $index => $mvt) {
             $invalidLocationTo = '';
             try {
@@ -214,7 +216,8 @@ class ApiController extends AbstractFOSRestController
                     &$finishMouvementTraca,
                     $entityManager,
                     $exceptionLoggerService,
-                    $trackingMovementService
+                    $trackingMovementService,
+                    $emptyGroups
                 ) {
                     $emplacementRepository = $entityManager->getRepository(Emplacement::class);
                     $articleRepository = $entityManager->getRepository(Article::class);
@@ -337,7 +340,6 @@ class ApiController extends AbstractFOSRestController
                                 $options['fileBag'][] = $photoFile;
                             }
                         }
-
                         $createdMvt = $trackingMovementService->createTrackingMovement(
                             $mvt['ref_article'],
                             $location,
@@ -346,8 +348,18 @@ class ApiController extends AbstractFOSRestController
                             true,
                             $mvt['finished'],
                             $type,
-                            $options
+                            $options,
                         );
+                        $associatedPack = $createdMvt->getPack();
+                        $associatedGroup = $associatedPack->getGroup();
+
+                        if ($associatedGroup) {
+                            $associatedGroup->removePack($associatedPack);
+                            if ($associatedGroup->getPacks()->isEmpty()) {
+                                $emptyGroups[] = $associatedGroup->getCode();
+                            }
+                        }
+
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                         $entityManager->persist($createdMvt);
                         $numberOfRowsInserted++;
@@ -427,9 +439,8 @@ class ApiController extends AbstractFOSRestController
         }
 
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-
         // Pour tous les mouvement de prise envoyés, on les marques en fini si un mouvement de dépose a été donné
-        foreach ($mouvementsNomade as $index => $mvt) {
+        foreach ($mouvementsNomade as $mvt) {
             /** @var TrackingMovement $mouvementTracaPriseToFinish */
             $mouvementTracaPriseToFinish = $trackingMovementRepository->findOneByUniqueIdForMobile($mvt['date']);
 
@@ -450,6 +461,10 @@ class ApiController extends AbstractFOSRestController
         $successData['data']['status'] = ($numberOfRowsInserted === 0)
             ? 'Aucun mouvement à synchroniser.'
             : ($numberOfRowsInserted . ' mouvement' . $s . ' synchronisé' . $s);
+
+        if (!empty($emptyGroups)) {
+            $successData['data']['emptyGroups'] = implode(", ", $emptyGroups);
+        }
 
         $response->setContent(json_encode($successData));
         return $response;
@@ -1776,7 +1791,7 @@ class ApiController extends AbstractFOSRestController
     }
 
     /**
-     * @Rest\Get("/api/packs/nature", name="api_pack_nature", condition="request.isXmlHttpRequest()")
+     * @Rest\Get("/api/packs", name="api_get_pack_data", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      *
@@ -1785,29 +1800,38 @@ class ApiController extends AbstractFOSRestController
      * @param NatureService $natureService
      * @return JsonResponse
      */
-    public function getPackNature(Request $request,
-                                  EntityManagerInterface $entityManager,
-                                  NatureService $natureService): Response
+    public function getPackData(Request $request,
+                                EntityManagerInterface $entityManager,
+                                NatureService $natureService): Response
     {
         $code = $request->query->get('code');
-
+        $includeExisting = $request->query->getBoolean('existing');
+        $includeNature = $request->query->getBoolean('nature');
+        $includeGroup = $request->query->getBoolean('group');
+        $res = ['success' => true];
         $packRepository = $entityManager->getRepository(Pack::class);
-
         $packs = !empty($code)
             ? $packRepository->findBy(['code' => $code])
             : [];
-
+        if ($includeGroup) {
+            $res['group'] = null;
+        }
         if (!empty($packs)) {
             $pack = $packs[0];
             $nature = $pack->getNature();
+            if ($includeGroup) {
+                $res['group'] = $pack->getGroup() ? $pack->getGroup()->getCode() : null;
+            }
         }
-
-        return $this->json([
-            "success" => true,
-            "nature" => !empty($nature)
+        if ($includeExisting) {
+            $res['existing'] = !empty($packs);
+        }
+        if ($includeNature) {
+            $res['nature'] = !empty($nature)
                 ? $natureService->serializeNature($nature)
-                : null
-        ]);
+                : null;
+        }
+        return $this->json($res);
     }
 
     /**

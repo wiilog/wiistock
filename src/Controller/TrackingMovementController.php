@@ -195,9 +195,9 @@ class TrackingMovementController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
+            $countCreatedMouvements = 0;
             $post = $request->request;
-
+            $forced = $post->get('forced', false);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
@@ -256,6 +256,19 @@ class TrackingMovementController extends AbstractController
                         ]
                     );
 
+                    $associatedPack = $createdMvt->getPack();
+                    $associatedGroup = $associatedPack->getGroup();
+
+                    if (!$forced && $associatedGroup) {
+                        return $this->json([
+                            'group' => $associatedGroup->getCode(),
+                            'success' => true
+                        ]);
+                    } else if ($forced) {
+                        $associatedPack->setGroup(null);
+                        $countCreatedMouvements++;
+                    }
+
                     $movementType = $createdMvt->getType();
                     $movementTypeName = $movementType ? $movementType->getNom() : null;
 
@@ -288,7 +301,18 @@ class TrackingMovementController extends AbstractController
                                 'quantity' => $quantity
                             ]
                         );
+                        $associatedPack = $createdMvt->getPack();
+                        $associatedGroup = $associatedPack->getGroup();
 
+                        if (!$forced && $associatedGroup) {
+                            return $this->json([
+                                'group' => $associatedGroup->getCode(),
+                                'success' => true,
+                            ]);
+                        } else if ($forced) {
+                            $associatedPack->setGroup(null);
+                            $countCreatedMouvements++;
+                        }
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                         $entityManager->persist($createdMvt);
                         $createdMouvements[] = $createdMvt;
@@ -340,12 +364,12 @@ class TrackingMovementController extends AbstractController
             foreach ($createdMouvements as $mouvement) {
                 $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager);
             }
-            $countCreatedMouvements = count($createdMouvements);
-
+            $countCreatedMouvements += count($createdMouvements);
             $entityManager->flush();
 
             return new JsonResponse([
                 'success' => $countCreatedMouvements > 0,
+                'group' => null,
                 'trackingMovementsCounter' => $countCreatedMouvements
             ]);
         }
