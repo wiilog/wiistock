@@ -32,6 +32,14 @@ $(function() {
     Chart.defaults.global.maintainAspectRatio = false;
     currentChartsFontSize = calculateChartsFontSize();
     fontSizeYAxes = currentChartsFontSize * 0.5;
+})
+
+$(document).arrive('.scroll', function() {
+    const $element = $(this);
+    const $mainParent = $element.closest(`.dashboard-component`);
+    if($mainParent.width() < $element[0].scrollWidth) {
+        $element.html(`<marquee behavior="alternate">${$element.html()}</marquee>`);
+    }
 });
 
 const creators = {
@@ -167,7 +175,6 @@ function renderComponent(component, $container, data) {
                 } else {
                     createAndUpdateMultipleCharts($canvas, null, data, false, true, isCardExample);
                 }
-
             } else if($table.length > 0) {
                 if($table.hasClass('retards-table')) {
                     loadLatePacks($table, data);
@@ -564,7 +571,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                         `<span class="title mx-3">
                         ${withStyle(data, smartNumberingConfig, remainingConfig.titleBackendNumber || 1, title.split('(')[0])}</span>`,
                         $emergencyIcon,
-                        `<p class="small ellipsis location-label">${subtitle
+                        `<p class="small scroll location-label">${subtitle
                             ? withStyle(data, smartNumberingConfig, 2, subtitle)
                             : ''}
                         </p>`
@@ -573,7 +580,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                 : undefined,
             subtitle && !title
                 ? $('<div/>', {
-                    class: 'location-label ellipsis small',
+                    class: 'location-label scroll small',
                     html: withStyle(data, smartNumberingConfig, 2, subtitle)
                 })
                 : undefined,
