@@ -20,8 +20,10 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use DateTime;
 use Exception;
+use Symfony\Component\Form\Form;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -156,27 +158,27 @@ class TrackingMovementService
 
         $rows = [
             'id' => $movement->getId(),
-            'date' => $movement->getDatetime() ? $movement->getDatetime()->format('d/m/Y H:i') : '',
+            'date' => FormatHelper::datetime($movement->getDatetime()),
             'code' => $packCode,
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
-            'location' => $movement->getEmplacement() ? $movement->getEmplacement()->getLabel() : '',
+            'location' => FormatHelper::location($movement->getEmplacement()),
             'reference' => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getReference()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
-                    : ($movement->getPack()->getLastTracking()->getMouvementStock()->getArticle()
-                        ? $movement->getPack()->getLastTracking()->getMouvementStock()->getArticle()->getReference()
+                    : ($movement->getPack()->getLastTracking()->getMouvementStock()
+                        ? $movement->getPack()->getLastTracking()->getMouvementStock()->getArticle()->getArticleFournisseur()->getReferenceArticle()->getLibelle()
                         : '')),
             "label" => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getLibelle()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getLabel()
-                    : ($movement->getPack()->getLastTracking()->getMouvementStock()->getArticle()
+                    : ($movement->getPack()->getLastTracking()->getMouvementStock()
                         ? $movement->getPack()->getLastTracking()->getMouvementStock()->getArticle()->getLabel()
                         : '')),
-            "quantity" => $movement->getQuantity() ? $movement->getQuantity() : '',
-            "type" => $movement->getType() ? $movement->getType()->getNom() : '',
-            "operator" => $movement->getOperateur() ? $movement->getOperateur()->getUsername() : '',
+            "quantity" => $movement->getQuantity() ?: '',
+            "type" => FormatHelper::status($movement->getType()),
+            "operator" => FormatHelper::user($movement->getOperateur()),
             "attachments" => $attachments ?? "",
             "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
                 'mvt' => $movement,
