@@ -571,9 +571,9 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                     class: `text-center title`,
                     html: [
                         $emergencyIcon,
-                        `<p class="title scroll">
+                        `<span class="title scroll">
                             ${withStyle(data, smartNumberingConfig, remainingConfig.titleBackendNumber || 1, title)}
-                         </p>`,
+                         </span>`,
                         $emergencyIcon,
                         `<p class="small scroll location-label">
                             ${subtitle ? withStyle(data, smartNumberingConfig, 2, subtitle) : ''}

@@ -767,10 +767,21 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textBold-1' => false,
                 'textItalic-1' => false,
                 'textUnderline-1' => false,
+
                 'textColor-3' => "#0000CC",
                 'textBold-3' => false,
                 'textItalic-3' => false,
                 'textUnderline-3' => false,
+
+                'textColor-4' => "#000000",
+                'textBold-4' => false,
+                'textItalic-4' => false,
+                'textUnderline-4' => false,
+
+                'textColor-5' => "#0000CC",
+                'textBold-5' => false,
+                'textItalic-5' => false,
+                'textUnderline-5' => false,
             ]
         ],
         'Nombre de services du jour' => [
