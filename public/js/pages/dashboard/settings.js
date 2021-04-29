@@ -1052,6 +1052,8 @@ function initSecondStep(html) {
                 const reader = new FileReader();
                 reader.readAsDataURL($input.files[0]);
                 reader.onload = () => {
+                    const $deleteLogo = $modalComponentTypeSecondStep.find('.delete-logo');
+                    $deleteLogo.removeClass('d-none');
                     $modalComponentTypeSecondStep.find(`.external-image-content`)
                         .val(reader.result)
                         .trigger(`change`);
@@ -1456,12 +1458,14 @@ function removeUploadedFile($element) {
     const $uploadTypeLogo = $modal.find('.upload-component-image');
     const $titleTypeLogo = $modal.find('.title-component-image');
     const $logoContent = $modal.find('.external-image-content');
+    const $deleteLogo = $modal.find('.delete-logo');
 
     const uploadedFile = $uploadTypeLogo[0];
     $previewTypeLogo.addClass('d-none');
     showBSAlert(`Le fichier a bien été supprimé`, `success`);
 
     $logoContent.val('');
+    $deleteLogo.addClass('d-none');
     if(uploadedFile.files.length > 0) {
         delete uploadedFile.files[0];
         $previewTypeLogo.attr('src', '');
