@@ -635,7 +635,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                 .map((subCount) => (
                     $('<div/>', {
                         class: `${clickableClass} dashboard-stats`,
-                        html: subCount ? withStyle(data, smartNumberingConfig, 9, subCount) : ''
+                        html: subCount ? withStyle(data, smartNumberingConfig, 9 + subCounts.indexOf(subCount), subCount) : ''
                     })
                 )))
         ].filter(Boolean)

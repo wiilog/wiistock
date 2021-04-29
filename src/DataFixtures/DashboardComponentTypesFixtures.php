@@ -793,17 +793,30 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'title' => 'Services',
                 'hint' => 'Services du jour',
                 'count' => 5,
+
                 'textColor-1' => "#000000",
                 'textBold-1' => false,
                 'textItalic-1' => false,
                 'textUnderline-1' => false,
+
                 'textColor-3' => "#0000CC",
                 'textBold-3' => false,
                 'textItalic-3' => false,
                 'textUnderline-3' => false,
+
+                'textColor-9' => "#00FF00",
+                'textBold-9' => false,
+                'textItalic-9' => false,
+                'textUnderline-9' => false,
+
+                'textColor-10' => "#FF0000",
+                'textBold-10' => false,
+                'textItalic-10' => false,
+                'textUnderline-10' => false,
+
                 'subCounts' => [
-                    '<span class="text-wii-green">150</span> <span class="text-wii-black">lignes</span>',
-                    '<span class="text-wii-red">3/5</span> <span class="text-wii-black">urgences</span>'
+                    '<span>150</span> <span class="text-wii-black">lignes</span>',
+                    '<span>3/5</span> <span class="text-wii-black">urgences</span>'
                 ]
             ]
         ],
