@@ -126,7 +126,6 @@ class DashboardSettingsService {
                                     $meter = null): array {
         $values = [];
         $meterKey = $componentType->getMeterKey();
-
         Stream::from($config)
             ->each(function($conf, $key) use (&$values) {
                 if (str_starts_with($key, 'fontSize-')

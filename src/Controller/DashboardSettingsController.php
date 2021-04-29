@@ -336,7 +336,11 @@ class DashboardSettingsController extends AbstractController {
         if($request->request->has("values")) {
             $values = json_decode($request->request->get("values"), true);
             if (isset($values['jsonConfig'])) {
-                $values = json_decode($values['jsonConfig'], true);
+                $valuesDecoded = json_decode($values['jsonConfig'], true);
+                if (isset($valuesDecoded['locations']) && isset($values['locations'])) {
+                    $valuesDecoded['locations'] = $values['locations'];
+                }
+                $values = $valuesDecoded;
             }
             Stream::from($componentType->getExampleValues())
                 ->each(function($conf, $key) use (&$values) {
@@ -356,7 +360,6 @@ class DashboardSettingsController extends AbstractController {
         } else {
             $values = $componentType->getExampleValues();
         }
-
         return $this->json([
             'success' => true,
             'exampleValues' => $dashboardSettingsService->serializeValues($entityManager, $componentType, $values, DashboardSettingsService::MODE_EDIT, true),
