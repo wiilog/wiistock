@@ -331,6 +331,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
     const numberingConfig = {numbering: 0};
     const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'}, true, numberingConfig);
     const $firstComponent = $('<div/>', {
+
         class: `w-100 pb-1 flex-fill dashboard-component h-100 mx-0 mt-0`,
         html: createIndicatorElement(
             Object.assign(data || {}, {
@@ -597,7 +598,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
 
                 return $('<div/>', {
                     class: `align-items-center`,
-                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter">
+                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter scroll">
                     ${((count || count === '0' || count === 0) ? (applyStyle(
                         data,
                         smartNumberingConfig,
