@@ -252,7 +252,7 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig, firstIt
 
     const requestUserFirstLetter = request.requestUser.charAt(0).toUpperCase();
 
-    const defaultCardSize = 'col-12 col-lg-4 col-xl-3';
+    const defaultCardSize = `col-12 col-lg-${mode === MODE_EDIT ? '6' : '4'} col-xl-${mode === MODE_EDIT ? '6' : '3'}`;
     const cardSizeRowSizeMatching = {
         1: 'col-12 col-lg-4 col-xl-3',
         2: 'col-12 col-lg-5',
