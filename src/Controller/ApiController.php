@@ -434,6 +434,8 @@ class ApiController extends AbstractFOSRestController
 
                 if ($throwable->getMessage() === TrackingMovementService::INVALID_LOCATION_TO) {
                     $successData['data']['errors'][$mvt['ref_article']] = ($mvt['ref_article'] . " doit être déposé sur l'emplacement \"$invalidLocationTo\"");
+                } else if ($throwable->getMessage() === Pack::PACK_IS_GROUP) {
+                    $successData['data']['errors'][$mvt['ref_article']] = 'Le colis scanné est un groupe';
                 } else {
                     $exceptionLoggerService->sendLog($throwable, $request);
                     $successData['data']['errors'][$mvt['ref_article']] = 'Une erreur s\'est produite lors de l\'enregistrement de ' . $mvt['ref_article'];

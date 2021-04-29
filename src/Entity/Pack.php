@@ -14,6 +14,8 @@ use Doctrine\ORM\Mapping as ORM;
 class Pack
 {
 
+    public const PACK_IS_GROUP = 'PACK_IS_GROUP';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

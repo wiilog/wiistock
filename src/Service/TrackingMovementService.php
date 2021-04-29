@@ -375,14 +375,26 @@ class TrackingMovementService
      * @param $quantity
      * @param $natureId
      * @return Pack
+     * @throws Exception
      */
     private function getPack(EntityManagerInterface $entityManager,
                              $packOrCode,
                              $quantity,
                              $natureId): Pack {
         $packRepository = $entityManager->getRepository(Pack::class);
+        $groupRepository = $entityManager->getRepository(Group::class);
 
         $codePack = $packOrCode instanceof Pack ? $packOrCode->getCode() : $packOrCode;
+
+        $isGroup = ($packOrCode instanceof Pack)
+            ? null
+            : $groupRepository->findOneBy([
+                'code' => $packOrCode
+            ]);
+
+        if ($isGroup) {
+            throw new Exception(Pack::PACK_IS_GROUP);
+        }
 
         $pack = ($packOrCode instanceof Pack)
             ? $packOrCode
