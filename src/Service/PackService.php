@@ -131,7 +131,7 @@ Class PackService {
     public function dataRowGroupHistory(TrackingMovement $trackingMovement) {
 
         return [
-            'group' => $trackingMovement->getPack() ? FormatHelper::group($trackingMovement->getPack()->getGroup()) : '',
+            'group' => $trackingMovement->getPackGroup() ? FormatHelper::group($trackingMovement->getPackGroup()) : '',
             'date' => FormatHelper::datetime($trackingMovement->getDatetime()),
             'type' => FormatHelper::status($trackingMovement->getType())
         ];
