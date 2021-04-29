@@ -558,3 +558,7 @@ sup {
 .text-underline-selector {
     @include font-style-selector('../img/underline.svg');
 }
+
+.scroll, .dashboard-box .title {
+    white-space: nowrap;
+}

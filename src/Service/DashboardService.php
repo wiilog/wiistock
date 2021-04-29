@@ -483,8 +483,8 @@ class DashboardService {
             && $component->getLocationCluster('firstOriginLocation')->getLocations()->count() > 0;
         $data = [
             'chartColors' => [
-                $legend1 => $config['chartColor0'],
-                $legend2 => $config['chartColor1']
+                $legend1 => $config['charColors'][0] ?? null,
+                $legend2 => $config['charColors'][1] ?? null
             ],
             'chartData' => $this->getDailyObjectsStatistics($entityManager, DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE, function (DateTime $date) use (
                 $legend1,

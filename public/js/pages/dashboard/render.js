@@ -38,10 +38,11 @@ $(function() {
     fontSizeYAxes = currentChartsFontSize * 0.5;
 })
 
-$(document).arrive('.scroll', function() {
+$(document).arrive('.scroll, .dashboard-box .title', function() {
     const $element = $(this);
     const $mainParent = $element.closest(`.dashboard-component`);
-    if($mainParent.width() < $element[0].scrollWidth) {
+
+    if($mainParent.width() - 10 < $element.width() || $mainParent.width() - 10 < $element[0].scrollWidth) {
         $element.html(`<marquee behavior="alternate">${MARQUEE_PADDING}${$element.html()}${MARQUEE_PADDING}</marquee>`);
     }
 });
@@ -568,13 +569,13 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
             createTooltip(tooltip),
             title
                 ? $('<div/>', {
-                    class: `text-center title`,
+                    class: `text-center`,
                     html: [
-                        $emergencyIcon,
-                        `<span class="title scroll">
+                        `<span class="title">
+                            ${$emergencyIcon}
                             ${withStyle(data, smartNumberingConfig, remainingConfig.titleBackendNumber || 1, title)}
+                            ${$emergencyIcon}
                          </span>`,
-                        $emergencyIcon,
                         `<p class="small scroll location-label">
                             ${subtitle ? withStyle(data, smartNumberingConfig, 2, subtitle) : ''}
                          </p>`
