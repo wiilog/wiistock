@@ -1,6 +1,10 @@
 let currentChartsFontSize;
 let fontSizeYAxes;
 
+const MARQUEE_PADDING = `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
+
+const OVERRIDE_FONT_RED = {color: `#CC0000`};
+
 const ONGOING_PACK = 'ongoing_packs';
 const DAILY_ARRIVALS = 'daily_arrivals';
 const LATE_PACKS = 'late_packs';
@@ -32,6 +36,15 @@ $(function() {
     Chart.defaults.global.maintainAspectRatio = false;
     currentChartsFontSize = calculateChartsFontSize();
     fontSizeYAxes = currentChartsFontSize * 0.5;
+})
+
+$(document).arrive('.scroll, .dashboard-box .title', function() {
+    const $element = $(this);
+    const $mainParent = $element.closest(`.dashboard-component`);
+
+    if($mainParent.width() < $element.width() || $mainParent.width() < $element[0].scrollWidth) {
+        $element.html(`<marquee behavior="alternate">${MARQUEE_PADDING}${$element.html()}${MARQUEE_PADDING}</marquee>`);
+    }
 });
 
 const creators = {
@@ -123,6 +136,7 @@ const creators = {
  * @return {boolean}
  */
 function renderComponent(component, $container, data) {
+    data.__meterKey = component.meterKey;
     $container.empty();
 
     if(!creators[component.meterKey]) {
@@ -167,7 +181,6 @@ function renderComponent(component, $container, data) {
                 } else {
                     createAndUpdateMultipleCharts($canvas, null, data, false, true, isCardExample);
                 }
-
             } else if($table.length > 0) {
                 if($table.hasClass('retards-table')) {
                     loadLatePacks($table, data);
@@ -242,7 +255,7 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig, firstIt
 
     const requestUserFirstLetter = request.requestUser.charAt(0).toUpperCase();
 
-    const defaultCardSize = 'col-12 col-lg-4 col-xl-3';
+    const defaultCardSize = `col-12 col-lg-${mode === MODE_EDIT ? '6' : '4'} col-xl-${mode === MODE_EDIT ? '6' : '3'}`;
     const cardSizeRowSizeMatching = {
         1: 'col-12 col-lg-4 col-xl-3',
         2: 'col-12 col-lg-5',
@@ -261,8 +274,8 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig, firstIt
                 <div class="wii-card-header">
                     <div class="row">
                         <div class="col-10 mb-2">
-                            <p class="mb-2 small">${applyStyle(data, redefinedNumberingConfig, 2, request.estimatedFinishTimeLabel, firstIteration)}</p>
-                            <strong>${applyStyle(data, redefinedNumberingConfig, 3, request.estimatedFinishTime, firstIteration)}</strong>
+                            <p class="mb-2 small">${applyStyle(data, redefinedNumberingConfig, 2, request.estimatedFinishTimeLabel, {}, firstIteration)}</p>
+                            <strong>${applyStyle(data, redefinedNumberingConfig, 3, request.estimatedFinishTime, {}, firstIteration)}</strong>
                         </div>
                         <div class="col-2 d-flex justify-content-end align-items-start">
                             ${request.emergencyText} ${topRightIcon}
@@ -279,18 +292,18 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig, firstIt
                             </div>
                         </div>
                         <div class="col-12">
-                            <p>${applyStyle(data, redefinedNumberingConfig, 4, $.capitalize(request.requestStatus), firstIteration)}</p>
+                            <p>${applyStyle(data, redefinedNumberingConfig, 4, $.capitalize(request.requestStatus), {}, firstIteration)}</p>
                         </div>
                     </div>
                 </div>
                 <div class="wii-card-body p-2">
                     <div class="row">
                         <div class="col-12 card-title text-center">
-                            <strong>${applyStyle(data, redefinedNumberingConfig, 5, request.requestBodyTitle, firstIteration)}</strong>
+                            <strong>${applyStyle(data, redefinedNumberingConfig, 5, request.requestBodyTitle, {}, firstIteration)}</strong>
                         </div>
                         <div class="col-12">
                             <div class="w-100 d-inline-flex justify-content-center">
-                                ${applyStyle(data, redefinedNumberingConfig, 6, '<strong class="card-title m-0 mr-2"><i class="fa fa-map-marker-alt"></i></strong><strong class="ellipsis">' + request.requestLocation + '</strong>', firstIteration)}
+                                ${applyStyle(data, redefinedNumberingConfig, 6, '<strong class="card-title m-0 mr-2"><i class="fa fa-map-marker-alt"></i></strong><strong class="ellipsis">' + request.requestLocation + '</strong>', {}, firstIteration)}
                             </div>
                         </div>
                     </div>
@@ -298,12 +311,12 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig, firstIt
                 <div class="wii-card-footer">
                     <div class="row align-items-end">
                         <div class="col-6 text-left ellipsis">
-                            <span class="bold">${applyStyle(data, redefinedNumberingConfig, 7, request.requestNumber, firstIteration)}</span><br/>
-                            <span class="text-secondary">${applyStyle(data, redefinedNumberingConfig, 8, request.requestDate, firstIteration)}</span>
+                            <span class="bold">${applyStyle(data, redefinedNumberingConfig, 7, request.requestNumber, {}, firstIteration)}</span><br/>
+                            <span class="text-secondary">${applyStyle(data, redefinedNumberingConfig, 8, request.requestDate, {}, firstIteration)}</span>
                         </div>
                         <div class="col-6 text-right ellipsis">
                             <div class="profile-picture" style="background-color: #EEE">${requestUserFirstLetter}</div>
-                            <span class="bold">${applyStyle(data, redefinedNumberingConfig, 9, request.requestUser, firstIteration)}</span>
+                            <span class="bold">${applyStyle(data, redefinedNumberingConfig, 9, request.requestUser, {}, firstIteration)}</span>
                         </div>
                     </div>
                 </div>
@@ -320,15 +333,16 @@ function createEntriesToHandleElement(data, {meterKey}) {
     const numberingConfig = {numbering: 0};
     const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'}, true, numberingConfig);
     const $firstComponent = $('<div/>', {
+
         class: `w-100 pb-1 flex-fill dashboard-component h-100 mx-0 mt-0`,
         html: createIndicatorElement(
-            Object.assign({
+            Object.assign(data || {}, {
                 title: 'Nombre de lignes à traiter',
                 tooltip: data.linesCountTooltip,
                 count: data.count,
                 componentLink: data.componentLink,
                 backgroundColor: data.backgroundColor || undefined,
-            }, data || {}),
+            }),
             {
                 meterKey,
                 customContainerClass: 'overflow-hidden',
@@ -341,13 +355,13 @@ function createEntriesToHandleElement(data, {meterKey}) {
     const $secondComponent = $('<div/>', {
         class: `w-100 pt-1 flex-fill dashboard-component h-100 mx-0 mb-0`,
         html: createIndicatorElement(
-            Object.assign({
+            Object.assign(data || {},{
                 title: 'Prochain emplacement à traiter',
                 tooltip: data.nextLocationTooltip,
                 count: data.nextLocation,
                 componentLink: data.componentLink,
                 backgroundColor: data.backgroundColor || undefined,
-            }, data || {}),
+            }),
             {
                 meterKey,
                 customContainerClass: 'overflow-hidden',
@@ -428,7 +442,7 @@ function createLatePacksElement(data) {
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
-                <span>&nbsp&nbsp</span> ${applyStyle(data, numberingConfig, 1, title)}
+                ${applyStyle(data, numberingConfig, 1, title)}
             </div>
             ${createTooltip(data.tooltip)}
             ${content}
@@ -535,7 +549,6 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
         console.error('Invalid data for ' + (meterKey || '-').replaceAll('_', ' ') + ' element.');
         return false;
     }
-
     customContainerClass = customContainerClass || '';
     const {title, subtitle, tooltip, count, delay, componentLink, emergency, subCounts, backgroundColor} = data;
     const element = componentLink ? '<a/>' : '<div/>';
@@ -551,6 +564,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     const $emergencyIcon = needsEmergencyDisplay ? '<i class="fa fa-exclamation-triangle red"></i>' : $logoTag;
     const numberingConfig = {numbering: 0};
     const smartNumberingConfig = redefinedNumberingConfig ? redefinedNumberingConfig : numberingConfig
+
     return $(element, Object.assign({
         class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
         style: `${backgroundColor ? 'background-color:' + backgroundColor : ''}`,
@@ -558,22 +572,22 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
             createTooltip(tooltip),
             title
                 ? $('<div/>', {
-                    class: `text-center title ${meterKey === ENTRIES_TO_HANDLE ? '' : 'ellipsis'}`,
+                    class: `text-center`,
                     html: [
-                        $emergencyIcon,
-                        `<span class="title mx-3">
-                        ${withStyle(data, smartNumberingConfig, remainingConfig.titleBackendNumber || 1, title.split('(')[0])}</span>`,
-                        $emergencyIcon,
-                        `<p class="small ellipsis location-label">${subtitle
-                            ? withStyle(data, smartNumberingConfig, 2, subtitle)
-                            : ''}
-                        </p>`
+                        `<span class="title">
+                            ${$emergencyIcon}
+                            ${withStyle(data, smartNumberingConfig, remainingConfig.titleBackendNumber || 1, title)}
+                            ${$emergencyIcon}
+                         </span>`,
+                        `<p class="small scroll location-label">
+                            ${subtitle ? withStyle(data, smartNumberingConfig, 2, subtitle) : ''}
+                         </p>`
                     ]
                 })
                 : undefined,
             subtitle && !title
                 ? $('<div/>', {
-                    class: 'location-label ellipsis small',
+                    class: 'location-label scroll small',
                     html: withStyle(data, smartNumberingConfig, 2, subtitle)
                 })
                 : undefined,
@@ -586,20 +600,38 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
 
                 return $('<div/>', {
                     class: `align-items-center`,
-                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter ${needsEmergencyDisplay ? 'red' : ''}">
-                    ${((count || count === '0' || count === 0) ? (needsEmergencyDisplay ? count : applyStyle(data, smartNumberingConfig, remainingConfig.valueNumber || 3, count))  : '-')}</div>`,
+                    html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter scroll">
+                    ${((count || count === '0' || count === 0) ? (applyStyle(
+                        data,
+                        smartNumberingConfig,
+                        remainingConfig.valueNumber || 3,
+                        count,
+                        needsEmergencyDisplay ? OVERRIDE_FONT_RED : {}
+                    ))  : '-')}</div>`,
                 });
             })(),
             delay
                 ? $('<div/>', {
-                    class: `text-center title dashboard-stats-delay-title ${delay < 0 ? 'red' : ''}`,
-                    html: withStyle(data, smartNumberingConfig, 4, delay < 0 ? 'Retard : ' : 'A traiter sous : '),
+                    class: `text-center title dashboard-stats-delay-title`,
+                    html: withStyle(
+                        data,
+                        smartNumberingConfig,
+                        4,
+                        delay < 0 ? 'Retard : ' : 'A traiter sous : ',
+                        delay < 0 ? OVERRIDE_FONT_RED : {}
+                    ),
                 })
                 : undefined,
             delay
                 ? $('<div/>', {
-                    class: `${clickableClass} dashboard-stats dashboard-stats-delay ${delay < 0 ? 'red' : ''}`,
-                    html: withStyle(data, smartNumberingConfig, 5, !isNaN(Math.abs(delay)) ? renderMillisecondsToDelay(Math.abs(delay), 'display') : delay)
+                    class: `${clickableClass} dashboard-stats dashboard-stats-delay`,
+                    html: withStyle(
+                        data,
+                        smartNumberingConfig,
+                        5,
+                        !isNaN(Math.abs(delay)) ? renderMillisecondsToDelay(Math.abs(delay), 'display') : delay,
+                        delay < 0 ? OVERRIDE_FONT_RED : {}
+                    )
                 })
                 : undefined,
             ...((subCounts || [])
@@ -607,7 +639,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                 .map((subCount) => (
                     $('<div/>', {
                         class: `${clickableClass} dashboard-stats`,
-                        html: subCount ? withStyle(data, smartNumberingConfig, 9, subCount) : ''
+                        html: subCount ? withStyle(data, smartNumberingConfig, 9 + subCounts.indexOf(subCount), subCount) : ''
                     })
                 )))
         ].filter(Boolean)
@@ -691,7 +723,7 @@ function drawChartWithHisto($button, path, beforeAfter = 'now') {
 
 
 function updateSimpleChartData(chart, data, label, stack = false,
-                               {data: subData, label: lineChartLabel} = {data: undefined, label: undefined}, chartColor = '', chartColors = []) {
+                               {data: subData, label: lineChartLabel} = {data: undefined, label: undefined}, chartColors = []) {
     chart.data.datasets = [{data: [], label}];
     chart.data.labels = [];
     const dataKeys = Object.keys(data).filter((key) => key !== 'stack');
@@ -702,7 +734,7 @@ function updateSimpleChartData(chart, data, label, stack = false,
 
     const dataLength = chart.data.datasets[0].data.length;
     if(dataLength > 0) {
-        const color = chartColors.length > 0 ? chartColors[0] : chartColor;
+        const color = chartColors.length > 0 ? chartColors[0] : undefined;
         chart.data.datasets[0].backgroundColor = new Array(dataLength);
         chart.data.datasets[0].backgroundColor.fill(color);
     }
@@ -746,7 +778,6 @@ function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false,
                 data: data.subCounters,
                 label: data.subLabel
             },
-            data.chartColor || '',
             data.chartColors || []
         );
     }
@@ -987,6 +1018,7 @@ function updateMultipleChartData(chart, data) {
     chart.data.datasets = [];
 
     const dataKeys = Object.keys(chartData);
+    console.log(chartColors);
     for(const key of dataKeys) {
         const dataSubKeys = Object.keys(chartData[key]);
         chart.data.labels.push(key);
@@ -1018,9 +1050,9 @@ function updateMultipleChartData(chart, data) {
  * Useful for stylable elements that are displayed
  * multiple times in the same component.
  */
-function applyStyle(data, numberingConfig, backendNumber, value = ``, generateSuperscript = true) {
+function applyStyle(data, numberingConfig, backendNumber, value = ``, overrides = {}, generateSuperscript = true) {
     const fontSize = data['fontSize-' + backendNumber] || null;
-    const textColor = data['textColor-' + backendNumber] || null;
+    const textColor = overrides.color || (data['textColor-' + backendNumber] || null);
     const textBold = data['textBold-' + backendNumber]  ? 'checked' : '';
     const textItalic = data['textItalic-' + backendNumber] ? 'checked' : '';
     const textUnderline = data['textUnderline-' + backendNumber] ? 'checked' : '';
@@ -1028,8 +1060,7 @@ function applyStyle(data, numberingConfig, backendNumber, value = ``, generateSu
     if(generateSuperscript && numberingConfig && $('#modalComponentTypeSecondStep').hasClass('show')) {
         text = `<sup>(${numberingConfig.associations[backendNumber]})</sup>`;
     }
-
-    let style = ``;
+    let style = `white-space:nowrap;`;
 
     if(fontSize !== null) {
         style += `font-size: ${fontSize}pt;`;
@@ -1071,8 +1102,9 @@ function generateEditor(data, numberingConfig, backendNumbers) {
     if(!Array.isArray(backendNumbers)) {
         backendNumbers = [backendNumbers];
     }
+
     for(const number of backendNumbers) {
-        const $container = $(`.modal.show .component-numbering`);
+        const $container = $(`.modal.show[data-meter-key="${data.__meterKey}"] .component-numbering`);
         const fontSize = data['fontSize-' + number] || ``;
         const textColor = data['textColor-' + number] || "#FFFFFF";
         const textBold = data['textBold-' + number] ? 'checked' : '';
@@ -1110,9 +1142,9 @@ function generateEditor(data, numberingConfig, backendNumbers) {
  * Useful for text that is only rendered once
  * such as title.
  */
-function withStyle(data, numberingConfig, backendNumber, value) {
+function withStyle(data, numberingConfig, backendNumber, value, overrides = {}) {
     generateEditor(data, numberingConfig, backendNumber);
-    return applyStyle(data, numberingConfig, backendNumber, value);
+    return applyStyle(data, numberingConfig, backendNumber, value, overrides);
 }
 
 function generateColorPickerElement(data, key = 0) {

@@ -701,14 +701,15 @@ function onRowEdit() {
                     row.components = row.components.filter(c => kept.indexOf(c.columnIndex) !== -1);
                     for (let i = 0; i < row.components.length; i++) {
                         const component = row.components[i];
+                        const newIndex =  kept.indexOf(component.columnIndex);
 
                         if(columnMapping[component.columnIndex] !== undefined) {
                             component.updated = 1;
                             component.columnIndex = columnMapping[component.columnIndex];
                         } else {
-                            columnMapping[component.columnIndex] = i;
+                            columnMapping[component.columnIndex] = newIndex;
                             component.updated = 1;
-                            component.columnIndex = i;
+                            component.columnIndex = newIndex;
                         }
                     }
 
@@ -851,7 +852,7 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
             $modalComponentTypeSecondStep
                 .off('shown.bs.modal')
                 .on('shown.bs.modal', function() {
-                    initSecondStep(data.html);
+                    initSecondStep(data.html, component);
                 })
 
             $modalComponentTypeSecondStep.modal(`show`);
@@ -998,10 +999,12 @@ function editComponent(rowIndex, columnIndex, direction, cellIndex, {config, typ
     }
 }
 
-function initSecondStep(html) {
+function initSecondStep(html, component) {
     const $modalComponentTypeSecondStepContent = $modalComponentTypeSecondStep.find('.content');
     $modalComponentTypeSecondStepContent.html('');
     $modalComponentTypeSecondStepContent.html(html);
+
+    $modalComponentTypeSecondStep.attr(`data-meter-key`, component.meterKey);
 
     const $entitySelect = $modalComponentTypeSecondStepContent.find('select[name="entity"].init-entity-change');
     if ($entitySelect.length > 0) {
@@ -1051,6 +1054,8 @@ function initSecondStep(html) {
                 const reader = new FileReader();
                 reader.readAsDataURL($input.files[0]);
                 reader.onload = () => {
+                    const $deleteLogo = $modalComponentTypeSecondStep.find('.delete-logo');
+                    $deleteLogo.removeClass('d-none');
                     $modalComponentTypeSecondStep.find(`.external-image-content`)
                         .val(reader.result)
                         .trigger(`change`);
@@ -1455,12 +1460,14 @@ function removeUploadedFile($element) {
     const $uploadTypeLogo = $modal.find('.upload-component-image');
     const $titleTypeLogo = $modal.find('.title-component-image');
     const $logoContent = $modal.find('.external-image-content');
+    const $deleteLogo = $modal.find('.delete-logo');
 
     const uploadedFile = $uploadTypeLogo[0];
     $previewTypeLogo.addClass('d-none');
     showBSAlert(`Le fichier a bien été supprimé`, `success`);
 
     $logoContent.val('');
+    $deleteLogo.addClass('d-none');
     if(uploadedFile.files.length > 0) {
         delete uploadedFile.files[0];
         $previewTypeLogo.attr('src', '');
