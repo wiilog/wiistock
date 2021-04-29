@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Helper\FormatHelper;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
@@ -403,6 +404,19 @@ class Pack
             $this->referenceArticle->setTrackingPack($this);
         }
         return $this;
+    }
+
+    public function serialize(): array {
+        $lastTracking = $this->getLastTracking();
+        return [
+            "code" => $this->getCode(),
+            "ref_article" => $this->getCode(),
+            "nature_id" => $this->getNature() ? $this->getNature()->getId() : null,
+            "quantity" => $lastTracking ? $lastTracking->getQuantity() : 1,
+            "type" => $lastTracking && $lastTracking->getType() ? $lastTracking->getType()->getCode() : null,
+            "ref_emplacement" => $lastTracking && $lastTracking->getEmplacement() ? $lastTracking->getEmplacement()->getLabel() : null,
+            "date" => FormatHelper::datetime($lastTracking->getDatetime())
+        ];
     }
 
 }

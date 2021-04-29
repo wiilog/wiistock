@@ -9,6 +9,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
+use App\Entity\Group;
 use App\Entity\MailerServer;
 use App\Entity\Nature;
 use App\Entity\Pack;
@@ -44,6 +45,7 @@ use App\Service\DispatchService;
 use App\Service\AttachmentService;
 use App\Service\DemandeLivraisonService;
 use App\Service\ExceptionLoggerService;
+use App\Service\GroupService;
 use App\Service\InventoryService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
@@ -72,6 +74,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use DateTime;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Throwable;
 use Twig\Error\LoaderError;
@@ -1832,6 +1835,124 @@ class ApiController extends AbstractFOSRestController
                 : null;
         }
         return $this->json($res);
+    }
+
+    /**
+     * @Rest\Get("/api/pack-groups", name="api_get_pack_groups", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param NatureService $natureService
+     * @return JsonResponse
+     */
+    public function getPacksGroups(Request $request, EntityManagerInterface $entityManager): Response {
+        $code = $request->query->get('code');
+
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $pack = !empty($code)
+            ? $packRepository->findOneBy(['code' => $code])
+            : null;
+
+        if ($pack) {
+            $isPack = true;
+            $packSerialized = $pack->serialize();
+        }
+        else {
+            $packGroupRepository = $entityManager->getRepository(Group::class);
+            $packGroup = $packGroupRepository->findOneBy(['code' => $code]);
+            if ($packGroup) {
+                $packGroupSerialized = $packGroup->serialize();
+            }
+        }
+
+        return $this->json([
+            "success" => true,
+            "isPack" => $isPack ?? false,
+            "pack" => $packSerialized ?? null,
+            "packGroup" => $packGroupSerialized ?? null,
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/group", name="api_group", methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function group(Request $request, EntityManagerInterface $manager, TrackingMovementService $trackingMovementService): Response {
+        $groupRepository = $manager->getRepository(Group::class);
+        $packRepository = $manager->getRepository(Pack::class);
+        $natureRepository = $manager->getRepository(Nature::class);
+
+        $group = $groupRepository->find($request->request->get("id"));
+        if (!$group) {
+            $group = (new Group())
+                ->setCode($request->request->get("code"))
+                ->setIteration(1);
+
+            $manager->persist($group);
+        } else if ($group->getPacks()->isEmpty()) {
+            $group->setIteration($group->getIteration() + 1);
+        }
+
+        $packs = json_decode($request->request->get("packs"), true);
+        foreach ($packs as $data) {
+            if (isset($data["id"])) {
+                $pack = $packRepository->find($data["id"]);
+            } else {
+                $pack = (new Pack())->setCode($data["code"]);
+                $manager->persist($pack);
+            }
+
+            $pack->setNature($data["nature_id"] ? $natureRepository->find($data["nature_id"]) : null)
+                ->setQuantity($data["quantity"]);
+
+            $group->addPack($pack);
+
+            $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
+                $pack,
+                null,
+                $this->getUser(),
+                DateTime::createFromFormat("d/m/Y H:i:s", $data["date"]),
+                true,
+                true,
+                TrackingMovement::TYPE_GROUP,
+                ["group" => $group]
+            );
+
+            $manager->persist($groupingTrackingMovement);
+        }
+
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Groupage synchronisé",
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/ungroup", name="api_ungroup", methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function ungroup(Request $request, EntityManagerInterface $manager, GroupService $groupService): Response {
+        $locationRepository = $manager->getRepository(Emplacement::class);
+        $groupRepository = $manager->getRepository(Group::class);
+
+        $date = DateTime::createFromFormat("d/m/Y H:i:s", $request->request->get("date"));
+        $location = $locationRepository->find($request->request->get("location"));
+        $group = $groupRepository->find($request->request->get("group"));
+
+        $groupService->ungroup($manager, $group, $location, $this->getUser(), $date);
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Dégroupage synchronisé",
+        ]);
     }
 
     /**
