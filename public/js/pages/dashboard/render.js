@@ -331,16 +331,17 @@ function createEntriesToHandleElement(data, {meterKey}) {
     }
     const numberingConfig = {numbering: 0};
     const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'}, true, numberingConfig);
+    console.log(data);
     const $firstComponent = $('<div/>', {
         class: `w-100 pb-1 flex-fill dashboard-component h-100 mx-0 mt-0`,
         html: createIndicatorElement(
-            Object.assign({
+            Object.assign(data || {}, {
                 title: 'Nombre de lignes à traiter',
                 tooltip: data.linesCountTooltip,
                 count: data.count,
                 componentLink: data.componentLink,
                 backgroundColor: data.backgroundColor || undefined,
-            }, data || {}),
+            }),
             {
                 meterKey,
                 customContainerClass: 'overflow-hidden',
@@ -353,13 +354,13 @@ function createEntriesToHandleElement(data, {meterKey}) {
     const $secondComponent = $('<div/>', {
         class: `w-100 pt-1 flex-fill dashboard-component h-100 mx-0 mb-0`,
         html: createIndicatorElement(
-            Object.assign({
+            Object.assign(data || {},{
                 title: 'Prochain emplacement à traiter',
                 tooltip: data.nextLocationTooltip,
                 count: data.nextLocation,
                 componentLink: data.componentLink,
                 backgroundColor: data.backgroundColor || undefined,
-            }, data || {}),
+            }),
             {
                 meterKey,
                 customContainerClass: 'overflow-hidden',
@@ -547,7 +548,6 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
         console.error('Invalid data for ' + (meterKey || '-').replaceAll('_', ' ') + ' element.');
         return false;
     }
-
     customContainerClass = customContainerClass || '';
     const {title, subtitle, tooltip, count, delay, componentLink, emergency, subCounts, backgroundColor} = data;
     const element = componentLink ? '<a/>' : '<div/>';
