@@ -34,7 +34,7 @@ use App\Entity\WorkFreeDay;
 use App\Entity\Wiilock;
 use App\Helper\FormatHelper;
 use App\Helper\QueryCounter;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;

@@ -13,7 +13,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 
 use App\Helper\QueryCounter;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
 use DateTime;
 use DateTimeZone;

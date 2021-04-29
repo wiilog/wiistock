@@ -13,7 +13,7 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Service\DashboardSettingsService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;

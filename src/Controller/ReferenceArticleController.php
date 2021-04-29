@@ -22,7 +22,7 @@ use App\Entity\CategorieCL;
 use App\Entity\Collecte;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Service\DemandeCollecteService;
 use App\Service\MouvementStockService;
 use App\Service\FreeFieldService;

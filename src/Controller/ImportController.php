@@ -17,7 +17,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\ImportException;
-use App\Helper\StringHelper;
+use WiiCommon\Helper\StringHelper;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
 use App\Service\UserService;

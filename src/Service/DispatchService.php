@@ -31,7 +31,7 @@ use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
 use Twig\Environment as Twig_Environment;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 
 class DispatchService {
 

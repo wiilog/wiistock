@@ -7,7 +7,7 @@ use App\Entity\Article;
 use App\Entity\FiltreSup;
 use App\Entity\Litige;
 use App\Entity\Utilisateur;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Repository\LitigeRepository;
 use Exception;
 use Symfony\Component\Security\Core\Security;

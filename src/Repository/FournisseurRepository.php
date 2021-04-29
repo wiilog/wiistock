@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Pack;
 use App\Entity\Fournisseur;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 

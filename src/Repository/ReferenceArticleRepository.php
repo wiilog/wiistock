@@ -11,7 +11,7 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
 use App\Helper\QueryCounter;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;

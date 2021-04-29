@@ -5,7 +5,7 @@ namespace App\Service;
 use App\Entity\CategorieCL;
 use App\Entity\FreeField;
 use App\Entity\FreeFieldEntity;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;

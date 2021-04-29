@@ -23,7 +23,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ImportException;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;

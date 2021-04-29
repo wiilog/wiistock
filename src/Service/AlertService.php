@@ -9,7 +9,7 @@ use App\Entity\FreeField;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
