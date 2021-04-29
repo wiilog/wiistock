@@ -173,8 +173,6 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
             Menu::NOMADE => [
                 Action::MODULE_ACCESS_STOCK,
                 Action::MODULE_ACCESS_TRACA,
-                Action::MODULE_ACCESS_GROUP,
-                Action::MODULE_ACCESS_UNGROUP,
                 Menu::NOMADE => Action::MODULE_ACCESS_HAND
             ]
         ];
