@@ -297,8 +297,8 @@ class DashboardSettingsService {
         }
 
         if(isset($config['cardBackgroundColor']) && $config['cardBackgroundColor'] !== '#ffffff') {
-            foreach ($values["requests"] ?? [] as &$request) {
-                $request['cardBackgroundColor'] = $config['cardBackgroundColor'];
+            foreach ($values["requests"] ?? [] as $key => $request) {
+                $values["requests"][$key]['cardBackgroundColor'] = $config['cardBackgroundColor'];
             }
         }
 
