@@ -438,7 +438,7 @@ function createLatePacksElement(data) {
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
-                <span>&nbsp&nbsp</span> ${applyStyle(data, numberingConfig, 1, title)}
+                ${applyStyle(data, numberingConfig, 1, title)}
             </div>
             ${createTooltip(data.tooltip)}
             ${content}
