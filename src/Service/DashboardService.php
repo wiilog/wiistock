@@ -339,11 +339,10 @@ class DashboardService {
         );
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
-
-        $secondCount = '<span class="text-wii-green">'
-            . $numberOfOperations
+        $secondCount = '<span>'
+            . ($numberOfOperations ?? '0')
             . '</span><span class="text-wii-black"> lignes</span>';
-        $thirdCount = '<span class="text-wii-red">'
+        $thirdCount = '<span>'
             . $numberOfEmergenciesHandlings
             . '/'
             . $numberOfHandlings
