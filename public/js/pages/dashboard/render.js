@@ -136,6 +136,7 @@ const creators = {
  * @return {boolean}
  */
 function renderComponent(component, $container, data) {
+    data.__meterKey = component.meterKey;
     $container.empty();
 
     if(!creators[component.meterKey]) {
@@ -148,6 +149,7 @@ function renderComponent(component, $container, data) {
             resetColorPickersElementsToForm($modal, data);
             $modal.find(`.component-numbering`).empty();
         }
+
         const {callback, arguments} = creators[component.meterKey];
         const $element = callback(
             data,
@@ -721,7 +723,7 @@ function drawChartWithHisto($button, path, beforeAfter = 'now') {
 
 
 function updateSimpleChartData(chart, data, label, stack = false,
-                               {data: subData, label: lineChartLabel} = {data: undefined, label: undefined}, chartColor = '', chartColors = []) {
+                               {data: subData, label: lineChartLabel} = {data: undefined, label: undefined}, chartColors = []) {
     chart.data.datasets = [{data: [], label}];
     chart.data.labels = [];
     const dataKeys = Object.keys(data).filter((key) => key !== 'stack');
@@ -732,7 +734,7 @@ function updateSimpleChartData(chart, data, label, stack = false,
 
     const dataLength = chart.data.datasets[0].data.length;
     if(dataLength > 0) {
-        const color = chartColors.length > 0 ? chartColors[0] : chartColor;
+        const color = chartColors.length > 0 ? chartColors[0] : undefined;
         chart.data.datasets[0].backgroundColor = new Array(dataLength);
         chart.data.datasets[0].backgroundColor.fill(color);
     }
@@ -776,7 +778,6 @@ function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false,
                 data: data.subCounters,
                 label: data.subLabel
             },
-            data.chartColor || '',
             data.chartColors || []
         );
     }
@@ -1017,6 +1018,7 @@ function updateMultipleChartData(chart, data) {
     chart.data.datasets = [];
 
     const dataKeys = Object.keys(chartData);
+    console.log(chartColors);
     for(const key of dataKeys) {
         const dataSubKeys = Object.keys(chartData[key]);
         chart.data.labels.push(key);
@@ -1100,8 +1102,9 @@ function generateEditor(data, numberingConfig, backendNumbers) {
     if(!Array.isArray(backendNumbers)) {
         backendNumbers = [backendNumbers];
     }
+
     for(const number of backendNumbers) {
-        const $container = $(`.modal.show .component-numbering`);
+        const $container = $(`.modal.show[data-meter-key="${data.__meterKey}"] .component-numbering`);
         const fontSize = data['fontSize-' + number] || ``;
         const textColor = data['textColor-' + number] || "#FFFFFF";
         const textBold = data['textBold-' + number] ? 'checked' : '';

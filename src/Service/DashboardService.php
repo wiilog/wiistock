@@ -470,8 +470,8 @@ class DashboardService {
 
         $config = $component->getConfig();
 
-        $legend1 = $config['originCaption'];
-        $legend2 = $config['destinationCaption'];
+        $legend1 = $config['originCaption'] ?: 'Legende1';
+        $legend2 = $config['destinationCaption'] ?: 'Legende2';
         $clusterKeys = ['firstOriginLocation', 'secondOriginLocation', 'firstDestinationLocation', 'secondDestinationLocation'];
         foreach ($clusterKeys as $key) {
             $this->updateComponentLocationCluster($entityManager, $component, $key);
@@ -482,8 +482,8 @@ class DashboardService {
             && $component->getLocationCluster('firstOriginLocation')->getLocations()->count() > 0;
         $data = [
             'chartColors' => [
-                $legend1 => $config['charColors'][0] ?? null,
-                $legend2 => $config['charColors'][1] ?? null
+                $legend1 => $config['chartColors'][$legend1] ?? null,
+                $legend2 => $config['chartColors'][$legend2] ?? null
             ],
             'chartData' => $this->getDailyObjectsStatistics($entityManager, DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE, function (DateTime $date) use (
                 $legend1,
