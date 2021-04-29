@@ -1,6 +1,8 @@
 let currentChartsFontSize;
 let fontSizeYAxes;
 
+const MARQUEE_PADDING = `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
+
 const ONGOING_PACK = 'ongoing_packs';
 const DAILY_ARRIVALS = 'daily_arrivals';
 const LATE_PACKS = 'late_packs';
@@ -38,7 +40,7 @@ $(document).arrive('.scroll', function() {
     const $element = $(this);
     const $mainParent = $element.closest(`.dashboard-component`);
     if($mainParent.width() < $element[0].scrollWidth) {
-        $element.html(`<marquee behavior="alternate">${$element.html()}</marquee>`);
+        $element.html(`<marquee behavior="alternate">${MARQUEE_PADDING}${$element.html()}${MARQUEE_PADDING}</marquee>`);
     }
 });
 
