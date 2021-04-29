@@ -143,3 +143,23 @@ function toExport() {
         saveExportFile(`export_groups`);
     }
 }
+
+function initializeGroupHistoryTable(packId) {
+    initDataTable('groupHistoryTable', {
+        serverSide: true,
+        processing: true,
+        order: [['date', "desc"]],
+        ajax: {
+            "url": Routing.generate('group_history_api', {pack: packId}, true),
+            "type": "POST"
+        },
+        columns: [
+            {data: 'group', name: 'group', title: 'Groupe'},
+            {data: 'date', name: 'date', title: 'Date'},
+            {data: 'type', name: 'type', title: 'Type'},
+        ],
+        domConfig: {
+            needsPartialDomOverride: true,
+        }
+    });
+}
