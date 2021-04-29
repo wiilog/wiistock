@@ -852,7 +852,7 @@ function openModalComponentTypeSecondStep($button, rowIndex, component) {
             $modalComponentTypeSecondStep
                 .off('shown.bs.modal')
                 .on('shown.bs.modal', function() {
-                    initSecondStep(data.html);
+                    initSecondStep(data.html, component);
                 })
 
             $modalComponentTypeSecondStep.modal(`show`);
@@ -999,10 +999,12 @@ function editComponent(rowIndex, columnIndex, direction, cellIndex, {config, typ
     }
 }
 
-function initSecondStep(html) {
+function initSecondStep(html, component) {
     const $modalComponentTypeSecondStepContent = $modalComponentTypeSecondStep.find('.content');
     $modalComponentTypeSecondStepContent.html('');
     $modalComponentTypeSecondStepContent.html(html);
+
+    $modalComponentTypeSecondStep.attr(`data-meter-key`, component.meterKey);
 
     const $entitySelect = $modalComponentTypeSecondStepContent.find('select[name="entity"].init-entity-change');
     if ($entitySelect.length > 0) {

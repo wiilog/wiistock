@@ -136,6 +136,7 @@ const creators = {
  * @return {boolean}
  */
 function renderComponent(component, $container, data) {
+    data.__meterKey = component.meterKey;
     $container.empty();
 
     if(!creators[component.meterKey]) {
@@ -148,6 +149,7 @@ function renderComponent(component, $container, data) {
             resetColorPickersElementsToForm($modal, data);
             $modal.find(`.component-numbering`).empty();
         }
+
         const {callback, arguments} = creators[component.meterKey];
         const $element = callback(
             data,
@@ -1100,8 +1102,9 @@ function generateEditor(data, numberingConfig, backendNumbers) {
     if(!Array.isArray(backendNumbers)) {
         backendNumbers = [backendNumbers];
     }
+
     for(const number of backendNumbers) {
-        const $container = $(`.modal.show .component-numbering`);
+        const $container = $(`.modal.show[data-meter-key="${data.__meterKey}"] .component-numbering`);
         const fontSize = data['fontSize-' + number] || ``;
         const textColor = data['textColor-' + number] || "#FFFFFF";
         const textBold = data['textBold-' + number] ? 'checked' : '';
