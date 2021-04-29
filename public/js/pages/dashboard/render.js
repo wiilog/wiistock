@@ -143,7 +143,6 @@ function renderComponent(component, $container, data) {
             resetColorPickersElementsToForm($modal, data);
             $modal.find(`.component-numbering`).empty();
         }
-
         const {callback, arguments} = creators[component.meterKey];
         const $element = callback(
             data,
@@ -326,7 +325,6 @@ function createEntriesToHandleElement(data, {meterKey}) {
     }
     const numberingConfig = {numbering: 0};
     const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'}, true, numberingConfig);
-    console.log(data);
     const $firstComponent = $('<div/>', {
         class: `w-100 pb-1 flex-fill dashboard-component h-100 mx-0 mt-0`,
         html: createIndicatorElement(
