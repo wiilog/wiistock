@@ -42,7 +42,7 @@ $(document).arrive('.scroll, .dashboard-box .title', function() {
     const $element = $(this);
     const $mainParent = $element.closest(`.dashboard-component`);
 
-    if($mainParent.width() - 10 < $element.width() || $mainParent.width() - 10 < $element[0].scrollWidth) {
+    if($mainParent.width() < $element.width() || $mainParent.width() < $element[0].scrollWidth) {
         $element.html(`<marquee behavior="alternate">${MARQUEE_PADDING}${$element.html()}${MARQUEE_PADDING}</marquee>`);
     }
 });
