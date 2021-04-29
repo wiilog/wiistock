@@ -3,7 +3,7 @@ let fontSizeYAxes;
 
 const MARQUEE_PADDING = `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
 
-const OVERRIDE_FONT_RED = {color: `#FF0000`};
+const OVERRIDE_FONT_RED = {color: `#CC0000`};
 
 const ONGOING_PACK = 'ongoing_packs';
 const DAILY_ARRIVALS = 'daily_arrivals';
@@ -597,7 +597,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                 return $('<div/>', {
                     class: `align-items-center`,
                     html: `<div class="${clickableClass} dashboard-stats dashboard-stats-counter">
-                    ${((count || count === '0' || count === 0) ? (needsEmergencyDisplay ? count : applyStyle(
+                    ${((count || count === '0' || count === 0) ? (applyStyle(
                         data,
                         smartNumberingConfig,
                         remainingConfig.valueNumber || 3,
@@ -1048,7 +1048,7 @@ function updateMultipleChartData(chart, data) {
  */
 function applyStyle(data, numberingConfig, backendNumber, value = ``, overrides = {}, generateSuperscript = true) {
     const fontSize = data['fontSize-' + backendNumber] || null;
-    const textColor = data['textColor-' + backendNumber] || null;
+    const textColor = overrides.color || (data['textColor-' + backendNumber] || null);
     const textBold = data['textBold-' + backendNumber]  ? 'checked' : '';
     const textItalic = data['textItalic-' + backendNumber] ? 'checked' : '';
     const textUnderline = data['textUnderline-' + backendNumber] ? 'checked' : '';
@@ -1056,7 +1056,6 @@ function applyStyle(data, numberingConfig, backendNumber, value = ``, overrides 
     if(generateSuperscript && numberingConfig && $('#modalComponentTypeSecondStep').hasClass('show')) {
         text = `<sup>(${numberingConfig.associations[backendNumber]})</sup>`;
     }
-
     let style = `white-space:nowrap;`;
 
     if(fontSize !== null) {
