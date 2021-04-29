@@ -1151,7 +1151,7 @@ function generateColorPickerElement(data, key = 0) {
         class: 'd-flex justify-content-between align-items-center mx-5',
         html: $(`<input/>`, {
             type: `color`,
-            class: `data-array form-control needed w-50`,
+            class: `data-array form-control needed w-50 chart-color-picker`,
             'data-id': key,
             name: `chartColors`,
             value: data.chartColors[key]

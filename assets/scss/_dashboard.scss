@@ -558,3 +558,7 @@ sup {
 .text-underline-selector {
     @include font-style-selector('../img/underline.svg');
 }
+
+.chart-color-picker {
+    margin: 5px 20% 5px 0;
+}
