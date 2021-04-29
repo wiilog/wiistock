@@ -44,7 +44,6 @@ $(document).arrive('.scroll', function() {
     if($mainParent.width() < $element[0].scrollWidth) {
         $element.html(`<marquee behavior="alternate">${MARQUEE_PADDING}${$element.html()}${MARQUEE_PADDING}</marquee>`);
     }
-    console.log($element.html(), $mainParent.width(), $element[0].scrollWidth, $mainParent.width() < $element[0].scrollWidth);
 });
 
 const creators = {
