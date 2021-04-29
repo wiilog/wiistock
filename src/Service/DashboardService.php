@@ -522,6 +522,7 @@ class DashboardService {
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $locationClusterMeterRepository = $entityManager->getRepository(LocationClusterMeter::class);
 
+        $config = $component->getConfig();
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
         $clusterKey = 'locations';
         $this->updateComponentLocationCluster($entityManager, $component, $clusterKey);
@@ -535,8 +536,12 @@ class DashboardService {
             );
         }, $workFreeDays);
 
+        $chartColors = $config['chartColors'] ?? [Dashboard\ComponentType::DEFAULT_CHART_COLOR];
+
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
-        $meter->setData($packsCountByDays);
+        $meter
+            ->setData($packsCountByDays)
+            ->setChartColors($chartColors);
     }
 
 
