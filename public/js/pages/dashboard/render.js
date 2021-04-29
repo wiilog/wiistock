@@ -38,13 +38,13 @@ $(function() {
     fontSizeYAxes = currentChartsFontSize * 0.5;
 })
 
-$(document).arrive('.scroll', function() {
+$(document).arrive('.scroll, .dashboard-box .title', function() {
     const $element = $(this);
     const $mainParent = $element.closest(`.dashboard-component`);
-    if($mainParent.width() < $element[0].scrollWidth) {
+
+    if($mainParent.width() - 10 < $element.width() || $mainParent.width() - 10 < $element[0].scrollWidth) {
         $element.html(`<marquee behavior="alternate">${MARQUEE_PADDING}${$element.html()}${MARQUEE_PADDING}</marquee>`);
     }
-    console.log($element.html(), $mainParent.width(), $element[0].scrollWidth, $mainParent.width() < $element[0].scrollWidth);
 });
 
 const creators = {
@@ -148,7 +148,6 @@ function renderComponent(component, $container, data) {
             resetColorPickersElementsToForm($modal, data);
             $modal.find(`.component-numbering`).empty();
         }
-
         const {callback, arguments} = creators[component.meterKey];
         const $element = callback(
             data,
@@ -254,7 +253,7 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig, firstIt
 
     const requestUserFirstLetter = request.requestUser.charAt(0).toUpperCase();
 
-    const defaultCardSize = 'col-12 col-lg-4 col-xl-3';
+    const defaultCardSize = `col-12 col-lg-${mode === MODE_EDIT ? '6' : '4'} col-xl-${mode === MODE_EDIT ? '6' : '3'}`;
     const cardSizeRowSizeMatching = {
         1: 'col-12 col-lg-4 col-xl-3',
         2: 'col-12 col-lg-5',
@@ -331,7 +330,6 @@ function createEntriesToHandleElement(data, {meterKey}) {
     }
     const numberingConfig = {numbering: 0};
     const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'}, true, numberingConfig);
-    console.log(data);
     const $firstComponent = $('<div/>', {
         class: `w-100 pb-1 flex-fill dashboard-component h-100 mx-0 mt-0`,
         html: createIndicatorElement(
@@ -441,7 +439,7 @@ function createLatePacksElement(data) {
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
             <div class="title">
-                <span>&nbsp&nbsp</span> ${applyStyle(data, numberingConfig, 1, title)}
+                ${applyStyle(data, numberingConfig, 1, title)}
             </div>
             ${createTooltip(data.tooltip)}
             ${content}
@@ -571,13 +569,13 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
             createTooltip(tooltip),
             title
                 ? $('<div/>', {
-                    class: `text-center title`,
+                    class: `text-center`,
                     html: [
-                        $emergencyIcon,
-                        `<p class="title scroll">
+                        `<span class="title">
+                            ${$emergencyIcon}
                             ${withStyle(data, smartNumberingConfig, remainingConfig.titleBackendNumber || 1, title)}
-                         </p>`,
-                        $emergencyIcon,
+                            ${$emergencyIcon}
+                         </span>`,
                         `<p class="small scroll location-label">
                             ${subtitle ? withStyle(data, smartNumberingConfig, 2, subtitle) : ''}
                          </p>`
@@ -638,7 +636,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                 .map((subCount) => (
                     $('<div/>', {
                         class: `${clickableClass} dashboard-stats`,
-                        html: subCount ? withStyle(data, smartNumberingConfig, 9, subCount) : ''
+                        html: subCount ? withStyle(data, smartNumberingConfig, 9 + subCounts.indexOf(subCount), subCount) : ''
                     })
                 )))
         ].filter(Boolean)

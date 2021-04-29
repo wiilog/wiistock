@@ -297,8 +297,8 @@ class DashboardSettingsService {
         }
 
         if(isset($config['cardBackgroundColor']) && $config['cardBackgroundColor'] !== '#ffffff') {
-            foreach ($values["requests"] ?? [] as &$request) {
-                $request['cardBackgroundColor'] = $config['cardBackgroundColor'];
+            foreach ($values["requests"] ?? [] as $key => $request) {
+                $values["requests"][$key]['cardBackgroundColor'] = $config['cardBackgroundColor'];
             }
         }
 
@@ -333,7 +333,6 @@ class DashboardSettingsService {
                         $carry['defaultCounters'][$nature->getLabel()] = random_int(0, 30);
                         return $carry;
                     }, ['chartColors' => [], 'defaultCounters' => []]);
-
                 $values['chartColors'] = $generated['chartColors'];
                 $defaultCounters = $generated['defaultCounters'];
             } else {
@@ -358,7 +357,6 @@ class DashboardSettingsService {
             } else {
                 $segmentsLabels = array_keys($values['chartData'] ?? []);
             }
-
             $values['chartData'] = Stream::from($segmentsLabels)
                 ->reduce(function(array $carry, string $segmentLabel) use ($defaultCounters) {
                     $carry[$segmentLabel] = $defaultCounters;
