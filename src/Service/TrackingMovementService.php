@@ -23,6 +23,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\Stream;
 use DateTime;
+use DateTimeInterface;
 use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -196,7 +197,7 @@ class TrackingMovementService
         return $rows;
     }
 
-    public function handleGroups(array $data, EntityManagerInterface $entityManager, Utilisateur $operator, array &$createdMovements): array {
+    public function handleGroups(array $data, EntityManagerInterface $entityManager, Utilisateur $operator): array {
         $groupRepository = $entityManager->getRepository(Group::class);
         $packRepository = $entityManager->getRepository(Pack::class);
         $group = $data['group'];
@@ -440,7 +441,7 @@ class TrackingMovementService
 
         $uniqueId = null;
         //same format as moment.defaultFormat
-        $dateStr = $date->format(DateTime::ATOM);
+        $dateStr = $date->format(DateTimeInterface::ATOM);
         $randomLength = 9;
         do {
             $random = strtolower(substr(sha1(rand()), 0, $randomLength));

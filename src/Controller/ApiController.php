@@ -528,7 +528,7 @@ class ApiController extends AbstractFOSRestController
             if ($preparation) {
                 // if it has not been begun
                 try {
-                    $dateEnd = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
+                    $dateEnd = DateTime::createFromFormat(DateTimeInterface::ATOM, $preparationArray['date_end']);
                     // flush auto at the end
                     $entityManager->transactional(function () use (
                         &$insertedPrepasIds,
@@ -869,7 +869,7 @@ class ApiController extends AbstractFOSRestController
             $livraison = $livraisonRepository->find($livraisonArray['id']);
 
             if ($livraison) {
-                $dateEnd = DateTime::createFromFormat(DateTime::ATOM, $livraisonArray['date_end']);
+                $dateEnd = DateTime::createFromFormat(DateTimeInterface::ATOM, $livraisonArray['date_end']);
                 $location = $emplacementRepository->findOneByLabel($livraisonArray['location']);
                 try {
                     if ($location) {
@@ -917,6 +917,83 @@ class ApiController extends AbstractFOSRestController
         }
 
         return new JsonResponse($resData, $statusCode);
+    }
+
+    /**
+     * @Rest\Post("/api/pack-groups", name="api_post_pack_groups", condition="request.isXmlHttpRequest()")
+     * @Rest\View()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function postGroupedTracking(Request $request,
+                                        EntityManagerInterface $entityManager,
+                                        TrackingMovementService $trackingMovementService): JsonResponse {
+
+        /** @var Utilisateur $nomadUser */
+        $operator = $this->getUser();
+        $groupRepository = $entityManager->getRepository(Group::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+        $movementsStr = $request->request->get('mouvement');
+        $movements = json_decode($movementsStr, true);
+        $groupsArray = Stream::from($movements)
+            ->map(function($movement) {
+                $date = explode('+', $movement['date']);
+                $date = $date[0] ?? $movement['date'];
+                return [
+                    'code' => $movement['ref_article'],
+                    'location' => $movement['ref_emplacement'],
+                    'nature_id' => $movement['nature_id'],
+                    'date' => new DateTime($date ?? 'now', new DateTimeZone('Europe/Paris')),
+                    'type' => $movement['prise']
+                ];
+            })
+            ->toArray();
+
+        foreach ($groupsArray as $serializedGroup) {
+            $group = $groupRepository->findOneBy(['code' => $serializedGroup['code']]);
+            if ($group && !$group->getPacks()->isEmpty()) {
+                $nature = $natureRepository->find($serializedGroup['nature_id']);
+                $group->setNature($nature);
+
+                $location = $locationRepository->findOneBy(['label' => $serializedGroup['location']]);
+
+                $trackingMovement = $trackingMovementService->createTrackingMovement(
+                    $colis,
+                    null,
+                    $operator,
+                    new DateTime('now', new DateTimeZone('Europe/Paris')),
+                    $data['fromNomade'] ?? false,
+                    true,
+                    TrackingMovement::TYPE_GROUP,
+                    [
+                        'group' => $group
+                    ]
+                );
+
+            }
+        }
+
+        $groupTreatment = $trackingMovementService->handleGroups(
+            $request->request->all(),
+            $entityManager,
+            $operator
+        );
+
+
+        if (isset($groupTreatment['msg'])) {
+            $groupTreatment['message'] = $grou²pTreatment['msg'];
+            unset($groupTreatment['msg']);
+        }
+
+        if (!$groupTreatment['success']) {
+            return $this->json($groupTreatment);
+        }
+
+        return $this->json([
+            'success' => true,
+        ]);
     }
 
     /**
@@ -970,7 +1047,7 @@ class ApiController extends AbstractFOSRestController
                     $ordreCollecteService
                 ) {
                     $ordreCollecteService->setEntityManager($entityManager);
-                    $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end'], new DateTimeZone('Europe/Paris'));
+                    $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $collecteArray['date_end'], new DateTimeZone('Europe/Paris'));
 
                     $newCollecte = $ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $collecteArray['mouvements'], true);
                     $entityManager->flush();
@@ -1789,74 +1866,62 @@ class ApiController extends AbstractFOSRestController
      */
     public function getPackData(Request $request,
                                 EntityManagerInterface $entityManager,
-                                ReceptionService $receptionService,
                                 NatureService $natureService): Response
     {
         $code = $request->query->get('code');
-        $includeExisting = $request->query->getBoolean('existing');
         $includeNature = $request->query->getBoolean('nature');
         $includeGroup = $request->query->getBoolean('group');
         $res = ['success' => true];
+
         $packRepository = $entityManager->getRepository(Pack::class);
         $packs = !empty($code)
             ? $packRepository->findBy(['code' => $code])
             : [];
-        if ($includeGroup) {
-            $res['group'] = null;
+
+        $isPack = !empty($packs);
+        $res['isPack'] = $isPack;
+
+        if (!$isPack) {
+            $packGroupRepository = $entityManager->getRepository(Group::class);
+            $packGroup = !empty($code)
+                ? $packGroupRepository->findOneBy(['code' => $code])
+                : null;
+
+            if ($packGroup) {
+                $res['isGroup'] = true;
+                if ($includeGroup) {
+                    $res['group'] = $packGroup->serialize();
+                }
+
+                if ($includeNature) {
+                    $nature = $packGroup->getNature();
+                    $res['nature'] = !empty($nature)
+                        ? $natureService->serializeNature($nature)
+                        : null;
+                }
+            }
+            else {
+                $res['isGroup'] = false;
+            }
         }
-        if (!empty($packs)) {
+        else { // isPack
+            $res['isGroup'] = false;
+
             $pack = $packs[0];
             $nature = $pack->getNature();
+
             if ($includeGroup) {
-                $res['group'] = $pack->getGroup();
+                $res['group'] = $pack->getGroup()->serialize();
+            }
+
+            if ($includeNature) {
+                $res['nature'] = !empty($nature)
+                    ? $natureService->serializeNature($nature)
+                    : null;
             }
         }
-        if ($includeExisting) {
-            $res['existing'] = !empty($packs);
-        }
-        if ($includeNature) {
-            $res['nature'] = !empty($nature)
-                ? $natureService->serializeNature($nature)
-                : null;
-        }
+
         return $this->json($res);
-    }
-
-    /**
-     * @Rest\Get("/api/pack-groups", name="api_get_pack_groups", condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param NatureService $natureService
-     * @return JsonResponse
-     */
-    public function getPacksGroups(Request $request, EntityManagerInterface $entityManager): Response {
-        $code = $request->query->get('code');
-
-        $packRepository = $entityManager->getRepository(Pack::class);
-
-        $pack = !empty($code)
-            ? $packRepository->findOneBy(['code' => $code])
-            : null;
-
-        if ($pack) {
-            $isPack = true;
-        }
-        else {
-            $packGroupRepository = $entityManager->getRepository(Group::class);
-            $packGroup = $packGroupRepository->findOneBy(['code' => $code]);
-            if ($packGroup) {
-                $packGroupSerialized = $packGroup->serialize();
-            }
-        }
-
-        return $this->json([
-            "success" => true,
-            "isPack" => $isPack ?? false,
-            "packGroup" => $packGroupSerialized ?? null
-        ]);
     }
 
     /**
