@@ -535,6 +535,7 @@ sup {
         height: 30px;
         border: 2px solid black;
         border-radius: 4px;
+        cursor: pointer;
     }
 
     input:checked ~ i {
@@ -556,4 +557,12 @@ sup {
 
 .text-underline-selector {
     @include font-style-selector('../img/underline.svg');
+}
+
+.chart-color-picker {
+    margin: 5px 20% 5px 0;
+}
+
+.scroll, .dashboard-box .title {
+    white-space: nowrap;
 }

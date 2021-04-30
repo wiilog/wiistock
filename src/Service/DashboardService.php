@@ -339,11 +339,10 @@ class DashboardService {
         );
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
-
-        $secondCount = '<span class="text-wii-green">'
-            . $numberOfOperations
+        $secondCount = '<span>'
+            . ($numberOfOperations ?? '0')
             . '</span><span class="text-wii-black"> lignes</span>';
-        $thirdCount = '<span class="text-wii-red">'
+        $thirdCount = '<span>'
             . $numberOfEmergenciesHandlings
             . '/'
             . $numberOfHandlings
@@ -470,9 +469,8 @@ class DashboardService {
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
 
         $config = $component->getConfig();
-
-        $legend1 = $config['originCaption'];
-        $legend2 = $config['destinationCaption'];
+        $legend1 = $config['originCaption'] ?: 'Legende1';
+        $legend2 = $config['destinationCaption'] ?: 'Legende2';
         $clusterKeys = ['firstOriginLocation', 'secondOriginLocation', 'firstDestinationLocation', 'secondDestinationLocation'];
         foreach ($clusterKeys as $key) {
             $this->updateComponentLocationCluster($entityManager, $component, $key);
@@ -483,8 +481,8 @@ class DashboardService {
             && $component->getLocationCluster('firstOriginLocation')->getLocations()->count() > 0;
         $data = [
             'chartColors' => [
-                $legend1 => $config['chartColor0'],
-                $legend2 => $config['chartColor1']
+                $legend1 => $config['chartColors']['Legende1'] ?? null,
+                $legend2 => $config['chartColors']['Legende2'] ?? null
             ],
             'chartData' => $this->getDailyObjectsStatistics($entityManager, DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE, function (DateTime $date) use (
                 $legend1,
@@ -507,7 +505,6 @@ class DashboardService {
                 ];
             }, $workFreeDays)
         ];
-
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter->setData($data['chartData']);
         $meter->setChartColors($data['chartColors']);
@@ -523,6 +520,7 @@ class DashboardService {
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $locationClusterMeterRepository = $entityManager->getRepository(LocationClusterMeter::class);
 
+        $config = $component->getConfig();
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
         $clusterKey = 'locations';
         $this->updateComponentLocationCluster($entityManager, $component, $clusterKey);
@@ -536,8 +534,12 @@ class DashboardService {
             );
         }, $workFreeDays);
 
+        $chartColors = $config['chartColors'] ?? [Dashboard\ComponentType::DEFAULT_CHART_COLOR];
+
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
-        $meter->setData($packsCountByDays);
+        $meter
+            ->setData($packsCountByDays)
+            ->setChartColors($chartColors);
     }
 
 

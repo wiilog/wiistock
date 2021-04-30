@@ -17,8 +17,10 @@ final class Version20210225195933 extends AbstractMigration {
 
     public function up(Schema $schema): void {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE dashboard_meter_indicator ADD sub_counts JSON');
-        $this->addSql("UPDATE dashboard_meter_indicator SET sub_counts = '[]'");
+        if($schema->hasTable("dashboard_meter_indicator")) {
+            $this->addSql('ALTER TABLE dashboard_meter_indicator ADD sub_counts JSON');
+            $this->addSql("UPDATE dashboard_meter_indicator SET sub_counts = '[]'");
+        }
     }
 
     public function down(Schema $schema): void {

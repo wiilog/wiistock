@@ -4,6 +4,7 @@ namespace App\Helper;
 
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
+use App\Entity\Group;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -28,6 +29,10 @@ class FormatHelper {
 
     public static function status(?Statut $status, $else = "") {
         return $status ? $status->getNom() : $else;
+    }
+
+    public static function group(?Group $group, $else = "") {
+        return $group ? $group->getCode() : $else;
     }
 
     public static function provider(?Fournisseur $provider, $else = "") {
@@ -74,7 +79,7 @@ class FormatHelper {
     }
 
     public static function datetime(?DateTimeInterface $date, $else = "") {
-        return $date ? $date->format("d/m/Y H:i") : $else;
+        return $date ? $date->format("d/m/Y H:i:s") : $else;
     }
 
     public static function time(?DateTimeInterface $date, $else = "") {

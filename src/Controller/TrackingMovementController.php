@@ -195,9 +195,9 @@ class TrackingMovementController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
+            $countCreatedMouvements = 0;
             $post = $request->request;
-
+            $forced = $post->get('forced', false);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
@@ -230,98 +230,126 @@ class TrackingMovementController extends AbstractController
 
             $codeToPack = [];
             $createdMouvements = [];
-
-            if (!empty($post->get('is-group'))) {
-                $groupTreatment = $trackingMovementService->handleGroups($post->all(), $entityManager, $operator);
-                if (!$groupTreatment['success']) {
-                    return $this->json($groupTreatment);
-                }
-
-                $createdMouvements = $groupTreatment['createdMovements'];
-            }
-            else {
-                if (empty($post->get('is-mass'))) {
-                    $emplacement = $emplacementRepository->find($post->get('emplacement'));
-                    $createdMvt = $trackingMovementService->createTrackingMovement(
-                        $colisStr,
-                        $emplacement,
-                        $operator,
-                        $date,
-                        $fromNomade,
-                        null,
-                        $post->getInt('type'),
-                        [
-                            'commentaire' => $commentaire,
-                            'quantity' => $quantity
-                        ]
-                    );
-
-                    $movementType = $createdMvt->getType();
-                    $movementTypeName = $movementType ? $movementType->getNom() : null;
-
-                    // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
-                    if ($movementTypeName === TrackingMovement::TYPE_DEPOSE && !$emplacement->ableToBeDropOff($createdMvt->getPack())) {
-                        return new JsonResponse([
-                            'success' => false,
-                            'msg' => $this->errorWithDropOff($colisStr, $emplacement, $packTranslation, $natureTranslation)
-                        ]);
+            try {
+                if (!empty($post->get('is-group'))) {
+                    $groupTreatment = $trackingMovementService->handleGroups($post->all(), $entityManager, $operator, $createdMouvements);
+                    if (!$groupTreatment['success']) {
+                        return $this->json($groupTreatment);
                     }
-                    $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                    $entityManager->persist($createdMvt);
-                    $createdMouvements[] = $createdMvt;
-                }
-                else {
-                    $colisArray = explode(',', $colisStr);
-                    $emplacementPrise = $emplacementRepository->find($post->get('emplacement-prise'));
-                    $emplacementDepose = $emplacementRepository->find($post->get('emplacement-depose'));
-                    foreach ($colisArray as $colis) {
+
+                    $createdMouvements = $groupTreatment['createdMovements'];
+                } else {
+                    if (empty($post->get('is-mass'))) {
+                        $emplacement = $emplacementRepository->find($post->get('emplacement'));
                         $createdMvt = $trackingMovementService->createTrackingMovement(
-                            isset($codeToPack[$colis]) ? $codeToPack[$colis] : $colis,
-                            $emplacementPrise,
+                            $colisStr,
+                            $emplacement,
                             $operator,
                             $date,
                             $fromNomade,
-                            true,
-                            TrackingMovement::TYPE_PRISE,
+                            null,
+                            $post->getInt('type'),
                             [
                                 'commentaire' => $commentaire,
                                 'quantity' => $quantity
                             ]
                         );
 
-                        $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                        $entityManager->persist($createdMvt);
-                        $createdMouvements[] = $createdMvt;
-                        $createdPack = $createdMvt->getPack();
+                        $associatedPack = $createdMvt->getPack();
+                        $associatedGroup = $associatedPack->getGroup();
 
-                        $createdMvt = $trackingMovementService->createTrackingMovement(
-                            $createdPack,
-                            $emplacementDepose,
-                            $operator,
-                            $date,
-                            $fromNomade,
-                            true,
-                            TrackingMovement::TYPE_DEPOSE,
-                            [
-                                'commentaire' => $commentaire,
-                                'quantity' => $quantity
-                            ]
-                        );
-
-                        // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
-                        if (!$emplacementDepose->ableToBeDropOff($createdPack)) {
-                            return new JsonResponse([
-                                'success' => false,
-                                'msg' => $this->errorWithDropOff($createdPack->getCode(), $emplacementDepose, $packTranslation, $natureTranslation)
+                        if (!$forced && $associatedGroup) {
+                            return $this->json([
+                                'group' => $associatedGroup->getCode(),
+                                'success' => true
                             ]);
+                        } else if ($forced) {
+                            $associatedPack->setGroup(null);
+                            $countCreatedMouvements++;
                         }
 
+                        $movementType = $createdMvt->getType();
+                        $movementTypeName = $movementType ? $movementType->getNom() : null;
+
+                        // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
+                        if ($movementTypeName === TrackingMovement::TYPE_DEPOSE && !$emplacement->ableToBeDropOff($createdMvt->getPack())) {
+                            return new JsonResponse([
+                                'success' => false,
+                                'msg' => $this->errorWithDropOff($colisStr, $emplacement, $packTranslation, $natureTranslation)
+                            ]);
+                        }
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                         $entityManager->persist($createdMvt);
                         $createdMouvements[] = $createdMvt;
-                        $codeToPack[$colis] = $createdPack;
+                    } else {
+                        $colisArray = explode(',', $colisStr);
+                        $emplacementPrise = $emplacementRepository->find($post->get('emplacement-prise'));
+                        $emplacementDepose = $emplacementRepository->find($post->get('emplacement-depose'));
+                        foreach ($colisArray as $colis) {
+                            $createdMvt = $trackingMovementService->createTrackingMovement(
+                                isset($codeToPack[$colis]) ? $codeToPack[$colis] : $colis,
+                                $emplacementPrise,
+                                $operator,
+                                $date,
+                                $fromNomade,
+                                true,
+                                TrackingMovement::TYPE_PRISE,
+                                [
+                                    'commentaire' => $commentaire,
+                                    'quantity' => $quantity
+                                ]
+                            );
+                            $associatedPack = $createdMvt->getPack();
+                            $associatedGroup = $associatedPack->getGroup();
+
+                            if (!$forced && $associatedGroup) {
+                                return $this->json([
+                                    'group' => $associatedGroup->getCode(),
+                                    'success' => true,
+                                ]);
+                            } else if ($forced) {
+                                $associatedPack->setGroup(null);
+                                $countCreatedMouvements++;
+                            }
+                            $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
+                            $entityManager->persist($createdMvt);
+                            $createdMouvements[] = $createdMvt;
+                            $createdPack = $createdMvt->getPack();
+
+                            $createdMvt = $trackingMovementService->createTrackingMovement(
+                                $createdPack,
+                                $emplacementDepose,
+                                $operator,
+                                $date,
+                                $fromNomade,
+                                true,
+                                TrackingMovement::TYPE_DEPOSE,
+                                [
+                                    'commentaire' => $commentaire,
+                                    'quantity' => $quantity
+                                ]
+                            );
+
+                            // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
+                            if (!$emplacementDepose->ableToBeDropOff($createdPack)) {
+                                return new JsonResponse([
+                                    'success' => false,
+                                    'msg' => $this->errorWithDropOff($createdPack->getCode(), $emplacementDepose, $packTranslation, $natureTranslation)
+                                ]);
+                            }
+
+                            $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
+                            $entityManager->persist($createdMvt);
+                            $createdMouvements[] = $createdMvt;
+                            $codeToPack[$colis] = $createdPack;
+                        }
                     }
                 }
+            } catch (Exception $exception) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => 'Le colis scanné est un groupe.'
+                ]);
             }
 
             if (isset($fileBag)) {
@@ -340,12 +368,12 @@ class TrackingMovementController extends AbstractController
             foreach ($createdMouvements as $mouvement) {
                 $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager);
             }
-            $countCreatedMouvements = count($createdMouvements);
-
+            $countCreatedMouvements += count($createdMouvements);
             $entityManager->flush();
 
             return new JsonResponse([
                 'success' => $countCreatedMouvements > 0,
+                'group' => null,
                 'trackingMovementsCounter' => $countCreatedMouvements
             ]);
         }

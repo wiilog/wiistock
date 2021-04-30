@@ -5,11 +5,11 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
-use App\Entity\Group;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use App\Repository\NatureRepository;
 use DateTime;
 use DateTimeZone;
@@ -22,8 +22,7 @@ use Twig\Error\SyntaxError;
 use Twig\Environment as Twig_Environment;
 
 
-Class PackService
-{
+Class PackService {
 
     private $entityManager;
     private $security;
@@ -73,6 +72,25 @@ Class PackService
         ];
     }
 
+    public function getGroupHistoryForDatatable($pack) {
+        $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
+
+        $queryResult = $trackingMovementRepository->findTrackingMovementsForGroupHistory($pack);
+
+        $trackingMovements = $queryResult["data"];
+
+        $rows = [];
+        foreach ($trackingMovements as $trackingMovement) {
+            $rows[] = $this->dataRowGroupHistory($trackingMovement);
+        }
+
+        return [
+            "data" => $rows,
+            "recordsFiltered" => $queryResult['filtered'],
+            "recordsTotal" => $queryResult['total'],
+        ];
+    }
+
     /**
      * @param Pack $pack
      * @return array
@@ -102,11 +120,20 @@ Class PackService
                 : '',
             'packOrigin' => $this->template->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'arrivageType' => $pack->getArrivage() ? $pack->getArrivage()->getType()->getLabel() : '',
-        'packLocation' => $lastPackMovement
+            'packLocation' => $lastPackMovement
                 ? ($lastPackMovement->getEmplacement()
                     ? $lastPackMovement->getEmplacement()->getLabel()
                     : '')
                 : ''
+        ];
+    }
+
+    public function dataRowGroupHistory(TrackingMovement $trackingMovement) {
+
+        return [
+            'group' => $trackingMovement->getPackGroup() ? FormatHelper::group($trackingMovement->getPackGroup()) : '',
+            'date' => FormatHelper::datetime($trackingMovement->getDatetime()),
+            'type' => FormatHelper::status($trackingMovement->getType())
         ];
     }
 

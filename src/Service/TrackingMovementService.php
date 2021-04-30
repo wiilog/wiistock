@@ -21,10 +21,12 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use App\Helper\Stream;
 use DateTime;
 use DateTimeInterface;
 use Exception;
+use Symfony\Component\Form\Form;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -162,24 +164,28 @@ class TrackingMovementService
 
         $rows = [
             'id' => $movement->getId(),
-            'date' => $movement->getDatetime() ? $movement->getDatetime()->format('d/m/Y H:i') : '',
+            'date' => FormatHelper::datetime($movement->getDatetime()),
             'code' => $packCode,
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackGroup() ? $movement->getPackGroup()->getCode() . '-' . ($movement->getGroupIteration() ?? '1') : '',
-            'location' => $movement->getEmplacement() ? $movement->getEmplacement()->getLabel() : '',
+            'location' => FormatHelper::location($movement->getEmplacement()),
             'reference' => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getReference()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
-                    : ''),
+                    : ($movement->getPack()->getLastTracking()->getMouvementStock()
+                        ? $movement->getPack()->getLastTracking()->getMouvementStock()->getArticle()->getArticleFournisseur()->getReferenceArticle()->getLibelle()
+                        : '')),
             "label" => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getLibelle()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getLabel()
-                    : ''),
-            "quantity" => $movement->getQuantity() ? $movement->getQuantity() : '',
-            "type" => $movement->getType() ? $movement->getType()->getNom() : '',
-            "operator" => $movement->getOperateur() ? $movement->getOperateur()->getUsername() : '',
+                    : ($movement->getPack()->getLastTracking()->getMouvementStock()
+                        ? $movement->getPack()->getLastTracking()->getMouvementStock()->getArticle()->getLabel()
+                        : '')),
+            "quantity" => $movement->getQuantity() ?: '',
+            "type" => FormatHelper::status($movement->getType()),
+            "operator" => FormatHelper::user($movement->getOperateur()),
             "attachments" => $attachments ?? "",
             "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
                 'mvt' => $movement,
@@ -315,6 +321,7 @@ class TrackingMovementService
          * @var Group $group
          */
         $group = $options['group'] ?? null;
+        $removeFromGroup = $options['removeFromGroup'] ?? false;
 
         $pack = $this->getPack($entityManager, $packOrCode, $quantity, $natureId);
 
@@ -331,14 +338,34 @@ class TrackingMovementService
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
 
         $pack->addTrackingMovement($tracking);
+        $this->managePackLinksWithTracking($entityManager, $tracking);
+        $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
+        $this->manageTrackingFiles($tracking, $fileBag);
+
         if ($group) {
             $group->addTrackingMovement($tracking);
             $group->addPack($pack);
             $tracking->setGroupIteration($group->getIteration());
+        } else if ($pack->getGroup() && !in_array($type->getNom(), [TrackingMovement::TYPE_UNGROUP, TrackingMovement::TYPE_GROUP])) {
+            $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
+
+            $trackingUngroup = new TrackingMovement();
+            $trackingUngroup
+                ->setQuantity($quantity)
+                ->setOperateur($user)
+                ->setUniqueIdForMobile($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null)
+                ->setDatetime($date)
+                ->setFinished($finished)
+                ->setType($type)
+                ->setPackGroup($pack->getGroup())
+                ->setMouvementStock($mouvementStock)
+                ->setCommentaire(!empty($commentaire) ? $commentaire : null);
+            $pack->addTrackingMovement($trackingUngroup);
+            if ($removeFromGroup) {
+                $pack->setGroup(null);
+            }
+            $entityManager->persist($trackingUngroup);
         }
-        $this->managePackLinksWithTracking($entityManager, $tracking);
-        $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
-        $this->manageTrackingFiles($tracking, $fileBag);
 
         return $tracking;
     }
@@ -349,14 +376,26 @@ class TrackingMovementService
      * @param $quantity
      * @param $natureId
      * @return Pack
+     * @throws Exception
      */
     private function getPack(EntityManagerInterface $entityManager,
                              $packOrCode,
                              $quantity,
                              $natureId): Pack {
         $packRepository = $entityManager->getRepository(Pack::class);
+        $groupRepository = $entityManager->getRepository(Group::class);
 
         $codePack = $packOrCode instanceof Pack ? $packOrCode->getCode() : $packOrCode;
+
+        $isGroup = ($packOrCode instanceof Pack)
+            ? null
+            : $groupRepository->findOneBy([
+                'code' => $packOrCode
+            ]);
+
+        if ($isGroup) {
+            throw new Exception(Pack::PACK_IS_GROUP);
+        }
 
         $pack = ($packOrCode instanceof Pack)
             ? $packOrCode

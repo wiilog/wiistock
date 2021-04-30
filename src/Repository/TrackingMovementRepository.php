@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Helper\QueryCounter;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
@@ -383,5 +384,53 @@ class TrackingMovementRepository extends EntityRepository
             ->setParameter('code', $code)
             ->getQuery()
             ->getResult();
+    }
+
+    public function findTrackingMovementsForGroupHistory($pack) {
+        $qb = $this->createQueryBuilder('tracking_movement');
+
+        $qb->select('tracking_movement')
+            ->leftJoin('tracking_movement.pack', 'pack')
+            ->leftJoin('tracking_movement.type', 'type')
+            ->where('pack.id = :pack')
+            ->andWhere('type.nom = :groupType OR type.nom = :ungroupType')
+            ->setParameters([
+                'pack' => $pack,
+                'groupType' => TrackingMovement::TYPE_GROUP,
+                'ungroupType' => TrackingMovement::TYPE_UNGROUP
+            ]);
+
+        $countTotal = QueryCounter::count($qb, "tracking_movement");
+
+        //Filter search
+        if (!empty($params)) {
+            if (!empty($params->get('order'))) {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order)) {
+                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    if ($column === 'group') {
+                        $qb
+                            ->leftJoin('tracking_movement.pack', 'order_pack')
+                            ->leftJoin('order_pack.packGroup', 'pack_group')
+                            ->orderBy('pack_group.label', $order);
+                    } else if ($column === 'date') {
+                        $qb
+                            ->orderBy('tracking_movement.datetime', $order);
+                    } else if ($column === 'type') {
+                        $qb
+                            ->leftJoin('tracking_movement.type', 'order_type')
+                            ->orderBy('order_type.nom', $order);
+                    }
+                }
+            }
+        }
+
+        $countFiltered = QueryCounter::count($qb, "tracking_movement");
+
+        return [
+            'data' => $qb->getQuery()->getResult(),
+            'filtered' => $countFiltered,
+            'total' => $countTotal
+        ];
     }
 }
