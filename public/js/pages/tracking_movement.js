@@ -174,7 +174,7 @@ function displayConfirmationModal(group) {
         undefined,
         $('<div/>', {
             class: 'text-center',
-            text: `Ce ou ces colis sont présents dans le groupe ${group}. Confirmer la prise l\'enlèvera du groupe.`
+            text: `Ce ou ces colis sont présents dans le groupe ${group}. Confirmer le mouvement l\'enlèvera du groupe.`
         }),
         [
             {
