@@ -1246,7 +1246,7 @@ class ArrivageController extends AbstractController
         foreach ($attachments as $attachment) {
             /** @var Attachment $attachment */
             if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $this->attachmentService->removeAndDeleteAttachment($entityManager, $attachment, $litige);
+                $this->attachmentService->removeAndDeleteAttachment($attachment, $litige);
             }
         }
 
