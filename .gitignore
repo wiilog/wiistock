@@ -34,4 +34,7 @@ yarn-error.log
 /local-php-security-checker.exe
 /local-php-security-checker
 /cache
-/.run/Build.run.xml
+
+###> phpstorm run configurations ###
+/.run
+###< phpstorm run configurations ###
