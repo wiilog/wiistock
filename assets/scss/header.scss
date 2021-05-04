@@ -207,6 +207,10 @@
             color: white;
         }
     }
+    @media (max-width: $breakpointSmallScreen) {
+        display: none;
+    }
+
 }
 
 .profile-picture {
