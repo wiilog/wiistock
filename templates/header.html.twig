@@ -6,19 +6,19 @@
 {% set titleLink = titleLink is defined ? titleLink : '' %}
 
 <div class="main-header">
-    <div class="col-12">
-        <div class="row align-items-center justify-content-center{{ withOnlyLogo ? 'justify-content-center' }}">
-            <div class="d-flex flex-column align-items-end">
+    <div class="px-lg-3 w-100">
+        <div class="row align-items-center {{ withOnlyLogo ? 'justify-content-center' }}">
+            <div class="col-12 col-lg-auto d-flex align-items-end justify-content-center">
                 <a class="position-relative" href="{{ path('accueil') }}">
-                    <img src="{{ logo('website') }}" alt="Follow GT" height="100"/>
+                    <img src="{{ logo('website') }}" alt="Follow GT" height="100" class="sizeLogo"/>
                 </a>
                 <span class="web-version">{{ web_version }}</span>
             </div>
 
             {% if not withOnlyLogo %}
                 {% if isDashboardExt or titleExists or subtitleExists %}
-                    <div class="col user-select-none">
-                        <div class="row align-items-center">
+                    <div class="col-12 col-lg user-select-none">
+                        <div class="row align-items-center justify-content-lg-start justify-content-center">
                             {% if isDashboardExt or titleExists %}
                                 <div class="col-auto">
                                     <h5 class="header-title text-white h5 my-0 page-title" {% if tooltipExists %}title="{{ title_tooltip }}"{% endif %}>
@@ -74,7 +74,7 @@
                         or hasHandlingRights
                         or hasDispatchRights
                         or hasTransferRights %}
-                        <div class="dropdown mr-4">
+                        <div class="col-auto dropdown">
                             <button class="quick-plus" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="icon"></span>
                             </button>
@@ -145,7 +145,7 @@
                     and app.user is defined
                     and app.user
                     and app.user.username is defined %}
-                    <a class="user"
+                    <a class="col col-lg-auto user"
                        href="{{ path('user_index', {'open-modal': 'edit', 'modal-edit-id': app.user.id }) }}">
                         <div class="profile-picture">{{ app.user.username | first | upper }}</div>
                         <span>{{ app.user.username }}</span>
