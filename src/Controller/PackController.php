@@ -337,7 +337,7 @@ class PackController extends AbstractController
      */
     public function groupHistory(Request $request, PackService $packService, $pack): Response {
         if ($request->isXmlHttpRequest()) {
-            $data = $packService->getGroupHistoryForDatatable($pack);
+            $data = $packService->getGroupHistoryForDatatable($pack, $request->request);
             return $this->json($data);
         }
         throw new BadRequestHttpException();

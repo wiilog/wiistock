@@ -6,6 +6,7 @@ use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\Group;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use DateTime;
@@ -31,8 +32,8 @@ class FormatHelper {
         return $status ? $status->getNom() : $else;
     }
 
-    public static function group(?Group $group, $else = "") {
-        return $group ? $group->getCode() : $else;
+    public static function group(?Group $group, $else = "", TrackingMovement $trackingMovement = null) {
+        return ($group ? $group->getCode() . ($trackingMovement ? '-' . $trackingMovement->getGroupIteration() : '') : $else);
     }
 
     public static function provider(?Fournisseur $provider, $else = "") {

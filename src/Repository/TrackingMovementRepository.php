@@ -386,7 +386,7 @@ class TrackingMovementRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findTrackingMovementsForGroupHistory($pack) {
+    public function findTrackingMovementsForGroupHistory($pack, $params) {
         $qb = $this->createQueryBuilder('tracking_movement');
 
         $qb->select('tracking_movement')
@@ -410,9 +410,9 @@ class TrackingMovementRepository extends EntityRepository
                     $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
                     if ($column === 'group') {
                         $qb
-                            ->leftJoin('tracking_movement.pack', 'order_pack')
-                            ->leftJoin('order_pack.packGroup', 'pack_group')
-                            ->orderBy('pack_group.label', $order);
+                            ->leftJoin('tracking_movement.packGroup', 'order_packGroup')
+                            ->orderBy('order_packGroup.code', $order)
+                            ->addOrderBy('tracking_movement.groupIteration', $order);
                     } else if ($column === 'date') {
                         $qb
                             ->orderBy('tracking_movement.datetime', $order);

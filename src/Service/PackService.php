@@ -72,10 +72,10 @@ Class PackService {
         ];
     }
 
-    public function getGroupHistoryForDatatable($pack) {
+    public function getGroupHistoryForDatatable($pack, $params) {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 
-        $queryResult = $trackingMovementRepository->findTrackingMovementsForGroupHistory($pack);
+        $queryResult = $trackingMovementRepository->findTrackingMovementsForGroupHistory($pack, $params);
 
         $trackingMovements = $queryResult["data"];
 
@@ -131,7 +131,7 @@ Class PackService {
     public function dataRowGroupHistory(TrackingMovement $trackingMovement) {
 
         return [
-            'group' => $trackingMovement->getPackGroup() ? FormatHelper::group($trackingMovement->getPackGroup()) : '',
+            'group' => $trackingMovement->getPackGroup() ? FormatHelper::group($trackingMovement->getPackGroup(), "", $trackingMovement) : '',
             'date' => FormatHelper::datetime($trackingMovement->getDatetime()),
             'type' => FormatHelper::status($trackingMovement->getType())
         ];
