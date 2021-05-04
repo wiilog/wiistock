@@ -35,3 +35,4 @@ yarn-error.log
 /local-php-security-checker
 /cache
 /.run/Build.run.xml
+/.run/Install.run.xml

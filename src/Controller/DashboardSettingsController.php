@@ -343,6 +343,12 @@ class DashboardSettingsController extends AbstractController {
                 if (isset($valuesDecoded['natures']) && isset($values['natures'])) {
                     $valuesDecoded['natures'] = $values['natures'];
                 }
+                if (isset($valuesDecoded['handlingTypes']) && isset($values['handlingTypes'])) {
+                    $valuesDecoded['handlingTypes'] = $values['handlingTypes'];
+                }
+                if (isset($valuesDecoded['handlingStatuses']) && isset($values['handlingStatuses'])) {
+                    $valuesDecoded['handlingStatuses'] = $values['handlingStatuses'];
+                }
                 $values = $valuesDecoded;
             }
             Stream::from($componentType->getExampleValues())
