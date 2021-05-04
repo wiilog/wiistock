@@ -1084,6 +1084,9 @@ function updateImagePreview(preview, upload, $title = null, $delete = null, $cal
                     if ($title) {
                         $title.text(fileNameWithExtension.join('.').substr(0, 5) + '...');
                         $title.attr('title', fileNameWithExtension.join('.'));
+                        if($title.siblings('input[name=titleComponentLogo]').length > 0) {
+                            $title.siblings('input[name=titleComponentLogo]').last().val(fileNameWithExtension);
+                        }
                     }
 
                     let reader = new FileReader();
