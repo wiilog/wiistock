@@ -10,7 +10,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Group;
-use App\Entity\MailerServer;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
@@ -74,7 +73,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use DateTime;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Throwable;
 use Twig\Error\LoaderError;
@@ -969,49 +967,45 @@ class ApiController extends AbstractFOSRestController
             })
             ->toArray();
 
-        foreach ($groupsArray as $serializedGroup) {
-            $group = $groupRepository->findOneBy(['code' => $serializedGroup['code']]);
-            if ($group && !$group->getPacks()->isEmpty()) {
-                $nature = $natureRepository->find($serializedGroup['nature_id']);
-                $group->setNature($nature);
+        $res = [
+            'success' => true
+        ];
 
-                $location = $locationRepository->findOneBy(['label' => $serializedGroup['location']]);
+        try {
+            foreach ($groupsArray as $serializedGroup) {
+                $group = $groupRepository->findOneBy(['code' => $serializedGroup['code']]);
+                if ($group && !$group->getPacks()->isEmpty()) {
+                    $nature = $natureRepository->find($serializedGroup['nature_id']);
+                    $group->setNature($nature);
 
-                $trackingMovement = $trackingMovementService->createTrackingMovement(
-                    $colis,
-                    null,
-                    $operator,
-                    new DateTime('now', new DateTimeZone('Europe/Paris')),
-                    $data['fromNomade'] ?? false,
-                    true,
-                    TrackingMovement::TYPE_GROUP,
-                    [
-                        'group' => $group
-                    ]
-                );
+                    $location = $locationRepository->findOneBy(['label' => $serializedGroup['location']]);
 
+                    /** @var Pack $pack */
+                    foreach ($group->getPacks() as $pack) {
+                        $trackingMovement = $trackingMovementService->createTrackingMovement(
+                            $pack,
+                            $location,
+                            $operator,
+                            $serializedGroup['date'],
+                            true,
+                            false,
+                            TrackingMovement::TYPE_PRISE,
+                            [
+                                'group' => $group
+                            ]
+                        );
+                        $entityManager->persist($trackingMovement);
+                    }
+                }
             }
+            $entityManager->flush();
+        }
+        catch (Throwable $throwable) {
+            $res['success'] = false;
+            $res['message'] = "Une erreur est survenue lors de l'enregistrement d'une prise";
         }
 
-        $groupTreatment = $trackingMovementService->handleGroups(
-            $request->request->all(),
-            $entityManager,
-            $operator
-        );
-
-
-        if (isset($groupTreatment['msg'])) {
-            $groupTreatment['message'] = $grou²pTreatment['msg'];
-            unset($groupTreatment['msg']);
-        }
-
-        if (!$groupTreatment['success']) {
-            return $this->json($groupTreatment);
-        }
-
-        return $this->json([
-            'success' => true,
-        ]);
+        return $this->json($res);
     }
 
     /**

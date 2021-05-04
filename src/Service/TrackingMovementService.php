@@ -26,7 +26,6 @@ use App\Helper\Stream;
 use DateTime;
 use DateTimeInterface;
 use Exception;
-use Symfony\Component\Form\Form;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -317,6 +316,8 @@ class TrackingMovementService
         $receptionReferenceArticle = $options['receptionReferenceArticle'] ?? null;
         $uniqueIdForMobile = $options['uniqueIdForMobile'] ?? null;
         $natureId = $options['natureId'] ?? null;
+        $disableUngrouping = $options['disableUngrouping'] ?? false;
+
         /**
          * @var Group $group
          */
@@ -346,7 +347,9 @@ class TrackingMovementService
             $group->addTrackingMovement($tracking);
             $group->addPack($pack);
             $tracking->setGroupIteration($group->getIteration());
-        } else if ($pack->getGroup() && !in_array($type->getNom(), [TrackingMovement::TYPE_UNGROUP, TrackingMovement::TYPE_GROUP])) {
+        } else if (!$disableUngrouping
+                   && $pack->getGroup()
+                   && in_array($type->getNom(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
             $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
 
             $trackingUngroup = new TrackingMovement();
