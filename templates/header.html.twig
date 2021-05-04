@@ -12,7 +12,7 @@
                 <a class="position-relative" href="{{ path('accueil') }}">
                     <img src="{{ logo('website') }}" alt="Follow GT" height="100" class="sizeLogo"/>
                 </a>
-                <span class="web-version">{{ web_version }}</span>
+                <span class="web-version d-none d-lg-inline">{{ web_version }}</span>
             </div>
 
             {% if not withOnlyLogo %}
@@ -20,7 +20,7 @@
                     <div class="col-12 col-lg user-select-none">
                         <div class="row align-items-center justify-content-lg-start justify-content-center">
                             {% if isDashboardExt or titleExists %}
-                                <div class="col-auto">
+                                <div class="col-auto py-2">
                                     <h5 class="header-title text-white h5 my-0 page-title" {% if tooltipExists %}title="{{ title_tooltip }}"{% endif %}>
                                         {% if titleExists %}
                                             {% set titleSplit = title|split('|') %}
@@ -146,9 +146,9 @@
                     and app.user
                     and app.user.username is defined %}
                     <a class="col col-lg-auto user"
-                       href="{{ path('user_index', {'open-modal': 'edit', 'modal-edit-id': app.user.id }) }}">
+                       href="{{ path('user_index', {'open-modal': 'edit', 'modal-edit-id': app.user.id }) }}" style="display: flex; align-items: center;">
                         <div class="profile-picture">{{ app.user.username | first | upper }}</div>
-                        <span>{{ app.user.username }}</span>
+                        <div class="flex-fill text-center text-truncate">{{ app.user.username }}</div>
                     </a>
                     <nav id="main-nav" class="text-white col-auto dropdown dropleft">
                         <div class="menu-button rounded pointer"
