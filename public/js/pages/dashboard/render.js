@@ -296,15 +296,15 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig, firstIt
                         </div>
                     </div>
                 </div>
-                <div class="wii-card-body p-2">
+                <div class="wii-card-body">
                     <div class="row">
-                        <div class="col-12 card-title text-center">
-                            <strong>${applyStyle(data, redefinedNumberingConfig, 5, request.requestBodyTitle, {}, firstIteration)}</strong>
+                        <div class="col-12">
+                            <p class="card-title text-center">${request.requestBodyTitle}</p>
                         </div>
                         <div class="col-12">
-                            <div class="w-100 d-inline-flex justify-content-center">
+                            <p class="w-100 d-inline-flex justify-content-center">
                                 ${applyStyle(data, redefinedNumberingConfig, 6, '<strong class="card-title m-0 mr-2"><i class="fa fa-map-marker-alt"></i></strong><strong class="ellipsis">' + request.requestLocation + '</strong>', {}, firstIteration)}
-                            </div>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -1152,7 +1152,7 @@ function generateColorPickerElement(data, key = 0) {
         class: 'd-flex justify-content-between align-items-center mx-5',
         html: $(`<input/>`, {
             type: `color`,
-            class: `data-array form-control needed w-50`,
+            class: `data-array form-control needed w-50 chart-color-picker`,
             'data-id': key,
             name: `chartColors`,
             value: data.chartColors[key]
