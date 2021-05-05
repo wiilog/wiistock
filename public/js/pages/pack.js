@@ -2,7 +2,7 @@ const packsTableConfig = {
     responsive: true,
     serverSide: true,
     processing: true,
-    order: [['quantity', "desc"]],
+    order: [['packLastDate', "desc"]],
     ajax: {
         url: Routing.generate('pack_api', true),
         type: "POST",
@@ -30,6 +30,7 @@ const groupsTableConfig = {
     responsive: true,
     serverSide: true,
     processing: true,
+    order: [['actions', "desc"]],
     ajax: {
         url: Routing.generate('group_api', true),
         type: "POST",
@@ -41,7 +42,7 @@ const groupsTableConfig = {
         needsRowClickAction: true
     },
     columns: [
-        {data: `actions`, name: `actions`, orderable: false, width: `10px`},
+        {data: `actions`, name: `actions`, title: '', className: 'noVis', orderable: false, width: `10px`},
         {data: `details`, name: `details`, orderable: false},
     ],
 };

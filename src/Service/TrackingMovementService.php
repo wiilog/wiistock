@@ -204,6 +204,7 @@ class TrackingMovementService
         $packRepository = $entityManager->getRepository(Pack::class);
         $parentCode = $data['parent'];
 
+        /** @var Pack $parentPack */
         $parentPack = $packRepository->findOneBy(['code' => $parentCode]);
 
         if ($parentPack && !$parentPack->isGroup()) {
@@ -237,8 +238,22 @@ class TrackingMovementService
                     $parentPack = $this->groupService->createParentPack($data);
                     $entityManager->persist($parentPack);
                 } else if ($parentPack->getChildren()->isEmpty()) {
-                    $parentPack->incrementIteration();
+                    $parentPack->incrementGroupIteration();
                 }
+
+                $groupingTrackingMovement = $this->createTrackingMovement(
+                    $parentPack,
+                    null,
+                    $operator,
+                    new DateTime('now', new \DateTimeZone('Europe/Paris')),
+                    $data['fromNomade'] ?? false,
+                    true,
+                    TrackingMovement::TYPE_GROUP,
+                    ['parent' => $parentPack]
+                );
+
+                $entityManager->persist($groupingTrackingMovement);
+                $createdMovements[] = $groupingTrackingMovement;
 
                 foreach ($colisArray as $colis) {
                     $groupingTrackingMovement = $this->createTrackingMovement(
@@ -249,8 +264,17 @@ class TrackingMovementService
                         $data['fromNomade'] ?? false,
                         true,
                         TrackingMovement::TYPE_GROUP,
-                        ['parent' => $parentPack]
+                        [
+                            'parent' => $parentPack,
+                            'onlyPack' => true
+                        ]
                     );
+
+                    $pack = $groupingTrackingMovement->getPack();
+                    if ($pack) {
+                        $pack->setParent($parentPack);
+                    }
+
                     $entityManager->persist($groupingTrackingMovement);
                     $createdMovements[] = $groupingTrackingMovement;
                 }
@@ -317,7 +341,7 @@ class TrackingMovementService
         $parent = $options['parent'] ?? null;
         $removeFromGroup = $options['removeFromGroup'] ?? false;
 
-        $pack = $this->getPack($entityManager, $packOrCode, $quantity, $natureId);
+        $pack = $this->getPack($entityManager, $packOrCode, $quantity, $natureId, $options['onlyPack'] ?? false);
 
         $tracking = new TrackingMovement();
         $tracking
@@ -338,7 +362,6 @@ class TrackingMovementService
 
         if ($parent) {
             $tracking->setPackParent($parent);
-            $pack->setParent($parent);
             $tracking->setGroupIteration($parent->getGroupIteration());
         } else if (!$disableUngrouping
                    && $pack->getParent()
@@ -377,7 +400,8 @@ class TrackingMovementService
     private function getPack(EntityManagerInterface $entityManager,
                              $packOrCode,
                              $quantity,
-                             $natureId): Pack {
+                             $natureId,
+                             bool $onlyPack): Pack {
         $packRepository = $entityManager->getRepository(Pack::class);
 
         $codePack = $packOrCode instanceof Pack ? $packOrCode->getCode() : $packOrCode;
@@ -386,7 +410,7 @@ class TrackingMovementService
             ? $packOrCode
             : $packRepository->findOneBy(['code' => $packOrCode]);
 
-        if ($pack && $pack->isGroup()) {
+        if ($onlyPack && $pack && $pack->isGroup()) {
             throw new Exception(Pack::PACK_IS_GROUP);
         }
 
@@ -541,7 +565,8 @@ class TrackingMovementService
                         $record = null;
                     }
                 }
-                else {
+
+                if (!isset($record)) {
                     $record = new LocationClusterRecord();
                     $record
                         ->setPack($pack)

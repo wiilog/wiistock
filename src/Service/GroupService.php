@@ -75,8 +75,14 @@ class GroupService {
         ];
     }
 
-    public function ungroup(EntityManagerInterface $manager, Pack $parent, Emplacement $destination, ?Utilisateur $user = null, ?DateTime $date = null) {
-        foreach ($parent->getChildren() as $pack) {
+    public function ungroup(EntityManagerInterface $manager,
+                            Pack $parent,
+                            Emplacement $destination,
+                            ?Utilisateur $user = null,
+                            ?DateTime $date = null) {
+        /** @var Pack[] $children */
+        $children = $parent->getChildren()->toArray();
+        foreach ($children as $pack) {
             $pack->setParent(null);
 
             $deposit = $this->trackingMovementService->createTrackingMovement(
@@ -100,7 +106,6 @@ class GroupService {
                 TrackingMovement::TYPE_UNGROUP,
                 ["parent" => $parent]
             );
-
             $manager->persist($deposit);
             $manager->persist($ungroup);
         }

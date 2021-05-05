@@ -10,6 +10,7 @@ use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Attachment;
@@ -232,7 +233,7 @@ class TrackingMovementController extends AbstractController
             $createdMouvements = [];
             try {
                 if (!empty($post->get('is-group'))) {
-                    $groupTreatment = $trackingMovementService->handleGroups($post->all(), $entityManager, $operator, $createdMouvements);
+                    $groupTreatment = $trackingMovementService->handleGroups($post->all(), $entityManager, $operator);
                     if (!$groupTreatment['success']) {
                         return $this->json($groupTreatment);
                     }
@@ -251,7 +252,8 @@ class TrackingMovementController extends AbstractController
                             $post->getInt('type'),
                             [
                                 'commentaire' => $commentaire,
-                                'quantity' => $quantity
+                                'quantity' => $quantity,
+                                'onlyPack' => true
                             ]
                         );
 
@@ -297,7 +299,8 @@ class TrackingMovementController extends AbstractController
                                 TrackingMovement::TYPE_PRISE,
                                 [
                                     'commentaire' => $commentaire,
-                                    'quantity' => $quantity
+                                    'quantity' => $quantity,
+                                    'onlyPack' => true
                                 ]
                             );
                             $associatedPack = $createdMvt->getPack();
@@ -353,7 +356,9 @@ class TrackingMovementController extends AbstractController
             } catch (Exception $exception) {
                 return $this->json([
                     'success' => false,
-                    'msg' => 'Le colis scanné est un groupe.'
+                    'msg' => $exception->getMessage() === Pack::PACK_IS_GROUP
+                        ? 'Le colis scanné est un groupe.'
+                        : 'Une erreur inconnue s\'est produite.'
                 ]);
             }
 
