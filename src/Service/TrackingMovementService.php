@@ -239,21 +239,21 @@ class TrackingMovementService
                     $entityManager->persist($parentPack);
                 } else if ($parentPack->getChildren()->isEmpty()) {
                     $parentPack->incrementGroupIteration();
+
+                    $groupingTrackingMovement = $this->createTrackingMovement(
+                        $parentPack,
+                        null,
+                        $operator,
+                        new DateTime('now', new \DateTimeZone('Europe/Paris')),
+                        $data['fromNomade'] ?? false,
+                        true,
+                        TrackingMovement::TYPE_GROUP,
+                        ['parent' => $parentPack]
+                    );
+
+                    $entityManager->persist($groupingTrackingMovement);
+                    $createdMovements[] = $groupingTrackingMovement;
                 }
-
-                $groupingTrackingMovement = $this->createTrackingMovement(
-                    $parentPack,
-                    null,
-                    $operator,
-                    new DateTime('now', new \DateTimeZone('Europe/Paris')),
-                    $data['fromNomade'] ?? false,
-                    true,
-                    TrackingMovement::TYPE_GROUP,
-                    ['parent' => $parentPack]
-                );
-
-                $entityManager->persist($groupingTrackingMovement);
-                $createdMovements[] = $groupingTrackingMovement;
 
                 foreach ($colisArray as $colis) {
                     $groupingTrackingMovement = $this->createTrackingMovement(

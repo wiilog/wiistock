@@ -1960,11 +1960,11 @@ class ApiController extends AbstractFOSRestController
      * @Wii\RestVersionChecked()
      */
     public function group(Request $request,
-                          EntityManagerInterface $manager,
+                          EntityManagerInterface $entityManager,
                           GroupService $groupService,
                           TrackingMovementService $trackingMovementService): Response {
-        $packRepository = $manager->getRepository(Pack::class);
-        $natureRepository = $manager->getRepository(Nature::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
 
         $parentPack = $packRepository->find($request->request->get("id"));
         if (!$parentPack) {
@@ -1972,9 +1972,21 @@ class ApiController extends AbstractFOSRestController
                 'parent' => $request->request->get("code")
             ]);
 
-            $manager->persist($parentPack);
-        } else if ($parentPack->getPacks()->isEmpty()) {
+            $entityManager->persist($parentPack);
+        } else if ($parentPack->getPacks()->isEmpty() && !empty($packs)) {
             $parentPack->incrementGroupIteration();
+
+            $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
+                $parentPack,
+                null,
+                $this->getUser(),
+                DateTime::createFromFormat("d/m/Y H:i:s", $packs[0]["date"]),
+                true,
+                true,
+                TrackingMovement::TYPE_GROUP
+            );
+
+            $entityManager->persist($groupingTrackingMovement);
         }
 
         $packs = json_decode($request->request->get("packs"), true);
@@ -1983,7 +1995,7 @@ class ApiController extends AbstractFOSRestController
                 $pack = $packRepository->find($data["id"]);
             } else {
                 $pack = (new Pack())->setCode($data["code"]);
-                $manager->persist($pack);
+                $entityManager->persist($pack);
             }
 
             $pack->setNature($data["nature_id"] ? $natureRepository->find($data["nature_id"]) : null)
@@ -2002,10 +2014,10 @@ class ApiController extends AbstractFOSRestController
                 ["parent" => $parentPack]
             );
 
-            $manager->persist($groupingTrackingMovement);
+            $entityManager->persist($groupingTrackingMovement);
         }
 
-        $manager->flush();
+        $entityManager->flush();
 
         return $this->json([
             "success" => true,
