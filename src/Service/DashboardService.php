@@ -27,7 +27,6 @@ use App\Entity\ReceptionTraca;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
-use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
