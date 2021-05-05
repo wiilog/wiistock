@@ -158,6 +158,10 @@
                             <span class="icon-menu"></span>
                         </div>
                         <div class="dropdown-menu pointer mr-0">
+                            <h1 class="dropdown-header d-flex d-md-none" >
+                                Menu
+                                <button type="button" class="close-menu" aria-label="Close"></button>
+                            </h1>
                             {% set menuConfig = getMenuConfig() %}
                             {% for itemMenu in menuConfig %}
                                 {% if itemMenu.sub is defined %}

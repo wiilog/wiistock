@@ -133,6 +133,67 @@
     }
 }
 
+@media (max-width: $mobile-breakpoint) {
+        nav#main-nav {
+            position: initial;
+        }
+
+    .dropdown-header{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 60px;
+        font-family: Retroyal, sans-serif;
+        font-style: normal;
+        font-weight: bold;
+        font-size: 2rem;
+        padding: 0 16px;
+        color:$blueGT;
+    }
+
+        .dropdown-menu.pointer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            border-radius: 4px;
+            font-size: 1.1rem;
+
+            .close-menu {
+                background: url("../img/close-modal.svg") no-repeat;
+                background-size: 20px;
+                width: 20px;
+                height: 20px;
+                border: none;
+                margin-bottom: 16px;
+            }
+
+            .dropdown-item {
+                position: initial;
+                top: initial; right: initial;
+                box-shadow: initial;
+                padding: 0 0 8px 0;
+                margin-left: 18px;
+            }
+
+            .fa-chevron-left {
+                transform: rotate(180deg);
+            }
+
+            .dropdown-menu-sub {
+                position: relative;
+                top: 0;
+                right: 0;
+                height:50%;
+                box-shadow: initial;
+                padding: 0 0 8px 0;
+                margin-left: 18px;
+                border: none;
+            }
+        }
+    }
+
 .logo {
     height: 7vh;
 }
