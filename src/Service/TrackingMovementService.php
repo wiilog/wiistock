@@ -234,12 +234,17 @@ class TrackingMovementService
             }
             else {
                 $createdMovements = [];
+                $isNewGroupInstance = false;
                 if (!$parentPack) {
                     $parentPack = $this->groupService->createParentPack($data);
                     $entityManager->persist($parentPack);
+                    $isNewGroupInstance = true;
                 } else if ($parentPack->getChildren()->isEmpty()) {
                     $parentPack->incrementGroupIteration();
+                    $isNewGroupInstance = true;
+                }
 
+                if ($isNewGroupInstance) {
                     $groupingTrackingMovement = $this->createTrackingMovement(
                         $parentPack,
                         null,
@@ -677,20 +682,4 @@ class TrackingMovementService
         $this->persistSubEntities($entityManager, $mouvementDepose);
         $entityManager->persist($mouvementDepose);
     }
-
-/*
-    public function getPickingByOperatorAndNotDropped(Utilisateur $user) {
-        $queryBuilder = $this->createQueryBuilder('group');
-        $queryBuilder
-            ->select('join_pack.code AS ref_article')
-            ->addSelect('join_trackingType.nom AS type')
-            ->addSelect('tracking_movement.quantity AS quantity')
-            ->addSelect('tracking_movement.freeFields')
-            ->addSelect('join_operator.username AS operateur')
-            ->addSelect('join_location.label AS ref_emplacement')
-            ->addSelect('tracking_movement.uniqueIdForMobile AS date')
-            ->addSelect('join_pack_nature.id AS nature_id')
-            ->addSelect('(CASE WHEN tracking_movement.finished = 1 THEN 1 ELSE 0 END) AS finished')
-            ->addSelect('(CASE WHEN tracking_movement.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock');
-    }*/
 }

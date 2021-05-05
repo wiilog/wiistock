@@ -1966,16 +1966,24 @@ class ApiController extends AbstractFOSRestController
         $packRepository = $entityManager->getRepository(Pack::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
 
+        /** @var Pack $parentPack */
         $parentPack = $packRepository->find($request->request->get("id"));
+        $isNewGroupInstance = false;
         if (!$parentPack) {
+            $isNewGroupInstance = true;
             $parentPack = $groupService->createParentPack([
                 'parent' => $request->request->get("code")
             ]);
 
             $entityManager->persist($parentPack);
-        } else if ($parentPack->getPacks()->isEmpty() && !empty($packs)) {
+        } else if ($parentPack->getChildren()->isEmpty()) {
+            $isNewGroupInstance = true;
             $parentPack->incrementGroupIteration();
+        }
 
+        $packs = json_decode($request->request->get("packs"), true);
+
+        if ($isNewGroupInstance && !empty($packs)) {
             $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
                 $parentPack,
                 null,
@@ -1989,7 +1997,6 @@ class ApiController extends AbstractFOSRestController
             $entityManager->persist($groupingTrackingMovement);
         }
 
-        $packs = json_decode($request->request->get("packs"), true);
         foreach ($packs as $data) {
             if (isset($data["id"])) {
                 $pack = $packRepository->find($data["id"]);
@@ -2001,7 +2008,7 @@ class ApiController extends AbstractFOSRestController
             $pack->setNature($data["nature_id"] ? $natureRepository->find($data["nature_id"]) : null)
                 ->setQuantity($data["quantity"]);
 
-            $parentPack->addPack($pack);
+            $parentPack->addChild($pack);
 
             $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
                 $pack,
