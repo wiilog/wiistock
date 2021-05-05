@@ -624,6 +624,8 @@ class DashboardSettingsService {
         } else {
             $values = $componentType->getExampleValues();
             if ($componentType->getMeterKey() === Dashboard\ComponentType::PACK_TO_TREAT_FROM && isset($config['chartColors'])) {
+                $values['originCaption'] = $config['originCaption'] ?? 'Legende1';
+                $values['destinationCaption'] = $config['destinationCaption'] ?? 'Legende2';
                 $values['chartColors'] = [
                     'Legende1' => $config['chartColors']['Legende1'] ?? '',
                     'Legende2' => $config['chartColors']['Legende2'] ?? ''
