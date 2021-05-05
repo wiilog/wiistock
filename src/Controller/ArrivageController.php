@@ -23,7 +23,6 @@ use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
-use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\Stream;
 use App\Service\ArrivageDataService;
@@ -47,24 +46,16 @@ use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
-use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 use Twig\Environment as Twig_Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Entity;
 
 /**
@@ -127,10 +118,6 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/", name="arrivage_index")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI})
-     * @param EntityManagerInterface $entityManager
-     * @param ArrivageDataService $arrivageDataService
-     * @return Response
-     * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager,
                           ArrivageDataService $arrivageDataService)
@@ -162,7 +149,7 @@ class ArrivageController extends AbstractController
             'carriers' => $transporteurRepository->findAllSorted(),
             'chauffeurs' => $chauffeurRepository->findAllSorted(),
             'users' => $utilisateurRepository->findBy(['status' => true], ['username'=> 'ASC']),
-            'fournisseurs' => $fournisseurRepository->findAllSorted(),
+            'fournisseurs' => $fournisseurRepository->findBy([], ['nom' => 'ASC']),
             'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
             'natures' => $natureRepository->findBy([
                 'displayed' => true
@@ -188,11 +175,6 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/api", name="arrivage_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function api(Request $request): Response
     {
@@ -206,19 +188,6 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/creer", name="arrivage_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param AttachmentService $attachmentService
-     * @param ArrivageDataService $arrivageDataService
-     * @param FreeFieldService $champLibreService
-     * @param PackService $colisService
-     * @param TranslatorInterface $translator
-     * @return Response
-     * @throws LoaderError
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
@@ -379,9 +348,6 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
@@ -412,7 +378,7 @@ class ArrivageController extends AbstractController
                     'arrivage' => $arrivage,
                     'attachments' => $attachmentRepository->findBy(['arrivage' => $arrivage]),
                     'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
-                    'fournisseurs' => $fournisseurRepository->findAllSorted(),
+                    'fournisseurs' => $fournisseurRepository->findBy([], ['nom' => 'ASC']),
                     'transporteurs' => $transporteurRepository->findAllSorted(),
                     'chauffeurs' => $chauffeurRepository->findAllSorted(),
                     'statuts' => $statuses,
@@ -430,22 +396,8 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route(
-     *     "/{arrival}/urgent",
-     *     name="patch_arrivage_urgent",
-     *     options={"expose"=true},
-     *     methods="PATCH",
-     *     condition="request.isXmlHttpRequest() && '%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_ED')"
-     * )
+     * @Route("/{arrival}/urgent", name="patch_arrivage_urgent", options={"expose"=true}, methods="PATCH", condition="request.isXmlHttpRequest() && '%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_ED')")
      * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
-     * @param Arrivage $arrival
-     * @param Request $request
-     * @param ArrivageDataService $arrivageDataService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function patchUrgentArrival(Arrivage $arrival,
                                        Request $request,
@@ -483,23 +435,8 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route(
-     *     "/{arrival}/tracking-movements",
-     *     name="post_arrival_tracking_movements",
-     *     options={"expose"=true},
-     *     methods="POST",
-     *     condition="request.isXmlHttpRequest()"
-     * )
+     * @Route("/{arrival}/tracking-movements", name="post_arrival_tracking_movements", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
-     *
-     * @param Arrivage $arrival
-     * @param ArrivageDataService $arrivageDataService
-     * @param TrackingMovementService $trackingMovementService
-     * @param EntityManagerInterface $entityManager
-     *
-     * @return Response
-     *
-     * @throws Exception
      */
     public function postArrivalTrackingMovements(Arrivage $arrival,
                                                  ArrivageDataService $arrivageDataService,
@@ -531,16 +468,6 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/modifier", name="arrivage_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @param ArrivageDataService $arrivageDataService
-     * @param FreeFieldService $champLibreService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws LoaderError
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function edit(Request $request,
                          ArrivageDataService $arrivageDataService,
@@ -640,11 +567,6 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/supprimer", name="arrivage_delete", options={"expose"=true},methods={"GET","POST"})
      * @HasPermission({Menu::TRACA, Action::DELETE_ARRI}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
@@ -741,13 +663,6 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param CSVExportService $csvService
-     * @param FieldsParamService $fieldsParamService
-     * @param ArrivageDataService $arrivageDataService
-     * @param FreeFieldService $freeFieldService
-     * @return JsonResponse|StreamedResponse
      */
     public function exportArrivals(Request $request,
                                    EntityManagerInterface $entityManager,
@@ -820,18 +735,6 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
-     *
-     * @param EntityManagerInterface $entityManager
-     * @param ArrivageDataService $arrivageDataService
-     * @param Arrivage $arrivage
-     * @param DispatchService $dispatchService
-     * @param bool $printColis
-     * @param bool $printArrivage
-     *
-     * @return JsonResponse
-     *
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function show(EntityManagerInterface $entityManager,
                          ArrivageDataService $arrivageDataService,
@@ -886,15 +789,6 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/creer-litige", name="litige_new", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @param ArrivageDataService $arrivageDataService
-     * @param LitigeService $litigeService
-     * @param EntityManagerInterface $entityManager
-     * @param UniqueNumberService $uniqueNumberService
-     * @param TranslatorInterface $translator
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function newLitige(Request $request,
                               ArrivageDataService $arrivageDataService,
@@ -992,9 +886,6 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/supprimer-litige", name="litige_delete_arrivage", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::QUALI, Action::DELETE}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function deleteLitige(Request $request,
                                  EntityManagerInterface $entityManager): Response
@@ -1014,11 +905,6 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/ajouter-colis", name="arrivage_add_colis", options={"expose"=true}, methods={"GET", "POST"})
      * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param PackService $colisService
-     * @return JsonResponse|RedirectResponse
-     * @throws Exception
      */
     public function addColis(Request $request,
                              EntityManagerInterface $entityManager,
@@ -1054,10 +940,6 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/litiges/api/{arrivage}", name="arrivageLitiges_api", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @param Arrivage $arrivage
-     * @return Response
      */
     public function apiArrivageLitiges(EntityManagerInterface $entityManager,
                                        Request $request,
@@ -1094,10 +976,6 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/api-modifier-litige", name="litige_api_edit", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function apiEditLitige(Request $request,
                                   UserService $userService,
@@ -1140,14 +1018,6 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/modifier-litige", name="litige_edit_arrivage",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::QUALI, Action::EDIT}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @param ArrivageDataService $arrivageDataService
-     * @param EntityManagerInterface $entityManager
-     * @param LitigeService $litigeService
-     * @param Twig_Environment $templating
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function editLitige(Request $request,
                                ArrivageDataService $arrivageDataService,
@@ -1266,8 +1136,6 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/colis/api/{arrivage}", name="colis_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param Arrivage $arrivage
-     * @return Response
      */
     public function apiColis(Arrivage $arrivage): Response
     {
@@ -1295,25 +1163,7 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route(
-     *     "/{arrivage}/colis/{colis}/etiquette",
-     *     name="print_arrivage_single_colis_bar_codes",
-     *     options={"expose"=true},
-     *     methods="GET"
-     * )
-     *
-     * @param Arrivage $arrivage
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param PDFGeneratorService $PDFGeneratorService
-     * @param Pack|null $colis
-     * @param array $packIdsFilter
-     * @return Response
-     *
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @Route("/{arrivage}/colis/{colis}/etiquette", name="print_arrivage_single_colis_bar_codes", options={"expose"=true}, methods="GET")
      */
     public function printArrivageColisBarCodes(Arrivage $arrivage,
                                                Request $request,
@@ -1419,21 +1269,7 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route(
-     *     "/{arrivage}/etiquettes",
-     *     name="print_arrivage_bar_codes",
-     *     options={"expose"=true},
-     *     methods="GET"
-     * )
-     * @param Arrivage $arrivage
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param PDFGeneratorService $PDFGeneratorService
-     * @return Response
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @Route("/{arrivage}/etiquettes", name="print_arrivage_bar_codes", options={"expose"=true}, methods="GET")
      */
     public function printArrivageAlias(Arrivage $arrivage,
                                        Request $request,
@@ -1444,18 +1280,6 @@ class ArrivageController extends AbstractController
         return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService, null, $packIdsFilter);
     }
 
-    /**
-     * @param Arrivage $arrivage
-     * @param bool|null $typeArrivalParamIsDefined
-     * @param bool|null $usernameParamIsDefined
-     * @param bool|null $dropzoneParamIsDefined
-     * @param bool|null $packCountParamIsDefined
-     * @param bool|null $commandAndProjectNumberIsDefined
-     * @param array|null $firstCustomIconConfig
-     * @param array|null $secondCustomIconConfig
-     * @param array $packIdsFilter
-     * @return array
-     */
     private function getBarcodeConfigPrintAllColis(Arrivage $arrivage,
                                                    ?bool $typeArrivalParamIsDefined = false,
                                                    ?bool $usernameParamIsDefined = false,
@@ -1574,14 +1398,6 @@ class ArrivageController extends AbstractController
         ];
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param ArrivageDataService $arrivageDataService
-     * @param $reloadArrivageId
-     * @return array|null
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
     private function getResponseReloadArrivage(EntityManagerInterface $entityManager,
                                                ArrivageDataService $arrivageDataService,
                                                $reloadArrivageId): ?array
@@ -1604,12 +1420,6 @@ class ArrivageController extends AbstractController
         return $response;
     }
 
-    /**
-     * @param Arrivage|Litige $entity
-     * @param AttachmentService $attachmentService
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     */
     private function persistAttachmentsForEntity($entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
     {
         $attachments = $attachmentService->createAttachements($request->files);
@@ -1623,9 +1433,6 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/colonne-visible", name="save_column_visible_for_arrivage", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -1642,13 +1449,7 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route(
-     *     "/colonne-visible",
-     *     name="get_column_visible_for_arrivage",
-     *     options={"expose"=true},
-     *     methods="GET",
-     *     condition="request.isXmlHttpRequest()"
-     * )
+     * @Route("/colonne-visible", name="get_column_visible_for_arrivage", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
      */
     public function getColumnVisible(): Response
@@ -1662,9 +1463,6 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/api-columns", name="arrival_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
-     * @param ArrivageDataService $arrivageDataService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function apiColumns(ArrivageDataService $arrivageDataService,
                                EntityManagerInterface $entityManager): Response

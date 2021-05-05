@@ -11,7 +11,7 @@
                data-toggle='modal'
                data-target='#modalEditPack'
                data-id="{{ colisId }}"
-               onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), true)">
+               onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), true, '.editor-container-edit')">
                 <i class='fas fa-edit mr-2'></i>Modifier
             </div>
             {% endif %}
