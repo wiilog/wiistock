@@ -10,9 +10,11 @@
     </div>
 
     <div class="form-group col-6">
+        {% set pack = mvt.pack %}
+        {% set code = pack ? pack.code %}
         <label title="Colis">{{"mouvement de traçabilité.Colis"|trans}}</label>
 
-        <input disabled type="text" class="form-control" value="{{ mvt.pack.code }}">
+        <input disabled type="text" class="form-control" value="{{ code }}">
     </div>
 
     <div class="form-group col-6">

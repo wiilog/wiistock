@@ -302,9 +302,9 @@ class TrackingMovementRepository extends EntityRepository
      * @param array $filterDemandeCollecteIds
      * @return TrackingMovement[]
      */
-    public function getTakingByOperatorAndNotDeposed(Utilisateur $operator,
-                                                     string $type,
-                                                     array $filterDemandeCollecteIds = []) {
+    public function getPickingByOperatorAndNotDropped(Utilisateur $operator,
+                                                      string $type,
+                                                      array $filterDemandeCollecteIds = []) {
         $queryBuilder = $this->createQueryBuilder('tracking_movement')
             ->select('join_pack.code AS ref_article')
             ->addSelect('join_trackingType.nom AS type')

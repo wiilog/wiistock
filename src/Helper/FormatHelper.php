@@ -4,7 +4,7 @@ namespace App\Helper;
 
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
-use App\Entity\Group;
+use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -31,8 +31,8 @@ class FormatHelper {
         return $status ? $status->getNom() : $else;
     }
 
-    public static function group(?Group $group, $else = "") {
-        return $group ? $group->getCode() : $else;
+    public static function pack(?Pack $pack, $else = "") {
+        return $pack ? $pack->getCode() : $else;
     }
 
     public static function provider(?Fournisseur $provider, $else = "") {

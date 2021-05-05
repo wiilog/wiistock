@@ -256,7 +256,7 @@ class TrackingMovementController extends AbstractController
                         );
 
                         $associatedPack = $createdMvt->getPack();
-                        $associatedGroup = $associatedPack->getGroup();
+                        $associatedGroup = $associatedPack->getParent();
 
                         if (!$forced && $associatedGroup) {
                             return $this->json([
@@ -264,7 +264,7 @@ class TrackingMovementController extends AbstractController
                                 'success' => true
                             ]);
                         } else if ($forced) {
-                            $associatedPack->setGroup(null);
+                            $associatedPack->setParent(null);
                             $countCreatedMouvements++;
                         }
 
@@ -281,13 +281,14 @@ class TrackingMovementController extends AbstractController
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                         $entityManager->persist($createdMvt);
                         $createdMouvements[] = $createdMvt;
-                    } else {
+                    }
+                    else {
                         $colisArray = explode(',', $colisStr);
                         $emplacementPrise = $emplacementRepository->find($post->get('emplacement-prise'));
                         $emplacementDepose = $emplacementRepository->find($post->get('emplacement-depose'));
                         foreach ($colisArray as $colis) {
                             $createdMvt = $trackingMovementService->createTrackingMovement(
-                                isset($codeToPack[$colis]) ? $codeToPack[$colis] : $colis,
+                                $codeToPack[$colis] ?? $colis,
                                 $emplacementPrise,
                                 $operator,
                                 $date,
@@ -300,48 +301,52 @@ class TrackingMovementController extends AbstractController
                                 ]
                             );
                             $associatedPack = $createdMvt->getPack();
-                            $associatedGroup = $associatedPack->getGroup();
+                            if ($associatedPack) {
+                                $associatedGroup = $associatedPack->getParent();
 
-                            if (!$forced && $associatedGroup) {
-                                return $this->json([
-                                    'group' => $associatedGroup->getCode(),
-                                    'success' => true,
-                                ]);
-                            } else if ($forced) {
-                                $associatedPack->setGroup(null);
-                                $countCreatedMouvements++;
+                                if (!$forced && $associatedGroup) {
+                                    return $this->json([
+                                        'group' => $associatedGroup->getCode(),
+                                        'success' => true,
+                                    ]);
+                                }
+                                else if ($forced) {
+                                    $associatedPack->setParent(null);
+                                    $countCreatedMouvements++;
+                                }
                             }
                             $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                             $entityManager->persist($createdMvt);
                             $createdMouvements[] = $createdMvt;
                             $createdPack = $createdMvt->getPack();
+                            if ($createdPack) {
+                                $createdMvt = $trackingMovementService->createTrackingMovement(
+                                    $createdPack,
+                                    $emplacementDepose,
+                                    $operator,
+                                    $date,
+                                    $fromNomade,
+                                    true,
+                                    TrackingMovement::TYPE_DEPOSE,
+                                    [
+                                        'commentaire' => $commentaire,
+                                        'quantity' => $quantity
+                                    ]
+                                );
 
-                            $createdMvt = $trackingMovementService->createTrackingMovement(
-                                $createdPack,
-                                $emplacementDepose,
-                                $operator,
-                                $date,
-                                $fromNomade,
-                                true,
-                                TrackingMovement::TYPE_DEPOSE,
-                                [
-                                    'commentaire' => $commentaire,
-                                    'quantity' => $quantity
-                                ]
-                            );
+                                // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
+                                if (!$emplacementDepose->ableToBeDropOff($createdPack)) {
+                                    return new JsonResponse([
+                                        'success' => false,
+                                        'msg' => $this->errorWithDropOff($createdPack->getCode(), $emplacementDepose, $packTranslation, $natureTranslation)
+                                    ]);
+                                }
 
-                            // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
-                            if (!$emplacementDepose->ableToBeDropOff($createdPack)) {
-                                return new JsonResponse([
-                                    'success' => false,
-                                    'msg' => $this->errorWithDropOff($createdPack->getCode(), $emplacementDepose, $packTranslation, $natureTranslation)
-                                ]);
+                                $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
+                                $entityManager->persist($createdMvt);
+                                $createdMouvements[] = $createdMvt;
+                                $codeToPack[$colis] = $createdPack;
                             }
-
-                            $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                            $entityManager->persist($createdMvt);
-                            $createdMouvements[] = $createdMvt;
-                            $codeToPack[$colis] = $createdPack;
                         }
                     }
                 }

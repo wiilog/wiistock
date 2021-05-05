@@ -1145,7 +1145,7 @@ class DashboardService {
             $entityManager,
             $scale,
             function(DateTime $dateMin, DateTime $dateMax) use ($packRepository, $arrivalStatusesFilter, $arrivalTypesFilter, $displayPackNatures) {
-                return $packRepository->countByDates($dateMin, $dateMax, $displayPackNatures, $arrivalStatusesFilter, $arrivalTypesFilter);
+                return $packRepository->countPacksByDates($dateMin, $dateMax, $displayPackNatures, $arrivalStatusesFilter, $arrivalTypesFilter);
             },
             $workFreeDays
         );
