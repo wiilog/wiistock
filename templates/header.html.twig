@@ -6,21 +6,21 @@
 {% set titleLink = titleLink is defined ? titleLink : '' %}
 
 <div class="main-header">
-    <div class="col-12">
+    <div class="px-lg-3 w-100">
         <div class="row align-items-center {{ withOnlyLogo ? 'justify-content-center' }}">
-            <div class="d-flex flex-column align-items-end">
+            <div class="col-12 col-lg-auto d-flex align-items-end justify-content-center">
                 <a class="position-relative" href="{{ path('accueil') }}">
-                    <img src="{{ logo('website') }}" alt="Follow GT" height="100"/>
+                    <img src="{{ logo('website') }}" alt="Follow GT" height="100" class="sizeLogo"/>
                 </a>
-                <span class="web-version">{{ web_version }}</span>
+                <span class="web-version d-none d-lg-inline">{{ web_version }}</span>
             </div>
 
             {% if not withOnlyLogo %}
                 {% if isDashboardExt or titleExists or subtitleExists %}
-                    <div class="col user-select-none">
-                        <div class="row align-items-center">
+                    <div class="col-12 col-lg user-select-none">
+                        <div class="row align-items-center justify-content-lg-start justify-content-center">
                             {% if isDashboardExt or titleExists %}
-                                <div class="col-auto">
+                                <div class="col-auto py-2">
                                     <h5 class="header-title text-white h5 my-0 page-title" {% if tooltipExists %}title="{{ title_tooltip }}"{% endif %}>
                                         {% if titleExists %}
                                             {% set titleSplit = title|split('|') %}
@@ -74,7 +74,7 @@
                         or hasHandlingRights
                         or hasDispatchRights
                         or hasTransferRights %}
-                        <div class="dropdown mr-4">
+                        <div class="col-auto dropdown">
                             <button class="quick-plus" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="icon"></span>
                             </button>
@@ -145,10 +145,10 @@
                     and app.user is defined
                     and app.user
                     and app.user.username is defined %}
-                    <a class="user"
-                       href="{{ path('user_index', {'open-modal': 'edit', 'modal-edit-id': app.user.id }) }}">
+                    <a class="col col-lg-auto user"
+                       href="{{ path('user_index', {'open-modal': 'edit', 'modal-edit-id': app.user.id }) }}" style="display: flex; align-items: center;">
                         <div class="profile-picture">{{ app.user.username | first | upper }}</div>
-                        <span>{{ app.user.username }}</span>
+                        <div class="flex-fill text-center text-truncate">{{ app.user.username }}</div>
                     </a>
                     <nav id="main-nav" class="text-white col-auto dropdown dropleft">
                         <div class="menu-button rounded pointer"
@@ -158,6 +158,10 @@
                             <span class="icon-menu"></span>
                         </div>
                         <div class="dropdown-menu pointer mr-0">
+                            <h1 class="dropdown-header d-flex d-md-none" >
+                                Menu
+                                <button type="button" class="close-menu" aria-label="Close"></button>
+                            </h1>
                             {% set menuConfig = getMenuConfig() %}
                             {% for itemMenu in menuConfig %}
                                 {% if itemMenu.sub is defined %}
