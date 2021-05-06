@@ -250,7 +250,7 @@ class ApiController extends AbstractFOSRestController
                         $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0], new DateTimeZone('Europe/Paris'));
 
                         // set mouvement de stock
-                        if (isset($mvt['fromStock']) && $mvt['fromStock']) {
+                        if ($mvt['fromStock'] ?? false) {
                             if ($type->getNom() === TrackingMovement::TYPE_PRISE) {
                                 $articles = $articleRepository->findArticleByBarCodeAndLocation($mvt['ref_article'], $mvt['ref_emplacement']);
                                 /** @var Article|null $article */
@@ -940,14 +940,15 @@ class ApiController extends AbstractFOSRestController
     }
 
     /**
-     * @Rest\Post("/api/pack-groups", name="api_post_pack_groups", condition="request.isXmlHttpRequest()")
+     * @Rest\Post("/api/group-trackings/{trackingMode}", name="api_post_pack_groups", condition="request.isXmlHttpRequest()", requirements={"trackingMode": "picking|drop"})
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
     public function postGroupedTracking(Request $request,
                                         EntityManagerInterface $entityManager,
-                                        TrackingMovementService $trackingMovementService): JsonResponse {
+                                        TrackingMovementService $trackingMovementService,
+                                        string $trackingMode): JsonResponse {
 
         /** @var Utilisateur $nomadUser */
         $operator = $this->getUser();
@@ -957,8 +958,10 @@ class ApiController extends AbstractFOSRestController
 
         $movementsStr = $request->request->get('mouvements');
         $movements = json_decode($movementsStr, true);
-        dump($movementsStr);
-        dump($movements);
+
+        $finishedMovements = ($trackingMode === 'drop');
+        $movementType = $trackingMode === 'drop' ? TrackingMovement::TYPE_DEPOSE : TrackingMovement::TYPE_PRISE;
+
         $groupsArray = Stream::from($movements)
             ->map(function($movement) {
                 $date = explode('+', $movement['date']);
@@ -989,7 +992,7 @@ class ApiController extends AbstractFOSRestController
 
                     $location = $locationRepository->findOneBy(['label' => $serializedGroup['location']]);
 
-                    $options = [];
+                    $options = ['disableUngrouping' => true];
                     $signatureFile = $request->files->get("signature_$groupIndex");
                     $photoFile = $request->files->get("photo_$groupIndex");
                     if (!empty($signatureFile) || !empty($photoFile)) {
@@ -1009,11 +1012,12 @@ class ApiController extends AbstractFOSRestController
                         $operator,
                         $serializedGroup['date'],
                         true,
-                        false,
-                        TrackingMovement::TYPE_PRISE,
+                        $finishedMovements,
+                        $movementType,
                         $options
                     );
                     $entityManager->persist($trackingMovement);
+                    $trackingMovementService->persistSubEntities($entityManager, $trackingMovement);
 
                     /** @var Pack $child */
                     foreach ($parent->getChildren() as $child) {
@@ -1023,11 +1027,12 @@ class ApiController extends AbstractFOSRestController
                             $operator,
                             $serializedGroup['date'],
                             true,
-                            false,
-                            TrackingMovement::TYPE_PRISE,
+                            $finishedMovements,
+                            $movementType,
                             array_merge(['parent' => $parent], $options)
                         );
                         $entityManager->persist($trackingMovement);
+                        $trackingMovementService->persistSubEntities($entityManager, $trackingMovement);
                     }
                 }
             }
@@ -1580,7 +1585,26 @@ class ApiController extends AbstractFOSRestController
         }
 
         if ($rights['tracking']) {
-            $trackingTaking = $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT);
+            $trackingTaking = Stream::from(
+                $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT, [], true)
+            )
+                    ->map(function (array $picking) use ($trackingMovementRepository) {
+                        $id = $picking['id'];
+                        unset($picking['id']);
+
+                        if ($picking['isGroup'] == '1') {
+                            $tracking = $trackingMovementRepository->find($id);
+                            $subPacks = $tracking
+                                ->getPack()
+                                ->getChildren()
+                                ->map(fn(Pack $pack) => $pack->serialize());
+                        }
+
+                        $picking['subPacks'] = $subPacks ?? [];
+
+                        return $picking;
+                    });
+
             $natures = array_map(
                 function (Nature $nature) use ($natureService) {
                     return $natureService->serializeNature($nature);

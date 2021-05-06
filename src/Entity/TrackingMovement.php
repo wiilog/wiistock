@@ -29,7 +29,7 @@ class TrackingMovement extends FreeFieldEntity
     /**
      * @var Pack|null
      * @ORM\ManyToOne(targetEntity="App\Entity\Pack", inversedBy="trackingMovements")
-     * @ORM\JoinColumn(nullable=false, name="pack_id", nullable=true)
+     * @ORM\JoinColumn(nullable=false, name="pack_id")
      */
     private $pack;
 
