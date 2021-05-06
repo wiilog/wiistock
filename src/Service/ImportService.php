@@ -410,21 +410,22 @@ class ImportService
                 $user
             ) {
                 $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
+                $data = array_map('trim',$verifiedData);
                 switch ($this->currentImport->getEntity()) {
                     case Import::ENTITY_FOU:
-                        $this->importFournisseurEntity($verifiedData, $stats);
+                        $this->importFournisseurEntity($data, $stats);
                         break;
                     case Import::ENTITY_ART_FOU:
-                        $this->importArticleFournisseurEntity($verifiedData, $stats);
+                        $this->importArticleFournisseurEntity($data, $stats);
                         break;
                     case Import::ENTITY_REF:
-                        $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $dataToCheck, $stats);
+                        $this->importReferenceEntity($data, $colChampsLibres, $row, $dataToCheck, $stats);
                         break;
                     case Import::ENTITY_RECEPTION:
-                        $this-> importReceptionEntity($verifiedData, $receptionsWithCommand, $user, $stats);
+                        $this->importReceptionEntity($data, $receptionsWithCommand, $user, $stats);
                         break;
                     case Import::ENTITY_ART:
-                        $referenceArticle = $this->importArticleEntity($verifiedData, $colChampsLibres, $row, $stats, $rowIndex);
+                        $referenceArticle = $this->importArticleEntity($data, $colChampsLibres, $row, $stats, $rowIndex);
                         $refToUpdate[$referenceArticle->getId()] = $referenceArticle;
                         break;
                 }

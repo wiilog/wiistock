@@ -10,7 +10,7 @@
                         Nature <strong>{{ group.nature ? group.nature.label : 'Non défini' }}</strong>
                     </div>
                     <div class="col-4">
-                        Nombre colis <strong>{{ group.packs | length }}</strong>
+                        Nombre colis <strong>{{ group.children | length }}</strong>
                     </div>
                     {% if last_movement is not null %}
                         <div class="col-12 mt-2">
@@ -23,7 +23,7 @@
             </div>
         </div>
         <div class="group-packs">
-            {% for pack in group.packs %}
+            {% for pack in group.children %}
                 <div class="group-pack">
                     <div class="pack-header row">
                         <div class="col-auto mr-auto">

@@ -1,4 +1,5 @@
 {% set logoURL = values.logoURL ?? null %}
+{% set titleComponentLogo = values.titleComponentLogo ?? '' %}
 
 <div class="customization-tools">
     <input type="hidden" name="jsonConfig" value="{{ values | json_encode }}" class="data">
@@ -99,7 +100,8 @@
                                          height="50px"
                                          class="preview-component-image logo {{ not logoURL ? 'd-none' }}"/>
                                 </div>
-                                <span class="title-component-image" title=""></span>
+                                <span class="title-component-image" title="">{{ titleComponentLogo ? titleComponentLogo | slice(0, 5) ~ '...' }}</span>
+                                <input type="hidden" name="titleComponentLogo" class="data" value="">
                             </div>
                             <input type="file"
                                    class="upload-component-image"

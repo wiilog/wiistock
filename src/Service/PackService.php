@@ -11,6 +11,7 @@ use App\Entity\Nature;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Repository\NatureRepository;
+use App\Repository\PackRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -56,7 +57,7 @@ Class PackService {
         $packRepository = $this->entityManager->getRepository(Pack::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
-        $queryResult = $packRepository->findByParamsAndFilters($params, $filters);
+        $queryResult = $packRepository->findByParamsAndFilters($params, $filters, PackRepository::PACKS_MODE);
 
         $packs = $queryResult["data"];
 
@@ -129,9 +130,8 @@ Class PackService {
     }
 
     public function dataRowGroupHistory(TrackingMovement $trackingMovement) {
-
         return [
-            'group' => $trackingMovement->getPackGroup() ? FormatHelper::group($trackingMovement->getPackGroup()) : '',
+            'group' => $trackingMovement->getPackParent() ? (FormatHelper::pack($trackingMovement->getPackParent()) . '-' . $trackingMovement->getGroupIteration()) : '',
             'date' => FormatHelper::datetime($trackingMovement->getDatetime()),
             'type' => FormatHelper::status($trackingMovement->getType())
         ];

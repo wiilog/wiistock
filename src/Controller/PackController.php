@@ -130,7 +130,7 @@ class PackController extends AbstractController
             return $CSVExportService->streamResponse(
                 function ($output) use ($CSVExportService, $translator, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
                     $packRepository = $entityManager->getRepository(Pack::class);
-                    $packs = $packRepository->getByDates($dateTimeMin, $dateTimeMax);
+                    $packs = $packRepository->getPacksByDates($dateTimeMin, $dateTimeMax);
                     $trackingMouvementRepository = $entityManager->getRepository(TrackingMovement::class);
 
                     foreach ($packs as $pack) {

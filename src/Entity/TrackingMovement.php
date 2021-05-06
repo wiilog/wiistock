@@ -27,7 +27,7 @@ class TrackingMovement extends FreeFieldEntity
     private $id;
 
     /**
-     * @var Pack
+     * @var Pack|null
      * @ORM\ManyToOne(targetEntity="App\Entity\Pack", inversedBy="trackingMovements")
      * @ORM\JoinColumn(nullable=false, name="pack_id")
      */
@@ -132,9 +132,9 @@ class TrackingMovement extends FreeFieldEntity
     private $receptionReferenceArticle;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Group::class, inversedBy="trackingMovements")
+     * @ORM\ManyToOne(targetEntity=Pack::class, inversedBy="childTrackingMovements")
      */
-    private $packGroup;
+    private ?Pack $packParent = null;
 
     public function __construct()
     {
@@ -494,14 +494,20 @@ class TrackingMovement extends FreeFieldEntity
         return $this;
     }
 
-    public function getPackGroup(): ?Group
-    {
-        return $this->packGroup;
+    public function getPackParent(): ?Pack {
+        return $this->packParent;
     }
 
-    public function setPackGroup(?Group $packGroup): self
-    {
-        $this->packGroup = $packGroup;
+    public function setPackParent(?Pack $packParent): self {
+        if($this->packParent && $this->packParent !== $packParent) {
+            $this->packParent->removeChildTrackingMovement($this);
+        }
+
+        $this->packParent = $packParent;
+
+        if($packParent) {
+            $packParent->addChildTrackingMovement($this);
+        }
 
         return $this;
     }

@@ -1051,76 +1051,6 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/modifier-parametres-tableau-de-bord", name="edit_dashboard_params",  options={"expose"=true},  methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function editDashboardParams(Request $request,
-                                        EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest()) {
-            $post = $request->request;
-            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-
-            $listMultipleSelect = [
-                ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => 'listNaturesColis',
-                ParametrageGlobal::DASHBOARD_CARRIER_DOCK => 'carrierDock',
-                ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => 'locationAvailable',
-                ParametrageGlobal::DASHBOARD_LOCATION_DOCK => 'locationToTreat',
-                ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK => 'locationWaitingDock',
-                ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN => 'locationWaitingAdmin',
-                ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => 'locationDropZone',
-                ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => 'locationLitiges',
-                ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => 'locationUrgences',
-                ParametrageGlobal::DASHBOARD_PACKAGING_1 => 'packaging1',
-                ParametrageGlobal::DASHBOARD_PACKAGING_2 => 'packaging2',
-                ParametrageGlobal::DASHBOARD_PACKAGING_3 => 'packaging3',
-                ParametrageGlobal::DASHBOARD_PACKAGING_4 => 'packaging4',
-                ParametrageGlobal::DASHBOARD_PACKAGING_5 => 'packaging5',
-                ParametrageGlobal::DASHBOARD_PACKAGING_6 => 'packaging6',
-                ParametrageGlobal::DASHBOARD_PACKAGING_7 => 'packaging7',
-                ParametrageGlobal::DASHBOARD_PACKAGING_8 => 'packaging8',
-                ParametrageGlobal::DASHBOARD_PACKAGING_9 => 'packaging9',
-                ParametrageGlobal::DASHBOARD_PACKAGING_10 => 'packaging10',
-                ParametrageGlobal::DASHBOARD_PACKAGING_RPA => 'packagingRPA',
-                ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE => 'packagingLitige',
-                ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE => 'packagingUrgence',
-                ParametrageGlobal::DASHBOARD_PACKAGING_KITTING => 'packagingKitting'
-            ];
-
-            foreach($listMultipleSelect as $labelParam => $selectId) {
-                $listId = $post->get($selectId);
-                $listIdStr = $listId
-                    ? (is_array($listId) ? implode(',', $listId) : $listId)
-                    : null;
-                $param = $parametrageGlobalRepository->findOneByLabel($labelParam);
-                $param->setValue($listIdStr);
-            }
-
-            $listSelect = [
-                ParametrageGlobal::DASHBOARD_NATURE_COLIS => 'natureColis',
-            ];
-
-            foreach($listSelect as $labelParam => $selectId) {
-                $param = $parametrageGlobalRepository->findOneByLabel($labelParam);
-                $param->setValue($post->get($selectId));
-            }
-
-            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_1, $post->get('locationsFirstGraph'), $entityManager);
-            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_ADMIN_DASHBOARD_2, $post->get('locationsSecondGraph'), $entityManager);
-            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_DOCK_DASHBOARD_DROPZONE, $post->get('locationDropZone'), $entityManager);
-            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_PACKAGING_DSQR, $post->get('packagingDSQR'), $entityManager);
-            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_PACKAGING_GT_ORIGIN, $post->get('packagingOrigineGT'), $entityManager);
-            $this->setLocationListCluster(LocationCluster::CLUSTER_CODE_PACKAGING_GT_TARGET, $post->get('packagingDestinationGT'), $entityManager);
-            $entityManager->flush();
-
-            return new JsonResponse(true);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/edit-param-locations/{label}",
      *     name="edit_param_location",
      *     options={"expose"=true},
@@ -1184,30 +1114,33 @@ class ParametrageGlobalController extends AbstractController
                         $recordFirstDrop
                         && $recordFirstDrop->getEmplacement() === $locationInCluster
                     );
-                    if($lastTrackingIsOnLocation
+                    if ($lastTrackingIsOnLocation
                         || (
                             $firstDropIsOnLocation
                             && ($recordFirstDrop === $recordLastTracking)
                         )) {
                         $entityManager->remove($record);
-                    } else if((
-                        $firstDropIsOnLocation
-                        && ($recordFirstDrop !== $recordLastTracking)
-                    )) {
+                    } else if ($firstDropIsOnLocation
+                               && ($recordFirstDrop !== $recordLastTracking)) {
                         $pack = $recordFirstDrop->getPack();
-                        $trackingMovements = $pack->getTrackingMovements();
-                        $newFirstDrop = null;
-                        foreach($trackingMovements as $trackingMovement) {
-                            if($trackingMovement === $recordFirstDrop) {
-                                break;
-                            } else if($trackingMovement->isDrop()) {
-                                $newFirstDrop = $trackingMovement;
+                        if ($pack) {
+                            $trackingMovements = $pack->getTrackingMovements();
+                            $newFirstDrop = null;
+                            foreach ($trackingMovements as $trackingMovement) {
+                                if ($trackingMovement === $recordFirstDrop) {
+                                    break;
+                                }
+                                else if ($trackingMovement->isDrop()) {
+                                    $newFirstDrop = $trackingMovement;
+                                }
                             }
-                        }
-                        if(isset($newFirstDrop)) {
-                            $record->setFirstDrop($newFirstDrop);
-                        } else {
-                            $entityManager->remove($record);
+
+                            if (isset($newFirstDrop)) {
+                                $record->setFirstDrop($newFirstDrop);
+                            }
+                            else {
+                                $entityManager->remove($record);
+                            }
                         }
                     }
                 }
