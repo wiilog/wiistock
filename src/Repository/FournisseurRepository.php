@@ -2,11 +2,10 @@
 
 namespace App\Repository;
 
-use App\Entity\Pack;
 use App\Entity\Fournisseur;
+use App\Helper\QueryCounter;
 use App\Helper\Stream;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
 
 /**
  * @method Fournisseur|null find($id, $lockMode = null, $lockVersion = null)
@@ -22,46 +21,38 @@ class FournisseurRepository extends EntityRepository
         'Code de référence' => 'codeReference',
     ];
 
-    /**
-     * @param $code
-     * @return Fournisseur|null
-     * @throws NonUniqueResultException
-     */
     public function findOneByCodeReference($code)
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT f
-          FROM App\Entity\Fournisseur f
-          WHERE f.codeReference = :search"
-        )->setParameter('search', $code);
+        $qb = $this->createQueryBuilder('supplier');
 
-        return $query->getOneOrNullResult();
+        $qb->select('supplier')
+            ->where('supplier.codeReference = :code')
+            ->setParameter('code', $code);
+
+        return $qb->getQuery()->getOneOrNullResult();
     }
 
     public function countByCode($code)
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(f)
-          FROM App\Entity\Fournisseur f
-          WHERE f.codeReference = :code"
-        )->setParameter('code', $code);
+        $qb = $this->createQueryBuilder('supplier');
 
-        return $query->getSingleScalarResult();
+        $qb->select('COUNT(supplier)')
+            ->where('supplier.codeReference = :code')
+            ->setParameter('code', $code);
+
+        return $qb->getQuery()->getSingleScalarResult();
     }
 
     public function getCodesAndLabelsGroupedByReference(): array {
-        $queryBuilder = $this->createQueryBuilder('fournisseur');
+        $queryBuilder = $this->createQueryBuilder('supplier');
 
         return Stream::from($queryBuilder
                 ->distinct()
-                ->select('fournisseur.nom as supplierLabel')
-                ->addSelect('fournisseur.codeReference as supplierCode')
+                ->select('supplier.nom as supplierLabel')
+                ->addSelect('supplier.codeReference as supplierCode')
                 ->addSelect('referenceArticle.id')
-                ->innerJoin('fournisseur.articlesFournisseur', 'articlesFournisseur')
-                ->innerJoin('articlesFournisseur.referenceArticle', 'referenceArticle')
+                ->innerJoin('supplier.articlesFournisseur', 'supplierArticles')
+                ->innerJoin('supplierArticles.referenceArticle', 'referenceArticle')
                 ->getQuery()
                 ->getResult())
             ->reduce(function(array $carry, array $supplierWithRefId) {
@@ -85,50 +76,36 @@ class FournisseurRepository extends EntityRepository
 
     public function getIdAndCodeBySearch($search)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT f.id,
-                    f.codeReference as text,
-                    f.nom AS name
-          FROM App\Entity\Fournisseur f
-          WHERE f.nom LIKE :search OR f.codeReference LIKE :search"
-        )->setParameter('search', '%' . $search . '%');
+        $qb = $this->createQueryBuilder('supplier');
 
-        return $query->execute();
+        $qb->select('supplier.id AS id')
+            ->addSelect('supplier.nom AS text')
+            ->where('supplier.nom LIKE :search')
+            ->orWhere('supplier.codeReference LIKE :search')
+            ->setParameter('search', '%' . $search . '%');
+
+        return $qb->getQuery()->getResult();
     }
 
     public function getIdAndLabelseBySearch($search)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT f.id,
-                    f.codeReference AS code,
-                    f.nom as text
-          FROM App\Entity\Fournisseur f
-          WHERE f.nom LIKE :search"
-        )->setParameter('search', '%' . $search . '%');
+        $qb = $this->createQueryBuilder('supplier');
 
-        return $query->execute();
-    }
+        $qb->select('supplier.id AS id')
+            ->addSelect('supplier.codeReference AS code')
+            ->addSelect('supplier.nom AS text')
+            ->where('supplier.nom LIKE :search')
+            ->setParameter('search', '%' . $search . '%')
+            ->setParameter('search', '%' . $search . '%');
 
-    public function getIdAndLibelleBySearchForFilter($search)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT f.nom as id, f.nom as text
-          FROM App\Entity\Fournisseur f
-          WHERE f.nom LIKE :search"
-        )->setParameter('search', '%' . $search . '%');
-
-        return $query->execute();
+        return $qb->getQuery()->getResult();
     }
 
     public function getByParams($params = null)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
+        $qb = $this->createQueryBuilder('supplier');
 
-        $qb->from('App\Entity\Fournisseur', 'fournisseur');
+        $countTotal = QueryCounter::count($qb, 'supplier');
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
@@ -137,24 +114,20 @@ class FournisseurRepository extends EntityRepository
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
                     $qb
-                        ->orderBy('fournisseur.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']], $order);
+                        ->orderBy('supplier.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']], $order);
                 }
             }
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('fournisseur.nom LIKE :value OR fournisseur.codeReference LIKE :value')
+                        ->andWhere('supplier.nom LIKE :value OR supplier.codeReference LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
         }
 
-        $queryCountFilterd = $qb
-            ->select('COUNT(fournisseur)')
-            ->getQuery();
-
-        $countFilterd = $queryCountFilterd->getSingleScalarResult();
+        $countFiltered = QueryCounter::count($qb, 'supplier');
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
@@ -162,70 +135,26 @@ class FournisseurRepository extends EntityRepository
         }
 
         $query = $qb
-            ->select('fournisseur')
+            ->select('supplier')
             ->getQuery();
 
         return [
-            'recordsTotal' => (int) $this->countAll(),
-            'recordsFiltered' => (int) $countFilterd,
+            'recordsTotal' => $countTotal,
+            'recordsFiltered' => $countFiltered,
             'data' => $query->getResult()
         ];
     }
 
-    public function countAll()
+    public function findOneByColis($pack)
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(a)
-            FROM App\Entity\Fournisseur a
-           "
-        );
+        $qb = $this->createQueryBuilder('supplier');
 
-        return $query->getSingleScalarResult();
-    }
+        $qb->select('supplier')
+            ->join('supplier.arrivages', 'arrivals')
+            ->join('arrivals.packs', 'packs')
+            ->where('packs = :pack')
+            ->setParameter('pack', $pack);
 
-    public function findAllSorted()
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT f FROM App\Entity\Fournisseur f
-            ORDER BY f.nom
-            "
-        );
-
-        return $query->execute();
-    }
-
-	/**
-	 * @param Pack $colis
-	 * @return Fournisseur
-	 * @throws NonUniqueResultException
-	 */
-    public function findOneByColis($colis)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT f
-            FROM App\Entity\Fournisseur f
-            JOIN f.arrivages a
-            JOIN a.packs c
-            WHERE c = :colis"
-        )->setParameter('colis', $colis);
-
-        return $query->getOneOrNullResult();
-    }
-
-    public function getNameAndRefArticleFournisseur($ref)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT DISTINCT f.nom, af.reference
-            FROM App\Entity\Fournisseur f
-            JOIN f.articlesFournisseur af
-            WHERE af.referenceArticle = :ref"
-        )->setParameter('ref', $ref);
-
-        return $query->execute();
+        return $qb->getQuery()->getOneOrNullResult();
     }
 }

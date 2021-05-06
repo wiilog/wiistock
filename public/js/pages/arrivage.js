@@ -140,7 +140,7 @@ function initNewArrivageEditor(modal) {
         quillNew = initEditor(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;
     }
-    Select2Old.init($modal.find('.ajax-autocomplete-fournisseur'));
+    Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
     Select2Old.init($modal.find('.ajax-autocomplete-transporteur'));
     Select2Old.init($modal.find('.ajax-autocomplete-chauffeur'));
     Select2Old.location($modal.find('.ajax-autocomplete-location'));
