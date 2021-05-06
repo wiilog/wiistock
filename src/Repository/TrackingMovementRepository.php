@@ -204,7 +204,7 @@ class TrackingMovementRepository extends EntityRepository
                             'search_pack.code LIKE :search_value',
                             'search_location.label LIKE :search_value',
                             'search_type.nom LIKE :search_value',
-                            '(search_pack_group.code LIKE :search_value AND search_type.nom <> :type)',
+                            'search_pack_group.code LIKE :search_value',
                             'search_pack_supplierItem_referenceArticle.reference LIKE :search_value',
                             'search_pack_article.label LIKE :search_value',
                             'search_pack_referenceArticle.reference LIKE :search_value',
@@ -228,11 +228,8 @@ class TrackingMovementRepository extends EntityRepository
                     } if ($column === 'group') {
                         $qb
                             ->leftJoin('tracking_movement.packParent', 'order_pack_group')
-                            ->leftJoin('tracking_movement.type', 'order_type')
-                            ->andWhere('order_type.nom <> :type')
                             ->orderBy('order_pack_group.code', $order)
-                            ->addOrderBy('tracking_movement.groupIteration', $order)
-                            ->setParameter('type', TrackingMovement::TYPE_DEPOSE);
+                            ->addOrderBy('tracking_movement.groupIteration', $order);
                     } else if ($column === 'status') {
                         $qb
                             ->leftJoin('tracking_movement.type', 'order_type')
