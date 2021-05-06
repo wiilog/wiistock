@@ -396,7 +396,7 @@ class TrackingMovementRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findTrackingMovementsForGroupHistory($pack) {
+    public function findTrackingMovementsForGroupHistory($pack, $params) {
         $qb = $this->createQueryBuilder('tracking_movement');
 
         $qb->select('tracking_movement')

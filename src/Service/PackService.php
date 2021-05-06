@@ -73,10 +73,10 @@ Class PackService {
         ];
     }
 
-    public function getGroupHistoryForDatatable($pack) {
+    public function getGroupHistoryForDatatable($pack, $params) {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 
-        $queryResult = $trackingMovementRepository->findTrackingMovementsForGroupHistory($pack);
+        $queryResult = $trackingMovementRepository->findTrackingMovementsForGroupHistory($pack, $params);
 
         $trackingMovements = $queryResult["data"];
 
