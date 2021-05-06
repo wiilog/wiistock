@@ -100,7 +100,7 @@
                                          height="50px"
                                          class="preview-component-image logo {{ not logoURL ? 'd-none' }}"/>
                                 </div>
-                                <span class="title-component-image" title="">{{ titleComponentLogo ? titleComponentLogo | slice(0, 5) ~ '...' }}</span>
+                                <span class="title-component-image" title="{{ titleComponentLogo }}">{{ titleComponentLogo ? titleComponentLogo | slice(0, 5) ~ '...' }}</span>
                                 <input type="hidden" name="titleComponentLogo" class="data" value="">
                             </div>
                             <input type="file"

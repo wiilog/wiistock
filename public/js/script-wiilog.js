@@ -1085,7 +1085,7 @@ function updateImagePreview(preview, upload, $title = null, $delete = null, $cal
                         $title.text(fileNameWithExtension.join('.').substr(0, 5) + '...');
                         $title.attr('title', fileNameWithExtension.join('.'));
                         if($title.siblings('input[name=titleComponentLogo]').length > 0) {
-                            $title.siblings('input[name=titleComponentLogo]').last().val(fileNameWithExtension);
+                            $title.siblings('input[name=titleComponentLogo]').last().val($upload.files[0].name);
                         }
                     }
 
