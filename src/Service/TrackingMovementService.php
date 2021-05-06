@@ -22,6 +22,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Helper\Stream;
+use App\Repository\TrackingMovementRepository;
 use DateTime;
 use DateTimeInterface;
 use Exception;
@@ -681,5 +682,29 @@ class TrackingMovementService
         );
         $this->persistSubEntities($entityManager, $mouvementDepose);
         $entityManager->persist($mouvementDepose);
+    }
+
+    public function getMobileUserPicking(EntityManagerInterface $entityManager, Utilisateur $user): array {
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        return Stream::from(
+            $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT, [], true)
+        )
+            ->map(function (array $picking) use ($trackingMovementRepository) {
+                $id = $picking['id'];
+                unset($picking['id']);
+
+                if ($picking['isGroup'] == '1') {
+                    $tracking = $trackingMovementRepository->find($id);
+                    $subPacks = $tracking
+                        ->getPack()
+                        ->getChildren()
+                        ->map(fn(Pack $pack) => $pack->serialize());
+                }
+
+                $picking['subPacks'] = $subPacks ?? [];
+
+                return $picking;
+            })
+            ->toArray();
     }
 }

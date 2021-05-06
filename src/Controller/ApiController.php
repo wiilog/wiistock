@@ -1037,6 +1037,8 @@ class ApiController extends AbstractFOSRestController
                 }
             }
             $entityManager->flush();
+
+            $res['tracking'] = $trackingMovementService->getMobileUserPicking($entityManager, $operator);
         }
         catch (Throwable $throwable) {
             $res['success'] = false;
@@ -1428,6 +1430,7 @@ class ApiController extends AbstractFOSRestController
      */
     private function getDataArray(Utilisateur $user,
                                   UserService $userService,
+                                  TrackingMovementService $trackingMovementService,
                                   NatureService $natureService,
                                   Request $request,
                                   EntityManagerInterface $entityManager)
@@ -1585,25 +1588,7 @@ class ApiController extends AbstractFOSRestController
         }
 
         if ($rights['tracking']) {
-            $trackingTaking = Stream::from(
-                $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT, [], true)
-            )
-                    ->map(function (array $picking) use ($trackingMovementRepository) {
-                        $id = $picking['id'];
-                        unset($picking['id']);
-
-                        if ($picking['isGroup'] == '1') {
-                            $tracking = $trackingMovementRepository->find($id);
-                            $subPacks = $tracking
-                                ->getPack()
-                                ->getChildren()
-                                ->map(fn(Pack $pack) => $pack->serialize());
-                        }
-
-                        $picking['subPacks'] = $subPacks ?? [];
-
-                        return $picking;
-                    });
+            $trackingTaking = $trackingMovementService->getMobileUserPicking($entityManager, $user);
 
             $natures = array_map(
                 function (Nature $nature) use ($natureService) {
@@ -1694,13 +1679,14 @@ class ApiController extends AbstractFOSRestController
     public function getData(Request $request,
                             UserService $userService,
                             NatureService $natureService,
+                            TrackingMovementService $trackingMovementService,
                             EntityManagerInterface $entityManager)
     {
         $nomadUser = $this->getUser();
 
         return $this->json([
             "success" => true,
-            "data" => $this->getDataArray($nomadUser, $userService, $natureService, $request, $entityManager)
+            "data" => $this->getDataArray($nomadUser, $userService, $trackingMovementService, $natureService, $request, $entityManager)
         ]);
     }
 
