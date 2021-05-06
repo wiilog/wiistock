@@ -527,7 +527,7 @@ function createCarrierTrackingElement(data) {
                 ${withStyle(data, numberingConfig, 1, title)}
             </div>
             ${createTooltip(data.tooltip)}
-            <h1>${withStyle(data, numberingConfig, 2, carriers)}</h1>
+            <h1 class="scroll">${withStyle(data, numberingConfig, 2, carriers)}</h1>
         </div>
     `);
 }
