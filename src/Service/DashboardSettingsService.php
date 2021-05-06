@@ -143,7 +143,7 @@ class DashboardSettingsService {
             $values['tooltip'] = $config['tooltip'];
         }
 
-        if (!empty($config['backgroundColor'])/* && ($componentType->getMeterKey() !== Dashboard\ComponentType::EXTERNAL_IMAGE)*/) { // TODO uncomment when external image component is done
+        if (!empty($config['backgroundColor']) && ($componentType->getMeterKey() !== Dashboard\ComponentType::EXTERNAL_IMAGE)) {
             $values['backgroundColor'] = $config['backgroundColor'];
         }
 
@@ -701,7 +701,7 @@ class DashboardSettingsService {
             $values = $componentType->getExampleValues();
             $values['separateType'] = $config['separateType'] ?? '';
             $values['handlingTypes'] = $config['handlingTypes'] ?? '';
-            if (!empty($config['handlingTypes']) && !empty($config['separateType'])) {
+            if (!empty($config['handlingTypes']) && $separateType) {
                 $handlingTypes = $entityManager->getRepository(Type::class)->findBy(['id' => $config['handlingTypes']]);
                 $counter = 0;
                 $chartColors = Stream::from($handlingTypes)
@@ -730,7 +730,9 @@ class DashboardSettingsService {
                     })->toArray();
                 $values['chartDataMultiple'] = $chartDataMultiple;
             } else {
-                $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'] ?? [];
+                $values['chartColors'] = (isset($config['chartColors']) && isset($config['chartColors'][0]))
+                    ? [$config['chartColors'][0]]
+                    : [Dashboard\ComponentType::DEFAULT_CHART_COLOR];
             }
 
             $scale = $config['daysNumber'] ?? DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE;
