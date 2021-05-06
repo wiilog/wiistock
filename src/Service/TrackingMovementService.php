@@ -9,7 +9,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Dispatch;
-use App\Entity\Group;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
 use App\Entity\Nature;
@@ -23,9 +22,10 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Helper\Stream;
+use App\Repository\TrackingMovementRepository;
 use DateTime;
+use DateTimeInterface;
 use Exception;
-use Symfony\Component\Form\Form;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -153,7 +153,6 @@ class TrackingMovementService
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
 
         $trackingPack = $movement->getPack();
-        $packCode = $trackingPack->getCode();
 
         if(!$movement->getAttachments()->isEmpty()) {
             $attachmentsCounter = $movement->getAttachments()->count();
@@ -164,23 +163,23 @@ class TrackingMovementService
         $rows = [
             'id' => $movement->getId(),
             'date' => FormatHelper::datetime($movement->getDatetime()),
-            'code' => $packCode,
+            'code' => $trackingPack ? $trackingPack->getCode() : '',
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
-            'group' => $movement->getPackGroup() ? $movement->getPackGroup()->getCode() . '-' . ($movement->getGroupIteration() ?? '1') : '',
+            'group' => $movement->getPackParent() ? $movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?? '1') : '',
             'location' => FormatHelper::location($movement->getEmplacement()),
             'reference' => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getReference()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
-                    : ($movement->getPack()->getLastTracking()->getMouvementStock()
-                        ? $movement->getPack()->getLastTracking()->getMouvementStock()->getArticle()->getArticleFournisseur()->getReferenceArticle()->getLibelle()
+                    : ($trackingPack && $trackingPack->getLastTracking()->getMouvementStock()
+                        ? $trackingPack->getLastTracking()->getMouvementStock()->getArticle()->getArticleFournisseur()->getReferenceArticle()->getLibelle()
                         : '')),
             "label" => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getLibelle()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getLabel()
-                    : ($movement->getPack()->getLastTracking()->getMouvementStock()
-                        ? $movement->getPack()->getLastTracking()->getMouvementStock()->getArticle()->getLabel()
+                    : ($trackingPack && $trackingPack->getLastTracking()->getMouvementStock()
+                        ? $trackingPack->getLastTracking()->getMouvementStock()->getArticle()->getLabel()
                         : '')),
             "quantity" => $movement->getQuantity() ?: '',
             "type" => FormatHelper::status($movement->getType()),
@@ -202,14 +201,14 @@ class TrackingMovementService
         return $rows;
     }
 
-    public function handleGroups(array $data, EntityManagerInterface $entityManager, Utilisateur $operator, array &$createdMovements): array {
-        $groupRepository = $entityManager->getRepository(Group::class);
+    public function handleGroups(array $data, EntityManagerInterface $entityManager, Utilisateur $operator): array {
         $packRepository = $entityManager->getRepository(Pack::class);
-        $group = $data['group'];
+        $parentCode = $data['parent'];
 
-        $chosenGroupIsPack = $packRepository->findOneBy(['code' => $group]);
+        /** @var Pack $parentPack */
+        $parentPack = $packRepository->findOneBy(['code' => $parentCode]);
 
-        if ($chosenGroupIsPack) {
+        if ($parentPack && !$parentPack->isGroup()) {
             return [
                 'success' => false,
                 'msg' => 'Le colis contenant choisi est un colis, veuillez choisir un groupage valide.'
@@ -217,15 +216,15 @@ class TrackingMovementService
         } else {
             $errors = [];
             $colisArray = explode(',', $data['colis']);
-            Stream::from($colisArray)
-                ->each(function($colis) use ($groupRepository, $packRepository, &$errors) {
-                    $isGroup = $groupRepository->findOneBy(['code' => $colis]);
-                    $pack = $packRepository->findOneBy(['code' => $colis]);
+            foreach ($colisArray as $colis) {
+                $pack = $packRepository->findOneBy(['code' => $colis]);
+                $isParentPack = $pack && $pack->isGroup();
+                $isChildPack = $pack && $pack->getParent();
+                if ($isParentPack || $isChildPack) {
+                    $errors[] = $colis;
+                }
+            }
 
-                    if ($isGroup || ($pack && $pack->getGroup())) {
-                        $errors[] = $colis;
-                    }
-                });
             if (!empty($errors)) {
                 return [
                     'success' => false,
@@ -236,13 +235,32 @@ class TrackingMovementService
             }
             else {
                 $createdMovements = [];
-                $group = $groupRepository->findOneBy(['code' => $group]);
-                if (!$group) {
-                    $group = $this->groupService->createGroup($data);
-                    $entityManager->persist($group);
-                } else if ($group->getPacks()->isEmpty()) {
-                    $group->incrementIteration();
+                $isNewGroupInstance = false;
+                if (!$parentPack) {
+                    $parentPack = $this->groupService->createParentPack($data);
+                    $entityManager->persist($parentPack);
+                    $isNewGroupInstance = true;
+                } else if ($parentPack->getChildren()->isEmpty()) {
+                    $parentPack->incrementGroupIteration();
+                    $isNewGroupInstance = true;
                 }
+
+                if ($isNewGroupInstance) {
+                    $groupingTrackingMovement = $this->createTrackingMovement(
+                        $parentPack,
+                        null,
+                        $operator,
+                        new DateTime('now', new \DateTimeZone('Europe/Paris')),
+                        $data['fromNomade'] ?? false,
+                        true,
+                        TrackingMovement::TYPE_GROUP,
+                        ['parent' => $parentPack]
+                    );
+
+                    $entityManager->persist($groupingTrackingMovement);
+                    $createdMovements[] = $groupingTrackingMovement;
+                }
+
                 foreach ($colisArray as $colis) {
                     $groupingTrackingMovement = $this->createTrackingMovement(
                         $colis,
@@ -253,9 +271,16 @@ class TrackingMovementService
                         true,
                         TrackingMovement::TYPE_GROUP,
                         [
-                            'group' => $group
+                            'parent' => $parentPack,
+                            'onlyPack' => true
                         ]
                     );
+
+                    $pack = $groupingTrackingMovement->getPack();
+                    if ($pack) {
+                        $pack->setParent($parentPack);
+                    }
+
                     $entityManager->persist($groupingTrackingMovement);
                     $createdMovements[] = $groupingTrackingMovement;
                 }
@@ -316,13 +341,13 @@ class TrackingMovementService
         $receptionReferenceArticle = $options['receptionReferenceArticle'] ?? null;
         $uniqueIdForMobile = $options['uniqueIdForMobile'] ?? null;
         $natureId = $options['natureId'] ?? null;
-        /**
-         * @var Group $group
-         */
-        $group = $options['group'] ?? null;
+        $disableUngrouping = $options['disableUngrouping'] ?? false;
+
+        /** @var Pack|null $parent */
+        $parent = $options['parent'] ?? null;
         $removeFromGroup = $options['removeFromGroup'] ?? false;
 
-        $pack = $this->getPack($entityManager, $packOrCode, $quantity, $natureId);
+        $pack = $this->getPack($entityManager, $packOrCode, $quantity, $natureId, $options['onlyPack'] ?? false);
 
         $tracking = new TrackingMovement();
         $tracking
@@ -341,11 +366,12 @@ class TrackingMovementService
         $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
         $this->manageTrackingFiles($tracking, $fileBag);
 
-        if ($group) {
-            $group->addTrackingMovement($tracking);
-            $group->addPack($pack);
-            $tracking->setGroupIteration($group->getIteration());
-        } else if ($pack->getGroup() && !in_array($type->getNom(), [TrackingMovement::TYPE_UNGROUP, TrackingMovement::TYPE_GROUP])) {
+        if ($parent) {
+            $tracking->setPackParent($parent);
+            $tracking->setGroupIteration($parent->getGroupIteration());
+        } else if (!$disableUngrouping
+                   && $pack->getParent()
+                   && in_array($type->getNom(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
             $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
 
             $trackingUngroup = new TrackingMovement();
@@ -356,12 +382,12 @@ class TrackingMovementService
                 ->setDatetime($date)
                 ->setFinished($finished)
                 ->setType($type)
-                ->setPackGroup($pack->getGroup())
+                ->setPackParent($pack->getParent())
                 ->setMouvementStock($mouvementStock)
                 ->setCommentaire(!empty($commentaire) ? $commentaire : null);
             $pack->addTrackingMovement($trackingUngroup);
             if ($removeFromGroup) {
-                $pack->setGroup(null);
+                $pack->setParent(null);
             }
             $entityManager->persist($trackingUngroup);
         }
@@ -380,25 +406,19 @@ class TrackingMovementService
     private function getPack(EntityManagerInterface $entityManager,
                              $packOrCode,
                              $quantity,
-                             $natureId): Pack {
+                             $natureId,
+                             bool $onlyPack): Pack {
         $packRepository = $entityManager->getRepository(Pack::class);
-        $groupRepository = $entityManager->getRepository(Group::class);
 
         $codePack = $packOrCode instanceof Pack ? $packOrCode->getCode() : $packOrCode;
-
-        $isGroup = ($packOrCode instanceof Pack)
-            ? null
-            : $groupRepository->findOneBy([
-                'code' => $packOrCode
-            ]);
-
-        if ($isGroup) {
-            throw new Exception(Pack::PACK_IS_GROUP);
-        }
 
         $pack = ($packOrCode instanceof Pack)
             ? $packOrCode
             : $packRepository->findOneBy(['code' => $packOrCode]);
+
+        if ($onlyPack && $pack && $pack->isGroup()) {
+            throw new Exception(Pack::PACK_IS_GROUP);
+        }
 
         if (!isset($pack)) {
             $pack = new Pack();
@@ -431,18 +451,21 @@ class TrackingMovementService
         $pack = $tracking->getPack();
         $packCode = $pack ? $pack->getCode() : null;
 
-        $alreadyLinkedArticle = $pack->getArticle();
-        $alreadyLinkedReferenceArticle = $pack->getReferenceArticle();
-        if (!isset($alreadyLinkedArticle) && !isset($alreadyLinkedReferenceArticle)) {
-            $refOrArticle = (
-                $referenceArticleRepository->findOneBy(['barCode' => $packCode])
-                ?: $articleRepository->findOneBy(['barCode' => $packCode])
-            );
+        if ($pack) {
+            $alreadyLinkedArticle = $pack->getArticle();
+            $alreadyLinkedReferenceArticle = $pack->getReferenceArticle();
+            if (!isset($alreadyLinkedArticle) && !isset($alreadyLinkedReferenceArticle)) {
+                $refOrArticle = (
+                    $referenceArticleRepository->findOneBy(['barCode' => $packCode])
+                    ?: $articleRepository->findOneBy(['barCode' => $packCode])
+                );
 
-            if ($refOrArticle instanceof ReferenceArticle) {
-                $pack->setReferenceArticle($refOrArticle);
-            } else if ($refOrArticle instanceof Article) {
-                $pack->setArticle($refOrArticle);
+                if ($refOrArticle instanceof ReferenceArticle) {
+                    $pack->setReferenceArticle($refOrArticle);
+                }
+                else if ($refOrArticle instanceof Article) {
+                    $pack->setArticle($refOrArticle);
+                }
             }
         }
 
@@ -479,7 +502,7 @@ class TrackingMovementService
 
         $uniqueId = null;
         //same format as moment.defaultFormat
-        $dateStr = $date->format(DateTime::ATOM);
+        $dateStr = $date->format(DateTimeInterface::ATOM);
         $randomLength = 9;
         do {
             $random = strtolower(substr(sha1(rand()), 0, $randomLength));
@@ -531,12 +554,12 @@ class TrackingMovementService
             $packsAlreadyExisting->setLastDrop(null);
         }
 
-        if ($tracking->isDrop()) {
+        if ($pack && $tracking->isDrop()) {
             $pack->setLastDrop($tracking);
         }
 
         $location = $tracking->getEmplacement();
-        if ($location) {
+        if ($pack && $location) {
             /** @var LocationCluster $cluster */
             foreach ($location->getClusters() as $cluster) {
                 $record = $cluster->getLocationClusterRecord($pack);
@@ -659,5 +682,29 @@ class TrackingMovementService
         );
         $this->persistSubEntities($entityManager, $mouvementDepose);
         $entityManager->persist($mouvementDepose);
+    }
+
+    public function getMobileUserPicking(EntityManagerInterface $entityManager, Utilisateur $user): array {
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        return Stream::from(
+            $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT, [], true)
+        )
+            ->map(function (array $picking) use ($trackingMovementRepository) {
+                $id = $picking['id'];
+                unset($picking['id']);
+
+                if ($picking['isGroup'] == '1') {
+                    $tracking = $trackingMovementRepository->find($id);
+                    $subPacks = $tracking
+                        ->getPack()
+                        ->getChildren()
+                        ->map(fn(Pack $pack) => $pack->serialize());
+                }
+
+                $picking['subPacks'] = $subPacks ?? [];
+
+                return $picking;
+            })
+            ->toArray();
     }
 }

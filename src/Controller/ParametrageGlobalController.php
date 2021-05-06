@@ -1114,30 +1114,33 @@ class ParametrageGlobalController extends AbstractController
                         $recordFirstDrop
                         && $recordFirstDrop->getEmplacement() === $locationInCluster
                     );
-                    if($lastTrackingIsOnLocation
+                    if ($lastTrackingIsOnLocation
                         || (
                             $firstDropIsOnLocation
                             && ($recordFirstDrop === $recordLastTracking)
                         )) {
                         $entityManager->remove($record);
-                    } else if((
-                        $firstDropIsOnLocation
-                        && ($recordFirstDrop !== $recordLastTracking)
-                    )) {
+                    } else if ($firstDropIsOnLocation
+                               && ($recordFirstDrop !== $recordLastTracking)) {
                         $pack = $recordFirstDrop->getPack();
-                        $trackingMovements = $pack->getTrackingMovements();
-                        $newFirstDrop = null;
-                        foreach($trackingMovements as $trackingMovement) {
-                            if($trackingMovement === $recordFirstDrop) {
-                                break;
-                            } else if($trackingMovement->isDrop()) {
-                                $newFirstDrop = $trackingMovement;
+                        if ($pack) {
+                            $trackingMovements = $pack->getTrackingMovements();
+                            $newFirstDrop = null;
+                            foreach ($trackingMovements as $trackingMovement) {
+                                if ($trackingMovement === $recordFirstDrop) {
+                                    break;
+                                }
+                                else if ($trackingMovement->isDrop()) {
+                                    $newFirstDrop = $trackingMovement;
+                                }
                             }
-                        }
-                        if(isset($newFirstDrop)) {
-                            $record->setFirstDrop($newFirstDrop);
-                        } else {
-                            $entityManager->remove($record);
+
+                            if (isset($newFirstDrop)) {
+                                $record->setFirstDrop($newFirstDrop);
+                            }
+                            else {
+                                $entityManager->remove($record);
+                            }
                         }
                     }
                 }

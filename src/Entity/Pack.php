@@ -44,11 +44,6 @@ class Pack
     private $nature;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Group", inversedBy="packs")
-     */
-    private $packGroup;
-
-    /**
      * @var TrackingMovement
      * @ORM\OneToOne(targetEntity=TrackingMovement::class, inversedBy="linkedPackLastDrop")
      * @ORM\JoinColumn(nullable=true)
@@ -91,6 +86,11 @@ class Pack
     private $comment;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private ?int $groupIteration = null;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\DispatchPack", mappedBy="pack", orphanRemoval=true)
      */
     private $dispatchPacks;
@@ -112,11 +112,29 @@ class Pack
      */
     private $referenceArticle;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Pack::class, inversedBy="children")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private ?Pack $parent = null;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Pack::class, mappedBy="parent")
+     */
+    private ?Collection $children;
+
+    /**
+     * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="packParent")
+     */
+    private ?Collection $childTrackingMovements;
+
     public function __construct() {
         $this->litiges = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
         $this->dispatchPacks = new ArrayCollection();
         $this->locationClusterRecords = new ArrayCollection();
+        $this->children = new ArrayCollection();
+        $this->childTrackingMovements = new ArrayCollection();
         $this->quantity = 1;
     }
 
@@ -182,18 +200,6 @@ class Pack
     public function setNature(?Nature $nature): self
     {
         $this->nature = $nature;
-
-        return $this;
-    }
-
-    public function getGroup(): ?Group
-    {
-        return $this->packGroup;
-    }
-
-    public function setGroup(?Group $group): self
-    {
-        $this->packGroup = $group;
 
         return $this;
     }
@@ -408,7 +414,130 @@ class Pack
         return $this;
     }
 
+    public function isGroup(): ?int {
+        return $this->getGroupIteration() !== null;
+    }
+
+    public function incrementGroupIteration(): self {
+        $iteration = $this->getGroupIteration() ?? 0;
+        $this->setGroupIteration($iteration + 1);
+        return $this;
+    }
+
+    public function getGroupIteration(): ?int {
+        return $this->groupIteration;
+    }
+
+    public function setGroupIteration(int $groupIteration): self {
+        $this->groupIteration = $groupIteration;
+
+        return $this;
+    }
+
+    public function getParent(): ?Pack {
+        return $this->parent;
+    }
+
+    public function setParent(?Pack $parent): self {
+        if ($this->parent
+            && $this->parent !== $parent) {
+            $this->parent->removeChild($this);
+        }
+        $this->parent = $parent;
+        if($parent) {
+            $parent->addChild($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Pack[]
+     */
+    public function getChildren(): Collection {
+        return $this->children;
+    }
+
+    public function addChild(Pack $child): self {
+        if (!$this->children->contains($child)) {
+            $this->children[] = $child;
+            $child->setParent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChild(Pack $child): self {
+        if ($this->children->removeElement($child)) {
+            if ($child->getParent() === $this) {
+                $child->setParent(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setChildren(?array $children): self {
+        foreach($this->getChildren()->toArray() as $child) {
+            $this->removeChild($child);
+        }
+
+        $this->children = new ArrayCollection();
+
+        foreach($children as $child) {
+            $this->addChild($child);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|TrackingMovement[]
+     */
+    public function getChildTrackingMovements(): Collection {
+        return $this->childTrackingMovements;
+    }
+
+    public function addChildTrackingMovement(TrackingMovement $movement): self {
+        if (!$this->childTrackingMovements->contains($movement)) {
+            $this->childTrackingMovements[] = $movement;
+            $movement->setPackParent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChildTrackingMovement(TrackingMovement $movement): self {
+        if ($this->childTrackingMovements->removeElement($movement)) {
+            if ($movement->getPackParent() === $this) {
+                $movement->setPackParent(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setChildTrackingMovements(?array $movements): self {
+        foreach($this->getChildTrackingMovements()->toArray() as $movement) {
+            $this->removeChildTrackingMovement($movement);
+        }
+
+        $this->childTrackingMovements = new ArrayCollection();
+
+        foreach($movements as $movement) {
+            $this->addChildTrackingMovement($movement);
+        }
+
+        return $this;
+    }
+
     public function serialize(): array {
+        return $this->isGroup()
+            ? $this->serializeGroup()
+            : $this->serializePack();
+    }
+
+    private function serializePack(): array {
         $lastTracking = $this->getLastTracking();
         return [
             "code" => $this->getCode(),
@@ -418,6 +547,17 @@ class Pack
             "type" => $lastTracking && $lastTracking->getType() ? $lastTracking->getType()->getCode() : null,
             "ref_emplacement" => $lastTracking && $lastTracking->getEmplacement() ? $lastTracking->getEmplacement()->getLabel() : null,
             "date" => FormatHelper::datetime($lastTracking->getDatetime())
+        ];
+    }
+
+    private function serializeGroup(): array {
+        return [
+            "id" => $this->getId(),
+            "code" => $this->getCode(),
+            "natureId" => $this->getNature() ? $this->getNature()->getId() : null,
+            "packs" => $this->getChildren()
+                ->map(fn(Pack $pack) => $pack->serialize())
+                ->toArray()
         ];
     }
 

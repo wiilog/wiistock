@@ -5,15 +5,13 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Emplacement;
-use App\Entity\Group;
 use App\Entity\Menu;
 use App\Entity\Nature;
 
-use App\Entity\TrackingMovement;
+use App\Entity\Pack;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\GroupService;
-use App\Service\PackService;
 use App\Service\TrackingMovementService;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -46,9 +44,9 @@ class GroupController extends AbstractController {
      */
     public function editApi(Request $request, EntityManagerInterface $manager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $groupRepository = $manager->getRepository(Group::class);
+            $packRepository = $manager->getRepository(Pack::class);
             $natureRepository = $manager->getRepository(Nature::class);
-            $group = $groupRepository->find($data['id']);
+            $group = $packRepository->find($data['id']);
 
             return $this->json($this->renderView("group/edit_content.html.twig", [
                 'natures' => $natureRepository->findBy([], ['label' => 'ASC']),
@@ -66,10 +64,10 @@ class GroupController extends AbstractController {
     public function edit(Request $request, EntityManagerInterface $manager): Response {
         $data = json_decode($request->getContent(), true);
 
-        $groupRepository = $manager->getRepository(Group::class);
+        $packRepository = $manager->getRepository(Pack::class);
         $natureRepository = $manager->getRepository(Nature::class);
 
-        $group = $groupRepository->find($data["id"]);
+        $group = $packRepository->find($data["id"]);
         if ($group) {
             $group->setNature($natureRepository->find($data["nature"]))
                 ->setWeight($data["weight"] === "" ? null : $data["weight"])
@@ -94,8 +92,8 @@ class GroupController extends AbstractController {
      */
     public function ungroupApi(Request $request, EntityManagerInterface $manager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $groupRepository = $manager->getRepository(Group::class);
-            $group = $groupRepository->find($data['id']);
+            $packRepository = $manager->getRepository(Pack::class);
+            $group = $packRepository->find($data['id']);
 
             return $this->json($this->renderView("group/ungroup_content.html.twig", [
                 "group" => $group
@@ -114,10 +112,10 @@ class GroupController extends AbstractController {
                             GroupService $groupService): Response {
         $data = json_decode($request->getContent(), true);
 
-        $groupRepository = $manager->getRepository(Group::class);
+        $packRepository = $manager->getRepository(Pack::class);
         $locationRepository = $manager->getRepository(Emplacement::class);
 
-        $group = $groupRepository->find($data["id"]);
+        $group = $packRepository->find($data["id"]);
         if ($group) {
             $location = $locationRepository->find($data["location"]);
 
@@ -152,7 +150,6 @@ class GroupController extends AbstractController {
         }
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
-
             $csvHeader = [
                 'Numéro groupe',
                 $translator->trans('natures.Nature de colis'),
@@ -167,13 +164,11 @@ class GroupController extends AbstractController {
 
             return $CSVExportService->streamResponse(
                 function($output) use ($CSVExportService, $translator, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
-                    $groupRepository = $entityManager->getRepository(Group::class);
-                    $groups = $groupRepository->getByDates($dateTimeMin, $dateTimeMax);
-                    $trackingMouvementRepository = $entityManager->getRepository(TrackingMovement::class);
+                    $packRepository = $entityManager->getRepository(Pack::class);
+                    $groups = $packRepository->getGroupsByDates($dateTimeMin, $dateTimeMax);
 
                     foreach ($groups as $group) {
-                        $trackingMouvment = $trackingMouvementRepository->find($group['fromTo']);
-                        $mvtData = $trackingMovementService->getFromColumnData($trackingMouvment);
+                        $mvtData = $trackingMovementService->getFromColumnData($group['fromTo']);
                         $group['fromLabel'] = $translator->trans($mvtData['fromLabel']);
                         $group['fromTo'] = $mvtData['from'];
                         $this->putPackLine($output, $CSVExportService, $group);

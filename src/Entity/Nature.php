@@ -68,16 +68,10 @@ class Nature
      */
     private $displayed;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Group::class, mappedBy="nature")
-     */
-    private $groups;
-
     public function __construct()
     {
         $this->packs = new ArrayCollection();
         $this->emplacements = new ArrayCollection();
-        $this->groups = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -235,36 +229,6 @@ class Nature
         if ($this->emplacements->contains($emplacement)) {
             $this->emplacements->removeElement($emplacement);
             $emplacement->removeAllowedNature($this);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Group[]
-     */
-    public function getGroups(): Collection
-    {
-        return $this->groups;
-    }
-
-    public function addGroup(Group $group): self
-    {
-        if (!$this->groups->contains($group)) {
-            $this->groups[] = $group;
-            $group->setNature($this);
-        }
-
-        return $this;
-    }
-
-    public function removeGroup(Group $group): self
-    {
-        if ($this->groups->removeElement($group)) {
-            // set the owning side to null (unless already changed)
-            if ($group->getNature() === $this) {
-                $group->setNature(null);
-            }
         }
 
         return $this;

@@ -302,9 +302,10 @@ class TrackingMovementRepository extends EntityRepository
      * @param array $filterDemandeCollecteIds
      * @return TrackingMovement[]
      */
-    public function getTakingByOperatorAndNotDeposed(Utilisateur $operator,
-                                                     string $type,
-                                                     array $filterDemandeCollecteIds = []) {
+    public function getPickingByOperatorAndNotDropped(Utilisateur $operator,
+                                                      string $type,
+                                                      array $filterDemandeCollecteIds = [],
+                                                      bool $includeMovementId = false) {
         $queryBuilder = $this->createQueryBuilder('tracking_movement')
             ->select('join_pack.code AS ref_article')
             ->addSelect('join_trackingType.nom AS type')
@@ -315,11 +316,17 @@ class TrackingMovementRepository extends EntityRepository
             ->addSelect('tracking_movement.uniqueIdForMobile AS date')
             ->addSelect('join_pack_nature.id AS nature_id')
             ->addSelect('(CASE WHEN tracking_movement.finished = 1 THEN 1 ELSE 0 END) AS finished')
-            ->addSelect('(CASE WHEN tracking_movement.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock');
+            ->addSelect('(CASE WHEN tracking_movement.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock')
+            ->addSelect('(CASE WHEN join_pack.groupIteration IS NOT NULL THEN 1 ELSE 0 END) AS isGroup');
+
+        if ($includeMovementId) {
+            $queryBuilder->addSelect('tracking_movement.id');
+        }
 
         $typeCondition = ($type === self::MOUVEMENT_TRACA_STOCK)
             ? 'join_stockMovement.id IS NOT NULL'
             : 'join_stockMovement.id IS NULL'; // MOUVEMENT_TRACA_DEFAULT
+
         if ($type === self::MOUVEMENT_TRACA_STOCK) {
             $queryBuilder->addSelect('join_stockMovement.quantity');
         }
@@ -331,8 +338,10 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('tracking_movement.pack', 'join_pack')
             ->leftJoin('join_pack.nature', 'join_pack_nature')
             ->leftJoin('tracking_movement.mouvementStock', 'join_stockMovement')
+            ->leftJoin('tracking_movement.packParent', 'join_packParent')
             ->where('join_operator = :operator')
             ->andWhere('join_trackingType.nom LIKE :priseType')
+            ->andWhere('join_packParent.id IS NULL')
             ->andWhere('tracking_movement.finished = :finished')
             ->andWhere($typeCondition)
             ->setParameter('operator', $operator)
