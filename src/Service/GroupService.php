@@ -85,17 +85,6 @@ class GroupService {
         foreach ($children as $pack) {
             $pack->setParent(null);
 
-            $deposit = $this->trackingMovementService->createTrackingMovement(
-                $pack,
-                $destination,
-                $user ?? $this->security->getUser(),
-                $date ?? new DateTime("now", new DateTimeZone("Europe/Paris")),
-                false,
-                null,
-                TrackingMovement::TYPE_DEPOSE,
-                ["parent" => $parent]
-            );
-
             $ungroup = $this->trackingMovementService->createTrackingMovement(
                 $pack,
                 $destination,
@@ -105,6 +94,16 @@ class GroupService {
                 null,
                 TrackingMovement::TYPE_UNGROUP,
                 ["parent" => $parent]
+            );
+
+            $deposit = $this->trackingMovementService->createTrackingMovement(
+                $pack,
+                $destination,
+                $user ?? $this->security->getUser(),
+                $date ?? new DateTime("now", new DateTimeZone("Europe/Paris")),
+                false,
+                null,
+                TrackingMovement::TYPE_DEPOSE
             );
             $manager->persist($deposit);
             $manager->persist($ungroup);
