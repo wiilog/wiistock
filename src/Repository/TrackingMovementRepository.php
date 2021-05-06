@@ -193,25 +193,26 @@ class TrackingMovementRepository extends EntityRepository
                     $qb
                         ->innerJoin('tracking_movement.pack', 'search_pack')
                         ->leftJoin('tracking_movement.emplacement', 'search_location')
-                        ->leftJoin('tracking_movement.packGroup', 'search_pack_group')
+                        ->leftJoin('tracking_movement.packParent', 'search_pack_group')
                         ->leftJoin('tracking_movement.operateur', 'search_operator')
                         ->leftJoin('tracking_movement.type', 'search_type')
                         ->leftJoin('search_pack.referenceArticle', 'search_pack_referenceArticle')
                         ->leftJoin('search_pack.article', 'search_pack_article')
                         ->leftJoin('search_pack_article.articleFournisseur', 'search_pack_article_supplierItem')
                         ->leftJoin('search_pack_article_supplierItem.referenceArticle', 'search_pack_supplierItem_referenceArticle')
-                        ->andWhere('(
-                            search_pack.code LIKE :search_value OR
-                            search_location.label LIKE :search_value OR
-                            search_type.nom LIKE :search_value OR
-                            search_pack_group.code LIKE :search_value OR
-                            search_pack_supplierItem_referenceArticle.reference LIKE :search_value OR
-                            search_pack_article.label LIKE :search_value OR
-                            search_pack_referenceArticle.reference LIKE :search_value OR
-                            search_pack_referenceArticle.libelle LIKE :search_value OR
-                            search_operator.username LIKE :search_value
-						)')
-                        ->setParameter('search_value', '%' . $search . '%');
+                        ->andWhere($qb->expr()->orX(
+                            'search_pack.code LIKE :search_value',
+                            'search_location.label LIKE :search_value',
+                            'search_type.nom LIKE :search_value',
+                            '(search_pack_group.code LIKE :search_value AND search_type.nom <> :type)',
+                            'search_pack_supplierItem_referenceArticle.reference LIKE :search_value',
+                            'search_pack_article.label LIKE :search_value',
+                            'search_pack_referenceArticle.reference LIKE :search_value',
+                            'search_pack_referenceArticle.libelle LIKE :search_value',
+                            'search_operator.username LIKE :search_value'
+						))
+                        ->setParameter('search_value', '%' . $search . '%')
+                        ->setParameter('type', TrackingMovement::TYPE_DEPOSE);
                 }
             }
 
@@ -226,9 +227,12 @@ class TrackingMovementRepository extends EntityRepository
                             ->orderBy('order_location.label', $order);
                     } if ($column === 'group') {
                         $qb
-                            ->leftJoin('tracking_movement.packGroup', 'order_pack_group')
+                            ->leftJoin('tracking_movement.packParent', 'order_pack_group')
+                            ->leftJoin('tracking_movement.type', 'order_type')
+                            ->andWhere('order_type.nom <> :type')
                             ->orderBy('order_pack_group.code', $order)
-                            ->addOrderBy('tracking_movement.groupIteration', $order);
+                            ->addOrderBy('tracking_movement.groupIteration', $order)
+                            ->setParameter('type', TrackingMovement::TYPE_DEPOSE);
                     } else if ($column === 'status') {
                         $qb
                             ->leftJoin('tracking_movement.type', 'order_type')
@@ -420,7 +424,7 @@ class TrackingMovementRepository extends EntityRepository
                     if ($column === 'group') {
                         $qb
                             ->leftJoin('tracking_movement.pack', 'order_pack')
-                            ->leftJoin('order_pack.packGroup', 'pack_group')
+                            ->leftJoin('order_pack.parent', 'pack_group')
                             ->orderBy('pack_group.label', $order);
                     } else if ($column === 'date') {
                         $qb
