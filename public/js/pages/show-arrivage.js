@@ -208,6 +208,7 @@ function editRowArrivage(button) {
             originalText = quillEdit.getText();
         }
         modal.find('#acheteursEdit').val(data.acheteurs).select2();
+        modal.find('.select2').select2();
         modal.find('.list-multiple').select2();
         initDateTimePicker('.date-cl');
         Select2Old.initFree($('.select2-free'));
