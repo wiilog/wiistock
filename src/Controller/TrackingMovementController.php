@@ -384,7 +384,8 @@ class TrackingMovementController extends AbstractController
             return new JsonResponse([
                 'success' => $countCreatedMouvements > 0,
                 'group' => null,
-                'trackingMovementsCounter' => $countCreatedMouvements
+                'trackingMovementsCounter' => $countCreatedMouvements,
+                'packs' => 3
             ]);
         }
         throw new BadRequestHttpException();

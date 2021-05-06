@@ -174,12 +174,12 @@ function displayConfirmationModal(group) {
         undefined,
         $('<div/>', {
             class: 'text-center',
-            text: `Ce ou ces colis sont présents dans le groupe ${group}. Confirmer le mouvement l\'enlèvera du groupe.`
+            html: `Ce colis est présent dans le groupe <strong>${group}</strong>. Confirmer le mouvement l\'enlèvera du groupe. <br>Voulez-vous continuer ?`
         }),
         [
             {
                 class: 'btn btn-secondary m-0',
-                text: 'Annuler',
+                text: 'Non',
                 action: ($modal) => {
                     $('input[name="forced"]').val("0");
                     $modal.modal('hide');
@@ -187,7 +187,7 @@ function displayConfirmationModal(group) {
             },
             {
                 class: 'btn btn-primary m-0',
-                text: 'Valider',
+                text: 'Oui',
                 action: ($modal) => {
                     $('input[name="forced"]').val(1);
                     $('#submitNewMvtTraca').click();
@@ -195,7 +195,7 @@ function displayConfirmationModal(group) {
                 }
             },
         ],
-        'error'
+        'warning'
     );
 }
 

@@ -165,7 +165,7 @@ class TrackingMovementService
             'date' => FormatHelper::datetime($movement->getDatetime()),
             'code' => $trackingPack ? $trackingPack->getCode() : '',
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
-            'group' => $movement->getPackParent() ? $movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?? '1') : '',
+            'group' => ($movement->getPackParent() && FormatHelper::status($movement->getType()) !== TrackingMovement::TYPE_DEPOSE) ? $movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?? '1') : '',
             'location' => FormatHelper::location($movement->getEmplacement()),
             'reference' => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getReference()
