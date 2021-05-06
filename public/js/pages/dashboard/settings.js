@@ -1464,6 +1464,10 @@ function removeUploadedFile($element) {
 
     const uploadedFile = $uploadTypeLogo[0];
     $previewTypeLogo.addClass('d-none');
+    if($modal.find('.title-component-image').length > 0) {
+        $modal.find('.title-component-image').attr('title', '');
+        $modal.find('.title-component-image').text('');
+    }
     showBSAlert(`Le fichier a bien été supprimé`, `success`);
 
     $logoContent.val('');
