@@ -546,7 +546,7 @@ class Pack
             "quantity" => $lastTracking ? $lastTracking->getQuantity() : 1,
             "type" => $lastTracking && $lastTracking->getType() ? $lastTracking->getType()->getCode() : null,
             "ref_emplacement" => $lastTracking && $lastTracking->getEmplacement() ? $lastTracking->getEmplacement()->getLabel() : null,
-            "date" => FormatHelper::datetime($lastTracking->getDatetime())
+            "date" => $lastTracking ? FormatHelper::datetime($lastTracking->getDatetime()) : ''
         ];
     }
 
