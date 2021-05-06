@@ -356,8 +356,8 @@ class ApiController extends AbstractFOSRestController
                             $associatedGroup = $associatedPack->getParent();
 
                             if ($associatedGroup) {
-                                $associatedGroup->removePack($associatedPack);
-                                if ($associatedGroup->getPacks()->isEmpty()) {
+                                $associatedGroup->removeChild($associatedPack);
+                                if ($associatedGroup->getChildren()->isEmpty()) {
                                     $emptyGroups[] = $associatedGroup->getCode();
                                 }
                             }
@@ -955,8 +955,10 @@ class ApiController extends AbstractFOSRestController
         $natureRepository = $entityManager->getRepository(Nature::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        $movementsStr = $request->request->get('movements');
+        $movementsStr = $request->request->get('mouvements');
         $movements = json_decode($movementsStr, true);
+        dump($movementsStr);
+        dump($movements);
         $groupsArray = Stream::from($movements)
             ->map(function($movement) {
                 $date = explode('+', $movement['date']);
@@ -976,13 +978,42 @@ class ApiController extends AbstractFOSRestController
         ];
 
         try {
-            foreach ($groupsArray as $serializedGroup) {
+            foreach ($groupsArray as $groupIndex => $serializedGroup) {
+                /** @var Pack $parent */
                 $parent = $packRepository->findOneBy(['code' => $serializedGroup['code']]);
-                if ($parent && !$parent->getPacks()->isEmpty()) {
-                    $nature = $natureRepository->find($serializedGroup['nature_id']);
-                    $parent->setNature($nature);
+                if ($parent && !$parent->getChildren()->isEmpty()) {
+                    if (isset($serializedGroup['nature_id'])) {
+                        $nature = $natureRepository->find($serializedGroup['nature_id']);
+                        $parent->setNature($nature);
+                    }
 
                     $location = $locationRepository->findOneBy(['label' => $serializedGroup['location']]);
+
+                    $options = [];
+                    $signatureFile = $request->files->get("signature_$groupIndex");
+                    $photoFile = $request->files->get("photo_$groupIndex");
+                    if (!empty($signatureFile) || !empty($photoFile)) {
+                        $options['fileBag'] = [];
+                        if (!empty($signatureFile)) {
+                            $options['fileBag'][] = $signatureFile;
+                        }
+
+                        if (!empty($photoFile)) {
+                            $options['fileBag'][] = $photoFile;
+                        }
+                    }
+
+                    $trackingMovement = $trackingMovementService->createTrackingMovement(
+                        $parent,
+                        $location,
+                        $operator,
+                        $serializedGroup['date'],
+                        true,
+                        false,
+                        TrackingMovement::TYPE_PRISE,
+                        $options
+                    );
+                    $entityManager->persist($trackingMovement);
 
                     /** @var Pack $child */
                     foreach ($parent->getChildren() as $child) {
@@ -994,7 +1025,7 @@ class ApiController extends AbstractFOSRestController
                             true,
                             false,
                             TrackingMovement::TYPE_PRISE,
-                            ['parent' => $parent]
+                            array_merge(['parent' => $parent], $options)
                         );
                         $entityManager->persist($trackingMovement);
                     }
