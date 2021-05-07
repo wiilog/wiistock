@@ -49,6 +49,7 @@ use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
 use App\Service\HandlingService;
 use App\Service\MouvementStockService;
+use App\Service\PackService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
 use App\Service\NatureService;
@@ -2005,10 +2006,9 @@ class ApiController extends AbstractFOSRestController
                           GroupService $groupService,
                           TrackingMovementService $trackingMovementService): Response {
         $packRepository = $entityManager->getRepository(Pack::class);
-        $natureRepository = $entityManager->getRepository(Nature::class);
 
         /** @var Pack $parentPack */
-        $parentPack = $packRepository->find($request->request->get("id"));
+        $parentPack = $packRepository->findOneBy(['code' => $request->request->get("code")]);
         $isNewGroupInstance = false;
         if (!$parentPack) {
             $isNewGroupInstance = true;
@@ -2025,11 +2025,12 @@ class ApiController extends AbstractFOSRestController
         $packs = json_decode($request->request->get("packs"), true);
 
         if ($isNewGroupInstance && !empty($packs)) {
+            $dateStr = $request->request->get("date");
             $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
                 $parentPack,
                 null,
                 $this->getUser(),
-                DateTime::createFromFormat("d/m/Y H:i:s", $packs[0]["date"]),
+                DateTime::createFromFormat("d/m/Y H:i:s", $dateStr),
                 true,
                 true,
                 TrackingMovement::TYPE_GROUP
@@ -2039,17 +2040,8 @@ class ApiController extends AbstractFOSRestController
         }
 
         foreach ($packs as $data) {
-            if (isset($data["id"])) {
-                $pack = $packRepository->find($data["id"]);
-            } else {
-                $pack = (new Pack())->setCode($data["code"]);
-                $entityManager->persist($pack);
-            }
-
-            $pack->setNature($data["nature_id"] ? $natureRepository->find($data["nature_id"]) : null)
-                ->setQuantity($data["quantity"]);
-
-            $parentPack->addChild($pack);
+            $pack = $trackingMovementService->persistPack($entityManager, $data["code"], $data["quantity"], $data["nature_id"]);
+            $pack->setParent($parentPack);
 
             $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
                 $pack,

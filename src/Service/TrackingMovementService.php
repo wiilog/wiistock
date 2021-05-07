@@ -347,7 +347,7 @@ class TrackingMovementService
         $parent = $options['parent'] ?? null;
         $removeFromGroup = $options['removeFromGroup'] ?? false;
 
-        $pack = $this->getPack($entityManager, $packOrCode, $quantity, $natureId, $options['onlyPack'] ?? false);
+        $pack = $this->persistPack($entityManager, $packOrCode, $quantity, $natureId, $options['onlyPack'] ?? false);
 
         $tracking = new TrackingMovement();
         $tracking
@@ -403,11 +403,11 @@ class TrackingMovementService
      * @return Pack
      * @throws Exception
      */
-    private function getPack(EntityManagerInterface $entityManager,
-                             $packOrCode,
-                             $quantity,
-                             $natureId,
-                             bool $onlyPack): Pack {
+    public function persistPack(EntityManagerInterface $entityManager,
+                                $packOrCode,
+                                $quantity,
+                                $natureId,
+                                bool $onlyPack = false): Pack {
         $packRepository = $entityManager->getRepository(Pack::class);
 
         $codePack = $packOrCode instanceof Pack ? $packOrCode->getCode() : $packOrCode;
