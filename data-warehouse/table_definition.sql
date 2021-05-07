@@ -189,6 +189,7 @@ CREATE TABLE dw_tracabilite
     date_mouvement              timestamp(0),
     code_colis                  varchar(255),
     type_mouvement              varchar(255),
+    groupe                      varchar(255),
     quantite_mouvement          integer,
     emplacement_mouvement       varchar(255),
     operateur                   varchar(255),
