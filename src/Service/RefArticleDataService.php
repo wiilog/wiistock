@@ -52,6 +52,7 @@ class RefArticleDataService {
         ["title" => "Statut", "name" => "status", "type" => "list"],
         ["title" => "Quantité stock", "name" => "stockQuantity", "type" => "number"],
         ["title" => "Quantité disponible", "name" => "availableQuantity", "type" => "number"],
+        ["title" => "Acheteur", "name" => "buyer", "type" => "text", "searchable" => true],
         ["title" => "Emplacement", "name" => "location", "type" => "list"],
         ["title" => "Seuil de sécurité", "name" => "securityThreshold", "type" => "number"],
         ["title" => "Seuil d'alerte", "name" => "warningThreshold", "type" => "number"],
@@ -323,6 +324,7 @@ class RefArticleDataService {
             $refArticle->setNeedsMobileSync($data['mobileSync']);
         }
 
+        $refArticle->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null);
         $refArticle->setLimitWarning((empty($data['limitWarning']) && $data['limitWarning'] !== 0 && $data['limitWarning'] !== '0') ? null : intval($data['limitWarning']));
         $refArticle->setLimitSecurity((empty($data['limitSecurity']) && $data['limitSecurity'] !== 0 && $data['limitSecurity'] !== '0') ? null : intval($data['limitSecurity']));
 
@@ -406,6 +408,7 @@ class RefArticleDataService {
             "location" => FormatHelper::location($refArticle->getEmplacement()),
             "availableQuantity" => $refArticle->getQuantiteDisponible() ?? 0,
             "stockQuantity" => $refArticle->getQuantiteStock() ?? 0,
+            "buyer" => $refArticle->getBuyer() ? $refArticle->getBuyer()->getUsername() : '',
             "emergencyComment" => $refArticle->getEmergencyComment(),
             "barCode" => $refArticle->getBarCode() ?? "Non défini",
             "comment" => $refArticle->getCommentaire(),

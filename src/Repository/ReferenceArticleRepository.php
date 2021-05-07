@@ -65,6 +65,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('referenceArticle.libelle')
             ->addSelect('referenceArticle.quantiteStock')
             ->addSelect('typeRef.label as type')
+            ->addSelect('join_buyer.username as buyer')
             ->addSelect('referenceArticle.typeQuantite')
             ->addSelect('statutRef.nom as statut')
             ->addSelect('referenceArticle.commentaire')
@@ -82,6 +83,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->leftJoin('referenceArticle.emplacement', 'emplacementRef')
             ->leftJoin('referenceArticle.type', 'typeRef')
             ->leftJoin('referenceArticle.category', 'categoryRef')
+            ->leftJoin('referenceArticle.buyer', 'join_buyer')
             ->orderBy('referenceArticle.id', 'ASC')
             ->getQuery()
             ->iterate(null, Query::HYDRATE_ARRAY);
@@ -470,6 +472,18 @@ class ReferenceArticleRepository extends EntityRepository {
                                 $ids[] = $idArray['id'];
                             }
                             break;
+                        case "buyer":
+                            $subqb = $this->createQueryBuilder('referenceArticle');
+                            $subqb
+                                ->select('referenceArticle.id')
+                                ->leftJoin('referenceArticle.buyer', 'buyer')
+                                ->andWhere('buyer.username LIKE :username')
+                                ->setParameter('username', $search);
+
+                            foreach ($subqb->getQuery()->execute() as $idArray) {
+                                $ids[] = $idArray['id'];
+                            }
+                            break;
                         default:
                             $field = self::DtToDbLabels[$searchField] ?? $searchField;
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
@@ -548,6 +562,12 @@ class ReferenceArticleRepository extends EntityRepository {
                             $qb
                                 ->leftJoin('ra.statut', 'order_status')
                                 ->orderBy('order_status.nom', $order);
+                            break;
+                        case "buyer":
+                            $orderAddSelect[] = 'order_buyer.username';
+                            $qb
+                                ->leftJoin('ra.buyer', 'order_buyer')
+                                ->orderBy('order_buyer.username', $order);
                             break;
                         default:
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($column);

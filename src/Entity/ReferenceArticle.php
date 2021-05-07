@@ -209,6 +209,11 @@ class ReferenceArticle extends FreeFieldEntity
      */
     private $alerts;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="referenceArticles")
+     */
+    private $buyer;
+
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();
@@ -971,6 +976,18 @@ class ReferenceArticle extends FreeFieldEntity
                 $alert->setReference(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getBuyer(): ?Utilisateur
+    {
+        return $this->buyer;
+    }
+
+    public function setBuyer(?Utilisateur $buyer): self
+    {
+        $this->buyer = $buyer;
 
         return $this;
     }
