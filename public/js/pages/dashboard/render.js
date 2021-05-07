@@ -1063,8 +1063,6 @@ function applyStyle(data, numberingConfig, backendNumber, value = ``, overrides 
 
     if(fontSize !== null) {
         style += `font-size: ${fontSize}pt;`;
-    } else {
-        style += `font-size: inherit;`;
     }
 
     if(textColor !== null) {
