@@ -16,51 +16,22 @@ use DateTimeZone;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class UrgenceService
 {
-    /**
-     * @var Twig_Environment
-     */
     private $templating;
-
-    /**
-     * @var RouterInterface
-     */
-    private $router;
-
-    /**
-     * @var Utilisateur
-     */
-    private $user;
 
     private $entityManager;
 
-	/**
-	 * @var Security
-	 */
     private $security;
 
-    /**
-     * @var SpecificService
-     */
-    private $specificService;
-
-    public function __construct(TokenStorageInterface $tokenStorage,
-                                RouterInterface $router,
-                                EntityManagerInterface $entityManager,
+    public function __construct(EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-								SpecificService $specificService,
 								Security $security)
     {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
-        $this->router = $router;
-        $this->user = $tokenStorage->getToken()->getUser();
         $this->security = $security;
-        $this->specificService = $specificService;
     }
 
     public function getDataForDatatable($params = null)
