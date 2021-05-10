@@ -31,7 +31,8 @@ function initPageModals(table) {
     let submitNewRefArticle = $("#submitNewRefArticle");
     let urlRefArticleNew = Routing.generate('reference_article_new', true);
     InitModal(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, {tables: [table]});
-    Select2Old.user(modalRefArticleNew.find('.ajax-autocomplete-user[name=managers]'))
+    Select2Old.user(modalRefArticleNew.find('.ajax-autocomplete-user[name=managers]'));
+    Select2Old.user(modalRefArticleNew.find('.ajax-autocomplete-user[name=buyer]'));
 
     let modalDeleteRefArticle = $("#modalDeleteRefArticle");
     let SubmitDeleteRefArticle = $("#submitDeleteRefArticle");

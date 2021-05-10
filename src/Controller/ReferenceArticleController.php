@@ -208,7 +208,8 @@ class ReferenceArticleController extends AbstractController
                 ->setType($type)
                 ->setIsUrgent($data['urgence'])
                 ->setEmplacement($emplacement)
-				->setBarCode($this->refArticleDataService->generateBarCode());
+				->setBarCode($this->refArticleDataService->generateBarCode())
+                ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null);
 
 
             if ($refArticle->getIsUrgent()) {
@@ -786,6 +787,7 @@ class ReferenceArticleController extends AbstractController
             'libellé',
             'quantité',
             'type',
+            'acheteur',
             'type quantité',
             'statut',
             'commentaire',
@@ -836,6 +838,7 @@ class ReferenceArticleController extends AbstractController
             $reference['libelle'],
             $reference['quantiteStock'],
             $reference['type'],
+            $reference['buyer'],
             $reference['typeQuantite'],
             $reference['statut'],
             $reference['commentaire'] ? strip_tags($reference['commentaire']) : "",

@@ -211,6 +211,16 @@ class ReferenceArticle extends FreeFieldEntity
      */
     private $alerts;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="referencesBuyer")
+     */
+    private $buyer;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=Cart::class, mappedBy="refArticle")
+     */
+    private $carts;
+
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();
@@ -231,6 +241,7 @@ class ReferenceArticle extends FreeFieldEntity
         $this->quantiteDisponible = 0;
         $this->transferRequests = new ArrayCollection();
         $this->alerts = new ArrayCollection();
+        $this->carts = new ArrayCollection();
     }
 
     public function getId()
@@ -973,6 +984,45 @@ class ReferenceArticle extends FreeFieldEntity
             if ($alert->getReference() === $this) {
                 $alert->setReference(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getBuyer(): ?Utilisateur
+    {
+        return $this->buyer;
+    }
+
+    public function setBuyer(?Utilisateur $buyer): self
+    {
+        $this->buyer = $buyer;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Cart[]
+     */
+    public function getCarts(): Collection
+    {
+        return $this->carts;
+    }
+
+    public function addCart(Cart $cart): self
+    {
+        if (!$this->carts->contains($cart)) {
+            $this->carts[] = $cart;
+            $cart->addRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCart(Cart $cart): self
+    {
+        if ($this->carts->removeElement($cart)) {
+            $cart->removeRefArticle($this);
         }
 
         return $this;
