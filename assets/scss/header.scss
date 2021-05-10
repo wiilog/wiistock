@@ -205,21 +205,25 @@
 
     background-image: url("../../public/svg/cart.svg");
     background-repeat: no-repeat;
+    background-size: 30px 30px;
+    background-position: center;
 
     width: 50px;
     height: 45px;
+    padding: 0;
 
     .total {
-        position: absolute;
-        top: 0;
-        right: 10px;
-        border-radius: 50%;
-        background: #fff;
-        border: 2px solid white;
+        float: right;
+        border-radius: 6px;
+        background: rgba(46, 194, 171, 0.4);
+        color: white;
         text-align: center;
-        width: 25px;
-        height: 25px;
-        padding-top: 0.5px;
+        min-width: 20px;
+        height: 20px;
+        line-height: 20px;
+        padding: 0 5px;
+        font-weight: bold;
+        font-size: 0.6rem;
     }
 }
 
