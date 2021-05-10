@@ -318,6 +318,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $referencesBuyer;
 
+    /**
+     * @ORM\OneToOne(targetEntity=Basket::class, mappedBy="user", cascade={"persist", "remove"})
+     */
+    private $basket;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -1668,5 +1673,27 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function getReferencesBuyer(): Collection
     {
         return $this->referencesBuyer;
+    }
+
+    public function getBasket(): ?Basket
+    {
+        return $this->basket;
+    }
+
+    public function setBasket(?Basket $basket): self
+    {
+        // unset the owning side of the relation if necessary
+        if ($basket === null && $this->basket !== null) {
+            $this->basket->setUser(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($basket !== null && $basket->getUser() !== $this) {
+            $basket->setUser($this);
+        }
+
+        $this->basket = $basket;
+
+        return $this;
     }
 }

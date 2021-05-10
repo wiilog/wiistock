@@ -214,6 +214,11 @@ class ReferenceArticle extends FreeFieldEntity
      */
     private $buyer;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=Basket::class, mappedBy="refArticle")
+     */
+    private $baskets;
+
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();
@@ -233,6 +238,7 @@ class ReferenceArticle extends FreeFieldEntity
         $this->quantiteDisponible = 0;
         $this->transferRequests = new ArrayCollection();
         $this->alerts = new ArrayCollection();
+        $this->baskets = new ArrayCollection();
     }
 
     public function getId()
@@ -988,6 +994,33 @@ class ReferenceArticle extends FreeFieldEntity
     public function setBuyer(?Utilisateur $buyer): self
     {
         $this->buyer = $buyer;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Basket[]
+     */
+    public function getBaskets(): Collection
+    {
+        return $this->baskets;
+    }
+
+    public function addBasket(Basket $basket): self
+    {
+        if (!$this->baskets->contains($basket)) {
+            $this->baskets[] = $basket;
+            $basket->addRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBasket(Basket $basket): self
+    {
+        if ($this->baskets->removeElement($basket)) {
+            $basket->removeRefArticle($this);
+        }
 
         return $this;
     }
