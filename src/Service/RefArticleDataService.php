@@ -319,14 +319,9 @@ class RefArticleDataService {
 
         $refArticle->setStockManagement($data['stockManagement'] ?? null);
 
-        $existingManagers = $refArticle->getManagers();
-        foreach($existingManagers as $manager) {
-            $refArticle->removeManager($manager);
-        }
-        if($data['managers']) {
-            foreach ((array)$data['managers'] as $manager) {
-                $refArticle->addManager($userRepository->find($manager));
-            }
+        $refArticle->getManagers()->clear();
+        foreach (explode(",", $data["managers"]) as $manager) {
+            $refArticle->addManager($userRepository->find($manager));
         }
 
         $entityManager->flush();

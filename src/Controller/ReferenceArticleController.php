@@ -238,10 +238,8 @@ class ReferenceArticleController extends AbstractController
             $refArticle->setQuantiteReservee(0);
             $refArticle->setStockManagement($data['stockManagement'] ?? null);
 
-            $managers = (array) $data['managers'];
-            if ($data['managers']) {
-                foreach ($managers as $manager)
-                    $refArticle->addManager($userRepository->find($manager));
+            foreach (explode(",", $data["managers"]) as $manager) {
+                $refArticle->addManager($userRepository->find($manager));
             }
 
             $supplierReferenceLines = json_decode($data['frl'], true);
