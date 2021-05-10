@@ -19,7 +19,7 @@ $(document).ready(() => {
             {data: `actions`, name: `actions`, title: ``, className: 'noVis', orderable: false, width: `10px`},
             {data: `label`, name: `label`, title: `Libellé`},
             {data: `reference`, name: `reference`, title: `Référence`},
-            {data: `supplierReference`, name: `supplierReference`, title: `Référence fournisseur`},
+            {data: `supplierReference`, name: `supplierReference`, title: `Référence fournisseur`, orderable: false,},
             {data: `type`, name: `type`, title: `Type`},
             {data: `availableQuantity`, name: `availableQuantity`, title: `Quantité disponible`},
         ],

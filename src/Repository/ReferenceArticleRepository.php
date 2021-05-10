@@ -1193,7 +1193,7 @@ class ReferenceArticleRepository extends EntityRepository {
             if($column === "type") {
                 $qb->join("reference_article.type", "search_type")
                     ->addOrderBy("search_type.label", $order["dir"]);
-            } else {
+            } else if ($column !== 'supplierReference') {
                 $qb->addOrderBy("reference_article.$column", $order["dir"]);
             }
         }
