@@ -320,6 +320,7 @@ class Utilisateur implements UserInterface, EquatableInterface
 
     /**
      * @ORM\OneToOne(targetEntity=Cart::class, mappedBy="user", cascade={"persist", "remove"})
+     * @ORM\JoinColumn(nullable=true)
      */
     private $cart;
 
