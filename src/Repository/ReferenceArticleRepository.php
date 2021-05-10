@@ -553,7 +553,7 @@ class ReferenceArticleRepository extends EntityRepository {
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
                             if(is_numeric($freeFieldId)) {
                                 $qb->orderBy("JSON_EXTRACT(ra.freeFields, '$.\"$freeFieldId\"')", $order);
-                            } else if (property_exists(ReferenceArticle::class, $column)) {
+                            } else if ($column != 'attachments' && property_exists(ReferenceArticle::class, $column)) {
                                 $qb->orderBy("ra.$column", $order);
                             }
                             break;

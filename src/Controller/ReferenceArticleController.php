@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
@@ -23,6 +24,7 @@ use App\Entity\Collecte;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Helper\Stream;
+use App\Service\AttachmentService;
 use App\Service\DemandeCollecteService;
 use App\Service\MouvementStockService;
 use App\Service\FreeFieldService;
@@ -30,7 +32,6 @@ use App\Service\ArticleFournisseurService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Twig\Environment as Twig_Environment;
@@ -42,7 +43,6 @@ use App\Service\ArticleDataService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
-use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -52,9 +52,6 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 
 use App\Entity\Demande;
 use App\Entity\ArticleFournisseur;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 
 
@@ -63,8 +60,6 @@ use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
  */
 class ReferenceArticleController extends AbstractController
 {
-
-    const MAX_CSV_FILE_LENGTH = 5000;
 
     /**
      * @var RefArticleDataService
@@ -120,15 +115,10 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/api-columns", name="ref_article_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param RefArticleDataService $refArticleDataService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
      */
     public function apiColumns(RefArticleDataService $refArticleDataService,
                                EntityManagerInterface $entityManager): Response {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -143,18 +133,10 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/api", name="ref_article_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
      */
     public function api(Request $request): Response {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             return $this->json($this->refArticleDataService->getRefArticleDataByParams($request->request));
         }
 
@@ -163,25 +145,16 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param FreeFieldService $champLibreService
-     * @param EntityManagerInterface $entityManager
-     * @param MouvementStockService $mouvementStockService
-     * @param ArticleFournisseurService $articleFournisseurService
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws Exception
+     * @HasPermission({Menu::STOCK, Action::CREATE})
      */
     public function new(Request $request,
                         FreeFieldService $champLibreService,
                         EntityManagerInterface $entityManager,
                         MouvementStockService $mouvementStockService,
-                        ArticleFournisseurService $articleFournisseurService): Response
+                        ArticleFournisseurService $articleFournisseurService,
+                        AttachmentService $attachmentService): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if ($request->isXmlHttpRequest() && $data = $request->request->all()) {
 
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
@@ -265,23 +238,24 @@ class ReferenceArticleController extends AbstractController
             $refArticle->setStockManagement($data['stockManagement'] ?? null);
 
             $managers = (array) $data['managers'];
-            if (isset($data['managers'])) {
+            if ($data['managers']) {
                 foreach ($managers as $manager)
                     $refArticle->addManager($userRepository->find($manager));
             }
 
-            if (!empty($data['frl'])) {
-                foreach ($data['frl'] as $frl) {
-                    $referenceArticleFournisseur = $frl['referenceFournisseur'];
+            $supplierReferenceLines = json_decode($data['frl'], true);
+            if (!empty($supplierReferenceLines)) {
+                foreach ($supplierReferenceLines as $supplierReferenceLine) {
+                    $referenceArticleFournisseur = $supplierReferenceLine['referenceFournisseur'];
                     try {
-                        $articleFournisseur = $articleFournisseurService->createArticleFournisseur([
-                            'fournisseur' => $frl['fournisseur'],
+                        $supplierArticle = $articleFournisseurService->createArticleFournisseur([
+                            'fournisseur' => $supplierReferenceLine['fournisseur'],
                             'article-reference' => $refArticle,
-                            'label' => $frl['labelFournisseur'],
+                            'label' => $supplierReferenceLine['labelFournisseur'],
                             'reference' => $referenceArticleFournisseur
                         ]);
 
-                        $entityManager->persist($articleFournisseur);
+                        $entityManager->persist($supplierArticle);
                     } catch (Exception $exception) {
                         if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
                             return new JsonResponse([
@@ -314,6 +288,7 @@ class ReferenceArticleController extends AbstractController
             $entityManager->flush();
 
             $champLibreService->manageFreeFields($refArticle, $data, $entityManager);
+            $attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
 
             $entityManager->flush();
             return $this->json([
@@ -331,15 +306,10 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/", name="reference_article_index",  methods="GET|POST", options={"expose"=true})
-     * @param RefArticleDataService $refArticleDataService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
      */
     public function index(RefArticleDataService $refArticleDataService,
                           EntityManagerInterface $entityManager): Response {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -400,25 +370,17 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="reference_article_edit_api", options={"expose"=true},  methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @HasPermission({Menu::STOCK, Action::EDIT})
      */
     public function editApi(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $refArticle = $referenceArticleRepository->find((int)$data['id']);
 
             if ($refArticle) {
-                $json = $this->refArticleDataService->getViewEditRefArticle($refArticle, $data['isADemand']);
+                $json = $this->refArticleDataService->getViewEditRefArticle($refArticle, $data['isADemand'], true, true);
             } else {
                 $json = false;
             }
@@ -429,20 +391,11 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param FreeFieldService $champLibreService
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @HasPermission({Menu::STOCK, Action::EDIT})
      */
     public function edit(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if ($request->isXmlHttpRequest() && $data = $request->request->all()) {
             $refId = intval($data['idRefArticle']);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $refArticle = $referenceArticleRepository->find($refId);
@@ -461,7 +414,8 @@ class ReferenceArticleController extends AbstractController
                 try {
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
-                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $currentUser, $champLibreService);
+                    $refArticle->removeIfNotIn($data['files'] ?? []);
+                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $currentUser, $champLibreService, $request);
                 }
                 catch (ArticleNotAvailableException $exception) {
                     $response = [
@@ -485,16 +439,11 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/supprimer", name="reference_article_delete", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::STOCK, Action::DELETE})
      */
     public function delete(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             /** @var ReferenceArticle $refArticle */
@@ -525,23 +474,11 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route(
-     *     "/addFournisseur",
-     *     name="ajax_render_add_fournisseur",
-     *     options={"expose"=true},
-     *     methods="GET",
-     *     requirements={
-     *          "currentIndex": "\d+"
-     *     })
-     * @param Request $request
-     * @return Response
+     * @Route("/addFournisseur", name="ajax_render_add_fournisseur", options={"expose"=true}, methods="GET", requirements={"currentIndex": "\d+"})
+     * @HasPermission({Menu::STOCK, Action::EDIT})
      */
     public function addFournisseur(Request $request): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $currentIndex = $request->query->get('currentIndex');
         $currentIndexInt = $request->query->getInt('currentIndex');
 
@@ -553,16 +490,11 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/removeFournisseur", name="ajax_render_remove_fournisseur", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::STOCK, Action::DELETE})
      */
     public function removeFournisseur(Request $request, EntityManagerInterface $entityManager): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
@@ -579,16 +511,11 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/quantite", name="get_quantity_ref_article", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse|RedirectResponse
+     * @HasPermission({Menu::DEM, Action::EDIT})
      */
     public function getQuantityByRefArticleId(Request $request, EntityManagerInterface $entityManager)
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $quantity = false;
@@ -609,10 +536,6 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/autocomplete-ref", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
      */
     public function getRefArticles(Request $request,
                                    EntityManagerInterface $entityManager)
@@ -641,16 +564,6 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/plus-demande", name="plus_demande", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @param FreeFieldService $champLibreService
-     * @param DemandeCollecteService $demandeCollecteService
-     * @return Response
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws Exception
      */
     public function plusDemande(EntityManagerInterface $entityManager,
                                 Request $request,
@@ -753,13 +666,6 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/ajax-plus-demande-content", name="ajax_plus_demande_content", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function ajaxPlusDemandeContent(EntityManagerInterface $entityManager,
                                            Request $request): Response
@@ -830,15 +736,11 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/colonne-visible", name="save_column_visible", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return Response
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
      */
     public function saveColumnVisible(Request $request): Response
     {
         if ($request->isXmlHttpRequest() ) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $data = json_decode($request->getContent(), true);
             $champs = array_keys($data);
             $user  = $this->getUser();
@@ -854,21 +756,12 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/voir", name="reference_article_show", options={"expose"=true})
-     * @param Request $request
-     * @param RefArticleDataService $refArticleDataService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
      */
     public function show(Request $request,
                          RefArticleDataService $refArticleDataService,
                          EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $refArticle  = $referenceArticleRepository->find($data);
             $json = $refArticle
@@ -882,10 +775,6 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/exporter-refs", name="export_all_refs", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $manager
-     * @param CSVExportService $csvService
-     * @param FreeFieldService $ffService
-     * @return Response
      */
     public function exportAllRefs(EntityManagerInterface $manager,
                                   CSVExportService $csvService,
@@ -976,23 +865,15 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/export-donnees", name="exports_params")
-     * @param UserService $userService
-     * @return RedirectResponse|Response
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_EXPO})
      */
     public function renderParams(UserService $userService)
     {
-        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_EXPO)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         return $this->render('exports/exportsMenu.html.twig');
     }
 
     /**
      * @Route("/type-quantite", name="get_quantity_type", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
      */
     public function getQuantityType(Request $request, EntityManagerInterface $entityManager)
 	{
@@ -1010,10 +891,6 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/get-demande", name="demande", options={"expose"=true})
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
-     * @throws NonUniqueResultException
      */
     public function getDemande(EntityManagerInterface $entityManager,
                                Request $request): Response
@@ -1043,15 +920,6 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/etiquettes", name="reference_article_bar_codes_print", options={"expose"=true})
-     * @param Request $request
-     * @param RefArticleDataService $refArticleDataService
-     * @param EntityManagerInterface $entityManager
-     * @param PDFGeneratorService $PDFGeneratorService
-     * @return Response
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function getBarCodes(Request $request,
                                 RefArticleDataService $refArticleDataService,
@@ -1059,7 +927,6 @@ class ReferenceArticleController extends AbstractController
                                 PDFGeneratorService $PDFGeneratorService): Response
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
         $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
 
         $userId = $this->user->getId();
@@ -1096,14 +963,6 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/{reference}/etiquette", name="reference_article_single_bar_code_print", options={"expose"=true})
-     * @param ReferenceArticle $reference
-     * @param RefArticleDataService $refArticleDataService
-     * @param PDFGeneratorService $PDFGeneratorService
-     * @return Response
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function getSingleBarCodes(ReferenceArticle $reference,
                                       RefArticleDataService $refArticleDataService,
@@ -1119,9 +978,6 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/show-actif-inactif", name="reference_article_actif_inactif", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function displayActifOrInactif(Request $request,
                                           EntityManagerInterface $entityManager) : Response
@@ -1159,9 +1015,6 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/mouvements/lister", name="ref_mouvements_list", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function showMovements(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -1181,11 +1034,6 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/mouvements/api/{referenceArticle}", name="ref_mouvements_api", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @param MouvementStockService $mouvementStockService
-     * @param ReferenceArticle $referenceArticle
-     * @return Response
      */
     public function apiMouvements(EntityManagerInterface $entityManager,
                                   Request $request,
@@ -1227,18 +1075,7 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route(
-     *     "/{referenceArticle}/quantity",
-     *     name="update_qte_refarticle",
-     *     options={"expose"=true},
-     *     methods="PATCH",
-     *     condition="request.isXmlHttpRequest()"
-     * )
-     * @param EntityManagerInterface $entityManager
-     * @param ReferenceArticle $referenceArticle
-     * @param RefArticleDataService $refArticleDataService
-     * @return JsonResponse
-     * @throws Exception
+     * @Route("/{referenceArticle}/quantity", name="update_qte_refarticle", options={"expose"=true}, methods="PATCH", condition="request.isXmlHttpRequest()")
      */
     public function updateQuantity(EntityManagerInterface $entityManager,
                                    ReferenceArticle $referenceArticle,

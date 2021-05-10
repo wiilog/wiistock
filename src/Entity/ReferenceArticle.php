@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -24,6 +25,7 @@ class ReferenceArticle extends FreeFieldEntity
     const STOCK_MANAGEMENT_FEFO = 'FEFO';
     const STOCK_MANAGEMENT_FIFO = 'FIFO';
 
+    use AttachmentTrait;
     use CommentTrait;
 
     /**
@@ -222,6 +224,7 @@ class ReferenceArticle extends FreeFieldEntity
         $this->ordreCollecteReferences = new ArrayCollection();
         $this->ligneArticlePreparations = new ArrayCollection();
         $this->managers = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
 
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;

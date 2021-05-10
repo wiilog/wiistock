@@ -113,7 +113,7 @@ function initTableRefArticle() {
                 processing: true,
                 serverSide: true,
                 paging: true,
-                order: [[1, 'asc']],
+                order: [[2, 'asc']],
                 ajax: {
                     'url': url,
                     'type': 'POST',
