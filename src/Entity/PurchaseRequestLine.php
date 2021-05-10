@@ -71,15 +71,14 @@ class PurchaseRequestLine
 
     public function setReference(?ReferenceArticle $reference): self
     {
-        if($this->reference && $this->reference->getPurchaseRequestLine() !== $this){
-            $oldReference = $this->reference;
-            $this->reference= null;
-            $oldReference->setPurchaseRequestLine($this);
-    }
-        $this->reference = $reference;
-        if($this->reference && $this->reference->getPurchaseRequestLine() !== $this) {
-            $this->reference->setPurchaseRequestLine($this);
+        if($this->reference && $this->reference !== $reference) {
+            $this->reference->removePurchaseRequestLine($this);
         }
+        $this->reference = $reference;
+        if($reference) {
+            $reference->addPurchaseRequestLine($this);
+        }
+
         return $this;
     }
 

@@ -152,6 +152,7 @@ class Reception extends FreeFieldEntity
         $this->mouvements = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
         $this->attachments = new ArrayCollection();
+        $this->purchaseRequestLine = new ArrayCollection();
     }
 
     public function getId(): ?int
