@@ -318,6 +318,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $referencesBuyer;
 
+    /**
+     * @ORM\OneToOne(targetEntity=Cart::class, mappedBy="user", cascade={"persist", "remove"})
+     */
+    private $cart;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -1668,5 +1673,27 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function getReferencesBuyer(): Collection
     {
         return $this->referencesBuyer;
+    }
+
+    public function getCart(): ?Cart
+    {
+        return $this->cart;
+    }
+
+    public function setCart(?Cart $cart): self
+    {
+        // unset the owning side of the relation if necessary
+        if ($cart === null && $this->cart !== null) {
+            $this->cart->setUser(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($cart !== null && $cart->getUser() !== $this) {
+            $cart->setUser($this);
+        }
+
+        $this->cart = $cart;
+
+        return $this;
     }
 }
