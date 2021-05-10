@@ -74,6 +74,8 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 Action::GENERATE_DISPATCH_BILL,
                 Action::GENERATE_WAY_BILL,
                 Action::TREAT_HANDLING,
+                Action::CREATE_PURCHASE_REQUESTS,
+                Action::SHOW_PURCHASE_REQUESTS,
 			],
 			Menu::ORDRE => [
                 Action::DISPLAY_ORDRE_COLL,
@@ -143,6 +145,9 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                     Action::DELETE_PROCESSED_DISPATCH,
                     Action::DELETE_UNPROCESSED_HANDLING,
                     Action::DELETE_PROCESSED_HANDLING,
+                    Action::DELETE_DRAFT_PURCHASE_REQUEST,
+                    Action::DELETE_ONGOING_PURCHASE_REQUESTS,
+                    Action::DELETE_TREATED_PURCHASE_REQUESTS,
                 ],
                 Action::EDIT => [
                     Action::EDIT_DRAFT_DISPATCH,
@@ -151,6 +156,9 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                     Action::ADD_PACK,
                     Action::EDIT_PACK,
                     Action::DELETE_PACK,
+                    Action::EDIT_DRAFT_PURCHASE_REQUEST,
+                    Action::EDIT_ONGOING_PURCHASE_REQUESTS,
+                    Action::EDIT_TREATED_PURCHASE_REQUESTS,
                 ],
             ],
             Menu::TRACA => [
