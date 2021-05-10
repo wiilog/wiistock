@@ -47,7 +47,11 @@
             Pièces jointes :
             <ul>
                 {% for attachment in arrival.attachments %}
-                    <li>{{ attachment.originalName }}</li>
+                    <li><a target="_blank"
+                           href="{{ attachment.fullPath is defined and attachment.fullPath is not null ? attachment.fullPath : '/uploads/attachements/' ~ attachment.fileName }}"
+                           download="{{ attachment.originalName }}">
+                            {{ attachment.originalName }}
+                        </a></li>
                 {% endfor %}
             </ul>
         </li>
