@@ -199,6 +199,30 @@
     height: 7vh;
 }
 
+.cart {
+    @extend .btn;
+    @include icon-button;
+
+    background-image: url("../../public/svg/cart.svg");
+    background-repeat: no-repeat;
+
+    width: 50px;
+    height: 45px;
+
+    .total {
+        position: absolute;
+        top: 0;
+        right: 10px;
+        border-radius: 50%;
+        background: #fff;
+        border: 2px solid white;
+        text-align: center;
+        width: 25px;
+        height: 25px;
+        padding-top: 0.5px;
+    }
+}
+
 .quick-plus {
     @extend .btn;
     @include icon-button;

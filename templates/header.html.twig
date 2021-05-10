@@ -69,6 +69,11 @@
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_TRANSFER_REQ'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
                     ) %}
+                    <div class="col-auto">
+                        <div class="cart">
+                            <div class="total small">{{ cartTotal is defined and cartTotal is not null ? cartTotal : '0' }}</div>
+                        </div>
+                    </div>
                     {% if hasDeliveryRights
                         or hasCollectRights
                         or hasHandlingRights
