@@ -50,6 +50,11 @@ class Fournisseur
      */
     private $arrivages;
 
+    /**
+     * @ORM\OneToOne(targetEntity=PurchaseRequestLine::class, mappedBy="supplier", cascade={"persist", "remove"})
+     */
+    private $purchaseRequestLine;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -235,6 +240,28 @@ class Fournisseur
                 $arrivage->setFournisseur(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getPurchaseRequestLine(): ?PurchaseRequestLine
+    {
+        return $this->purchaseRequestLine;
+    }
+
+    public function setPurchaseRequestLine(?PurchaseRequestLine $purchaseRequestLine): self
+    {
+        // unset the owning side of the relation if necessary
+        if ($purchaseRequestLine === null && $this->purchaseRequestLine !== null) {
+            $this->purchaseRequestLine->setSupplier(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($purchaseRequestLine !== null && $purchaseRequestLine->getSupplier() !== $this) {
+            $purchaseRequestLine->setSupplier($this);
+        }
+
+        $this->purchaseRequestLine = $purchaseRequestLine;
 
         return $this;
     }

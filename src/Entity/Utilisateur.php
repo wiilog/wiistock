@@ -324,6 +324,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $cart;
 
+    /**
+     * @ORM\OneToMany(targetEntity=PurchaseRequest::class, mappedBy="requester")
+     */
+    private $purchaseRequests;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -369,6 +374,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
         $this->receivedHandlings = new ArrayCollection();
         $this->referencesBuyer = new ArrayCollection();
+        $this->purchaseRequests = new ArrayCollection();
     }
 
     public function getId()
@@ -1694,6 +1700,52 @@ class Utilisateur implements UserInterface, EquatableInterface
         }
 
         $this->cart = $cart;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|PurchaseRequest[]
+     */
+    public function getPurchaseRequests(): Collection
+    {
+        return $this->purchaseRequests;
+    }
+
+    public function addPurchaseRequest(PurchaseRequest $purchaseRequest): self
+    {
+        if (!$this->purchaseRequests->contains($purchaseRequest)) {
+            $this->purchaseRequests[] = $purchaseRequest;
+            $purchaseRequest->setRequester($this);
+        }
+
+        return $this;
+    }
+
+    public function removePurchaseRequest(PurchaseRequest $purchaseRequest): self
+    {
+
+        if ($this->purchaseRequests->removeElement($purchaseRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($purchaseRequest->getRequester() === $this) {
+                $purchaseRequest->setRequester(null);
+            }
+            if ($purchaseRequest->getBuyer() === $this) {
+                $purchaseRequest->setBuyer(null);
+            }
+        }
+        return $this;
+    }
+
+    public function setPurchaseRequest(?array $purchaseRequests): self {
+        foreach($this->getPurchaseRequests()->toArray() as $purchaseRequest) {
+            $this->removePurchaseRequest($purchaseRequest);
+        }
+
+        $this->purchaseRequests = new ArrayCollection();
+        foreach($purchaseRequests as $purchaseRequest) {
+            $this->addPurchaseRequest($purchaseRequest);
+        }
 
         return $this;
     }

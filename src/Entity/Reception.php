@@ -139,6 +139,12 @@ class Reception extends FreeFieldEntity
      */
     private $manualUrgent;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=PurchaseRequestLine::class, inversedBy="receptions")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $request;
+
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
@@ -497,6 +503,24 @@ class Reception extends FreeFieldEntity
             if ($trackingMovement->getReception() === $this) {
                 $trackingMovement->setReception(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getRequest(): ?PurchaseRequestLine
+    {
+        return $this->request;
+    }
+
+    public function setRequest(?PurchaseRequestLine $request): self
+    {
+        if($this->request && $this->request !== $request) {
+            $this->request->removeReception($this);
+        }
+        $this->request = $request;
+        if($request) {
+            $request->addReception($this);
         }
 
         return $this;

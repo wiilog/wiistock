@@ -157,6 +157,11 @@ class Statut
      */
     private $defaultForCategory;
 
+    /**
+     * @ORM\OneToMany(targetEntity=PurchaseRequest::class, mappedBy="status")
+     */
+    private $purchaseRequests;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -174,6 +179,7 @@ class Statut
         $this->transferOrders = new ArrayCollection();
 
         $this->defaultForCategory = false;
+        $this->purchaseRequests = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -760,6 +766,49 @@ class Statut
      */
     public function setState(?int $state): self {
         $this->state = $state;
+        return $this;
+    }
+
+    /**
+     * @return Collection|PurchaseRequest[]
+     */
+    public function getPurchaseRequests(): Collection
+    {
+        return $this->purchaseRequests;
+    }
+
+    public function addPurchaseRequest(PurchaseRequest $purchaseRequest): self
+    {
+        if (!$this->purchaseRequests->contains($purchaseRequest)) {
+            $this->purchaseRequests[] = $purchaseRequest;
+            $purchaseRequest->setStatut($this);
+        }
+
+        return $this;
+    }
+
+    public function removePurchaseRequest(PurchaseRequest $purchaseRequest): self
+    {
+        if ($this->purchaseRequests->removeElement($purchaseRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($purchaseRequest->getStatut() === $this) {
+                $purchaseRequest->setStatut(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setPurchaseRequest(?array $purchaseRequests): self {
+        foreach($this->getPurchaseRequests()->toArray() as $purchaseRequest) {
+            $this->removePurchaseRequest($purchaseRequest);
+        }
+
+        $this->purchaseRequests = new ArrayCollection();
+        foreach($purchaseRequests as $purchaseRequest) {
+            $this->addPurchaseRequest($purchaseRequest);
+        }
+
         return $this;
     }
 
