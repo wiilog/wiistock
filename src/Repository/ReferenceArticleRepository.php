@@ -1187,7 +1187,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->setParameter("cart", $user->getCart());
 
         foreach($params["order"] as $order) {
-            $column = $params["columns"][$order["column"]];
+            $column = $params["columns"][$order["column"]]['name'];
             $column = self::CART_COLUMNS_ASSOCIATION[$column] ?? $column;
 
             if($column === "type") {
