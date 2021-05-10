@@ -319,9 +319,9 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $referencesBuyer;
 
     /**
-     * @ORM\OneToOne(targetEntity=Basket::class, mappedBy="user", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity=Cart::class, mappedBy="user", cascade={"persist", "remove"})
      */
-    private $basket;
+    private $cart;
 
     public function __construct()
     {
@@ -1675,24 +1675,24 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this->referencesBuyer;
     }
 
-    public function getBasket(): ?Basket
+    public function getCart(): ?Cart
     {
-        return $this->basket;
+        return $this->cart;
     }
 
-    public function setBasket(?Basket $basket): self
+    public function setCart(?Cart $cart): self
     {
         // unset the owning side of the relation if necessary
-        if ($basket === null && $this->basket !== null) {
-            $this->basket->setUser(null);
+        if ($cart === null && $this->cart !== null) {
+            $this->cart->setUser(null);
         }
 
         // set the owning side of the relation if necessary
-        if ($basket !== null && $basket->getUser() !== $this) {
-            $basket->setUser($this);
+        if ($cart !== null && $cart->getUser() !== $this) {
+            $cart->setUser($this);
         }
 
-        $this->basket = $basket;
+        $this->cart = $cart;
 
         return $this;
     }

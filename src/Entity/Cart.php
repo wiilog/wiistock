@@ -2,15 +2,15 @@
 
 namespace App\Entity;
 
-use App\Repository\BasketRepository;
+use App\Repository\CartRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass=BasketRepository::class)
+ * @ORM\Entity(repositoryClass=CartRepository::class)
  */
-class Basket
+class Cart
 {
     /**
      * @ORM\Id
@@ -20,13 +20,13 @@ class Basket
     private $id;
 
     /**
-     * @ORM\OneToOne(targetEntity=utilisateur::class, inversedBy="basket", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity=utilisateur::class, inversedBy="cart", cascade={"persist", "remove"})
      * @ORM\JoinColumn(nullable=false)
      */
     private $user;
 
     /**
-     * @ORM\ManyToMany(targetEntity=ReferenceArticle::class, inversedBy="baskets")
+     * @ORM\ManyToMany(targetEntity=ReferenceArticle::class, inversedBy="carts")
      */
     private $refArticle;
 

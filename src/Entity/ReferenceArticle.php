@@ -215,9 +215,9 @@ class ReferenceArticle extends FreeFieldEntity
     private $buyer;
 
     /**
-     * @ORM\ManyToMany(targetEntity=Basket::class, mappedBy="refArticle")
+     * @ORM\ManyToMany(targetEntity=Cart::class, mappedBy="refArticle")
      */
-    private $baskets;
+    private $carts;
 
     public function __construct()
     {
@@ -238,7 +238,7 @@ class ReferenceArticle extends FreeFieldEntity
         $this->quantiteDisponible = 0;
         $this->transferRequests = new ArrayCollection();
         $this->alerts = new ArrayCollection();
-        $this->baskets = new ArrayCollection();
+        $this->carts = new ArrayCollection();
     }
 
     public function getId()
@@ -999,27 +999,27 @@ class ReferenceArticle extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|Basket[]
+     * @return Collection|Cart[]
      */
-    public function getBaskets(): Collection
+    public function getCarts(): Collection
     {
-        return $this->baskets;
+        return $this->carts;
     }
 
-    public function addBasket(Basket $basket): self
+    public function addCart(Cart $cart): self
     {
-        if (!$this->baskets->contains($basket)) {
-            $this->baskets[] = $basket;
-            $basket->addRefArticle($this);
+        if (!$this->carts->contains($cart)) {
+            $this->carts[] = $cart;
+            $cart->addRefArticle($this);
         }
 
         return $this;
     }
 
-    public function removeBasket(Basket $basket): self
+    public function removeCart(Cart $cart): self
     {
-        if ($this->baskets->removeElement($basket)) {
-            $basket->removeRefArticle($this);
+        if ($this->carts->removeElement($cart)) {
+            $cart->removeRefArticle($this);
         }
 
         return $this;
