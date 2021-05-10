@@ -10,6 +10,7 @@ use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
+use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use App\Helper\Stream;
 use App\Service\VisibleColumnService;
@@ -1173,4 +1174,37 @@ class ReferenceArticleRepository extends EntityRepository {
             return [];
         }
     }
+
+    private const CART_COLUMNS_ASSOCIATION = [
+        "label" => "libelle",
+        "availableQuantity" => "quantiteDisponible",
+    ];
+
+    public function findInCart(Utilisateur $user, array $params) {
+        $qb = $this->createQueryBuilder("reference_article");
+
+        $qb->where(":cart MEMBER OF reference_article.carts")
+            ->setParameter("cart", $user->getCart());
+
+        foreach($params["order"] as $order) {
+            $column = $params["columns"][$order["column"]];
+            $column = self::CART_COLUMNS_ASSOCIATION[$column] ?? $column;
+
+            if($column === "type") {
+                $qb->join("reference_article.type", "search_type")
+                    ->addOrderBy("search_type.label", $order["dir"]);
+            } else {
+                $qb->addOrderBy("reference_article.$column", $order["dir"]);
+            }
+        }
+
+        $countTotal = QueryCounter::count($qb, "reference_article");
+
+        return [
+            "data" => $qb->getQuery()->getResult(),
+            "count" => $countTotal,
+            "total" => $countTotal
+        ];
+    }
+
 }
