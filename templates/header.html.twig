@@ -70,9 +70,9 @@
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
                     ) %}
                     <div class="col-auto">
-                        <div class="cart">
-                            <div class="total small">{{ cartTotal is defined and cartTotal is not null ? cartTotal : '0' }}</div>
-                        </div>
+                        <a class="cart" href="{{ path('cart') }}">
+                            <div class="total small">{{ app.user.cart.refArticle | length }}</div>
+                        </a>
                     </div>
                     {% if hasDeliveryRights
                         or hasCollectRights
