@@ -9,6 +9,7 @@ let tableAlerteConfig = {
     },
     drawConfig: {
         needsSearchOverride: true,
+        needsResize: true
     },
     columns: [
         { "data": 'actions', 'name': 'actions', 'title': '', 'orderable': false, className: 'noVis'},

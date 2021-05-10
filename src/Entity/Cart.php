@@ -28,11 +28,11 @@ class Cart
     /**
      * @ORM\ManyToMany(targetEntity=ReferenceArticle::class, inversedBy="carts")
      */
-    private $refArticle;
+    private $references;
 
     public function __construct()
     {
-        $this->refArticle = new ArrayCollection();
+        $this->references = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -55,23 +55,23 @@ class Cart
     /**
      * @return Collection|ReferenceArticle[]
      */
-    public function getRefArticle(): Collection
+    public function getReferences(): Collection
     {
-        return $this->refArticle;
+        return $this->references;
     }
 
-    public function addRefArticle(ReferenceArticle $refArticle): self
+    public function addReference(ReferenceArticle $refArticle): self
     {
-        if (!$this->refArticle->contains($refArticle)) {
-            $this->refArticle[] = $refArticle;
+        if (!$this->references->contains($refArticle)) {
+            $this->references[] = $refArticle;
         }
 
         return $this;
     }
 
-    public function removeRefArticle(ReferenceArticle $refArticle): self
+    public function removeReference(ReferenceArticle $refArticle): self
     {
-        $this->refArticle->removeElement($refArticle);
+        $this->references->removeElement($refArticle);
 
         return $this;
     }

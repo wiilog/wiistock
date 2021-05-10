@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\Cart;
 use App\Entity\CategoryType;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
@@ -139,6 +140,36 @@ class ReferenceArticleController extends AbstractController
             })
             ->values();
         return $this->json(($fields));
+    }
+
+    /**
+     * @Route("/ajouter-panier/{reference}", name="add_ref_to_cart", options={"expose"=true}, methods="GET|POST")
+     * @param ReferenceArticle $reference
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     */
+    public function addToCart(ReferenceArticle $reference, EntityManagerInterface $entityManager): JsonResponse
+    {
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $cart = $entityManager->getRepository(Cart::class)->findOneBy([
+            'user' => $currentUser
+        ]);
+        if (!$cart) {
+            $cart = new Cart();
+            $cart->setUser($currentUser);
+            $entityManager->persist($cart);
+        }
+
+        $cart->addReference($reference);
+
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'count' => $cart->getReferences()->count()
+        ]);
     }
 
     /**

@@ -215,7 +215,7 @@ class ReferenceArticle extends FreeFieldEntity
     private $buyer;
 
     /**
-     * @ORM\ManyToMany(targetEntity=Cart::class, mappedBy="refArticle")
+     * @ORM\ManyToMany(targetEntity=Cart::class, mappedBy="references")
      */
     private $carts;
 
