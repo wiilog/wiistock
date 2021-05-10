@@ -71,7 +71,9 @@
                     ) %}
                     <div class="col-auto">
                         <a class="cart" href="{{ path('cart') }}">
-                            <div class="total small">{{ app.user.cart.refArticle | length }}</div>
+                            {% if app.user.cart.refArticle %}
+                                <div class="total small">{{ app.user.cart.refArticle | length }}</div>
+                            {% endif %}
                         </a>
                     </div>
                     {% if hasDeliveryRights

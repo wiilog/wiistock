@@ -212,8 +212,11 @@
     height: 45px;
     padding: 0;
 
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+
     .total {
-        float: right;
         border-radius: 6px;
         background: rgb(46, 194, 171);
         color: white;
