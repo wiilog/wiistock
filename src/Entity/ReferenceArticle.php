@@ -210,7 +210,7 @@ class ReferenceArticle extends FreeFieldEntity
     private $alerts;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="referenceArticles")
+     * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="referencesBuyer")
      */
     private $buyer;
 

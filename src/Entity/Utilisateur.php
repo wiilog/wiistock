@@ -316,7 +316,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @ORM\OneToMany(targetEntity=ReferenceArticle::class, mappedBy="buyer")
      */
-    private $referenceArticles;
+    private $referencesBuyer;
 
     public function __construct()
     {
@@ -362,7 +362,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
         $this->receivedHandlings = new ArrayCollection();
-        $this->referenceArticles = new ArrayCollection();
+        $this->referencesBuyer = new ArrayCollection();
     }
 
     public function getId()
@@ -1665,8 +1665,8 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @return Collection|ReferenceArticle[]
      */
-    public function getReferenceArticles(): Collection
+    public function getReferencesBuyer(): Collection
     {
-        return $this->referenceArticles;
+        return $this->referencesBuyer;
     }
 }
