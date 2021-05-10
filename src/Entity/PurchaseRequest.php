@@ -2,8 +2,12 @@
 
 namespace App\Entity;
 
+use DateTimeInterface;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use App\Repository\PurchaseRequestRepository;
 use Doctrine\ORM\Mapping as ORM;
+use DateTime;
 
 /**
  * @ORM\Entity(repositoryClass=PurchaseRequestRepository::class)
@@ -15,57 +19,62 @@ class PurchaseRequest
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
-
-    /**
-     * @ORM\ManyToMany(targetEntity=PurchaseRequestLine::class, mappedBy="request")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $purchaseRequestLines;
-
-
-    /**
-     * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="purchaseRequests")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $requester;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $comment;
+    private ?string $comment = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="purchaseRequests")
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private ?DateTime $creationDate = null;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private ?DateTime $validationDate = null;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private ?DateTime $processingDate = null;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private ?DateTime $considerationDate = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="purchaseRequestRequesters")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $buyer;
+    private ?Utilisateur $requester = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="purchaseRequestBuyers")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private ?Utilisateur $buyer = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Statut::class, inversedBy="purchaseRequests")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(nullable=true)
      */
-    private $status;
+    private ?Statut $status = null;
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="purchaseRequest")
+     * @ORM\JoinColumn(nullable=true)
      */
-    private $creationDate;
+    private ?Collection $purchaseRequestLines;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $validationDate;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $processingDate;
-
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $considerationDate;
+    public function __construct()
+    {
+        $this->purchaseRequestLines = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -80,11 +89,11 @@ class PurchaseRequest
     public function setRequester(?Utilisateur $requester): self
     {
         if($this->requester && $this->requester !== $requester){
-            $this->requester->removePurchaseRequest($this);
+            $this->requester->removePurchaseRequestRequesters($this);
         }
         $this->requester = $requester;
         if($requester) {
-            $requester->addPurchaseRequest($this);
+            $requester->addPurchaseRequestRequesters($this);
         }
 
         return $this;
@@ -110,11 +119,11 @@ class PurchaseRequest
     public function setBuyer(?Utilisateur $buyer): self
     {
         if($this->buyer && $this->buyer !== $buyer){
-            $this->buyer->removePurchaseRequest($this);
+            $this->buyer->removePurchaseRequestBuyers($this);
         }
         $this->buyer = $buyer;
         if($buyer) {
-            $buyer->addPurchaseRequest($this);
+            $buyer->addPurchaseRequestBuyers($this);
         }
 
         return $this;
@@ -138,48 +147,48 @@ class PurchaseRequest
         return $this;
     }
 
-    public function getCreationDate(): ?\DateTimeInterface
+    public function getCreationDate(): ?DateTimeInterface
     {
         return $this->creationDate;
     }
 
-    public function setCreationDate(?\DateTimeInterface $creationDate): self
+    public function setCreationDate(?DateTimeInterface $creationDate): self
     {
         $this->creationDate = $creationDate;
 
         return $this;
     }
 
-    public function getValidationDate(): ?\DateTimeInterface
+    public function getValidationDate(): ?DateTimeInterface
     {
         return $this->validationDate;
     }
 
-    public function setValidationDate(?\DateTimeInterface $validationDate): self
+    public function setValidationDate(?DateTimeInterface $validationDate): self
     {
         $this->validationDate = $validationDate;
 
         return $this;
     }
 
-    public function getProcessingDate(): ?\DateTimeInterface
+    public function getProcessingDate(): ?DateTimeInterface
     {
         return $this->processingDate;
     }
 
-    public function setProcessingDate(?\DateTimeInterface $processingDate): self
+    public function setProcessingDate(?DateTimeInterface $processingDate): self
     {
         $this->processingDate = $processingDate;
 
         return $this;
     }
 
-    public function getConsiderationDate(): ?\DateTimeInterface
+    public function getConsiderationDate(): ?DateTimeInterface
     {
         return $this->considerationDate;
     }
 
-    public function setConsiderationDate(?\DateTimeInterface $considerationDate): self
+    public function setConsiderationDate(?DateTimeInterface $considerationDate): self
     {
         $this->considerationDate = $considerationDate;
 
@@ -187,37 +196,39 @@ class PurchaseRequest
     }
 
     /**
-     * @return Collection|PurchaseRequestLine[]
+     * @return Collection|purchaseRequestLine[]
      */
-    public function getPurchaseRequestLine(): Collection {
+    public function getPurchaseRequestLines(): Collection {
         return $this->purchaseRequestLines;
     }
 
-    public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLines): self {
-        if (!$this->purchaseRequestLines->contains($purchaseRequestLines)) {
-            $this->purchaseRequestLines[] = $purchaseRequestLines;
-            $purchaseRequestLines->addPurchaseRequest($this);
+    public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
+        if (!$this->purchaseRequestLines->contains($purchaseRequestLine)) {
+            $this->purchaseRequestLines[] = $purchaseRequestLine;
+            $purchaseRequestLine->setPurchaseRequest($this);
         }
 
         return $this;
     }
 
-    public function removePurchaseRequestLine(PurchaseRequestLine $purchaseRequestLines): self {
-        if ($this->purchaseRequestLines->removeElement($purchaseRequestLines)) {
-            $purchaseRequestLines->removePurchaseRequest($this);
+    public function removePurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
+        if ($this->purchaseRequestLines->removeElement($purchaseRequestLine)) {
+            if ($purchaseRequestLine->getPurchaseRequest() === $this) {
+                $purchaseRequestLine->setPurchaseRequest(null);
+            }
         }
 
         return $this;
     }
 
-    public function setPurchaseRequestLine(?array $purchaseRequestLines): self {
-        foreach($this->getPurchaseRequestLine()->toArray() as $purchaseRequestLine) {
+    public function setPurchaseRequestLines(?array $purchaseRequestLines): self {
+        foreach($this->getPurchaseRequestLines()->toArray() as $purchaseRequestLine) {
             $this->removePurchaseRequestLine($purchaseRequestLine);
         }
 
         $this->purchaseRequestLines = new ArrayCollection();
         foreach($purchaseRequestLines as $purchaseRequestLine) {
-            $this->addPurchaseRequestLine()($purchaseRequestLine);
+            $this->addPurchaseRequestLine($purchaseRequestLine);
         }
 
         return $this;

@@ -140,7 +140,7 @@ class Reception extends FreeFieldEntity
     private $manualUrgent;
 
     /**
-     * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="receptions")
+     * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="reception")
      * @ORM\JoinColumn(nullable=true)
      */
     private ?Collection $purchaseRequestLine;

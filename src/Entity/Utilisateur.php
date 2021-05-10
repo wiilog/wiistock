@@ -327,7 +327,12 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @ORM\OneToMany(targetEntity=PurchaseRequest::class, mappedBy="requester")
      */
-    private $purchaseRequests;
+    private $purchaseRequestRequesters;
+
+    /**
+     * @ORM\OneToMany(targetEntity=PurchaseRequest::class, mappedBy="buyer")
+     */
+    private $purchaseRequestBuyers;
 
     public function __construct()
     {
@@ -1674,6 +1679,8 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
+
+
     /**
      * @return Collection|ReferenceArticle[]
      */
@@ -1707,44 +1714,90 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @return Collection|PurchaseRequest[]
      */
-    public function getPurchaseRequests(): Collection
+    public function getPurchaseRequestRequesters(): Collection
     {
-        return $this->purchaseRequests;
+        return $this->purchaseRequestRequesters;
     }
 
-    public function addPurchaseRequest(PurchaseRequest $purchaseRequest): self
+    public function addPurchaseRequestRequesters(PurchaseRequest $purchaseRequestRequester): self
     {
-        if (!$this->purchaseRequests->contains($purchaseRequest)) {
-            $this->purchaseRequests[] = $purchaseRequest;
-            $purchaseRequest->setRequester($this);
+        if (!$this->purchaseRequestRequesters->contains($purchaseRequestRequester)) {
+            $this->purchaseRequestRequesters[] = $purchaseRequestRequester;
+            $purchaseRequestRequester->setRequester($this);
         }
 
         return $this;
     }
 
-    public function removePurchaseRequest(PurchaseRequest $purchaseRequest): self
+    public function removePurchaseRequestRequesters(PurchaseRequest $purchaseRequestRequester): self
     {
 
-        if ($this->purchaseRequests->removeElement($purchaseRequest)) {
+        if ($this->purchaseRequestRequesters->removeElement($purchaseRequestRequester)) {
             // set the owning side to null (unless already changed)
-            if ($purchaseRequest->getRequester() === $this) {
-                $purchaseRequest->setRequester(null);
+            if ($purchaseRequestRequester->getRequester() === $this) {
+                $purchaseRequestRequester->setRequester(null);
             }
-            if ($purchaseRequest->getBuyer() === $this) {
-                $purchaseRequest->setBuyer(null);
+            if ($purchaseRequestRequester->getBuyer() === $this) {
+                $purchaseRequestRequester->setBuyer(null);
             }
         }
         return $this;
     }
 
-    public function setPurchaseRequest(?array $purchaseRequests): self {
-        foreach($this->getPurchaseRequests()->toArray() as $purchaseRequest) {
-            $this->removePurchaseRequest($purchaseRequest);
+    public function setPurchaseRequestRequesters(?array $purchaseRequestRequester): self {
+        foreach($this->getPurchaseRequestRequesters()->toArray() as $purchaseRequestRequesters) {
+            $this->removePurchaseRequestRequesters($purchaseRequestRequesters);
         }
 
-        $this->purchaseRequests = new ArrayCollection();
-        foreach($purchaseRequests as $purchaseRequest) {
-            $this->addPurchaseRequest($purchaseRequest);
+        $this->purchaseRequestRequesters = new ArrayCollection();
+        foreach($purchaseRequestRequester as $purchaseRequestRequesters) {
+            $this->addPurchaseRequestRequesters($purchaseRequestRequesters);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|PurchaseRequest[]
+     */
+    public function getPurchaseRequestBuyers(): Collection
+    {
+        return $this->purchaseRequestBuyers;
+    }
+
+    public function addPurchaseRequestBuyers(PurchaseRequest $purchaseRequestBuyer): self
+    {
+        if (!$this->purchaseRequestBuyers->contains($purchaseRequestBuyer)) {
+            $this->purchaseRequestBuyers[] = $purchaseRequestBuyer;
+            $purchaseRequestBuyer->setRequester($this);
+        }
+
+        return $this;
+    }
+
+    public function removePurchaseRequestBuyers(PurchaseRequest $purchaseRequestBuyer): self
+    {
+
+        if ($this->purchaseRequestBuyers->removeElement($purchaseRequestBuyer)) {
+            // set the owning side to null (unless already changed)
+            if ($purchaseRequestBuyer->getRequester() === $this) {
+                $purchaseRequestBuyer->setRequester(null);
+            }
+            if ($purchaseRequestBuyer->getBuyer() === $this) {
+                $purchaseRequestBuyer->setBuyer(null);
+            }
+        }
+        return $this;
+    }
+
+    public function setPurchaseRequestBuyers(?array $purchaseRequestBuyer): self {
+        foreach($this->getPurchaseRequestBuyers()->toArray() as $purchaseRequestBuyers) {
+            $this->removePurchaseRequestBuyers($purchaseRequestBuyers);
+        }
+
+        $this->purchaseRequestBuyers = new ArrayCollection();
+        foreach($purchaseRequestBuyer as $purchaseRequestBuyers) {
+            $this->addPurchaseRequestBuyers($purchaseRequestBuyers);
         }
 
         return $this;

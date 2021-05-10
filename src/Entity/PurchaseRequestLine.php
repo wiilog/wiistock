@@ -2,10 +2,9 @@
 
 namespace App\Entity;
 
-use App\Repository\PurchaseRequestLineRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
+use DateTime;
 
 /**
  * @ORM\Entity(repositoryClass=PurchaseRequestLineRepository::class)
@@ -17,54 +16,48 @@ class PurchaseRequestLine
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
-
-    /**
-     * @ORM\OneToOne(targetEntity=ReferenceArticle::class, cascade={"persist", "remove"})
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $reference;
-
-    /**
-     * @ORM\ManyToMany(targetEntity=PurchaseRequest::class, inversedBy="purchaseRequestLines")
-     */
-    private $request;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="integer")
      */
-    private $requestedQuantity;
+    private ?int $requestedQuantity = null;
 
     /**
      * @ORM\Column(type="datetime")
      */
-    private $orderDate;
+    private ?DateTimeInterface $orderDate = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $expectedDate;
+    private ?DateTime $expectedDate= null;
 
     /**
      * @ORM\Column(type="integer")
      */
-    private $orderNumber;
+    private ? int $orderNumber = null;
 
     /**
-     * @ORM\OneToOne(targetEntity=Fournisseur::class, inversedBy="purchaseRequestLine", cascade={"persist", "remove"})
+     * @ORM\ManyToOne(targetEntity=ReferenceArticle::class, inversedBy="purchaseRequestLines")
+     * @ORM\JoinColumn(nullable=true)
      */
-    private $supplier;
+    private ?ReferenceArticle $reference = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=PurchaseRequest::class, inversedBy="purchaseRequestLines")
+     */
+    private ?PurchaseRequest $purchaseRequest = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Fournisseur::class, inversedBy="purchaseRequestLines")
+     */
+    private ?Fournisseur $supplier = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Reception::class, inversedBy="purchaseRequestLine")
      */
-    private $receptions;
-
-    public function __construct()
-    {
-        $this->request = new ArrayCollection();
-        $this->receptions = new ArrayCollection();
-    }
+    private ?Reception $reception = null;
 
     public function getId(): ?int
     {
@@ -76,7 +69,7 @@ class PurchaseRequestLine
         return $this->reference;
     }
 
-    public function setReference(ReferenceArticle $reference): self
+    public function setReference(?ReferenceArticle $reference): self
     {
         if($this->reference && $this->reference->getPurchaseRequestLine() !== $this){
             $oldReference = $this->reference;
@@ -90,62 +83,52 @@ class PurchaseRequestLine
         return $this;
     }
 
-    /**
-     * @return Collection|PurchaseRequest[]
-     */
-    public function getRequest(): Collection
-    {
-        return $this->request;
+    public function getPurchaseRequest(): ?PurchaseRequest {
+        return $this->purchaseRequest;
     }
 
-    public function addRequest(PurchaseRequest $request): self
-    {
-        if (!$this->request->contains($request)) {
-            $this->request[] = $request;
+    public function setPurchaseRequest(?PurchaseRequest $purchaseRequest): self {
+        if($this->purchaseRequest && $this->purchaseRequest !== $purchaseRequest) {
+            $this->purchaseRequest->removePurchaseRequestLine($this);
+        }
+        $this->purchaseRequest = $purchaseRequest;
+        if($purchaseRequest) {
+            $purchaseRequest->addPurchaseRequestLine($this);
         }
 
         return $this;
     }
 
-    public function removeRequest(PurchaseRequest $request): self
-    {
-        if ($this->request->contains($request)) {
-            $this->request = $request;
-        }
-
-        return $this;
-    }
-
-    public function getrequestedQuantity(): ?int
+    public function getRequestedQuantity(): ?int
     {
         return $this->requestedQuantity;
     }
 
-    public function setrequestedQuantity(int $requestedQuantity): self
+    public function setRequestedQuantity(int $requestedQuantity): self
     {
         $this->requestedQuantity = $requestedQuantity;
 
         return $this;
     }
 
-    public function getOrderDate(): ?\DateTimeInterface
+    public function getOrderDate(): ?DateTimeInterface
     {
         return $this->orderDate;
     }
 
-    public function setOrderDate(\DateTimeInterface $orderDate): self
+    public function setOrderDate(DateTimeInterface $orderDate): self
     {
         $this->orderDate = $orderDate;
 
         return $this;
     }
 
-    public function getExpectedDate(): ?\DateTimeInterface
+    public function getExpectedDate(): ?DateTimeInterface
     {
         return $this->expectedDate;
     }
 
-    public function setExpectedDate(?\DateTimeInterface $expectedDate): self
+    public function setExpectedDate(?DateTimeInterface $expectedDate): self
     {
         $this->expectedDate = $expectedDate;
 
@@ -164,39 +147,35 @@ class PurchaseRequestLine
         return $this;
     }
 
-    public function getSupplier(): ?Fournisseur
-    {
+    public function getSupplier(): ?Fournisseur {
         return $this->supplier;
     }
 
-    public function setSupplier(?Fournisseur $supplier): self
-    {
-        if($this->supplier && $this->supplier->getPurchaseRequestLine() !== $this) {
-            $oldSupplier = $this->supplier;
-            $this->supplier = null;
-            $oldSupplier->setPurchaseRequestLine(null);
-        }
-        $this->supplier = $supplier;
-        if($this->supplier && $this->supplier->getPurchaseRequestLine() !== $this) {
-            $this->supplier->setPurchaseRequestLine($this);
+    public function setSupplier(?Fournisseur $supplier): self {
+        if($this->supplier && $this->supplier !== $supplier) {
+            $this->supplier->removePurchaseRequestLine($this);
         }
 
+        $this->supplier = $supplier;
+        if($supplier) {
+            $supplier->addPurchaseRequestLine($this);
+        }
         return $this;
     }
 
-    public function getReceptions(): ?Reception {
-        return $this->receptions;
+    public function getReception(): ?Reception {
+        return $this->reception;
     }
 
-    public function setReceptions(?Reception $receptions): self {
-        if($this->receptions && $this->receptions !== $receptions) {
-            $this->receptions->removePurchaseRequestLine($this);
-        }
-        $this->receptions = $receptions;
-        if($receptions) {
-            $receptions->addPurchaseRequestLine($this);
+    public function setReception(?Reception $reception): self {
+        if($this->reception && $this->reception !== $reception) {
+            $this->reception->removePurchaseRequestLine($this);
         }
 
+        $this->reception = $reception;
+        if($reception) {
+            $reception->addPurchaseRequestLine($this);
+        }
         return $this;
     }
 }

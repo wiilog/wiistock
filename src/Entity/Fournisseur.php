@@ -51,9 +51,9 @@ class Fournisseur
     private $arrivages;
 
     /**
-     * @ORM\OneToOne(targetEntity=PurchaseRequestLine::class, mappedBy="supplier", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="supplier")
      */
-    private $purchaseRequestLine;
+    private ?Collection $purchaseRequestLines;
 
     public function __construct()
     {
@@ -61,6 +61,7 @@ class Fournisseur
         $this->articlesFournisseur = new ArrayCollection();
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
+        $this->purchaseRequestLines = new ArrayCollection();
     }
 
     public function getId() : ? int
@@ -244,24 +245,41 @@ class Fournisseur
         return $this;
     }
 
-    public function getPurchaseRequestLine(): ?PurchaseRequestLine
-    {
-        return $this->purchaseRequestLine;
+    /**
+     * @return Collection|PurchaseRequestLine[]
+     */
+    public function getPurchaseRequestLines(): Collection {
+        return $this->purchaseRequestLines;
     }
 
-    public function setPurchaseRequestLine(?PurchaseRequestLine $purchaseRequestLine): self
-    {
-        // unset the owning side of the relation if necessary
-        if ($purchaseRequestLine === null && $this->purchaseRequestLine !== null) {
-            $this->purchaseRequestLine->setSupplier(null);
-        }
-
-        // set the owning side of the relation if necessary
-        if ($purchaseRequestLine !== null && $purchaseRequestLine->getSupplier() !== $this) {
+    public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
+        if (!$this->purchaseRequestLines->contains($purchaseRequestLine)) {
+            $this->purchaseRequestLines[] = $purchaseRequestLine;
             $purchaseRequestLine->setSupplier($this);
         }
 
-        $this->purchaseRequestLine = $purchaseRequestLine;
+        return $this;
+    }
+
+    public function removePurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
+        if ($this->purchaseRequestLines->removeElement($purchaseRequestLine)) {
+            if ($purchaseRequestLine->getSupplier() === $this) {
+                $purchaseRequestLine->setSupplier(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setPurchaseRequestLines(?array $purchaseRequestLines): self {
+        foreach($this->getPurchaseRequestLines()->toArray() as $purchaseRequestLine) {
+            $this->removePurchaseRequestLine($purchaseRequestLine);
+        }
+
+        $this->purchaseRequestLines = new ArrayCollection();
+        foreach($purchaseRequestLines as $purchaseRequestLine) {
+            $this->addPurchaseRequestLine($purchaseRequestLine);
+        }
 
         return $this;
     }
