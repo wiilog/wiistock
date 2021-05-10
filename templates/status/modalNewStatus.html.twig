@@ -20,7 +20,8 @@
                             {% endif %}
                             {% for category in categories %}
                                 <option value="{{ category.id }}"
-                                        data-is-dispatch="{{  category.nom == constant('App\\Entity\\CategorieStatut::DISPATCH') }}">
+                                        data-is-dispatch="{{  category.nom == constant('App\\Entity\\CategorieStatut::DISPATCH') }}"
+                                        data-is-purchase-request="{{  category.nom == constant('App\\Entity\\CategorieStatut::PURCHASE_REQUEST') }}">
                                     {{ category.nom }}</option>
                             {% endfor %}
                         </select>
@@ -58,10 +59,12 @@
                             {% for state in statusStates %}
                                 <option value="{{ state.id }}"
                                         data-needs-nomad-sync="{{ state.id == constant('App\\Entity\\Statut::NOT_TREATED') or state.id == constant('App\\Entity\\Statut::PARTIAL') }}"
+                                        data-needs-automatic-reception-creation="{{ state.id == constant('App\\Entity\\Statut::TREATED') }}"
                                         class="{{
-                                            (state.id == constant('App\\Entity\\Statut::DRAFT') or state.id == constant('App\\Entity\\Statut::PARTIAL')) ? 'dispatch-fields' :
+                                            (state.id == constant('App\\Entity\\Statut::DRAFT')) ? 'dispatch-fields purchase-request-fields' :
+                                            (state.id == constant('App\\Entity\\Statut::PARTIAL')) ? 'dispatch-fields' :
                                             (state.id == constant('App\\Entity\\Statut::DISPUTE')) ? 'arrival-fields' :
-                                            (state.id == constant('App\\Entity\\Statut::IN_PROGRESS')) ? 'handling-fields'
+                                            (state.id == constant('App\\Entity\\Statut::IN_PROGRESS')) ? 'handling-fields purchase-request-fields'
                                         }}">
                                     {{ state.label }}
                                 </option>
@@ -74,21 +77,21 @@
                         <input type="text" class="data form-control" name="description">
                     </div>
 
-                    <div class="col-12 form-group dispute-fields handling-fields">
+                    <div class="col-12 form-group dispute-fields handling-fields purchase-request-fields">
                         <label>Statut par défaut pour cette entité ?</label>
                         <label class="switch">
                             <input class="checkbox" type="checkbox" name="defaultForCategory"/>
                             <span class="slider round"></span>
                         </label>
                     </div>
-                    <div class="col-12 form-group dispute-fields">
+                    <div class="col-12 form-group dispute-fields purchase-request-fields send-mails-buyers">
                         <label>Envoi de mails aux acheteurs ?</label>
                         <label class="switch">
                             <input class="checkbox" type="checkbox" name="sendMails">
                             <span class="slider round"></span>
                         </label>
                     </div>
-                    <div class="col-12 form-group dispute-fields dispatch-fields handling-fields">
+                    <div class="col-12 form-group dispute-fields dispatch-fields handling-fields purchase-request-fields">
                         <label>Envoi de mails au demandeur ?</label>
                         <label class="switch">
                             <input class="checkbox" type="checkbox" name="sendMailsDeclarant">
@@ -99,6 +102,13 @@
                         <label>Envoi de mails au destinataire ?</label>
                         <label class="switch">
                             <input class="checkbox" type="checkbox" name="sendMailsRecipient">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="col-12 form-group purchase-request-fields automatic-reception-creation">
+                        <label>Création automatique d'une réception ?</label>
+                        <label class="switch">
+                            <input class="checkbox" type="checkbox" name="automaticReceptionCreation">
                             <span class="slider round"></span>
                         </label>
                     </div>

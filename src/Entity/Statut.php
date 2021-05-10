@@ -152,6 +152,11 @@ class Statut
     private $needsMobileSync;
 
     /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $automaticReceptionCreation;
+
+    /**
      * @var bool
      * @ORM\Column(type="boolean", nullable=false, options={"default": false})
      */
@@ -727,6 +732,18 @@ class Statut
     public function setNeedsMobileSync(?bool $needsMobileSync): self
     {
         $this->needsMobileSync = $needsMobileSync;
+
+        return $this;
+    }
+
+    public function getAutomaticReceptionCreation(): ?bool
+    {
+        return $this->automaticReceptionCreation;
+    }
+
+    public function setAutomaticReceptionCreation(?bool $automaticReceptionCreation): self
+    {
+        $this->automaticReceptionCreation = $automaticReceptionCreation;
 
         return $this;
     }

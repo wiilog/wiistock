@@ -28,6 +28,7 @@ class CategorieStatut
     const DISPATCH = 'acheminement';
     const TRANSFER_REQUEST = 'demande de transfert';
     const TRANSFER_ORDER = 'ordre de transfert';
+    const PURCHASE_REQUEST = 'achat';
     const IMPORT = 'import';
 
     /**
