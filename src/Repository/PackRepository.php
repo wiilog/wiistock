@@ -112,23 +112,17 @@ class PackRepository extends EntityRepository
 
     public function getGroupsByDates(DateTime $dateMin, DateTime $dateMax) {
         return $this->createQueryBuilder("pack")
-            ->select("pack.code AS code")
-            ->addSelect("join_nature.label AS nature")
-            ->addSelect("COUNT(child.id) AS packs")
-            ->addSelect("pack.weight AS weight")
-            ->addSelect("pack.volume AS volume")
-            ->addSelect("movement.datetime AS lastMvtDate")
-            ->addSelect("movement AS fromTo")
-            ->addSelect("emplacement.label AS location")
+            ->select("pack AS group")
+            ->addSelect("COUNT(child.id) AS packCounter")
             ->leftJoin("pack.lastTracking", "movement")
-            ->leftJoin("movement.emplacement","emplacement")
-            ->leftJoin("pack.nature","join_nature")
             ->leftJoin("pack.children","child")
             ->where("movement.datetime BETWEEN :dateMin AND :dateMax")
+            ->andWhere('pack.groupIteration IS NOT NULL')
+            ->groupBy('pack')
             ->setParameter("dateMin", $dateMin)
             ->setParameter("dateMax", $dateMax)
             ->getQuery()
-            ->toIterable();
+            ->getResult();
     }
 
     /**
