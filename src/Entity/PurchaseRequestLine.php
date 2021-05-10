@@ -56,7 +56,7 @@ class PurchaseRequestLine
     private $supplier;
 
     /**
-     * @ORM\OneToMany(targetEntity=Reception::class, mappedBy="request")
+     * @ORM\ManyToOne(targetEntity=Reception::class, inversedBy="purchaseRequestLine")
      */
     private $receptions;
 
@@ -176,7 +176,7 @@ class PurchaseRequestLine
             $this->supplier = null;
             $oldSupplier->setPurchaseRequestLine(null);
         }
-        $this->example = $supplier;
+        $this->supplier = $supplier;
         if($this->supplier && $this->supplier->getPurchaseRequestLine() !== $this) {
             $this->supplier->setPurchaseRequestLine($this);
         }
@@ -184,44 +184,17 @@ class PurchaseRequestLine
         return $this;
     }
 
-    /**
-     * @return Collection|Reception[]
-     */
-    public function getReceptions(): Collection
-    {
+    public function getReceptions(): ?Reception {
         return $this->receptions;
     }
 
-    public function addReception(Reception $reception): self
-    {
-        if (!$this->receptions->contains($reception)) {
-            $this->receptions[] = $reception;
-            $reception->setRequest($this);
+    public function setReceptions(?Reception $receptions): self {
+        if($this->receptions && $this->receptions !== $receptions) {
+            $this->receptions->removePurchaseRequestLine($this);
         }
-
-        return $this;
-    }
-
-    public function removeReception(Reception $reception): self
-    {
-        if ($this->receptions->removeElement($reception)) {
-            // set the owning side to null (unless already changed)
-            if ($reception->getPurchaseRequestLine() === $this) {
-                $reception->setPurchaseRequestLine(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setReception(?array $receptions): self {
-        foreach($this->getReceptions()->toArray() as $reception) {
-            $this->removeReception($reception);
-        }
-
-        $this->receptions = new ArrayCollection();
-        foreach($receptions as $reception) {
-            $this->addReception($reception);
+        $this->receptions = $receptions;
+        if($receptions) {
+            $receptions->addPurchaseRequestLine($this);
         }
 
         return $this;
