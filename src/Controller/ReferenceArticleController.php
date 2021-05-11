@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\Cart;
 use App\Entity\CategoryType;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
@@ -132,8 +133,28 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
+     * @Route("/ajouter-panier/{reference}", name="add_ref_to_cart", options={"expose"=true}, methods="GET|POST")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
+     */
+    public function addToCart(ReferenceArticle $reference, EntityManagerInterface $entityManager): JsonResponse
+    {
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $cart = $currentUser->getCart();
+        $cart->addReference($reference);
+
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "count" => $cart->getReferences()->count()
+        ]);
+    }
+
+    /**
      * @Route("/api", name="ref_article_api", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request): Response {
         if ($request->isXmlHttpRequest()) {

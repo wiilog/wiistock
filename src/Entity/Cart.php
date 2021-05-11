@@ -10,43 +10,39 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=CartRepository::class)
  */
-class Cart
-{
+class Cart {
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
-     * @ORM\OneToOne(targetEntity=utilisateur::class, inversedBy="cart", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity=Utilisateur::class, inversedBy="cart", cascade={"persist", "remove"})
      * @ORM\JoinColumn(nullable=false)
      */
-    private $user;
+    private ?Utilisateur $user = null;
 
     /**
      * @ORM\ManyToMany(targetEntity=ReferenceArticle::class, inversedBy="carts")
      */
-    private $refArticle;
+    private Collection $references;
 
-    public function __construct()
-    {
-        $this->refArticle = new ArrayCollection();
+    public function __construct() {
+        $this->references = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getUser(): ?utilisateur
-    {
+    public function getUser(): ?Utilisateur {
         return $this->user;
     }
 
-    public function setUser(?utilisateur $user): self
-    {
+    public function setUser(?Utilisateur $user): self {
         $this->user = $user;
 
         return $this;
@@ -55,24 +51,22 @@ class Cart
     /**
      * @return Collection|ReferenceArticle[]
      */
-    public function getRefArticle(): Collection
-    {
-        return $this->refArticle;
+    public function getReferences(): Collection {
+        return $this->references;
     }
 
-    public function addRefArticle(ReferenceArticle $refArticle): self
-    {
-        if (!$this->refArticle->contains($refArticle)) {
-            $this->refArticle[] = $refArticle;
+    public function addReference(ReferenceArticle $refArticle): self {
+        if (!$this->references->contains($refArticle)) {
+            $this->references[] = $refArticle;
         }
 
         return $this;
     }
 
-    public function removeRefArticle(ReferenceArticle $refArticle): self
-    {
-        $this->refArticle->removeElement($refArticle);
+    public function removeReference(ReferenceArticle $refArticle): self {
+        $this->references->removeElement($refArticle);
 
         return $this;
     }
+
 }
