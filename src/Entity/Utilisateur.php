@@ -1690,8 +1690,13 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this->referencesBuyer;
     }
 
-    public function getCart(): ?Cart
+    public function getCart(): Cart
     {
+        if(!$this->cart) {
+            $this->cart = new Cart();
+            $this->cart->setUser($this);
+        }
+
         return $this->cart;
     }
 
