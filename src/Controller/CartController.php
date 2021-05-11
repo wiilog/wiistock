@@ -94,7 +94,7 @@ class CartController extends AbstractController
                         $refArticleDataService,
                         $entityManager
                     );
-                    return $this->redirectToRoute('demande_show', ['id' => $delivery->getId()]);
+                    return $this->json(['redirect' => $this->generateUrl('demande_show', ['id' => $delivery->getId()])]);
                 case 1:
                 case 2:
                 case 3:
