@@ -59,9 +59,11 @@ function onArticleSelectChange($select) {
     const $selectedOption = $select.find('option:selected');
     const $container = $select.parents('.row');
     const $quantityInput = $container.find('.article-quantity');
+    const $quantityToPickInput = $container.find('input[type="number"]');
     const quantity = $selectedOption.data('quantity');
 
     $quantityInput.val(quantity);
+    $quantityToPickInput.attr('max', quantity);
 }
 
 function retrieveAppropriateHtml($input) {

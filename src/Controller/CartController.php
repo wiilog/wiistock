@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Entity\Cart;
 use App\Entity\ReferenceArticle;
 use App\Service\CartService;
+use App\Service\DemandeLivraisonService;
+use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -75,11 +77,28 @@ class CartController extends AbstractController
     /**
      * @Route("/ajouter-demande", name="cart_add_to_request", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function addToRequest(Request $request)
+    public function addToRequest(Request $request,
+                                 CartService $cartService,
+                                 DemandeLivraisonService $demandeLivraisonService,
+                                 RefArticleDataService $refArticleDataService,
+                                 EntityManagerInterface $entityManager)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
-            return $this->json('');
+            $type = intval($data['requestType']);
+            switch ($type) {
+                case 0:
+                    $delivery = $cartService->manageDeliveryRequest(
+                        $data,
+                        $demandeLivraisonService,
+                        $this->getUser(),
+                        $refArticleDataService,
+                        $entityManager
+                    );
+                    return $this->redirectToRoute('demande_show', ['id' => $delivery->getId()]);
+                case 1:
+                case 2:
+                case 3:
+            }
         }
         throw new BadRequestHttpException();
     }

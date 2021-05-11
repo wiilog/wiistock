@@ -424,7 +424,7 @@ class RefArticleDataService {
                                    bool $fromNomade,
                                    EntityManagerInterface $entityManager,
                                    Demande $demande,
-                                   FreeFieldService $champLibreService) {
+                                   ?FreeFieldService $champLibreService, $editRef = true) {
         $resp = true;
         $articleRepository = $entityManager->getRepository(Article::class);
         $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
@@ -443,7 +443,7 @@ class RefArticleDataService {
                 $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
             }
 
-            if(!$fromNomade) {
+            if(!$fromNomade && $editRef) {
                 $this->editRefArticle($referenceArticle, $data, $user, $champLibreService);
             }
         } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {

@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Cart;
 use App\Entity\CategorieStatut;
@@ -10,8 +11,11 @@ use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Utilisateur;
 use App\Helper\Stream;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment;
 
@@ -89,6 +93,55 @@ class CartService {
             'deliveries' => $deliveries,
             'managedByArticle' => $managed && $managed->getValue() == Parametre::VALUE_PAR_ART,
         ]);
+    }
+
+    public function manageDeliveryRequest($data,
+                                           DemandeLivraisonService $demandeLivraisonService,
+                                           Utilisateur $utilisateur,
+                                           RefArticleDataService $refArticleDataService,
+                                           EntityManagerInterface $entityManager): Demande {
+        $deliveryRepository = $entityManager->getRepository(Demande::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
+        $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+
+        $draft = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_BROUILLON);
+        $delivery = $data['delivery'];
+        if ($delivery) {
+            $request = $deliveryRepository->find(intval($delivery));
+        } else {
+            $request = new Demande();
+            $request
+                ->setNumero($demandeLivraisonService->generateNumeroForNewDL($entityManager))
+                ->setUtilisateur($utilisateur)
+                ->setFilled(false)
+                ->setDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')))
+                ->setStatut($draft);
+            $entityManager->persist($request);
+            $entityManager->flush();
+        }
+
+        foreach ($data as $key => $datum) {
+            if (str_starts_with($key, 'reference')) {
+                $index = intval(substr($key, 9));
+                $reference = $referenceRepository->findOneByReference($datum);
+                $quantityToDeliver = $data['quantity' . $index] ?? null;
+                $data['quantity-to-pick'] = $quantityToDeliver;
+                $refArticleDataService->addRefToDemand($data, $reference, $utilisateur, false, $entityManager, $request, null, false);
+
+            } else if (str_starts_with($key, 'article')) {
+                $index = intval(substr($key, 7));
+                $article = $articleRepository->find($datum);
+                $quantityToDeliver = $data['quantity' . $index] ?? null;
+
+                $article
+                    ->setDemande($request)
+                    ->setQuantiteAPrelever(max($quantityToDeliver, 0)); // protection contre quantités négatives
+            }
+        }
+        $entityManager->flush();
+        return $request;
     }
 
 }
