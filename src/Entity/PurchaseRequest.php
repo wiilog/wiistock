@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Repository\PurchaseRequestRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Helper\FormatHelper;
 
 /**
  * @ORM\Entity(repositoryClass=PurchaseRequestRepository::class)
@@ -24,6 +25,11 @@ class PurchaseRequest
      * @ORM\Column(type="text", nullable=true)
      */
     private ?string $comment = null;
+
+    /**
+     * @ORM\Column(type="string", nullable=false)
+     */
+    private ?string $number = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
@@ -93,6 +99,18 @@ class PurchaseRequest
         if($requester) {
             $requester->addPurchaseRequestRequester($this);
         }
+
+        return $this;
+    }
+
+    public function getNumber(): ?string
+    {
+        return $this->number;
+    }
+
+    public function setNumber(?string $number): self
+    {
+        $this->number = $number;
 
         return $this;
     }
@@ -230,5 +248,18 @@ class PurchaseRequest
         }
 
         return $this;
+    }
+
+    public function serialize(): array {
+        return [
+            'number' => $this->getNumber(),
+            'status' => FormatHelper::status($this->getStatus()),
+            'requester' => FormatHelper::user($this->getRequester()),
+            'buyer' => FormatHelper::user($this->getBuyer()),
+            'considerationDate' => FormatHelper::datetime($this->getConsiderationDate()),
+            'creationDate' => FormatHelper::datetime($this->getCreationDate()),
+            'validationDate' => FormatHelper::datetime($this->getValidationDate()),
+            'comment' => FormatHelper::html($this->getComment()),
+        ];
     }
 }

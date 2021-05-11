@@ -63,6 +63,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DISPLAY_DEM_LIVR,
 				Action::DISPLAY_HAND,
                 Action::DISPLAY_ACHE,
+                Action::DISPLAY_PURCHASE_REQUESTS,
                 Action::GENERATE_OVERCONSUMPTION_BILL,
 				Action::CREATE,
 				Action::EDIT,
@@ -75,7 +76,6 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 Action::GENERATE_WAY_BILL,
                 Action::TREAT_HANDLING,
                 Action::CREATE_PURCHASE_REQUESTS,
-                Action::SHOW_PURCHASE_REQUESTS,
 			],
 			Menu::ORDRE => [
                 Action::DISPLAY_ORDRE_COLL,
