@@ -105,6 +105,8 @@ function switchPacks() {
         let SubmitDeletePack = $("#submitDeletePack");
         let urlDeletePack = Routing.generate('pack_delete', true);
         InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [packsTable], clearOnClose: true});
+    } else {
+        packsTable.ajax.reload();
     }
 
     $(`.packsTableContainer`).show();
@@ -129,6 +131,8 @@ function switchGroups() {
         const $submitUngroup = $('#submitUngroup');
         const urlUngroup = Routing.generate('group_ungroup', true);
         InitModal($modalUngroup, $submitUngroup, urlUngroup, {tables: [groupsTable]});
+    } else {
+        groupsTable.ajax.reload();
     }
 
     $(`.packsTableContainer`).hide();

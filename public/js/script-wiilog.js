@@ -503,10 +503,12 @@ function saveFilters(page, tableSelector, callback) {
                 callback();
             }
             if (tableSelector) {
-                const $table = $(tableSelector);
-                if ($table && $table.DataTable) {
-                    $table.DataTable().draw();
-                }
+                $(tableSelector).each(function() {
+                    const $table = $(this);
+                    if ($table && $table.DataTable && $table.is(`:visible`)) {
+                        $table.DataTable().draw();
+                    }
+                })
             }
         } else {
             showBSAlert('Veuillez saisir des filtres corrects (pas de virgule ni de deux-points).', 'danger');
