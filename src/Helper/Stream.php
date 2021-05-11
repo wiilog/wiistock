@@ -178,12 +178,7 @@ class Stream implements Countable, IteratorAggregate, ArrayAccess {
         $this->checkValidity();
 
         $elements = [];
-        $iterator = new RecursiveIteratorIterator(new RecursiveArrayIterator($this->elements));
-
-        foreach ($iterator as $element) {
-            $elements[] = $element;
-        }
-
+        array_walk_recursive($this->elements, function($a) use (&$elements) { $elements[] = $a; });
         $this->elements = $elements;
 
         return $this;

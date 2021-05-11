@@ -108,7 +108,6 @@ function processSubmitAction($modal,
             : JSON.stringify(data);
 
         $submit.pushLoader('white');
-
         // launch ajax request
         return $
             .ajax({
@@ -224,7 +223,6 @@ function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined
     const dataValidator = validator
         ? (validator($modal) || {success: true, errorMessages: [], $isInvalidElements: []})
         : {success: true, errorMessages: [], $isInvalidElements: []};
-
     return {
         success: (
             dataArrayForm.success
