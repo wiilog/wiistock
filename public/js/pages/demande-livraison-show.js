@@ -75,6 +75,7 @@ function ajaxGetAndFillArticle($select) {
             $modalFooter.removeClass('d-none');
             toggleRequiredChampsLibres($('#typeEdit'), 'edit');
             Select2Old.location($('.ajax-autocomplete-location-edit'));
+            Select2Old.user($('.ajax-autocomplete-user-edit[name=managers]'));
 
             setMaxQuantity($select);
             registerNumberInputProtection($selection.find('input[type="number"]'));

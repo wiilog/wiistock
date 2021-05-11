@@ -1,5 +1,6 @@
 {% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
 {% set disabled = editable ? '' : 'disabled' %}
+{% set showAttachments = showAttachments is defined and showAttachments %}
 
 <div class="row">
     <div class="form-group col-6">
@@ -97,7 +98,7 @@
     </div>
 </div>
 <div class="row">
-    <div class="form-group col-12">
+    <div class="form-group col-8">
         <div class="">
             <label>Nomenclature</label>
             <input id='commentaire' class="form-control data" name="commentaire" type="hidden" value='{{ articleRef.commentaire }}'>
@@ -109,6 +110,14 @@
 
         </div>
     </div>
+    {% if showAttachments %}
+        <div class="form-group col-4">
+            {% include 'attachment/attachment.html.twig' with {
+                'isNew' : false,
+                'attachments': articleRef.attachments
+            } %}
+        </div>
+    {% endif %}
 </div>
 
 {% set dnoneRef = (articleRef.typeQuantite == 'reference') ? '' : 'd-none' %}

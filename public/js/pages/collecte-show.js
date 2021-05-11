@@ -61,6 +61,7 @@ function ajaxGetCollecteArticle(select) {
             $(modalNewArticle).find('.modal-footer').removeClass('d-none');
             toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
             Select2Old.location($('.ajax-autocomplete-location-edit'));
+            Select2Old.user($('.ajax-autocomplete-user-edit[name=managers]'));
             initEditor(modalNewArticle + ' .editor-container-edit');
             $('.list-multiple').select2();
         }
