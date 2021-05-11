@@ -40,11 +40,6 @@ let submitDeleteCollecte = $("#submitDeleteCollecte");
 let urlDeleteCollecte = Routing.generate('collecte_delete', true)
 InitModal(modalDeleteCollecte, submitDeleteCollecte, urlDeleteCollecte);
 
-let modalModifyCollecte = $('#modalEditCollecte');
-let submitModifyCollecte = $('#submitEditCollecte');
-let urlModifyCollecte = Routing.generate('collecte_edit', true);
-InitModal(modalModifyCollecte, submitModifyCollecte, urlModifyCollecte);
-
 function ajaxGetCollecteArticle(select) {
     let $selection = $('#selection');
     let $editNewArticle = $('#editNewArticle');

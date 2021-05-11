@@ -19,6 +19,7 @@ import '../scss/app.scss';
 
 import './tooltips';
 import './select2';
+import './modals-commons'
 
 ///////////////// Main
 

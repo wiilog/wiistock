@@ -1,20 +1,25 @@
-<form method="" class="modal fade" id="modalEditDemande" role="dialog" aria-labelledby="dataModalCenterTitle"
+<div class="modal fade" id="modalEditDemande" role="dialog" aria-labelledby="dataModalCenterTitle"
+      {{ not demande.filled ? 'data-backdrop="static"' }}
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLongTitle">Modifier la demande</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                {% if demande.filled %}
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                {% endif %}
             </div>
             <div class="modal-body modal-input container-fluid">
             </div>
             <div class="modal-footer">
                 <input type="hidden" class="data" name="demandeId" value="{{ demande.id }}">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                {% if demande.filled %}
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                {% endif %}
                 <button id="submitEditDemande" type="button" class="btn btn-primary data">Enregistrer</button>
             </div>
         </div>
     </div>
-</form>
+</div>

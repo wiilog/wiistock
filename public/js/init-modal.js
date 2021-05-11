@@ -99,7 +99,7 @@ function SubmitAction($modal,
 function processSubmitAction($modal,
                              $submit,
                              path,
-                             {tables, keepModal, keepForm, validator} = {}) {
+                             {tables, keepModal, keepForm, validator, headerCallback} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
     const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
     if (success) {
@@ -129,7 +129,7 @@ function processSubmitAction($modal,
                     });
                 }
                 else {
-                    const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm);
+                    const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback);
                     if (!res) {
                         return;
                     }
@@ -169,17 +169,11 @@ function clearFormErrors($modal) {
         .empty();
 }
 
-function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
+function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback) {
     resetDroppedFiles();
     if (data.redirect && !keepModal) {
         window.location.href = data.redirect;
         return;
-    }
-
-    // pour mise à jour des données d'en-tête après modification
-    if (data.entete) {
-        $('.zone-entete').html(data.entete);
-        $('.zone-entete [data-toggle="popover"]').popover();
     }
 
     if (data.nextModal) {
@@ -193,7 +187,13 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
     }
 
     if (!data.nextModal && !keepModal) {
+        $modal.off('hidden.bs.modal');
+        $modal.on('hidden.bs.modal', function () {
+            refreshHeader(data.entete, headerCallback);
+        })
         $modal.modal('hide');
+    } else {
+        refreshHeader(data.entete, headerCallback);
     }
 
     if (!keepForm) {
@@ -203,7 +203,19 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
     if (data.msg) {
         showBSAlert(data.msg, 'success');
     }
+
+    // pour mise à jour des données d'en-tête après modification
     return true;
+}
+
+function refreshHeader(entete, headerCallback) {
+    if (entete) {
+        $('.zone-entete').html(entete);
+        $('.zone-entete [data-toggle="popover"]').popover();
+        if (headerCallback) {
+            headerCallback();
+        }
+    }
 }
 
 /**

@@ -1,17 +1,23 @@
-<div class="modal fade" tabindex="-1" role="dialog" id="modalEditTransferRequest" data-modal-type="edit">
+<div class="modal fade" tabindex="-1" role="dialog" id="modalEditTransferRequest"
+    {{ not transfer.filled ? 'data-backdrop="static"' }}
+     data-modal-type="edit">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Modifier la demande de transfert</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                {% if transfer.filled %}
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                {% endif %}
             </div>
             <div class="modal-body">
             </div>
             <div class="modal-footer">
                 <input type="hidden" class="data" name="transfer" value="{{ transfer.id }}">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                {% if transfer.filled %}
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                {% endif %}
                 <button type="button" class="btn btn-primary" id="submitEditTransferRequest">Modifier la demande</button>
             </div>
         </div>
