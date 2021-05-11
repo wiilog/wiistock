@@ -1,11 +1,11 @@
 function addReferenceToCart($element) {
     const reference = $element.data(`reference`);
-    const path = Routing.generate(`add_ref_to_cart`, {reference});
+    const path = Routing.generate(`cart_add_reference`, {reference});
 
     $.post(path, function(response) {
         if (response.success) {
             $(`.cart-total`).text(response.count);
-            showBSAlert(`Référence ajoutée au panier.`, `success`);
+            showBSAlert(response.msg, `success`);
         }
     });
 }
