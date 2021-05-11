@@ -66,14 +66,23 @@
         <select name="managers" class="form-control data ajax-autocomplete-user managers w-100" multiple>
         </select>
     </div>
+
+    <div class="form-group col-4">
+        <label>Acheteur</label>
+        <select name="buyer" class="form-control data ajax-autocomplete-user buyer w-100">
+        </select>
+    </div>
 </div>
 <div class="row mb-4">
-    <div class="form-group col-12">
+    <div class="form-group col-8">
         <div>
             <label>Nomenclature</label>
             <input id='commentaire' class="form-control data" name="commentaire" type="hidden" value=''>
             <div class="editor-container-new" value=""></div>
         </div>
+    </div>
+    <div class="form-group col-4">
+        {% include 'attachment/attachment.html.twig' with {'isNew' : true} %}
     </div>
 </div>
 <div class="row mt-10">

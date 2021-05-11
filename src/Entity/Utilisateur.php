@@ -313,6 +313,17 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $receivedHandlings;
 
+    /**
+     * @ORM\OneToMany(targetEntity=ReferenceArticle::class, mappedBy="buyer")
+     */
+    private $referencesBuyer;
+
+    /**
+     * @ORM\OneToOne(targetEntity=Cart::class, mappedBy="user", cascade={"persist", "remove"})
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $cart;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -357,6 +368,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
         $this->receivedHandlings = new ArrayCollection();
+        $this->referencesBuyer = new ArrayCollection();
     }
 
     public function getId()
@@ -1652,6 +1664,36 @@ class Utilisateur implements UserInterface, EquatableInterface
         if ($this->receivedHandlings->removeElement($handling)) {
             $handling->removeReceiver($this);
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReferenceArticle[]
+     */
+    public function getReferencesBuyer(): Collection
+    {
+        return $this->referencesBuyer;
+    }
+
+    public function getCart(): ?Cart
+    {
+        return $this->cart;
+    }
+
+    public function setCart(?Cart $cart): self
+    {
+        // unset the owning side of the relation if necessary
+        if ($cart === null && $this->cart !== null) {
+            $this->cart->setUser(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($cart !== null && $cart->getUser() !== $this) {
+            $cart->setUser($this);
+        }
+
+        $this->cart = $cart;
 
         return $this;
     }

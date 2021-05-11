@@ -69,6 +69,13 @@
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_TRANSFER_REQ'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
                     ) %}
+                    <div class="col-auto">
+                        <a class="cart" href="{{ path('cart') }}">
+                            {% if app.user.cart.refArticle %}
+                                <div class="total small">{{ app.user.cart.refArticle | length }}</div>
+                            {% endif %}
+                        </a>
+                    </div>
                     {% if hasDeliveryRights
                         or hasCollectRights
                         or hasHandlingRights
