@@ -72,11 +72,11 @@
         </div>
     </div>
     <button class="btn btn-secondary" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
+    <input type="hidden" id="filled" value="{{ demande.filled }}"/>
 
     {% include 'demande/modalDeleteArticle.html.twig' %}
     {% include 'demande/modalDeleteDemande.html.twig' %}
     {% include 'demande/modalNewArticle.html.twig' %}
-    {% include 'demande/modalEditDemande.html.twig' %}
     {% include 'demande/modalEditArticle.html.twig' %}
     {% include 'demande/modalNegativStock.html.twig' %}
     {% include 'demande/modalCannotValidate.html.twig' %}

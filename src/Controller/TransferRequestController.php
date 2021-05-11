@@ -192,6 +192,7 @@ class TransferRequestController extends AbstractController {
 
             $transfer = $entityManager->getRepository(TransferRequest::class)->find($data['transfer']);
             $transfer
+                ->setFilled(true)
                 ->setDestination($destination)
                 ->setComment($data['comment']);
 

@@ -147,11 +147,6 @@ function redirectToArticlesList() {
 }
 
 function initPageModals(tableArticle) {
-    let urlEditDemande = Routing.generate('demande_edit', true);
-    let $modalEditDemande = $("#modalEditDemande");
-    let $submitEditDemande = $("#submitEditDemande");
-    InitModal($modalEditDemande, $submitEditDemande, urlEditDemande);
-
     let $modalNewArticle = $("#modalNewArticle");
     let $submitNewArticle = $("#submitNewArticle");
     let pathNewArticle = Routing.generate('demande_add_article', true);

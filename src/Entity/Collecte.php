@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Interfaces\Serializable;
 use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\RequestTrait;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -22,6 +23,7 @@ class Collecte extends FreeFieldEntity implements Serializable {
     const STATUT_BROUILLON = 'brouillon';
 
     use CommentTrait;
+    use RequestTrait;
 
     /**
      * @ORM\Id()

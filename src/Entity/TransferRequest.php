@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Interfaces\Serializable;
 use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\RequestTrait;
 use App\Helper\FormatHelper;
 use App\Repository\TransferRequestRepository;
 use DateTimeInterface;
@@ -23,6 +24,7 @@ class TransferRequest implements Serializable {
     const TREATED = "Traité";
 
     use CommentTrait;
+    use RequestTrait;
 
     /**
      * @ORM\Id
