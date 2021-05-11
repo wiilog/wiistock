@@ -322,17 +322,17 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @ORM\OneToOne(targetEntity=Cart::class, mappedBy="user", cascade={"persist", "remove"})
      * @ORM\JoinColumn(nullable=true)
      */
-    private $cart;
+    private ?Cart $cart = null;
 
     /**
      * @ORM\OneToMany(targetEntity=PurchaseRequest::class, mappedBy="requester")
      */
-    private $purchaseRequestRequesters;
+    private ?Collection $purchaseRequestRequesters;
 
     /**
      * @ORM\OneToMany(targetEntity=PurchaseRequest::class, mappedBy="buyer")
      */
-    private $purchaseRequestBuyers;
+    private ?Collection $purchaseRequestBuyers;
 
     public function __construct()
     {
@@ -379,7 +379,8 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
         $this->receivedHandlings = new ArrayCollection();
         $this->referencesBuyer = new ArrayCollection();
-        $this->purchaseRequests = new ArrayCollection();
+        $this->purchaseRequestBuyers = new ArrayCollection();
+        $this->purchaseRequestRequesters = new ArrayCollection();
     }
 
     public function getId()
@@ -1719,7 +1720,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this->purchaseRequestRequesters;
     }
 
-    public function addPurchaseRequestRequesters(PurchaseRequest $purchaseRequestRequester): self
+    public function addPurchaseRequestRequester(PurchaseRequest $purchaseRequestRequester): self
     {
         if (!$this->purchaseRequestRequesters->contains($purchaseRequestRequester)) {
             $this->purchaseRequestRequesters[] = $purchaseRequestRequester;
@@ -1729,29 +1730,25 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function removePurchaseRequestRequesters(PurchaseRequest $purchaseRequestRequester): self
+    public function removePurchaseRequestRequester(PurchaseRequest $purchaseRequestRequester): self
     {
-
         if ($this->purchaseRequestRequesters->removeElement($purchaseRequestRequester)) {
             // set the owning side to null (unless already changed)
             if ($purchaseRequestRequester->getRequester() === $this) {
                 $purchaseRequestRequester->setRequester(null);
             }
-            if ($purchaseRequestRequester->getBuyer() === $this) {
-                $purchaseRequestRequester->setBuyer(null);
-            }
         }
         return $this;
     }
 
-    public function setPurchaseRequestRequesters(?array $purchaseRequestRequester): self {
-        foreach($this->getPurchaseRequestRequesters()->toArray() as $purchaseRequestRequesters) {
-            $this->removePurchaseRequestRequesters($purchaseRequestRequesters);
+    public function setPurchaseRequestRequesters(?array $purchaseRequestRequesters): self {
+        foreach($this->getPurchaseRequestRequesters()->toArray() as $purchaseRequestRequester) {
+            $this->removePurchaseRequestRequester($purchaseRequestRequester);
         }
 
         $this->purchaseRequestRequesters = new ArrayCollection();
-        foreach($purchaseRequestRequester as $purchaseRequestRequesters) {
-            $this->addPurchaseRequestRequesters($purchaseRequestRequesters);
+        foreach($purchaseRequestRequesters as $purchaseRequestRequester) {
+            $this->addPurchaseRequestRequester($purchaseRequestRequester);
         }
 
         return $this;
@@ -1765,7 +1762,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this->purchaseRequestBuyers;
     }
 
-    public function addPurchaseRequestBuyers(PurchaseRequest $purchaseRequestBuyer): self
+    public function addPurchaseRequestBuyer(PurchaseRequest $purchaseRequestBuyer): self
     {
         if (!$this->purchaseRequestBuyers->contains($purchaseRequestBuyer)) {
             $this->purchaseRequestBuyers[] = $purchaseRequestBuyer;
@@ -1775,14 +1772,8 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function removePurchaseRequestBuyers(PurchaseRequest $purchaseRequestBuyer): self
-    {
-
+    public function removePurchaseRequestBuyer(PurchaseRequest $purchaseRequestBuyer): self {
         if ($this->purchaseRequestBuyers->removeElement($purchaseRequestBuyer)) {
-            // set the owning side to null (unless already changed)
-            if ($purchaseRequestBuyer->getRequester() === $this) {
-                $purchaseRequestBuyer->setRequester(null);
-            }
             if ($purchaseRequestBuyer->getBuyer() === $this) {
                 $purchaseRequestBuyer->setBuyer(null);
             }
@@ -1790,14 +1781,14 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function setPurchaseRequestBuyers(?array $purchaseRequestBuyer): self {
-        foreach($this->getPurchaseRequestBuyers()->toArray() as $purchaseRequestBuyers) {
-            $this->removePurchaseRequestBuyers($purchaseRequestBuyers);
+    public function setPurchaseRequestBuyers(?array $purchaseRequestBuyers): self {
+        foreach($this->getPurchaseRequestBuyers()->toArray() as $purchaseRequestBuyer) {
+            $this->removePurchaseRequestBuyer($purchaseRequestBuyer);
         }
 
         $this->purchaseRequestBuyers = new ArrayCollection();
-        foreach($purchaseRequestBuyer as $purchaseRequestBuyers) {
-            $this->addPurchaseRequestBuyers($purchaseRequestBuyers);
+        foreach($purchaseRequestBuyers as $purchaseRequestBuyer) {
+            $this->addPurchaseRequestBuyer($purchaseRequestBuyer);
         }
 
         return $this;

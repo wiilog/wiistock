@@ -160,7 +160,7 @@ class Statut
     /**
      * @ORM\OneToMany(targetEntity=PurchaseRequest::class, mappedBy="status")
      */
-    private $purchaseRequests;
+    private ?Collection $purchaseRequests;
 
     public function __construct()
     {
@@ -781,7 +781,7 @@ class Statut
     {
         if (!$this->purchaseRequests->contains($purchaseRequest)) {
             $this->purchaseRequests[] = $purchaseRequest;
-            $purchaseRequest->setStatut($this);
+            $purchaseRequest->setStatus($this);
         }
 
         return $this;
@@ -791,8 +791,8 @@ class Statut
     {
         if ($this->purchaseRequests->removeElement($purchaseRequest)) {
             // set the owning side to null (unless already changed)
-            if ($purchaseRequest->getStatut() === $this) {
-                $purchaseRequest->setStatut(null);
+            if ($purchaseRequest->getStatus() === $this) {
+                $purchaseRequest->setStatus(null);
             }
         }
 
