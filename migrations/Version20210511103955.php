@@ -18,25 +18,19 @@ final class Version20210511103955 extends AbstractMigration {
             ->map(fn(array $location) => $location["id"])
             ->toArray();
 
-        $this->addSql("create table location_allowed_delivery_type(emplacement_id int not null, type_id int not null, primary key (emplacement_id, type_id))");
-        $this->addSql("create table location_allowed_collect_type(emplacement_id int not null, type_id int not null, primary key (emplacement_id, type_id))");
+        $this->addSql("create table if not exists location_allowed_delivery_type(emplacement_id int not null, type_id int not null, primary key (emplacement_id, type_id))");
+        $this->addSql("create table if not exists location_allowed_collect_type(emplacement_id int not null, type_id int not null, primary key (emplacement_id, type_id))");
 
         foreach ($types as $type) {
             if ($type["label"] === CategoryType::DEMANDE_LIVRAISON) {
                 foreach($locations as $location) {
                     $this->addSql("INSERT INTO location_allowed_delivery_type(emplacement_id, type_id) VALUES($location, {$type['id']})");
                 }
-            } else if ($type["label"] === CategoryType::DEMANDE_LIVRAISON) {
+            } else if ($type["label"] === CategoryType::DEMANDE_COLLECTE) {
                 foreach($locations as $location) {
                     $this->addSql("INSERT INTO location_allowed_collect_type(emplacement_id, type_id) VALUES($location, {$type['id']})");
                 }
             }
         }
     }
-
-    protected function addSql(string $sql, array $params = [], array $types = []): void {
-        $out = new ConsoleOutput();
-        $out->writeln($sql);
-    }
-
 }
