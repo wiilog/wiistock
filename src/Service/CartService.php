@@ -6,6 +6,8 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Cart;
 use App\Entity\CategorieStatut;
+use App\Entity\Collecte;
+use App\Entity\CollecteReference;
 use App\Entity\Demande;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
@@ -13,6 +15,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\Stream;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -93,6 +96,72 @@ class CartService {
             'deliveries' => $deliveries,
             'managedByArticle' => $managed && $managed->getValue() == Parametre::VALUE_PAR_ART,
         ]);
+    }
+
+    public function renderCollectTypeModal(Cart $cart, EntityManagerInterface $entityManager) {
+        $collectsRepository = $entityManager->getRepository(Collecte::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
+        $draft = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_BROUILLON);
+        $refs = Stream::from($cart->getRefArticle())
+            ->map(function(ReferenceArticle $referenceArticle) {
+                return [
+                    'reference' => $referenceArticle->getReference(),
+                ];
+            });
+        $collects = $collectsRepository->findBy([
+            'demandeur' => $cart->getUser(),
+            'statut' => $draft
+        ]);
+
+        return $this->twig->render('cart/collectTypeContent.html.twig', [
+            'refs' => $refs,
+            'collects' => $collects,
+        ]);
+    }
+
+    public function manageCollectRequest($data,
+                                         DemandeCollecteService $demandeCollecteService,
+                                         Utilisateur $utilisateur,
+                                         EntityManagerInterface $entityManager) {
+        $collectRepository = $entityManager->getRepository(Collecte::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
+        $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+        $draft = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_BROUILLON);
+        $collect = $data['collect'];
+        if ($collect) {
+            $request = $collectRepository->find(intval($collect));
+        } else {
+            $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $request = new Collecte();
+            $request
+                ->setDemandeur($utilisateur)
+                ->setFilled(false)
+                ->setDate($date)
+                ->setStockOrDestruct(true)
+                ->setNumero('C-' . $date->format('YmdHis'))
+                ->setStatut($draft);
+            $entityManager->persist($request);
+            $entityManager->flush();
+        }
+
+        foreach ($data as $key => $datum) {
+            if (str_starts_with($key, 'reference')) {
+                $index = intval(substr($key, 9));
+                $reference = $referenceRepository->findOneByReference($datum);
+                $quantityToDeliver = $data['quantity' . $index] ?? null;
+                $collecteReference = new CollecteReference();
+                $collecteReference
+                    ->setCollecte($request)
+                    ->setReferenceArticle($reference)
+                    ->setQuantite(max($quantityToDeliver, 0)); // protection contre quantités négatives
+                $entityManager->persist($collecteReference);
+            }
+        }
+        $entityManager->flush();
+        return $request;
     }
 
     public function manageDeliveryRequest($data,

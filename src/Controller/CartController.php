@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Cart;
 use App\Entity\ReferenceArticle;
 use App\Service\CartService;
+use App\Service\DemandeCollecteService;
 use App\Service\DemandeLivraisonService;
 use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -69,6 +70,7 @@ class CartController extends AbstractController
             case 0:
                 return $this->json($cartService->renderDeliveryTypeModal($cart, $entityManager));
             case 1:
+                return $this->json($cartService->renderCollectTypeModal($cart, $entityManager));
             case 2:
             case 3:
         }
@@ -80,6 +82,7 @@ class CartController extends AbstractController
     public function addToRequest(Request $request,
                                  CartService $cartService,
                                  DemandeLivraisonService $demandeLivraisonService,
+                                 DemandeCollecteService $demandeCollecteService,
                                  RefArticleDataService $refArticleDataService,
                                  EntityManagerInterface $entityManager)
     {
@@ -96,6 +99,13 @@ class CartController extends AbstractController
                     );
                     return $this->json(['redirect' => $this->generateUrl('demande_show', ['id' => $delivery->getId()])]);
                 case 1:
+                    $collect = $cartService->manageCollectRequest(
+                        $data,
+                        $demandeCollecteService,
+                        $this->getUser(),
+                        $entityManager
+                    );
+                    return $this->json(['redirect' => $this->generateUrl('collecte_show', ['id' => $collect->getId()])]);
                 case 2:
                 case 3:
             }
