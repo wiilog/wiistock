@@ -139,6 +139,11 @@ class Reception extends FreeFieldEntity
      */
     private $manualUrgent;
 
+    /**
+     * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="reception")
+     */
+    private ?Collection $purchaseRequestLines;
+
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
@@ -146,6 +151,7 @@ class Reception extends FreeFieldEntity
         $this->mouvements = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
         $this->attachments = new ArrayCollection();
+        $this->purchaseRequestLines = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -497,6 +503,43 @@ class Reception extends FreeFieldEntity
             if ($trackingMovement->getReception() === $this) {
                 $trackingMovement->setReception(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getPurchaseRequestLines(): Collection
+    {
+        return $this->request;
+    }
+
+    public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLines): self {
+        if (!$this->purchaseRequestLines->contains($purchaseRequestLines)) {
+            $this->purchaseRequestLines[] = $purchaseRequestLines;
+            $purchaseRequestLines->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removePurchaseRequestLine(PurchaseRequestLine $purchaseRequestLines): self {
+        if ($this->purchaseRequestLines->removeElement($purchaseRequestLines)) {
+            if ($purchaseRequestLines->getReception() === $this) {
+                $purchaseRequestLines->setReception(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setPurchaseRequestLines(?array $purchaseRequestLines): self {
+        foreach($this->getPurchaseRequestLines()->toArray() as $purchaseRequestLine) {
+            $this->removePurchaseRequestLine($purchaseRequestLine);
+        }
+
+        $this->purchaseRequestLines = new ArrayCollection();
+        foreach($purchaseRequestLines as $purchaseRequestLine) {
+            $this->addPurchaseRequestLine($purchaseRequestLine);
         }
 
         return $this;

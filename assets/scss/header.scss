@@ -199,6 +199,37 @@
     height: 7vh;
 }
 
+.cart {
+    @extend .btn;
+    @include icon-button;
+
+    background-image: url("../../public/svg/cart.svg");
+    background-repeat: no-repeat;
+    background-size: 30px 30px;
+    background-position: center;
+
+    width: 50px;
+    height: 45px;
+    padding: 0;
+
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+
+    .total {
+        border-radius: 6px;
+        background: rgb(46, 194, 171);
+        color: white;
+        text-align: center;
+        min-width: 20px;
+        height: 20px;
+        line-height: 20px;
+        padding: 0 5px;
+        font-weight: bold;
+        font-size: 0.6rem;
+    }
+}
+
 .quick-plus {
     @extend .btn;
     @include icon-button;

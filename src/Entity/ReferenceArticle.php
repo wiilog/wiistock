@@ -2,7 +2,9 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -24,6 +26,7 @@ class ReferenceArticle extends FreeFieldEntity
     const STOCK_MANAGEMENT_FEFO = 'FEFO';
     const STOCK_MANAGEMENT_FIFO = 'FIFO';
 
+    use AttachmentTrait;
     use CommentTrait;
 
     /**
@@ -219,6 +222,11 @@ class ReferenceArticle extends FreeFieldEntity
      */
     private $carts;
 
+    /**
+     * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="reference")
+     */
+    private ?Collection $purchaseRequestLines;
+
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();
@@ -232,6 +240,7 @@ class ReferenceArticle extends FreeFieldEntity
         $this->ordreCollecteReferences = new ArrayCollection();
         $this->ligneArticlePreparations = new ArrayCollection();
         $this->managers = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
 
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
@@ -239,6 +248,7 @@ class ReferenceArticle extends FreeFieldEntity
         $this->transferRequests = new ArrayCollection();
         $this->alerts = new ArrayCollection();
         $this->carts = new ArrayCollection();
+        $this->purchaseRequestLines = new ArrayCollection();
     }
 
     public function getId()
@@ -662,12 +672,12 @@ class ReferenceArticle extends FreeFieldEntity
         return $this;
     }
 
-    public function getDateLastInventory(): ?\DateTimeInterface
+    public function getDateLastInventory(): ?DateTimeInterface
     {
         return $this->dateLastInventory;
     }
 
-    public function setDateLastInventory(?\DateTimeInterface $dateLastInventory): self
+    public function setDateLastInventory(?DateTimeInterface $dateLastInventory): self
     {
         $this->dateLastInventory = $dateLastInventory;
 
@@ -1020,6 +1030,46 @@ class ReferenceArticle extends FreeFieldEntity
     {
         if ($this->carts->removeElement($cart)) {
             $cart->removeRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReferenceArticle[]
+     */
+    public function getPurchaseRequestLines(): ?PurchaseRequestLine
+    {
+        return $this->purchaseRequestLines;
+    }
+
+    public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
+        if (!$this->purchaseRequestLines->contains($purchaseRequestLine)) {
+            $this->purchaseRequestLines[] = $purchaseRequestLine;
+            $purchaseRequestLine->setReference($this);
+        }
+
+        return $this;
+    }
+
+    public function removePurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
+        if ($this->purchaseRequestLines->removeElement($purchaseRequestLine)) {
+            if ($purchaseRequestLine->getReference() === $this) {
+                $purchaseRequestLine->setReference(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setPurchaseRequestLines(?array $purchaseRequestLines): self {
+        foreach($this->getPurchaseRequestLines()->toArray() as $purchaseRequestLine) {
+            $this->removePurchaseRequestLine($purchaseRequestLine);
+        }
+
+        $this->purchaseRequestLines = new ArrayCollection();
+        foreach($purchaseRequestLines as $purchaseRequestLine) {
+            $this->addPurchaseRequestLine($purchaseRequestLine);
         }
 
         return $this;

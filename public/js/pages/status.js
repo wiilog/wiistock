@@ -77,15 +77,17 @@ function hideOptionOnChange($modal, forceClear = true) {
     const $handlingFields = $modal.find('.handling-fields');
     const $disputeFields = $modal.find('.dispute-fields');
     const $arrivalFields = $modal.find('.arrival-fields');
+    const $purchaseRequestFields = $modal.find('.purchase-request-fields');
 
     $dispatchFields.addClass('d-none');
     $handlingFields.addClass('d-none');
     $disputeFields.addClass('d-none');
     $arrivalFields.addClass('d-none');
+    $purchaseRequestFields.addClass('d-none');
     $modal.find('.field-needed').removeClass('needed');
 
     if (forceClear) {
-        for(const $field of [$dispatchFields, $dispatchFields, $disputeFields, $arrivalFields]) {
+        for(const $field of [$dispatchFields, $dispatchFields, $disputeFields, $arrivalFields, $purchaseRequestFields]) {
             const $select = $field.is('option')
                 ? $field.closest('select')
                 : $field.find('select');
@@ -101,10 +103,12 @@ function hideOptionOnChange($modal, forceClear = true) {
         const categoryStatusDispatchId = Number($('#categoryStatusDispatchId').val());
         const categoryStatusHandlingId = Number($('#categoryStatusHandlingId').val());
         const categoryStatusArrivalId = Number($('#categoryStatusArrivalId').val());
+        const categoryStatusPurchaseRequest = Number($('#categoryStatusPurchaseRequestId').val());
         const $fields = (
             (category === categoryStatusDispatchId) ? $dispatchFields :
             (category === categoryStatusHandlingId) ? $handlingFields :
             (category === categoryStatusArrivalId) ? $arrivalFields :
+            (category === categoryStatusPurchaseRequest) ? $purchaseRequestFields :
             $disputeFields
         );
         $fields.removeClass('d-none');
@@ -115,10 +119,16 @@ function hideOptionOnChange($modal, forceClear = true) {
 function statusStateChanged($select) {
     const $modal = $select.parents('.modal');
     const selectedEntityIsDispatch = $modal.find('select[name="category"]').find('option:selected').data('is-dispatch');
+    const selectedEntityIsPurchaseRequest = $modal.find('select[name="category"]').find('option:selected').data('is-purchase-request');
     const selectedStatusNeedsNomadSync = $select.find('option:selected').data('needs-nomad-sync');
+    const selectedStatusNeedsAutomaticReceptionCreation = $select.find('option:selected').data('needs-automatic-reception-creation');
     if (selectedEntityIsDispatch && !selectedStatusNeedsNomadSync) {
         $modal.find('.nomad-sync').addClass('d-none');
-    } else {
+    } else if (selectedEntityIsDispatch && selectedStatusNeedsNomadSync) {
         $modal.find('.nomad-sync').removeClass('d-none');
+    } else if (selectedEntityIsPurchaseRequest && !selectedStatusNeedsAutomaticReceptionCreation) {
+        $modal.find('.automatic-reception-creation').addClass('d-none');
+    } else if (selectedEntityIsPurchaseRequest && selectedStatusNeedsAutomaticReceptionCreation) {
+        $modal.find('.automatic-reception-creation').removeClass('d-none');
     }
 }
