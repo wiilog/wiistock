@@ -134,37 +134,27 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/ajouter-panier/{reference}", name="add_ref_to_cart", options={"expose"=true}, methods="GET|POST")
-     * @param ReferenceArticle $reference
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
      */
     public function addToCart(ReferenceArticle $reference, EntityManagerInterface $entityManager): JsonResponse
     {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
-        $cart = $entityManager->getRepository(Cart::class)->findOneBy([
-            'user' => $currentUser
-        ]);
-        if (!$cart) {
-            $cart = new Cart();
-            $cart->setUser($currentUser);
-            $entityManager->persist($cart);
-        }
-
+        $cart = $currentUser->getCart();
         $cart->addReference($reference);
 
         $entityManager->flush();
 
-        return new JsonResponse([
-            'success' => true,
-            'count' => $cart->getReferences()->count()
+        return $this->json([
+            "success" => true,
+            "count" => $cart->getReferences()->count()
         ]);
     }
 
     /**
      * @Route("/api", name="ref_article_api", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request): Response {
         if ($request->isXmlHttpRequest()) {
