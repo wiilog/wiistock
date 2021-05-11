@@ -3,8 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\PurchaseRequestLine;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method PurchaseRequestLine|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,39 +11,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method PurchaseRequestLine[]    findAll()
  * @method PurchaseRequestLine[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class PurchaseRequestLineRepository extends ServiceEntityRepository
+class PurchaseRequestLineRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, PurchaseRequestLine::class);
-    }
 
-    // /**
-    //  * @return PurchaseRequestLine[] Returns an array of PurchaseRequestLine objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('p.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?PurchaseRequestLine
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

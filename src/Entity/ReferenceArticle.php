@@ -224,7 +224,6 @@ class ReferenceArticle extends FreeFieldEntity
 
     /**
      * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="reference")
-     * @ORM\JoinColumn(nullable=true)
      */
     private ?Collection $purchaseRequestLines;
 
@@ -1039,7 +1038,7 @@ class ReferenceArticle extends FreeFieldEntity
     /**
      * @return Collection|ReferenceArticle[]
      */
-    public function getPurchaseRequestLine(): ?PurchaseRequestLine
+    public function getPurchaseRequestLines(): ?PurchaseRequestLine
     {
         return $this->purchaseRequestLines;
     }
@@ -1063,12 +1062,12 @@ class ReferenceArticle extends FreeFieldEntity
         return $this;
     }
 
-    public function setPurchaseRequestLine(?array $purchaseRequestLines): self {
-        foreach($this->getPurchaseRequestLine()->toArray() as $purchaseRequestLine) {
+    public function setPurchaseRequestLines(?array $purchaseRequestLines): self {
+        foreach($this->getPurchaseRequestLines()->toArray() as $purchaseRequestLine) {
             $this->removePurchaseRequestLine($purchaseRequestLine);
         }
 
-        $this->purchaseRequestLine = new ArrayCollection();
+        $this->purchaseRequestLines = new ArrayCollection();
         foreach($purchaseRequestLines as $purchaseRequestLine) {
             $this->addPurchaseRequestLine($purchaseRequestLine);
         }
