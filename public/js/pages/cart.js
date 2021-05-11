@@ -1,4 +1,18 @@
+let $modalAddToRequest = null;
+
 $(document).ready(() => {
+    $modalAddToRequest = $('#modalAddToRequest');
+
+    $modalAddToRequest.on('hide.bs.modal', function() {
+        clearModal($modalAddToRequest);
+        $modalAddToRequest.find('.type-body').html('');
+        $('#submitAddToRequest').addClass('d-none');
+    });
+
+    let url = Routing.generate('cart_add_to_request', true);
+
+    InitModal($modalAddToRequest, $('#submitAddToRequest'), url);
+
     const table = initDataTable(`cartTable`, {
         responsive: true,
         serverSide: true,
@@ -35,4 +49,27 @@ $(document).ready(() => {
             table.ajax.reload();
         });
     })
+
+    $('.request-type-container input[type="radio"]').on('click', function() {
+        retrieveAppropriateHtml($(this));
+    })
 });
+
+function onArticleSelectChange($select) {
+    const $selectedOption = $select.find('option:selected');
+    const $container = $select.parents('.row');
+    const $quantityInput = $container.find('.article-quantity');
+    const quantity = $selectedOption.data('quantity');
+
+    $quantityInput.val(quantity);
+}
+
+function retrieveAppropriateHtml($input) {
+    const type = Number.parseInt($input.val());
+    const path = Routing.generate('cart_get_appropriate_html', {type});
+
+    $.get(path, function(html) {
+        $modalAddToRequest.find('.type-body').html(html);
+        $('#submitAddToRequest').removeClass('d-none');
+    });
+}
