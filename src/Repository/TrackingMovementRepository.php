@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
+use Generator;
 
 
 /**
@@ -85,30 +86,31 @@ class TrackingMovementRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @return TrackingMovement[]
-     * @throws Exception
+     * @return Generator
      */
-    public function getByDates(DateTime $dateMin,
-                               DateTime $dateMax)
+    public function iterateByDates(DateTime $dateMin,
+                                   DateTime $dateMax):Generator
     {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
         $queryBuilder = $this->createQueryBuilder('tracking_movement')
-            ->select('tracking_movement.id')
-            ->addSelect('tracking_movement.datetime')
+            ->select('tracking_movement.id as id')
+            ->addSelect('tracking_movement.datetime as datetime')
             ->addSelect('pack.code AS code')
-            ->addSelect('tracking_movement.quantity')
+            ->addSelect('tracking_movement.quantity as quantity')
             ->addSelect('join_location.label as locationLabel')
             ->addSelect('join_type.nom as typeName')
             ->addSelect('join_operator.username as operatorUsername')
-            ->addSelect('tracking_movement.commentaire')
-            ->addSelect('pack_arrival.numeroArrivage')
+            ->addSelect('tracking_movement.commentaire as commentaire')
+            ->addSelect('pack_arrival.numeroArrivage as numeroArrivage')
             ->addSelect('pack_arrival.numeroCommandeList AS numeroCommandeListArrivage')
-            ->addSelect('pack_arrival.isUrgent')
+            ->addSelect('pack_arrival.isUrgent as isUrgent')
             ->addSelect('join_reception.number AS receptionNumber')
             ->addSelect('join_reception.orderNumber AS orderNumber')
-            ->addSelect('tracking_movement.freeFields')
+            ->addSelect('tracking_movement.freeFields as freeFields')
+            ->addSelect('transferOrder.number as transferNumber')
+            ->addSelect('dispatches.number as dispatchNumber')
 
             ->andWhere('tracking_movement.datetime BETWEEN :dateMin AND :dateMax')
 
@@ -118,15 +120,21 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('tracking_movement.operateur', 'join_operator')
             ->leftJoin('pack.arrivage', 'pack_arrival')
             ->leftJoin('tracking_movement.reception', 'join_reception')
+            ->leftJoin('tracking_movement.mouvementStock', 'mouvementStock')
+            ->leftJoin('mouvementStock.transferOrder', 'transferOrder')
+            ->leftJoin('tracking_movement.dispatch','dispatches')
 
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
-            ]);
+            ])
 
-        return $queryBuilder
             ->getQuery()
-            ->getResult();
+            ->iterate(null, \Doctrine\ORM\Query::HYDRATE_ARRAY);
+
+        foreach ($queryBuilder as $item) {
+            yield array_pop($item);
+        }
     }
 
     /**
