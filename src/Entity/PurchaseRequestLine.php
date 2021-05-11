@@ -57,7 +57,7 @@ class PurchaseRequestLine
     private ?Fournisseur $supplier = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Reception::class, inversedBy="purchaseRequestLine")
+     * @ORM\ManyToOne(targetEntity=Reception::class, inversedBy="purchaseRequestLines")
      */
     private ?Reception $reception = null;
 
