@@ -184,6 +184,10 @@ class LitigeService {
         }
 
         if ($wantSendToDeclarantMailStatusChange && $litige->getDeclarant()) {
+            $recipients = array_merge($recipients, $litige->getDeclarant()->getMainAndSecondaryEmails());
+        }
+
+        if (!empty($recipients)) {
             $translatedCategory = $isArrival ? $category : $this->translator->trans('réception.une réception');
             $title = !$isUpdate
                 ? ('Un litige a été déclaré sur ' . $translatedCategory . ' vous concernant :')
@@ -192,18 +196,17 @@ class LitigeService {
                 ? ('FOLLOW GT // Litige sur ' . $translatedCategory)
                 : 'FOLLOW GT // Changement de statut d\'un litige sur ' . $translatedCategory;
 
-            if (!empty($recipients)) {
-                $this->mailerService->sendMail(
-                    $subject,
-                    $this->templating->render('mails/contents/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig', [
-                        'litiges' => [$litige],
-                        'title' => $title,
-                        'urlSuffix' => ($isArrival ? '/arrivage' : '/reception')
-                    ]),
-                    $litige->getDeclarant()
-                );
-            }
+            $this->mailerService->sendMail(
+                $subject,
+                $this->templating->render('mails/contents/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig', [
+                    'litiges' => [$litige],
+                    'title' => $title,
+                    'urlSuffix' => ($isArrival ? '/arrivage' : '/reception')
+                ]),
+                $recipients
+            );
         }
+
     }
 
     public function getColumnVisibleConfig(Utilisateur $currentUser): array {
