@@ -26,6 +26,7 @@
         {% endif %}
     </div>
 {% endfor %}
+{% if refs|length > 0 %}
 <div class="row">
     <div class="col-12 form-group">
         <label for="">Mes transferts (laisser vide pour création d'une demande)</label>
@@ -37,3 +38,4 @@
         </select>
     </div>
 </div>
+{% endif %}

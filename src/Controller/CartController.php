@@ -94,6 +94,7 @@ class CartController extends AbstractController
             case 2:
                 return $this->json($cartService->renderTransferTypeModal($cart, $entityManager));
             case 3:
+                return $this->json($cartService->renderPurchaseTypeModal($cart, $entityManager));
             default:
                 return null;
         }
@@ -146,6 +147,12 @@ class CartController extends AbstractController
                     );
                     return $this->json(['redirect' => $this->generateUrl('transfer_request_show', ['id' => $transfer->getId()])]);
                 case 3:
+                    $cartService->managePurchaseRequest(
+                        $data,
+                        $this->getUser(),
+                        $entityManager,
+                        $cart
+                    );
                 default:
                     return $this->json(null);
             }

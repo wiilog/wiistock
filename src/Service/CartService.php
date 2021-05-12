@@ -12,6 +12,7 @@ use App\Entity\CollecteReference;
 use App\Entity\Demande;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
+use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TransferRequest;
@@ -68,6 +69,33 @@ class CartService {
         ];
     }
 
+    public function renderPurchaseTypeModal(Cart $cart, EntityManagerInterface $entityManager) {
+        $purchaseRepository = $entityManager->getRepository(PurchaseRequest::class);
+
+        $refs = Stream::from($cart->getReferences())
+            ->map(function(ReferenceArticle $referenceArticle) {
+                return [
+                    'reference' => $referenceArticle->getReference(),
+                    'buyer' => $referenceArticle->getBuyer() ? $referenceArticle->getBuyer()->getId() : null
+                ];
+            })->reduce(function(array $carry, array $referenceArticle) {
+                if ($referenceArticle['buyer']) {
+                    $carry[$referenceArticle['buyer']][] = $referenceArticle;
+                }
+                return $carry;
+            }, []);
+        $purchases = $purchaseRepository->findByState(Statut::DRAFT);
+
+        return [
+            'html' => $this->twig->render('cart/purchaseTypeContent.html.twig', [
+                'refsByBuyer' => $refs,
+                'purchases' => $purchases,
+            ]),
+            'count' => count($refs),
+            'message' => 'Les références du panier n\'ont aucun acheteur.',
+        ];
+    }
+
     public function renderDeliveryTypeModal(Cart $cart, EntityManagerInterface $entityManager) {
         $deliveryRepository = $entityManager->getRepository(Demande::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -88,17 +116,20 @@ class CartService {
                     'articles' => $referenceArticle->getAssociatedArticles(),
                     'reference' => $referenceArticle->getReference(),
                 ];
-            });
+            })->toArray();
         $deliveries = $deliveryRepository->findBy([
             'utilisateur' => $cart->getUser(),
             'statut' => $draft
         ]);
-
-        return $this->twig->render('cart/deliveryTypeContent.html.twig', [
-            'refs' => $refs,
-            'deliveries' => $deliveries,
-            'managedByArticle' => $managed && $managed->getValue() == Parametre::VALUE_PAR_ART,
-        ]);
+        return [
+            'html' => $this->twig->render('cart/deliveryTypeContent.html.twig', [
+                'refs' => $refs,
+                'deliveries' => $deliveries,
+                'managedByArticle' => $managed && $managed->getValue() == Parametre::VALUE_PAR_ART,
+            ]),
+            'count' => count($refs),
+            'message' => 'Le panier est vide.',
+        ];
     }
 
     public function renderTransferTypeModal(Cart $cart, EntityManagerInterface $entityManager) {
@@ -112,16 +143,20 @@ class CartService {
                     'articles' => $referenceArticle->getAssociatedArticles(),
                     'reference' => $referenceArticle->getReference(),
                 ];
-            });
+            })->toArray();
         $transfers = $transferRepository->findBy([
             'requester' => $cart->getUser(),
             'status' => $draft
         ]);
 
-        return $this->twig->render('cart/transferTypeContent.html.twig', [
-            'refs' => $refs,
-            'transfers' => $transfers,
-        ]);
+        return [
+            'html' => $this->twig->render('cart/transferTypeContent.html.twig', [
+                'refs' => $refs,
+                'transfers' => $transfers,
+            ]),
+            'count' => count($refs),
+            'message' => 'Le panier est vide.',
+        ];
     }
 
     public function renderCollectTypeModal(Cart $cart, EntityManagerInterface $entityManager) {
@@ -134,16 +169,19 @@ class CartService {
                 return [
                     'reference' => $referenceArticle->getReference(),
                 ];
-            });
+            })->toArray();
         $collects = $collectsRepository->findBy([
             'demandeur' => $cart->getUser(),
             'statut' => $draft
         ]);
-
-        return $this->twig->render('cart/collectTypeContent.html.twig', [
-            'refs' => $refs,
-            'collects' => $collects,
-        ]);
+        return [
+            'html' => $this->twig->render('cart/collectTypeContent.html.twig', [
+                'refs' => $refs,
+                'collects' => $collects,
+            ]),
+            'count' => count($refs),
+            'message' => 'Le panier est vide.',
+        ];
     }
 
     private function emptyCart(Cart $cart) {
@@ -193,6 +231,16 @@ class CartService {
         $this->emptyCart($cart);
         $entityManager->flush();
         return $request;
+    }
+
+    public function managePurchaseRequest($data,
+                                         Utilisateur $utilisateur,
+                                         EntityManagerInterface $entityManager,
+                                         Cart $cart): ?TransferRequest {
+        dump($data);
+        $this->emptyCart($cart);
+        $entityManager->flush();
+        return null;
     }
 
     public function manageDeliveryRequest($data,

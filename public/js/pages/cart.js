@@ -53,7 +53,12 @@ $(document).ready(() => {
 
     $('.request-type-container input[type="radio"]').on('click', function() {
         retrieveAppropriateHtml($(this));
-    })
+    });
+
+    const refsCount = $('#cart-refs-count').val();
+    if (refsCount && refsCount> 0) {
+        $('.add-cart-to-request').removeClass('d-none');
+    }
 });
 
 function onArticleSelectChange($select) {
@@ -71,8 +76,12 @@ function retrieveAppropriateHtml($input) {
     const type = Number.parseInt($input.val());
     const path = Routing.generate('cart_get_appropriate_html', {type});
 
-    $.get(path, function(html) {
-        $modalAddToRequest.find('.type-body').html(html);
-        $('#submitAddToRequest').removeClass('d-none');
+    $.get(path, function(response) {
+        $modalAddToRequest.find('.type-body').html(response.html);
+        if (response.count > 0) {
+            $('#submitAddToRequest').removeClass('d-none');
+        } else {
+            showBSAlert(response.message, 'danger');
+        }
     });
 }

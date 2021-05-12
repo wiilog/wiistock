@@ -1,0 +1,26 @@
+{% for key, refs in refsByBuyer %}
+    <hr class="border-primary"/>
+    {% for ref in refs %}
+        <div class="row">
+            <div class="col-6 form-group">
+                <label for="">Référence</label>
+                <input type="text" class="form-control data" name="{{ 'reference' ~ '-' ~ key ~ '-' ~ loop.index0 }}" value="{{ ref.reference }}" disabled>
+            </div>
+            <div class="col-6 form-group">
+                <label for="">Quantité demandée*</label>
+                <input type="number" class="form-control data needed" name="{{ 'quantity' ~ '-' ~ key ~ '-' ~ loop.index0 }}">
+            </div>
+        </div>
+    {% endfor %}
+    <div class="row">
+        <div class="col-12 form-group">
+            <label for="">Mes demandes (laisser vide pour création d'une demande)</label>
+            <select name="{{ 'purchase' ~ '-' ~ key }}" class="form-control data">
+                <option value=""></option>
+                {% for purchase in purchases %}
+                    <option value="{{ purchase.id }}">{{ purchase.number }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+{% endfor %}

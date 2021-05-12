@@ -13,4 +13,12 @@ use Doctrine\ORM\EntityRepository;
  */
 class PurchaseRequestRepository extends EntityRepository
 {
+    public function findByState(int $state) {
+        return $this->createQueryBuilder('purchase_request')
+            ->join('purchase_request.status', 'status')
+            ->where('status.state = :state')
+            ->setParameter('state', $state)
+            ->getQuery()
+            ->execute();
+    }
 }
