@@ -113,8 +113,7 @@ class EmplacementRepository extends EntityRepository
 
         $qb->select('location.id AS id')
             ->addSelect('location.label AS text')
-            ->leftJoin('location.allowedDeliveryTypes', 'allowedDeliveryTypes')
-            ->where('allowedDeliveryTypes = :type')
+            ->where('(:type MEMBER OF (location.allowedDeliveryTypes)) OR (:type MEMBER OF (location.allowedCollectTypes))')
             ->andWhere('location.label LIKE :search')
             ->setParameter('type', $type)
             ->setParameter('search', '%' . str_replace('_', '\_', $search) . '%');
