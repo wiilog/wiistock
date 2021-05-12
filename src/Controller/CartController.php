@@ -2,10 +2,12 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
+use App\Entity\Action;
+use App\Entity\Menu;
 use App\Entity\Cart;
 use App\Entity\ReferenceArticle;
 use App\Service\CartService;
-use App\Service\DemandeCollecteService;
 use App\Service\DemandeLivraisonService;
 use App\Service\RefArticleDataService;
 use App\Service\UniqueNumberService;
@@ -43,16 +45,33 @@ class CartController extends AbstractController
     }
 
     /**
-     * @Route("/remove-reference/{reference}", name="cart_remove_reference", options={"expose"=true})
+     * @Route("/ajouter/{reference}", name="cart_add_reference", options={"expose"=true}, methods="GET|POST")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
      */
-    public function removeReference(EntityManagerInterface $manager, ReferenceArticle $reference): Response
-    {
-        $this->getUser()->getCart()->removeRefArticle($reference);
+    public function addToCart(ReferenceArticle $reference, EntityManagerInterface $entityManager): JsonResponse {
+        $cart =  $this->getUser()->getCart();
+        $cart->addReference($reference);
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "La référence a bien été ajoutée au panier",
+            "count" => $cart->getReferences()->count()
+        ]);
+    }
+
+    /**
+     * @Route("/retirer/{reference}", name="cart_remove_reference", options={"expose"=true})
+     */
+    public function removeReference(EntityManagerInterface $manager, ReferenceArticle $reference): Response {
+        $cart = $this->getUser()->getCart();
+        $cart->removeReference($reference);
         $manager->flush();
 
         return $this->json([
             "success" => true,
             "msg" => "La référence a bien été retirée du panier",
+            "count" => $cart->getReferences()->count(),
         ]);
     }
 

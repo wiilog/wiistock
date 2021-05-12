@@ -1030,7 +1030,7 @@ class ReferenceArticle extends FreeFieldEntity
     public function removeCart(Cart $cart): self
     {
         if ($this->carts->removeElement($cart)) {
-            $cart->removeRefArticle($this);
+            $cart->removeReference($this);
         }
 
         return $this;

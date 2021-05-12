@@ -45,8 +45,9 @@ $(document).ready(() => {
         });
 
         $.post(route, response => {
-            showBSAlert(response.msg, `success`);
+            $(`.cart-total`).text(response.count);
             table.ajax.reload();
+            showBSAlert(response.msg, `success`);
         });
     })
 

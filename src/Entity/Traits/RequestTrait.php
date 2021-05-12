@@ -8,9 +8,9 @@ use Doctrine\ORM\Mapping as ORM;
 trait RequestTrait {
 
     /**
-     * @ORM\Column(type="boolean", nullable=true, options={"default": 1})
+     * @ORM\Column(type="boolean", nullable=false, options={"default": 1})
      */
-    private $filled;
+    private ?bool $filled = true;
 
     public function isFilled(): ?bool
     {
@@ -23,4 +23,5 @@ trait RequestTrait {
 
         return $this;
     }
+
 }

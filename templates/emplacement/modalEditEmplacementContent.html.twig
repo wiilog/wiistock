@@ -1,16 +1,16 @@
 <div class="form-group">
     <label>Nom</label>
-    <input class="form-control data needed is-barcode" maxlength="21" type="text" value='{{ emplacement.label }}' name="Label" id="Label">
+    <input class="form-control data needed is-barcode" maxlength="21" type="text" value='{{ location.label }}' name="Label" id="Label">
 </div>
 
 <div class="form-group">
     <label>Description*</label>
-    <input class="form-control data needed" type="text" value='{{ emplacement.description }}' name="Description"
+    <input class="form-control data needed" type="text" value='{{ location.description }}' name="Description"
            id="Description">
 </div>
 <div class="form-group">
     <label>Délais Traça HH:MM</label>
-    <input class="form-control data" type="text" value='{{ emplacement.dateMaxTime }}' name="dateMaxTime"
+    <input class="form-control data" type="text" value='{{ location.dateMaxTime }}' name="dateMaxTime"
            id="dateMaxTime">
 </div>
 
@@ -18,8 +18,26 @@
     <label title="Natures de colis autorisées">{{ 'natures.Natures de colis autorisées'|trans }}</label>
     <select name="allowed-natures" class="form-control data select2 w-100" multiple>
         {% for nature in natures %}
-            {% set selected = (nature in emplacement.allowedNatures ? 'selected') %}
+            {% set selected = (nature in location.allowedNatures ? 'selected') %}
             <option value="{{ nature.id }}" {{ selected }}>{{ nature.label }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group">
+    <label>Types de livraisons autorisés</label>
+    <select name="allowedDeliveryTypes" class="form-control data select2 w-100" multiple>
+        {% for type in deliveryTypes %}
+            <option value="{{ type.id }}" {{ type in location.allowedDeliveryTypes ? 'selected' }}>{{ type.label }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group">
+    <label>Types de collectes autorisés</label>
+    <select name="allowedCollectTypes" class="form-control data select2 w-100" multiple>
+        {% for type in collectTypes %}
+            <option value="{{ type.id }}" {{ type in location.allowedCollectTypes ? 'selected' }}>{{ type.label }}</option>
         {% endfor %}
     </select>
 </div>
@@ -27,7 +45,7 @@
 <div class="form-group">
     <label>Point de livraison ?</label>
     <label class="switch ml-2">
-        <input class="checkbox data needed" type="checkbox" {{ emplacement.isDeliveryPoint ? 'checked' }} name="isDeliveryPoint">
+        <input class="checkbox data needed" type="checkbox" {{ location.isDeliveryPoint ? 'checked' }} name="isDeliveryPoint">
         <span class="slider round"></span>
     </label>
 </div>
@@ -35,7 +53,7 @@
 <div class="form-group d-flex align-content-center">
     <label>Encours visible nomade ?</label>
     <label class="switch ml-2">
-        <input class="checkbox data needed" type="checkbox" {{ emplacement.isOngoingVisibleOnMobile ? 'checked' }} name="isOngoingVisibleOnMobile">
+        <input class="checkbox data needed" type="checkbox" {{ location.isOngoingVisibleOnMobile ? 'checked' }} name="isOngoingVisibleOnMobile">
         <span class="slider round"></span>
     </label>
 </div>
@@ -43,7 +61,7 @@
 <div class="form-group d-flex align-content-center">
     <label>Actif ?</label>
     <label class="switch ml-2">
-        {% set isActiveChecked = emplacement.isActive ? 'checked' : '' %}
+        {% set isActiveChecked = location.isActive ? 'checked' : '' %}
         <input class="checkbox data needed" type="checkbox" {{ isActiveChecked }} name="isActive">
         <span class="slider round"></span>
     </label>

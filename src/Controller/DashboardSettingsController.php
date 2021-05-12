@@ -38,9 +38,6 @@ class DashboardSettingsController extends AbstractController {
     /**
      * @Route("/", name="dashboard_settings", methods={"GET"})
      * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS})
-     * @param DashboardSettingsService $dashboardSettingsService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function settings(DashboardSettingsService $dashboardSettingsService,
                              EntityManagerInterface $entityManager): Response {
