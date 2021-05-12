@@ -48,6 +48,7 @@ let purchaseRequestTableConfig = {
         needsSearchOverride: true,
     },
     columns: [
+        {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'number', 'name': 'Numéro', 'title': 'Numéro'},
         {"data": 'creationDate', 'name': 'Création', 'title': 'Date de création'},
         {"data": 'considerationDate', 'name': 'Prise en compte', 'title': 'Date de prise en compte'},
@@ -59,12 +60,6 @@ let purchaseRequestTableConfig = {
     ]
 };
 let table = initDataTable('tablePurchaseRequest', purchaseRequestTableConfig);
-
-
-let modalNewPurchaseRequest = $("#modalNewTransfer");
-let SubmitNewPurchaseRequest = $("#submitNewTransfer");
-let urlNewPurchaseRequest = Routing.generate('transfer_request_new', true)
-InitModal(modalNewPurchaseRequest, SubmitNewPurchaseRequest, urlNewPurchaseRequest, {tables: [table]});
 
 $.fn.dataTable.ext.search.push(
     function (settings, data, dataIndex) {

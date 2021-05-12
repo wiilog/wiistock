@@ -1,0 +1,44 @@
+{% extends 'utils/show-header.html.twig' %}
+
+{% block showTitle ('Demande dachat ' ~ request.number) %}
+
+{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+
+{# droit de suppression pour les demandes d'achats brouillons #}
+{% if request.status.draft %}
+    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_DRAFT_PURCHASE_REQUEST')) %}
+{% endif %}
+
+{# droit de suppression pour les demandes d'achats à traiter et en cours #}
+{% if not request.status.treated and not request.status.draft  %}
+    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_ONGOING_PURCHASE_REQUESTS')) %}
+{% endif %}
+
+{# droit de suppression pour les demandes d'achats traités #}
+{% if request.status.treated %}
+    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_TREATED_PURCHASE_REQUESTS')) %}
+{% endif %}
+
+{% block showActions %}
+        <div class="btn-group">
+
+            <button type="button"
+                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false">
+                <span class="fa fa-angle-down"></span>
+            </button>
+            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                {% if hasRightDelete %}
+                    <a href="" onclick="deleteRow($(this), $('#modalDeleteRequest'), $('#submitDeleteRequest'))"
+                       data-id='{{ request.id }}' data-target='#modalDeleteRequest' data-toggle='modal'
+                       class="dropdown-item">
+                        <i class="fa fa-trash mr-2"></i>Supprimer</a>
+                {% endif %}
+            </div>
+        </div>
+{% endblock %}
+
+
+

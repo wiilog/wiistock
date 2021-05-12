@@ -89,15 +89,21 @@ class PurchaseRequestService
 
     public function createHeaderDetailsConfig(PurchaseRequest $request): array {
         return [
-            ['label' => 'Numero', 'value' => $request->getNumber()],
+            ['label' => 'Statut', 'value' => FormatHelper::status($request->getStatus())],
             ['label' => 'Demandeur', 'value' => FormatHelper::user($request->getRequester())],
             ['label' => 'Acheteur', 'value' => FormatHelper::user($request->getBuyer())],
-            ['label' => 'Statut', 'value' => FormatHelper::status($request->getStatus())],
-            ['label' => 'Origine', 'value' => FormatHelper::location($request->getOrigin())],
             ['label' => 'Date de création', 'value' => FormatHelper::datetime($request->getCreationDate())],
-            ['label' => 'Date de traitement', 'value' => FormatHelper::datetime($request->getProcessingDate())],
             ['label' => 'Date de validation', 'value' => FormatHelper::datetime($request->getValidationDate())],
             ['label' => 'Date de prise en compte', 'value' => FormatHelper::datetime($request->getConsiderationDate())],
+            ['label' => 'Date de traitement', 'value' => FormatHelper::datetime($request->getProcessingDate())],
+            [
+                'label' => 'Commentaire',
+                'value' => $request->getComment() ?: "",
+                'isRaw' => true,
+                'colClass' => 'col-sm-6 col-12',
+                'isScrollable' => true,
+                'isNeededNotEmpty' => true
+            ]
         ];
     }
 }

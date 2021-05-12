@@ -15,6 +15,7 @@ use App\Entity\Article;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Helper\Stream;
+use App\Repository\PurchaseRequestRepository;
 use App\Service\PurchaseRequestService;
 use App\Service\TransferRequestService;
 use DateTime;
@@ -95,11 +96,11 @@ class PurchaseRequestController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        /*return $this->render('transfer/request/show.html.twig', [
-            'transfer' => $transfer,
-            'modifiable' => FormatHelper::status($transfer->getStatus()) == TransferRequest::DRAFT,
-            'detailsConfig' => $this->service->createHeaderDetailsConfig($transfer)
-        ]);*/
+        return $this->render('purchase_request/show.html.twig', [
+            'request' => $request,
+            'modifiable' => FormatHelper::status($request->getStatus()) == PurchaseRequest::DRAFT,
+            'detailsConfig' => $this->service->createHeaderDetailsConfig($request)
+        ]);
     }
 
     /**
@@ -172,5 +173,45 @@ class PurchaseRequestController extends AbstractController
         }
 
         throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/supprimer", name="purchase_request_delete", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function delete(Request $request, EntityManagerInterface $entityManager): Response {
+
+        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if(!$this->userService->hasRightFunction(Menu::DEM, Action::DELETE)){
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $requestRepository = $entityManager->getRepository(PurchaseRequest::class);
+            $purchaseRequest =$requestRepository->find($data['request']);
+
+            if( $purchaseRequest->getStatus()->getState()===Statut::DRAFT && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_DRAFT_PURCHASE_REQUEST) ||
+                $purchaseRequest->getStatus()->getState()===Statut::NOT_TREATED && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_ONGOING_PURCHASE_REQUESTS) ||
+                $purchaseRequest->getStatus()->getState()===Statut::IN_PROGRESS && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_ONGOING_PURCHASE_REQUESTS) ||
+                $purchaseRequest->getStatus()->getState()===Statut::TREATED && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_TREATED_PURCHASE_REQUESTS)) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => "Vous n'avez pas le droit de supprimer cette demande"
+                ]);
+            }
+
+            $entityManager->remove($purchaseRequest);
+            $entityManager->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'redirect' => $this->generateUrl('purchase_request_index'),
+                'msg' => "La demande dachat a bien été supprimé"
+            ]);
+
+        }
+        throw new BadRequestHttpException();
+
     }
 }

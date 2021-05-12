@@ -14,6 +14,12 @@ use App\Helper\FormatHelper;
  */
 class PurchaseRequest
 {
+
+    const DRAFT = "Brouillon";
+    const TO_TREAT = "À traiter";
+    const TREATED = "Traité";
+    const PROGRESS = "En cours";
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
