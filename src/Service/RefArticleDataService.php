@@ -319,9 +319,12 @@ class RefArticleDataService {
 
         $refArticle->setStockManagement($data['stockManagement'] ?? null);
 
+
         $refArticle->getManagers()->clear();
-        foreach (explode(",", $data["managers"]) as $manager) {
-            $refArticle->addManager($userRepository->find($manager));
+        if (!empty($data["managers"])) {
+            foreach (explode(",", $data["managers"]) as $manager) {
+                $refArticle->addManager($userRepository->find($manager));
+            }
         }
 
         $entityManager->flush();
