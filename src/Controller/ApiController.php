@@ -1980,6 +1980,7 @@ class ApiController extends AbstractFOSRestController
         if ($pack) {
             if (!$pack->isGroup()) {
                 $isPack = true;
+                $isSubPack = $pack->getParent() !== null;
                 $packSerialized = $pack->serialize();
             }
             else {
@@ -1991,6 +1992,7 @@ class ApiController extends AbstractFOSRestController
         return $this->json([
             "success" => true,
             "isPack" => $isPack ?? false,
+            "isSubPack" => $isSubPack ?? false,
             "pack" => $packSerialized ?? null,
             "packGroup" => $packGroupSerialized ?? null,
         ]);
@@ -2041,20 +2043,22 @@ class ApiController extends AbstractFOSRestController
 
         foreach ($packs as $data) {
             $pack = $trackingMovementService->persistPack($entityManager, $data["code"], $data["quantity"], $data["nature_id"]);
-            $pack->setParent($parentPack);
+            if (!$pack->getParent()) {
+                $pack->setParent($parentPack);
 
-            $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
-                $pack,
-                null,
-                $this->getUser(),
-                DateTime::createFromFormat("d/m/Y H:i:s", $data["date"]),
-                true,
-                true,
-                TrackingMovement::TYPE_GROUP,
-                ["parent" => $parentPack]
-            );
+                $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
+                    $pack,
+                    null,
+                    $this->getUser(),
+                    DateTime::createFromFormat("d/m/Y H:i:s", $data["date"]),
+                    true,
+                    true,
+                    TrackingMovement::TYPE_GROUP,
+                    ["parent" => $parentPack]
+                );
 
-            $entityManager->persist($groupingTrackingMovement);
+                $entityManager->persist($groupingTrackingMovement);
+            }
         }
 
         $entityManager->flush();
