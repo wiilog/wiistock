@@ -4,7 +4,8 @@ function addReferenceToCart($element) {
 
     $.post(path, function(response) {
         if (response.success) {
-            $(`.cart-total`).text(response.count);
+            $(`.cart-total`).text(response.count)[response.count ? `removeClass` : `addClass`](`d-none`);
+
             showBSAlert(response.msg, `success`);
         }
     });

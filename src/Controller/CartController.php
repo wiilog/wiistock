@@ -156,9 +156,15 @@ class CartController extends AbstractController
                         $entityManager,
                         $cart
                     );
-                    $path = count($purchases) > 1
-                        ? $this->generateUrl('purchase_request_index')
-                        : $this->generateUrl('purchase_request_show', ['id' => $purchases[array_key_first($purchases)]->getId()]);
+
+                    if(count($purchases) !== 1) {
+                        $path = $this->generateUrl("purchase_request_index");
+                    } else {
+                        $path = $this->generateUrl("purchase_request_show", [
+                            "id" => $purchases[array_key_first($purchases)]->getId()
+                        ]);
+                    }
+
                     return $this->json(['redirect' => $path]);
                 default:
                     return $this->json(null);

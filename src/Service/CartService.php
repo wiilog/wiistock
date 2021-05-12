@@ -246,8 +246,8 @@ class CartService {
         $statusRepository = $entityManager->getRepository(Statut::class);
         $status = $statusRepository->findOneByCategorieNameAndStatutState(CategorieStatut::PURCHASE_REQUEST, Statut::DRAFT);
 
+        $requestsByBuyer = [];
         if ($status) {
-            $requestsByBuyer = [];
             foreach ($data as $key => $datum) {
                 if (str_starts_with($key, 'reference')) {
                     if (preg_match('/(-(.\d*)-(.\d*))/', $key, $match) == 1) {
