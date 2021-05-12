@@ -101,6 +101,21 @@ $(function() {
         initNewCollecteEditor("#modalNewCollecte");
         clearModal("#modalNewCollecte");
     });
+
+    $(`#modalNewCollecte select[name="type"]`).on(`change`, function() {
+        const $locationSelector = $(`#modalNewCollecte select[name="emplacement"]`);
+        const type = $(this).val();
+
+        $locationSelector.prop(`disabled`, type == null);
+        $locationSelector.val(null).trigger(`change`);
+
+        Select2Old.init($locationSelector, '', 1, {
+            route: 'get_locations_by_type',
+            param: {
+                type,
+            }
+        });
+    })
 });
 
 //initialisation editeur de texte une seule fois à la création
