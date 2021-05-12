@@ -21,4 +21,16 @@ class PurchaseRequestRepository extends EntityRepository
             ->getQuery()
             ->execute();
     }
+
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('purchase_request')
+            ->select('purchase_request.number')
+            ->where('purchase_request.number LIKE :value')
+            ->orderBy('purchase_request.creationDate', 'DESC')
+            ->addOrderBy('purchase_request.number', 'DESC')
+            ->setParameter('value', PurchaseRequest::NUMBER_PREFIX . '-' . $date . '%')
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
+    }
 }

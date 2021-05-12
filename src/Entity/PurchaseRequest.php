@@ -13,6 +13,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class PurchaseRequest
 {
+
+    const NUMBER_PREFIX = 'DA';
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -24,6 +27,11 @@ class PurchaseRequest
      * @ORM\Column(type="text", nullable=true)
      */
     private ?string $comment = null;
+
+    /**
+     * @ORM\Column(type="string", nullable=false, unique=true)
+     */
+    private ?string $number = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
@@ -150,7 +158,7 @@ class PurchaseRequest
         return $this->creationDate;
     }
 
-    public function setCreationDate(?DateTimeInterface $creationDate): self
+    public function setCreationDate(?DateTime $creationDate): self
     {
         $this->creationDate = $creationDate;
 
@@ -229,6 +237,24 @@ class PurchaseRequest
             $this->addPurchaseRequestLine($purchaseRequestLine);
         }
 
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getNumber(): ?string
+    {
+        return $this->number;
+    }
+
+    /**
+     * @param string|null $number
+     * @return self
+     */
+    public function setNumber(?string $number): self
+    {
+        $this->number = $number;
         return $this;
     }
 }
