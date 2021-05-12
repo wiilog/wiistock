@@ -318,38 +318,37 @@ class TrackingMovementController extends AbstractController
                                     $countCreatedMouvements++;
                                 }
                             }
+
                             $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                             $entityManager->persist($createdMvt);
                             $createdMouvements[] = $createdMvt;
                             $createdPack = $createdMvt->getPack();
-                            if ($createdPack) {
-                                $createdMvt = $trackingMovementService->createTrackingMovement(
-                                    $createdPack,
-                                    $emplacementDepose,
-                                    $operator,
-                                    $date,
-                                    $fromNomade,
-                                    true,
-                                    TrackingMovement::TYPE_DEPOSE,
-                                    [
-                                        'commentaire' => $commentaire,
-                                        'quantity' => $quantity
-                                    ]
-                                );
+                            $createdMvt = $trackingMovementService->createTrackingMovement(
+                                $createdMvt ?? $colis,
+                                $emplacementDepose,
+                                $operator,
+                                $date,
+                                $fromNomade,
+                                true,
+                                TrackingMovement::TYPE_DEPOSE,
+                                [
+                                    'commentaire' => $commentaire,
+                                    'quantity' => $quantity
+                                ]
+                            );
 
-                                // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
-                                if (!$emplacementDepose->ableToBeDropOff($createdPack)) {
-                                    return new JsonResponse([
-                                        'success' => false,
-                                        'msg' => $this->errorWithDropOff($createdPack->getCode(), $emplacementDepose, $packTranslation, $natureTranslation)
-                                    ]);
-                                }
-
-                                $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                                $entityManager->persist($createdMvt);
-                                $createdMouvements[] = $createdMvt;
-                                $codeToPack[$colis] = $createdPack;
+                            // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
+                            if (!$emplacementDepose->ableToBeDropOff($createdPack)) {
+                                return new JsonResponse([
+                                    'success' => false,
+                                    'msg' => $this->errorWithDropOff($createdPack->getCode(), $emplacementDepose, $packTranslation, $natureTranslation)
+                                ]);
                             }
+
+                            $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
+                            $entityManager->persist($createdMvt);
+                            $createdMouvements[] = $createdMvt;
+                            $codeToPack[$colis] = $createdPack;
                         }
                     }
                 }

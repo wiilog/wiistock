@@ -234,7 +234,7 @@ class ApiController extends AbstractFOSRestController
                             'fileBag' => null,
                             'from' => null,
                             'uniqueIdForMobile' => $mvt['date'],
-                            'entityManager' => $entityManager
+                            'entityManager' => $entityManager,
                         ];
                         $location = $emplacementRepository->findOneByLabel($mvt['ref_emplacement']);
                         $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $mvt['type']);
@@ -288,8 +288,7 @@ class ApiController extends AbstractFOSRestController
                                 if (isset($mouvementTracaPrise)) {
                                     $mouvementStockPrise = $mouvementTracaPrise->getMouvementStock();
                                     $article = $mouvementStockPrise->getArticle()
-                                        ? $mouvementStockPrise->getArticle()
-                                        : $mouvementStockPrise->getRefArticle();
+                                        ?: $mouvementStockPrise->getRefArticle();
 
                                     $collecteOrder = $mouvementStockPrise->getCollecteOrder();
                                     if (isset($collecteOrder)
@@ -471,7 +470,7 @@ class ApiController extends AbstractFOSRestController
             : ($numberOfRowsInserted . ' mouvement' . $s . ' synchronisé' . $s);
 
         if (!empty($emptyGroups)) {
-            $successData['data']['emptyGroups'] = implode(", ", $emptyGroups);
+            $successData['data']['emptyGroups'] = $emptyGroups;
         }
 
         $response->setContent(json_encode($successData));

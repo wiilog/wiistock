@@ -318,7 +318,8 @@ class TrackingMovementRepository extends EntityRepository
             ->addSelect('join_pack_nature.id AS nature_id')
             ->addSelect('(CASE WHEN tracking_movement.finished = 1 THEN 1 ELSE 0 END) AS finished')
             ->addSelect('(CASE WHEN tracking_movement.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock')
-            ->addSelect('(CASE WHEN join_pack.groupIteration IS NOT NULL THEN 1 ELSE 0 END) AS isGroup');
+            ->addSelect('(CASE WHEN join_pack.groupIteration IS NOT NULL THEN 1 ELSE 0 END) AS isGroup')
+            ->addSelect('join_packParent.code AS packParent');
 
         if ($includeMovementId) {
             $queryBuilder->addSelect('tracking_movement.id');
@@ -342,7 +343,6 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('tracking_movement.packParent', 'join_packParent')
             ->where('join_operator = :operator')
             ->andWhere('join_trackingType.nom LIKE :priseType')
-            ->andWhere('join_packParent.id IS NULL')
             ->andWhere('tracking_movement.finished = :finished')
             ->andWhere($typeCondition)
             ->setParameter('operator', $operator)

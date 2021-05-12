@@ -153,6 +153,7 @@ class TrackingMovementService
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
 
         $trackingPack = $movement->getPack();
+        $lastTracking = $trackingPack ? $trackingPack->getLastTracking() : null;
 
         if(!$movement->getAttachments()->isEmpty()) {
             $attachmentsCounter = $movement->getAttachments()->count();
@@ -163,7 +164,7 @@ class TrackingMovementService
         $rows = [
             'id' => $movement->getId(),
             'date' => FormatHelper::datetime($movement->getDatetime()),
-            'code' => $trackingPack ? $trackingPack->getCode() : '',
+            'code' => FormatHelper::pack($trackingPack),
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => ($movement->getPackParent() && FormatHelper::status($movement->getType()) !== TrackingMovement::TYPE_DEPOSE) ? $movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?? '1') : '',
             'location' => FormatHelper::location($movement->getEmplacement()),
@@ -171,15 +172,15 @@ class TrackingMovementService
                 ? $movement->getReferenceArticle()->getReference()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
-                    : ($trackingPack && $trackingPack->getLastTracking()->getMouvementStock()
-                        ? $trackingPack->getLastTracking()->getMouvementStock()->getArticle()->getArticleFournisseur()->getReferenceArticle()->getLibelle()
+                    : ($lastTracking && $lastTracking->getMouvementStock()
+                        ? $lastTracking->getMouvementStock()->getArticle()->getArticleFournisseur()->getReferenceArticle()->getLibelle()
                         : '')),
             "label" => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getLibelle()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getLabel()
-                    : ($trackingPack && $trackingPack->getLastTracking()->getMouvementStock()
-                        ? $trackingPack->getLastTracking()->getMouvementStock()->getArticle()->getLabel()
+                    : ($lastTracking && $lastTracking->getMouvementStock()
+                        ? $lastTracking->getMouvementStock()->getArticle()->getLabel()
                         : '')),
             "quantity" => $movement->getQuantity() ?: '',
             "type" => FormatHelper::status($movement->getType()),
@@ -369,9 +370,11 @@ class TrackingMovementService
         if ($parent) {
             $tracking->setPackParent($parent);
             $tracking->setGroupIteration($parent->getGroupIteration());
-        } else if (!$disableUngrouping
-                   && $pack->getParent()
-                   && in_array($type->getNom(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
+        }
+
+        if (!$disableUngrouping
+             && $pack->getParent()
+             && in_array($type->getNom(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
             $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
 
             $trackingUngroup = new TrackingMovement();
@@ -689,11 +692,13 @@ class TrackingMovementService
         return Stream::from(
             $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT, [], true)
         )
-            ->map(function (array $picking) use ($trackingMovementRepository) {
+            ->filterMap(function (array $picking) use ($trackingMovementRepository) {
                 $id = $picking['id'];
                 unset($picking['id']);
 
-                if ($picking['isGroup'] == '1') {
+                $isGroup = $picking['isGroup'] == '1';
+
+                if ($isGroup) {
                     $tracking = $trackingMovementRepository->find($id);
                     $subPacks = $tracking
                         ->getPack()
@@ -703,7 +708,7 @@ class TrackingMovementService
 
                 $picking['subPacks'] = $subPacks ?? [];
 
-                return $picking;
+                return (!$isGroup || !empty($subPacks)) ? $picking : null;
             })
             ->toArray();
     }
