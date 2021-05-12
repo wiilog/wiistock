@@ -149,14 +149,17 @@ class CartController extends AbstractController
                     );
                     return $this->json(['redirect' => $this->generateUrl('transfer_request_show', ['id' => $transfer->getId()])]);
                 case 3:
-                    $cartService->managePurchaseRequest(
+                    $purchases = $cartService->managePurchaseRequest(
                         $data,
                         $this->getUser(),
                         $purchaseRequestService,
                         $entityManager,
                         $cart
                     );
-                    return $this->json(['redirect' => $this->generateUrl('purchase_request_index')]);
+                    $path = count($purchases) > 1
+                        ? $this->generateUrl('purchase_request_index')
+                        : $this->generateUrl('purchase_request_show', ['id' => $purchases[array_key_first($purchases)]->getId()]);
+                    return $this->json(['redirect' => $path]);
                 default:
                     return $this->json(null);
             }

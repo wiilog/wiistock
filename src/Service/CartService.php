@@ -239,7 +239,7 @@ class CartService {
                                           Utilisateur $utilisateur,
                                           PurchaseRequestService $purchaseRequestService,
                                           EntityManagerInterface $entityManager,
-                                          Cart $cart): ?TransferRequest
+                                          Cart $cart): array
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
@@ -284,7 +284,7 @@ class CartService {
         }
         $this->emptyCart($cart);
         $entityManager->flush();
-        return null;
+        return $requestsByBuyer;
     }
 
     public function manageDeliveryRequest($data,
