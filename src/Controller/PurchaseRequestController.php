@@ -49,8 +49,13 @@ class PurchaseRequestController extends AbstractController
         /** @var Utilisateur $requester */
         $requester = $this->getUser();
 
-        $status = $entityManager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::PURCHASE_REQUEST, Statut::DRAFT);
-
+        $status = $entityManager->getRepository(Statut::class)->findOneByCategorieNameAndStatutState(CategorieStatut::PURCHASE_REQUEST, Statut::DRAFT);
+        if (!$status) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Aucun statut brouillon crée pour les demandes d\'achat. Veuillez en paramétrer un.'
+            ]);
+        }
         $purchaseRequest = $purchaseRequestService->createPurchaseRequest($entityManager, $status, $requester);
 
         $entityManager->persist($purchaseRequest);

@@ -158,7 +158,7 @@ class PurchaseRequest
         return $this->creationDate;
     }
 
-    public function setCreationDate(?DateTime $creationDate): self
+    public function setCreationDate(?DateTimeInterface $creationDate): self
     {
         $this->creationDate = $creationDate;
 

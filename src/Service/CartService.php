@@ -13,6 +13,7 @@ use App\Entity\Demande;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\PurchaseRequest;
+use App\Entity\PurchaseRequestLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TransferRequest;
@@ -21,6 +22,7 @@ use App\Entity\Utilisateur;
 use App\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\PhpUnit\TextUI\Command;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Security;
@@ -235,40 +237,52 @@ class CartService {
 
     public function managePurchaseRequest($data,
                                           Utilisateur $utilisateur,
+                                          PurchaseRequestService $purchaseRequestService,
                                           EntityManagerInterface $entityManager,
                                           Cart $cart): ?TransferRequest
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $status = $statusRepository->findOneByCategorieNameAndStatutState(CategorieStatut::PURCHASE_REQUEST, Statut::DRAFT);
 
-        $requestsByBuyer = [];
-        foreach ($data as $key => $datum) {
-            if (str_starts_with($key, 'reference')) {
-                if (preg_match('/(-(.\d*)-(.\d*))/', $key, $match) == 1) {
-                    // key is of regex reference-buyerID-index
-                    // datum is the reference of the ref
-                    $buyerID = $match[2];
-                    $index = $match[3];
-                    $associatedPurchaseRequest = $data['purchase-' . $buyerID] ?: ($requestsByBuyer[$buyerID] ?? null);
-                    $wantedQuantity = $data['quantity-' . $buyerID . '-' . $index];
+        if ($status) {
+            $requestsByBuyer = [];
+            foreach ($data as $key => $datum) {
+                if (str_starts_with($key, 'reference')) {
+                    if (preg_match('/(-(.\d*)-(.\d*))/', $key, $match) == 1) {
+                        $buyerID = $match[2];
+                        $index = $match[3];
+                        $associatedPurchaseRequest = $data['purchase-' . $buyerID] ?: ($requestsByBuyer[$buyerID] ?? null);
+                        $wantedQuantity = intval($data['quantity-' . $buyerID . '-' . $index]);
+                        $reference = $referenceArticleRepository->findOneByReference($datum);
 
-                    if ($associatedPurchaseRequest) {
-                        // Find the purchase request with repository and number and
-                        // Verify that it can be added, eg if the buyerID is the buyer of the purchase request
-                        $request = $associatedPurchaseRequest;
-                    } else {
-                        // Create purchase request and add the reference
-                        // This is a fake generated number, properly generate one
-                        $request = rand(10000, 1000000);
+                        if ($associatedPurchaseRequest) {
+                            $request = $associatedPurchaseRequest instanceof PurchaseRequest
+                                ? $associatedPurchaseRequest
+                                : $purchaseRequestRepository->find($associatedPurchaseRequest);
+                        } else {
+                            $request = $purchaseRequestService->createPurchaseRequest($entityManager, $status, $utilisateur);
+                            $entityManager->persist($request);
+                            $entityManager->flush();
+                        }
+                        $refAlreadyInRequest = !$request->getPurchaseRequestLines()->filter(function (PurchaseRequestLine $line) use ($reference) {
+                            return $line->getReference() === $reference;
+                        })->isEmpty();
+                        if (!$refAlreadyInRequest && (!$request->getBuyer() || $request->getBuyer()->getId() === intval($buyerID))) {
+                            $line = new PurchaseRequestLine();
+                            $line
+                                ->setRequestedQuantity($wantedQuantity)
+                                ->setReference($reference)
+                                ->setPurchaseRequest($request);
+                            $entityManager->persist($line);
+                        }
+                        $requestsByBuyer[$buyerID] = $request;
                     }
-                    $requestsByBuyer[$buyerID] = $request;
-                    dump($associatedPurchaseRequest ? 'Found purchase request number ' . $associatedPurchaseRequest : 'Creating new purchase request');
-                    $reference = $referenceArticleRepository->findOneByReference($datum);
-                    dump('Adding reference : ' . $reference->getReference() . ' to the purchase request (' . $request .') with a wanted quantity of : ' . $wantedQuantity . '.');
                 }
             }
         }
-//        $this->emptyCart($cart);
+        $this->emptyCart($cart);
         $entityManager->flush();
         return null;
     }

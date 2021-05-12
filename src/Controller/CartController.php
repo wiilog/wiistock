@@ -9,6 +9,7 @@ use App\Entity\Cart;
 use App\Entity\ReferenceArticle;
 use App\Service\CartService;
 use App\Service\DemandeLivraisonService;
+use App\Service\PurchaseRequestService;
 use App\Service\RefArticleDataService;
 use App\Service\UniqueNumberService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -106,6 +107,7 @@ class CartController extends AbstractController
     public function addToRequest(Request $request,
                                  CartService $cartService,
                                  DemandeLivraisonService $demandeLivraisonService,
+                                 PurchaseRequestService $purchaseRequestService,
                                  RefArticleDataService $refArticleDataService,
                                  UniqueNumberService $uniqueNumberService,
                                  EntityManagerInterface $entityManager)
@@ -150,9 +152,11 @@ class CartController extends AbstractController
                     $cartService->managePurchaseRequest(
                         $data,
                         $this->getUser(),
+                        $purchaseRequestService,
                         $entityManager,
                         $cart
                     );
+                    return $this->json(['redirect' => $this->generateUrl('purchase_request_index')]);
                 default:
                     return $this->json(null);
             }
