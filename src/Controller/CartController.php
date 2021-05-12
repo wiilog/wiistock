@@ -86,12 +86,17 @@ class CartController extends AbstractController
     public function addToRequest(Request $request,
                                  CartService $cartService,
                                  DemandeLivraisonService $demandeLivraisonService,
-                                 DemandeCollecteService $demandeCollecteService,
                                  RefArticleDataService $refArticleDataService,
                                  UniqueNumberService $uniqueNumberService,
                                  EntityManagerInterface $entityManager)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $cartRepository = $entityManager->getRepository(Cart::class);
+
+            $cart = $cartRepository->findOneBy([
+                'user' => $this->getUser()
+            ]);
+
             $type = intval($data['requestType']);
             switch ($type) {
                 case 0:
@@ -100,15 +105,16 @@ class CartController extends AbstractController
                         $demandeLivraisonService,
                         $this->getUser(),
                         $refArticleDataService,
-                        $entityManager
+                        $entityManager,
+                        $cart
                     );
                     return $this->json(['redirect' => $this->generateUrl('demande_show', ['id' => $delivery->getId()])]);
                 case 1:
                     $collect = $cartService->manageCollectRequest(
                         $data,
-                        $demandeCollecteService,
                         $this->getUser(),
-                        $entityManager
+                        $entityManager,
+                        $cart
                     );
                     return $this->json(['redirect' => $this->generateUrl('collecte_show', ['id' => $collect->getId()])]);
                 case 2:
@@ -116,7 +122,8 @@ class CartController extends AbstractController
                         $data,
                         $uniqueNumberService,
                         $this->getUser(),
-                        $entityManager
+                        $entityManager,
+                        $cart
                     );
                     return $this->json(['redirect' => $this->generateUrl('transfer_request_show', ['id' => $transfer->getId()])]);
                 case 3:

@@ -146,10 +146,14 @@ class CartService {
         ]);
     }
 
+    private function emptyCart(Cart $cart) {
+        $cart->getReferences()->clear();
+    }
+
     public function manageCollectRequest($data,
-                                         DemandeCollecteService $demandeCollecteService,
                                          Utilisateur $utilisateur,
-                                         EntityManagerInterface $entityManager): Collecte {
+                                         EntityManagerInterface $entityManager,
+                                         Cart $cart): Collecte {
         $collectRepository = $entityManager->getRepository(Collecte::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -186,6 +190,7 @@ class CartService {
                 $entityManager->persist($collecteReference);
             }
         }
+        $this->emptyCart($cart);
         $entityManager->flush();
         return $request;
     }
@@ -194,7 +199,8 @@ class CartService {
                                            DemandeLivraisonService $demandeLivraisonService,
                                            Utilisateur $utilisateur,
                                            RefArticleDataService $refArticleDataService,
-                                           EntityManagerInterface $entityManager): Demande {
+                                           EntityManagerInterface $entityManager,
+                                           Cart $cart): Demande {
         $deliveryRepository = $entityManager->getRepository(Demande::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -235,6 +241,7 @@ class CartService {
                     ->setQuantiteAPrelever(max($quantityToDeliver, 0)); // protection contre quantités négatives
             }
         }
+        $this->emptyCart($cart);
         $entityManager->flush();
         return $request;
     }
@@ -242,7 +249,8 @@ class CartService {
     public function manageTransferRequest($data,
                                           UniqueNumberService $uniqueNumberService,
                                           Utilisateur $utilisateur,
-                                          EntityManagerInterface $entityManager): TransferRequest {
+                                          EntityManagerInterface $entityManager,
+                                          Cart $cart): TransferRequest {
         $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -283,6 +291,7 @@ class CartService {
                 $request->addArticle($article);
             }
         }
+        $this->emptyCart($cart);
         $entityManager->flush();
         return $request;
     }
