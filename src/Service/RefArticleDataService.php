@@ -22,7 +22,7 @@ use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
 use App\Helper\FormatHelper;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Repository\FiltreRefRepository;
 use DateTime;
 use DateTimeZone;

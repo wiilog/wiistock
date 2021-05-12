@@ -2,7 +2,7 @@
 
 namespace App\Entity\Dashboard;
 
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Repository\Dashboard as DashboardRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

@@ -32,6 +32,9 @@
     "doctrine/dbal": {
         "version": "2.12.1"
     },
+    "doctrine/deprecations": {
+        "version": "v0.5.3"
+    },
     "doctrine/doctrine-bundle": {
         "version": "2.0",
         "recipe": {
@@ -616,6 +619,9 @@
     },
     "webmozart/assert": {
         "version": "1.9.1"
+    },
+    "wiilog/common": {
+        "version": "dev-master"
     },
     "willdurand/jsonp-callback-validator": {
         "version": "v1.1.0"
