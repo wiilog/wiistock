@@ -189,13 +189,18 @@ class TransferRequestController extends AbstractController {
             }
 
             $destination = $entityManager->getRepository(Emplacement::class)->find($data['destination']);
-
+            $origin = null;
+            if (isset($data['origin'])) {
+                $origin = $entityManager->getRepository(Emplacement::class)->find($data['origin']);
+            }
             $transfer = $entityManager->getRepository(TransferRequest::class)->find($data['transfer']);
             $transfer
                 ->setFilled(true)
                 ->setDestination($destination)
                 ->setComment($data['comment']);
-
+            if ($origin) {
+                $transfer->setOrigin($origin);
+            }
             $entityManager->flush();
 
             return $this->json([

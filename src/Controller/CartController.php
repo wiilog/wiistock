@@ -8,6 +8,7 @@ use App\Service\CartService;
 use App\Service\DemandeCollecteService;
 use App\Service\DemandeLivraisonService;
 use App\Service\RefArticleDataService;
+use App\Service\UniqueNumberService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -72,7 +73,10 @@ class CartController extends AbstractController
             case 1:
                 return $this->json($cartService->renderCollectTypeModal($cart, $entityManager));
             case 2:
+                return $this->json($cartService->renderTransferTypeModal($cart, $entityManager));
             case 3:
+            default:
+                return null;
         }
     }
 
@@ -84,6 +88,7 @@ class CartController extends AbstractController
                                  DemandeLivraisonService $demandeLivraisonService,
                                  DemandeCollecteService $demandeCollecteService,
                                  RefArticleDataService $refArticleDataService,
+                                 UniqueNumberService $uniqueNumberService,
                                  EntityManagerInterface $entityManager)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -107,7 +112,16 @@ class CartController extends AbstractController
                     );
                     return $this->json(['redirect' => $this->generateUrl('collecte_show', ['id' => $collect->getId()])]);
                 case 2:
+                    $transfer = $cartService->manageTransferRequest(
+                        $data,
+                        $uniqueNumberService,
+                        $this->getUser(),
+                        $entityManager
+                    );
+                    return $this->json(['redirect' => $this->generateUrl('transfer_request_show', ['id' => $transfer->getId()])]);
                 case 3:
+                default:
+                    return $this->json(null);
             }
         }
         throw new BadRequestHttpException();

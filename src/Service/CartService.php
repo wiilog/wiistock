@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Cart;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\Demande;
@@ -13,6 +14,8 @@ use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TransferRequest;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\Stream;
 use DateTime;
@@ -79,7 +82,7 @@ class CartService {
         ]);
 
         $draft = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_BROUILLON);
-        $refs = Stream::from($cart->getRefArticle())
+        $refs = Stream::from($cart->getReferences())
             ->map(function(ReferenceArticle $referenceArticle) {
                 return [
                     'articles' => $referenceArticle->getAssociatedArticles(),
@@ -98,12 +101,35 @@ class CartService {
         ]);
     }
 
+    public function renderTransferTypeModal(Cart $cart, EntityManagerInterface $entityManager) {
+        $transferRepository = $entityManager->getRepository(TransferRequest::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
+        $draft = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::DRAFT);
+        $refs = Stream::from($cart->getReferences())
+            ->map(function(ReferenceArticle $referenceArticle) {
+                return [
+                    'articles' => $referenceArticle->getAssociatedArticles(),
+                    'reference' => $referenceArticle->getReference(),
+                ];
+            });
+        $transfers = $transferRepository->findBy([
+            'requester' => $cart->getUser(),
+            'status' => $draft
+        ]);
+
+        return $this->twig->render('cart/transferTypeContent.html.twig', [
+            'refs' => $refs,
+            'transfers' => $transfers,
+        ]);
+    }
+
     public function renderCollectTypeModal(Cart $cart, EntityManagerInterface $entityManager) {
         $collectsRepository = $entityManager->getRepository(Collecte::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $draft = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_BROUILLON);
-        $refs = Stream::from($cart->getRefArticle())
+        $refs = Stream::from($cart->getReferences())
             ->map(function(ReferenceArticle $referenceArticle) {
                 return [
                     'reference' => $referenceArticle->getReference(),
@@ -123,7 +149,7 @@ class CartService {
     public function manageCollectRequest($data,
                                          DemandeCollecteService $demandeCollecteService,
                                          Utilisateur $utilisateur,
-                                         EntityManagerInterface $entityManager) {
+                                         EntityManagerInterface $entityManager): Collecte {
         $collectRepository = $entityManager->getRepository(Collecte::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -207,6 +233,54 @@ class CartService {
                 $article
                     ->setDemande($request)
                     ->setQuantiteAPrelever(max($quantityToDeliver, 0)); // protection contre quantités négatives
+            }
+        }
+        $entityManager->flush();
+        return $request;
+    }
+
+    public function manageTransferRequest($data,
+                                          UniqueNumberService $uniqueNumberService,
+                                          Utilisateur $utilisateur,
+                                          EntityManagerInterface $entityManager): TransferRequest {
+        $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
+        $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+
+        $draft = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::DRAFT);
+        $type = $entityManager->getRepository(Type::class)->findOneByCategoryLabel(CategoryType::TRANSFER_REQUEST);
+        $transferRequestNumber = $uniqueNumberService->createUniqueNumber(
+            $entityManager,
+            TransferRequest::NUMBER_PREFIX,
+            TransferRequest::class,
+            UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT
+        );
+
+        $transfer = $data['transfer'];
+        if ($transfer) {
+            $request = $transferRequestRepository->find(intval($transfer));
+        } else {
+            $request = new TransferRequest();
+            $request
+                ->setNumber($transferRequestNumber)
+                ->setRequester($utilisateur)
+                ->setFilled(false)
+                ->setType($type)
+                ->setCreationDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')))
+                ->setStatus($draft);
+            $entityManager->persist($request);
+            $entityManager->flush();
+        }
+
+        foreach ($data as $key => $datum) {
+            if (str_starts_with($key, 'reference')) {
+                $reference = $referenceRepository->findOneByReference($datum);
+                $request->addReference($reference);
+            } else if (str_starts_with($key, 'article')) {
+                $article = $articleRepository->find($datum);
+                $request->addArticle($article);
             }
         }
         $entityManager->flush();
