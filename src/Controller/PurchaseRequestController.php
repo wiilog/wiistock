@@ -19,7 +19,6 @@ use App\Service\UserService;
 use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Iterator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -212,6 +211,7 @@ class PurchaseRequestController extends AbstractController
      * @HasPermission({Menu::DEM, Action::EDIT})
      */
     public function addReference(Request $request,
+                                 PurchaseRequestService $purchaseRequestService,
                                  EntityManagerInterface $entityManager,
                                  PurchaseRequest $purchaseRequest): Response {
 
@@ -221,9 +221,6 @@ class PurchaseRequestController extends AbstractController
         $reference = $referenceArticleRepository->find($data['reference']);
         $requestedQuantity = $data['requestedQuantity'];
 
-        $lineWithSameRef = $purchaseRequest->getPurchaseRequestLines()
-            ->filter(fn (PurchaseRequestLine $line) => $line->getReference() === $reference)
-            ->toArray();
 
         if($reference == null){
             $errorMessage = "La référence n'existe pas";
@@ -231,8 +228,19 @@ class PurchaseRequestController extends AbstractController
         else if ($requestedQuantity == null || $requestedQuantity < 1) {
             $errorMessage = "La quantité ajoutée n'est pas valide";
         }
-        else if (!empty($lineWithSameRef)) {
-            $errorMessage = "La référence a déjà était ajoutée à la demande d'achat";
+        else {
+            $linesWithSameRef = $purchaseRequest->getPurchaseRequestLines()
+                ->filter(fn (PurchaseRequestLine $line) => $line->getReference() === $reference)
+                ->toArray();
+            if (!empty($linesWithSameRef)) {
+                $errorMessage = "La référence a déjà été ajoutée à la demande d'achat";
+            }
+            else if (!$reference->getBuyer()) {
+                $errorMessage = "La référence doit avoir un acheteur";
+            }
+            else if ($purchaseRequest->getBuyer() && $reference->getBuyer() !== $purchaseRequest->getBuyer()) {
+                $errorMessage = "La référence doit avoir un acheteur identique à la demande d'achat";
+            }
         }
 
         if (!empty($errorMessage)) {
@@ -248,13 +256,21 @@ class PurchaseRequestController extends AbstractController
             ->setRequestedQuantity($requestedQuantity)
             ->setPurchaseRequest($purchaseRequest);
 
-        $entityManager->persist($purchaseRequestLine);
+        $purchaseRequest->setBuyer($reference->getBuyer());
 
+        $entityManager->persist($purchaseRequestLine);
         $entityManager->flush();
+
+        $purchaseRequestStatus = $purchaseRequest->getStatus();
 
         return $this->json([
             "success" => true,
-            'msg' => "La référence a bien était ajoutée à la demande d'achat"
+            'msg' => "La référence a bien était ajoutée à la demande d'achat",
+            'entete' => $this->renderView('purchase_request/show_header.html.twig', [
+                'request' => $purchaseRequest,
+                'modifiable' => $purchaseRequestStatus && $purchaseRequestStatus->isDraft(),
+                'showDetails' => $purchaseRequestService->createHeaderDetailsConfig($purchaseRequest)
+            ]),
         ]);
     }
 

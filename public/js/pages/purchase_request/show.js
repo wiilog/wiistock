@@ -1,5 +1,3 @@
-let tableReference;
-
 $(function() {
     const purchaseRequestBuyerId = $('#purchase-request-buyer-id').val();
     Select2Old.articleReference($('#add-article-reference'), {
