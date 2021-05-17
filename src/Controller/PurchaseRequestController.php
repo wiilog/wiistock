@@ -19,7 +19,7 @@ use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Generator;
+use Iterator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -131,7 +131,7 @@ class PurchaseRequestController extends AbstractController
                 function ($output) use ($requests, $lines, $purchaseRequestService, $CSVExportService) {
                     foreach ($requests as $request) {
                         $lineAddedForRequest = false;
-                        if ($lines instanceof Generator && $lines->valid()) {
+                        if ($lines instanceof Iterator && $lines->valid()) {
                             $line = $lines->current();
                             while ($lines->valid()
                                 && $line
